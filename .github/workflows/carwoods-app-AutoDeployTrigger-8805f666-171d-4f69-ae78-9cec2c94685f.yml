@@ -8,13 +8,13 @@ on:
     - '**'
     - '.github/workflows/carwoods-app-AutoDeployTrigger-8805f666-171d-4f69-ae78-9cec2c94685f.yml'
 
-  # Allow manual trigger 
-  workflow_dispatch:      
+  # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions: 
+    permissions:
       id-token: write #This is required for requesting the OIDC JWT Token
       contents: read #Required when GH token is used to authenticate with private repo
 
@@ -33,11 +33,19 @@ jobs:
       - name: Build React app
         run: npm run build
 
-      - name: Build and push Docker image
+      - name: Build Docker image
+        run: docker build -t carwoods-app:${{ github.sha }} .
+
+      - name: Log in to Azure Container Registry
         run: |
           docker build -t ${{ secrets.REGISTRY_URL }}/carwoods-app:${{ github.sha }} .
           echo ${{ secrets.REGISTRY_PASSWORD }} | docker login ${{ secrets.REGISTRY_URL }} -u ${{ secrets.REGISTRY_USERNAME }} --password-stdin
-          docker push ${{ secrets.REGISTRY_URL }}/carwoods-app:${{ github.sha }}
+
+      - name: Tag Docker image
+        run: docker tag carwoods-app:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/carwoods-app:${{ github.sha }}
+
+      - name: Push Docker image
+        run: docker push ${{ secrets.REGISTRY_URL }}/carwoods-app:${{ github.sha }}
 
       - name: Azure Login
         uses: azure/login@v1
@@ -48,4 +56,4 @@ jobs:
 
       - name: Deploy to Azure Container Instances
         run: |
-          az container create --resource-group carwoods --name carwoods-app --image ${{ secrets.REGISTRY_URL }}/carwoods-app:${{ github.sha }} --cpu 1 --memory 1 --registry-login-server ${{ secrets.REGISTRY_URL }} --registry-username ${{ secrets.REGISTRY_USERNAME }} --registry-password ${{ secrets.REGISTRY_PASSWORD }} --dns-name-label carwoods-app-${{ github.sha }}
+            az container create --resource-group carwoods --name carwoods-app --image ${{ secrets.REGISTRY_URL }}/carwoods-app:${{ github.sha }} --cpu 1 --memory 1 --registry-login-server ${{ secrets.REGISTRY_URL }} --registry-username ${{ secrets.REGISTRY_USERNAME }} --registry-password ${{ secrets.REGISTRY_PASSWORD }} --dns-name-label carwoods-app-${{ github.sha }}
