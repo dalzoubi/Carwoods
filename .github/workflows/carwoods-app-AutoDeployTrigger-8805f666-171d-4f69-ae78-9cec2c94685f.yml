@@ -22,23 +22,12 @@ jobs:
       - name: Checkout to the branch
         uses: actions/checkout@v2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '18.x'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build React app
-        run: npm run build
-
       - name: Build Docker image
         run: docker build -t carwoods-app:${{ github.sha }} .
 
       - name: Log in to Azure Container Registry
         run: |
-          echo ${{ secrets.REGISTRY_PASSWORD }} | docker login ${{ secrets.REGISTRY_URL }} -u ${{ secrets.REGISTRY_USERNAME }} --password-stdin
+          echo ${{ secrets.REGISTRY_PASSWORD }} | docker login ${{ secrets.REGISTRY_URL }} -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.CARWOODSAPP_REGISTRY_PASSWORD }}
 
       - name: Tag Docker image
         run: docker tag carwoods-app:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/carwoods-app:${{ github.sha }}
