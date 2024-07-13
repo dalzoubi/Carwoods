@@ -10,7 +10,7 @@ const Home = () => {
             </Helmet>
             <Heading>Welcome to Your Future Home!</Heading>
             <Paragraph>
-                Carwoods® makes it easy for you to rent a real estate property. Our team of professionals works around the clock to ensure you have a pleasant stay at one of our properties nationwide.
+                We make it easy for you to rent a real estate property. Our team of professionals works around the clock to ensure you have a pleasant stay at one of our properties nationwide.
             </Paragraph>
         </div>
     );
