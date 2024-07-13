@@ -1,10 +1,8 @@
 name: Trigger auto deployment for carwoods-app
 
-# When this action will be executed
 on:
-  # Automatically trigger it when detected changes in repo
   push:
-    branches: 
+    branches:
       [ main ]
     paths:
     - '**'
@@ -24,18 +22,35 @@ jobs:
       - name: Checkout to the branch
         uses: actions/checkout@v2
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build React app
+        run: npm run build
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t ${{ secrets.REGISTRY_URL }}/carwoods-app:${{ github.sha }} .
+          echo ${{ secrets.REGISTRY_PASSWORD }} | docker login ${{ secrets.REGISTRY_URL }} -u ${{ secrets.REGISTRY_USERNAME }} --password-stdin
+          docker push ${{ secrets.REGISTRY_URL }}/carwoods-app:${{ github.sha }}
+
       - name: Azure Login
         uses: azure/login@v1
         with:
-          client-id: ${{ secrets.CARWOODSAPP_AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.CARWOODSAPP_AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.CARWOODSAPP_AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }} 
-          registryUrl: 
+          appSourcePath: ${{ github.workspace }}
+          registryUrl:
           registryUsername: ${{ secrets.CARWOODSAPP_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.CARWOODSAPP_REGISTRY_PASSWORD }}
           containerAppName: carwoods-app
@@ -43,5 +58,3 @@ jobs:
           imageToBuild: default/[parameters('containerAppName')]:${{ github.sha }}
           _buildArgumentsKey_: |
             _buildArgumentsValues_
-
-
