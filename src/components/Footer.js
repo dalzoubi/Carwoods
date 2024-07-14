@@ -3,8 +3,8 @@ import styled from 'styled-components';
 import theme from '../theme';
 
 const FooterContainer = styled.footer`
-    background-color: ${theme.primary}; /* Match header color */
-    color: ${theme.textPrimary};
+    background-color: ${theme.palette.primary.main}; /* Match header color */
+    color: ${theme.palette.text.primary};
     text-align: center;
     padding: 1rem;
     width: 100%; /* Ensure it takes full width */
@@ -13,7 +13,7 @@ const FooterContainer = styled.footer`
 `;
 
 const FooterLink = styled.a`
-    color: ${theme.textSecondary}; /* Ensure links are visible */
+    color: ${theme.palette.text.link}; /* Ensure links are visible */
     text-decoration: none;
     margin: 0 10px;
     font-size: 1.1rem;

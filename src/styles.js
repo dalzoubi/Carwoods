@@ -4,7 +4,7 @@ import theme from './theme';
 
 export const Container = styled.main`
     font-family: 'Helvetica Neue', sans-serif;
-    color: ${theme.textSecondary};
+    color: ${theme.palette.text.secondary};
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
@@ -13,32 +13,33 @@ export const Container = styled.main`
 export const Content = styled.section`
     margin-top: 20px;
     padding: 20px;
-    background: #e0e0e0; /* Darker background */
+    background: ${theme.palette.background.paper};
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    color: #333; /* Darker text color */
+    color: ${theme.palette.text.secondary};
 `;
 
 export const NavLink = styled(RouterNavLink)`
-    color: ${theme.textPrimary};
+    color: ${theme.palette.text.primary};
     text-decoration: none;
     font-weight: bold;
     padding: 0.5rem 1rem;
-    transition: background 0.3s;
+    transition: background 0.3s, color 0.3s;
 
     &.active {
-        background: #115293; /* Darker shade of blue */
+        background: ${theme.palette.primary.dark};
         border-radius: 4px;
     }
 
     &:hover {
-        background: #115293; /* Darker shade of blue */
+        background: ${theme.palette.primary.light};
+        color: ${theme.palette.text.secondary};
         border-radius: 4px;
     }
 `;
 
 export const Heading = styled.h1`
-    color: ${theme.primary}; /* Set color to primary (blue) */
+    color: ${theme.palette.primary.main};
     font-size: 2.5rem;
     margin-bottom: 10px;
 `;
