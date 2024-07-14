@@ -5,7 +5,7 @@ import {
     IconButton,
     Drawer,
     List,
-    ListItem,
+    ListItemButton,
     ListItemText,
     CssBaseline,
     useTheme,
@@ -25,20 +25,56 @@ const ResponsiveNavbar = () => {
     };
 
     const drawer = (
-        <div style={{ backgroundColor: theme.palette.primary.main, height: '100%' }}>
+        <div style={{ backgroundColor: theme.palette.drawer.background, height: '100%' }}>
             <List>
-                <ListItem button component={NavLink} to="/" onClick={handleDrawerToggle}>
-                    <ListItemText primary="Home" style={{ color: theme.palette.text.primary }} />
-                </ListItem>
-                <ListItem button component={NavLink} to="/tenant-selection-criteria" onClick={handleDrawerToggle}>
-                    <ListItemText primary="Tenant Selection Criteria" style={{ color: theme.palette.text.primary }} />
-                </ListItem>
-                <ListItem button component={NavLink} to="/application-required-documents" onClick={handleDrawerToggle}>
-                    <ListItemText primary="Application Required Documents" style={{ color: theme.palette.text.primary }} />
-                </ListItem>
-                <ListItem button component={NavLink} to="/property-management" onClick={handleDrawerToggle}>
-                    <ListItemText primary="Property Management" style={{ color: theme.palette.text.primary }} />
-                </ListItem>
+                <ListItemButton
+                    component={NavLink}
+                    to="/"
+                    onClick={handleDrawerToggle}
+                    sx={{
+                        '&:hover': {
+                            backgroundColor: theme.palette.drawer.hover,
+                        },
+                    }}
+                >
+                    <ListItemText primary="Home" style={{ color: theme.palette.drawer.text }} />
+                </ListItemButton>
+                <ListItemButton
+                    component={NavLink}
+                    to="/tenant-selection-criteria"
+                    onClick={handleDrawerToggle}
+                    sx={{
+                        '&:hover': {
+                            backgroundColor: theme.palette.drawer.hover,
+                        },
+                    }}
+                >
+                    <ListItemText primary="Tenant Selection Criteria" style={{ color: theme.palette.drawer.text }} />
+                </ListItemButton>
+                <ListItemButton
+                    component={NavLink}
+                    to="/application-required-documents"
+                    onClick={handleDrawerToggle}
+                    sx={{
+                        '&:hover': {
+                            backgroundColor: theme.palette.drawer.hover,
+                        },
+                    }}
+                >
+                    <ListItemText primary="Application Required Documents" style={{ color: theme.palette.drawer.text }} />
+                </ListItemButton>
+                <ListItemButton
+                    component={NavLink}
+                    to="/property-management"
+                    onClick={handleDrawerToggle}
+                    sx={{
+                        '&:hover': {
+                            backgroundColor: theme.palette.drawer.hover,
+                        },
+                    }}
+                >
+                    <ListItemText primary="Property Management" style={{ color: theme.palette.drawer.text }} />
+                </ListItemButton>
             </List>
         </div>
     );

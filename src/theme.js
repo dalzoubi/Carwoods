@@ -4,7 +4,7 @@ const theme = createTheme({
     palette: {
         primary: {
             main: '#1976d2', // Blue
-            light: '#a0c4f5', // Light Blue for hover
+            light: '#63a4ff', // Light Blue for hover
             dark: '#004ba0', // Dark Blue for active
         },
         secondary: {
@@ -17,6 +17,11 @@ const theme = createTheme({
         },
         background: {
             paper: '#e0e0e0', // Light background for content
+        },
+        drawer: {
+            background: '#1976d2', // Blue background for drawer
+            text: '#ffffff', // White text for drawer
+            hover: '#63a4ff', // Light blue for hover in drawer
         },
     },
 });

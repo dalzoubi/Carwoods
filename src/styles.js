@@ -32,7 +32,7 @@ export const NavLink = styled(RouterNavLink)`
     }
 
     &:hover {
-        background: ${theme.palette.primary.light};
+        background: ${theme.palette.drawer.hover};
         color: ${theme.palette.text.secondary};
         border-radius: 4px;
     }
