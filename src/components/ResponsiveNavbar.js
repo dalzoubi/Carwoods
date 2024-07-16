@@ -3,7 +3,6 @@ import {
     AppBar,
     Toolbar,
     IconButton,
-    Typography,
     Drawer,
     List,
     ListItemButton,
@@ -26,7 +25,7 @@ const ResponsiveNavbar = () => {
         setDrawerOpen(!drawerOpen);
     };
 
-    const drawer = (
+    const drawerContent = (
         <div style={{ backgroundColor: theme.palette.drawer.background, height: '100%' }}>
             <List>
                 <ListItemButton
@@ -98,23 +97,23 @@ const ResponsiveNavbar = () => {
                             >
                                 <MenuIcon />
                             </IconButton>
-                            <Typography variant="h6" noWrap>
-                                <img src={carwoodsLogo} alt="Carwoods" style={{ height: '50px' }} />
-                            </Typography>
+                            <NavLink to="/" style={{ marginLeft: 'auto', marginRight: 'auto' }}>
+                                <img src={carwoodsLogo} alt="Carwoods" style={{ height: '40px' }} />
+                            </NavLink>
                             <Drawer
                                 anchor="left"
                                 open={drawerOpen}
                                 onClose={handleDrawerToggle}
                                 aria-label="menu drawer"
                             >
-                                {drawer}
+                                {drawerContent}
                             </Drawer>
                         </>
                     ) : (
                         <>
-                            <Typography variant="h6" noWrap style={{ flexGrow: 1, textAlign: 'center' }}>
-                                <img src={carwoodsLogo} alt="Carwoods" style={{ height: '50px' }} />
-                            </Typography>
+                            <NavLink to="/" style={{ marginLeft: 'auto', marginRight: 'auto' }}>
+                                <img src={carwoodsLogo} alt="Carwoods" style={{ height: '40px' }} />
+                            </NavLink>
                             <nav aria-label="main navigation" style={{ marginLeft: 'auto', marginRight: 'auto', display: 'flex', justifyContent: 'center', flexGrow: 1 }}>
                                 <NavLink to="/" activeClassName="active">Home</NavLink>
                                 <NavLink to="/tenant-selection-criteria" activeClassName="active">Tenant Selection Criteria</NavLink>
