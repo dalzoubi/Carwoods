@@ -3,6 +3,7 @@ import {
     AppBar,
     Toolbar,
     IconButton,
+    Typography,
     Drawer,
     List,
     ListItemButton,
@@ -14,6 +15,7 @@ import {
 import MenuIcon from '@mui/icons-material/Menu';
 import { NavLink } from '../styles';
 import theme from '../theme';
+import carwoodsLogo from '../assets/carwoods-logo.png';
 
 const ResponsiveNavbar = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -96,6 +98,9 @@ const ResponsiveNavbar = () => {
                             >
                                 <MenuIcon />
                             </IconButton>
+                            <Typography variant="h6" noWrap>
+                                <img src={carwoodsLogo} alt="Carwoods" style={{ height: '50px' }} />
+                            </Typography>
                             <Drawer
                                 anchor="left"
                                 open={drawerOpen}
@@ -107,6 +112,9 @@ const ResponsiveNavbar = () => {
                         </>
                     ) : (
                         <>
+                            <Typography variant="h6" noWrap style={{ flexGrow: 1, textAlign: 'center' }}>
+                                <img src={carwoodsLogo} alt="Carwoods" style={{ height: '50px' }} />
+                            </Typography>
                             <nav aria-label="main navigation" style={{ marginLeft: 'auto', marginRight: 'auto', display: 'flex', justifyContent: 'center', flexGrow: 1 }}>
                                 <NavLink to="/" activeClassName="active">Home</NavLink>
                                 <NavLink to="/tenant-selection-criteria" activeClassName="active">Tenant Selection Criteria</NavLink>
