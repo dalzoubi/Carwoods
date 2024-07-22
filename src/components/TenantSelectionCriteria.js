@@ -1,6 +1,6 @@
 import React from 'react';
 import {Helmet} from 'react-helmet';
-import {Heading, Paragraph} from '../styles';
+import {Heading, Paragraph, nestedListStyle} from '../styles';
 
 const TenantSelectionCriteria = () => {
     return (
@@ -10,34 +10,68 @@ const TenantSelectionCriteria = () => {
             </Helmet>
             <Heading>Tenant Selection Criteria</Heading>
             <Paragraph>
-                <ul>
-                    <li>Minimum of 24 months verifiable employment history.</li>
-                    <li>Documented monthly gross income must be at least 3x the monthly rent.</li>
-                    <li>Minimum of 24 months verifiable rental history or mortgage payment paid on time.</li>
-                    <li>Minimum 650 credit score.</li>
-                    <li>No criminal convictions, evictions, bankruptcies, or any housing related collections or
-                        negatives on the credit report.
+                <ol>
+                    <li>At least 24 months of verifiable employment history.</li>
+                    <li>Monthly gross income must be at least 3 times the monthly rent.</li>
+                    <li>At least 24 months of verifiable rental or mortgage payment history.</li>
+                    <li>Minimum credit score of 650.</li>
+                    <li>No criminal convictions, evictions, bankruptcies, or housing-related collections/negatives on the credit report.
                     </li>
                     <li>Pet Criteria
-                        <ul>
-                            <li>No prohibited breeds of dogs include Akitas Inu, Alaskan Malamute, American Bull Dog,
-                                American Staffordshire Terrier, American Pit Bull Terrier, Beauceron, Boerboel, Bull
-                                Mastiff / American Bandogge /Bully Kutta (any other Mastiff breed), Cane Corso,
-                                Caucasian Ovcharka (Mountain Dogs), Chow Chow, Doberman Pinscher (miniature Dobermans
-                                acceptable), Dogo Argentino, English Bull Terrier, Fila Brasileiro (aka Brazilian
-                                Mastiff), German Shepherds, Giant Schnauzer, Great Dane, Gull Dong (aka Pakistani Bull
-                                Dog), Gull Terrier, Husky or Siberian Husky, Japanese Tosa / Tosa Inu / Tosa Ken, Korean
-                                Jindo, Perro de Presa Canario, “Pit Bull”, Rhodesian Ridgeback, Rottweiler,
-                                Staffordshire Bull Terrier, Thai Ridgeback Wolf or Wolf hybrid, &amp; any mixed breed
-                                dog containing any of the aforementioned breeds.
+                        <ol style={nestedListStyle}>
+                            <li>Prohibited Dog Breeds:
+                                <ul>
+                                    <li>Akitas Inu</li>
+                                    <li>Alaskan Malamute</li>
+                                    <li>American Bull Dog</li>
+                                    <li>American Staffordshire Terrier</li>
+                                    <li>American Pit Bull Terrier</li>
+                                    <li>Beauceron</li>
+                                    <li>Boerboel</li>
+                                    <li>Bull Mastiff / American Bandogge / Bully Kutta (any other Mastiff breed)</li>
+                                    <li>Cane Corso</li>
+                                    <li>Caucasian Ovcharka (Mountain Dogs)</li>
+                                    <li>Chow Chow</li>
+                                    <li>Doberman Pinscher (miniature Dobermans acceptable)</li>
+                                    <li>Dogo Argentino</li>
+                                    <li>English Bull Terrier</li>
+                                    <li>Fila Brasileiro (aka Brazilian Mastiff)</li>
+                                    <li>German Shepherds</li>
+                                    <li>Giant Schnauzer</li>
+                                    <li>Great Dane</li>
+                                    <li>Gull Dong (aka Pakistani Bull Dog)</li>
+                                    <li>Gull Terrier</li>
+                                    <li>Husky or Siberian Husky</li>
+                                    <li>Japanese Tosa / Tosa Inu / Tosa Ken</li>
+                                    <li>Korean Jindo</li>
+                                    <li>Perro de Presa Canario</li>
+                                    <li>“Pit Bull”</li>
+                                    <li>Rhodesian Ridgeback</li>
+                                    <li>Rottweiler</li>
+                                    <li>Staffordshire Bull Terrier</li>
+                                    <li>Thai Ridgeback</li>
+                                    <li>Wolf or Wolf Hybrid</li>
+                                    <li>Any mixed breed containing any of the above breeds</li>
+                                </ul>
                             </li>
-                            <li>No Exotic, farm, or saddle animals include but are not limited to hoofed animals,
-                                livestock, reptiles, primates, and fowl.
+                            <li>Prohibited Animals:
+                                <ul>
+                                    <li>Exotic animals</li>
+                                    <li>Farm animals (e.g., hoofed animals, livestock)</li>
+                                    <li>Saddle animals</li>
+                                    <li>Reptiles</li>
+                                    <li>Primates</li>
+                                    <li>Fowl</li>
+                                </ul>
                             </li>
-                            <li>No caged animals.</li>
-                        </ul>
+                            <li>Caged Animals:
+                                <ul>
+                                    <li>No caged animals allowed</li>
+                                </ul>
+                            </li>
+                        </ol>
                     </li>
-                </ul>
+                </ol>
             </Paragraph>
         </div>
     );

@@ -48,3 +48,5 @@ export const Paragraph = styled.p`
     line-height: 1.6;
     font-size: 1.1rem;
 `;
+
+export const nestedListStyle = { listStyleType: 'lower-alpha' };
