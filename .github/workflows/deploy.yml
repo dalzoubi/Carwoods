@@ -3,7 +3,7 @@ name: Build and Deploy to GitHub Pages (docs folder)
 on:
   push:
     branches:
-      - main # Trigger the workflow on pushes to the main branch
+      - main
 
 jobs:
   build-and-deploy:
@@ -18,7 +18,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 16 # Use a compatible version of Node.js
+          node-version: 18
 
       # Step 3: Install dependencies
       - name: Install dependencies
@@ -28,13 +28,21 @@ jobs:
       - name: Build the React app
         run: npm run build
 
-      # Step 5: Move build output to docs directory
+      # Step 5: Debugging - Check for build folder
+      - name: Debug build folder
+        run: |
+          echo "Listing current directory contents:"
+          ls -la
+          echo "Checking for 'build' directory:"
+          ls -la build || echo "'build' directory not found"
+
+      # Step 6: Move build output to docs directory
       - name: Move build output to docs directory
         run: |
           rm -rf docs
           mv build docs
 
-      # Step 6: Commit and push the changes to the main branch
+      # Step 7: Commit and push changes
       - name: Commit and push changes
         run: |
           git config --global user.name "github-actions[bot]"
