@@ -8,23 +8,21 @@ import PropertyManagement from './components/PropertyManagement';
 import Footer from './components/Footer';
 import ResponsiveNavbar from './components/ResponsiveNavbar';
 
-const App = () => {
-    return (
-        <Router>
-            <ResponsiveNavbar />
-            <Container>
-                <Content>
-                    <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/tenant-selection-criteria" element={<TenantSelectionCriteria />} />
-                        <Route path="/application-required-documents" element={<ApplicationRequiredDocuments />} />
-                        <Route path="/property-management" element={<PropertyManagement />} />
-                    </Routes>
-                </Content>
-            </Container>
-            <Footer />
-        </Router>
-    );
-};
+const App = () => (
+  <Router>
+    <ResponsiveNavbar />
+    <Container>
+      <Content>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/tenant-selection-criteria" element={<TenantSelectionCriteria />} />
+          <Route path="/application-required-documents" element={<ApplicationRequiredDocuments />} />
+          <Route path="/property-management" element={<PropertyManagement />} />
+        </Routes>
+      </Content>
+    </Container>
+    <Footer />
+  </Router>
+);
 
 export default App;
