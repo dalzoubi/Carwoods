@@ -10,7 +10,7 @@ import ResponsiveNavbar from './components/ResponsiveNavbar';
 
 const App = () => {
     return (
-        <Router basename="/Carwoods">
+        <Router>
             <ResponsiveNavbar />
             <Container>
                 <Content>
