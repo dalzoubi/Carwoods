@@ -1,0 +1,44 @@
+name: Build and Deploy to GitHub Pages (docs folder)
+
+on:
+  push:
+    branches:
+      - main # Trigger the workflow on pushes to the main branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16 # Use a compatible version of Node.js
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Step 4: Build the React app
+      - name: Build the React app
+        run: npm run build
+
+      # Step 5: Move build output to docs directory
+      - name: Move build output to docs directory
+        run: |
+          rm -rf docs
+          mv build docs
+
+      # Step 6: Commit and push the changes to the main branch
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs
+          git commit -m "Update GitHub Pages [skip ci]" || echo "No changes to commit"
+          git push origin main
