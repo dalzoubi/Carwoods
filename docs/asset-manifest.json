@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/Carwoods/static/css/main.e6c13ad2.css",
+    "main.js": "/Carwoods/static/js/main.01e9175d.js",
+    "static/js/488.8cd65ddb.chunk.js": "/Carwoods/static/js/488.8cd65ddb.chunk.js",
+    "index.html": "/Carwoods/index.html",
+    "main.e6c13ad2.css.map": "/Carwoods/static/css/main.e6c13ad2.css.map",
+    "main.01e9175d.js.map": "/Carwoods/static/js/main.01e9175d.js.map",
+    "488.8cd65ddb.chunk.js.map": "/Carwoods/static/js/488.8cd65ddb.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.01e9175d.js"
+  ]
+}
