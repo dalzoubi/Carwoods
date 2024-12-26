@@ -14,20 +14,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Cache Node.js modules
-      - name: Cache Node.js modules
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
       # Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18  # Update to a React 19-compatible Node.js version
+          node-version: 20  # Update to a React 19-compatible Node.js version
 
       # Install dependencies
       - name: Install dependencies
