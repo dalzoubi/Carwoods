@@ -33,10 +33,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # Audit and fix dependencies
-      - name: Audit dependencies
-        run: npm audit fix --force
-
       # Build the React app
       - name: Build the app
         run: npm run build
