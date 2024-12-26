@@ -1,5 +1,5 @@
 import React from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Container, Content } from './styles';
 import Home from './components/Home';
 import TenantSelectionCriteria from './components/TenantSelectionCriteria';
@@ -9,7 +9,7 @@ import Footer from './components/Footer';
 import ResponsiveNavbar from './components/ResponsiveNavbar';
 
 const App = () => (
-  <Router>
+  <Router basename={process.env.PUBLIC_URL}>
     <ResponsiveNavbar />
     <Container>
       <Content>
