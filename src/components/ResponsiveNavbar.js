@@ -31,6 +31,7 @@ const ResponsiveNavbar = () => {
                 <ListItemButton
                     component={NavLink}
                     to="/"
+                    className={({ isActive }) => (isActive ? 'active' : '')}
                     onClick={handleDrawerToggle}
                     sx={{
                         '&:hover': {
@@ -43,6 +44,7 @@ const ResponsiveNavbar = () => {
                 <ListItemButton
                     component={NavLink}
                     to="/tenant-selection-criteria"
+                    className={({ isActive }) => (isActive ? 'active' : '')}
                     onClick={handleDrawerToggle}
                     sx={{
                         '&:hover': {
@@ -55,6 +57,7 @@ const ResponsiveNavbar = () => {
                 <ListItemButton
                     component={NavLink}
                     to="/application-required-documents"
+                    className={({ isActive }) => (isActive ? 'active' : '')}
                     onClick={handleDrawerToggle}
                     sx={{
                         '&:hover': {
@@ -67,6 +70,7 @@ const ResponsiveNavbar = () => {
                 <ListItemButton
                     component={NavLink}
                     to="/property-management"
+                    className={({ isActive }) => (isActive ? 'active' : '')}
                     onClick={handleDrawerToggle}
                     sx={{
                         '&:hover': {
@@ -115,10 +119,10 @@ const ResponsiveNavbar = () => {
                                 <img src={carwoodsLogo} alt="Carwoods" style={{ height: '40px' }} />
                             </NavLink>
                             <nav aria-label="main navigation" style={{ marginLeft: 'auto', marginRight: 'auto', display: 'flex', justifyContent: 'center', flexGrow: 1 }}>
-                                <NavLink to="/" activeClassName="active">Home</NavLink>
-                                <NavLink to="/tenant-selection-criteria" activeClassName="active">Tenant Selection Criteria</NavLink>
-                                <NavLink to="/application-required-documents" activeClassName="active">Application Required Documents</NavLink>
-                                <NavLink to="/property-management" activeClassName="active">Property Management</NavLink>
+                                <NavLink to="/" className={({ isActive }) => (isActive ? 'active' : '')}>Home</NavLink>
+                                <NavLink to="/tenant-selection-criteria" className={({ isActive }) => (isActive ? 'active' : '')}>Tenant Selection Criteria</NavLink>
+                                <NavLink to="/application-required-documents" className={({ isActive }) => (isActive ? 'active' : '')}>Application Required Documents</NavLink>
+                                <NavLink to="/property-management" className={({ isActive }) => (isActive ? 'active' : '')}>Property Management</NavLink>
                             </nav>
                         </>
                     )}
