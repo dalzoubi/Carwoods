@@ -9,7 +9,7 @@ import Footer from './components/Footer';
 import ResponsiveNavbar from './components/ResponsiveNavbar';
 
 const App = () => (
-  <Router basename={process.env.PUBLIC_URL}>
+  <Router>
     <ResponsiveNavbar />
     <Container>
       <Content>
