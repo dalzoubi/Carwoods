@@ -8,9 +8,10 @@ const Home = () => {
             <Helmet>
                 <title>Carwoods - Home</title>
             </Helmet>
-            <Heading>Welcome to Your Future Home!</Heading>
+            <Heading>Carwoods: Where Houston Finds Home</Heading>
             <Paragraph>
-                We make it easy for you to rent a real estate property. Our team of professionals works around the clock to ensure you have a pleasant stay at one of our properties nationwide.
+                Finding your perfect rental property has never been easier. Our dedicated team of professionals works tirelessly to ensure your experience is seamless and your stay is nothing short of exceptional. With properties available nationwide, we’re here to help you feel at home, wherever you go.
+                Crafting Comfort, One Home at a Time.
             </Paragraph>
         </div>
     );
