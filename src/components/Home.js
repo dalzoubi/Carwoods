@@ -8,9 +8,9 @@ const Home = () => {
             <Helmet>
                 <title>Carwoods - Home</title>
             </Helmet>
-            <Heading>Carwoods: Where Houston Finds Home</Heading>
+            <Heading>Where Houston Finds Home</Heading>
             <Paragraph>
-                Finding your perfect rental property has never been easier. Our dedicated team of professionals works tirelessly to ensure your experience is seamless and your stay is nothing short of exceptional. With properties available nationwide, we’re here to help you feel at home, wherever you go.
+                Discover the ease of renting your dream property with us. Our dedicated team ensures a seamless experience and unparalleled comfort, offering a range of homes designed to fit your lifestyle. Proudly serving Houston and beyond, we’re here to make every house feel like home.
                 Crafting Comfort, One Home at a Time.
             </Paragraph>
         </div>
