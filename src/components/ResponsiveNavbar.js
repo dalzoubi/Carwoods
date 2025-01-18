@@ -80,6 +80,18 @@ const ResponsiveNavbar = () => {
                 >
                     <ListItemText primary="Property Management" style={{ color: theme.palette.drawer.text }} />
                 </ListItemButton>
+                <ListItemButton
+                    component={NavLink}
+                    to="/contact-us"
+                    onClick={handleDrawerToggle}
+                    sx={{
+                        '&:hover': {
+                            backgroundColor: theme.palette.drawer.hover,
+                        },
+                    }}
+                >
+                    <ListItemText primary="Contact Us" style={{ color: theme.palette.drawer.text }} />
+                </ListItemButton>
             </List>
         </div>
     );
@@ -123,6 +135,7 @@ const ResponsiveNavbar = () => {
                                 <NavLink to="/tenant-selection-criteria" className={({ isActive }) => (isActive ? 'active' : '')}>Tenant Selection Criteria</NavLink>
                                 <NavLink to="/application-required-documents" className={({ isActive }) => (isActive ? 'active' : '')}>Application Required Documents</NavLink>
                                 <NavLink to="/property-management" className={({ isActive }) => (isActive ? 'active' : '')}>Property Management</NavLink>
+                                <NavLink to="/contact-us" className={({ isActive }) => (isActive ? 'active' : '')}>Contact Us</NavLink>
                             </nav>
                         </>
                     )}
