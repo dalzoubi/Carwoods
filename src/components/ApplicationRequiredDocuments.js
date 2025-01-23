@@ -45,7 +45,7 @@ const ApplicationRequiredDocuments = () => {
                             <li>Other income (Child Support, Disability, Social Security, Retirement Benefits) requires
                                 proof of deposit (bank statement) and state-provided award letter.
                             </li>
-                            <li>Photos of pets.</li>
+                            <li>Immunization Records and Photos of pets.</li>
                         </ol>
                     </li>
                 </ol>
