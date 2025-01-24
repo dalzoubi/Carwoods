@@ -46,6 +46,8 @@ const ApplicationRequiredDocuments = () => {
                                 proof of deposit (bank statement) and state-provided award letter.
                             </li>
                             <li>Immunization Records and Photos of pets.</li>
+<li>Emergency contact information for someone not living with you (full name, address, email and phone number)</li>
+<li>Documentation for service animals or accessibility needs. </li>
                         </ol>
                     </li>
                 </ol>
