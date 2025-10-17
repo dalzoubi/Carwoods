@@ -15,7 +15,17 @@ const TenantSelectionCriteria = () => {
                     <li>Monthly gross income must be at least 3 times the monthly rent.</li>
                     <li>At least 24 months of verifiable rental or mortgage payment history.</li>
                     <li>Minimum credit score of 650.</li>
-                    <li>No criminal convictions, evictions, bankruptcies, or housing-related collections/negatives on the credit report.
+                    <li>No criminal convictions, evictions, bankruptcies, or housing-related collections/negatives on the credit report.</li>
+                    <li>
+                        Section 8 and Other Housing Assistance Applicants:
+                        <ol style={nestedListStyle}>
+                            <li>All applicants, including those using Housing Choice Vouchers (Section 8), are evaluated using the same screening criteria for rental history, credit, criminal background, and references.</li>
+                            <li>Income requirements are based on the tenant’s portion of rent as determined by the Housing Authority, not the full contract rent amount.</li>
+                            <li>Applicants must provide a valid voucher, RFTA packet, and contact information for their caseworker.</li>
+                            <li>No side payments are permitted. All rent amounts must be approved and documented through the Housing Authority.</li>
+                            <li>The voucher must be active and valid through the expected lease start date.</li>
+                            <li>All Section 8 units are subject to inspection and rent reasonableness approval by the Housing Authority before move-in.</li>
+                        </ol>
                     </li>
                     <li>Pet Criteria
                         <ol style={nestedListStyle}>
@@ -71,17 +81,7 @@ const TenantSelectionCriteria = () => {
                             </li>
                         </ol>
                     </li>
-                    <li>
-                        Section 8 and Other Housing Assistance Applicants:
-                        <ol style={nestedListStyle}>
-                            <li>All applicants, including those using Housing Choice Vouchers (Section 8), are evaluated using the same screening criteria for rental history, credit, criminal background, and references.</li>
-                            <li>Income requirements are based on the tenant’s portion of rent as determined by the Housing Authority, not the full contract rent amount.</li>
-                            <li>Applicants must provide a valid voucher, RFTA packet, and contact information for their caseworker.</li>
-                            <li>No side payments are permitted. All rent amounts must be approved and documented through the Housing Authority.</li>
-                            <li>The voucher must be active and valid through the expected lease start date.</li>
-                            <li>All Section 8 units are subject to inspection and rent reasonableness approval by the Housing Authority before move-in.</li>
-                        </ol>
-                    </li>
+
                 </ol>
             </Paragraph>
         </div>
