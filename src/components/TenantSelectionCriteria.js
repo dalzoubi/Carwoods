@@ -4,7 +4,7 @@ import { Heading, Paragraph, nestedListStyle } from '../styles';
 
 const TenantSelectionCriteria = () => {
     return (
-        <div>
+        <div className="tenant-criteria">
             <Helmet>
                 <title>Carwoods - Tenant Selection Criteria</title>
             </Helmet>
