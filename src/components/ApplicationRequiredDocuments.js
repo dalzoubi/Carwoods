@@ -39,7 +39,10 @@ const ApplicationRequiredDocuments = () => {
           <ol style={nestedListStyle}>
             <li>Most recent <strong>90 days</strong> of pay stubs showing year-to-date earnings.</li>
             <li>Written employment verification (HR letter or email confirming start date, position, and current status).</li>
-            <li>Bank statements for the most recent <strong>60 days</strong> (original bank-exported PDF, all pages).</li>
+            <li>
+              Bank statements for the most recent <strong>60 days</strong>
+              (original bank-exported PDF, all pages, <strong>must clearly show the applicant’s full name and current address</strong>).
+            </li>
             <li>Employer or HR contact information for verification (name, email, direct phone number).</li>
           </ol>
         </li>
@@ -48,7 +51,10 @@ const ApplicationRequiredDocuments = () => {
           <strong>If Self-Employed:</strong>
           <ol style={nestedListStyle}>
             <li>Most recent <strong>two (2) years</strong> of filed federal tax returns.</li>
-            <li>Last <strong>6 months</strong> of bank statements (original bank-exported PDF, all pages).</li>
+            <li>
+              Last <strong>6 months</strong> of bank statements
+              (original bank-exported PDF, all pages, <strong>must clearly show the applicant’s full name and current address</strong>).
+            </li>
             <li>Business documentation (EIN letter, certificate of formation, or business license).</li>
           </ol>
         </li>
