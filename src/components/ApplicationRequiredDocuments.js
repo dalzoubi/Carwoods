@@ -121,6 +121,18 @@ const ApplicationRequiredDocuments = () => {
             </li>
           </ol>
         </li>
+
+        <li>
+          <strong>Required guarantor documents:</strong>
+          <ol style={nestedListStyle}>
+            <li>Valid government-issued photo ID (color copy).</li>
+            <li>Social Security Number verification (SS card, W-2, 1099, or most recent tax return; partial redaction acceptable).</li>
+            <li>Most recent 2 pay stubs (or last 90 days where applicable) showing year-to-date earnings.</li>
+            <li>Written employment verification (HR letter/email confirming start date, position, and current status).</li>
+            <li>Bank statements for the most recent 60 days (original bank-exported PDFs, all pages).</li>
+            <li>If self-employed: most recent 2 years of filed federal tax returns and last 6 months of bank statements.</li>
+          </ol>
+        </li>
       </ol>
     </div>
   );

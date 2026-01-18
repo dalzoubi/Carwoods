@@ -34,6 +34,7 @@ const TenantSelectionCriteria = () => {
           </li>
           <li><a href="#housing-assistance">Housing Assistance</a></li>
           <li><a href="#credit-exception">Discretionary credit exception (rare)</a></li>
+          <li><a href="#guarantor-policy">Guarantor policy</a></li>
           <li><a href="#pets">Pets</a></li>
         </ol>
       </nav>
@@ -140,6 +141,90 @@ const TenantSelectionCriteria = () => {
           <li>Demonstrated <strong>positive bank balances and cash flow</strong> for the most recent <strong>60 days</strong></li>
           <li>All other criteria (employment, income, background, references) must still be met</li>
         </ul>
+      </section>
+
+      {/* NEW: Guarantor Policy (collapsible, one-page) */}
+      <section id="guarantor-policy">
+        <h2>Guarantor policy</h2>
+
+        <details>
+          <summary>View guarantor requirements and terms</summary>
+
+          <Paragraph>
+            A guarantor is a qualified individual who agrees in writing to be financially responsible for the lease obligations
+            if the tenant fails to pay or otherwise defaults. A guarantor is not a substitute for incomplete documentation and is
+            not a “character reference.” Guarantors are accepted only under the standards below, which are applied consistently
+            to all applicants.
+          </Paragraph>
+
+          <h3>When a guarantor may be considered</h3>
+          <ul>
+            <li>
+              A guarantor may be considered only when an applicant meets <strong>all</strong> screening requirements for credit,
+              background, rental history, and documentation, but does not fully meet the income requirement.
+            </li>
+            <li>
+              A guarantor is <strong>not</strong> available to offset disqualifying items such as criminal convictions, evictions,
+              bankruptcies, housing-related collections/negatives, or material misrepresentations.
+            </li>
+            <li>
+              Approval with a guarantor is not guaranteed and remains subject to owner/agent discretion based on documented risk
+              factors and consistency with published standards.
+            </li>
+          </ul>
+
+          <h3>Guarantor qualification requirements (mandatory)</h3>
+          <ul>
+            <li><strong>Identity:</strong> Valid government-issued photo ID (color copy).</li>
+            <li>
+              <strong>Income:</strong> Verifiable gross monthly income of at least <strong>4× the monthly rent</strong> (for housing
+              assistance applicants, 4× the full contract rent).
+            </li>
+            <li>
+              <strong>Employment:</strong> 24+ months of verifiable employment or self-employment history (self-employment requires
+              24 months of tax returns).
+            </li>
+            <li><strong>Credit:</strong> Minimum credit score of <strong>700</strong> (strictly enforced).</li>
+            <li>
+              <strong>Credit disqualifiers:</strong> Housing-related collections (utilities/energy/water/landlord claims), repossessions,
+              charge-offs, or a pattern of unpaid obligations may result in denial.
+            </li>
+            <li><strong>Background:</strong> No criminal convictions, evictions, or bankruptcies.</li>
+            <li><strong>Residency:</strong> Guarantor must reside in the United States and be reachable for verification.</li>
+          </ul>
+
+          <h3>Guarantor legal and payment terms</h3>
+          <ul>
+            <li>
+              The guarantor must complete a separate application and pass screening. Application fees (if any) apply.
+            </li>
+            <li>
+              The guarantor must sign a guaranty agreement that provides <strong>joint and several liability</strong> for all lease
+              obligations, including rent, fees, damages, and legal costs, to the fullest extent permitted by law.
+            </li>
+            <li>
+              The guarantor remains responsible for the lease term and any extensions/renewals unless released in writing by the
+              owner/agent.
+            </li>
+            <li>
+              The presence of a guarantor does not change payment due dates or late fee policies.
+            </li>
+            <li>
+              At lease renewal, the tenant must independently meet all published income and qualification requirements, or the
+              guarantor must agree in writing to remain in force for the renewal term. If neither condition is met, the lease may
+              be non-renewed.
+            </li>
+          </ul>
+
+          <h3>Important notes</h3>
+          <ul>
+            <li>No side payments or undisclosed arrangements are permitted.</li>
+            <li>Documentation must be complete and verifiable. Incomplete guarantor packages will not be processed.</li>
+            <li>
+              Carwoods reserves the right to request additional documentation to verify identity, income, and stability.
+            </li>
+          </ul>
+        </details>
       </section>
 
       <section id="pets">
