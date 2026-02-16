@@ -23,12 +23,12 @@ const ApplicationRequiredDocuments = () => {
           <ol style={nestedListStyle}>
             <li>Valid government-issued photo ID (Driver's License or State ID, color copy).</li>
             <li>
-              Social Security Number verification (one of the following, color copy):
+              Social Security Number verification (one of the following, color copy, showing full SSN):
               <ul style={nestedListStyle}>
                 <li>Social Security Card</li>
                 <li>W-2</li>
                 <li>1099</li>
-                <li>Most recent tax return (SSN partially redacted acceptable)</li>
+                <li>Most recent tax return</li>
               </ul>
             </li>
           </ol>
