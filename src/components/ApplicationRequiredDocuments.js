@@ -23,12 +23,12 @@ const ApplicationRequiredDocuments = () => {
           <ol style={nestedListStyle}>
             <li>Valid government-issued photo ID (Driver's License or State ID, color copy).</li>
             <li>
-              Social Security Number verification (one of the following, color copy):
+              Social Security Number verification (one of the following, color copy, showing full SSN):
               <ul style={nestedListStyle}>
                 <li>Social Security Card</li>
                 <li>W-2</li>
                 <li>1099</li>
-                <li>Most recent tax return (SSN partially redacted acceptable)</li>
+                <li>Most recent tax return</li>
               </ul>
             </li>
           </ol>
@@ -126,7 +126,7 @@ const ApplicationRequiredDocuments = () => {
           <strong>Required guarantor documents:</strong>
           <ol style={nestedListStyle}>
             <li>Valid government-issued photo ID (color copy).</li>
-            <li>Social Security Number verification (SS card, W-2, 1099, or most recent tax return; partial redaction acceptable).</li>
+            <li>Social Security Number verification (SS card, W-2, 1099, or most recent tax return; showing full SSN).</li>
             <li>Most recent 2 pay stubs (or last 90 days where applicable) showing year-to-date earnings.</li>
             <li>Written employment verification (HR letter/email confirming start date, position, and current status).</li>
             <li>Bank statements for the most recent 60 days (original bank-exported PDFs, all pages).</li>
