@@ -12,6 +12,10 @@ const TenantSelectionCriteria = () => {
       <Heading>Tenant Selection Criteria</Heading>
 
       <Paragraph>
+        We appreciate your interest in our properties. We do not discriminate based on race, color, religion, sex, familial status, national origin, disability, or other protected characteristics under the Texas Fair Housing Act.
+      </Paragraph>
+
+      <Paragraph>
         All applicants must meet <strong>every</strong> requirement below. These standards are applied consistently to
         all applicants, including those using housing assistance (Section 8 or similar programs). Meeting some criteria
         does not qualify an applicant.
@@ -20,7 +24,7 @@ const TenantSelectionCriteria = () => {
       <nav aria-label="Table of contents">
         <h2>Contents</h2>
         <ol>
-          <li><a href="#non-negotiable">Non-negotiable standards</a></li>
+          <li><a href="#non-negotiable">Important: Read First</a></li>
           <li><a href="#at-a-glance">At a glance</a></li>
           <li>
             <a href="#details">Details</a>
@@ -35,14 +39,19 @@ const TenantSelectionCriteria = () => {
           <li><a href="#housing-assistance">Housing Assistance</a></li>
           <li><a href="#credit-exception">Discretionary credit exception (rare)</a></li>
           <li><a href="#guarantor-policy">Guarantor policy</a></li>
-          <li><a href="#pets">Pets</a></li>
+          <li>
+            <a href="#pets">Pets</a>
+            <ol>
+              <li><a href="#assistance-animals">Assistance animals</a></li>
+            </ol>
+          </li>
         </ol>
       </nav>
 
       <section id="non-negotiable">
-        <h2>Non-negotiable standards (read first)</h2>
+        <h2>Important: Read First</h2>
         <ul>
-          <li>All requirements below are <strong>mandatory</strong>. Applications that do not meet every requirement will be <strong>denied</strong>.</li>
+          <li>All requirements below are <strong>mandatory</strong>. Applications that do not meet every requirement may be <strong>denied</strong>.</li>
           <li>No verbal assurances, explanations, or promises can replace documentation.</li>
           <li>Incomplete applications will not be processed.</li>
           <li>Housing assistance (Section 8) does <strong>not</strong> waive credit, background, employment, or rental history standards.</li>
@@ -54,7 +63,7 @@ const TenantSelectionCriteria = () => {
         <h2>At a glance</h2>
         <ul>
           <li><strong>Employment:</strong> 24+ months of verifiable employment history</li>
-          <li><strong>Income:</strong> Gross monthly income ≥ 3× monthly rent (or ≥ 3× your tenant portion if using housing assistance)</li>
+          <li><strong>Income:</strong> Gross monthly income ≥ 3× monthly rent (or ≥ 2.5× your tenant portion if using housing assistance)</li>
           <li><strong>Rental history:</strong> 24+ months of verifiable rental or mortgage payment history</li>
           <li><strong>Credit:</strong> Minimum score of 650 (strictly enforced)</li>
           <li><strong>Background:</strong> No criminal convictions, evictions, bankruptcies, or housing-related collections/negatives</li>
@@ -76,7 +85,7 @@ const TenantSelectionCriteria = () => {
         <ul>
           <li>Gross monthly income must be at least <strong>3× the monthly rent</strong></li>
           <li>
-            For housing assistance applicants, the income requirement is based on <strong>3× your tenant portion</strong> of rent as
+            For housing assistance applicants, the income requirement is based on <strong>2.5× your tenant portion</strong> of rent as
             determined by the Housing Authority
           </li>
           <li>Income must be <strong>verifiable, recurring, and stable</strong></li>
@@ -102,7 +111,7 @@ const TenantSelectionCriteria = () => {
               <li>Pattern of unpaid obligations or excessive collections</li>
             </ul>
           </li>
-          <li>Credit explanations do not override objective findings</li>
+          <li>While we welcome written explanations, rental decisions are based on verified credit reports and consistent criteria</li>
         </ul>
 
         <h3 id="background">Background</h3>
@@ -111,6 +120,7 @@ const TenantSelectionCriteria = () => {
           <li><strong>No evictions</strong></li>
           <li><strong>No bankruptcies</strong></li>
           <li><strong>No housing-related collections/negatives</strong> on the credit report</li>
+          <li>We do not deny applicants based on being a victim of domestic violence, dating violence, sexual assault, or stalking, in compliance with Texas law</li>
           <li>Inconsistencies between disclosures and screening results may result in denial</li>
         </ul>
       </section>
@@ -119,7 +129,7 @@ const TenantSelectionCriteria = () => {
         <h2>Housing Assistance (Section 8 and others)</h2>
         <ul style={nestedListStyle}>
           <li>All applicants are screened using the same criteria for rental history, credit, criminal background, and references</li>
-          <li>Income requirement is based on your tenant portion of rent as determined by the Housing Authority</li>
+          <li>Income requirement is 2.5× your tenant portion of rent as determined by the Housing Authority</li>
           <li>Provide: valid voucher, RFTA packet, and your caseworker’s contact information</li>
           <li>No side payments; all rent amounts must be approved and documented by the Housing Authority</li>
           <li>Voucher must be active and valid through the expected lease start date</li>
@@ -235,6 +245,13 @@ const TenantSelectionCriteria = () => {
           guaranteed even if all other criteria are met.
         </Paragraph>
 
+        <h3 id="assistance-animals">Assistance animals</h3>
+        <Paragraph>
+          Assistance animals (service animals and emotional support animals) are <strong>not pets</strong>. They are reasonable
+          accommodations for disabilities under the Fair Housing Act. Breed, size, and species restrictions do not apply to
+          assistance animals when properly documented. We evaluate assistance-animal requests in accordance with applicable law.
+        </Paragraph>
+
         <h3>Prohibited animals</h3>
         <ul>
           <li>Exotic animals</li>
@@ -254,9 +271,9 @@ const TenantSelectionCriteria = () => {
         <details>
           <summary>View list of prohibited dog breeds</summary>
           <ul>
-            <li>Akitas Inu</li>
+            <li>Akita</li>
             <li>Alaskan Malamute</li>
-            <li>American Bull Dog</li>
+            <li>American Bulldog</li>
             <li>American Staffordshire Terrier</li>
             <li>American Pit Bull Terrier</li>
             <li>Beauceron</li>
