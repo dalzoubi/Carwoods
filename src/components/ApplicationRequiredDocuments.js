@@ -12,9 +12,15 @@ const ApplicationRequiredDocuments = () => {
       <Heading>Application Required Documents</Heading>
 
       <Paragraph>
+        We appreciate your interest in our properties. We do not discriminate based on race, color, religion, sex, familial status, national origin, disability, or other protected characteristics under the Texas Fair Housing Act.
+      </Paragraph>
+
+      <Paragraph>
         All documents listed below are required for <strong>each adult applicant (18 years or older)</strong>.
         Incomplete applications will <strong>not</strong> be processed.
         Providing documents does not guarantee approval.
+        Documents are handled confidentially and used only for screening purposes.
+        Please also review our <a href="/tenant-selection-criteria">Tenant Selection Criteria</a> for full eligibility requirements.
       </Paragraph>
 
       <ol>
@@ -80,13 +86,13 @@ const ApplicationRequiredDocuments = () => {
         </li>
 
         <li>
-          <strong>Pets, Service Animals, and Assistance Animals:</strong>
+          <strong>Pets and Assistance Animals:</strong>
           <ol style={nestedListStyle}>
-            <li>Clear photos of each pet (if applicable).</li>
-            <li>Current vaccination records for pets.</li>
             <li>
-              Requests for service or assistance animals must include documentation that complies with
-              applicable Fair Housing guidelines. Online certificates alone are not sufficient.
+              <strong>Pets (if applicable):</strong> Clear photos of each pet and current vaccination records.
+            </li>
+            <li>
+              <strong>Assistance animals:</strong> Service animals (task-trained dogs) do not require documentation; we may ask about the disability-related need and tasks performed. Emotional support animals and other assistance animals may require a letter from a licensed healthcare professional when the need is not obvious. Online certificates and registry IDs are not sufficient.
             </li>
           </ol>
         </li>
@@ -105,7 +111,7 @@ const ApplicationRequiredDocuments = () => {
           <strong>Section 8 / Housing Assistance Applicants (Additional Requirements):</strong>
           <ol style={nestedListStyle}>
             <li>Active Housing Choice Voucher showing tenant name, bedroom size, issue date, and expiration date.</li>
-            <li>Tenant Rent Portion Estimate / affordability worksheet from the assigned caseworker.</li>
+            <li>Tenant Rent Portion Estimate, affordability worksheet, or equivalent from the assigned caseworker or Housing Authority.</li>
             <li>Completed RFTA (Request for Tenancy Approval) packet (tenant sections).</li>
             <li>Caseworker's full name, email address, and direct phone number.</li>
             <li>Proof that household composition matches the voucher.</li>
@@ -123,7 +129,7 @@ const ApplicationRequiredDocuments = () => {
         </li>
 
         <li>
-          <strong>Required guarantor documents:</strong>
+          <strong>If a guarantor is required:</strong> Guarantors apply only when requested by management (see <a href="/tenant-selection-criteria">Tenant Selection Criteria</a> for when a guarantor may be considered). Required guarantor documents:
           <ol style={nestedListStyle}>
             <li>Valid government-issued photo ID (color copy).</li>
             <li>Social Security Number verification (SS card, W-2, 1099, or most recent tax return; showing full SSN).</li>
