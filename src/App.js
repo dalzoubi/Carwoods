@@ -6,13 +6,18 @@ import TenantSelectionCriteria from './components/TenantSelectionCriteria';
 import ApplicationRequiredDocuments from './components/ApplicationRequiredDocuments';
 import PropertyManagement from './components/PropertyManagement';
 import ContactUs from './components/ContactUs';
+import Privacy from './components/Privacy';
+import Accessibility from './components/Accessibility';
 import Footer from './components/Footer';
 import ResponsiveNavbar from './components/ResponsiveNavbar';
 
 const App = () => (
     <Router>
+        <a href="#main-content" className="sr-only sr-only-focusable">
+            Skip to main content
+        </a>
         <ResponsiveNavbar />
-        <Container>
+        <Container id="main-content">
             <Content>
                 <Routes>
                     <Route path="/" element={<Home />} />
@@ -20,6 +25,8 @@ const App = () => (
                     <Route path="/application-required-documents" element={<ApplicationRequiredDocuments />} />
                     <Route path="/property-management" element={<PropertyManagement />} />
                     <Route path="/contact-us" element={<ContactUs />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/accessibility" element={<Accessibility />} />
                 </Routes>
             </Content>
         </Container>

@@ -7,7 +7,6 @@ import {
     List,
     ListItemButton,
     ListItemText,
-    CssBaseline,
     useTheme,
     useMediaQuery,
 } from '@mui/material';
@@ -98,7 +97,6 @@ const ResponsiveNavbar = () => {
 
     return (
         <>
-            <CssBaseline />
             <AppBar position="static" style={{ backgroundColor: theme.palette.primary.main, width: '100%' }}>
                 <Toolbar>
                     {isMobile ? (

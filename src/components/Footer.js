@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 import theme from '../theme';
 
 const FooterContainer = styled.footer`
@@ -12,8 +13,8 @@ const FooterContainer = styled.footer`
     bottom: 0; /* Stick to the bottom of the page */
 `;
 
-const FooterLink = styled.a`
-    color: ${theme.palette.text.link}; /* Ensure links are visible */
+const linkStyles = `
+    color: ${theme.palette.text.link};
     text-decoration: none;
     margin: 0 10px;
     font-size: 1.1rem;
@@ -29,17 +30,29 @@ const FooterLink = styled.a`
     }
 `;
 
+const FooterLink = styled.a`
+    ${linkStyles}
+`;
+
+const FooterLinkInternal = styled(Link)`
+    ${linkStyles}
+`;
+
 const Footer = () => {
     return (
         <FooterContainer aria-label="footer">
             <p>&copy; 2025 Carwoods LLC. All rights reserved.</p>
-            <FooterLink href="https://www.trec.texas.gov/sites/default/files/pdf-forms/CN%201-2.pdf" target="_blank" rel="noopener noreferrer">
+            <FooterLink href="https://www.trec.texas.gov/sites/default/files/pdf-forms/CN%201-2.pdf" target="_blank" rel="noopener noreferrer" aria-label="Texas Real Estate Commission Consumer Protection Notice (opens in new tab)">
                 Texas Real Estate Commission Consumer Protection Notice
             </FooterLink>
             |
-            <FooterLink href="https://members.har.com/mhf/terms/dispBrokerInfo.cfm?sitetype=aws&cid=735771" target="_blank" rel="noopener noreferrer">
+            <FooterLink href="https://members.har.com/mhf/terms/dispBrokerInfo.cfm?sitetype=aws&cid=735771" target="_blank" rel="noopener noreferrer" aria-label="Texas Real Estate Commission Information About Brokerage Services (opens in new tab)">
                 Texas Real Estate Commission Information About Brokerage Services
             </FooterLink>
+            |
+            <FooterLinkInternal to="/privacy">Privacy Policy</FooterLinkInternal>
+            |
+            <FooterLinkInternal to="/accessibility">Accessibility</FooterLinkInternal>
         </FooterContainer>
     );
 };

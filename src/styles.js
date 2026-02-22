@@ -1,21 +1,21 @@
 import styled from 'styled-components';
 import { NavLink as RouterNavLink } from 'react-router-dom';
-import theme from './theme';
+import theme, { shadowCard } from './theme';
 
 export const Container = styled.main`
-    font-family: 'Helvetica Neue', sans-serif;
+    font-family: ${theme.typography.fontFamily};
     color: ${theme.palette.text.secondary};
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    padding: ${theme.spacing(2.5)};
 `;
 
 export const Content = styled.section`
-    margin-top: 20px;
-    padding: 20px;
+    margin-top: ${theme.spacing(2.5)};
+    padding: ${theme.spacing(2.5)};
     background: ${theme.palette.background.paper};
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: ${theme.shape.borderRadius}px;
+    box-shadow: ${shadowCard};
     color: ${theme.palette.text.secondary};
 `;
 
@@ -36,17 +36,23 @@ export const NavLink = styled(RouterNavLink)`
         color: ${theme.palette.text.secondary};
         border-radius: 4px;
     }
+
+    &:focus-visible {
+        outline: 2px solid ${theme.palette.primary.light};
+        outline-offset: 2px;
+    }
 `;
 
 export const Heading = styled.h1`
     color: ${theme.palette.primary.main};
-    font-size: 2.5rem;
-    margin-bottom: 10px;
+    font-size: ${theme.typography.h1.fontSize};
+    font-weight: ${theme.typography.h1.fontWeight};
+    margin-bottom: ${theme.spacing(1.25)};
 `;
 
 export const Paragraph = styled.p`
-    line-height: 1.6;
-    font-size: 1.1rem;
+    line-height: ${theme.typography.body1.lineHeight};
+    font-size: ${theme.typography.body1.fontSize};
 `;
 
 export const nestedListStyle = { listStyleType: 'lower-alpha' };
