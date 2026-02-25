@@ -36,12 +36,12 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/setupTests.js',
-    include: ['src/**/*.{test,spec}.{js,jsx}'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'lcov'],
-      include: ['src/**/*.{js,jsx}'],
-      exclude: ['src/index.js', 'src/reportWebVitals.js', 'src/setupTests.js'],
+    include: ['src/**/*.{test,spec}.{jsx,js}'],
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'lcov'],
+        include: ['src/**/*.{jsx,js}'],
+        exclude: ['src/index.jsx', 'src/reportWebVitals.js', 'src/setupTests.js'],
       thresholds: {
         statements: 40,
         branches: 35,
