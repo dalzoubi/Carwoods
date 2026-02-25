@@ -190,14 +190,29 @@ const ApplicationRequiredDocuments = () => {
         </li>
 
         <li>
-          <strong>If a guarantor is required:</strong> Guarantors apply only when requested by management (see <a href="/tenant-selection-criteria">Tenant Selection Criteria</a> for when a guarantor may be considered). Required guarantor documents:
+          <strong>If a guarantor is required:</strong> A guarantor signs a separate guaranty agreement (not the lease) and is only liable if the primary tenant defaults. Guarantors are accepted only when requested by management — see <a href="/tenant-selection-criteria">Tenant Selection Criteria</a> for eligibility. Required documents:
           <ol style={nestedListStyle}>
             <li>Valid government-issued photo ID (color copy).</li>
             <li>Social Security Number verification (SS card, W-2, 1099, or most recent tax return; showing full SSN).</li>
-            <li>Most recent 2 pay stubs (or last 90 days where applicable) showing year-to-date earnings.</li>
+            <li>Most recent <strong>90 days</strong> of pay stubs showing year-to-date earnings.</li>
             <li>Written employment verification (HR letter/email confirming start date, position, and current status).</li>
-            <li>Bank statements for the most recent 60 days (original bank-exported PDFs, all pages).</li>
-            <li>If self-employed: most recent 2 years of filed federal tax returns and last 6 months of bank statements.</li>
+            <li>Bank statements for the most recent <strong>60 days</strong> (original bank-exported PDFs, all pages).</li>
+            <li>If self-employed: most recent <strong>2 years</strong> of filed federal tax returns and last <strong>6 months</strong> of bank statements.</li>
+            <li>Signed guaranty agreement (provided by management; separate from the lease).</li>
+          </ol>
+        </li>
+
+        <li>
+          <strong>If a co-signer is required:</strong> A co-signer is <strong>not the same as a guarantor</strong>. A co-signer signs the lease itself as a co-tenant and is jointly and severally liable for all lease obligations from day one — regardless of whether the primary tenant pays. Co-signers must meet the full applicant qualification standards. See <a href="/tenant-selection-criteria">Tenant Selection Criteria</a> for eligibility. Required documents (same full-applicant standard):
+          <ol style={nestedListStyle}>
+            <li>Valid government-issued photo ID (color copy).</li>
+            <li>Social Security Number verification (SS card, W-2, 1099, or most recent tax return; showing full SSN).</li>
+            <li>Most recent <strong>90 days</strong> of pay stubs showing year-to-date earnings.</li>
+            <li>Written employment verification (HR letter/email confirming start date, position, and current status).</li>
+            <li>Bank statements for the most recent <strong>60 days</strong> (original bank-exported PDFs, all pages).</li>
+            <li>If self-employed: most recent <strong>2 years</strong> of filed federal tax returns and last <strong>6 months</strong> of bank statements.</li>
+            <li>Landlord reference information for the past <strong>24 months</strong> (landlord name, email, and phone number).</li>
+            <li>Completed rental application and consent to full credit, background, and rental history screening.</li>
           </ol>
         </li>
       </ol>

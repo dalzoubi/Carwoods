@@ -111,4 +111,43 @@ describe('ApplicationRequiredDocuments', () => {
       expect(screen.getByText(/official award or benefit letter from the issuing agency/i)).toBeInTheDocument();
     });
   });
+
+  describe('Guarantor section', () => {
+    it('renders the guarantor section heading', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/if a guarantor is required/i)).toBeInTheDocument();
+    });
+
+    it('clarifies a guarantor signs a separate guaranty agreement, not the lease', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/signs a separate guaranty agreement \(not the lease\)/i)).toBeInTheDocument();
+    });
+
+    it('lists signed guaranty agreement as a required guarantor document', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/signed guaranty agreement/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('Co-signer section', () => {
+    it('renders the co-signer section heading', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/if a co-signer is required/i)).toBeInTheDocument();
+    });
+
+    it('distinguishes co-signer from guarantor', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/a co-signer is not the same as a guarantor/i)).toBeInTheDocument();
+    });
+
+    it('states co-signer is jointly and severally liable from day one', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/jointly and severally liable for all lease obligations from day one/i)).toBeInTheDocument();
+    });
+
+    it('requires co-signer to provide 24 months of landlord references', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/completed rental application and consent to full credit, background, and rental history screening/i)).toBeInTheDocument();
+    });
+  });
 });
