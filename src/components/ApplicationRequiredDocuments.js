@@ -23,199 +23,230 @@ const ApplicationRequiredDocuments = () => {
         Please also review our <a href="/tenant-selection-criteria">Tenant Selection Criteria</a> for full eligibility requirements.
       </Paragraph>
 
-      <ol>
-        <li>
-          <strong>Personal Identification (All Adults 18+):</strong>
-          <ol style={nestedListStyle}>
-            <li>Valid government-issued photo ID (Driver's License or State ID, color copy).</li>
-            <li>
-              Social Security Number verification (one of the following, color copy, showing full SSN):
-              <ul style={nestedListStyle}>
-                <li>Social Security Card</li>
-                <li>W-2</li>
-                <li>1099</li>
-                <li>Most recent tax return</li>
-              </ul>
-            </li>
-          </ol>
-        </li>
+      <nav aria-label="Table of contents">
+        <h2>Contents</h2>
+        <ol>
+          <li><a href="#identification">Personal Identification</a></li>
+          <li><a href="#employed">If Employed</a></li>
+          <li><a href="#self-employed">If Self-Employed</a></li>
+          <li><a href="#rental-history">Rental History &amp; Other Income</a></li>
+          <li>
+            <a href="#pets-animals">Pets and Assistance Animals</a>
+            <ol>
+              <li><a href="#service-animals">Service Animals</a></li>
+              <li><a href="#esa">Emotional Support Animals (ESA)</a></li>
+            </ol>
+          </li>
+          <li>
+            <a href="#benefits">Government or Other Benefits</a>
+            <ol>
+              <li><a href="#va-benefits">VA Benefits</a></li>
+              <li><a href="#ssa-ssi">SSA / SSI</a></li>
+              <li><a href="#ssdi">SSDI</a></li>
+              <li><a href="#retirement">Retirement / Pension</a></li>
+              <li><a href="#child-support">Child Support or Spousal Maintenance</a></li>
+            </ol>
+          </li>
+          <li><a href="#emergency-contact">Emergency Contact</a></li>
+          <li><a href="#section-8">Section 8 / Housing Assistance</a></li>
+          <li><a href="#guarantor">Guarantor</a></li>
+          <li><a href="#cosigner">Co-Signer</a></li>
+        </ol>
+      </nav>
 
-        <li>
-          <strong>If Employed:</strong>
-          <ol style={nestedListStyle}>
-            <li>Most recent <strong>90 days</strong> of pay stubs showing year-to-date earnings.</li>
-            <li>Written employment verification (HR letter or email confirming start date, position, and current status).</li>
-            <li>
-              Bank statements for the most recent <strong>60 days</strong>
-              (original bank-exported PDF, all pages, <strong>must clearly show the applicant’s full name and current address</strong>).
-            </li>
-            <li>Employer or HR contact information for verification (name, email, direct phone number).</li>
-          </ol>
-        </li>
+      <section id="identification">
+        <h2>1. Personal Identification (All Adults 18+)</h2>
+        <ol style={nestedListStyle}>
+          <li>Valid government-issued photo ID (Driver's License or State ID, color copy).</li>
+          <li>
+            Social Security Number verification (one of the following, color copy, showing full SSN):
+            <ul style={nestedListStyle}>
+              <li>Social Security Card</li>
+              <li>W-2</li>
+              <li>1099</li>
+              <li>Most recent tax return</li>
+            </ul>
+          </li>
+        </ol>
+      </section>
 
-        <li>
-          <strong>If Self-Employed:</strong>
-          <ol style={nestedListStyle}>
-            <li>Most recent <strong>two (2) years</strong> of filed federal tax returns.</li>
-            <li>
-              Last <strong>6 months</strong> of bank statements
-              (original bank-exported PDF, all pages, <strong>must clearly show the applicant’s full name and current address</strong>).
-            </li>
-            <li>Business documentation (EIN letter, certificate of formation, or business license).</li>
-          </ol>
-        </li>
+      <section id="employed">
+        <h2>2. If Employed</h2>
+        <ol style={nestedListStyle}>
+          <li>Most recent <strong>90 days</strong> of pay stubs showing year-to-date earnings.</li>
+          <li>Written employment verification (HR letter or email confirming start date, position, and current status).</li>
+          <li>
+            Bank statements for the most recent <strong>60 days</strong>
+            (original bank-exported PDF, all pages, <strong>must clearly show the applicant's full name and current address</strong>).
+          </li>
+          <li>Employer or HR contact information for verification (name, email, direct phone number).</li>
+        </ol>
+      </section>
 
-        <li>
-          <strong>Rental History & Other Income:</strong>
-          <ol style={nestedListStyle}>
-            <li>
-              Landlord reference information for the past <strong>24 months</strong>
-              (landlord name, email, and phone number).
-            </li>
-            <li>
-              If no rental history but paying a mortgage, provide the last <strong>24 months</strong> of mortgage payment history.
-            </li>
-            <li>
-              Other income (child support, disability, Social Security, retirement, etc.) requires:
-              <ul style={nestedListStyle}>
-                <li>Official award letter</li>
-                <li>Proof of deposit in bank statements</li>
-              </ul>
-            </li>
-          </ol>
-        </li>
+      <section id="self-employed">
+        <h2>3. If Self-Employed</h2>
+        <ol style={nestedListStyle}>
+          <li>Most recent <strong>two (2) years</strong> of filed federal tax returns.</li>
+          <li>
+            Last <strong>6 months</strong> of bank statements
+            (original bank-exported PDF, all pages, <strong>must clearly show the applicant's full name and current address</strong>).
+          </li>
+          <li>Business documentation (EIN letter, certificate of formation, or business license).</li>
+        </ol>
+      </section>
 
-        <li>
-          <strong>Pets and Assistance Animals:</strong>
-          <ol style={nestedListStyle}>
-            <li>
-              <strong>Pets (if applicable):</strong> Clear photos of each pet and current vaccination records.
-            </li>
-            <li>
-              <strong>Service Animals:</strong> Under the Fair Housing Act and Texas Property Code, service animals are dogs (or miniature horses) individually trained to perform specific tasks directly related to a person's disability. We will not request documentation proving the animal is a certified or trained service animal, nor will we require the animal to demonstrate its task. However, we may ask:
-              <ul style={nestedListStyle}>
-                <li>Whether the applicant has a disability-related need for the animal (yes/no only — we will not ask for the nature or extent of the disability).</li>
-                <li>What specific task or work the animal has been trained to perform.</li>
-              </ul>
-              No pet deposit, pet fee, or pet rent may be charged for a service animal. The applicant remains liable for any damage caused by the animal beyond normal wear and tear.
-            </li>
-            <li>
-              <strong>Emotional Support Animals (ESA) and Other Assistance Animals:</strong> When the disability-related need for an ESA or other assistance animal is not obvious or known, we may request <strong>reliable documentation</strong> from a licensed healthcare professional (physician, psychiatrist, therapist, or other licensed mental health professional) currently treating the applicant. The letter must:
-              <ul style={nestedListStyle}>
-                <li>Be written on the provider's official letterhead.</li>
-                <li>Include the provider's name, license type, license number, state of licensure, and direct contact information.</li>
-                <li>Confirm that the applicant has a disability (without disclosing the specific diagnosis).</li>
-                <li>State that the animal provides disability-related support or therapeutic benefit.</li>
-                <li>Be dated within the past <strong>12 months</strong>.</li>
-              </ul>
-              <strong>Online certificates, registry IDs, vest documentation, or letters from internet-based services are not accepted</strong> and do not constitute reliable documentation under HUD guidelines. No pet deposit, pet fee, or pet rent may be charged for an approved assistance animal. The applicant remains liable for damage caused by the animal beyond normal wear and tear.
-            </li>
-          </ol>
-        </li>
+      <section id="rental-history">
+        <h2>4. Rental History &amp; Other Income</h2>
+        <ol style={nestedListStyle}>
+          <li>
+            Landlord reference information for the past <strong>24 months</strong>
+            (landlord name, email, and phone number).
+          </li>
+          <li>
+            If no rental history but paying a mortgage, provide the last <strong>24 months</strong> of mortgage payment history.
+          </li>
+          <li>
+            Other income (child support, disability, Social Security, retirement, etc.) requires:
+            <ul style={nestedListStyle}>
+              <li>Official award letter</li>
+              <li>Proof of deposit in bank statements</li>
+            </ul>
+          </li>
+        </ol>
+      </section>
 
-        <li>
-          <strong>Applicants Receiving Government or Other Benefits:</strong>
-          <ol style={nestedListStyle}>
-            <li>
-              <strong>VA (Veterans Affairs) Benefits:</strong>
-              <ul style={nestedListStyle}>
-                <li>Current VA Benefits Award Letter (dated within the past <strong>12 months</strong>) showing benefit type, monthly amount, and effective date.</li>
-                <li>Most recent <strong>2 months</strong> of bank statements confirming VA deposit amounts.</li>
-                <li>DD-214 (Certificate of Release or Discharge from Active Duty) is accepted as supplemental identity verification but is not required.</li>
-              </ul>
-            </li>
-            <li>
-              <strong>Social Security (SSA) or Supplemental Security Income (SSI):</strong>
-              <ul style={nestedListStyle}>
-                <li>Current SSA Award Letter or Benefit Verification Letter (obtainable at ssa.gov) dated within the past <strong>12 months</strong>, showing monthly benefit amount.</li>
-                <li>Most recent <strong>2 months</strong> of bank statements confirming SSA/SSI deposit amounts.</li>
-              </ul>
-            </li>
-            <li>
-              <strong>Social Security Disability Insurance (SSDI):</strong>
-              <ul style={nestedListStyle}>
-                <li>Current SSDI Award Letter dated within the past <strong>12 months</strong>, showing monthly benefit amount and disability onset date.</li>
-                <li>Most recent <strong>2 months</strong> of bank statements confirming SSDI deposit amounts.</li>
-              </ul>
-            </li>
-            <li>
-              <strong>Retirement / Pension Income:</strong>
-              <ul style={nestedListStyle}>
-                <li>Most recent pension or retirement benefit statement (e.g., TCDRS, TRS, FERS, or private pension) dated within the past <strong>12 months</strong>.</li>
-                <li>Most recent <strong>2 months</strong> of bank statements confirming deposit amounts.</li>
-              </ul>
-            </li>
-            <li>
-              <strong>Child Support or Spousal Maintenance:</strong>
-              <ul style={nestedListStyle}>
-                <li>Court order or divorce decree showing the awarded amount and duration.</li>
-                <li>Most recent <strong>3 months</strong> of bank statements or OAG (Texas Office of the Attorney General) payment history confirming consistent receipt.</li>
-              </ul>
-            </li>
-            <li>
-              <strong>All Other Benefits:</strong> Official award or benefit letter from the issuing agency (dated within the past <strong>12 months</strong>) plus most recent <strong>2 months</strong> of bank statements confirming deposit amounts.
-            </li>
-          </ol>
-        </li>
+      <section id="pets-animals">
+        <h2>5. Pets and Assistance Animals</h2>
+        <ol style={nestedListStyle}>
+          <li>
+            <strong>Pets (if applicable):</strong> Clear photos of each pet and current vaccination records.
+          </li>
+          <li id="service-animals">
+            <strong>Service Animals:</strong> Under the Fair Housing Act and Texas Property Code, service animals are dogs (or miniature horses) individually trained to perform specific tasks directly related to a person's disability. We will not request documentation proving the animal is a certified or trained service animal, nor will we require the animal to demonstrate its task. However, we may ask:
+            <ul style={nestedListStyle}>
+              <li>Whether the applicant has a disability-related need for the animal (yes/no only — we will not ask for the nature or extent of the disability).</li>
+              <li>What specific task or work the animal has been trained to perform.</li>
+            </ul>
+            No pet deposit, pet fee, or pet rent may be charged for a service animal. The applicant remains liable for any damage caused by the animal beyond normal wear and tear.
+          </li>
+          <li id="esa">
+            <strong>Emotional Support Animals (ESA) and Other Assistance Animals:</strong> When the disability-related need for an ESA or other assistance animal is not obvious or known, we may request <strong>reliable documentation</strong> from a licensed healthcare professional (physician, psychiatrist, therapist, or other licensed mental health professional) currently treating the applicant. The letter must:
+            <ul style={nestedListStyle}>
+              <li>Be written on the provider's official letterhead.</li>
+              <li>Include the provider's name, license type, license number, state of licensure, and direct contact information.</li>
+              <li>Confirm that the applicant has a disability (without disclosing the specific diagnosis).</li>
+              <li>State that the animal provides disability-related support or therapeutic benefit.</li>
+              <li>Be dated within the past <strong>12 months</strong>.</li>
+            </ul>
+            <strong>Online certificates, registry IDs, vest documentation, or letters from internet-based services are not accepted</strong> and do not constitute reliable documentation under HUD guidelines. No pet deposit, pet fee, or pet rent may be charged for an approved assistance animal. The applicant remains liable for damage caused by the animal beyond normal wear and tear.
+          </li>
+        </ol>
+      </section>
 
-        <li>
-          <strong>Emergency Contact:</strong>
-          <ol style={nestedListStyle}>
-            <li>
-              Emergency contact for someone <strong>not residing</strong> in the household
-              (full name, address, email, and phone number).
-            </li>
-          </ol>
-        </li>
+      <section id="benefits">
+        <h2>6. Applicants Receiving Government or Other Benefits</h2>
+        <ol style={nestedListStyle}>
+          <li id="va-benefits">
+            <strong>VA (Veterans Affairs) Benefits:</strong>
+            <ul style={nestedListStyle}>
+              <li>Current VA Benefits Award Letter (dated within the past <strong>12 months</strong>) showing benefit type, monthly amount, and effective date.</li>
+              <li>Most recent <strong>2 months</strong> of bank statements confirming VA deposit amounts.</li>
+              <li>DD-214 (Certificate of Release or Discharge from Active Duty) is accepted as supplemental identity verification but is not required.</li>
+            </ul>
+          </li>
+          <li id="ssa-ssi">
+            <strong>Social Security (SSA) or Supplemental Security Income (SSI):</strong>
+            <ul style={nestedListStyle}>
+              <li>Current SSA Award Letter or Benefit Verification Letter (obtainable at ssa.gov) dated within the past <strong>12 months</strong>, showing monthly benefit amount.</li>
+              <li>Most recent <strong>2 months</strong> of bank statements confirming SSA/SSI deposit amounts.</li>
+            </ul>
+          </li>
+          <li id="ssdi">
+            <strong>Social Security Disability Insurance (SSDI):</strong>
+            <ul style={nestedListStyle}>
+              <li>Current SSDI Award Letter dated within the past <strong>12 months</strong>, showing monthly benefit amount and disability onset date.</li>
+              <li>Most recent <strong>2 months</strong> of bank statements confirming SSDI deposit amounts.</li>
+            </ul>
+          </li>
+          <li id="retirement">
+            <strong>Retirement / Pension Income:</strong>
+            <ul style={nestedListStyle}>
+              <li>Most recent pension or retirement benefit statement (e.g., TCDRS, TRS, FERS, or private pension) dated within the past <strong>12 months</strong>.</li>
+              <li>Most recent <strong>2 months</strong> of bank statements confirming deposit amounts.</li>
+            </ul>
+          </li>
+          <li id="child-support">
+            <strong>Child Support or Spousal Maintenance:</strong>
+            <ul style={nestedListStyle}>
+              <li>Court order or divorce decree showing the awarded amount and duration.</li>
+              <li>Most recent <strong>3 months</strong> of bank statements or OAG (Texas Office of the Attorney General) payment history confirming consistent receipt.</li>
+            </ul>
+          </li>
+          <li>
+            <strong>All Other Benefits:</strong> Official award or benefit letter from the issuing agency (dated within the past <strong>12 months</strong>) plus most recent <strong>2 months</strong> of bank statements confirming deposit amounts.
+          </li>
+        </ol>
+      </section>
 
-        <li>
-          <strong>Section 8 / Housing Assistance Applicants (Additional Requirements):</strong>
-          <ol style={nestedListStyle}>
-            <li>Active Housing Choice Voucher showing tenant name, bedroom size, issue date, and expiration date.</li>
-            <li>Tenant Rent Portion Estimate, affordability worksheet, or equivalent from the assigned caseworker or Housing Authority.</li>
-            <li>Completed RFTA (Request for Tenancy Approval) packet (tenant sections).</li>
-            <li>Caseworker's full name, email address, and direct phone number.</li>
-            <li>Proof that household composition matches the voucher.</li>
-            <li>
-              Housing Authority inspection and rent reasonableness approval are required prior to move-in.
-            </li>
-            <li>
-              HAP Contract and Housing Authority lease addendum are required <strong>after approval</strong> and inspection.
-            </li>
-            <li>
-              Section 8 applicants are subject to the <strong>same credit, background, and rental history requirements</strong>
-              as all other applicants. No side payments are permitted.
-            </li>
-          </ol>
-        </li>
+      <section id="emergency-contact">
+        <h2>7. Emergency Contact</h2>
+        <ol style={nestedListStyle}>
+          <li>
+            Emergency contact for someone <strong>not residing</strong> in the household
+            (full name, address, email, and phone number).
+          </li>
+        </ol>
+      </section>
 
-        <li>
-          <strong>If a guarantor is required:</strong> A guarantor signs a separate guaranty agreement (not the lease) and is only liable if the primary tenant defaults. Guarantors are accepted only when requested by management — see <a href="/tenant-selection-criteria">Tenant Selection Criteria</a> for eligibility. Required documents:
-          <ol style={nestedListStyle}>
-            <li>Valid government-issued photo ID (color copy).</li>
-            <li>Social Security Number verification (SS card, W-2, 1099, or most recent tax return; showing full SSN).</li>
-            <li>Most recent <strong>90 days</strong> of pay stubs showing year-to-date earnings.</li>
-            <li>Written employment verification (HR letter/email confirming start date, position, and current status).</li>
-            <li>Bank statements for the most recent <strong>60 days</strong> (original bank-exported PDFs, all pages).</li>
-            <li>If self-employed: most recent <strong>2 years</strong> of filed federal tax returns and last <strong>6 months</strong> of bank statements.</li>
-            <li>Signed guaranty agreement (provided by management; separate from the lease).</li>
-          </ol>
-        </li>
+      <section id="section-8">
+        <h2>8. Section 8 / Housing Assistance Applicants (Additional Requirements)</h2>
+        <ol style={nestedListStyle}>
+          <li>Active Housing Choice Voucher showing tenant name, bedroom size, issue date, and expiration date.</li>
+          <li>Tenant Rent Portion Estimate, affordability worksheet, or equivalent from the assigned caseworker or Housing Authority.</li>
+          <li>Completed RFTA (Request for Tenancy Approval) packet (tenant sections).</li>
+          <li>Caseworker's full name, email address, and direct phone number.</li>
+          <li>Proof that household composition matches the voucher.</li>
+          <li>Housing Authority inspection and rent reasonableness approval are required prior to move-in.</li>
+          <li>HAP Contract and Housing Authority lease addendum are required <strong>after approval</strong> and inspection.</li>
+          <li>
+            Section 8 applicants are subject to the <strong>same credit, background, and rental history requirements</strong>
+            as all other applicants. No side payments are permitted.
+          </li>
+        </ol>
+      </section>
 
-        <li>
-          <strong>If a co-signer is required:</strong> A co-signer is <strong>not the same as a guarantor</strong>. A co-signer signs the lease itself as a co-tenant and is jointly and severally liable for all lease obligations from day one — regardless of whether the primary tenant pays. Co-signers must meet the full applicant qualification standards. See <a href="/tenant-selection-criteria">Tenant Selection Criteria</a> for eligibility. Required documents (same full-applicant standard):
-          <ol style={nestedListStyle}>
-            <li>Valid government-issued photo ID (color copy).</li>
-            <li>Social Security Number verification (SS card, W-2, 1099, or most recent tax return; showing full SSN).</li>
-            <li>Most recent <strong>90 days</strong> of pay stubs showing year-to-date earnings.</li>
-            <li>Written employment verification (HR letter/email confirming start date, position, and current status).</li>
-            <li>Bank statements for the most recent <strong>60 days</strong> (original bank-exported PDFs, all pages).</li>
-            <li>If self-employed: most recent <strong>2 years</strong> of filed federal tax returns and last <strong>6 months</strong> of bank statements.</li>
-            <li>Landlord reference information for the past <strong>24 months</strong> (landlord name, email, and phone number).</li>
-            <li>Completed rental application and consent to full credit, background, and rental history screening.</li>
-          </ol>
-        </li>
-      </ol>
+      <section id="guarantor">
+        <h2>9. If a Guarantor is Required</h2>
+        <Paragraph>
+          A guarantor signs a separate guaranty agreement (not the lease) and is only liable if the primary tenant defaults. Guarantors are accepted only when requested by management — see <a href="/tenant-selection-criteria">Tenant Selection Criteria</a> for eligibility.
+        </Paragraph>
+        <ol style={nestedListStyle}>
+          <li>Valid government-issued photo ID (color copy).</li>
+          <li>Social Security Number verification (SS card, W-2, 1099, or most recent tax return; showing full SSN).</li>
+          <li>Most recent <strong>90 days</strong> of pay stubs showing year-to-date earnings.</li>
+          <li>Written employment verification (HR letter/email confirming start date, position, and current status).</li>
+          <li>Bank statements for the most recent <strong>60 days</strong> (original bank-exported PDFs, all pages).</li>
+          <li>If self-employed: most recent <strong>2 years</strong> of filed federal tax returns and last <strong>6 months</strong> of bank statements.</li>
+          <li>Signed guaranty agreement (provided by management; separate from the lease).</li>
+        </ol>
+      </section>
+
+      <section id="cosigner">
+        <h2>10. If a Co-Signer is Required</h2>
+        <Paragraph>
+          A co-signer is <strong>not the same as a guarantor</strong>. A co-signer signs the lease itself as a co-tenant and is jointly and severally liable for all lease obligations from day one — regardless of whether the primary tenant pays. Co-signers must meet the full applicant qualification standards. See <a href="/tenant-selection-criteria">Tenant Selection Criteria</a> for eligibility.
+        </Paragraph>
+        <ol style={nestedListStyle}>
+          <li>Valid government-issued photo ID (color copy).</li>
+          <li>Social Security Number verification (SS card, W-2, 1099, or most recent tax return; showing full SSN).</li>
+          <li>Most recent <strong>90 days</strong> of pay stubs showing year-to-date earnings.</li>
+          <li>Written employment verification (HR letter/email confirming start date, position, and current status).</li>
+          <li>Bank statements for the most recent <strong>60 days</strong> (original bank-exported PDFs, all pages).</li>
+          <li>If self-employed: most recent <strong>2 years</strong> of filed federal tax returns and last <strong>6 months</strong> of bank statements.</li>
+          <li>Landlord reference information for the past <strong>24 months</strong> (landlord name, email, and phone number).</li>
+          <li>Completed rental application and consent to full credit, background, and rental history screening.</li>
+        </ol>
+      </section>
     </div>
   );
 };

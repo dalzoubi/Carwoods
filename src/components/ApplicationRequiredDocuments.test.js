@@ -33,6 +33,98 @@ describe('ApplicationRequiredDocuments', () => {
     expect(screen.getByText(/section 8.*housing assistance applicants/i)).toBeInTheDocument();
   });
 
+  describe('Table of contents', () => {
+    it('renders the table of contents navigation', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('navigation', { name: /table of contents/i })).toBeInTheDocument();
+    });
+
+    it('links to the personal identification section', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /personal identification/i })).toHaveAttribute('href', '#identification');
+    });
+
+    it('links to the employed section', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /^if employed$/i })).toHaveAttribute('href', '#employed');
+    });
+
+    it('links to the self-employed section', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /^if self-employed$/i })).toHaveAttribute('href', '#self-employed');
+    });
+
+    it('links to the rental history section', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /rental history/i })).toHaveAttribute('href', '#rental-history');
+    });
+
+    it('links to the pets and assistance animals section', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /^pets and assistance animals$/i })).toHaveAttribute('href', '#pets-animals');
+    });
+
+    it('links to the service animals subsection', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /^service animals$/i })).toHaveAttribute('href', '#service-animals');
+    });
+
+    it('links to the ESA subsection', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /emotional support animals/i })).toHaveAttribute('href', '#esa');
+    });
+
+    it('links to the benefits section', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /government or other benefits/i })).toHaveAttribute('href', '#benefits');
+    });
+
+    it('links to the VA benefits subsection', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /^va benefits$/i })).toHaveAttribute('href', '#va-benefits');
+    });
+
+    it('links to the SSA/SSI subsection', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /ssa \/ ssi/i })).toHaveAttribute('href', '#ssa-ssi');
+    });
+
+    it('links to the SSDI subsection', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /^ssdi$/i })).toHaveAttribute('href', '#ssdi');
+    });
+
+    it('links to the retirement/pension subsection', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /retirement \/ pension/i })).toHaveAttribute('href', '#retirement');
+    });
+
+    it('links to the child support subsection', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /child support or spousal maintenance/i })).toHaveAttribute('href', '#child-support');
+    });
+
+    it('links to the emergency contact section', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /emergency contact/i })).toHaveAttribute('href', '#emergency-contact');
+    });
+
+    it('links to the Section 8 section', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /section 8 \/ housing assistance/i })).toHaveAttribute('href', '#section-8');
+    });
+
+    it('links to the guarantor section', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /^guarantor$/i })).toHaveAttribute('href', '#guarantor');
+    });
+
+    it('links to the co-signer section', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /^co-signer$/i })).toHaveAttribute('href', '#cosigner');
+    });
+  });
+
   describe('Pets and Assistance Animals section', () => {
     it('renders the Pets and Assistance Animals section heading', () => {
       renderWithRouter(<ApplicationRequiredDocuments />);
