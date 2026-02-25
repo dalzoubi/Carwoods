@@ -92,7 +92,68 @@ const ApplicationRequiredDocuments = () => {
               <strong>Pets (if applicable):</strong> Clear photos of each pet and current vaccination records.
             </li>
             <li>
-              <strong>Assistance animals:</strong> Service animals (task-trained dogs) do not require documentation; we may ask about the disability-related need and tasks performed. Emotional support animals and other assistance animals may require a letter from a licensed healthcare professional when the need is not obvious. Online certificates and registry IDs are not sufficient.
+              <strong>Service Animals:</strong> Under the Fair Housing Act and Texas Property Code, service animals are dogs (or miniature horses) individually trained to perform specific tasks directly related to a person's disability. We will not request documentation proving the animal is a certified or trained service animal, nor will we require the animal to demonstrate its task. However, we may ask:
+              <ul style={nestedListStyle}>
+                <li>Whether the applicant has a disability-related need for the animal (yes/no only — we will not ask for the nature or extent of the disability).</li>
+                <li>What specific task or work the animal has been trained to perform.</li>
+              </ul>
+              No pet deposit, pet fee, or pet rent may be charged for a service animal. The applicant remains liable for any damage caused by the animal beyond normal wear and tear.
+            </li>
+            <li>
+              <strong>Emotional Support Animals (ESA) and Other Assistance Animals:</strong> When the disability-related need for an ESA or other assistance animal is not obvious or known, we may request <strong>reliable documentation</strong> from a licensed healthcare professional (physician, psychiatrist, therapist, or other licensed mental health professional) currently treating the applicant. The letter must:
+              <ul style={nestedListStyle}>
+                <li>Be written on the provider's official letterhead.</li>
+                <li>Include the provider's name, license type, license number, state of licensure, and direct contact information.</li>
+                <li>Confirm that the applicant has a disability (without disclosing the specific diagnosis).</li>
+                <li>State that the animal provides disability-related support or therapeutic benefit.</li>
+                <li>Be dated within the past <strong>12 months</strong>.</li>
+              </ul>
+              <strong>Online certificates, registry IDs, vest documentation, or letters from internet-based services are not accepted</strong> and do not constitute reliable documentation under HUD guidelines. No pet deposit, pet fee, or pet rent may be charged for an approved assistance animal. The applicant remains liable for damage caused by the animal beyond normal wear and tear.
+            </li>
+          </ol>
+        </li>
+
+        <li>
+          <strong>Applicants Receiving Government or Other Benefits:</strong>
+          <ol style={nestedListStyle}>
+            <li>
+              <strong>VA (Veterans Affairs) Benefits:</strong>
+              <ul style={nestedListStyle}>
+                <li>Current VA Benefits Award Letter (dated within the past <strong>12 months</strong>) showing benefit type, monthly amount, and effective date.</li>
+                <li>Most recent <strong>2 months</strong> of bank statements confirming VA deposit amounts.</li>
+                <li>DD-214 (Certificate of Release or Discharge from Active Duty) is accepted as supplemental identity verification but is not required.</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Social Security (SSA) or Supplemental Security Income (SSI):</strong>
+              <ul style={nestedListStyle}>
+                <li>Current SSA Award Letter or Benefit Verification Letter (obtainable at ssa.gov) dated within the past <strong>12 months</strong>, showing monthly benefit amount.</li>
+                <li>Most recent <strong>2 months</strong> of bank statements confirming SSA/SSI deposit amounts.</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Social Security Disability Insurance (SSDI):</strong>
+              <ul style={nestedListStyle}>
+                <li>Current SSDI Award Letter dated within the past <strong>12 months</strong>, showing monthly benefit amount and disability onset date.</li>
+                <li>Most recent <strong>2 months</strong> of bank statements confirming SSDI deposit amounts.</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Retirement / Pension Income:</strong>
+              <ul style={nestedListStyle}>
+                <li>Most recent pension or retirement benefit statement (e.g., TCDRS, TRS, FERS, or private pension) dated within the past <strong>12 months</strong>.</li>
+                <li>Most recent <strong>2 months</strong> of bank statements confirming deposit amounts.</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Child Support or Spousal Maintenance:</strong>
+              <ul style={nestedListStyle}>
+                <li>Court order or divorce decree showing the awarded amount and duration.</li>
+                <li>Most recent <strong>3 months</strong> of bank statements or OAG (Texas Office of the Attorney General) payment history confirming consistent receipt.</li>
+              </ul>
+            </li>
+            <li>
+              <strong>All Other Benefits:</strong> Official award or benefit letter from the issuing agency (dated within the past <strong>12 months</strong>) plus most recent <strong>2 months</strong> of bank statements confirming deposit amounts.
             </li>
           </ol>
         </li>

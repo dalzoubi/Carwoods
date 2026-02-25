@@ -32,4 +32,83 @@ describe('ApplicationRequiredDocuments', () => {
     renderWithRouter(<ApplicationRequiredDocuments />);
     expect(screen.getByText(/section 8.*housing assistance applicants/i)).toBeInTheDocument();
   });
+
+  describe('Pets and Assistance Animals section', () => {
+    it('renders the Pets and Assistance Animals section heading', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/pets and assistance animals/i)).toBeInTheDocument();
+    });
+
+    it('describes service animal task inquiry without requiring certification', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/what specific task or work the animal has been trained to perform/i)).toBeInTheDocument();
+    });
+
+    it('states no pet deposit may be charged for a service animal', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      const noDepositItems = screen.getAllByText(/no pet deposit, pet fee, or pet rent may be charged/i);
+      expect(noDepositItems.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('requires ESA letter to be on official letterhead with license info', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/written on the provider's official letterhead/i)).toBeInTheDocument();
+      expect(screen.getByText(/license type, license number, state of licensure/i)).toBeInTheDocument();
+    });
+
+    it('requires ESA letter to be dated within the past 12 months', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      const freshnessItems = screen.getAllByText(/dated within the past/i);
+      expect(freshnessItems.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('rejects online certificates and registry IDs for assistance animals', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/online certificates, registry ids, vest documentation/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('Government and Other Benefits section', () => {
+    it('renders the benefits section heading', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/applicants receiving government or other benefits/i)).toBeInTheDocument();
+    });
+
+    it('lists VA benefits documentation requirements', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/va \(veterans affairs\) benefits/i)).toBeInTheDocument();
+      expect(screen.getByText(/current va benefits award letter/i)).toBeInTheDocument();
+    });
+
+    it('lists Social Security and SSI documentation requirements', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/social security \(ssa\) or supplemental security income \(ssi\)/i)).toBeInTheDocument();
+      expect(screen.getByText(/ssa award letter or benefit verification letter/i)).toBeInTheDocument();
+    });
+
+    it('lists SSDI documentation requirements', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/social security disability insurance \(ssdi\)/i)).toBeInTheDocument();
+      expect(screen.getByText(/current ssdi award letter/i)).toBeInTheDocument();
+    });
+
+    it('lists retirement and pension income requirements', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/retirement \/ pension income/i)).toBeInTheDocument();
+      expect(screen.getByText(/tcdrs, trs, fers, or private pension/i)).toBeInTheDocument();
+    });
+
+    it('lists child support and spousal maintenance requirements', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/child support or spousal maintenance/i)).toBeInTheDocument();
+      expect(screen.getByText(/court order or divorce decree/i)).toBeInTheDocument();
+      expect(screen.getByText(/oag.*texas office of the attorney general/i)).toBeInTheDocument();
+    });
+
+    it('covers all other benefits with a catch-all requirement', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByText(/all other benefits/i)).toBeInTheDocument();
+      expect(screen.getByText(/official award or benefit letter from the issuing agency/i)).toBeInTheDocument();
+    });
+  });
 });
