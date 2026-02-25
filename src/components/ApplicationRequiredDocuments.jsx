@@ -32,19 +32,21 @@ const ApplicationRequiredDocuments = () => {
           <li><a href="#rental-history">Rental History &amp; Other Income</a></li>
           <li>
             <a href="#pets-animals">Pets and Assistance Animals</a>
-            <ol>
+            <ol type="a">
+              <li><a href="#pets-only">Pets</a></li>
               <li><a href="#service-animals">Service Animals</a></li>
               <li><a href="#esa">Emotional Support Animals (ESA)</a></li>
             </ol>
           </li>
           <li>
             <a href="#benefits">Government or Other Benefits</a>
-            <ol>
+            <ol type="a">
               <li><a href="#va-benefits">VA Benefits</a></li>
               <li><a href="#ssa-ssi">SSA / SSI</a></li>
               <li><a href="#ssdi">SSDI</a></li>
               <li><a href="#retirement">Retirement / Pension</a></li>
               <li><a href="#child-support">Child Support or Spousal Maintenance</a></li>
+              <li><a href="#other-benefits">All Other Benefits</a></li>
             </ol>
           </li>
           <li><a href="#emergency-contact">Emergency Contact</a></li>
@@ -117,8 +119,8 @@ const ApplicationRequiredDocuments = () => {
 
       <section id="pets-animals">
         <h2>5. Pets and Assistance Animals</h2>
-        <ol style={nestedListStyle}>
-          <li>
+        <ol type="a" style={nestedListStyle}>
+          <li id="pets-only">
             <strong>Pets (if applicable):</strong> Clear photos of each pet and current vaccination records.
           </li>
           <li id="service-animals">
@@ -145,7 +147,7 @@ const ApplicationRequiredDocuments = () => {
 
       <section id="benefits">
         <h2>6. Applicants Receiving Government or Other Benefits</h2>
-        <ol style={nestedListStyle}>
+        <ol type="a" style={nestedListStyle}>
           <li id="va-benefits">
             <strong>VA (Veterans Affairs) Benefits:</strong>
             <ul style={nestedListStyle}>
@@ -182,7 +184,7 @@ const ApplicationRequiredDocuments = () => {
               <li>Most recent <strong>3 months</strong> of bank statements or OAG (Texas Office of the Attorney General) payment history confirming consistent receipt.</li>
             </ul>
           </li>
-          <li>
+          <li id="other-benefits">
             <strong>All Other Benefits:</strong> Official award or benefit letter from the issuing agency (dated within the past <strong>12 months</strong>) plus most recent <strong>2 months</strong> of bank statements confirming deposit amounts.
           </li>
         </ol>

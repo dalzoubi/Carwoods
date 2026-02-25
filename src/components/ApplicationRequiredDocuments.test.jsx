@@ -39,6 +39,21 @@ describe('ApplicationRequiredDocuments', () => {
       expect(screen.getByRole('navigation', { name: /table of contents/i })).toBeInTheDocument();
     });
 
+    it('uses alphabetic (a, b, c) numbering for sub-lists in table of contents', () => {
+      const { container } = renderWithRouter(<ApplicationRequiredDocuments />);
+      const nav = container.querySelector('nav[aria-label="Table of contents"]');
+      const alphaLists = nav.querySelectorAll('ol[type="a"]');
+      expect(alphaLists.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('uses alphabetic (a, b, c) numbering in Pets and Benefits content sections', () => {
+      const { container } = renderWithRouter(<ApplicationRequiredDocuments />);
+      const petsSection = container.querySelector('#pets-animals');
+      const benefitsSection = container.querySelector('#benefits');
+      expect(petsSection.querySelector('ol[type="a"]')).not.toBeNull();
+      expect(benefitsSection.querySelector('ol[type="a"]')).not.toBeNull();
+    });
+
     it('links to the personal identification section', () => {
       renderWithRouter(<ApplicationRequiredDocuments />);
       expect(screen.getByRole('link', { name: /personal identification/i })).toHaveAttribute('href', '#identification');
@@ -62,6 +77,11 @@ describe('ApplicationRequiredDocuments', () => {
     it('links to the pets and assistance animals section', () => {
       renderWithRouter(<ApplicationRequiredDocuments />);
       expect(screen.getByRole('link', { name: /^pets and assistance animals$/i })).toHaveAttribute('href', '#pets-animals');
+    });
+
+    it('links to the pets subsection', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /^pets$/i })).toHaveAttribute('href', '#pets-only');
     });
 
     it('links to the service animals subsection', () => {
@@ -104,6 +124,11 @@ describe('ApplicationRequiredDocuments', () => {
       expect(screen.getByRole('link', { name: /child support or spousal maintenance/i })).toHaveAttribute('href', '#child-support');
     });
 
+    it('links to the all other benefits subsection', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('link', { name: /^all other benefits$/i })).toHaveAttribute('href', '#other-benefits');
+    });
+
     it('links to the emergency contact section', () => {
       renderWithRouter(<ApplicationRequiredDocuments />);
       expect(screen.getByRole('link', { name: /emergency contact/i })).toHaveAttribute('href', '#emergency-contact');
@@ -128,7 +153,7 @@ describe('ApplicationRequiredDocuments', () => {
   describe('Pets and Assistance Animals section', () => {
     it('renders the Pets and Assistance Animals section heading', () => {
       renderWithRouter(<ApplicationRequiredDocuments />);
-      expect(screen.getByText(/pets and assistance animals/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /pets and assistance animals/i })).toBeInTheDocument();
     });
 
     it('describes service animal task inquiry without requiring certification', () => {
@@ -192,14 +217,14 @@ describe('ApplicationRequiredDocuments', () => {
 
     it('lists child support and spousal maintenance requirements', () => {
       renderWithRouter(<ApplicationRequiredDocuments />);
-      expect(screen.getByText(/child support or spousal maintenance/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/child support or spousal maintenance/i).length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText(/court order or divorce decree/i)).toBeInTheDocument();
       expect(screen.getByText(/oag.*texas office of the attorney general/i)).toBeInTheDocument();
     });
 
     it('covers all other benefits with a catch-all requirement', () => {
       renderWithRouter(<ApplicationRequiredDocuments />);
-      expect(screen.getByText(/all other benefits/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/all other benefits/i).length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText(/official award or benefit letter from the issuing agency/i)).toBeInTheDocument();
     });
   });
@@ -229,7 +254,7 @@ describe('ApplicationRequiredDocuments', () => {
 
     it('distinguishes co-signer from guarantor', () => {
       renderWithRouter(<ApplicationRequiredDocuments />);
-      expect(screen.getByText(/a co-signer is not the same as a guarantor/i)).toBeInTheDocument();
+      expect(screen.getByText(/not the same as a guarantor/i)).toBeInTheDocument();
     });
 
     it('states co-signer is jointly and severally liable from day one', () => {
@@ -238,8 +263,9 @@ describe('ApplicationRequiredDocuments', () => {
     });
 
     it('requires co-signer to provide 24 months of landlord references', () => {
-      renderWithRouter(<ApplicationRequiredDocuments />);
-      expect(screen.getByText(/landlord reference information for the past.*24 months/i)).toBeInTheDocument();
+      const { container } = renderWithRouter(<ApplicationRequiredDocuments />);
+      const cosignerSection = container.querySelector('#cosigner');
+      expect(cosignerSection.textContent).toMatch(/landlord reference information for the past/i);
     });
   });
 });

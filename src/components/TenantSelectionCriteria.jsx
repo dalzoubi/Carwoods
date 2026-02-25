@@ -28,7 +28,7 @@ const TenantSelectionCriteria = () => {
           <li><a href="#at-a-glance">At a glance</a></li>
           <li>
             <a href="#details">Details</a>
-            <ol>
+            <ol type="a">
               <li><a href="#employment">Employment</a></li>
               <li><a href="#income">Income</a></li>
               <li><a href="#rental-history">Rental history</a></li>
@@ -42,7 +42,7 @@ const TenantSelectionCriteria = () => {
           <li><a href="#cosigner-policy">Co-signer policy</a></li>
           <li>
             <a href="#pets">Pets</a>
-            <ol>
+            <ol type="a">
               <li><a href="#assistance-animals">Assistance animals</a></li>
             </ol>
           </li>

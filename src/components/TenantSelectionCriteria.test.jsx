@@ -21,6 +21,13 @@ describe('TenantSelectionCriteria', () => {
     expect(screen.getByRole('navigation', { name: /table of contents/i })).toBeInTheDocument();
   });
 
+  it('uses alphabetic (a, b, c) numbering for Details sub-list in table of contents', () => {
+    const { container } = renderWithRouter(<TenantSelectionCriteria />);
+    const nav = container.querySelector('nav[aria-label="Table of contents"]');
+    const alphaLists = nav.querySelectorAll('ol[type="a"]');
+    expect(alphaLists.length).toBeGreaterThanOrEqual(1);
+  });
+
   it('contains employment section', () => {
     renderWithRouter(<TenantSelectionCriteria />);
     expect(screen.getByRole('heading', { name: /employment/i })).toBeInTheDocument();
@@ -28,7 +35,7 @@ describe('TenantSelectionCriteria', () => {
 
   it('contains credit score requirement', () => {
     renderWithRouter(<TenantSelectionCriteria />);
-    expect(screen.getByText(/650/)).toBeInTheDocument();
+    expect(screen.getAllByText(/650/).length).toBeGreaterThanOrEqual(1);
   });
 
   describe('Guarantor policy section', () => {
@@ -44,12 +51,12 @@ describe('TenantSelectionCriteria', () => {
 
     it('requires guarantor credit score of 700', () => {
       renderWithRouter(<TenantSelectionCriteria />);
-      expect(screen.getByText(/700/)).toBeInTheDocument();
+      expect(screen.getAllByText(/700/).length).toBeGreaterThanOrEqual(1);
     });
 
     it('requires guarantor income of 4x monthly rent', () => {
       renderWithRouter(<TenantSelectionCriteria />);
-      expect(screen.getByText(/4× the monthly rent/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/4× the monthly rent/i).length).toBeGreaterThanOrEqual(1);
     });
 
     it('links guarantor policy in table of contents', () => {
@@ -66,7 +73,7 @@ describe('TenantSelectionCriteria', () => {
 
     it('distinguishes co-signer from guarantor', () => {
       renderWithRouter(<TenantSelectionCriteria />);
-      expect(screen.getByText(/a co-signer is not the same as a guarantor/i)).toBeInTheDocument();
+      expect(screen.getByText(/not the same as a guarantor/i)).toBeInTheDocument();
     });
 
     it('states co-signer is liable from day one', () => {

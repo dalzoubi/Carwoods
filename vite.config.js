@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import fs from 'node:fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -9,9 +9,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Allow both real and original paths (Vite has path resolution issues on Windows network drives)
 const projectRoot = path.resolve(__dirname);
 const realRoot = fs.realpathSync.native(projectRoot);
+// Use file:// URL for setupFiles to avoid Vite treating UNC paths as virtual module IDs
+const setupTestsUrl = pathToFileURL(path.join(projectRoot, 'src/setupTests.js')).href;
 
 export default defineConfig({
   root: projectRoot,
+  resolve: {
+    preserveSymlinks: true,
+  },
   plugins: [react()],
   // Match gh-pages deploy: homepage is carwoods.com, base path is /
   base: '/',
@@ -35,8 +40,13 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: './src/setupTests.js',
+    setupFiles: ['./src/setupTests.js'],
     include: ['src/**/*.{test,spec}.{jsx,js}'],
+    server: {
+      fs: {
+        allow: [projectRoot, realRoot],
+      },
+    },
       coverage: {
         provider: 'v8',
         reporter: ['text', 'lcov'],
