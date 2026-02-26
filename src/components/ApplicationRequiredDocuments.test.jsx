@@ -5,6 +5,14 @@ import ApplicationRequiredDocuments from './ApplicationRequiredDocuments';
 
 const renderWithRouter = (ui) => render(<BrowserRouter>{ui}</BrowserRouter>);
 
+const renderWithHash = (hash) => {
+  Object.defineProperty(window, 'location', {
+    writable: true,
+    value: { ...window.location, hash },
+  });
+  return renderWithRouter(<ApplicationRequiredDocuments />);
+};
+
 describe('ApplicationRequiredDocuments', () => {
   it('renders heading', () => {
     renderWithRouter(<ApplicationRequiredDocuments />);
@@ -266,6 +274,58 @@ describe('ApplicationRequiredDocuments', () => {
       const { container } = renderWithRouter(<ApplicationRequiredDocuments />);
       const cosignerSection = container.querySelector('#cosigner');
       expect(cosignerSection.textContent).toMatch(/landlord reference information for the past/i);
+    });
+  });
+
+  describe('Deep linking', () => {
+    let scrollIntoViewSpy;
+
+    beforeEach(() => {
+      scrollIntoViewSpy = vi.fn();
+      HTMLElement.prototype.scrollIntoView = scrollIntoViewSpy;
+    });
+
+    afterEach(() => {
+      delete HTMLElement.prototype.scrollIntoView;
+      Object.defineProperty(window, 'location', {
+        writable: true,
+        value: { ...window.location, hash: '' },
+      });
+    });
+
+    it('scrolls to #guarantor on load', () => {
+      renderWithHash('#guarantor');
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('scrolls to #esa on load', () => {
+      renderWithHash('#esa');
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('scrolls to #section-8 on load', () => {
+      renderWithHash('#section-8');
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('scrolls to #cosigner on load', () => {
+      renderWithHash('#cosigner');
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('scrolls to #identification on load', () => {
+      renderWithHash('#identification');
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('does not scroll when no hash is present', () => {
+      renderWithHash('');
+      expect(scrollIntoViewSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not scroll when hash does not match any section', () => {
+      renderWithHash('#nonexistent-section');
+      expect(scrollIntoViewSpy).not.toHaveBeenCalled();
     });
   });
 });

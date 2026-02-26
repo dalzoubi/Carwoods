@@ -5,6 +5,14 @@ import TenantSelectionCriteria from './TenantSelectionCriteria';
 
 const renderWithRouter = (ui) => render(<BrowserRouter>{ui}</BrowserRouter>);
 
+const renderWithHash = (hash) => {
+  Object.defineProperty(window, 'location', {
+    writable: true,
+    value: { ...window.location, hash },
+  });
+  return renderWithRouter(<TenantSelectionCriteria />);
+};
+
 describe('TenantSelectionCriteria', () => {
   it('renders heading', () => {
     renderWithRouter(<TenantSelectionCriteria />);
@@ -97,9 +105,61 @@ describe('TenantSelectionCriteria', () => {
       expect(matches.length).toBeGreaterThanOrEqual(2);
     });
 
-    it('links co-signer policy in table of contents', () => {
-      renderWithRouter(<TenantSelectionCriteria />);
-      expect(screen.getByRole('link', { name: /co-signer policy/i })).toHaveAttribute('href', '#cosigner-policy');
+  it('links co-signer policy in table of contents', () => {
+    renderWithRouter(<TenantSelectionCriteria />);
+    expect(screen.getByRole('link', { name: /co-signer policy/i })).toHaveAttribute('href', '#cosigner-policy');
+  });
+  });
+
+  describe('Deep linking', () => {
+    let scrollIntoViewSpy;
+
+    beforeEach(() => {
+      scrollIntoViewSpy = vi.fn();
+      HTMLElement.prototype.scrollIntoView = scrollIntoViewSpy;
+    });
+
+    afterEach(() => {
+      delete HTMLElement.prototype.scrollIntoView;
+      Object.defineProperty(window, 'location', {
+        writable: true,
+        value: { ...window.location, hash: '' },
+      });
+    });
+
+    it('scrolls to #credit-exception on load', () => {
+      renderWithHash('#credit-exception');
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('scrolls to #guarantor-policy on load', () => {
+      renderWithHash('#guarantor-policy');
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('scrolls to #cosigner-policy on load', () => {
+      renderWithHash('#cosigner-policy');
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('scrolls to #employment on load', () => {
+      renderWithHash('#employment');
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('scrolls to #pets on load', () => {
+      renderWithHash('#pets');
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('does not scroll when no hash is present', () => {
+      renderWithHash('');
+      expect(scrollIntoViewSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not scroll when hash does not match any section', () => {
+      renderWithHash('#nonexistent-section');
+      expect(scrollIntoViewSpy).not.toHaveBeenCalled();
     });
   });
 });
