@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import ApplicationRequiredDocuments from './ApplicationRequiredDocuments';
 
@@ -274,6 +274,40 @@ describe('ApplicationRequiredDocuments', () => {
       const { container } = renderWithRouter(<ApplicationRequiredDocuments />);
       const cosignerSection = container.querySelector('#cosigner');
       expect(cosignerSection.textContent).toMatch(/landlord reference information for the past/i);
+    });
+  });
+
+  describe('Table of contents smooth scrolling', () => {
+    let scrollIntoViewSpy;
+
+    beforeEach(() => {
+      scrollIntoViewSpy = vi.fn();
+      HTMLElement.prototype.scrollIntoView = scrollIntoViewSpy;
+    });
+
+    afterEach(() => {
+      delete HTMLElement.prototype.scrollIntoView;
+    });
+
+    it('smooth scrolls to target section when a TOC link is clicked', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      const link = screen.getByRole('link', { name: /personal identification/i });
+      fireEvent.click(link);
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('smooth scrolls to #guarantor when that TOC link is clicked', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      const link = screen.getByRole('link', { name: /^guarantor$/i });
+      fireEvent.click(link);
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('smooth scrolls to #section-8 when that TOC link is clicked', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      const link = screen.getByRole('link', { name: /section 8 \/ housing assistance/i });
+      fireEvent.click(link);
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
     });
   });
 

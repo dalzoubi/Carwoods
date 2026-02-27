@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { Heading, Paragraph } from '../styles';
+import { Heading, SubHeading, Paragraph, TocNav } from '../styles';
 
 const PropertyManagement = () => {
   useEffect(() => {
@@ -18,8 +18,8 @@ const PropertyManagement = () => {
             </Helmet>
             <Heading>Property Management</Heading>
 
-            <nav aria-label="Table of contents">
-              <h2>Contents</h2>
+            <TocNav aria-label="Table of contents">
+              <SubHeading>Contents</SubHeading>
               <ol>
                 <li><a href="#section-1">Appointment of Property Manager</a></li>
                 <li><a href="#section-2">Term</a></li>
@@ -34,10 +34,10 @@ const PropertyManagement = () => {
                 <li><a href="#section-11">Governing Law</a></li>
                 <li><a href="#section-12">Entire Agreement</a></li>
               </ol>
-            </nav>
+            </TocNav>
 
             <section aria-labelledby="section-1">
-                <h2 id="section-1">1. Appointment of Property Manager</h2>
+                <SubHeading id="section-1">1. Appointment of Property Manager</SubHeading>
                 <Paragraph>
                     The Owner appoints the Property Manager as the exclusive agent to rent, lease, operate, and manage
                     the Property.
@@ -45,7 +45,7 @@ const PropertyManagement = () => {
             </section>
 
             <section aria-labelledby="section-2">
-                <h2 id="section-2">2. Term</h2>
+                <SubHeading id="section-2">2. Term</SubHeading>
                 <Paragraph>
                     This Agreement shall commence on [Start Date] and continue until [End Date] unless terminated earlier
                     in accordance with the terms herein.
@@ -53,7 +53,7 @@ const PropertyManagement = () => {
             </section>
 
             <section aria-labelledby="section-3">
-                <h2 id="section-3">3. Management Fee</h2>
+                <SubHeading id="section-3">3. Management Fee</SubHeading>
                 <Paragraph>
                     The Owner agrees to pay the Property Manager a management fee of 8% of the monthly rental income.
                     Additional fees may apply for specific services as outlined in Section 4.
@@ -61,7 +61,7 @@ const PropertyManagement = () => {
             </section>
 
             <section aria-labelledby="section-4">
-                <h2 id="section-4">4. Services Provided</h2>
+                <SubHeading id="section-4">4. Services Provided</SubHeading>
                 <Paragraph>The Property Manager agrees to perform the following services:</Paragraph>
                 <ul>
                     <li>Marketing and advertising the Property for rent.</li>
@@ -77,7 +77,7 @@ const PropertyManagement = () => {
             </section>
 
             <section aria-labelledby="section-5">
-                <h2 id="section-5">5. Expenses</h2>
+                <SubHeading id="section-5">5. Expenses</SubHeading>
                 <Paragraph>
                     The Owner agrees to reimburse the Property Manager for all reasonable expenses incurred in the
                     management of the Property, including but not limited to:
@@ -90,7 +90,7 @@ const PropertyManagement = () => {
             </section>
 
             <section aria-labelledby="section-6">
-                <h2 id="section-6">6. Reserve Fund</h2>
+                <SubHeading id="section-6">6. Reserve Fund</SubHeading>
                 <Paragraph>
                     The Owner agrees to establish and maintain a reserve fund of $1,000 to be held by the Property
                     Manager. This fund is to be used for emergency repairs, unforeseen expenses, and any other expenses
@@ -107,7 +107,7 @@ const PropertyManagement = () => {
             </section>
 
             <section aria-labelledby="section-7">
-                <h2 id="section-7">7. Owner&apos;s Responsibilities</h2>
+                <SubHeading id="section-7">7. Owner&apos;s Responsibilities</SubHeading>
                 <Paragraph>The Owner agrees to:</Paragraph>
                 <ul>
                     <li>Maintain adequate property insurance.</li>
@@ -117,7 +117,7 @@ const PropertyManagement = () => {
             </section>
 
             <section aria-labelledby="section-8">
-                <h2 id="section-8">8. Annual Reporting</h2>
+                <SubHeading id="section-8">8. Annual Reporting</SubHeading>
                 <Paragraph>
                     The Property Manager shall provide the Owner with detailed annual reports, including but not limited
                     to, the following:
@@ -136,7 +136,7 @@ const PropertyManagement = () => {
             </section>
 
             <section aria-labelledby="section-9">
-                <h2 id="section-9">9. Termination</h2>
+                <SubHeading id="section-9">9. Termination</SubHeading>
                 <Paragraph>
                     Either party may terminate this Agreement with 30 days&apos; written notice. In the event of termination,
                     the Property Manager shall be entitled to all management fees and reimbursement for expenses
@@ -145,7 +145,7 @@ const PropertyManagement = () => {
             </section>
 
             <section aria-labelledby="section-10">
-                <h2 id="section-10">10. Indemnification</h2>
+                <SubHeading id="section-10">10. Indemnification</SubHeading>
                 <Paragraph>
                     The Owner agrees to indemnify and hold the Property Manager harmless from any and all claims, losses,
                     damages, liabilities, and expenses arising out of or related to the management of the Property,
@@ -154,7 +154,7 @@ const PropertyManagement = () => {
             </section>
 
             <section aria-labelledby="section-11">
-                <h2 id="section-11">11. Governing Law</h2>
+                <SubHeading id="section-11">11. Governing Law</SubHeading>
                 <Paragraph>
                     This Agreement shall be governed by and construed in accordance with the laws of the State of
                     TEXAS.
@@ -162,7 +162,7 @@ const PropertyManagement = () => {
             </section>
 
             <section aria-labelledby="section-12">
-                <h2 id="section-12">12. Entire Agreement</h2>
+                <SubHeading id="section-12">12. Entire Agreement</SubHeading>
                 <Paragraph>
                     This Agreement constitutes the entire agreement between the parties and supersedes all prior
                     agreements or understandings, whether written or oral, relating to the subject matter herein.

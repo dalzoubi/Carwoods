@@ -8,7 +8,7 @@ const renderWithRouter = (ui) => render(<BrowserRouter>{ui}</BrowserRouter>);
 describe('Footer', () => {
   it('renders copyright', () => {
     renderWithRouter(<Footer />);
-    expect(screen.getByText(/© 2026 Carwoods LLC/i)).toBeInTheDocument();
+    expect(screen.getByText(/© 2026 Carwoods/i)).toBeInTheDocument();
   });
 
   it('renders TREC Consumer Protection link', () => {

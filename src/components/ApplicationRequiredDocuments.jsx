@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { Heading, Paragraph, nestedListStyle } from '../styles';
+import { Heading, SubHeading, Paragraph, InlineLink, TocNav, nestedListStyle } from '../styles';
 
 const ApplicationRequiredDocuments = () => {
   useEffect(() => {
@@ -28,11 +28,11 @@ const ApplicationRequiredDocuments = () => {
         Incomplete applications will <strong>not</strong> be processed.
         Providing documents does not guarantee approval.
         Documents are handled confidentially and used only for screening purposes.
-        Please also review our <a href="/tenant-selection-criteria">Tenant Selection Criteria</a> for full eligibility requirements.
+        Please also review our <InlineLink href="/tenant-selection-criteria">Tenant Selection Criteria</InlineLink> for full eligibility requirements.
       </Paragraph>
 
-      <nav aria-label="Table of contents">
-        <h2>Contents</h2>
+      <TocNav aria-label="Table of contents">
+        <SubHeading>Contents</SubHeading>
         <ol>
           <li><a href="#identification">Personal Identification</a></li>
           <li><a href="#employed">If Employed</a></li>
@@ -62,12 +62,12 @@ const ApplicationRequiredDocuments = () => {
           <li><a href="#guarantor">Guarantor</a></li>
           <li><a href="#cosigner">Co-Signer</a></li>
         </ol>
-      </nav>
+      </TocNav>
 
       <section id="identification">
-        <h2>1. Personal Identification (All Adults 18+)</h2>
+        <SubHeading>1. Personal Identification (All Adults 18+)</SubHeading>
         <ol style={nestedListStyle}>
-          <li>Valid government-issued photo ID (Driver's License or State ID, color copy).</li>
+          <li>Valid government-issued photo ID (Driver&apos;s License or State ID, color copy).</li>
           <li>
             Social Security Number verification (one of the following, color copy, showing full SSN):
             <ul style={nestedListStyle}>
@@ -81,32 +81,32 @@ const ApplicationRequiredDocuments = () => {
       </section>
 
       <section id="employed">
-        <h2>2. If Employed</h2>
+        <SubHeading>2. If Employed</SubHeading>
         <ol style={nestedListStyle}>
           <li>Most recent <strong>90 days</strong> of pay stubs showing year-to-date earnings.</li>
           <li>Written employment verification (HR letter or email confirming start date, position, and current status).</li>
           <li>
             Bank statements for the most recent <strong>60 days</strong>
-            (original bank-exported PDF, all pages, <strong>must clearly show the applicant's full name and current address</strong>).
+            (original bank-exported PDF, all pages, <strong>must clearly show the applicant&apos;s full name and current address</strong>).
           </li>
           <li>Employer or HR contact information for verification (name, email, direct phone number).</li>
         </ol>
       </section>
 
       <section id="self-employed">
-        <h2>3. If Self-Employed</h2>
+        <SubHeading>3. If Self-Employed</SubHeading>
         <ol style={nestedListStyle}>
           <li>Most recent <strong>two (2) years</strong> of filed federal tax returns.</li>
           <li>
             Last <strong>6 months</strong> of bank statements
-            (original bank-exported PDF, all pages, <strong>must clearly show the applicant's full name and current address</strong>).
+            (original bank-exported PDF, all pages, <strong>must clearly show the applicant&apos;s full name and current address</strong>).
           </li>
           <li>Business documentation (EIN letter, certificate of formation, or business license).</li>
         </ol>
       </section>
 
       <section id="rental-history">
-        <h2>4. Rental History &amp; Other Income</h2>
+        <SubHeading>4. Rental History &amp; Other Income</SubHeading>
         <ol style={nestedListStyle}>
           <li>
             Landlord reference information for the past <strong>24 months</strong>
@@ -126,13 +126,13 @@ const ApplicationRequiredDocuments = () => {
       </section>
 
       <section id="pets-animals">
-        <h2>5. Pets and Assistance Animals</h2>
+        <SubHeading>5. Pets and Assistance Animals</SubHeading>
         <ol type="a" style={nestedListStyle}>
           <li id="pets-only">
             <strong>Pets (if applicable):</strong> Clear photos of each pet and current vaccination records.
           </li>
           <li id="service-animals">
-            <strong>Service Animals:</strong> Under the Fair Housing Act and Texas Property Code, service animals are dogs (or miniature horses) individually trained to perform specific tasks directly related to a person's disability. We will not request documentation proving the animal is a certified or trained service animal, nor will we require the animal to demonstrate its task. However, we may ask:
+            <strong>Service Animals:</strong> Under the Fair Housing Act and Texas Property Code, service animals are dogs (or miniature horses) individually trained to perform specific tasks directly related to a person&apos;s disability. We will not request documentation proving the animal is a certified or trained service animal, nor will we require the animal to demonstrate its task. However, we may ask:
             <ul style={nestedListStyle}>
               <li>Whether the applicant has a disability-related need for the animal (yes/no only — we will not ask for the nature or extent of the disability).</li>
               <li>What specific task or work the animal has been trained to perform.</li>
@@ -142,8 +142,8 @@ const ApplicationRequiredDocuments = () => {
           <li id="esa">
             <strong>Emotional Support Animals (ESA) and Other Assistance Animals:</strong> When the disability-related need for an ESA or other assistance animal is not obvious or known, we may request <strong>reliable documentation</strong> from a licensed healthcare professional (physician, psychiatrist, therapist, or other licensed mental health professional) currently treating the applicant. The letter must:
             <ul style={nestedListStyle}>
-              <li>Be written on the provider's official letterhead.</li>
-              <li>Include the provider's name, license type, license number, state of licensure, and direct contact information.</li>
+              <li>Be written on the provider&apos;s official letterhead.</li>
+              <li>Include the provider&apos;s name, license type, license number, state of licensure, and direct contact information.</li>
               <li>Confirm that the applicant has a disability (without disclosing the specific diagnosis).</li>
               <li>State that the animal provides disability-related support or therapeutic benefit.</li>
               <li>Be dated within the past <strong>12 months</strong>.</li>
@@ -154,7 +154,7 @@ const ApplicationRequiredDocuments = () => {
       </section>
 
       <section id="benefits">
-        <h2>6. Applicants Receiving Government or Other Benefits</h2>
+        <SubHeading>6. Applicants Receiving Government or Other Benefits</SubHeading>
         <ol type="a" style={nestedListStyle}>
           <li id="va-benefits">
             <strong>VA (Veterans Affairs) Benefits:</strong>
@@ -199,7 +199,7 @@ const ApplicationRequiredDocuments = () => {
       </section>
 
       <section id="emergency-contact">
-        <h2>7. Emergency Contact</h2>
+        <SubHeading>7. Emergency Contact</SubHeading>
         <ol style={nestedListStyle}>
           <li>
             Emergency contact for someone <strong>not residing</strong> in the household
@@ -209,12 +209,12 @@ const ApplicationRequiredDocuments = () => {
       </section>
 
       <section id="section-8">
-        <h2>8. Section 8 / Housing Assistance Applicants (Additional Requirements)</h2>
+        <SubHeading>8. Section 8 / Housing Assistance Applicants (Additional Requirements)</SubHeading>
         <ol style={nestedListStyle}>
           <li>Active Housing Choice Voucher showing tenant name, bedroom size, issue date, and expiration date.</li>
           <li>Tenant Rent Portion Estimate, affordability worksheet, or equivalent from the assigned caseworker or Housing Authority.</li>
           <li>Completed RFTA (Request for Tenancy Approval) packet (tenant sections).</li>
-          <li>Caseworker's full name, email address, and direct phone number.</li>
+          <li>Caseworker&apos;s full name, email address, and direct phone number.</li>
           <li>Proof that household composition matches the voucher.</li>
           <li>Housing Authority inspection and rent reasonableness approval are required prior to move-in.</li>
           <li>HAP Contract and Housing Authority lease addendum are required <strong>after approval</strong> and inspection.</li>
@@ -226,9 +226,9 @@ const ApplicationRequiredDocuments = () => {
       </section>
 
       <section id="guarantor">
-        <h2>9. If a Guarantor is Required</h2>
+        <SubHeading>9. If a Guarantor is Required</SubHeading>
         <Paragraph>
-          A guarantor signs a separate guaranty agreement (not the lease) and is only liable if the primary tenant defaults. Guarantors are accepted only when requested by management — see <a href="/tenant-selection-criteria">Tenant Selection Criteria</a> for eligibility.
+          A guarantor signs a separate guaranty agreement (not the lease) and is only liable if the primary tenant defaults. Guarantors are accepted only when requested by management — see <InlineLink href="/tenant-selection-criteria">Tenant Selection Criteria</InlineLink> for eligibility.
         </Paragraph>
         <ol style={nestedListStyle}>
           <li>Valid government-issued photo ID (color copy).</li>
@@ -242,9 +242,9 @@ const ApplicationRequiredDocuments = () => {
       </section>
 
       <section id="cosigner">
-        <h2>10. If a Co-Signer is Required</h2>
+        <SubHeading>10. If a Co-Signer is Required</SubHeading>
         <Paragraph>
-          A co-signer is <strong>not the same as a guarantor</strong>. A co-signer signs the lease itself as a co-tenant and is jointly and severally liable for all lease obligations from day one — regardless of whether the primary tenant pays. Co-signers must meet the full applicant qualification standards. See <a href="/tenant-selection-criteria">Tenant Selection Criteria</a> for eligibility.
+          A co-signer is <strong>not the same as a guarantor</strong>. A co-signer signs the lease itself as a co-tenant and is jointly and severally liable for all lease obligations from day one — regardless of whether the primary tenant pays. Co-signers must meet the full applicant qualification standards. See <InlineLink href="/tenant-selection-criteria">Tenant Selection Criteria</InlineLink> for eligibility.
         </Paragraph>
         <ol style={nestedListStyle}>
           <li>Valid government-issued photo ID (color copy).</li>

@@ -4,13 +4,13 @@ import { Link } from 'react-router-dom';
 import theme from '../theme';
 
 const FooterContainer = styled.footer`
-    background-color: ${theme.palette.primary.main}; /* Match header color */
+    background-color: ${theme.palette.primary.main};
     color: ${theme.palette.text.primary};
     text-align: center;
     padding: 1rem;
-    width: 100%; /* Ensure it takes full width */
-    position: relative; /* Prevent any fixed positioning */
-    bottom: 0; /* Stick to the bottom of the page */
+    width: 100%;
+    position: relative;
+    bottom: 0;
 `;
 
 const linkStyles = `
@@ -38,6 +38,12 @@ const FooterLinkInternal = styled(Link)`
     ${linkStyles}
 `;
 
+const FooterSeparator = styled.span`
+    color: rgba(255, 255, 255, 0.4);
+    margin: 0 2px;
+    user-select: none;
+`;
+
 const Footer = () => {
     return (
         <FooterContainer aria-label="footer">
@@ -45,13 +51,13 @@ const Footer = () => {
             <FooterLink href="https://www.trec.texas.gov/sites/default/files/pdf-forms/CN%201-2.pdf" target="_blank" rel="noopener noreferrer" aria-label="Texas Real Estate Commission Consumer Protection Notice (opens in new tab)">
                 Texas Real Estate Commission Consumer Protection Notice
             </FooterLink>
-            |
+            <FooterSeparator aria-hidden="true">|</FooterSeparator>
             <FooterLink href="https://members.har.com/mhf/terms/dispBrokerInfo.cfm?sitetype=aws&cid=735771" target="_blank" rel="noopener noreferrer" aria-label="Texas Real Estate Commission Information About Brokerage Services (opens in new tab)">
                 Texas Real Estate Commission Information About Brokerage Services
             </FooterLink>
-            |
+            <FooterSeparator aria-hidden="true">|</FooterSeparator>
             <FooterLinkInternal to="/privacy">Privacy Policy</FooterLinkInternal>
-            |
+            <FooterSeparator aria-hidden="true">|</FooterSeparator>
             <FooterLinkInternal to="/accessibility">Accessibility</FooterLinkInternal>
         </FooterContainer>
     );

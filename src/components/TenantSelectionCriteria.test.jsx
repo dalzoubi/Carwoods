@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import TenantSelectionCriteria from './TenantSelectionCriteria';
 
@@ -109,6 +109,40 @@ describe('TenantSelectionCriteria', () => {
     renderWithRouter(<TenantSelectionCriteria />);
     expect(screen.getByRole('link', { name: /co-signer policy/i })).toHaveAttribute('href', '#cosigner-policy');
   });
+  });
+
+  describe('Table of contents smooth scrolling', () => {
+    let scrollIntoViewSpy;
+
+    beforeEach(() => {
+      scrollIntoViewSpy = vi.fn();
+      HTMLElement.prototype.scrollIntoView = scrollIntoViewSpy;
+    });
+
+    afterEach(() => {
+      delete HTMLElement.prototype.scrollIntoView;
+    });
+
+    it('smooth scrolls to target section when a TOC link is clicked', () => {
+      renderWithRouter(<TenantSelectionCriteria />);
+      const link = screen.getByRole('link', { name: /at a glance/i });
+      fireEvent.click(link);
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('smooth scrolls to #employment when that TOC link is clicked', () => {
+      renderWithRouter(<TenantSelectionCriteria />);
+      const link = screen.getByRole('link', { name: /^employment$/i });
+      fireEvent.click(link);
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('smooth scrolls to #pets when that TOC link is clicked', () => {
+      renderWithRouter(<TenantSelectionCriteria />);
+      const link = screen.getByRole('link', { name: /^pets$/i });
+      fireEvent.click(link);
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
   });
 
   describe('Deep linking', () => {

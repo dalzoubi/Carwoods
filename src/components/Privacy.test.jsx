@@ -13,7 +13,7 @@ describe('Privacy', () => {
 
   it('contains introductory commitment to privacy', () => {
     renderWithRouter(<Privacy />);
-    expect(screen.getByText(/carwoods llc.*committed to protecting your privacy/i)).toBeInTheDocument();
+    expect(screen.getByText(/carwoods.*committed to protecting your privacy/i)).toBeInTheDocument();
   });
 
   it('renders Information We Collect section', () => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import PropertyManagement from './PropertyManagement';
 
@@ -61,6 +61,40 @@ describe('PropertyManagement', () => {
     for (const { name, href } of expectedLinks) {
       expect(screen.getByRole('link', { name })).toHaveAttribute('href', href);
     }
+  });
+
+  describe('Table of contents smooth scrolling', () => {
+    let scrollIntoViewSpy;
+
+    beforeEach(() => {
+      scrollIntoViewSpy = vi.fn();
+      HTMLElement.prototype.scrollIntoView = scrollIntoViewSpy;
+    });
+
+    afterEach(() => {
+      delete HTMLElement.prototype.scrollIntoView;
+    });
+
+    it('smooth scrolls to target section when a TOC link is clicked', () => {
+      renderWithRouter(<PropertyManagement />);
+      const link = screen.getByRole('link', { name: /management fee/i });
+      fireEvent.click(link);
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('smooth scrolls to #section-1 when that TOC link is clicked', () => {
+      renderWithRouter(<PropertyManagement />);
+      const link = screen.getByRole('link', { name: /appointment of property manager/i });
+      fireEvent.click(link);
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('smooth scrolls to #section-12 when that TOC link is clicked', () => {
+      renderWithRouter(<PropertyManagement />);
+      const link = screen.getByRole('link', { name: /entire agreement/i });
+      fireEvent.click(link);
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
   });
 
   describe('Deep linking', () => {

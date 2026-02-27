@@ -7,16 +7,14 @@ const theme = createTheme({
             light: '#63a4ff',
             dark: '#004ba0',
         },
-        secondary: {
-            main: '#004d40',
-        },
         text: {
             primary: '#ffffff',
             secondary: '#333333',
             link: '#ffcc00',
         },
         background: {
-            paper: '#e0e0e0',
+            default: '#ffffff',
+            paper: '#f8f9fa',
         },
         drawer: {
             background: '#1976d2',
@@ -25,13 +23,17 @@ const theme = createTheme({
         },
     },
     typography: {
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif',
         h1: {
             fontSize: '2.5rem',
             fontWeight: 600,
         },
         h2: {
             fontSize: '1.75rem',
+            fontWeight: 600,
+        },
+        h3: {
+            fontSize: '1.35rem',
             fontWeight: 600,
         },
         body1: {

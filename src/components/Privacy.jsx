@@ -1,6 +1,6 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
-import { Heading, Paragraph } from '../styles';
+import { Heading, SubHeading, Paragraph, InlineLink } from '../styles';
 
 const Privacy = () => {
     return (
@@ -14,24 +14,24 @@ const Privacy = () => {
                 Carwoods LLC (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This policy describes how we handle information when you use our website and services.
             </Paragraph>
 
-            <h2>Information We Collect</h2>
+            <SubHeading>Information We Collect</SubHeading>
             <Paragraph>
                 When you visit our site, we may collect information you provide directly, such as when you contact us or submit an application. If you use third-party services (e.g., HAR.com for property inquiries or applications), their privacy policies govern that data.
             </Paragraph>
 
-            <h2>How We Use Information</h2>
+            <SubHeading>How We Use Information</SubHeading>
             <Paragraph>
                 We use information to respond to inquiries, process applications, provide property management services, and comply with legal obligations. We do not sell your personal information.
             </Paragraph>
 
-            <h2>Third Parties</h2>
+            <SubHeading>Third Parties</SubHeading>
             <Paragraph>
                 Our site may link to external services (e.g., Texas Real Estate Commission, HAR.com). We are not responsible for their privacy practices. Please review their policies before sharing information.
             </Paragraph>
 
-            <h2>Contact</h2>
+            <SubHeading>Contact</SubHeading>
             <Paragraph>
-                For privacy-related questions or to request access to your information, contact us through our <a href="/contact-us">Contact Us</a> page.
+                For privacy-related questions or to request access to your information, contact us through our <InlineLink href="/contact-us">Contact Us</InlineLink> page.
             </Paragraph>
 
             <Paragraph>

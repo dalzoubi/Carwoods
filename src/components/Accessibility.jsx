@@ -1,6 +1,6 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
-import { Heading, Paragraph } from '../styles';
+import { Heading, SubHeading, Paragraph, InlineLink } from '../styles';
 
 const Accessibility = () => {
     return (
@@ -14,7 +14,7 @@ const Accessibility = () => {
                 Carwoods LLC is committed to ensuring our website is accessible to people with disabilities. We aim to comply with the Web Content Accessibility Guidelines (WCAG) 2.1 at Level AA.
             </Paragraph>
 
-            <h2>Measures We Take</h2>
+            <SubHeading>Measures We Take</SubHeading>
             <ul>
                 <li>Semantic HTML and clear heading structure</li>
                 <li>Keyboard navigable content with visible focus indicators</li>
@@ -23,9 +23,9 @@ const Accessibility = () => {
                 <li>Skip links for keyboard users</li>
             </ul>
 
-            <h2>Feedback</h2>
+            <SubHeading>Feedback</SubHeading>
             <Paragraph>
-                If you encounter any accessibility barriers on our site, please contact us through our <a href="/contact-us">Contact Us</a> page. We will work to address the issue promptly.
+                If you encounter any accessibility barriers on our site, please contact us through our <InlineLink href="/contact-us">Contact Us</InlineLink> page. We will work to address the issue promptly.
             </Paragraph>
 
             <Paragraph>
