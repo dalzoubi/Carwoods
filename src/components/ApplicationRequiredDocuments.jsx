@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { Heading, SubHeading, Paragraph, InlineLink, TocNav, nestedListStyle } from '../styles';
+import { Heading, SubHeading, Paragraph, InlineLink, TocNav, BackToTop, nestedListStyle } from '../styles';
 
 const ApplicationRequiredDocuments = () => {
   useEffect(() => {
@@ -17,6 +17,7 @@ const ApplicationRequiredDocuments = () => {
         <title>Carwoods - Application Required Documents</title>
       </Helmet>
 
+      <span id="page-top" />
       <Heading>Application Required Documents</Heading>
 
       <Paragraph>
@@ -64,8 +65,8 @@ const ApplicationRequiredDocuments = () => {
         </ol>
       </TocNav>
 
-      <section id="identification">
-        <SubHeading>1. Personal Identification (All Adults 18+)</SubHeading>
+      <section id="identification" aria-labelledby="heading-identification">
+        <SubHeading id="heading-identification">1. Personal Identification (All Adults 18+)</SubHeading>
         <ol style={nestedListStyle}>
           <li>Valid government-issued photo ID (Driver&apos;s License or State ID, color copy).</li>
           <li>
@@ -78,10 +79,11 @@ const ApplicationRequiredDocuments = () => {
             </ul>
           </li>
         </ol>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="employed">
-        <SubHeading>2. If Employed</SubHeading>
+      <section id="employed" aria-labelledby="heading-employed">
+        <SubHeading id="heading-employed">2. If Employed</SubHeading>
         <ol style={nestedListStyle}>
           <li>Most recent <strong>90 days</strong> of pay stubs showing year-to-date earnings.</li>
           <li>Written employment verification (HR letter or email confirming start date, position, and current status).</li>
@@ -91,10 +93,11 @@ const ApplicationRequiredDocuments = () => {
           </li>
           <li>Employer or HR contact information for verification (name, email, direct phone number).</li>
         </ol>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="self-employed">
-        <SubHeading>3. If Self-Employed</SubHeading>
+      <section id="self-employed" aria-labelledby="heading-self-employed">
+        <SubHeading id="heading-self-employed">3. If Self-Employed</SubHeading>
         <ol style={nestedListStyle}>
           <li>Most recent <strong>two (2) years</strong> of filed federal tax returns.</li>
           <li>
@@ -103,10 +106,11 @@ const ApplicationRequiredDocuments = () => {
           </li>
           <li>Business documentation (EIN letter, certificate of formation, or business license).</li>
         </ol>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="rental-history">
-        <SubHeading>4. Rental History &amp; Other Income</SubHeading>
+      <section id="rental-history" aria-labelledby="heading-rental-history">
+        <SubHeading id="heading-rental-history">4. Rental History &amp; Other Income</SubHeading>
         <ol style={nestedListStyle}>
           <li>
             Landlord reference information for the past <strong>24 months</strong>
@@ -123,10 +127,11 @@ const ApplicationRequiredDocuments = () => {
             </ul>
           </li>
         </ol>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="pets-animals">
-        <SubHeading>5. Pets and Assistance Animals</SubHeading>
+      <section id="pets-animals" aria-labelledby="heading-pets-animals">
+        <SubHeading id="heading-pets-animals">5. Pets and Assistance Animals</SubHeading>
         <ol type="a" style={nestedListStyle}>
           <li id="pets-only">
             <strong>Pets (if applicable):</strong> Clear photos of each pet and current vaccination records.
@@ -151,10 +156,11 @@ const ApplicationRequiredDocuments = () => {
             <strong>Online certificates, registry IDs, vest documentation, or letters from internet-based services are not accepted</strong> and do not constitute reliable documentation under HUD guidelines. No pet deposit, pet fee, or pet rent may be charged for an approved assistance animal. The applicant remains liable for damage caused by the animal beyond normal wear and tear.
           </li>
         </ol>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="benefits">
-        <SubHeading>6. Applicants Receiving Government or Other Benefits</SubHeading>
+      <section id="benefits" aria-labelledby="heading-benefits">
+        <SubHeading id="heading-benefits">6. Applicants Receiving Government or Other Benefits</SubHeading>
         <ol type="a" style={nestedListStyle}>
           <li id="va-benefits">
             <strong>VA (Veterans Affairs) Benefits:</strong>
@@ -196,20 +202,22 @@ const ApplicationRequiredDocuments = () => {
             <strong>All Other Benefits:</strong> Official award or benefit letter from the issuing agency (dated within the past <strong>12 months</strong>) plus most recent <strong>2 months</strong> of bank statements confirming deposit amounts.
           </li>
         </ol>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="emergency-contact">
-        <SubHeading>7. Emergency Contact</SubHeading>
+      <section id="emergency-contact" aria-labelledby="heading-emergency-contact">
+        <SubHeading id="heading-emergency-contact">7. Emergency Contact</SubHeading>
         <ol style={nestedListStyle}>
           <li>
             Emergency contact for someone <strong>not residing</strong> in the household
             (full name, address, email, and phone number).
           </li>
         </ol>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="section-8">
-        <SubHeading>8. Section 8 / Housing Assistance Applicants (Additional Requirements)</SubHeading>
+      <section id="section-8" aria-labelledby="heading-section-8">
+        <SubHeading id="heading-section-8">8. Section 8 / Housing Assistance Applicants (Additional Requirements)</SubHeading>
         <ol style={nestedListStyle}>
           <li>Active Housing Choice Voucher showing tenant name, bedroom size, issue date, and expiration date.</li>
           <li>Tenant Rent Portion Estimate, affordability worksheet, or equivalent from the assigned caseworker or Housing Authority.</li>
@@ -223,10 +231,11 @@ const ApplicationRequiredDocuments = () => {
             as all other applicants. No side payments are permitted.
           </li>
         </ol>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="guarantor">
-        <SubHeading>9. If a Guarantor is Required</SubHeading>
+      <section id="guarantor" aria-labelledby="heading-guarantor">
+        <SubHeading id="heading-guarantor">9. If a Guarantor is Required</SubHeading>
         <Paragraph>
           A guarantor signs a separate guaranty agreement (not the lease) and is only liable if the primary tenant defaults. Guarantors are accepted only when requested by management — see <InlineLink href="/tenant-selection-criteria">Tenant Selection Criteria</InlineLink> for eligibility.
         </Paragraph>
@@ -239,10 +248,11 @@ const ApplicationRequiredDocuments = () => {
           <li>If self-employed: most recent <strong>2 years</strong> of filed federal tax returns and last <strong>6 months</strong> of bank statements.</li>
           <li>Signed guaranty agreement (provided by management; separate from the lease).</li>
         </ol>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="cosigner">
-        <SubHeading>10. If a Co-Signer is Required</SubHeading>
+      <section id="cosigner" aria-labelledby="heading-cosigner">
+        <SubHeading id="heading-cosigner">10. If a Co-Signer is Required</SubHeading>
         <Paragraph>
           A co-signer is <strong>not the same as a guarantor</strong>. A co-signer signs the lease itself as a co-tenant and is jointly and severally liable for all lease obligations from day one — regardless of whether the primary tenant pays. Co-signers must meet the full applicant qualification standards. See <InlineLink href="/tenant-selection-criteria">Tenant Selection Criteria</InlineLink> for eligibility.
         </Paragraph>
@@ -256,6 +266,7 @@ const ApplicationRequiredDocuments = () => {
           <li>Landlord reference information for the past <strong>24 months</strong> (landlord name, email, and phone number).</li>
           <li>Completed rental application and consent to full credit, background, and rental history screening.</li>
         </ol>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
     </div>
   );

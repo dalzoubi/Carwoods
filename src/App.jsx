@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Container, Content } from './styles';
 import Home from './components/Home';
 import TenantSelectionCriteria from './components/TenantSelectionCriteria';
@@ -11,6 +11,23 @@ import Accessibility from './components/Accessibility';
 import Footer from './components/Footer';
 import ResponsiveNavbar from './components/ResponsiveNavbar';
 
+const AppRoutes = () => {
+    const location = useLocation();
+    return (
+        <Content key={location.pathname}>
+            <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/tenant-selection-criteria" element={<TenantSelectionCriteria />} />
+                <Route path="/application-required-documents" element={<ApplicationRequiredDocuments />} />
+                <Route path="/property-management" element={<PropertyManagement />} />
+                <Route path="/contact-us" element={<ContactUs />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/accessibility" element={<Accessibility />} />
+            </Routes>
+        </Content>
+    );
+};
+
 const App = () => (
     <Router>
         <a href="#main-content" className="sr-only sr-only-focusable">
@@ -18,17 +35,7 @@ const App = () => (
         </a>
         <ResponsiveNavbar />
         <Container id="main-content">
-            <Content>
-                <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/tenant-selection-criteria" element={<TenantSelectionCriteria />} />
-                    <Route path="/application-required-documents" element={<ApplicationRequiredDocuments />} />
-                    <Route path="/property-management" element={<PropertyManagement />} />
-                    <Route path="/contact-us" element={<ContactUs />} />
-                    <Route path="/privacy" element={<Privacy />} />
-                    <Route path="/accessibility" element={<Accessibility />} />
-                </Routes>
-            </Content>
+            <AppRoutes />
         </Container>
         <Footer />
     </Router>

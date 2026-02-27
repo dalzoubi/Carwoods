@@ -277,6 +277,26 @@ describe('ApplicationRequiredDocuments', () => {
     });
   });
 
+  describe('Back to top links', () => {
+    it('renders a back to top link in each section', () => {
+      const { container } = renderWithRouter(<ApplicationRequiredDocuments />);
+      const sections = container.querySelectorAll('section');
+      sections.forEach((section) => {
+        expect(section.querySelector('a[href="#page-top"]')).not.toBeNull();
+      });
+    });
+
+    it('smooth scrolls to top when a back to top link is clicked', () => {
+      const scrollIntoViewSpy = vi.fn();
+      HTMLElement.prototype.scrollIntoView = scrollIntoViewSpy;
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      const links = screen.getAllByRole('link', { name: /back to top/i });
+      fireEvent.click(links[0]);
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+      delete HTMLElement.prototype.scrollIntoView;
+    });
+  });
+
   describe('Table of contents smooth scrolling', () => {
     let scrollIntoViewSpy;
 

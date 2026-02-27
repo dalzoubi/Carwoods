@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { Heading, SubHeading, SectionHeading, Paragraph, TocNav, DetailsSummary, nestedListStyle } from '../styles';
+import { Heading, SubHeading, SectionHeading, Paragraph, TocNav, DetailsSummary, BackToTop, nestedListStyle } from '../styles';
 
 const TenantSelectionCriteria = () => {
   useEffect(() => {
@@ -17,6 +17,7 @@ const TenantSelectionCriteria = () => {
         <title>Carwoods - Tenant Selection Criteria</title>
       </Helmet>
 
+      <span id="page-top" />
       <Heading>Tenant Selection Criteria</Heading>
 
       <Paragraph>
@@ -57,8 +58,8 @@ const TenantSelectionCriteria = () => {
         </ol>
       </TocNav>
 
-      <section id="non-negotiable">
-        <SubHeading>1. Important: Read First</SubHeading>
+      <section id="non-negotiable" aria-labelledby="heading-non-negotiable">
+        <SubHeading id="heading-non-negotiable">1. Important: Read First</SubHeading>
         <ul>
           <li>All requirements below are <strong>mandatory</strong>. Applications that do not meet every requirement may be <strong>denied</strong>.</li>
           <li>No verbal assurances, explanations, or promises can replace documentation.</li>
@@ -66,10 +67,11 @@ const TenantSelectionCriteria = () => {
           <li>Housing assistance (Section 8) does <strong>not</strong> waive credit, background, employment, or rental history standards.</li>
           <li>Submitting an application does not guarantee approval.</li>
         </ul>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="at-a-glance">
-        <SubHeading>2. At a glance</SubHeading>
+      <section id="at-a-glance" aria-labelledby="heading-at-a-glance">
+        <SubHeading id="heading-at-a-glance">2. At a glance</SubHeading>
         <ul>
           <li><strong>Employment:</strong> 24+ months of verifiable employment history</li>
           <li><strong>Income:</strong> Gross monthly income ≥ 3× monthly rent (or ≥ 2.5× your tenant portion if using housing assistance)</li>
@@ -77,10 +79,11 @@ const TenantSelectionCriteria = () => {
           <li><strong>Credit:</strong> Minimum score of 650 (strictly enforced)</li>
           <li><strong>Background:</strong> No criminal convictions, evictions, bankruptcies, or housing-related collections/negatives</li>
         </ul>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="details">
-        <SubHeading>3. Details</SubHeading>
+      <section id="details" aria-labelledby="heading-details">
+        <SubHeading id="heading-details">3. Details</SubHeading>
 
         <SectionHeading id="employment">a. Employment</SectionHeading>
         <ul>
@@ -132,10 +135,11 @@ const TenantSelectionCriteria = () => {
           <li>We do not deny applicants based on being a victim of domestic violence, dating violence, sexual assault, or stalking, in compliance with Texas law</li>
           <li>Inconsistencies between disclosures and screening results may result in denial</li>
         </ul>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="housing-assistance">
-        <SubHeading>4. Housing Assistance (Section 8 and others)</SubHeading>
+      <section id="housing-assistance" aria-labelledby="heading-housing-assistance">
+        <SubHeading id="heading-housing-assistance">4. Housing Assistance (Section 8 and others)</SubHeading>
         <ul style={nestedListStyle}>
           <li>All applicants are screened using the same criteria for rental history, credit, criminal background, and references</li>
           <li>Income requirement is 2.5× your tenant portion of rent as determined by the Housing Authority</li>
@@ -144,10 +148,11 @@ const TenantSelectionCriteria = () => {
           <li>Voucher must be active and valid through the expected lease start date</li>
           <li>Move-in requires Housing Authority inspection and rent reasonableness approval</li>
         </ul>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="credit-exception">
-        <SubHeading>5. Discretionary credit exception (rare)</SubHeading>
+      <section id="credit-exception" aria-labelledby="heading-credit-exception">
+        <SubHeading id="heading-credit-exception">5. Discretionary credit exception (rare)</SubHeading>
         <Paragraph>
           Applicants who do not meet the minimum credit score requirement may be considered <strong>only</strong> if all
           conditions below are met. Approval under this exception is not guaranteed and remains at the sole discretion of the
@@ -160,10 +165,11 @@ const TenantSelectionCriteria = () => {
           <li>Demonstrated <strong>positive bank balances and cash flow</strong> for the most recent <strong>60 days</strong></li>
           <li>All other criteria (employment, income, background, references) must still be met</li>
         </ul>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="guarantor-policy">
-        <SubHeading>6. Guarantor policy</SubHeading>
+      <section id="guarantor-policy" aria-labelledby="heading-guarantor-policy">
+        <SubHeading id="heading-guarantor-policy">6. Guarantor policy</SubHeading>
 
         <details>
           <DetailsSummary>View guarantor requirements and terms</DetailsSummary>
@@ -243,10 +249,11 @@ const TenantSelectionCriteria = () => {
             </li>
           </ul>
         </details>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="cosigner-policy">
-        <SubHeading>7. Co-signer policy</SubHeading>
+      <section id="cosigner-policy" aria-labelledby="heading-cosigner-policy">
+        <SubHeading id="heading-cosigner-policy">7. Co-signer policy</SubHeading>
 
         <details>
           <DetailsSummary>View co-signer requirements and terms</DetailsSummary>
@@ -340,10 +347,11 @@ const TenantSelectionCriteria = () => {
             </li>
           </ul>
         </details>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="pets">
-        <SubHeading>8. Pets</SubHeading>
+      <section id="pets" aria-labelledby="heading-pets">
+        <SubHeading id="heading-pets">8. Pets</SubHeading>
 
         <Paragraph>
           Pets are subject to separate approval. Restrictions may apply by type, breed, size, and quantity. Pet approval is not
@@ -409,6 +417,7 @@ const TenantSelectionCriteria = () => {
             <li>Any mixed breed containing any of the above breeds</li>
           </ul>
         </details>
+        <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
     </div>
   );

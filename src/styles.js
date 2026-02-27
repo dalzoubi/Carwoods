@@ -18,6 +18,18 @@ export const Content = styled.section`
     border-radius: ${theme.shape.borderRadius}px;
     box-shadow: ${shadowCard};
     color: ${theme.palette.text.secondary};
+    animation: pageFadeIn 0.25s ease-out;
+
+    @keyframes pageFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 `;
 
 export const NavLink = styled(RouterNavLink)`
@@ -197,5 +209,39 @@ export const DetailsSummary = styled.summary`
         content: '▼ ';
     }
 `;
+
+const BackToTopBase = styled.a`
+    display: inline-block;
+    margin-top: ${theme.spacing(1.5)};
+    font-size: ${theme.typography.body2?.fontSize ?? '0.875rem'};
+    color: ${theme.palette.primary.main};
+    text-decoration: none;
+    text-underline-offset: 2px;
+
+    &:hover {
+        text-decoration: underline;
+        color: ${theme.palette.primary.dark};
+    }
+
+    &:focus-visible {
+        outline: 2px solid ${theme.palette.primary.light};
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+`;
+
+export const BackToTop = ({ href, children, ...props }) => {
+    const handleClick = useCallback((e) => {
+        if (!href?.startsWith('#')) return;
+        const id = href.slice(1);
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth' });
+        history.pushState(null, '', href);
+    }, [href]);
+
+    return React.createElement(BackToTopBase, { href, onClick: handleClick, ...props }, children);
+};
 
 export const nestedListStyle = { listStyleType: 'lower-alpha' };
