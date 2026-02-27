@@ -58,7 +58,7 @@ const TenantSelectionCriteria = () => {
       </nav>
 
       <section id="non-negotiable">
-        <h2>Important: Read First</h2>
+        <h2>1. Important: Read First</h2>
         <ul>
           <li>All requirements below are <strong>mandatory</strong>. Applications that do not meet every requirement may be <strong>denied</strong>.</li>
           <li>No verbal assurances, explanations, or promises can replace documentation.</li>
@@ -69,7 +69,7 @@ const TenantSelectionCriteria = () => {
       </section>
 
       <section id="at-a-glance">
-        <h2>At a glance</h2>
+        <h2>2. At a glance</h2>
         <ul>
           <li><strong>Employment:</strong> 24+ months of verifiable employment history</li>
           <li><strong>Income:</strong> Gross monthly income ≥ 3× monthly rent (or ≥ 2.5× your tenant portion if using housing assistance)</li>
@@ -80,9 +80,9 @@ const TenantSelectionCriteria = () => {
       </section>
 
       <section id="details">
-        <h2>Details</h2>
+        <h2>3. Details</h2>
 
-        <h3 id="employment">Employment</h3>
+        <h3 id="employment">a. Employment</h3>
         <ul>
           <li>Minimum <strong>24 consecutive months</strong> of verifiable employment history</li>
           <li>Employment gaps must be documented</li>
@@ -90,7 +90,7 @@ const TenantSelectionCriteria = () => {
           <li>Self-employment requires <strong>24 months of tax returns</strong></li>
         </ul>
 
-        <h3 id="income">Income</h3>
+        <h3 id="income">b. Income</h3>
         <ul>
           <li>Gross monthly income must be at least <strong>3× the monthly rent</strong></li>
           <li>
@@ -101,7 +101,7 @@ const TenantSelectionCriteria = () => {
           <li>Bank statements may be required to confirm cash-flow stability</li>
         </ul>
 
-        <h3 id="rental-history">Rental history</h3>
+        <h3 id="rental-history">c. Rental history</h3>
         <ul>
           <li>Minimum <strong>24 months</strong> of verifiable rental or mortgage payment history</li>
           <li>Landlord references must be verifiable and responsive</li>
@@ -109,7 +109,7 @@ const TenantSelectionCriteria = () => {
           <li>Rental history must demonstrate on-time payments and proper care of the property</li>
         </ul>
 
-        <h3 id="credit">Credit (strictly enforced)</h3>
+        <h3 id="credit">d. Credit (strictly enforced)</h3>
         <ul>
           <li>Minimum credit score of <strong>650</strong></li>
           <li>
@@ -123,7 +123,7 @@ const TenantSelectionCriteria = () => {
           <li>While we welcome written explanations, rental decisions are based on verified credit reports and consistent criteria</li>
         </ul>
 
-        <h3 id="background">Background</h3>
+        <h3 id="background">e. Background</h3>
         <ul>
           <li><strong>No criminal convictions</strong></li>
           <li><strong>No evictions</strong></li>
@@ -135,7 +135,7 @@ const TenantSelectionCriteria = () => {
       </section>
 
       <section id="housing-assistance">
-        <h2>Housing Assistance (Section 8 and others)</h2>
+        <h2>4. Housing Assistance (Section 8 and others)</h2>
         <ul style={nestedListStyle}>
           <li>All applicants are screened using the same criteria for rental history, credit, criminal background, and references</li>
           <li>Income requirement is 2.5× your tenant portion of rent as determined by the Housing Authority</li>
@@ -147,7 +147,7 @@ const TenantSelectionCriteria = () => {
       </section>
 
       <section id="credit-exception">
-        <h2>Discretionary credit exception (rare)</h2>
+        <h2>5. Discretionary credit exception (rare)</h2>
         <Paragraph>
           Applicants who do not meet the minimum credit score requirement may be considered <strong>only</strong> if all
           conditions below are met. Approval under this exception is not guaranteed and remains at the sole discretion of the
@@ -164,7 +164,7 @@ const TenantSelectionCriteria = () => {
 
       {/* NEW: Guarantor Policy (collapsible, one-page) */}
       <section id="guarantor-policy">
-        <h2>Guarantor policy</h2>
+        <h2>6. Guarantor policy</h2>
 
         <details>
           <summary>View guarantor requirements and terms</summary>
@@ -176,7 +176,7 @@ const TenantSelectionCriteria = () => {
             to all applicants.
           </Paragraph>
 
-          <h3>When a guarantor may be considered</h3>
+          <h3>a. When a guarantor may be considered</h3>
           <ul>
             <li>
               A guarantor may be considered only when an applicant meets <strong>all</strong> screening requirements for credit,
@@ -192,7 +192,7 @@ const TenantSelectionCriteria = () => {
             </li>
           </ul>
 
-          <h3>Guarantor qualification requirements (mandatory)</h3>
+          <h3>b. Guarantor qualification requirements (mandatory)</h3>
           <ul>
             <li><strong>Identity:</strong> Valid government-issued photo ID (color copy).</li>
             <li>
@@ -212,7 +212,7 @@ const TenantSelectionCriteria = () => {
             <li><strong>Residency:</strong> Guarantor must reside in the United States and be reachable for verification.</li>
           </ul>
 
-          <h3>Guarantor legal and payment terms</h3>
+          <h3>c. Guarantor legal and payment terms</h3>
           <ul>
             <li>
               The guarantor must complete a separate application and pass screening. Application fees (if any) apply.
@@ -235,7 +235,7 @@ const TenantSelectionCriteria = () => {
             </li>
           </ul>
 
-          <h3>Important notes</h3>
+          <h3>d. Important notes</h3>
           <ul>
             <li>No side payments or undisclosed arrangements are permitted.</li>
             <li>Documentation must be complete and verifiable. Incomplete guarantor packages will not be processed.</li>
@@ -247,7 +247,7 @@ const TenantSelectionCriteria = () => {
       </section>
 
       <section id="cosigner-policy">
-        <h2>Co-signer policy</h2>
+        <h2>7. Co-signer policy</h2>
 
         <details>
           <summary>View co-signer requirements and terms</summary>
@@ -260,7 +260,7 @@ const TenantSelectionCriteria = () => {
             published qualification standard.
           </Paragraph>
 
-          <h3>Key differences from a guarantor</h3>
+          <h3>a. Key differences from a guarantor</h3>
           <ul>
             <li><strong>Liability timing:</strong> A co-signer is liable from day one; a guarantor is only called upon after the primary tenant defaults.</li>
             <li><strong>Document signed:</strong> A co-signer signs the lease agreement itself; a guarantor signs a separate guaranty agreement.</li>
@@ -268,7 +268,7 @@ const TenantSelectionCriteria = () => {
             <li><strong>Qualification standard:</strong> A co-signer must meet all the same income, credit, background, employment, and rental history requirements as any primary applicant — there is no reduced standard.</li>
           </ul>
 
-          <h3>When a co-signer may be considered</h3>
+          <h3>b. When a co-signer may be considered</h3>
           <ul>
             <li>
               A co-signer may be considered only when the primary applicant meets all screening requirements for credit,
@@ -284,7 +284,7 @@ const TenantSelectionCriteria = () => {
             </li>
           </ul>
 
-          <h3>Co-signer qualification requirements (mandatory)</h3>
+          <h3>c. Co-signer qualification requirements (mandatory)</h3>
           <ul>
             <li><strong>Identity:</strong> Valid government-issued photo ID (color copy).</li>
             <li>
@@ -306,7 +306,7 @@ const TenantSelectionCriteria = () => {
             <li><strong>Residency:</strong> Co-signer must reside in the United States and be reachable for verification.</li>
           </ul>
 
-          <h3>Co-signer legal and payment terms</h3>
+          <h3>d. Co-signer legal and payment terms</h3>
           <ul>
             <li>
               The co-signer must complete a full application and pass all screening. Application fees (if any) apply.
@@ -332,7 +332,7 @@ const TenantSelectionCriteria = () => {
             </li>
           </ul>
 
-          <h3>Important notes</h3>
+          <h3>e. Important notes</h3>
           <ul>
             <li>No side payments or undisclosed arrangements are permitted.</li>
             <li>Documentation must be complete and verifiable. Incomplete co-signer packages will not be processed.</li>
@@ -344,21 +344,21 @@ const TenantSelectionCriteria = () => {
       </section>
 
       <section id="pets">
-        <h2>Pets</h2>
+        <h2>8. Pets</h2>
 
         <Paragraph>
           Pets are subject to separate approval. Restrictions may apply by type, breed, size, and quantity. Pet approval is not
           guaranteed even if all other criteria are met.
         </Paragraph>
 
-        <h3 id="assistance-animals">Assistance animals</h3>
+        <h3 id="assistance-animals">a. Assistance animals</h3>
         <Paragraph>
           Assistance animals (service animals and emotional support animals) are <strong>not pets</strong>. They are reasonable
           accommodations for disabilities under the Fair Housing Act. Breed, size, and species restrictions do not apply to
           assistance animals when properly documented. We evaluate assistance-animal requests in accordance with applicable law.
         </Paragraph>
 
-        <h3>Prohibited animals</h3>
+        <h3>b. Prohibited animals</h3>
         <ul>
           <li>Exotic animals</li>
           <li>Farm animals (e.g., hoofed animals, livestock)</li>
@@ -368,12 +368,12 @@ const TenantSelectionCriteria = () => {
           <li>Fowl</li>
         </ul>
 
-        <h3>Caged animals</h3>
+        <h3>c. Caged animals</h3>
         <ul>
           <li>No caged animals allowed</li>
         </ul>
 
-        <h3>Prohibited dog breeds</h3>
+        <h3>d. Prohibited dog breeds</h3>
         <details>
           <summary>View list of prohibited dog breeds</summary>
           <ul>

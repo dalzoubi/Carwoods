@@ -1,14 +1,40 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { Heading, Paragraph } from '../styles';
 
 const PropertyManagement = () => {
-    return (
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+      const el = document.getElementById(hash);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, []);
+
+  return (
         <div>
             <Helmet>
                 <title>Carwoods - Property Management</title>
             </Helmet>
             <Heading>Property Management</Heading>
+
+            <nav aria-label="Table of contents">
+              <h2>Contents</h2>
+              <ol>
+                <li><a href="#section-1">Appointment of Property Manager</a></li>
+                <li><a href="#section-2">Term</a></li>
+                <li><a href="#section-3">Management Fee</a></li>
+                <li><a href="#section-4">Services Provided</a></li>
+                <li><a href="#section-5">Expenses</a></li>
+                <li><a href="#section-6">Reserve Fund</a></li>
+                <li><a href="#section-7">Owner&apos;s Responsibilities</a></li>
+                <li><a href="#section-8">Annual Reporting</a></li>
+                <li><a href="#section-9">Termination</a></li>
+                <li><a href="#section-10">Indemnification</a></li>
+                <li><a href="#section-11">Governing Law</a></li>
+                <li><a href="#section-12">Entire Agreement</a></li>
+              </ol>
+            </nav>
 
             <section aria-labelledby="section-1">
                 <h2 id="section-1">1. Appointment of Property Manager</h2>
