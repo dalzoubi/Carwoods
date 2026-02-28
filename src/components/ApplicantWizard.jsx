@@ -36,10 +36,10 @@ const QUESTIONS = [
         question: 'Do you have any pets or animals?',
         multi: false,
         options: [
+            { value: 'none', label: 'No pets or animals', desc: '' },
             { value: 'pets', label: 'Yes — pet(s)', desc: 'Cats, dogs, or other household pets' },
             { value: 'service', label: 'Yes — service animal', desc: 'Trained to perform tasks related to a disability' },
             { value: 'esa', label: 'Yes — ESA or assistance animal', desc: 'Emotional support or other assistance animal' },
-            { value: 'none', label: 'No pets or animals', desc: '' },
         ],
     },
     {
@@ -49,13 +49,13 @@ const QUESTIONS = [
         multi: true,
         noneValue: 'none',
         options: [
+            { value: 'none', label: 'None', desc: '' },
             { value: 'va', label: 'VA Benefits', desc: 'Veterans Affairs benefits' },
             { value: 'ssa-ssi', label: 'Social Security (SSA / SSI)', desc: '' },
             { value: 'ssdi', label: 'SSDI', desc: 'Social Security Disability Insurance' },
             { value: 'retirement', label: 'Retirement / Pension', desc: '' },
             { value: 'child-support', label: 'Child Support or Spousal Maintenance', desc: '' },
             { value: 'other-benefits', label: 'Other benefits', desc: 'Any other government or agency benefits' },
-            { value: 'none', label: 'None', desc: '' },
         ],
     },
     {
@@ -63,8 +63,8 @@ const QUESTIONS = [
         question: 'Are you applying with housing assistance (Section 8 or similar)?',
         multi: false,
         options: [
-            { value: 'yes', label: 'Yes', desc: 'I have a Housing Choice Voucher or similar' },
             { value: 'no', label: 'No', desc: '' },
+            { value: 'yes', label: 'Yes', desc: 'I have a Housing Choice Voucher or similar' },
         ],
     },
     {
@@ -72,10 +72,10 @@ const QUESTIONS = [
         question: 'Will you need a guarantor or co-signer?',
         multi: false,
         options: [
+            { value: 'neither', label: 'Neither', desc: '' },
             { value: 'guarantor', label: 'Guarantor', desc: 'Signs a separate guaranty agreement' },
             { value: 'cosigner', label: 'Co-Signer', desc: 'Signs the lease as a co-tenant' },
             { value: 'not-sure', label: 'Not sure', desc: 'I may need one but am not certain' },
-            { value: 'neither', label: 'Neither', desc: '' },
         ],
     },
     {
@@ -83,9 +83,9 @@ const QUESTIONS = [
         question: 'Do you know your approximate credit score?',
         multi: false,
         options: [
+            { value: 'unknown', label: "I don't know", desc: '' },
             { value: '650-above', label: '650 or above', desc: 'Meets the minimum credit requirement' },
             { value: 'below-650', label: 'Below 650', desc: 'Below the standard minimum' },
-            { value: 'unknown', label: "I don't know", desc: '' },
         ],
     },
 ];
