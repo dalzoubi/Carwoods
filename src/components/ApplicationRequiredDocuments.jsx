@@ -246,6 +246,10 @@ const ApplicationRequiredDocuments = () => {
           <li>Written employment verification (HR letter/email confirming start date, position, and current status).</li>
           <li>Bank statements for the most recent <strong>60 days</strong> (original bank-exported PDFs, all pages).</li>
           <li>If self-employed: most recent <strong>2 years</strong> of filed federal tax returns and last <strong>6 months</strong> of bank statements.</li>
+          <li>
+            Landlord reference information for the past <strong>24 months</strong> (landlord name, email, and phone number).
+            If no rental history but paying a mortgage, provide the last <strong>24 months</strong> of mortgage payment history.
+          </li>
           <li>Signed guaranty agreement (provided by management; separate from the lease).</li>
         </ol>
         <BackToTop href="#page-top">↑ Back to top</BackToTop>
@@ -263,7 +267,10 @@ const ApplicationRequiredDocuments = () => {
           <li>Written employment verification (HR letter/email confirming start date, position, and current status).</li>
           <li>Bank statements for the most recent <strong>60 days</strong> (original bank-exported PDFs, all pages).</li>
           <li>If self-employed: most recent <strong>2 years</strong> of filed federal tax returns and last <strong>6 months</strong> of bank statements.</li>
-          <li>Landlord reference information for the past <strong>24 months</strong> (landlord name, email, and phone number).</li>
+          <li>
+            Landlord reference information for the past <strong>24 months</strong> (landlord name, email, and phone number).
+            If no rental history but paying a mortgage, provide the last <strong>24 months</strong> of mortgage payment history.
+          </li>
           <li>Completed rental application and consent to full credit, background, and rental history screening.</li>
         </ol>
         <BackToTop href="#page-top">↑ Back to top</BackToTop>

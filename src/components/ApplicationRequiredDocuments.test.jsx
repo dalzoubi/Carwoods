@@ -252,6 +252,19 @@ describe('ApplicationRequiredDocuments', () => {
       renderWithRouter(<ApplicationRequiredDocuments />);
       expect(screen.getByText(/signed guaranty agreement/i)).toBeInTheDocument();
     });
+
+    it('requires 24 months of landlord references', () => {
+      const { container } = renderWithRouter(<ApplicationRequiredDocuments />);
+      const guarantorSection = container.querySelector('#guarantor');
+      expect(guarantorSection.textContent).toMatch(/landlord reference information for the past/i);
+    });
+
+    it('requires 24 months of mortgage payment history if no rental history', () => {
+      const { container } = renderWithRouter(<ApplicationRequiredDocuments />);
+      const guarantorSection = container.querySelector('#guarantor');
+      expect(guarantorSection.textContent).toMatch(/no rental history but paying a mortgage/i);
+      expect(guarantorSection.textContent).toMatch(/24 months.*mortgage payment history/i);
+    });
   });
 
   describe('Co-signer section', () => {
@@ -274,6 +287,13 @@ describe('ApplicationRequiredDocuments', () => {
       const { container } = renderWithRouter(<ApplicationRequiredDocuments />);
       const cosignerSection = container.querySelector('#cosigner');
       expect(cosignerSection.textContent).toMatch(/landlord reference information for the past/i);
+    });
+
+    it('requires 24 months of mortgage payment history if no rental history', () => {
+      const { container } = renderWithRouter(<ApplicationRequiredDocuments />);
+      const cosignerSection = container.querySelector('#cosigner');
+      expect(cosignerSection.textContent).toMatch(/no rental history but paying a mortgage/i);
+      expect(cosignerSection.textContent).toMatch(/24 months.*mortgage payment history/i);
     });
   });
 
