@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { Heading, SubHeading, SectionHeading, Paragraph, TocNav, SmoothDetails, BackToTop, nestedListStyle, PrintButton, PrintHeader, PageHeader, FilteredSection } from '../styles';
+import { Heading, SubHeading, SectionHeading, Paragraph, TocNav, BackToTop, nestedListStyle, PrintButton, PrintHeader, PageHeader, FilteredSection } from '../styles';
 import ApplicantWizard, { loadProfile } from './ApplicantWizard';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
@@ -200,8 +200,7 @@ const TenantSelectionCriteria = () => {
       <FilteredSection id="guarantor-policy" aria-labelledby="heading-guarantor-policy" data-filtered={String(!show.guarantorPolicy)}>
           <SubHeading id="heading-guarantor-policy">6. Guarantor policy</SubHeading>
 
-          <SmoothDetails summary="View guarantor requirements and terms">
-            <Paragraph>
+          <Paragraph>
               A guarantor is a qualified individual who agrees in writing to be financially responsible for the lease obligations
               if the tenant fails to pay or otherwise defaults. A guarantor is not a substitute for incomplete documentation and is
               not a &quot;character reference.&quot; Guarantors are accepted only under the standards below, which are applied consistently
@@ -275,15 +274,13 @@ const TenantSelectionCriteria = () => {
                 Carwoods reserves the right to request additional documentation to verify identity, income, and stability.
               </li>
             </ul>
-          </SmoothDetails>
           <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </FilteredSection>
 
       <FilteredSection id="cosigner-policy" aria-labelledby="heading-cosigner-policy" data-filtered={String(!show.cosignerPolicy)}>
           <SubHeading id="heading-cosigner-policy">7. Co-signer policy</SubHeading>
 
-          <SmoothDetails summary="View co-signer requirements and terms">
-            <Paragraph>
+          <Paragraph>
               A co-signer is <strong>not the same as a guarantor</strong>. A co-signer signs the lease itself as a
               co-tenant and is jointly and severally liable for all lease obligations from the first day of the tenancy —
               regardless of whether the primary tenant pays. Because a co-signer is legally a co-tenant under Texas law,
@@ -371,7 +368,6 @@ const TenantSelectionCriteria = () => {
                 Carwoods reserves the right to request additional documentation to verify identity, income, and stability.
               </li>
             </ul>
-          </SmoothDetails>
           <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </FilteredSection>
 
@@ -407,8 +403,7 @@ const TenantSelectionCriteria = () => {
           </ul>
 
           <SectionHeading>d. Prohibited dog breeds</SectionHeading>
-          <SmoothDetails summary="View list of prohibited dog breeds">
-            <ul>
+          <ul>
               <li>Akita</li>
               <li>Alaskan Malamute</li>
               <li>American Bulldog</li>
@@ -441,7 +436,6 @@ const TenantSelectionCriteria = () => {
               <li>Wolf or Wolf Hybrid</li>
               <li>Any mixed breed containing any of the above breeds</li>
             </ul>
-          </SmoothDetails>
           </>)}
           <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </FilteredSection>

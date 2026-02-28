@@ -47,31 +47,6 @@ describe('TenantSelectionCriteria', () => {
     });
   });
 
-  describe('Print: details expansion', () => {
-    it('all collapsible sections start collapsed', () => {
-      const { container } = renderWithRouter(<TenantSelectionCriteria />);
-      const bodies = container.querySelectorAll('[data-open]');
-      expect(bodies.length).toBeGreaterThan(0);
-      bodies.forEach((el) => expect(el.getAttribute('data-open')).toBe('false'));
-    });
-
-    it('collapsible sections expand when their toggle is clicked', () => {
-      renderWithRouter(<TenantSelectionCriteria />);
-      const toggles = screen.getAllByRole('button', { name: /view/i });
-      expect(toggles.length).toBeGreaterThan(0);
-      fireEvent.click(toggles[0]);
-      expect(toggles[0].getAttribute('aria-expanded')).toBe('true');
-    });
-
-    it('collapsible sections collapse again when their toggle is clicked twice', () => {
-      renderWithRouter(<TenantSelectionCriteria />);
-      const toggles = screen.getAllByRole('button', { name: /view/i });
-      fireEvent.click(toggles[0]);
-      fireEvent.click(toggles[0]);
-      expect(toggles[0].getAttribute('aria-expanded')).toBe('false');
-    });
-  });
-
   it('contains fair housing statement', () => {
     renderWithRouter(<TenantSelectionCriteria />);
     expect(screen.getByText(/we do not discriminate based on race, color, religion, sex, familial status, national origin, disability/i)).toBeInTheDocument();
