@@ -471,6 +471,12 @@ export const FilterBanner = styled.div`
     gap: ${theme.spacing(2)};
     flex-wrap: wrap;
 
+    @media (max-width: 480px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: ${theme.spacing(1)};
+    }
+
     @media print {
         display: none !important;
     }
@@ -503,6 +509,11 @@ export const FilterBannerActions = styled.div`
     gap: ${theme.spacing(1.5)};
     flex-shrink: 0;
     flex-wrap: wrap;
+
+    @media (max-width: 480px) {
+        flex-shrink: 1;
+        width: 100%;
+    }
 `;
 
 export const FilterBannerEditButton = styled.button`
