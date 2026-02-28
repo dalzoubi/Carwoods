@@ -179,41 +179,41 @@ export const TocNav = ({ children, ...props }) => {
     return React.createElement(TocNavBase, { onClick: handleClick, ...props }, children);
 };
 
-const SmoothDetailsWrapper = styled.div`
+const SmoothDetailsBody = styled.div`
     display: grid;
-    grid-template-rows: auto 0fr;
-    transition: grid-template-rows 0.3s ease;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.25s ease;
 
     &[data-open='true'] {
-        grid-template-rows: auto 1fr;
+        grid-template-rows: 1fr;
     }
 
     @media print {
-        grid-template-rows: auto 1fr;
+        grid-template-rows: 1fr;
     }
 `;
 
-const SmoothDetailsBody = styled.div`
+const SmoothDetailsInner = styled.div`
     overflow: hidden;
 `;
 
 const SmoothDetailsSummaryButton = styled.button`
     all: unset;
+    box-sizing: border-box;
     cursor: pointer;
     color: ${theme.palette.primary.main};
-    font-weight: 600;
     font-size: ${theme.typography.body1.fontSize};
+    line-height: 1.5;
     padding: ${theme.spacing(0.75)} 0;
-    user-select: none;
     display: flex;
     align-items: center;
-    gap: 0.4em;
+    gap: 0.5em;
 
     &::before {
         content: '▶';
-        font-size: 0.75em;
-        display: inline-block;
-        transition: transform 0.3s ease;
+        font-size: 0.7em;
+        flex-shrink: 0;
+        transition: transform 0.25s ease;
     }
 
     &[aria-expanded='true']::before {
@@ -234,8 +234,8 @@ const SmoothDetailsSummaryButton = styled.button`
 export const SmoothDetails = ({ summary, children, defaultOpen = false }) => {
     const [open, setOpen] = useState(defaultOpen);
     return React.createElement(
-        SmoothDetailsWrapper,
-        { 'data-open': String(open) },
+        'div',
+        null,
         React.createElement(
             SmoothDetailsSummaryButton,
             { 'aria-expanded': open, onClick: () => setOpen((o) => !o) },
@@ -243,8 +243,8 @@ export const SmoothDetails = ({ summary, children, defaultOpen = false }) => {
         ),
         React.createElement(
             SmoothDetailsBody,
-            null,
-            React.createElement('div', null, children)
+            { 'data-open': String(open) },
+            React.createElement(SmoothDetailsInner, null, children)
         )
     );
 };
