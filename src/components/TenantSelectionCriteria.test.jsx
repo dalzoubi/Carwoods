@@ -3,6 +3,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import TenantSelectionCriteria from './TenantSelectionCriteria';
 
+const STORAGE_KEY = 'carwoods_applicant_profile';
+
 const renderWithRouter = (ui) => render(<BrowserRouter>{ui}</BrowserRouter>);
 
 const renderWithHash = (hash) => {
@@ -13,7 +15,18 @@ const renderWithHash = (hash) => {
   return renderWithRouter(<TenantSelectionCriteria />);
 };
 
+const renderWithProfile = (profile) => {
+  if (profile) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+  }
+  return renderWithRouter(<TenantSelectionCriteria />);
+};
+
 describe('TenantSelectionCriteria', () => {
+  beforeEach(() => {
+    localStorage.removeItem(STORAGE_KEY);
+  });
+
   it('renders heading', () => {
     renderWithRouter(<TenantSelectionCriteria />);
     expect(screen.getByRole('heading', { name: /tenant selection criteria/i })).toBeInTheDocument();
@@ -254,6 +267,104 @@ describe('TenantSelectionCriteria', () => {
     it('does not scroll when hash does not match any section', () => {
       renderWithHash('#nonexistent-section');
       expect(scrollIntoViewSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Personalize wizard', () => {
+    it('renders the personalize card when no profile is set', () => {
+      renderWithRouter(<TenantSelectionCriteria />);
+      expect(screen.getByText(/see only what applies to you/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /personalize this page/i })).toBeInTheDocument();
+    });
+
+    it('opens the wizard dialog when the personalize button is clicked', () => {
+      renderWithRouter(<TenantSelectionCriteria />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText(/step 1 of 6/i)).toBeInTheDocument();
+    });
+
+    it('shows the filter banner when a profile is saved in sessionStorage', () => {
+      renderWithProfile({ section8: 'yes', creditScore: 'below-650', guarantorCosigner: 'guarantor', hasPets: 'pets' });
+      expect(screen.getByRole('status')).toBeInTheDocument();
+      expect(screen.getByText(/filtered view/i)).toBeInTheDocument();
+    });
+
+    it('hides housing assistance section when section8 is no', () => {
+      const { container } = renderWithProfile({ section8: 'no' });
+      expect(container.querySelector('#housing-assistance').getAttribute('data-filtered')).toBe('true');
+    });
+
+    it('shows housing assistance section when section8 is yes', () => {
+      const { container } = renderWithProfile({ section8: 'yes' });
+      expect(container.querySelector('#housing-assistance').getAttribute('data-filtered')).toBe('false');
+    });
+
+    it('hides credit exception section when creditScore is 650-above', () => {
+      const { container } = renderWithProfile({ creditScore: '650-above' });
+      expect(container.querySelector('#credit-exception').getAttribute('data-filtered')).toBe('true');
+    });
+
+    it('shows credit exception section when creditScore is below-650', () => {
+      const { container } = renderWithProfile({ creditScore: 'below-650' });
+      expect(container.querySelector('#credit-exception').getAttribute('data-filtered')).toBe('false');
+    });
+
+    it('shows credit exception section when creditScore is unknown', () => {
+      const { container } = renderWithProfile({ creditScore: 'unknown' });
+      expect(container.querySelector('#credit-exception').getAttribute('data-filtered')).toBe('false');
+    });
+
+    it('hides guarantor policy when guarantorCosigner is neither', () => {
+      const { container } = renderWithProfile({ guarantorCosigner: 'neither' });
+      expect(container.querySelector('#guarantor-policy').getAttribute('data-filtered')).toBe('true');
+    });
+
+    it('shows guarantor policy when guarantorCosigner is guarantor', () => {
+      const { container } = renderWithProfile({ guarantorCosigner: 'guarantor' });
+      expect(container.querySelector('#guarantor-policy').getAttribute('data-filtered')).toBe('false');
+    });
+
+    it('shows guarantor policy when guarantorCosigner is not-sure', () => {
+      const { container } = renderWithProfile({ guarantorCosigner: 'not-sure' });
+      expect(container.querySelector('#guarantor-policy').getAttribute('data-filtered')).toBe('false');
+    });
+
+    it('hides co-signer policy when guarantorCosigner is neither', () => {
+      const { container } = renderWithProfile({ guarantorCosigner: 'neither' });
+      expect(container.querySelector('#cosigner-policy').getAttribute('data-filtered')).toBe('true');
+    });
+
+    it('shows co-signer policy when guarantorCosigner is cosigner', () => {
+      const { container } = renderWithProfile({ guarantorCosigner: 'cosigner' });
+      expect(container.querySelector('#cosigner-policy').getAttribute('data-filtered')).toBe('false');
+    });
+
+    it('hides pets section when hasPets is none', () => {
+      const { container } = renderWithProfile({ hasPets: 'none' });
+      expect(container.querySelector('#pets').getAttribute('data-filtered')).toBe('true');
+    });
+
+    it('shows pets section when hasPets is pets', () => {
+      const { container } = renderWithProfile({ hasPets: 'pets' });
+      expect(container.querySelector('#pets').getAttribute('data-filtered')).toBe('false');
+    });
+
+    it('hides filtered TOC links when sections are hidden', () => {
+      renderWithProfile({ section8: 'no', creditScore: '650-above', guarantorCosigner: 'neither', hasPets: 'none' });
+      expect(screen.queryByRole('link', { name: /housing assistance/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /discretionary credit exception/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /guarantor policy/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /co-signer policy/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /^pets$/i })).not.toBeInTheDocument();
+    });
+
+    it('resets to show all sections when reset button is clicked', () => {
+      const { container } = renderWithProfile({ hasPets: 'none' });
+      expect(container.querySelector('#pets').getAttribute('data-filtered')).toBe('true');
+      fireEvent.click(screen.getByRole('button', { name: /reset filters/i }));
+      expect(container.querySelector('#pets').getAttribute('data-filtered')).toBe('false');
+      expect(sessionStorage.getItem(STORAGE_KEY)).toBeNull();
     });
   });
 });

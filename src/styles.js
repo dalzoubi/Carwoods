@@ -367,6 +367,173 @@ export const PrintButton = styled.button`
     }
 `;
 
+export const FilteredSection = styled.section`
+    &[data-filtered='true'] {
+        display: none;
+    }
+
+    @media print {
+        &[data-filtered='true'] {
+            display: none !important;
+        }
+    }
+`;
+
+export const PersonalizeCard = styled.div`
+    background: #f0f4ff;
+    border-left: 4px solid ${theme.palette.primary.main};
+    border-radius: 0 ${theme.shape.borderRadius}px ${theme.shape.borderRadius}px 0;
+    padding: ${theme.spacing(1.5)} ${theme.spacing(2.5)};
+    margin: ${theme.spacing(2)} 0 ${theme.spacing(3)};
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: ${theme.spacing(2)};
+    flex-wrap: wrap;
+
+    @media print {
+        display: none !important;
+    }
+`;
+
+export const PersonalizeCardText = styled.div`
+    flex: 1;
+    min-width: 0;
+`;
+
+export const PersonalizeCardTitle = styled.p`
+    font-size: ${theme.typography.body1.fontSize};
+    font-weight: 600;
+    color: ${theme.palette.primary.dark};
+    margin: 0 0 ${theme.spacing(0.25)};
+`;
+
+export const PersonalizeCardDesc = styled.p`
+    font-size: 0.95rem;
+    color: ${theme.palette.text.secondary};
+    margin: 0;
+`;
+
+export const PersonalizeCardButton = styled.button`
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: ${theme.spacing(0.75)} ${theme.spacing(2)};
+    background: ${theme.palette.primary.main};
+    color: #fff;
+    border: none;
+    border-radius: ${theme.shape.borderRadius}px;
+    font-size: ${theme.typography.body1.fontSize};
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+
+    &:hover {
+        background: ${theme.palette.primary.dark};
+    }
+
+    &:focus-visible {
+        outline: 2px solid ${theme.palette.primary.light};
+        outline-offset: 2px;
+    }
+`;
+
+export const FilterBanner = styled.div`
+    background: #fff8e1;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 ${theme.shape.borderRadius}px ${theme.shape.borderRadius}px 0;
+    padding: ${theme.spacing(1.5)} ${theme.spacing(2.5)};
+    margin: ${theme.spacing(2)} 0 ${theme.spacing(3)};
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: ${theme.spacing(2)};
+    flex-wrap: wrap;
+
+    @media print {
+        display: none !important;
+    }
+`;
+
+export const FilterBannerText = styled.div`
+    flex: 1;
+    min-width: 0;
+`;
+
+export const FilterBannerLabel = styled.p`
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #92400e;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 ${theme.spacing(0.5)};
+`;
+
+export const FilterBannerChips = styled.p`
+    font-size: ${theme.typography.body1.fontSize};
+    color: #78350f;
+    margin: 0;
+    font-weight: 500;
+`;
+
+export const FilterBannerActions = styled.div`
+    display: flex;
+    align-items: center;
+    gap: ${theme.spacing(1.5)};
+    flex-shrink: 0;
+    flex-wrap: wrap;
+`;
+
+export const FilterBannerEditButton = styled.button`
+    display: inline-flex;
+    align-items: center;
+    padding: ${theme.spacing(0.5)} ${theme.spacing(1.5)};
+    background: transparent;
+    color: #92400e;
+    border: 1.5px solid #f59e0b;
+    border-radius: ${theme.shape.borderRadius}px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+
+    &:hover {
+        background: #fef3c7;
+    }
+
+    &:focus-visible {
+        outline: 2px solid #f59e0b;
+        outline-offset: 2px;
+    }
+`;
+
+export const FilterBannerResetButton = styled.button`
+    display: inline-flex;
+    align-items: center;
+    padding: ${theme.spacing(0.5)} ${theme.spacing(1.5)};
+    background: #f59e0b;
+    color: #fff;
+    border: none;
+    border-radius: ${theme.shape.borderRadius}px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+
+    &:hover {
+        background: #d97706;
+    }
+
+    &:focus-visible {
+        outline: 2px solid #92400e;
+        outline-offset: 2px;
+    }
+`;
+
 export const PrintHeader = styled.div`
     display: none;
 

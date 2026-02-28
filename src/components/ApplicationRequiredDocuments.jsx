@@ -1,9 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { Heading, SubHeading, Paragraph, InlineLink, TocNav, BackToTop, nestedListStyle, PrintButton, PrintHeader, PageHeader } from '../styles';
+import { Heading, SubHeading, Paragraph, InlineLink, TocNav, BackToTop, nestedListStyle, PrintButton, PrintHeader, PageHeader, FilteredSection } from '../styles';
+import ApplicantWizard, { loadProfile } from './ApplicantWizard';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
 const ApplicationRequiredDocuments = () => {
+  const [profile, setProfile] = useState(() => loadProfile());
+
   useEffect(() => {
     const hash = window.location.hash.slice(1);
     if (hash) {
@@ -11,6 +14,29 @@ const ApplicationRequiredDocuments = () => {
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
   }, []);
+
+  const f = profile;
+
+  const show = {
+    employed:      !f || f.employment === 'employed' || f.employment === 'both',
+    selfEmployed:  !f || f.employment === 'self-employed' || f.employment === 'both',
+    petsSection:   !f || (f.hasPets && f.hasPets !== 'none'),
+    petsOnly:      !f || f.hasPets === 'pets',
+    serviceAnimal: !f || f.hasPets === 'service',
+    esa:           !f || f.hasPets === 'esa',
+    benefits:      !f || (Array.isArray(f.benefits) && f.benefits.some(b => b !== 'none')),
+    va:            !f || (Array.isArray(f.benefits) && f.benefits.includes('va')),
+    ssaSsi:        !f || (Array.isArray(f.benefits) && f.benefits.includes('ssa-ssi')),
+    ssdi:          !f || (Array.isArray(f.benefits) && f.benefits.includes('ssdi')),
+    retirement:    !f || (Array.isArray(f.benefits) && f.benefits.includes('retirement')),
+    childSupport:  !f || (Array.isArray(f.benefits) && f.benefits.includes('child-support')),
+    otherBenefits: !f || (Array.isArray(f.benefits) && f.benefits.includes('other-benefits')),
+    section8:      !f || f.section8 === 'yes',
+    guarantor:     !f || f.guarantorCosigner === 'guarantor' || f.guarantorCosigner === 'not-sure',
+    cosigner:      !f || f.guarantorCosigner === 'cosigner' || f.guarantorCosigner === 'not-sure',
+  };
+
+  const anyBenefitSubsection = show.va || show.ssaSsi || show.ssdi || show.retirement || show.childSupport || show.otherBenefits;
 
   return (
     <div>
@@ -43,36 +69,42 @@ const ApplicationRequiredDocuments = () => {
         Please also review our <InlineLink href="/tenant-selection-criteria">Tenant Selection Criteria</InlineLink> for full eligibility requirements.
       </Paragraph>
 
+      <ApplicantWizard onProfileChange={setProfile} />
+
       <TocNav aria-label="Table of contents">
         <SubHeading>Contents</SubHeading>
         <ol>
           <li><a href="#identification">Personal Identification</a></li>
-          <li><a href="#employed">If Employed</a></li>
-          <li><a href="#self-employed">If Self-Employed</a></li>
-          <li><a href="#rental-history">Rental History &amp; Other Income</a></li>
-          <li>
-            <a href="#pets-animals">Pets and Assistance Animals</a>
-            <ol type="a">
-              <li><a href="#pets-only">Pets</a></li>
-              <li><a href="#service-animals">Service Animals</a></li>
-              <li><a href="#esa">Emotional Support Animals (ESA)</a></li>
-            </ol>
-          </li>
-          <li>
-            <a href="#benefits">Government or Other Benefits</a>
-            <ol type="a">
-              <li><a href="#va-benefits">VA Benefits</a></li>
-              <li><a href="#ssa-ssi">SSA / SSI</a></li>
-              <li><a href="#ssdi">SSDI</a></li>
-              <li><a href="#retirement">Retirement / Pension</a></li>
-              <li><a href="#child-support">Child Support or Spousal Maintenance</a></li>
-              <li><a href="#other-benefits">All Other Benefits</a></li>
-            </ol>
-          </li>
+          {show.employed && <li><a href="#employed">If Employed</a></li>}
+          {show.selfEmployed && <li><a href="#self-employed">If Self-Employed</a></li>}
+          <li><a href="#rental-history">Rental History</a></li>
+          {show.petsSection && (
+            <li>
+              <a href="#pets-animals">Pets and Assistance Animals</a>
+              <ol type="a">
+                {show.petsOnly && <li><a href="#pets-only">Pets</a></li>}
+                {show.serviceAnimal && <li><a href="#service-animals">Service Animals</a></li>}
+                {show.esa && <li><a href="#esa">Emotional Support Animals (ESA)</a></li>}
+              </ol>
+            </li>
+          )}
+          {show.benefits && anyBenefitSubsection && (
+            <li>
+              <a href="#benefits">Government or Other Benefits</a>
+              <ol type="a">
+                {show.va && <li><a href="#va-benefits">VA Benefits</a></li>}
+                {show.ssaSsi && <li><a href="#ssa-ssi">SSA / SSI</a></li>}
+                {show.ssdi && <li><a href="#ssdi">SSDI</a></li>}
+                {show.retirement && <li><a href="#retirement">Retirement / Pension</a></li>}
+                {show.childSupport && <li><a href="#child-support">Child Support or Spousal Maintenance</a></li>}
+                {show.otherBenefits && <li><a href="#other-benefits">All Other Benefits</a></li>}
+              </ol>
+            </li>
+          )}
           <li><a href="#emergency-contact">Emergency Contact</a></li>
-          <li><a href="#section-8">Section 8 / Housing Assistance</a></li>
-          <li><a href="#guarantor">Guarantor</a></li>
-          <li><a href="#cosigner">Co-Signer</a></li>
+          {show.section8 && <li><a href="#section-8">Section 8 / Housing Assistance</a></li>}
+          {show.guarantor && <li><a href="#guarantor">Guarantor</a></li>}
+          {show.cosigner && <li><a href="#cosigner">Co-Signer</a></li>}
         </ol>
       </TocNav>
 
@@ -93,7 +125,7 @@ const ApplicationRequiredDocuments = () => {
         <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="employed" aria-labelledby="heading-employed">
+      <FilteredSection id="employed" aria-labelledby="heading-employed" data-filtered={String(!show.employed)}>
         <SubHeading id="heading-employed">2. If Employed</SubHeading>
         <ol style={nestedListStyle}>
           <li>Most recent <strong>90 days</strong> of pay stubs showing year-to-date earnings.</li>
@@ -105,9 +137,9 @@ const ApplicationRequiredDocuments = () => {
           <li>Employer or HR contact information for verification (name, email, direct phone number).</li>
         </ol>
         <BackToTop href="#page-top">↑ Back to top</BackToTop>
-      </section>
+      </FilteredSection>
 
-      <section id="self-employed" aria-labelledby="heading-self-employed">
+      <FilteredSection id="self-employed" aria-labelledby="heading-self-employed" data-filtered={String(!show.selfEmployed)}>
         <SubHeading id="heading-self-employed">3. If Self-Employed</SubHeading>
         <ol style={nestedListStyle}>
           <li>Most recent <strong>two (2) years</strong> of filed federal tax returns.</li>
@@ -118,10 +150,10 @@ const ApplicationRequiredDocuments = () => {
           <li>Business documentation (EIN letter, certificate of formation, or business license).</li>
         </ol>
         <BackToTop href="#page-top">↑ Back to top</BackToTop>
-      </section>
+      </FilteredSection>
 
       <section id="rental-history" aria-labelledby="heading-rental-history">
-        <SubHeading id="heading-rental-history">4. Rental History &amp; Other Income</SubHeading>
+        <SubHeading id="heading-rental-history">4. Rental History</SubHeading>
         <ol style={nestedListStyle}>
           <li>
             Landlord reference information for the past <strong>24 months</strong>
@@ -130,24 +162,17 @@ const ApplicationRequiredDocuments = () => {
           <li>
             If no rental history but paying a mortgage, provide the last <strong>24 months</strong> of mortgage payment history.
           </li>
-          <li>
-            Other income (child support, disability, Social Security, retirement, etc.) requires:
-            <ul style={nestedListStyle}>
-              <li>Official award letter</li>
-              <li>Proof of deposit in bank statements</li>
-            </ul>
-          </li>
         </ol>
         <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="pets-animals" aria-labelledby="heading-pets-animals">
+      <FilteredSection id="pets-animals" aria-labelledby="heading-pets-animals" data-filtered={String(!show.petsSection)}>
         <SubHeading id="heading-pets-animals">5. Pets and Assistance Animals</SubHeading>
         <ol type="a" style={nestedListStyle}>
-          <li id="pets-only">
+          <li id="pets-only" style={!show.petsOnly ? { display: 'none' } : undefined}>
             <strong>Pets (if applicable):</strong> Clear photos of each pet and current vaccination records.
           </li>
-          <li id="service-animals">
+          <li id="service-animals" style={!show.serviceAnimal ? { display: 'none' } : undefined}>
             <strong>Service Animals:</strong> Under the Fair Housing Act and Texas Property Code, service animals are dogs (or miniature horses) individually trained to perform specific tasks directly related to a person&apos;s disability. We will not request documentation proving the animal is a certified or trained service animal, nor will we require the animal to demonstrate its task. However, we may ask:
             <ul style={nestedListStyle}>
               <li>Whether the applicant has a disability-related need for the animal (yes/no only — we will not ask for the nature or extent of the disability).</li>
@@ -155,7 +180,7 @@ const ApplicationRequiredDocuments = () => {
             </ul>
             No pet deposit, pet fee, or pet rent may be charged for a service animal. The applicant remains liable for any damage caused by the animal beyond normal wear and tear.
           </li>
-          <li id="esa">
+          <li id="esa" style={!show.esa ? { display: 'none' } : undefined}>
             <strong>Emotional Support Animals (ESA) and Other Assistance Animals:</strong> When the disability-related need for an ESA or other assistance animal is not obvious or known, we may request <strong>reliable documentation</strong> from a licensed healthcare professional (physician, psychiatrist, therapist, or other licensed mental health professional) currently treating the applicant. The letter must:
             <ul style={nestedListStyle}>
               <li>Be written on the provider&apos;s official letterhead.</li>
@@ -168,12 +193,12 @@ const ApplicationRequiredDocuments = () => {
           </li>
         </ol>
         <BackToTop href="#page-top">↑ Back to top</BackToTop>
-      </section>
+      </FilteredSection>
 
-      <section id="benefits" aria-labelledby="heading-benefits">
+      <FilteredSection id="benefits" aria-labelledby="heading-benefits" data-filtered={String(!(show.benefits && anyBenefitSubsection))}>
         <SubHeading id="heading-benefits">6. Applicants Receiving Government or Other Benefits</SubHeading>
         <ol type="a" style={nestedListStyle}>
-          <li id="va-benefits">
+          <li id="va-benefits" style={!show.va ? { display: 'none' } : undefined}>
             <strong>VA (Veterans Affairs) Benefits:</strong>
             <ul style={nestedListStyle}>
               <li>Current VA Benefits Award Letter (dated within the past <strong>12 months</strong>) showing benefit type, monthly amount, and effective date.</li>
@@ -181,40 +206,40 @@ const ApplicationRequiredDocuments = () => {
               <li>DD-214 (Certificate of Release or Discharge from Active Duty) is accepted as supplemental identity verification but is not required.</li>
             </ul>
           </li>
-          <li id="ssa-ssi">
+          <li id="ssa-ssi" style={!show.ssaSsi ? { display: 'none' } : undefined}>
             <strong>Social Security (SSA) or Supplemental Security Income (SSI):</strong>
             <ul style={nestedListStyle}>
               <li>Current SSA Award Letter or Benefit Verification Letter (obtainable at ssa.gov) dated within the past <strong>12 months</strong>, showing monthly benefit amount.</li>
               <li>Most recent <strong>2 months</strong> of bank statements confirming SSA/SSI deposit amounts.</li>
             </ul>
           </li>
-          <li id="ssdi">
+          <li id="ssdi" style={!show.ssdi ? { display: 'none' } : undefined}>
             <strong>Social Security Disability Insurance (SSDI):</strong>
             <ul style={nestedListStyle}>
               <li>Current SSDI Award Letter dated within the past <strong>12 months</strong>, showing monthly benefit amount and disability onset date.</li>
               <li>Most recent <strong>2 months</strong> of bank statements confirming SSDI deposit amounts.</li>
             </ul>
           </li>
-          <li id="retirement">
+          <li id="retirement" style={!show.retirement ? { display: 'none' } : undefined}>
             <strong>Retirement / Pension Income:</strong>
             <ul style={nestedListStyle}>
               <li>Most recent pension or retirement benefit statement (e.g., TCDRS, TRS, FERS, or private pension) dated within the past <strong>12 months</strong>.</li>
               <li>Most recent <strong>2 months</strong> of bank statements confirming deposit amounts.</li>
             </ul>
           </li>
-          <li id="child-support">
+          <li id="child-support" style={!show.childSupport ? { display: 'none' } : undefined}>
             <strong>Child Support or Spousal Maintenance:</strong>
             <ul style={nestedListStyle}>
               <li>Court order or divorce decree showing the awarded amount and duration.</li>
               <li>Most recent <strong>3 months</strong> of bank statements or OAG (Texas Office of the Attorney General) payment history confirming consistent receipt.</li>
             </ul>
           </li>
-          <li id="other-benefits">
+          <li id="other-benefits" style={!show.otherBenefits ? { display: 'none' } : undefined}>
             <strong>All Other Benefits:</strong> Official award or benefit letter from the issuing agency (dated within the past <strong>12 months</strong>) plus most recent <strong>2 months</strong> of bank statements confirming deposit amounts.
           </li>
         </ol>
         <BackToTop href="#page-top">↑ Back to top</BackToTop>
-      </section>
+      </FilteredSection>
 
       <section id="emergency-contact" aria-labelledby="heading-emergency-contact">
         <SubHeading id="heading-emergency-contact">7. Emergency Contact</SubHeading>
@@ -227,7 +252,7 @@ const ApplicationRequiredDocuments = () => {
         <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
-      <section id="section-8" aria-labelledby="heading-section-8">
+      <FilteredSection id="section-8" aria-labelledby="heading-section-8" data-filtered={String(!show.section8)}>
         <SubHeading id="heading-section-8">8. Section 8 / Housing Assistance Applicants (Additional Requirements)</SubHeading>
         <ol style={nestedListStyle}>
           <li>Active Housing Choice Voucher showing tenant name, bedroom size, issue date, and expiration date.</li>
@@ -243,9 +268,9 @@ const ApplicationRequiredDocuments = () => {
           </li>
         </ol>
         <BackToTop href="#page-top">↑ Back to top</BackToTop>
-      </section>
+      </FilteredSection>
 
-      <section id="guarantor" aria-labelledby="heading-guarantor">
+      <FilteredSection id="guarantor" aria-labelledby="heading-guarantor" data-filtered={String(!show.guarantor)}>
         <SubHeading id="heading-guarantor">9. If a Guarantor is Required</SubHeading>
         <Paragraph>
           A guarantor signs a separate guaranty agreement (not the lease) and is only liable if the primary tenant defaults. Guarantors are accepted only when requested by management — see <InlineLink href="/tenant-selection-criteria">Tenant Selection Criteria</InlineLink> for eligibility.
@@ -264,9 +289,9 @@ const ApplicationRequiredDocuments = () => {
           <li>Signed guaranty agreement (provided by management; separate from the lease).</li>
         </ol>
         <BackToTop href="#page-top">↑ Back to top</BackToTop>
-      </section>
+      </FilteredSection>
 
-      <section id="cosigner" aria-labelledby="heading-cosigner">
+      <FilteredSection id="cosigner" aria-labelledby="heading-cosigner" data-filtered={String(!show.cosigner)}>
         <SubHeading id="heading-cosigner">10. If a Co-Signer is Required</SubHeading>
         <Paragraph>
           A co-signer is <strong>not the same as a guarantor</strong>. A co-signer signs the lease itself as a co-tenant and is jointly and severally liable for all lease obligations from day one — regardless of whether the primary tenant pays. Co-signers must meet the full applicant qualification standards. See <InlineLink href="/tenant-selection-criteria">Tenant Selection Criteria</InlineLink> for eligibility.
@@ -285,7 +310,7 @@ const ApplicationRequiredDocuments = () => {
           <li>Completed rental application and consent to full credit, background, and rental history screening.</li>
         </ol>
         <BackToTop href="#page-top">↑ Back to top</BackToTop>
-      </section>
+      </FilteredSection>
     </div>
   );
 };
