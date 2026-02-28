@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import styled from 'styled-components';
 import { NavLink as RouterNavLink } from 'react-router-dom';
 import theme, { shadowCard } from './theme';
@@ -177,6 +177,76 @@ export const TocNav = ({ children, ...props }) => {
     }, []);
 
     return React.createElement(TocNavBase, { onClick: handleClick, ...props }, children);
+};
+
+const SmoothDetailsWrapper = styled.div`
+    display: grid;
+    grid-template-rows: auto 0fr;
+    transition: grid-template-rows 0.3s ease;
+
+    &[data-open='true'] {
+        grid-template-rows: auto 1fr;
+    }
+
+    @media print {
+        grid-template-rows: auto 1fr;
+    }
+`;
+
+const SmoothDetailsBody = styled.div`
+    overflow: hidden;
+`;
+
+const SmoothDetailsSummaryButton = styled.button`
+    all: unset;
+    cursor: pointer;
+    color: ${theme.palette.primary.main};
+    font-weight: 600;
+    font-size: ${theme.typography.body1.fontSize};
+    padding: ${theme.spacing(0.75)} 0;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+
+    &::before {
+        content: '▶';
+        font-size: 0.75em;
+        display: inline-block;
+        transition: transform 0.3s ease;
+    }
+
+    &[aria-expanded='true']::before {
+        transform: rotate(90deg);
+    }
+
+    &:hover {
+        color: ${theme.palette.primary.dark};
+    }
+
+    &:focus-visible {
+        outline: 2px solid ${theme.palette.primary.light};
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+`;
+
+export const SmoothDetails = ({ summary, children, defaultOpen = false }) => {
+    const [open, setOpen] = useState(defaultOpen);
+    return React.createElement(
+        SmoothDetailsWrapper,
+        { 'data-open': String(open) },
+        React.createElement(
+            SmoothDetailsSummaryButton,
+            { 'aria-expanded': open, onClick: () => setOpen((o) => !o) },
+            summary
+        ),
+        React.createElement(
+            SmoothDetailsBody,
+            null,
+            React.createElement('div', null, children)
+        )
+    );
 };
 
 export const DetailsSummary = styled.summary`

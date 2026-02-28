@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { Heading, SubHeading, SectionHeading, Paragraph, TocNav, DetailsSummary, BackToTop, nestedListStyle, PrintButton, PrintHeader, PageHeader } from '../styles';
+import { Heading, SubHeading, SectionHeading, Paragraph, TocNav, SmoothDetails, BackToTop, nestedListStyle, PrintButton, PrintHeader, PageHeader } from '../styles';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
 const TenantSelectionCriteria = () => {
@@ -10,27 +10,6 @@ const TenantSelectionCriteria = () => {
       const el = document.getElementById(hash);
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
-  }, []);
-
-  useEffect(() => {
-    const openAll = () => {
-      document.querySelectorAll('details').forEach((el) => {
-        el.dataset.wasOpen = el.open;
-        el.open = true;
-      });
-    };
-    const restoreAll = () => {
-      document.querySelectorAll('details').forEach((el) => {
-        el.open = el.dataset.wasOpen === 'true';
-        delete el.dataset.wasOpen;
-      });
-    };
-    window.addEventListener('beforeprint', openAll);
-    window.addEventListener('afterprint', restoreAll);
-    return () => {
-      window.removeEventListener('beforeprint', openAll);
-      window.removeEventListener('afterprint', restoreAll);
-    };
   }, []);
 
   return (
@@ -203,9 +182,7 @@ const TenantSelectionCriteria = () => {
       <section id="guarantor-policy" aria-labelledby="heading-guarantor-policy">
         <SubHeading id="heading-guarantor-policy">6. Guarantor policy</SubHeading>
 
-        <details>
-          <DetailsSummary>View guarantor requirements and terms</DetailsSummary>
-
+        <SmoothDetails summary="View guarantor requirements and terms">
           <Paragraph>
             A guarantor is a qualified individual who agrees in writing to be financially responsible for the lease obligations
             if the tenant fails to pay or otherwise defaults. A guarantor is not a substitute for incomplete documentation and is
@@ -280,16 +257,14 @@ const TenantSelectionCriteria = () => {
               Carwoods reserves the right to request additional documentation to verify identity, income, and stability.
             </li>
           </ul>
-        </details>
+        </SmoothDetails>
         <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
       <section id="cosigner-policy" aria-labelledby="heading-cosigner-policy">
         <SubHeading id="heading-cosigner-policy">7. Co-signer policy</SubHeading>
 
-        <details>
-          <DetailsSummary>View co-signer requirements and terms</DetailsSummary>
-
+        <SmoothDetails summary="View co-signer requirements and terms">
           <Paragraph>
             A co-signer is <strong>not the same as a guarantor</strong>. A co-signer signs the lease itself as a
             co-tenant and is jointly and severally liable for all lease obligations from the first day of the tenancy —
@@ -378,7 +353,7 @@ const TenantSelectionCriteria = () => {
               Carwoods reserves the right to request additional documentation to verify identity, income, and stability.
             </li>
           </ul>
-        </details>
+        </SmoothDetails>
         <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
 
@@ -413,8 +388,7 @@ const TenantSelectionCriteria = () => {
         </ul>
 
         <SectionHeading>d. Prohibited dog breeds</SectionHeading>
-        <details>
-          <DetailsSummary>View list of prohibited dog breeds</DetailsSummary>
+        <SmoothDetails summary="View list of prohibited dog breeds">
           <ul>
             <li>Akita</li>
             <li>Alaskan Malamute</li>
@@ -448,7 +422,7 @@ const TenantSelectionCriteria = () => {
             <li>Wolf or Wolf Hybrid</li>
             <li>Any mixed breed containing any of the above breeds</li>
           </ul>
-        </details>
+        </SmoothDetails>
         <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </section>
     </div>
