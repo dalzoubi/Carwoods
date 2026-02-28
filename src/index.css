@@ -157,11 +157,37 @@
   }
 
   /* ── Page-break control ── */
+
+  /* Allow sections to break across pages — avoidance on the whole section
+     causes the browser to push large sections to a new page, leaving a
+     blank gap that can then trigger a spurious blank page. */
   section {
-    break-inside: avoid;
+    break-inside: auto;
+  }
+
+  /* Keep headings glued to the content that follows them */
+  h1, h2, h3, h4, h5, h6 {
+    break-after: avoid;
+    page-break-after: avoid;
   }
 
   li {
     break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* ── Prevent blank pages from hidden (filtered-out) sections ── */
+  [data-filtered='true'] {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    break-before: avoid !important;
+    break-after: avoid !important;
+    break-inside: avoid !important;
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
   }
 }

@@ -370,11 +370,22 @@ export const PrintButton = styled.button`
 export const FilteredSection = styled.section`
     &[data-filtered='true'] {
         display: none;
+        height: 0;
+        margin: 0;
+        padding: 0;
     }
 
     @media print {
+        break-inside: auto;
+
         &[data-filtered='true'] {
             display: none !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            break-before: avoid !important;
+            break-after: avoid !important;
+            break-inside: avoid !important;
         }
     }
 `;
@@ -586,5 +597,42 @@ export const PrintHeader = styled.div`
 
     span {
         display: none;
+    }
+`;
+
+export const PrintFilterSummary = styled.div`
+    display: none;
+
+    @media print {
+        display: block !important;
+        margin-bottom: 12pt;
+        padding: 8pt 10pt;
+        border: 1pt solid #ccc;
+        border-radius: 4pt;
+        font-size: 9pt;
+        color: #444;
+        background: #f9f9f9;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .pfs-label {
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-size: 8pt;
+        color: #666;
+        margin-bottom: 3pt;
+    }
+
+    .pfs-criteria {
+        font-size: 9.5pt;
+        color: #222;
+        margin-bottom: 4pt;
+    }
+
+    .pfs-date {
+        font-size: 8pt;
+        color: #888;
     }
 `;

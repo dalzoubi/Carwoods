@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { Heading, SubHeading, SectionHeading, Paragraph, TocNav, BackToTop, nestedListStyle, PrintButton, PrintHeader, PageHeader, FilteredSection } from '../styles';
-import ApplicantWizard, { loadProfile } from './ApplicantWizard';
+import { Heading, SubHeading, SectionHeading, Paragraph, TocNav, BackToTop, nestedListStyle, PrintButton, PrintHeader, PrintFilterSummary, PageHeader, FilteredSection } from '../styles';
+import ApplicantWizard, { loadProfile, buildChipLabel } from './ApplicantWizard';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
 const TenantSelectionCriteria = () => {
@@ -36,6 +36,15 @@ const TenantSelectionCriteria = () => {
       <PrintHeader>
         <img src={carwoodsLogo} alt="Carwoods" />
       </PrintHeader>
+      <PrintFilterSummary>
+        <div className="pfs-label">Filtered view</div>
+        <div className="pfs-criteria">
+          {profile ? buildChipLabel(profile) : 'No filters active — showing all sections'}
+        </div>
+        <div className="pfs-date">
+          Generated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </div>
+      </PrintFilterSummary>
       <PageHeader>
         <Heading>Tenant Selection Criteria</Heading>
         <PrintButton onClick={() => window.print()} aria-label="Print this page">

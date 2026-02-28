@@ -115,7 +115,7 @@ function clearProfile() {
     }
 }
 
-function buildChipLabel(profile) {
+export function buildChipLabel(profile) {
     const parts = [];
 
     const empMap = { employed: 'Employed', 'self-employed': 'Self-Employed', both: 'Employed + Self-Employed', 'not-employed': 'Not Employed' };
