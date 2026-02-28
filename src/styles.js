@@ -383,13 +383,18 @@ export const PersonalizeCard = styled.div`
     background: #f0f4ff;
     border-left: 4px solid ${theme.palette.primary.main};
     border-radius: 0 ${theme.shape.borderRadius}px ${theme.shape.borderRadius}px 0;
-    padding: ${theme.spacing(1.5)} ${theme.spacing(2.5)};
+    padding: ${theme.spacing(1.25)} ${theme.spacing(2)};
     margin: ${theme.spacing(2)} 0 ${theme.spacing(3)};
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: ${theme.spacing(2)};
-    flex-wrap: wrap;
+    gap: ${theme.spacing(1.5)};
+
+    @media (max-width: 480px) {
+        flex-direction: row;
+        align-items: center;
+        gap: ${theme.spacing(1)};
+    }
 
     @media print {
         display: none !important;
@@ -406,12 +411,20 @@ export const PersonalizeCardTitle = styled.p`
     font-weight: 600;
     color: ${theme.palette.primary.dark};
     margin: 0 0 ${theme.spacing(0.25)};
+
+    @media (max-width: 480px) {
+        font-size: 0.9rem;
+    }
 `;
 
 export const PersonalizeCardDesc = styled.p`
-    font-size: 0.95rem;
+    font-size: 0.875rem;
     color: ${theme.palette.text.secondary};
     margin: 0;
+
+    @media (max-width: 480px) {
+        font-size: 0.8rem;
+    }
 `;
 
 export const PersonalizeCardButton = styled.button`
@@ -419,12 +432,12 @@ export const PersonalizeCardButton = styled.button`
     display: inline-flex;
     align-items: center;
     gap: 0.4em;
-    padding: ${theme.spacing(0.75)} ${theme.spacing(2)};
+    padding: ${theme.spacing(0.625)} ${theme.spacing(1.5)};
     background: ${theme.palette.primary.main};
     color: #fff;
     border: none;
     border-radius: ${theme.shape.borderRadius}px;
-    font-size: ${theme.typography.body1.fontSize};
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s;
@@ -437,6 +450,12 @@ export const PersonalizeCardButton = styled.button`
     &:focus-visible {
         outline: 2px solid ${theme.palette.primary.light};
         outline-offset: 2px;
+    }
+
+    @media (max-width: 480px) {
+        font-size: 0.8rem;
+        padding: ${theme.spacing(0.5)} ${theme.spacing(1)};
+        gap: 0.3em;
     }
 `;
 

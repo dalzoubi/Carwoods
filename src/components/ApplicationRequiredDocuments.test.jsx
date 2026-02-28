@@ -434,7 +434,7 @@ describe('ApplicationRequiredDocuments', () => {
   describe('Personalize wizard', () => {
     it('renders the personalize card when no profile is set', () => {
       renderWithRouter(<ApplicationRequiredDocuments />);
-      expect(screen.getByText(/see only what applies to you/i)).toBeInTheDocument();
+      expect(screen.getByText(/filter for your situation/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /personalize this page/i })).toBeInTheDocument();
     });
 
