@@ -35,25 +35,27 @@ describe('TenantSelectionCriteria', () => {
   });
 
   describe('Print: details expansion', () => {
-    it('opens all details elements on beforeprint', () => {
+    it('all collapsible sections start collapsed', () => {
       const { container } = renderWithRouter(<TenantSelectionCriteria />);
-      const details = container.querySelectorAll('details');
-      expect(details.length).toBeGreaterThan(0);
-      details.forEach((el) => expect(el.open).toBe(false));
-
-      window.dispatchEvent(new Event('beforeprint'));
-      details.forEach((el) => expect(el.open).toBe(true));
+      const bodies = container.querySelectorAll('[data-open]');
+      expect(bodies.length).toBeGreaterThan(0);
+      bodies.forEach((el) => expect(el.getAttribute('data-open')).toBe('false'));
     });
 
-    it('restores details closed state on afterprint', () => {
-      const { container } = renderWithRouter(<TenantSelectionCriteria />);
-      const details = container.querySelectorAll('details');
+    it('collapsible sections expand when their toggle is clicked', () => {
+      renderWithRouter(<TenantSelectionCriteria />);
+      const toggles = screen.getAllByRole('button', { name: /view/i });
+      expect(toggles.length).toBeGreaterThan(0);
+      fireEvent.click(toggles[0]);
+      expect(toggles[0].getAttribute('aria-expanded')).toBe('true');
+    });
 
-      window.dispatchEvent(new Event('beforeprint'));
-      details.forEach((el) => expect(el.open).toBe(true));
-
-      window.dispatchEvent(new Event('afterprint'));
-      details.forEach((el) => expect(el.open).toBe(false));
+    it('collapsible sections collapse again when their toggle is clicked twice', () => {
+      renderWithRouter(<TenantSelectionCriteria />);
+      const toggles = screen.getAllByRole('button', { name: /view/i });
+      fireEvent.click(toggles[0]);
+      fireEvent.click(toggles[0]);
+      expect(toggles[0].getAttribute('aria-expanded')).toBe('false');
     });
   });
 

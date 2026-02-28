@@ -229,6 +229,10 @@ const SmoothDetailsSummaryButton = styled.button`
         outline-offset: 2px;
         border-radius: 2px;
     }
+
+    @media print {
+        display: none;
+    }
 `;
 
 export const SmoothDetails = ({ summary, children, defaultOpen = false }) => {
