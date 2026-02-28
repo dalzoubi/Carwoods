@@ -19,6 +19,21 @@ describe('PropertyManagement', () => {
     expect(screen.getByRole('heading', { name: /property management/i })).toBeInTheDocument();
   });
 
+  describe('Print button', () => {
+    it('renders a print button', () => {
+      renderWithRouter(<PropertyManagement />);
+      expect(screen.getByRole('button', { name: /print this page/i })).toBeInTheDocument();
+    });
+
+    it('calls window.print when the print button is clicked', () => {
+      const printSpy = vi.spyOn(window, 'print').mockImplementation(() => {});
+      renderWithRouter(<PropertyManagement />);
+      fireEvent.click(screen.getByRole('button', { name: /print this page/i }));
+      expect(printSpy).toHaveBeenCalledTimes(1);
+      printSpy.mockRestore();
+    });
+  });
+
   it('contains management fee section', () => {
     renderWithRouter(<PropertyManagement />);
     expect(screen.getByText(/8% of the monthly rental income/)).toBeInTheDocument();

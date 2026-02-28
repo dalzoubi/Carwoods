@@ -26,3 +26,142 @@
 }
 
 /* Font smoothing is handled by MUI CssBaseline via the theme */
+
+@media print {
+  /* ── Hide chrome ── */
+  header,
+  nav,
+  footer,
+  .sr-only,
+  .sr-only-focusable,
+  a[href="#page-top"],
+  [data-print-hide],
+  [aria-label="Table of contents"] {
+    display: none !important;
+  }
+
+  /* ── Page setup with page numbers and copyright footer ── */
+  @page {
+    margin: 1.2cm 1.8cm 2cm 1.8cm;
+
+    @bottom-center {
+      content: "Page " counter(page) " of " counter(pages);
+      font-size: 8pt;
+      color: #555;
+    }
+
+    @bottom-left {
+      content: "© 2026 Carwoods. All rights reserved.";
+      font-size: 8pt;
+      color: #555;
+    }
+  }
+
+  /* ── Reset backgrounds / shadows ── */
+  body,
+  main,
+  section,
+  div {
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  main {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* ── Typography ── */
+  body {
+    font-size: 10pt !important;
+    line-height: 1.4 !important;
+  }
+
+  h1 {
+    font-size: 16pt !important;
+    margin-top: 0 !important;
+    margin-bottom: 6pt !important;
+    color: #000 !important;
+    border-bottom: none !important;
+  }
+
+  h2 {
+    font-size: 12pt !important;
+    margin-top: 10pt !important;
+    margin-bottom: 3pt !important;
+    color: #000 !important;
+    border-bottom: none !important;
+  }
+
+  h3 {
+    font-size: 10pt !important;
+    margin-top: 6pt !important;
+    margin-bottom: 2pt !important;
+    color: #000 !important;
+    border-bottom: none !important;
+  }
+
+  h4, h5, h6 {
+    font-size: 10pt !important;
+    color: #000 !important;
+    border-bottom: none !important;
+  }
+
+  p {
+    margin-top: 3pt !important;
+    margin-bottom: 3pt !important;
+  }
+
+  ul, ol {
+    margin-top: 2pt !important;
+    margin-bottom: 2pt !important;
+    padding-left: 18pt !important;
+  }
+
+  li {
+    margin-bottom: 1pt !important;
+  }
+
+  a {
+    color: #000 !important;
+    text-decoration: none !important;
+  }
+
+  /* ── Force all <details> open ── */
+  details {
+    display: block !important;
+  }
+
+  details > summary {
+    display: none !important;
+  }
+
+  /* Restore correct display for each child type */
+  details > p,
+  details > div {
+    display: block !important;
+  }
+
+  details > ul,
+  details > ol {
+    display: block !important;
+  }
+
+  details > h2,
+  details > h3,
+  details > h4 {
+    display: block !important;
+  }
+
+  /* ── Page-break control ── */
+  section {
+    break-inside: avoid;
+  }
+
+  li {
+    break-inside: avoid;
+  }
+}

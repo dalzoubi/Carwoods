@@ -245,3 +245,75 @@ export const BackToTop = ({ href, children, ...props }) => {
 };
 
 export const nestedListStyle = { listStyleType: 'lower-alpha' };
+
+export const PageHeader = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: ${theme.spacing(1.25)};
+
+    h1 {
+        margin-bottom: 0;
+    }
+`;
+
+export const PrintButton = styled.button`
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: transparent;
+    color: ${theme.palette.primary.main};
+    border: 1.5px solid ${theme.palette.primary.main};
+    border-radius: ${theme.shape.borderRadius}px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+
+    svg {
+        width: 22px;
+        height: 22px;
+        fill: currentColor;
+    }
+
+    &:hover {
+        background: ${theme.palette.primary.main};
+        color: #fff;
+    }
+
+    &:focus-visible {
+        outline: 2px solid ${theme.palette.primary.light};
+        outline-offset: 2px;
+    }
+
+    @media print {
+        display: none !important;
+    }
+`;
+
+export const PrintHeader = styled.div`
+    display: none;
+
+    @media print {
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 14pt;
+        padding-bottom: 10pt;
+        border-bottom: 1px solid #ccc;
+    }
+
+    img {
+        height: 44pt;
+        width: auto;
+        filter: invert(1);
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    span {
+        display: none;
+    }
+`;

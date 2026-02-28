@@ -19,6 +19,21 @@ describe('ApplicationRequiredDocuments', () => {
     expect(screen.getByRole('heading', { name: /application required documents/i })).toBeInTheDocument();
   });
 
+  describe('Print button', () => {
+    it('renders a print button', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(screen.getByRole('button', { name: /print this page/i })).toBeInTheDocument();
+    });
+
+    it('calls window.print when the print button is clicked', () => {
+      const printSpy = vi.spyOn(window, 'print').mockImplementation(() => {});
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      fireEvent.click(screen.getByRole('button', { name: /print this page/i }));
+      expect(printSpy).toHaveBeenCalledTimes(1);
+      printSpy.mockRestore();
+    });
+  });
+
   it('contains fair housing statement', () => {
     renderWithRouter(<ApplicationRequiredDocuments />);
     expect(screen.getByText(/we do not discriminate based on race, color, religion, sex, familial status/i)).toBeInTheDocument();

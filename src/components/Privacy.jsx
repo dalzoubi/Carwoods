@@ -7,11 +7,11 @@ const Privacy = () => {
         <div>
             <Helmet>
                 <title>Carwoods - Privacy Policy</title>
-                <meta name="description" content="Carwoods LLC privacy policy — how we collect, use, and protect your information." />
+                <meta name="description" content="Carwoods privacy policy — how we collect, use, and protect your information." />
             </Helmet>
             <Heading>Privacy Policy</Heading>
             <Paragraph>
-                Carwoods LLC (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This policy describes how we handle information when you use our website and services.
+                Carwoods (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This policy describes how we handle information when you use our website and services.
             </Paragraph>
 
             <SubHeading>Information We Collect</SubHeading>

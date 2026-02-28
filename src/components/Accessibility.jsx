@@ -7,11 +7,11 @@ const Accessibility = () => {
         <div>
             <Helmet>
                 <title>Carwoods - Accessibility Statement</title>
-                <meta name="description" content="Carwoods LLC commitment to digital accessibility and WCAG compliance." />
+                <meta name="description" content="Carwoods commitment to digital accessibility and WCAG compliance." />
             </Helmet>
             <Heading>Accessibility Statement</Heading>
             <Paragraph>
-                Carwoods LLC is committed to ensuring our website is accessible to people with disabilities. We aim to comply with the Web Content Accessibility Guidelines (WCAG) 2.1 at Level AA.
+                Carwoods is committed to ensuring our website is accessible to people with disabilities. We aim to comply with the Web Content Accessibility Guidelines (WCAG) 2.1 at Level AA.
             </Paragraph>
 
             <SubHeading>Measures We Take</SubHeading>

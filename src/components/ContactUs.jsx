@@ -9,7 +9,7 @@ const ContactUs = () => {
         <div>
             <Helmet>
                 <title>Carwoods - Contact Us</title>
-                <meta name="description" content="Contact Carwoods LLC for property management and rental inquiries in Houston." />
+                <meta name="description" content="Contact Carwoods for property management and rental inquiries in Houston." />
             </Helmet>
             <Heading>Contact Us</Heading>
             <Paragraph>

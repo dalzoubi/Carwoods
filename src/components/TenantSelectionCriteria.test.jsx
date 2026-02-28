@@ -19,6 +19,44 @@ describe('TenantSelectionCriteria', () => {
     expect(screen.getByRole('heading', { name: /tenant selection criteria/i })).toBeInTheDocument();
   });
 
+  describe('Print button', () => {
+    it('renders a print button', () => {
+      renderWithRouter(<TenantSelectionCriteria />);
+      expect(screen.getByRole('button', { name: /print this page/i })).toBeInTheDocument();
+    });
+
+    it('calls window.print when the print button is clicked', () => {
+      const printSpy = vi.spyOn(window, 'print').mockImplementation(() => {});
+      renderWithRouter(<TenantSelectionCriteria />);
+      fireEvent.click(screen.getByRole('button', { name: /print this page/i }));
+      expect(printSpy).toHaveBeenCalledTimes(1);
+      printSpy.mockRestore();
+    });
+  });
+
+  describe('Print: details expansion', () => {
+    it('opens all details elements on beforeprint', () => {
+      const { container } = renderWithRouter(<TenantSelectionCriteria />);
+      const details = container.querySelectorAll('details');
+      expect(details.length).toBeGreaterThan(0);
+      details.forEach((el) => expect(el.open).toBe(false));
+
+      window.dispatchEvent(new Event('beforeprint'));
+      details.forEach((el) => expect(el.open).toBe(true));
+    });
+
+    it('restores details closed state on afterprint', () => {
+      const { container } = renderWithRouter(<TenantSelectionCriteria />);
+      const details = container.querySelectorAll('details');
+
+      window.dispatchEvent(new Event('beforeprint'));
+      details.forEach((el) => expect(el.open).toBe(true));
+
+      window.dispatchEvent(new Event('afterprint'));
+      details.forEach((el) => expect(el.open).toBe(false));
+    });
+  });
+
   it('contains fair housing statement', () => {
     renderWithRouter(<TenantSelectionCriteria />);
     expect(screen.getByText(/we do not discriminate based on race, color, religion, sex, familial status, national origin, disability/i)).toBeInTheDocument();

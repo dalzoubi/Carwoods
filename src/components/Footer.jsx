@@ -47,7 +47,7 @@ const FooterSeparator = styled.span`
 const Footer = () => {
     return (
         <FooterContainer aria-label="footer">
-            <p>&copy; 2026 Carwoods LLC. All rights reserved.</p>
+            <p>&copy; 2026 Carwoods. All rights reserved.</p>
             <FooterLink href="https://www.trec.texas.gov/sites/default/files/pdf-forms/CN%201-2.pdf" target="_blank" rel="noopener noreferrer" aria-label="Texas Real Estate Commission Consumer Protection Notice (opens in new tab)">
                 Texas Real Estate Commission Consumer Protection Notice
             </FooterLink>

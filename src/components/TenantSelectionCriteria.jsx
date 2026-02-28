@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { Heading, SubHeading, SectionHeading, Paragraph, TocNav, DetailsSummary, BackToTop, nestedListStyle } from '../styles';
+import { Heading, SubHeading, SectionHeading, Paragraph, TocNav, DetailsSummary, BackToTop, nestedListStyle, PrintButton, PrintHeader, PageHeader } from '../styles';
+import carwoodsLogo from '../assets/carwoods-logo.png';
 
 const TenantSelectionCriteria = () => {
   useEffect(() => {
@@ -11,6 +12,27 @@ const TenantSelectionCriteria = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const openAll = () => {
+      document.querySelectorAll('details').forEach((el) => {
+        el.dataset.wasOpen = el.open;
+        el.open = true;
+      });
+    };
+    const restoreAll = () => {
+      document.querySelectorAll('details').forEach((el) => {
+        el.open = el.dataset.wasOpen === 'true';
+        delete el.dataset.wasOpen;
+      });
+    };
+    window.addEventListener('beforeprint', openAll);
+    window.addEventListener('afterprint', restoreAll);
+    return () => {
+      window.removeEventListener('beforeprint', openAll);
+      window.removeEventListener('afterprint', restoreAll);
+    };
+  }, []);
+
   return (
     <div className="tenant-criteria">
       <Helmet>
@@ -18,7 +40,17 @@ const TenantSelectionCriteria = () => {
       </Helmet>
 
       <span id="page-top" />
-      <Heading>Tenant Selection Criteria</Heading>
+      <PrintHeader>
+        <img src={carwoodsLogo} alt="Carwoods" />
+      </PrintHeader>
+      <PageHeader>
+        <Heading>Tenant Selection Criteria</Heading>
+        <PrintButton onClick={() => window.print()} aria-label="Print this page">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
+          </svg>
+        </PrintButton>
+      </PageHeader>
 
       <Paragraph>
         We appreciate your interest in our properties. We do not discriminate based on race, color, religion, sex, familial status, national origin, disability, or other protected characteristics under the Texas Fair Housing Act.
