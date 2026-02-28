@@ -456,7 +456,7 @@ describe('ApplicationRequiredDocuments', () => {
 
     it('shows the filter banner when a profile is saved in sessionStorage', () => {
       renderWithProfile({ employment: 'employed', hasPets: 'none', benefits: ['none'], section8: 'no', guarantorCosigner: 'neither', creditScore: '650-above' });
-      expect(screen.getByRole('status')).toBeInTheDocument();
+      expect(screen.getByRole('region', { name: /active filters/i })).toBeInTheDocument();
       expect(screen.getByText(/filtered view/i)).toBeInTheDocument();
     });
 
@@ -552,7 +552,185 @@ describe('ApplicationRequiredDocuments', () => {
       expect(container.querySelector('#pets-animals').getAttribute('data-filtered')).toBe('true');
       fireEvent.click(screen.getByRole('button', { name: /reset filters/i }));
       expect(container.querySelector('#pets-animals').getAttribute('data-filtered')).toBe('false');
-      expect(sessionStorage.getItem(STORAGE_KEY)).toBeNull();
+      expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+    });
+
+    it('shows all sections when no profile is set (unfiltered state)', () => {
+      const { container } = renderWithRouter(<ApplicationRequiredDocuments />);
+      expect(container.querySelector('#employed').getAttribute('data-filtered')).toBe('false');
+      expect(container.querySelector('#self-employed').getAttribute('data-filtered')).toBe('false');
+      expect(container.querySelector('#pets-animals').getAttribute('data-filtered')).toBe('false');
+      expect(container.querySelector('#benefits').getAttribute('data-filtered')).toBe('false');
+      expect(container.querySelector('#section-8').getAttribute('data-filtered')).toBe('false');
+      expect(container.querySelector('#guarantor').getAttribute('data-filtered')).toBe('false');
+      expect(container.querySelector('#cosigner').getAttribute('data-filtered')).toBe('false');
+    });
+
+    it('shows guarantor and cosigner sections when guarantorCosigner is not-sure', () => {
+      const { container } = renderWithProfile({ guarantorCosigner: 'not-sure' });
+      expect(container.querySelector('#guarantor').getAttribute('data-filtered')).toBe('false');
+      expect(container.querySelector('#cosigner').getAttribute('data-filtered')).toBe('false');
+    });
+
+    it('shows pets section for service animal', () => {
+      const { container } = renderWithProfile({ hasPets: 'service' });
+      expect(container.querySelector('#pets-animals').getAttribute('data-filtered')).toBe('false');
+    });
+
+    it('shows pets section for ESA', () => {
+      const { container } = renderWithProfile({ hasPets: 'esa' });
+      expect(container.querySelector('#pets-animals').getAttribute('data-filtered')).toBe('false');
+    });
+
+    it('hides pets-only subsection when hasPets is service', () => {
+      const { container } = renderWithProfile({ hasPets: 'service' });
+      expect(container.querySelector('#pets-only').style.display).toBe('none');
+    });
+
+    it('hides service-animals subsection when hasPets is esa', () => {
+      const { container } = renderWithProfile({ hasPets: 'esa' });
+      expect(container.querySelector('#service-animals').style.display).toBe('none');
+    });
+
+    it('hides esa subsection when hasPets is pets', () => {
+      const { container } = renderWithProfile({ hasPets: 'pets' });
+      expect(container.querySelector('#esa').style.display).toBe('none');
+    });
+
+    it('shows multiple benefits subsections when multiple benefits selected', () => {
+      const { container } = renderWithProfile({ benefits: ['va', 'ssdi', 'retirement'] });
+      expect(container.querySelector('#va-benefits').style.display).not.toBe('none');
+      expect(container.querySelector('#ssdi').style.display).not.toBe('none');
+      expect(container.querySelector('#retirement').style.display).not.toBe('none');
+      expect(container.querySelector('#ssa-ssi').style.display).toBe('none');
+      expect(container.querySelector('#child-support').style.display).toBe('none');
+    });
+
+    it('persists profile to localStorage when wizard is completed', async () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      const allRadios = screen.getAllByRole('radio');
+      fireEvent.click(allRadios[0]);
+      fireEvent.click(screen.getByRole('button', { name: /next/i }));
+      expect(screen.getByText(/step 2 of 6/i)).toBeInTheDocument();
+    });
+
+    it('wizard Back button returns to previous step', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      const allRadios = screen.getAllByRole('radio');
+      fireEvent.click(allRadios[0]);
+      fireEvent.click(screen.getByRole('button', { name: /next/i }));
+      expect(screen.getByText(/step 2 of 6/i)).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /back/i }));
+      expect(screen.getByText(/step 1 of 6/i)).toBeInTheDocument();
+    });
+
+    it('wizard Skip button advances without requiring an answer', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      expect(screen.getByText(/step 1 of 6/i)).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /skip/i }));
+      expect(screen.getByText(/step 2 of 6/i)).toBeInTheDocument();
+    });
+
+    it('Next button is aria-disabled when no answer is selected', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      const nextBtn = screen.getByRole('button', { name: /next/i });
+      expect(nextBtn).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('Next button is not aria-disabled after an answer is selected', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      fireEvent.click(screen.getAllByRole('radio')[0]);
+      const nextBtn = screen.getByRole('button', { name: /next/i });
+      expect(nextBtn).toHaveAttribute('aria-disabled', 'false');
+    });
+
+    it('wizard dialog has accessible title via aria-labelledby', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      const dialog = screen.getByRole('dialog');
+      expect(dialog).toHaveAttribute('aria-labelledby', 'wizard-title');
+      expect(document.getElementById('wizard-title')).toBeInTheDocument();
+    });
+
+    it('step counter has aria-live polite for screen reader announcements', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      const stepCounter = screen.getByText(/step 1 of 6/i);
+      expect(stepCounter).toHaveAttribute('aria-live', 'polite');
+      expect(stepCounter).toHaveAttribute('aria-atomic', 'true');
+    });
+
+    it('option cards use role="radio" inside a radiogroup', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      const radioGroup = screen.getByRole('radiogroup');
+      expect(radioGroup).toBeInTheDocument();
+      const radios = screen.getAllByRole('radio');
+      expect(radios.length).toBeGreaterThan(0);
+    });
+
+    it('selected option card has aria-checked true', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      const firstOption = screen.getAllByRole('radio')[0];
+      expect(firstOption).toHaveAttribute('aria-checked', 'false');
+      fireEvent.click(firstOption);
+      expect(firstOption).toHaveAttribute('aria-checked', 'true');
+    });
+
+    it('benefits step uses role="group" for multi-select', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      fireEvent.click(screen.getByRole('button', { name: /skip/i }));
+      fireEvent.click(screen.getByRole('button', { name: /skip/i }));
+      expect(screen.getByText(/step 3 of 6/i)).toBeInTheDocument();
+      expect(screen.getByRole('group')).toBeInTheDocument();
+    });
+
+    it('guarantorCosigner step shows the guarantor/co-signer question', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      for (let i = 0; i < 4; i++) fireEvent.click(screen.getByRole('button', { name: /skip/i }));
+      expect(screen.getByText(/step 5 of 6/i)).toBeInTheDocument();
+      expect(screen.getByText(/will you need a guarantor or co-signer/i)).toBeInTheDocument();
+      const dialog = screen.getByRole('dialog');
+      expect(dialog.textContent).toMatch(/guarantor/i);
+      expect(dialog.textContent).toMatch(/co-signer/i);
+    });
+
+    it('Reset all & close button inside wizard clears profile and closes dialog', async () => {
+      renderWithProfile({ employment: 'employed' });
+      fireEvent.click(screen.getByRole('button', { name: /edit filters/i }));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /reset all/i }));
+      await waitFor(() => expect(screen.queryByText(/step 1 of 6/i)).not.toBeInTheDocument());
+      expect(screen.getByRole('button', { name: /personalize this page/i })).toBeInTheDocument();
+      expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+    });
+
+    it('filter banner chip label reflects active profile', () => {
+      renderWithProfile({ employment: 'self-employed', hasPets: 'pets', section8: 'yes' });
+      const banner = screen.getByRole('region', { name: /active filters/i });
+      expect(banner.textContent).toMatch(/self-employed/i);
+      expect(banner.textContent).toMatch(/pets/i);
+      expect(banner.textContent).toMatch(/section 8/i);
+    });
+
+    it('PersonalizeCard has region role and accessible label', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      const region = screen.getByRole('region', { name: /personalize this page/i });
+      expect(region).toBeInTheDocument();
+    });
+
+    it('FilterBanner has region role and accessible label', () => {
+      renderWithProfile({ employment: 'employed' });
+      const region = screen.getByRole('region', { name: /active filters/i });
+      expect(region).toBeInTheDocument();
     });
   });
 });

@@ -286,7 +286,7 @@ describe('TenantSelectionCriteria', () => {
 
     it('shows the filter banner when a profile is saved in sessionStorage', () => {
       renderWithProfile({ section8: 'yes', creditScore: 'below-650', guarantorCosigner: 'guarantor', hasPets: 'pets' });
-      expect(screen.getByRole('status')).toBeInTheDocument();
+      expect(screen.getByRole('region', { name: /active filters/i })).toBeInTheDocument();
       expect(screen.getByText(/filtered view/i)).toBeInTheDocument();
     });
 
@@ -364,7 +364,91 @@ describe('TenantSelectionCriteria', () => {
       expect(container.querySelector('#pets').getAttribute('data-filtered')).toBe('true');
       fireEvent.click(screen.getByRole('button', { name: /reset filters/i }));
       expect(container.querySelector('#pets').getAttribute('data-filtered')).toBe('false');
-      expect(sessionStorage.getItem(STORAGE_KEY)).toBeNull();
+      expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+    });
+
+    it('shows all sections when no profile is set (unfiltered state)', () => {
+      const { container } = renderWithRouter(<TenantSelectionCriteria />);
+      expect(container.querySelector('#housing-assistance').getAttribute('data-filtered')).toBe('false');
+      expect(container.querySelector('#credit-exception').getAttribute('data-filtered')).toBe('false');
+      expect(container.querySelector('#guarantor-policy').getAttribute('data-filtered')).toBe('false');
+      expect(container.querySelector('#cosigner-policy').getAttribute('data-filtered')).toBe('false');
+      expect(container.querySelector('#pets').getAttribute('data-filtered')).toBe('false');
+    });
+
+    it('shows pets section for service animal', () => {
+      const { container } = renderWithProfile({ hasPets: 'service' });
+      expect(container.querySelector('#pets').getAttribute('data-filtered')).toBe('false');
+    });
+
+    it('shows pets section for ESA', () => {
+      const { container } = renderWithProfile({ hasPets: 'esa' });
+      expect(container.querySelector('#pets').getAttribute('data-filtered')).toBe('false');
+    });
+
+    it('hides pet restrictions (b/c/d) for service animal', () => {
+      renderWithProfile({ hasPets: 'service' });
+      expect(screen.queryByText(/prohibited animals/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/caged animals/i)).not.toBeInTheDocument();
+    });
+
+    it('hides pet restrictions (b/c/d) for ESA', () => {
+      renderWithProfile({ hasPets: 'esa' });
+      expect(screen.queryByText(/prohibited animals/i)).not.toBeInTheDocument();
+    });
+
+    it('shows pet restrictions (b/c/d) when hasPets is pets', () => {
+      renderWithProfile({ hasPets: 'pets' });
+      expect(screen.getAllByText(/prohibited animals/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/caged animals/i).length).toBeGreaterThan(0);
+    });
+
+    it('shows co-signer policy when guarantorCosigner is not-sure', () => {
+      const { container } = renderWithProfile({ guarantorCosigner: 'not-sure' });
+      expect(container.querySelector('#cosigner-policy').getAttribute('data-filtered')).toBe('false');
+    });
+
+    it('wizard Skip button advances without requiring an answer', () => {
+      renderWithRouter(<TenantSelectionCriteria />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      expect(screen.getByText(/step 1 of 6/i)).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /skip/i }));
+      expect(screen.getByText(/step 2 of 6/i)).toBeInTheDocument();
+    });
+
+    it('wizard Back button returns to previous step', () => {
+      renderWithRouter(<TenantSelectionCriteria />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      fireEvent.click(screen.getAllByRole('radio')[0]);
+      fireEvent.click(screen.getByRole('button', { name: /next/i }));
+      expect(screen.getByText(/step 2 of 6/i)).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /back/i }));
+      expect(screen.getByText(/step 1 of 6/i)).toBeInTheDocument();
+    });
+
+    it('step counter has aria-live polite for screen reader announcements', () => {
+      renderWithRouter(<TenantSelectionCriteria />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      const stepCounter = screen.getByText(/step 1 of 6/i);
+      expect(stepCounter).toHaveAttribute('aria-live', 'polite');
+      expect(stepCounter).toHaveAttribute('aria-atomic', 'true');
+    });
+
+    it('option cards use role="radio" inside a radiogroup', () => {
+      renderWithRouter(<TenantSelectionCriteria />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      expect(screen.getByRole('radiogroup')).toBeInTheDocument();
+      expect(screen.getAllByRole('radio').length).toBeGreaterThan(0);
+    });
+
+    it('PersonalizeCard has region role and accessible label', () => {
+      renderWithRouter(<TenantSelectionCriteria />);
+      expect(screen.getByRole('region', { name: /personalize this page/i })).toBeInTheDocument();
+    });
+
+    it('FilterBanner has region role and accessible label', () => {
+      renderWithProfile({ employment: 'employed' });
+      expect(screen.getByRole('region', { name: /active filters/i })).toBeInTheDocument();
     });
   });
 });

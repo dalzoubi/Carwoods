@@ -71,7 +71,6 @@ const QUESTIONS = [
         key: 'guarantorCosigner',
         question: 'Will you need a guarantor or co-signer?',
         multi: false,
-        radio: true,
         options: [
             { value: 'guarantor', label: 'Guarantor', desc: 'Signs a separate guaranty agreement' },
             { value: 'cosigner', label: 'Co-Signer', desc: 'Signs the lease as a co-tenant' },
@@ -194,8 +193,9 @@ const OptionCard = ({ option, selected, multi, onSelect }) => {
     return (
         <button
             type="button"
+            role={multi ? 'checkbox' : 'radio'}
+            aria-checked={isSelected}
             onClick={() => onSelect(option.value)}
-            aria-pressed={isSelected}
             style={{
                 display: 'flex',
                 alignItems: 'flex-start',
@@ -327,7 +327,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
     return (
         <>
             {hasFilters ? (
-                <FilterBanner role="status" aria-label="Active filters">
+                <FilterBanner role="region" aria-label="Active filters" aria-live="polite" aria-atomic="true">
                     <FilterBannerText>
                         <FilterBannerLabel>Filtered view</FilterBannerLabel>
                         <FilterBannerChips>{buildChipLabel(profile)}</FilterBannerChips>
@@ -342,7 +342,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
                     </FilterBannerActions>
                 </FilterBanner>
             ) : (
-                <PersonalizeCard>
+                <PersonalizeCard role="region" aria-label="Personalize this page">
                     <PersonalizeCardText>
                         <PersonalizeCardTitle>See only what applies to you</PersonalizeCardTitle>
                         <PersonalizeCardDesc>Answer 6 quick questions to filter this page for your situation — takes about 30 seconds.</PersonalizeCardDesc>
@@ -362,13 +362,17 @@ const ApplicantWizard = ({ onProfileChange }) => {
             >
                 <div style={{ padding: '1.5rem 1.5rem 0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                        <span style={{ fontSize: '0.85rem', color: '#666', fontWeight: 600 }}>
+                        <span
+                            aria-live="polite"
+                            aria-atomic="true"
+                            style={{ fontSize: '0.85rem', color: '#666', fontWeight: 600 }}
+                        >
                             Step {step + 1} of {QUESTIONS.length}
                         </span>
                         <button
                             type="button"
                             onClick={closeWizard}
-                            aria-label="Close"
+                            aria-label="Close wizard"
                             style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: '#666', lineHeight: 1, padding: '0.25rem' }}
                         >
                             ✕
@@ -377,6 +381,10 @@ const ApplicantWizard = ({ onProfileChange }) => {
                     <LinearProgress
                         variant="determinate"
                         value={progress}
+                        aria-label={`Step ${step + 1} of ${QUESTIONS.length}`}
+                        aria-valuenow={step + 1}
+                        aria-valuemin={1}
+                        aria-valuemax={QUESTIONS.length}
                         sx={{ borderRadius: 4, height: 6, mb: 2, backgroundColor: '#e0e7ff', '& .MuiLinearProgress-bar': { backgroundColor: '#1976d2' } }}
                     />
                     <h2
@@ -391,7 +399,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
                 </div>
 
                 <DialogContent sx={{ pt: 1, pb: 0 }}>
-                    <div role={currentQ.multi ? 'group' : 'radiogroup'} aria-labelledby="wizard-title">
+                    <div role={currentQ.multi ? 'group' : 'radiogroup'} aria-labelledby="wizard-title" aria-required="true">
                         {currentQ.options.map(opt => (
                             currentQ.radio
                                 ? <RadioOption
@@ -439,8 +447,8 @@ const ApplicantWizard = ({ onProfileChange }) => {
                         )}
                         <button
                             type="button"
-                            onClick={handleNext}
-                            disabled={!isAnswered}
+                            onClick={isAnswered ? handleNext : undefined}
+                            aria-disabled={!isAnswered}
                             style={{
                                 padding: '0.5rem 1.5rem',
                                 background: isAnswered ? '#1976d2' : '#c5d5ea',
