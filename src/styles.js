@@ -391,8 +391,8 @@ export const PersonalizeCard = styled.div`
     gap: ${theme.spacing(1.5)};
 
     @media (max-width: 480px) {
-        flex-direction: row;
-        align-items: center;
+        flex-direction: column;
+        align-items: flex-start;
         gap: ${theme.spacing(1)};
     }
 
