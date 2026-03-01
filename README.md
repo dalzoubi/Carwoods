@@ -33,7 +33,11 @@ Builds the app for production to the `build` folder (optimized for deployment).
 
 ### `npm run deploy`
 
-Builds and deploys to GitHub Pages (requires `gh-pages` configured).
+Builds and deploys to [carwoods.com](https://carwoods.com) via `gh-pages`.
+
+### `npm run test:e2e:install`
+
+Installs the Chromium browser required by Playwright.
 
 ### `npm run test:e2e`
 
@@ -41,7 +45,7 @@ Runs Playwright E2E tests against the built app.
 
 ## Deployment
 
-The app is configured for GitHub Pages with the `build` output directory. Run `npm run deploy` to publish.
+The app is deployed to [carwoods.com](https://carwoods.com). Vite builds to the `build` output directory and `gh-pages` publishes it. Run `npm run deploy` to build and publish.
 
 ## Learn More
 

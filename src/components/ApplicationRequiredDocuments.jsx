@@ -75,8 +75,8 @@ const ApplicationRequiredDocuments = () => {
         <SubHeading>Contents</SubHeading>
         <ol>
           <li><a href="#identification">Personal Identification</a></li>
-          {show.employed && <li><a href="#employed">If Employed</a></li>}
-          {show.selfEmployed && <li><a href="#self-employed">If Self-Employed</a></li>}
+          {show.employed && <li><a href="#employed">Employed</a></li>}
+          {show.selfEmployed && <li><a href="#self-employed">Self-Employed</a></li>}
           <li><a href="#rental-history">Rental History</a></li>
           {show.petsSection && (
             <li>

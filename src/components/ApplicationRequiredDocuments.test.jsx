@@ -97,12 +97,12 @@ describe('ApplicationRequiredDocuments', () => {
 
     it('links to the employed section', () => {
       renderWithRouter(<ApplicationRequiredDocuments />);
-      expect(screen.getByRole('link', { name: /^if employed$/i })).toHaveAttribute('href', '#employed');
+      expect(screen.getByRole('link', { name: /^employed$/i })).toHaveAttribute('href', '#employed');
     });
 
     it('links to the self-employed section', () => {
       renderWithRouter(<ApplicationRequiredDocuments />);
-      expect(screen.getByRole('link', { name: /^if self-employed$/i })).toHaveAttribute('href', '#self-employed');
+      expect(screen.getByRole('link', { name: /^self-employed$/i })).toHaveAttribute('href', '#self-employed');
     });
 
     it('links to the rental history section', () => {
@@ -547,12 +547,57 @@ describe('ApplicationRequiredDocuments', () => {
       expect(screen.queryByRole('link', { name: /^co-signer$/i })).not.toBeInTheDocument();
     });
 
-    it('resets to show all sections when reset button is clicked', () => {
+    it('resets to show all sections when reset button is clicked and confirmed', async () => {
       const { container } = renderWithProfile({ hasPets: 'none' });
       expect(container.querySelector('#pets-animals').getAttribute('data-filtered')).toBe('true');
       fireEvent.click(screen.getByRole('button', { name: /reset filters/i }));
-      expect(container.querySelector('#pets-animals').getAttribute('data-filtered')).toBe('false');
+      const confirmDialog = screen.getByRole('dialog', { name: /reset personalizations/i });
+      expect(confirmDialog).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /^reset$/i }));
+      await waitFor(() => expect(container.querySelector('#pets-animals').getAttribute('data-filtered')).toBe('false'));
       expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+    });
+
+    describe('Reset confirmation dialog', () => {
+      it('shows a confirmation dialog when the filter banner reset button is clicked', () => {
+        renderWithProfile({ employment: 'employed' });
+        fireEvent.click(screen.getByRole('button', { name: /reset filters/i }));
+        expect(screen.getByRole('dialog', { name: /reset personalizations/i })).toBeInTheDocument();
+        expect(screen.getByText(/this will clear your saved filters and show all document sections/i)).toBeInTheDocument();
+      });
+
+      it('shows a confirmation dialog when the wizard reset button is clicked', () => {
+        renderWithProfile({ employment: 'employed' });
+        fireEvent.click(screen.getByRole('button', { name: /edit filters/i }));
+        fireEvent.click(screen.getByRole('button', { name: /reset all/i }));
+        expect(screen.getByRole('dialog', { name: /reset personalizations/i })).toBeInTheDocument();
+      });
+
+      it('does not reset when cancel is clicked', async () => {
+        renderWithProfile({ hasPets: 'none' });
+        fireEvent.click(screen.getByRole('button', { name: /reset filters/i }));
+        fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+        await waitFor(() => expect(screen.queryByRole('dialog', { name: /reset personalizations/i })).not.toBeInTheDocument());
+        expect(localStorage.getItem(STORAGE_KEY)).not.toBeNull();
+        expect(screen.getByRole('button', { name: /reset filters/i })).toBeInTheDocument();
+      });
+
+      it('dismisses the confirmation dialog when clicking outside it (onClose)', async () => {
+        renderWithProfile({ employment: 'employed' });
+        fireEvent.click(screen.getByRole('button', { name: /reset filters/i }));
+        expect(screen.getByRole('dialog', { name: /reset personalizations/i })).toBeInTheDocument();
+        fireEvent.keyDown(screen.getByRole('dialog', { name: /reset personalizations/i }), { key: 'Escape' });
+        await waitFor(() => expect(screen.queryByRole('dialog', { name: /reset personalizations/i })).not.toBeInTheDocument());
+        expect(localStorage.getItem(STORAGE_KEY)).not.toBeNull();
+      });
+
+      it('confirmation dialog has accessible title via aria-labelledby', () => {
+        renderWithProfile({ employment: 'employed' });
+        fireEvent.click(screen.getByRole('button', { name: /reset filters/i }));
+        const dialog = screen.getByRole('dialog', { name: /reset personalizations/i });
+        expect(dialog).toHaveAttribute('aria-labelledby', 'confirm-reset-title');
+        expect(document.getElementById('confirm-reset-title')).toBeInTheDocument();
+      });
     });
 
     it('shows all sections when no profile is set (unfiltered state)', () => {
@@ -703,11 +748,13 @@ describe('ApplicationRequiredDocuments', () => {
       expect(dialog.textContent).toMatch(/co-signer/i);
     });
 
-    it('Reset all & close button inside wizard clears profile and closes dialog', async () => {
+    it('Reset all & close button inside wizard clears profile and closes dialog after confirmation', async () => {
       renderWithProfile({ employment: 'employed' });
       fireEvent.click(screen.getByRole('button', { name: /edit filters/i }));
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByRole('dialog', { name: /what is your employment status/i })).toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: /reset all/i }));
+      expect(screen.getByRole('dialog', { name: /reset personalizations/i })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /^reset$/i }));
       await waitFor(() => expect(screen.queryByText(/step 1 of 6/i)).not.toBeInTheDocument());
       expect(screen.getByRole('button', { name: /personalize this page/i })).toBeInTheDocument();
       expect(localStorage.getItem(STORAGE_KEY)).toBeNull();

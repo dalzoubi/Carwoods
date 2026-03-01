@@ -1,6 +1,8 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import DialogTitle from '@mui/material/DialogTitle';
 import LinearProgress from '@mui/material/LinearProgress';
 import {
     PersonalizeCard,
@@ -249,6 +251,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
     const [open, setOpen] = useState(false);
     const [step, setStep] = useState(0);
     const [answers, setAnswers] = useState(() => getInitialAnswers(loadProfile()));
+    const [confirmResetOpen, setConfirmResetOpen] = useState(false);
 
     const hasFilters = profile !== null;
 
@@ -265,8 +268,12 @@ const ApplicantWizard = ({ onProfileChange }) => {
         setProfile(null);
         setAnswers(getInitialAnswers(null));
         setOpen(false);
+        setConfirmResetOpen(false);
         if (onProfileChange) onProfileChange(null);
     }, [onProfileChange]);
+
+    const requestReset = useCallback(() => setConfirmResetOpen(true), []);
+    const cancelReset = useCallback(() => setConfirmResetOpen(false), []);
 
     const handleSelect = useCallback((key, value, multi, noneValue) => {
         setAnswers(prev => {
@@ -312,6 +319,24 @@ const ApplicantWizard = ({ onProfileChange }) => {
         }
     }, [step, handleNext]);
 
+    const answersRef = useRef(null);
+    const prevStepRef = useRef(null);
+
+    useEffect(() => {
+        if (!open) return;
+        if (prevStepRef.current !== null && prevStepRef.current !== step) {
+            const firstOption = answersRef.current?.querySelector('button, input[type="radio"]');
+            firstOption?.focus();
+        }
+        prevStepRef.current = step;
+    }, [step, open]);
+
+    useEffect(() => {
+        if (!open) {
+            prevStepRef.current = null;
+        }
+    }, [open]);
+
     useEffect(() => {
         if (onProfileChange) onProfileChange(profile);
     }, []);  // eslint-disable-line react-hooks/exhaustive-deps
@@ -336,7 +361,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
                         <FilterBannerEditButton type="button" onClick={openWizard} aria-label="Edit filters">
                             Edit filters
                         </FilterBannerEditButton>
-                        <FilterBannerResetButton type="button" onClick={handleReset} aria-label="Reset filters and show all sections">
+                        <FilterBannerResetButton type="button" onClick={requestReset} aria-label="Reset filters and show all sections">
                             Reset — show all
                         </FilterBannerResetButton>
                     </FilterBannerActions>
@@ -355,6 +380,39 @@ const ApplicantWizard = ({ onProfileChange }) => {
                     </PersonalizeCardButton>
                 </PersonalizeCard>
             )}
+
+            <Dialog
+                open={confirmResetOpen}
+                onClose={cancelReset}
+                maxWidth="xs"
+                fullWidth
+                aria-labelledby="confirm-reset-title"
+            >
+                <DialogTitle id="confirm-reset-title" sx={{ fontWeight: 700, fontSize: '1.1rem', pb: 1 }}>
+                    Reset personalizations?
+                </DialogTitle>
+                <DialogContent sx={{ pt: 0 }}>
+                    <p style={{ margin: 0, fontSize: '0.95rem', color: '#444' }}>
+                        This will clear your saved filters and show all document sections.
+                    </p>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+                    <button
+                        type="button"
+                        onClick={cancelReset}
+                        style={{ padding: '0.45rem 1.1rem', background: '#fff', border: '1.5px solid #d0d7e3', borderRadius: '8px', color: '#444', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleReset}
+                        style={{ padding: '0.45rem 1.1rem', background: '#d32f2f', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer' }}
+                    >
+                        Reset
+                    </button>
+                </DialogActions>
+            </Dialog>
 
             <Dialog
                 open={open}
@@ -402,7 +460,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
                 </div>
 
                 <DialogContent sx={{ pt: 1, pb: 0 }}>
-                    <div role={currentQ.multi ? 'group' : 'radiogroup'} aria-labelledby="wizard-title" aria-required="true">
+                    <div ref={answersRef} role={currentQ.multi ? 'group' : 'radiogroup'} aria-labelledby="wizard-title" aria-required="true">
                         {currentQ.options.map(opt => (
                             currentQ.radio
                                 ? <RadioOption
@@ -424,35 +482,13 @@ const ApplicantWizard = ({ onProfileChange }) => {
                 </DialogContent>
 
                 <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #eee', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    <button
-                        type="button"
-                        onClick={handleReset}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: '#999', textDecoration: 'underline', padding: 0 }}
-                    >
-                        Reset all &amp; close
-                    </button>
-                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                        <button
-                            type="button"
-                            onClick={handleSkip}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', color: '#666', textDecoration: 'underline', padding: '0.5rem 0' }}
-                        >
-                            Skip
-                        </button>
-                        {step > 0 && (
-                            <button
-                                type="button"
-                                onClick={handleBack}
-                                style={{ padding: '0.5rem 1.25rem', background: '#fff', border: '1.5px solid #1976d2', borderRadius: '8px', color: '#1976d2', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer' }}
-                            >
-                                Back
-                            </button>
-                        )}
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', order: 1 }}>
                         <button
                             type="button"
                             onClick={isAnswered ? handleNext : undefined}
                             aria-disabled={!isAnswered}
                             style={{
+                                order: 2,
                                 padding: '0.5rem 1.5rem',
                                 background: isAnswered ? '#1976d2' : '#c5d5ea',
                                 border: 'none',
@@ -466,7 +502,30 @@ const ApplicantWizard = ({ onProfileChange }) => {
                         >
                             {isLastStep ? 'Finish' : 'Next'}
                         </button>
+                        {step > 0 && (
+                            <button
+                                type="button"
+                                onClick={handleBack}
+                                style={{ order: 1, padding: '0.5rem 1.25rem', background: '#fff', border: '1.5px solid #1976d2', borderRadius: '8px', color: '#1976d2', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer' }}
+                            >
+                                Back
+                            </button>
+                        )}
+                        <button
+                            type="button"
+                            onClick={handleSkip}
+                            style={{ order: 0, background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', color: '#666', textDecoration: 'underline', padding: '0.5rem 0' }}
+                        >
+                            Skip
+                        </button>
                     </div>
+                    <button
+                        type="button"
+                        onClick={requestReset}
+                        style={{ order: 0, background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: '#999', textDecoration: 'underline', padding: 0 }}
+                    >
+                        Reset all &amp; close
+                    </button>
                 </div>
             </Dialog>
         </>
