@@ -170,7 +170,7 @@ const ApplicationRequiredDocuments = () => {
         <SubHeading id="heading-pets-animals">5. Pets and Assistance Animals</SubHeading>
         <ol type="a" style={nestedListStyle}>
           <li id="pets-only" style={!show.petsOnly ? { display: 'none' } : undefined}>
-            <strong>Pets:</strong> Clear photos of each pet and current vaccination records.
+            <strong>Pets (if applicable):</strong> Clear photos of each pet and current vaccination records.
           </li>
           <li id="service-animals" style={!show.serviceAnimal ? { display: 'none' } : undefined}>
             <strong>Service Animals:</strong> Under the Fair Housing Act and Texas Property Code, service animals are dogs (or miniature horses) individually trained to perform specific tasks directly related to a person&apos;s disability. We will not request documentation proving the animal is a certified or trained service animal, nor will we require the animal to demonstrate its task. However, we may ask:

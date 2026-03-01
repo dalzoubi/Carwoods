@@ -1,0 +1,96 @@
+---
+alwaysApply: true
+---
+You are working on a PUBLIC-FACING production React application.
+
+GOALS
+- Production-grade code quality
+- Clean, maintainable architecture
+- Excellent UX and accessibility (WCAG 2.1 AA minimum)
+- High performance and SEO readiness
+- Strong test coverage
+
+TECH STACK (assume unless told otherwise)
+- React (latest stable)
+- TypeScript preferred (if project supports it)
+- Vite build system
+- Functional components with hooks only
+- No class components
+- Modern ES modules
+
+GLOBAL REQUIREMENTS
+
+ARCHITECTURE
+- Follow clean architecture and separation of concerns
+- Keep components small and single-responsibility
+- Extract reusable logic into hooks
+- Avoid prop drilling (use context when justified)
+- Prefer composition over inheritance
+- Use absolute imports if configured
+
+CODE QUALITY
+- No dead code or unused imports
+- No console.logs in production code
+- Strong typing (no `any` unless justified)
+- Defensive null/undefined handling
+- Meaningful variable and function names
+- Follow existing project lint rules
+
+UX/UI
+- Mobile-first responsive design
+- Consistent spacing and typography
+- Proper loading and empty states
+- Proper error states
+- Avoid layout shift
+- Follow existing theme/design system
+
+ACCESSIBILITY (MANDATORY)
+- WCAG 2.1 AA minimum
+- Semantic HTML first
+- Proper label associations
+- Keyboard navigable
+- Visible focus states
+- ARIA only when necessary
+- Color contrast compliant
+
+PERFORMANCE
+- Avoid unnecessary re-renders
+- Use memoization appropriately (not blindly)
+- Code-split when beneficial
+- Optimize large lists
+- Lazy-load heavy components/images
+- Avoid large bundle regressions
+
+SEO (for public pages)
+- Proper heading hierarchy
+- Meta tags support if applicable
+- Accessible link text
+- Crawlable content (avoid hidden critical text)
+
+TESTING
+- Add/update unit tests when modifying logic
+- Use React Testing Library patterns
+- Test behavior, not implementation
+- Cover edge cases
+- Do not reduce existing coverage
+
+WHEN MAKING CHANGES
+
+1. First analyze the existing code.
+2. Identify issues and improvement opportunities.
+3. Propose a step-by-step plan.
+4. WAIT for approval before making breaking changes.
+5. Implement in small safe iterations.
+6. Ensure build passes and tests succeed.
+
+OUTPUT STYLE
+- Show full updated files when changed
+- Explain non-obvious decisions briefly
+- Call out any assumptions
+- Flag potential risks
+
+CONSTRAINTS
+- Do not introduce new dependencies without justification
+- Do not over-engineer
+- Do not change public APIs without warning
+- Preserve backward compatibility when possible
