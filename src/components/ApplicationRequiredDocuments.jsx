@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { Heading, SubHeading, Paragraph, InlineLink, TocNav, BackToTop, nestedListStyle, PrintButton, PrintHeader, PageHeader, FilteredSection } from '../styles';
+import { Heading, SubHeading, Paragraph, InlineLink, TocNav, BackToTop, nestedListStyle, nestedUlStyle, PrintButton, PrintHeader, PageHeader, FilteredSection } from '../styles';
 import ApplicantWizard, { loadProfile } from './ApplicantWizard';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
@@ -114,7 +114,7 @@ const ApplicationRequiredDocuments = () => {
           <li>Valid government-issued photo ID (Driver&apos;s License or State ID, color copy).</li>
           <li>
             Social Security Number verification (one of the following, color copy, showing full SSN):
-            <ul style={nestedListStyle}>
+            <ul style={nestedUlStyle}>
               <li>Social Security Card</li>
               <li>W-2</li>
               <li>1099</li>
@@ -174,7 +174,7 @@ const ApplicationRequiredDocuments = () => {
           </li>
           <li id="service-animals" style={!show.serviceAnimal ? { display: 'none' } : undefined}>
             <strong>Service Animals:</strong> Under the Fair Housing Act and Texas Property Code, service animals are dogs (or miniature horses) individually trained to perform specific tasks directly related to a person&apos;s disability. We will not request documentation proving the animal is a certified or trained service animal, nor will we require the animal to demonstrate its task. However, we may ask:
-            <ul style={nestedListStyle}>
+            <ul style={nestedUlStyle}>
               <li>Whether the applicant has a disability-related need for the animal (yes/no only — we will not ask for the nature or extent of the disability).</li>
               <li>What specific task or work the animal has been trained to perform.</li>
             </ul>
@@ -182,7 +182,7 @@ const ApplicationRequiredDocuments = () => {
           </li>
           <li id="esa" style={!show.esa ? { display: 'none' } : undefined}>
             <strong>Emotional Support Animals (ESA) and Other Assistance Animals:</strong> When the disability-related need for an ESA or other assistance animal is not obvious or known, we may request <strong>reliable documentation</strong> from a licensed healthcare professional (physician, psychiatrist, therapist, or other licensed mental health professional) currently treating the applicant. The letter must:
-            <ul style={nestedListStyle}>
+            <ul style={nestedUlStyle}>
               <li>Be written on the provider&apos;s official letterhead.</li>
               <li>Include the provider&apos;s name, license type, license number, state of licensure, and direct contact information.</li>
               <li>Confirm that the applicant has a disability (without disclosing the specific diagnosis).</li>
@@ -200,7 +200,7 @@ const ApplicationRequiredDocuments = () => {
         <ol type="a" style={nestedListStyle}>
           <li id="va-benefits" style={!show.va ? { display: 'none' } : undefined}>
             <strong>VA (Veterans Affairs) Benefits:</strong>
-            <ul style={nestedListStyle}>
+            <ul style={nestedUlStyle}>
               <li>Current VA Benefits Award Letter (dated within the past <strong>12 months</strong>) showing benefit type, monthly amount, and effective date.</li>
               <li>Most recent <strong>2 months</strong> of bank statements confirming VA deposit amounts.</li>
               <li>DD-214 (Certificate of Release or Discharge from Active Duty) is accepted as supplemental identity verification but is not required.</li>
@@ -208,28 +208,28 @@ const ApplicationRequiredDocuments = () => {
           </li>
           <li id="ssa-ssi" style={!show.ssaSsi ? { display: 'none' } : undefined}>
             <strong>Social Security (SSA) or Supplemental Security Income (SSI):</strong>
-            <ul style={nestedListStyle}>
+            <ul style={nestedUlStyle}>
               <li>Current SSA Award Letter or Benefit Verification Letter (obtainable at ssa.gov) dated within the past <strong>12 months</strong>, showing monthly benefit amount.</li>
               <li>Most recent <strong>2 months</strong> of bank statements confirming SSA/SSI deposit amounts.</li>
             </ul>
           </li>
           <li id="ssdi" style={!show.ssdi ? { display: 'none' } : undefined}>
             <strong>Social Security Disability Insurance (SSDI):</strong>
-            <ul style={nestedListStyle}>
+            <ul style={nestedUlStyle}>
               <li>Current SSDI Award Letter dated within the past <strong>12 months</strong>, showing monthly benefit amount and disability onset date.</li>
               <li>Most recent <strong>2 months</strong> of bank statements confirming SSDI deposit amounts.</li>
             </ul>
           </li>
           <li id="retirement" style={!show.retirement ? { display: 'none' } : undefined}>
             <strong>Retirement / Pension Income:</strong>
-            <ul style={nestedListStyle}>
+            <ul style={nestedUlStyle}>
               <li>Most recent pension or retirement benefit statement (e.g., TCDRS, TRS, FERS, or private pension) dated within the past <strong>12 months</strong>.</li>
               <li>Most recent <strong>2 months</strong> of bank statements confirming deposit amounts.</li>
             </ul>
           </li>
           <li id="child-support" style={!show.childSupport ? { display: 'none' } : undefined}>
             <strong>Child Support or Spousal Maintenance:</strong>
-            <ul style={nestedListStyle}>
+            <ul style={nestedUlStyle}>
               <li>Court order or divorce decree showing the awarded amount and duration.</li>
               <li>Most recent <strong>3 months</strong> of bank statements or OAG (Texas Office of the Attorney General) payment history confirming consistent receipt.</li>
             </ul>

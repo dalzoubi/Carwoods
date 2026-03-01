@@ -7,6 +7,7 @@ const Home = () => {
         <div>
             <Helmet>
                 <title>Carwoods - Home</title>
+                <meta name="description" content="Carwoods offers property management and rental services in Houston, TX. Find your next home with our dedicated team." />
             </Helmet>
             <Heading>Where Houston Finds Home</Heading>
             <Paragraph>

@@ -253,36 +253,6 @@ export const SmoothDetails = ({ summary, children, defaultOpen = false }) => {
     );
 };
 
-export const DetailsSummary = styled.summary`
-    cursor: pointer;
-    color: ${theme.palette.primary.main};
-    font-weight: 600;
-    font-size: ${theme.typography.body1.fontSize};
-    padding: ${theme.spacing(0.75)} 0;
-    user-select: none;
-    list-style: none;
-
-    &::before {
-        content: '▶ ';
-        font-size: 0.75em;
-        transition: transform 0.2s;
-        display: inline-block;
-    }
-
-    &:hover {
-        color: ${theme.palette.primary.dark};
-    }
-
-    &:focus-visible {
-        outline: 2px solid ${theme.palette.primary.light};
-        outline-offset: 2px;
-        border-radius: 2px;
-    }
-
-    details[open] > &::before {
-        content: '▼ ';
-    }
-`;
 
 const BackToTopBase = styled.a`
     display: inline-block;
@@ -319,6 +289,7 @@ export const BackToTop = ({ href, children, ...props }) => {
 };
 
 export const nestedListStyle = { listStyleType: 'lower-alpha' };
+export const nestedUlStyle = { listStyleType: 'disc' };
 
 export const PageHeader = styled.div`
     display: flex;

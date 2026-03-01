@@ -125,10 +125,10 @@ const ResponsiveNavbar = () => {
                         </>
                     ) : (
                         <>
-                            <NavLink to="/" style={{ marginLeft: 'auto', marginRight: 'auto' }}>
+                            <NavLink to="/" style={{ flexShrink: 0 }}>
                                 <img src={carwoodsLogo} alt="Carwoods" style={{ height: '40px' }} />
                             </NavLink>
-                            <nav aria-label="main navigation" style={{ marginLeft: 'auto', marginRight: 'auto', display: 'flex', justifyContent: 'center', flexGrow: 1 }}>
+                            <nav aria-label="main navigation" style={{ display: 'flex', justifyContent: 'center', flexGrow: 1 }}>
                                 <NavLink to="/" className={({ isActive }) => (isActive ? 'active' : '')}>Home</NavLink>
                                 <NavLink to="/tenant-selection-criteria" className={({ isActive }) => (isActive ? 'active' : '')}>Tenant Selection Criteria</NavLink>
                                 <NavLink to="/application-required-documents" className={({ isActive }) => (isActive ? 'active' : '')}>Application Required Documents</NavLink>

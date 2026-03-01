@@ -356,10 +356,6 @@ const ApplicantWizard = ({ onProfileChange }) => {
         }
     }, [open]);
 
-    useEffect(() => {
-        if (onProfileChange) onProfileChange(profile);
-    }, []);  // eslint-disable-line react-hooks/exhaustive-deps
-
     const currentQ = QUESTIONS[step];
     const currentAnswer = answers[currentQ.key];
     const isAnswered = currentQ.multi

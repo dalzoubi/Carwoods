@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { Heading, SubHeading, SectionHeading, Paragraph, TocNav, BackToTop, nestedListStyle, PrintButton, PrintHeader, PrintFilterSummary, PageHeader, FilteredSection } from '../styles';
+import { Heading, SubHeading, SectionHeading, Paragraph, TocNav, BackToTop, nestedListStyle, nestedUlStyle, PrintButton, PrintHeader, PrintFilterSummary, PageHeader, FilteredSection } from '../styles';
 import ApplicantWizard, { loadProfile, buildChipLabel } from './ApplicantWizard';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
@@ -155,7 +155,7 @@ const TenantSelectionCriteria = () => {
           <li>Minimum credit score of <strong>650</strong></li>
           <li>
             The following are disqualifying:
-            <ul style={nestedListStyle}>
+            <ul style={nestedUlStyle}>
               <li>Housing-related collections (utilities/energy/water/landlord claims)</li>
               <li>Unpaid auto loan charge-offs, repossessions, or major delinquencies</li>
               <li>Pattern of unpaid obligations or excessive collections</li>
