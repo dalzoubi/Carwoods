@@ -187,7 +187,7 @@ const RadioOption = ({ option, selected, name, onSelect }) => {
     );
 };
 
-const OptionCard = ({ option, selected, multi, onSelect }) => {
+const OptionCard = ({ option, selected, multi, onSelect, tabIndex }) => {
     const isSelected = multi
         ? Array.isArray(selected) && selected.includes(option.value)
         : selected === option.value;
@@ -197,6 +197,7 @@ const OptionCard = ({ option, selected, multi, onSelect }) => {
             type="button"
             role={multi ? 'checkbox' : 'radio'}
             aria-checked={isSelected}
+            tabIndex={tabIndex}
             onClick={() => onSelect(option.value)}
             style={{
                 display: 'flex',
@@ -319,17 +320,33 @@ const ApplicantWizard = ({ onProfileChange }) => {
         }
     }, [step, handleNext]);
 
+    const [focusedOptionIndex, setFocusedOptionIndex] = useState(0);
+
     const answersRef = useRef(null);
     const prevStepRef = useRef(null);
 
     useEffect(() => {
         if (!open) return;
         if (prevStepRef.current !== null && prevStepRef.current !== step) {
+            setFocusedOptionIndex(0);
             const firstOption = answersRef.current?.querySelector('button, input[type="radio"]');
             firstOption?.focus();
         }
         prevStepRef.current = step;
     }, [step, open]);
+
+    const handleGroupKeyDown = useCallback((e) => {
+        const options = Array.from(answersRef.current?.querySelectorAll('button[role="radio"], button[role="checkbox"], input[type="radio"]') ?? []);
+        if (!options.length) return;
+        const isVertical = ['ArrowDown', 'ArrowUp'].includes(e.key);
+        const isHorizontal = ['ArrowRight', 'ArrowLeft'].includes(e.key);
+        if (!isVertical && !isHorizontal) return;
+        e.preventDefault();
+        const delta = (e.key === 'ArrowDown' || e.key === 'ArrowRight') ? 1 : -1;
+        const next = (focusedOptionIndex + delta + options.length) % options.length;
+        setFocusedOptionIndex(next);
+        options[next].focus();
+    }, [focusedOptionIndex]);
 
     useEffect(() => {
         if (!open) {
@@ -387,12 +404,13 @@ const ApplicantWizard = ({ onProfileChange }) => {
                 maxWidth="xs"
                 fullWidth
                 aria-labelledby="confirm-reset-title"
+                aria-describedby="confirm-reset-desc"
             >
                 <DialogTitle id="confirm-reset-title" sx={{ fontWeight: 700, fontSize: '1.1rem', pb: 1 }}>
                     Reset personalizations?
                 </DialogTitle>
                 <DialogContent sx={{ pt: 0 }}>
-                    <p style={{ margin: 0, fontSize: '0.95rem', color: '#444' }}>
+                    <p id="confirm-reset-desc" style={{ margin: 0, fontSize: '0.95rem', color: '#444' }}>
                         This will clear your saved filters and show all document sections.
                     </p>
                 </DialogContent>
@@ -436,7 +454,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
                             aria-label="Close wizard"
                             style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: '#666', lineHeight: 1, padding: '0.25rem' }}
                         >
-                            ✕
+                            <span aria-hidden="true">✕</span>
                         </button>
                     </div>
                     <LinearProgress
@@ -460,8 +478,8 @@ const ApplicantWizard = ({ onProfileChange }) => {
                 </div>
 
                 <DialogContent sx={{ pt: 1, pb: 0 }}>
-                    <div ref={answersRef} role={currentQ.multi ? 'group' : 'radiogroup'} aria-labelledby="wizard-title" aria-required="true">
-                        {currentQ.options.map(opt => (
+                    <div ref={answersRef} role={currentQ.multi ? 'group' : 'radiogroup'} aria-labelledby="wizard-title" aria-required="true" onKeyDown={handleGroupKeyDown}>
+                        {currentQ.options.map((opt, idx) => (
                             currentQ.radio
                                 ? <RadioOption
                                     key={opt.value}
@@ -475,7 +493,8 @@ const ApplicantWizard = ({ onProfileChange }) => {
                                     option={opt}
                                     selected={currentAnswer}
                                     multi={currentQ.multi}
-                                    onSelect={(val) => handleSelect(currentQ.key, val, currentQ.multi, currentQ.noneValue)}
+                                    tabIndex={idx === focusedOptionIndex ? 0 : -1}
+                                    onSelect={(val) => { setFocusedOptionIndex(idx); handleSelect(currentQ.key, val, currentQ.multi, currentQ.noneValue); }}
                                   />
                         ))}
                     </div>
@@ -485,8 +504,8 @@ const ApplicantWizard = ({ onProfileChange }) => {
                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', order: 1 }}>
                         <button
                             type="button"
-                            onClick={isAnswered ? handleNext : undefined}
-                            aria-disabled={!isAnswered}
+                            onClick={handleNext}
+                            disabled={!isAnswered}
                             style={{
                                 order: 2,
                                 padding: '0.5rem 1.5rem',
@@ -522,7 +541,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
                     <button
                         type="button"
                         onClick={requestReset}
-                        style={{ order: 0, background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: '#999', textDecoration: 'underline', padding: 0 }}
+                        style={{ order: 0, background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: '#767676', textDecoration: 'underline', padding: 0 }}
                     >
                         Reset all &amp; close
                     </button>
