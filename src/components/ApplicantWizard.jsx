@@ -327,7 +327,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
 
     useEffect(() => {
         if (!open) return;
-        if (prevStepRef.current !== null && prevStepRef.current !== step) {
+        if (prevStepRef.current !== step) {
             setFocusedOptionIndex(0);
             const firstOption = answersRef.current?.querySelector('button, input[type="radio"]');
             firstOption?.focus();
@@ -343,10 +343,12 @@ const ApplicantWizard = ({ onProfileChange }) => {
         if (!isVertical && !isHorizontal) return;
         e.preventDefault();
         const delta = (e.key === 'ArrowDown' || e.key === 'ArrowRight') ? 1 : -1;
-        const next = (focusedOptionIndex + delta + options.length) % options.length;
+        const currentIndex = options.indexOf(document.activeElement);
+        const baseIndex = currentIndex !== -1 ? currentIndex : 0;
+        const next = (baseIndex + delta + options.length) % options.length;
         setFocusedOptionIndex(next);
         options[next].focus();
-    }, [focusedOptionIndex]);
+    }, []);
 
     useEffect(() => {
         if (!open) {
