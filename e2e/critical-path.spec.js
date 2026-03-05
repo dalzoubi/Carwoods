@@ -1,21 +1,23 @@
 const { test, expect } = require('@playwright/test');
 
 test.describe('Critical path: Home → Tenant Criteria → Application Docs', () => {
-  test('navigates from Home to Tenant Selection Criteria', async ({ page }) => {
+  test('navigates from Home to Tenant Selection Criteria via Tenant menu', async ({ page }) => {
     await page.goto('/');
 
     await expect(page.getByRole('heading', { name: /where houston finds home/i })).toBeVisible();
 
-    await page.getByRole('link', { name: /tenant selection criteria/i }).click();
+    await page.getByRole('button', { name: /tenant menu/i }).click();
+    await page.getByRole('link', { name: /selection criteria/i }).click();
 
     await expect(page).toHaveURL(/tenant-selection-criteria/);
     await expect(page.getByRole('heading', { name: /tenant selection criteria/i })).toBeVisible();
   });
 
-  test('navigates from Tenant Criteria to Application Documents', async ({ page }) => {
+  test('navigates from Tenant Criteria to Application Documents via Tenant menu', async ({ page }) => {
     await page.goto('/tenant-selection-criteria');
 
-    await page.getByRole('link', { name: /application required documents/i }).click();
+    await page.getByRole('button', { name: /tenant menu/i }).click();
+    await page.getByRole('link', { name: /required documents/i }).click();
 
     await expect(page).toHaveURL(/application-required-documents/);
     await expect(page.getByRole('heading', { name: /application required documents/i })).toBeVisible();
