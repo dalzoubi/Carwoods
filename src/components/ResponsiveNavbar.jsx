@@ -191,14 +191,16 @@ const ResponsiveNavbar = () => {
                                     aria-label="Tenant menu"
                                     sx={{
                                         color: 'inherit',
-                                        padding: '0.5rem 0.25rem 0.5rem 1rem',
+                                        padding: '0.5rem 1rem',
+                                        fontWeight: 'bold',
+                                        fontSize: 'inherit',
                                         '&:hover': {
-                                            backgroundColor: theme.palette.drawer.hover,
+                                            backgroundColor: theme.palette.primary.dark,
                                             borderRadius: '4px',
                                         },
                                     }}
                                 >
-                                    <span style={{ fontWeight: 'bold', marginRight: '0.25rem' }}>Tenant</span>
+                                    <span style={{ marginRight: '0.25rem' }}>Tenant</span>
                                     <KeyboardArrowDown fontSize="small" />
                                 </IconButton>
                                 <Menu
@@ -225,6 +227,10 @@ const ResponsiveNavbar = () => {
                                                     backgroundColor: 'rgba(25, 118, 210, 0.08)',
                                                     color: theme.palette.primary.dark,
                                                 },
+                                                '&.active': {
+                                                    backgroundColor: theme.palette.primary.dark,
+                                                    color: theme.palette.text.primary,
+                                                },
                                             }}
                                         >
                                             {label}
@@ -242,14 +248,16 @@ const ResponsiveNavbar = () => {
                                     aria-label="Landlord menu"
                                     sx={{
                                         color: 'inherit',
-                                        padding: '0.5rem 0.25rem 0.5rem 1rem',
+                                        padding: '0.5rem 1rem',
+                                        fontWeight: 'bold',
+                                        fontSize: 'inherit',
                                         '&:hover': {
-                                            backgroundColor: theme.palette.drawer.hover,
+                                            backgroundColor: theme.palette.primary.dark,
                                             borderRadius: '4px',
                                         },
                                     }}
                                 >
-                                    <span style={{ fontWeight: 'bold', marginRight: '0.25rem' }}>Landlord</span>
+                                    <span style={{ marginRight: '0.25rem' }}>Landlord</span>
                                     <KeyboardArrowDown fontSize="small" />
                                 </IconButton>
                                 <Menu
@@ -275,6 +283,10 @@ const ResponsiveNavbar = () => {
                                                 '&:hover': {
                                                     backgroundColor: 'rgba(25, 118, 210, 0.08)',
                                                     color: theme.palette.primary.dark,
+                                                },
+                                                '&.active': {
+                                                    backgroundColor: theme.palette.primary.dark,
+                                                    color: theme.palette.text.primary,
                                                 },
                                             }}
                                         >
