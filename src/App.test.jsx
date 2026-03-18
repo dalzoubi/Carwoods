@@ -10,9 +10,18 @@ const renderWithProviders = (ui) => render(
 
 describe('App', () => {
   it('renders navbar and footer', () => {
+    window.matchMedia = vi.fn().mockImplementation((query) => ({
+      matches: !query.includes('max-width'),
+      media: query,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }));
     renderWithProviders(<App />);
     expect(screen.getByRole('navigation', { name: /main navigation/i })).toBeInTheDocument();
-    expect(screen.getByLabelText('footer')).toBeInTheDocument();
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument();
   });
 
   it('renders main content area', () => {

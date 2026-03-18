@@ -21,7 +21,7 @@ describe('ContactUs', () => {
 
   it('explains redirect to HAR', () => {
     renderWithRouter(<ContactUs />);
-    expect(screen.getByText(/har\.com/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/har\.com/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/houston association of realtors/i)).toBeInTheDocument();
   });
 });

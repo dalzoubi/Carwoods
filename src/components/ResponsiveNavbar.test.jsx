@@ -26,18 +26,27 @@ describe('ResponsiveNavbar', () => {
   it('renders Tenant dropdown with Apply, Selection Criteria, Required Documents', () => {
     renderWithProviders(<ResponsiveNavbar />);
     fireEvent.click(screen.getByRole('button', { name: /tenant menu/i }));
-    expect(screen.getByRole('link', { name: /^apply$/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /selection criteria/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /required documents/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /^apply$/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /selection criteria/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /required documents/i })).toBeInTheDocument();
   });
 
   it('renders Landlord dropdown with Property Management', () => {
     renderWithProviders(<ResponsiveNavbar />);
     fireEvent.click(screen.getByRole('button', { name: /landlord menu/i }));
-    expect(screen.getByRole('link', { name: /property management/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /property management/i })).toBeInTheDocument();
   });
 
   it('has accessible menu button on mobile', () => {
+    window.matchMedia = vi.fn().mockImplementation((query) => ({
+      matches: query.includes('max-width'),
+      media: query,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }));
     renderWithProviders(<ResponsiveNavbar />);
     const menuButton = screen.getByRole('button', { name: /open drawer/i });
     expect(menuButton).toBeInTheDocument();

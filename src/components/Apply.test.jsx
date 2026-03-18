@@ -13,13 +13,16 @@ describe('Apply', () => {
 
   it('renders steps and links to Selection Criteria and Required Documents', () => {
     renderWithRouter(<Apply />);
-    expect(screen.getByRole('link', { name: /tenant selection criteria/i })).toHaveAttribute('href', '/tenant-selection-criteria');
-    expect(screen.getByRole('link', { name: /required documents/i })).toHaveAttribute('href', '/application-required-documents');
+    const criteriaLinks = screen.getAllByRole('link', { name: /tenant selection criteria/i });
+    const docsLinks = screen.getAllByRole('link', { name: /required documents/i });
+    expect(criteriaLinks[0]).toHaveAttribute('href', '/tenant-selection-criteria');
+    expect(docsLinks[0]).toHaveAttribute('href', '/application-required-documents');
   });
 
   it('links to har.com for submission', () => {
     renderWithRouter(<Apply />);
-    const harLink = screen.getByRole('link', { name: /har\.com/i });
+    const harLinks = screen.getAllByRole('link', { name: /har\.com/i });
+    const harLink = harLinks.find((el) => el.getAttribute('href') === 'https://www.har.com') ?? harLinks[0];
     expect(harLink).toHaveAttribute('href', 'https://www.har.com');
     expect(harLink).toHaveAttribute('target', '_blank');
     expect(harLink).toHaveAttribute('rel', 'noopener noreferrer');
