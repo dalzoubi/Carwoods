@@ -47,6 +47,9 @@
       "last 1 safari version"
     ]
   },
+  "overrides": {
+    "undici": "^7.24.0"
+  },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
