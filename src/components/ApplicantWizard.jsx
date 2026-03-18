@@ -504,6 +504,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
                             type="button"
                             onClick={handleNext}
                             disabled={!isAnswered}
+                            aria-disabled={!isAnswered}
                             style={{
                                 order: 2,
                                 padding: '0.5rem 1.5rem',

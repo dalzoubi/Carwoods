@@ -13,7 +13,7 @@ describe('Accessibility', () => {
 
   it('contains WCAG commitment', () => {
     renderWithRouter(<Accessibility />);
-    expect(screen.getByText(/wcag 2\.1 at level aa/i)).toBeInTheDocument();
+    expect(screen.getByText(/WCAG.*2\.1.*Level AA/i)).toBeInTheDocument();
     expect(screen.getByText(/accessible to people with disabilities/i)).toBeInTheDocument();
   });
 

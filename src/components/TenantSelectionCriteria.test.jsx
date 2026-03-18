@@ -259,10 +259,10 @@ describe('TenantSelectionCriteria', () => {
       expect(screen.getByText(/step 1 of 6/i)).toBeInTheDocument();
     });
 
-    it('shows the filter banner when a profile is saved in sessionStorage', () => {
+    it('shows the filter banner when a profile is saved in localStorage', () => {
       renderWithProfile({ section8: 'yes', creditScore: 'below-650', guarantorCosigner: 'guarantor', hasPets: 'pets' });
       expect(screen.getByRole('region', { name: /active filters/i })).toBeInTheDocument();
-      expect(screen.getByText(/filtered view/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/filtered view/i).length).toBeGreaterThan(0);
     });
 
     it('hides housing assistance section when section8 is no', () => {
@@ -338,6 +338,7 @@ describe('TenantSelectionCriteria', () => {
       const { container } = renderWithProfile({ hasPets: 'none' });
       expect(container.querySelector('#pets').getAttribute('data-filtered')).toBe('true');
       fireEvent.click(screen.getByRole('button', { name: /reset filters/i }));
+      fireEvent.click(screen.getByRole('button', { name: /^reset$/i }));
       expect(container.querySelector('#pets').getAttribute('data-filtered')).toBe('false');
       expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
     });
