@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
@@ -154,6 +155,19 @@ function getInitialAnswers(profile) {
     return answers;
 }
 
+function mergeAnswerSelect(prev, key, value, multi, noneValue) {
+    if (!multi) return { ...prev, [key]: value };
+    const current = Array.isArray(prev[key]) ? prev[key] : [];
+    if (noneValue && value === noneValue) {
+        return { ...prev, [key]: current.includes(noneValue) ? [] : [noneValue] };
+    }
+    const withoutNone = current.filter(v => v !== noneValue);
+    if (withoutNone.includes(value)) {
+        return { ...prev, [key]: withoutNone.filter(v => v !== value) };
+    }
+    return { ...prev, [key]: [...withoutNone, value] };
+}
+
 const RadioOption = ({ option, selected, name, onSelect }) => {
     const isSelected = selected === option.value;
     return (
@@ -254,10 +268,17 @@ const ApplicantWizard = ({ onProfileChange }) => {
     const [answers, setAnswers] = useState(() => getInitialAnswers(loadProfile()));
     const [confirmResetOpen, setConfirmResetOpen] = useState(false);
 
+    const latestAnswersRef = useRef(answers);
+    latestAnswersRef.current = answers;
+    const stepRef = useRef(step);
+    stepRef.current = step;
+
     const hasFilters = profile !== null;
 
     const openWizard = useCallback(() => {
-        setAnswers(getInitialAnswers(loadProfile()));
+        const initial = getInitialAnswers(loadProfile());
+        latestAnswersRef.current = initial;
+        setAnswers(initial);
         setStep(0);
         setOpen(true);
     }, []);
@@ -267,7 +288,9 @@ const ApplicantWizard = ({ onProfileChange }) => {
     const handleReset = useCallback(() => {
         clearProfile();
         setProfile(null);
-        setAnswers(getInitialAnswers(null));
+        const cleared = getInitialAnswers(null);
+        latestAnswersRef.current = cleared;
+        setAnswers(cleared);
         setOpen(false);
         setConfirmResetOpen(false);
         if (onProfileChange) onProfileChange(null);
@@ -277,42 +300,59 @@ const ApplicantWizard = ({ onProfileChange }) => {
     const cancelReset = useCallback(() => setConfirmResetOpen(false), []);
 
     const handleSelect = useCallback((key, value, multi, noneValue) => {
-        setAnswers(prev => {
-            if (!multi) return { ...prev, [key]: value };
-            const current = Array.isArray(prev[key]) ? prev[key] : [];
-            if (noneValue && value === noneValue) {
-                return { ...prev, [key]: current.includes(noneValue) ? [] : [noneValue] };
-            }
-            const withoutNone = current.filter(v => v !== noneValue);
-            if (withoutNone.includes(value)) {
-                return { ...prev, [key]: withoutNone.filter(v => v !== value) };
-            }
-            return { ...prev, [key]: [...withoutNone, value] };
-        });
+        setAnswers(prev => mergeAnswerSelect(prev, key, value, multi, noneValue));
     }, []);
 
+    const finishWizard = useCallback((answersSnapshot) => {
+        const newProfile = {};
+        QUESTIONS.forEach(q => {
+            const val = answersSnapshot[q.key];
+            const isEmpty = q.multi ? (!Array.isArray(val) || val.length === 0) : val === null;
+            if (!isEmpty) newProfile[q.key] = val;
+        });
+        saveProfile(newProfile);
+        setProfile(newProfile);
+        setOpen(false);
+        if (onProfileChange) onProfileChange(newProfile);
+    }, [onProfileChange]);
+
     const handleNext = useCallback(() => {
+        const snapshot = latestAnswersRef.current;
         if (step < QUESTIONS.length - 1) {
             setStep(s => s + 1);
         } else {
-            const newProfile = {};
-            QUESTIONS.forEach(q => {
-                const val = answers[q.key];
-                const isEmpty = q.multi ? (!Array.isArray(val) || val.length === 0) : val === null;
-                if (!isEmpty) newProfile[q.key] = val;
-            });
-            saveProfile(newProfile);
-            setProfile(newProfile);
-            setOpen(false);
-            if (onProfileChange) onProfileChange(newProfile);
+            finishWizard(snapshot);
         }
-    }, [step, answers, onProfileChange]);
+    }, [step, finishWizard]);
+
+    const handleSingleSelectAndAdvance = useCallback((questionKey, value) => {
+        flushSync(() => {
+            setAnswers(prev => {
+                const next = mergeAnswerSelect(prev, questionKey, value, false, undefined);
+                latestAnswersRef.current = next;
+                return next;
+            });
+        });
+        const qIndex = QUESTIONS.findIndex(q => q.key === questionKey);
+        if (qIndex === -1 || stepRef.current !== qIndex) return;
+        if (qIndex < QUESTIONS.length - 1) {
+            setStep(s => s + 1);
+        } else {
+            finishWizard(latestAnswersRef.current);
+        }
+    }, [finishWizard]);
 
     const handleBack = useCallback(() => setStep(s => s - 1), []);
 
     const handleSkip = useCallback(() => {
         const q = QUESTIONS[step];
-        setAnswers(prev => ({ ...prev, [q.key]: q.multi ? [] : null }));
+        flushSync(() => {
+            setAnswers(prev => {
+                const next = { ...prev, [q.key]: q.multi ? [] : null };
+                latestAnswersRef.current = next;
+                return next;
+            });
+        });
         if (step < QUESTIONS.length - 1) {
             setStep(s => s + 1);
         } else {
@@ -484,7 +524,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
                                     option={opt}
                                     selected={currentAnswer}
                                     name={currentQ.key}
-                                    onSelect={(val) => handleSelect(currentQ.key, val, false, undefined)}
+                                    onSelect={(val) => handleSingleSelectAndAdvance(currentQ.key, val)}
                                   />
                                 : <OptionCard
                                     key={opt.value}
@@ -492,7 +532,14 @@ const ApplicantWizard = ({ onProfileChange }) => {
                                     selected={currentAnswer}
                                     multi={currentQ.multi}
                                     tabIndex={idx === focusedOptionIndex ? 0 : -1}
-                                    onSelect={(val) => { setFocusedOptionIndex(idx); handleSelect(currentQ.key, val, currentQ.multi, currentQ.noneValue); }}
+                                    onSelect={(val) => {
+                                        setFocusedOptionIndex(idx);
+                                        if (currentQ.multi) {
+                                            handleSelect(currentQ.key, val, true, currentQ.noneValue);
+                                        } else {
+                                            handleSingleSelectAndAdvance(currentQ.key, val);
+                                        }
+                                    }}
                                   />
                         ))}
                     </div>
