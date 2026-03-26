@@ -651,12 +651,10 @@ describe('ApplicationRequiredDocuments', () => {
       expect(container.querySelector('#child-support').style.display).toBe('none');
     });
 
-    it('persists profile to localStorage when wizard is completed', async () => {
+    it('advances to step 2 after selecting an answer on step 1', () => {
       renderWithRouter(<ApplicationRequiredDocuments />);
       fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
-      const allRadios = screen.getAllByRole('radio');
-      fireEvent.click(allRadios[0]);
-      fireEvent.click(screen.getByRole('button', { name: /next/i }));
+      fireEvent.click(screen.getAllByRole('radio')[0]);
       expect(screen.getByText(/step 2 of 6/i)).toBeInTheDocument();
     });
 
@@ -665,7 +663,6 @@ describe('ApplicationRequiredDocuments', () => {
       fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
       const allRadios = screen.getAllByRole('radio');
       fireEvent.click(allRadios[0]);
-      fireEvent.click(screen.getByRole('button', { name: /next/i }));
       expect(screen.getByText(/step 2 of 6/i)).toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: /back/i }));
       expect(screen.getByText(/step 1 of 6/i)).toBeInTheDocument();
@@ -686,12 +683,14 @@ describe('ApplicationRequiredDocuments', () => {
       expect(nextBtn).toHaveAttribute('aria-disabled', 'true');
     });
 
-    it('Next button is not aria-disabled after an answer is selected', () => {
+    it('selecting an option on a single-select step advances without clicking Next', () => {
       renderWithRouter(<ApplicationRequiredDocuments />);
       fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      expect(screen.getByText(/step 1 of 6/i)).toBeInTheDocument();
       fireEvent.click(screen.getAllByRole('radio')[0]);
+      expect(screen.getByText(/step 2 of 6/i)).toBeInTheDocument();
       const nextBtn = screen.getByRole('button', { name: /next/i });
-      expect(nextBtn).toHaveAttribute('aria-disabled', 'false');
+      expect(nextBtn).toHaveAttribute('aria-disabled', 'true');
     });
 
     it('wizard dialog has accessible title via aria-labelledby', () => {
@@ -719,13 +718,16 @@ describe('ApplicationRequiredDocuments', () => {
       expect(radios.length).toBeGreaterThan(0);
     });
 
-    it('selected option card has aria-checked true', () => {
+    it('selected option card has aria-checked true on multi-select step', () => {
       renderWithRouter(<ApplicationRequiredDocuments />);
       fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
-      const firstOption = screen.getAllByRole('radio')[0];
-      expect(firstOption).toHaveAttribute('aria-checked', 'false');
-      fireEvent.click(firstOption);
-      expect(firstOption).toHaveAttribute('aria-checked', 'true');
+      fireEvent.click(screen.getByRole('button', { name: /skip/i }));
+      fireEvent.click(screen.getByRole('button', { name: /skip/i }));
+      expect(screen.getByText(/step 3 of 6/i)).toBeInTheDocument();
+      const noneOption = screen.getByRole('checkbox', { name: /^none$/i });
+      expect(noneOption).toHaveAttribute('aria-checked', 'false');
+      fireEvent.click(noneOption);
+      expect(noneOption).toHaveAttribute('aria-checked', 'true');
     });
 
     it('benefits step uses role="group" for multi-select', () => {

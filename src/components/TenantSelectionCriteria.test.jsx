@@ -392,11 +392,18 @@ describe('TenantSelectionCriteria', () => {
       expect(screen.getByText(/step 2 of 6/i)).toBeInTheDocument();
     });
 
+    it('selecting an option on a single-select step advances to the next step', () => {
+      renderWithRouter(<TenantSelectionCriteria />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      expect(screen.getByText(/step 1 of 6/i)).toBeInTheDocument();
+      fireEvent.click(screen.getAllByRole('radio')[0]);
+      expect(screen.getByText(/step 2 of 6/i)).toBeInTheDocument();
+    });
+
     it('wizard Back button returns to previous step', () => {
       renderWithRouter(<TenantSelectionCriteria />);
       fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
       fireEvent.click(screen.getAllByRole('radio')[0]);
-      fireEvent.click(screen.getByRole('button', { name: /next/i }));
       expect(screen.getByText(/step 2 of 6/i)).toBeInTheDocument();
       fireEvent.click(screen.getByRole('button', { name: /back/i }));
       expect(screen.getByText(/step 1 of 6/i)).toBeInTheDocument();
