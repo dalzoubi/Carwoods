@@ -21,9 +21,10 @@ import DarkMode from '@mui/icons-material/DarkMode';
 import SettingsBrightness from '@mui/icons-material/SettingsBrightness';
 import RestartAlt from '@mui/icons-material/RestartAlt';
 import { NavLink } from '../styles';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useThemeMode } from '../ThemeModeContext';
 import { FEATURE_DARK_THEME } from '../featureFlags';
+import { stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
 const tenantLinks = [
@@ -38,6 +39,7 @@ const landlordLinks = [
 
 const ResponsiveNavbar = () => {
     const navigate = useNavigate();
+    const { pathname } = useLocation();
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [tenantAnchor, setTenantAnchor] = useState(null);
     const [landlordAnchor, setLandlordAnchor] = useState(null);
@@ -82,12 +84,15 @@ const ResponsiveNavbar = () => {
             <List>
                 <ListItemButton
                     component={NavLink}
-                    to="/"
+                    to={withDarkPath(pathname, '/')}
                     className={({ isActive }) => (isActive ? 'active' : '')}
                     onClick={handleDrawerToggle}
                     sx={{
                         '&:hover': {
                             backgroundColor: muiTheme.palette.drawer.hover,
+                        },
+                        '&.active': {
+                            backgroundColor: 'var(--nav-chrome-active-bg)',
                         },
                     }}
                 >
@@ -109,13 +114,16 @@ const ResponsiveNavbar = () => {
                     <ListItemButton
                         key={to}
                         component={NavLink}
-                        to={to}
+                        to={withDarkPath(pathname, to)}
                         className={({ isActive }) => (isActive ? 'active' : '')}
                         onClick={handleDrawerToggle}
                         sx={{
                             pl: 3,
                             '&:hover': {
                                 backgroundColor: muiTheme.palette.drawer.hover,
+                            },
+                            '&.active': {
+                                backgroundColor: 'var(--nav-chrome-active-bg)',
                             },
                         }}
                     >
@@ -138,13 +146,16 @@ const ResponsiveNavbar = () => {
                     <ListItemButton
                         key={to}
                         component={NavLink}
-                        to={to}
+                        to={withDarkPath(pathname, to)}
                         className={({ isActive }) => (isActive ? 'active' : '')}
                         onClick={handleDrawerToggle}
                         sx={{
                             pl: 3,
                             '&:hover': {
                                 backgroundColor: muiTheme.palette.drawer.hover,
+                            },
+                            '&.active': {
+                                backgroundColor: 'var(--nav-chrome-active-bg)',
                             },
                         }}
                     >
@@ -154,7 +165,7 @@ const ResponsiveNavbar = () => {
 
                 <ListItemButton
                     component={NavLink}
-                    to="/contact-us"
+                    to={withDarkPath(pathname, '/contact-us')}
                     onClick={handleDrawerToggle}
                     sx={{
                         '&:hover': {
@@ -187,7 +198,7 @@ const ResponsiveNavbar = () => {
                             >
                                 <MenuIcon />
                             </IconButton>
-                            <NavLink to="/" style={{ marginLeft: 'auto', marginRight: 'auto' }}>
+                            <NavLink to={withDarkPath(pathname, '/')} style={{ marginLeft: 'auto', marginRight: 'auto' }}>
                                 <img src={carwoodsLogo} alt="Carwoods" style={{ height: '40px' }} />
                             </NavLink>
                             {showAppearanceMenu ? (
@@ -214,11 +225,11 @@ const ResponsiveNavbar = () => {
                         </>
                     ) : (
                         <>
-                            <NavLink to="/" style={{ flexShrink: 0 }}>
+                            <NavLink to={withDarkPath(pathname, '/')} style={{ flexShrink: 0 }}>
                                 <img src={carwoodsLogo} alt="Carwoods" style={{ height: '40px' }} />
                             </NavLink>
                             <nav aria-label="main navigation" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexGrow: 1 }}>
-                                <NavLink to="/" className={({ isActive }) => (isActive ? 'active' : '')}>
+                                <NavLink to={withDarkPath(pathname, '/')} className={({ isActive }) => (isActive ? 'active' : '')}>
                                     Home
                                 </NavLink>
 
@@ -235,9 +246,9 @@ const ResponsiveNavbar = () => {
                                         padding: '0.5rem 1rem',
                                         fontWeight: 'bold',
                                         fontSize: 'inherit',
+                                        borderRadius: '4px',
                                         '&:hover': {
-                                            backgroundColor: muiTheme.palette.primary.dark,
-                                            borderRadius: '4px',
+                                            backgroundColor: 'var(--nav-chrome-hover-bg)',
                                         },
                                     }}
                                 >
@@ -259,18 +270,18 @@ const ResponsiveNavbar = () => {
                                         <MenuItem
                                             key={to}
                                             component={NavLink}
-                                            to={to}
+                                            to={withDarkPath(pathname, to)}
                                             className={({ isActive }) => (isActive ? 'active' : '')}
                                             onClick={handleTenantClose}
                                             sx={{
-                                                color: muiTheme.palette.text.secondary,
+                                                color: 'text.secondary',
                                                 '&:hover': {
                                                     backgroundColor: 'var(--menu-item-hover-bg)',
-                                                    color: muiTheme.palette.primary.dark,
+                                                    color: 'var(--menu-item-hover-fg)',
                                                 },
                                                 '&.active': {
-                                                    backgroundColor: muiTheme.palette.primary.dark,
-                                                    color: muiTheme.palette.text.primary,
+                                                    backgroundColor: 'var(--menu-item-active-bg)',
+                                                    color: 'var(--menu-item-active-fg)',
                                                 },
                                             }}
                                         >
@@ -292,9 +303,9 @@ const ResponsiveNavbar = () => {
                                         padding: '0.5rem 1rem',
                                         fontWeight: 'bold',
                                         fontSize: 'inherit',
+                                        borderRadius: '4px',
                                         '&:hover': {
-                                            backgroundColor: muiTheme.palette.primary.dark,
-                                            borderRadius: '4px',
+                                            backgroundColor: 'var(--nav-chrome-hover-bg)',
                                         },
                                     }}
                                 >
@@ -316,18 +327,18 @@ const ResponsiveNavbar = () => {
                                         <MenuItem
                                             key={to}
                                             component={NavLink}
-                                            to={to}
+                                            to={withDarkPath(pathname, to)}
                                             className={({ isActive }) => (isActive ? 'active' : '')}
                                             onClick={handleLandlordClose}
                                             sx={{
-                                                color: muiTheme.palette.text.secondary,
+                                                color: 'text.secondary',
                                                 '&:hover': {
                                                     backgroundColor: 'var(--menu-item-hover-bg)',
-                                                    color: muiTheme.palette.primary.dark,
+                                                    color: 'var(--menu-item-hover-fg)',
                                                 },
                                                 '&.active': {
-                                                    backgroundColor: muiTheme.palette.primary.dark,
-                                                    color: muiTheme.palette.text.primary,
+                                                    backgroundColor: 'var(--menu-item-active-bg)',
+                                                    color: 'var(--menu-item-active-fg)',
                                                 },
                                             }}
                                         >
@@ -336,7 +347,7 @@ const ResponsiveNavbar = () => {
                                     ))}
                                 </Menu>
 
-                                <NavLink to="/contact-us" className={({ isActive }) => (isActive ? 'active' : '')}>
+                                <NavLink to={withDarkPath(pathname, '/contact-us')} className={({ isActive }) => (isActive ? 'active' : '')}>
                                     Contact Us
                                 </NavLink>
 
@@ -378,11 +389,11 @@ const ResponsiveNavbar = () => {
                                 Dark preview
                             </Typography>
                             <Typography variant="body2" sx={{ px: 2, pb: 1, maxWidth: 280, color: 'text.secondary' }}>
-                                You are on <strong>/dark</strong>. This route forces dark styling for testing without enabling the feature flag.
+                                URLs under <strong>/dark/…</strong> force dark styling for testing without enabling the feature flag.
                             </Typography>
                             <MenuItem
                                 onClick={() => {
-                                    navigate('/');
+                                    navigate(stripDarkPreviewPrefix(pathname));
                                     handleAppearanceClose();
                                 }}
                             >

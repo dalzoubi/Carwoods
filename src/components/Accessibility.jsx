@@ -1,8 +1,11 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
+import { useLocation } from 'react-router-dom';
 import { Heading, SubHeading, Paragraph, InlineLink } from '../styles';
+import { withDarkPath } from '../routePaths';
 
 const Accessibility = () => {
+    const { pathname } = useLocation();
     return (
         <div>
             <Helmet>
@@ -25,7 +28,8 @@ const Accessibility = () => {
 
             <SubHeading>Feedback</SubHeading>
             <Paragraph>
-                If you encounter any accessibility barriers on our site, please contact us through our <InlineLink href="/contact-us">Contact Us</InlineLink> page. We will work to address the issue promptly.
+                If you encounter any accessibility barriers on our site, please contact us through our{' '}
+                <InlineLink href={withDarkPath(pathname, '/contact-us')}>Contact Us</InlineLink> page. We will work to address the issue promptly.
             </Paragraph>
 
             <Paragraph>

@@ -11,7 +11,7 @@ Carwoods is a static React 18 website (no backend/database) for property managem
 - `npm run dev` starts the Vite dev server on port 3000.
 - `npm run build` outputs a production build to `build/`.
 - **Dark theme** is behind a feature flag and is **off** by default. Enable with `VITE_FEATURE_DARK_THEME=true` (e.g. `VITE_FEATURE_DARK_THEME=true npm run dev` or set in `.env`).
-- **Dark preview without the flag:** open **`/dark`** (same content as home) to force dark styling for local testing; use the header appearance menu to exit preview (navigate home).
+- **Dark preview without the flag:** open **`/dark`** or **`/dark/…`** (same pages as normal routes, e.g. `/dark/apply`) to force dark styling; use the header appearance menu to exit preview.
 
 ### Testing
 

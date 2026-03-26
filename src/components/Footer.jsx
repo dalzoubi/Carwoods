@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { withDarkPath } from '../routePaths';
 
 const FooterContainer = styled.footer`
     background-color: var(--palette-app-chrome-main);
@@ -51,6 +52,7 @@ const FooterSeparator = styled.span`
 `;
 
 const Footer = () => {
+    const { pathname } = useLocation();
     return (
         <FooterContainer>
             <p>&copy; 2026 Carwoods. All rights reserved.</p>
@@ -62,9 +64,9 @@ const Footer = () => {
                 Texas Real Estate Commission Information About Brokerage Services
             </FooterLink>
             <FooterSeparator aria-hidden="true">|</FooterSeparator>
-            <FooterLinkInternal to="/privacy">Privacy Policy</FooterLinkInternal>
+            <FooterLinkInternal to={withDarkPath(pathname, '/privacy')}>Privacy Policy</FooterLinkInternal>
             <FooterSeparator aria-hidden="true">|</FooterSeparator>
-            <FooterLinkInternal to="/accessibility">Accessibility</FooterLinkInternal>
+            <FooterLinkInternal to={withDarkPath(pathname, '/accessibility')}>Accessibility</FooterLinkInternal>
         </FooterContainer>
     );
 };

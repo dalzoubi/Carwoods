@@ -4,6 +4,7 @@ import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { FEATURE_DARK_THEME } from './featureFlags';
 import { buildTheme, applyThemeCssVariables } from './theme';
 import { clearStoredColorScheme, readStoredColorScheme, writeStoredColorScheme } from './themePreferenceStorage';
+import { isDarkPreviewRoute } from './routePaths';
 
 const ThemeModeContext = createContext(null);
 
@@ -31,7 +32,7 @@ function resolveEffectiveMode(storedOverride, isDarkPreviewPath) {
 
 export function ThemeModeProvider({ children }) {
     const { pathname } = useLocation();
-    const isDarkPreviewPath = pathname === '/dark';
+    const isDarkPreviewPath = isDarkPreviewRoute(pathname);
 
     const [storedOverride, setStoredOverride] = useState(() =>
         FEATURE_DARK_THEME ? readStoredColorScheme() : null

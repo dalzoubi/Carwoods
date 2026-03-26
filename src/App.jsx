@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Container, Content } from './styles';
 import Home from './components/Home';
@@ -11,22 +11,43 @@ import Privacy from './components/Privacy';
 import Accessibility from './components/Accessibility';
 import Footer from './components/Footer';
 import ResponsiveNavbar from './components/ResponsiveNavbar';
+import { isDarkPreviewRoute } from './routePaths';
+
+function PageRoutes() {
+    const location = useLocation();
+    const matchPathname = useMemo(() => {
+        const p = location.pathname;
+        if (isDarkPreviewRoute(p)) {
+            if (p === '/dark') return '/';
+            return p.slice('/dark'.length) || '/';
+        }
+        return p;
+    }, [location.pathname]);
+
+    const routesLocation = useMemo(
+        () => ({ ...location, pathname: matchPathname }),
+        [location, matchPathname]
+    );
+
+    return (
+        <Routes location={routesLocation}>
+            <Route path="/" element={<Home />} />
+            <Route path="/apply" element={<Apply />} />
+            <Route path="/tenant-selection-criteria" element={<TenantSelectionCriteria />} />
+            <Route path="/application-required-documents" element={<ApplicationRequiredDocuments />} />
+            <Route path="/property-management" element={<PropertyManagement />} />
+            <Route path="/contact-us" element={<ContactUs />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/accessibility" element={<Accessibility />} />
+        </Routes>
+    );
+}
 
 const AppRoutes = () => {
     const location = useLocation();
     return (
         <Content key={location.pathname}>
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/dark" element={<Home />} />
-                <Route path="/apply" element={<Apply />} />
-                <Route path="/tenant-selection-criteria" element={<TenantSelectionCriteria />} />
-                <Route path="/application-required-documents" element={<ApplicationRequiredDocuments />} />
-                <Route path="/property-management" element={<PropertyManagement />} />
-                <Route path="/contact-us" element={<ContactUs />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/accessibility" element={<Accessibility />} />
-            </Routes>
+            <PageRoutes />
         </Content>
     );
 };

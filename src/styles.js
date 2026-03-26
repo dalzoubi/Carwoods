@@ -52,7 +52,7 @@ export const NavLink = styled(RouterNavLink)`
     }
 
     &:focus-visible {
-        outline: 2px solid var(--palette-primary-light);
+        outline: 2px solid var(--nav-chrome-focus-ring);
         outline-offset: 2px;
     }
 `;
@@ -111,17 +111,17 @@ export const InlineLink = styled.a`
 export const Button = styled.a`
     display: inline-block;
     padding: 12px 24px;
-    background-color: var(--palette-primary-main);
-    color: var(--palette-text-primary);
+    background-color: var(--cta-button-bg);
+    color: var(--cta-button-text);
     border-radius: var(--shape-border-radius);
     font-weight: bold;
     font-size: var(--typography-body1-font-size);
     text-decoration: none;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, color 0.2s;
 
     &:hover {
-        background-color: var(--palette-primary-dark);
-        color: var(--palette-text-primary);
+        background-color: var(--cta-button-bg-hover);
+        color: var(--cta-button-text);
     }
 
     &:focus-visible {

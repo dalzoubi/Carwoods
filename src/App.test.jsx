@@ -35,7 +35,7 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: /where houston finds home/i })).toBeInTheDocument();
   });
 
-  it('serves home at /dark and shows dark preview in appearance menu', () => {
+  it('serves home at /dark/apply and shows dark preview in appearance menu', () => {
     window.matchMedia = vi.fn().mockImplementation((query) => ({
       matches: !query.includes('max-width'),
       media: query,
@@ -46,13 +46,13 @@ describe('App', () => {
       dispatchEvent: () => false,
     }));
     render(
-      <MemoryRouter initialEntries={['/dark']}>
+      <MemoryRouter initialEntries={['/dark/apply']}>
         <ThemeModeProvider>
           <App />
         </ThemeModeProvider>
       </MemoryRouter>
     );
-    expect(screen.getByRole('heading', { name: /where houston finds home/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /how to apply to rent/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /appearance and theme/i }));
     expect(screen.getByText(/dark preview/i)).toBeInTheDocument();
   });

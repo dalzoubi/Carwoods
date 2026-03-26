@@ -1,8 +1,11 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
+import { useLocation } from 'react-router-dom';
 import { Heading, SubHeading, Paragraph, InlineLink } from '../styles';
+import { withDarkPath } from '../routePaths';
 
 const Privacy = () => {
+    const { pathname } = useLocation();
     return (
         <div>
             <Helmet>
@@ -31,7 +34,8 @@ const Privacy = () => {
 
             <SubHeading>Contact</SubHeading>
             <Paragraph>
-                For privacy-related questions or to request access to your information, contact us through our <InlineLink href="/contact-us">Contact Us</InlineLink> page.
+                For privacy-related questions or to request access to your information, contact us through our{' '}
+                <InlineLink href={withDarkPath(pathname, '/contact-us')}>Contact Us</InlineLink> page.
             </Paragraph>
 
             <Paragraph>

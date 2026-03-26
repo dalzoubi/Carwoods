@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
+import { useLocation } from 'react-router-dom';
 import { Heading, SubHeading, Paragraph, InlineLink, TocNav, BackToTop, nestedListStyle, nestedUlStyle, PrintButton, PrintHeader, PageHeader, FilteredSection } from '../styles';
 import ApplicantWizard, { loadProfile } from './ApplicantWizard';
+import { withDarkPath } from '../routePaths';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
 const ApplicationRequiredDocuments = () => {
+  const { pathname } = useLocation();
   const [profile, setProfile] = useState(() => loadProfile());
 
   useEffect(() => {
@@ -66,7 +69,8 @@ const ApplicationRequiredDocuments = () => {
         Incomplete applications will <strong>not</strong> be processed.
         Providing documents does not guarantee approval.
         Documents are handled confidentially and used only for screening purposes.
-        Please also review our <InlineLink href="/tenant-selection-criteria">Tenant Selection Criteria</InlineLink> for full eligibility requirements.
+        Please also review our{' '}
+        <InlineLink href={withDarkPath(pathname, '/tenant-selection-criteria')}>Tenant Selection Criteria</InlineLink> for full eligibility requirements.
       </Paragraph>
 
       <ApplicantWizard onProfileChange={setProfile} />
@@ -273,7 +277,8 @@ const ApplicationRequiredDocuments = () => {
       <FilteredSection id="guarantor" aria-labelledby="heading-guarantor" data-filtered={String(!show.guarantor)}>
         <SubHeading id="heading-guarantor">9. If a Guarantor is Required</SubHeading>
         <Paragraph>
-          A guarantor signs a separate guaranty agreement (not the lease) and is only liable if the primary tenant defaults. Guarantors are accepted only when requested by management — see <InlineLink href="/tenant-selection-criteria">Tenant Selection Criteria</InlineLink> for eligibility.
+          A guarantor signs a separate guaranty agreement (not the lease) and is only liable if the primary tenant defaults. Guarantors are accepted only when requested by management — see{' '}
+          <InlineLink href={withDarkPath(pathname, '/tenant-selection-criteria')}>Tenant Selection Criteria</InlineLink> for eligibility.
         </Paragraph>
         <ol style={nestedListStyle}>
           <li>Valid government-issued photo ID (color copy).</li>
@@ -294,7 +299,8 @@ const ApplicationRequiredDocuments = () => {
       <FilteredSection id="cosigner" aria-labelledby="heading-cosigner" data-filtered={String(!show.cosigner)}>
         <SubHeading id="heading-cosigner">10. If a Co-Signer is Required</SubHeading>
         <Paragraph>
-          A co-signer is <strong>not the same as a guarantor</strong>. A co-signer signs the lease itself as a co-tenant and is jointly and severally liable for all lease obligations from day one — regardless of whether the primary tenant pays. Co-signers must meet the full applicant qualification standards. See <InlineLink href="/tenant-selection-criteria">Tenant Selection Criteria</InlineLink> for eligibility.
+          A co-signer is <strong>not the same as a guarantor</strong>. A co-signer signs the lease itself as a co-tenant and is jointly and severally liable for all lease obligations from day one — regardless of whether the primary tenant pays. Co-signers must meet the full applicant qualification standards. See{' '}
+          <InlineLink href={withDarkPath(pathname, '/tenant-selection-criteria')}>Tenant Selection Criteria</InlineLink> for eligibility.
         </Paragraph>
         <ol style={nestedListStyle}>
           <li>Valid government-issued photo ID (color copy).</li>
