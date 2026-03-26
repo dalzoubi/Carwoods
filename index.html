@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <script>
+      (function () {
+        try {
+          var s = localStorage.getItem('carwoods-color-scheme');
+          var dark = s === 'dark' || (s !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) {
+            document.documentElement.style.colorScheme = 'dark';
+            document.documentElement.style.backgroundColor = '#121212';
+          }
+        } catch (e) {}
+      })();
+    </script>
     <meta charset="utf-8" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

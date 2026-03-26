@@ -1,11 +1,10 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import theme from '../theme';
 
 const FooterContainer = styled.footer`
-    background-color: ${theme.palette.primary.main};
-    color: ${theme.palette.text.primary};
+    background-color: var(--palette-primary-main);
+    color: var(--palette-text-primary);
     text-align: center;
     padding: 1rem;
     width: 100%;
@@ -14,7 +13,7 @@ const FooterContainer = styled.footer`
 `;
 
 const linkStyles = `
-    color: ${theme.palette.text.link};
+    color: var(--palette-text-link);
     text-decoration: none;
     margin: 0 10px;
     font-size: 1.1rem;

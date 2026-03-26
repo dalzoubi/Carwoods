@@ -1,11 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { ThemeProvider } from '@mui/material/styles';
-import theme from './theme';
 import App from './App';
+import { WithAppTheme } from './testUtils';
 
 const renderWithProviders = (ui) => render(
-  <ThemeProvider theme={theme}>{ui}</ThemeProvider>
+  <WithAppTheme>{ui}</WithAppTheme>
 );
 
 describe('App', () => {
