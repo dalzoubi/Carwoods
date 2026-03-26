@@ -303,7 +303,7 @@ export const PageHeader = styled.div`
     }
 `;
 
-export const PrintButton = styled.button`
+export const PrintButton = styled.button.attrs({ type: 'button' })`
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -410,14 +410,14 @@ export const PersonalizeCardDesc = styled.p`
     }
 `;
 
-export const PersonalizeCardButton = styled.button`
+export const PersonalizeCardButton = styled.button.attrs({ type: 'button' })`
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     gap: 0.4em;
     padding: ${theme.spacing(0.625)} ${theme.spacing(1.5)};
-    background: var(--cta-button-bg);
-    color: var(--cta-button-text);
+    background: var(--personalize-button-bg);
+    color: var(--personalize-button-fg);
     border: none;
     border-radius: var(--shape-border-radius);
     font-size: 0.9rem;
@@ -427,8 +427,8 @@ export const PersonalizeCardButton = styled.button`
     white-space: nowrap;
 
     &:hover {
-        background: var(--cta-button-bg-hover);
-        color: var(--cta-button-text);
+        background: var(--personalize-button-bg-hover);
+        color: var(--personalize-button-fg-hover);
     }
 
     &:focus-visible {
