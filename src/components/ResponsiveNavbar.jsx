@@ -21,7 +21,9 @@ import DarkMode from '@mui/icons-material/DarkMode';
 import SettingsBrightness from '@mui/icons-material/SettingsBrightness';
 import RestartAlt from '@mui/icons-material/RestartAlt';
 import { NavLink } from '../styles';
+import { useNavigate } from 'react-router-dom';
 import { useThemeMode } from '../ThemeModeContext';
+import { FEATURE_DARK_THEME } from '../featureFlags';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
 const tenantLinks = [
@@ -35,6 +37,7 @@ const landlordLinks = [
 ];
 
 const ResponsiveNavbar = () => {
+    const navigate = useNavigate();
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [tenantAnchor, setTenantAnchor] = useState(null);
     const [landlordAnchor, setLandlordAnchor] = useState(null);
@@ -44,10 +47,12 @@ const ResponsiveNavbar = () => {
     const {
         storedOverride,
         darkThemeFeatureEnabled,
+        isDarkPreviewPath,
         setOverrideLight,
         setOverrideDark,
         resetOverride,
     } = useThemeMode();
+    const showAppearanceMenu = darkThemeFeatureEnabled || isDarkPreviewPath;
 
     const handleDrawerToggle = () => {
         setDrawerOpen(!drawerOpen);
@@ -165,7 +170,10 @@ const ResponsiveNavbar = () => {
 
     return (
         <>
-            <AppBar position="static" style={{ backgroundColor: muiTheme.palette.primary.main, width: '100%' }}>
+            <AppBar
+                position="static"
+                style={{ backgroundColor: muiTheme.palette.appChrome.main, width: '100%' }}
+            >
                 <Toolbar>
                     {isMobile ? (
                         <>
@@ -182,7 +190,7 @@ const ResponsiveNavbar = () => {
                             <NavLink to="/" style={{ marginLeft: 'auto', marginRight: 'auto' }}>
                                 <img src={carwoodsLogo} alt="Carwoods" style={{ height: '40px' }} />
                             </NavLink>
-                            {darkThemeFeatureEnabled ? (
+                            {showAppearanceMenu ? (
                                 <IconButton
                                     edge="end"
                                     color="inherit"
@@ -332,7 +340,7 @@ const ResponsiveNavbar = () => {
                                     Contact Us
                                 </NavLink>
 
-                                {darkThemeFeatureEnabled ? (
+                                {showAppearanceMenu ? (
                                     <IconButton
                                         color="inherit"
                                         aria-label="Appearance and theme"
@@ -350,7 +358,7 @@ const ResponsiveNavbar = () => {
                     )}
                 </Toolbar>
             </AppBar>
-            {darkThemeFeatureEnabled ? (
+            {showAppearanceMenu ? (
                 <Menu
                     id="appearance-menu"
                     anchorEl={appearanceAnchor}
@@ -364,43 +372,65 @@ const ResponsiveNavbar = () => {
                         },
                     }}
                 >
-                    <Typography variant="caption" sx={{ px: 2, pt: 1, pb: 0.5, display: 'block', color: 'text.secondary' }}>
-                        Color theme
-                    </Typography>
-                    <MenuItem
-                        onClick={() => {
-                            setOverrideLight();
-                            handleAppearanceClose();
-                        }}
-                        selected={storedOverride === 'light'}
-                    >
-                        <LightMode fontSize="small" sx={{ mr: 1 }} />
-                        Light
-                    </MenuItem>
-                    <MenuItem
-                        onClick={() => {
-                            setOverrideDark();
-                            handleAppearanceClose();
-                        }}
-                        selected={storedOverride === 'dark'}
-                    >
-                        <DarkMode fontSize="small" sx={{ mr: 1 }} />
-                        Dark
-                    </MenuItem>
-                    <Divider />
-                    <MenuItem
-                        onClick={() => {
-                            resetOverride();
-                            handleAppearanceClose();
-                        }}
-                        disabled={storedOverride === null}
-                    >
-                        <RestartAlt fontSize="small" sx={{ mr: 1 }} />
-                        Use device setting
-                    </MenuItem>
-                    <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', color: 'text.secondary', maxWidth: 260 }}>
-                        Your choice is saved in this browser. Reset clears the override and follows your device again.
-                    </Typography>
+                    {isDarkPreviewPath && !FEATURE_DARK_THEME ? (
+                        <>
+                            <Typography variant="caption" sx={{ px: 2, pt: 1, pb: 0.5, display: 'block', color: 'text.secondary' }}>
+                                Dark preview
+                            </Typography>
+                            <Typography variant="body2" sx={{ px: 2, pb: 1, maxWidth: 280, color: 'text.secondary' }}>
+                                You are on <strong>/dark</strong>. This route forces dark styling for testing without enabling the feature flag.
+                            </Typography>
+                            <MenuItem
+                                onClick={() => {
+                                    navigate('/');
+                                    handleAppearanceClose();
+                                }}
+                            >
+                                <LightMode fontSize="small" sx={{ mr: 1 }} />
+                                Exit preview (go home)
+                            </MenuItem>
+                        </>
+                    ) : (
+                        <>
+                            <Typography variant="caption" sx={{ px: 2, pt: 1, pb: 0.5, display: 'block', color: 'text.secondary' }}>
+                                Color theme
+                            </Typography>
+                            <MenuItem
+                                onClick={() => {
+                                    setOverrideLight();
+                                    handleAppearanceClose();
+                                }}
+                                selected={storedOverride === 'light'}
+                            >
+                                <LightMode fontSize="small" sx={{ mr: 1 }} />
+                                Light
+                            </MenuItem>
+                            <MenuItem
+                                onClick={() => {
+                                    setOverrideDark();
+                                    handleAppearanceClose();
+                                }}
+                                selected={storedOverride === 'dark'}
+                            >
+                                <DarkMode fontSize="small" sx={{ mr: 1 }} />
+                                Dark
+                            </MenuItem>
+                            <Divider />
+                            <MenuItem
+                                onClick={() => {
+                                    resetOverride();
+                                    handleAppearanceClose();
+                                }}
+                                disabled={storedOverride === null}
+                            >
+                                <RestartAlt fontSize="small" sx={{ mr: 1 }} />
+                                Use device setting
+                            </MenuItem>
+                            <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', color: 'text.secondary', maxWidth: 260 }}>
+                                Your choice is saved in this browser. Reset clears the override and follows your device again.
+                            </Typography>
+                        </>
+                    )}
                 </Menu>
             ) : null}
         </>

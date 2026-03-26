@@ -5,6 +5,8 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import DialogTitle from '@mui/material/DialogTitle';
 import LinearProgress from '@mui/material/LinearProgress';
+import Button from '@mui/material/Button';
+import { useTheme, alpha } from '@mui/material/styles';
 import {
     PersonalizeCard,
     PersonalizeCardText,
@@ -169,7 +171,10 @@ function mergeAnswerSelect(prev, key, value, multi, noneValue) {
 }
 
 const RadioOption = ({ option, selected, name, onSelect }) => {
+    const theme = useTheme();
     const isSelected = selected === option.value;
+    const primary = theme.palette.primary.main;
+    const selectedBg = theme.palette.mode === 'dark' ? alpha(primary, 0.2) : alpha(primary, 0.12);
     return (
         <label
             style={{
@@ -178,10 +183,10 @@ const RadioOption = ({ option, selected, name, onSelect }) => {
                 gap: '0.75rem',
                 padding: '0.6rem 0.75rem',
                 marginBottom: '0.375rem',
-                borderRadius: '8px',
+                borderRadius: `${theme.shape.borderRadius}px`,
                 cursor: 'pointer',
-                background: isSelected ? '#e8f0fe' : 'transparent',
-                border: isSelected ? '1.5px solid #1976d2' : '1.5px solid transparent',
+                background: isSelected ? selectedBg : 'transparent',
+                border: isSelected ? `1.5px solid ${primary}` : '1.5px solid transparent',
                 transition: 'background 0.15s, border-color 0.15s',
             }}
         >
@@ -191,20 +196,35 @@ const RadioOption = ({ option, selected, name, onSelect }) => {
                 value={option.value}
                 checked={isSelected}
                 onChange={() => onSelect(option.value)}
-                style={{ marginTop: '3px', accentColor: '#1976d2', flexShrink: 0 }}
+                style={{ marginTop: '3px', accentColor: primary, flexShrink: 0 }}
             />
             <span>
-                <span style={{ display: 'block', fontWeight: 600, fontSize: '1rem', color: '#1a1a2e' }}>{option.label}</span>
-                {option.desc && <span style={{ display: 'block', fontSize: '0.875rem', color: '#555', marginTop: '2px' }}>{option.desc}</span>}
+                <span style={{ display: 'block', fontWeight: 600, fontSize: '1rem', color: theme.palette.text.primary }}>
+                    {option.label}
+                </span>
+                {option.desc && (
+                    <span style={{ display: 'block', fontSize: '0.875rem', color: theme.palette.text.secondary, marginTop: '2px' }}>
+                        {option.desc}
+                    </span>
+                )}
             </span>
         </label>
     );
 };
 
 const OptionCard = ({ option, selected, multi, onSelect, tabIndex }) => {
+    const theme = useTheme();
     const isSelected = multi
         ? Array.isArray(selected) && selected.includes(option.value)
         : selected === option.value;
+
+    const primary = theme.palette.primary.main;
+    const paper = theme.palette.background.paper;
+    const selectedBg = theme.palette.mode === 'dark' ? alpha(primary, 0.18) : alpha(primary, 0.1);
+    const borderDefault = theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.18) : '#d0d7e3';
+    const indicatorBorder = isSelected ? primary : theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.35) : '#9aa5b4';
+    const indicatorFill = isSelected ? primary : paper;
+    const markColor = theme.palette.getContrastText(primary);
 
     return (
         <button
@@ -221,12 +241,13 @@ const OptionCard = ({ option, selected, multi, onSelect, tabIndex }) => {
                 textAlign: 'left',
                 padding: '0.75rem 1rem',
                 marginBottom: '0.5rem',
-                background: isSelected ? '#e8f0fe' : '#fff',
-                border: isSelected ? '2px solid #1976d2' : '1.5px solid #d0d7e3',
-                borderRadius: '8px',
+                background: isSelected ? selectedBg : paper,
+                border: isSelected ? `2px solid ${primary}` : `1.5px solid ${borderDefault}`,
+                borderRadius: `${theme.shape.borderRadius}px`,
                 cursor: 'pointer',
                 transition: 'border-color 0.15s, background 0.15s',
                 fontFamily: 'inherit',
+                color: theme.palette.text.primary,
             }}
         >
             <span
@@ -236,8 +257,8 @@ const OptionCard = ({ option, selected, multi, onSelect, tabIndex }) => {
                     width: '18px',
                     height: '18px',
                     borderRadius: multi ? '4px' : '50%',
-                    border: isSelected ? '2px solid #1976d2' : '2px solid #9aa5b4',
-                    background: isSelected ? '#1976d2' : '#fff',
+                    border: `2px solid ${indicatorBorder}`,
+                    background: indicatorFill,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -246,22 +267,36 @@ const OptionCard = ({ option, selected, multi, onSelect, tabIndex }) => {
             >
                 {isSelected && (
                     <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                        {multi
-                            ? <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            : <circle cx="6" cy="6" r="3" fill="#fff" />
-                        }
+                        {multi ? (
+                            <path
+                                d="M2 6l3 3 5-5"
+                                stroke={markColor}
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                        ) : (
+                            <circle cx="6" cy="6" r="3" fill={markColor} />
+                        )}
                     </svg>
                 )}
             </span>
             <span>
-                <span style={{ display: 'block', fontWeight: 600, fontSize: '1rem', color: '#1a1a2e' }}>{option.label}</span>
-                {option.desc && <span style={{ display: 'block', fontSize: '0.875rem', color: '#555', marginTop: '2px' }}>{option.desc}</span>}
+                <span style={{ display: 'block', fontWeight: 600, fontSize: '1rem', color: theme.palette.text.primary }}>
+                    {option.label}
+                </span>
+                {option.desc && (
+                    <span style={{ display: 'block', fontSize: '0.875rem', color: theme.palette.text.secondary, marginTop: '2px' }}>
+                        {option.desc}
+                    </span>
+                )}
             </span>
         </button>
     );
 };
 
 const ApplicantWizard = ({ onProfileChange }) => {
+    const theme = useTheme();
     const [profile, setProfile] = useState(() => loadProfile());
     const [open, setOpen] = useState(false);
     const [step, setStep] = useState(0);
@@ -448,25 +483,17 @@ const ApplicantWizard = ({ onProfileChange }) => {
                     Reset personalizations?
                 </DialogTitle>
                 <DialogContent sx={{ pt: 0 }}>
-                    <p id="confirm-reset-desc" style={{ margin: 0, fontSize: '0.95rem', color: '#444' }}>
+                    <p id="confirm-reset-desc" style={{ margin: 0, fontSize: '0.95rem', color: theme.palette.text.secondary }}>
                         This will clear your saved filters and show all document sections.
                     </p>
                 </DialogContent>
                 <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
-                    <button
-                        type="button"
-                        onClick={cancelReset}
-                        style={{ padding: '0.45rem 1.1rem', background: '#fff', border: '1.5px solid #d0d7e3', borderRadius: '8px', color: '#444', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}
-                    >
+                    <Button variant="outlined" onClick={cancelReset} color="inherit">
                         Cancel
-                    </button>
-                    <button
-                        type="button"
-                        onClick={handleReset}
-                        style={{ padding: '0.45rem 1.1rem', background: '#d32f2f', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer' }}
-                    >
+                    </Button>
+                    <Button variant="contained" onClick={handleReset} color="error">
                         Reset
-                    </button>
+                    </Button>
                 </DialogActions>
             </Dialog>
 
@@ -482,7 +509,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
                         <span
                             aria-live="polite"
                             aria-atomic="true"
-                            style={{ fontSize: '0.85rem', color: '#666', fontWeight: 600 }}
+                            style={{ fontSize: '0.85rem', color: theme.palette.text.secondary, fontWeight: 600 }}
                         >
                             Step {step + 1} of {QUESTIONS.length}
                         </span>
@@ -490,7 +517,15 @@ const ApplicantWizard = ({ onProfileChange }) => {
                             type="button"
                             onClick={closeWizard}
                             aria-label="Close wizard"
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: '#666', lineHeight: 1, padding: '0.25rem' }}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '1.25rem',
+                                color: theme.palette.text.secondary,
+                                lineHeight: 1,
+                                padding: '0.25rem',
+                            }}
                         >
                             <span aria-hidden="true">✕</span>
                         </button>
@@ -502,16 +537,16 @@ const ApplicantWizard = ({ onProfileChange }) => {
                         aria-valuenow={step + 1}
                         aria-valuemin={1}
                         aria-valuemax={QUESTIONS.length}
-                        sx={{ borderRadius: 4, height: 6, mb: 2, backgroundColor: '#e0e7ff', '& .MuiLinearProgress-bar': { backgroundColor: '#1976d2' } }}
+                        sx={{ borderRadius: 4, height: 6, mb: 2 }}
                     />
                     <h2
                         id="wizard-title"
-                        style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1a1a2e', margin: '0 0 0.25rem' }}
+                        style={{ fontSize: '1.2rem', fontWeight: 700, color: theme.palette.text.primary, margin: '0 0 0.25rem' }}
                     >
                         {currentQ.question}
                     </h2>
                     {currentQ.hint && (
-                        <p style={{ fontSize: '0.875rem', color: '#666', margin: '0 0 1rem' }}>{currentQ.hint}</p>
+                        <p style={{ fontSize: '0.875rem', color: theme.palette.text.secondary, margin: '0 0 1rem' }}>{currentQ.hint}</p>
                     )}
                 </div>
 
@@ -545,41 +580,53 @@ const ApplicantWizard = ({ onProfileChange }) => {
                     </div>
                 </DialogContent>
 
-                <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #eee', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <div
+                    style={{
+                        padding: '1rem 1.5rem',
+                        borderTop: `1px solid ${theme.palette.divider}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '0.75rem',
+                        flexWrap: 'wrap',
+                    }}
+                >
                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', order: 1 }}>
-                        <button
+                        <Button
                             type="button"
+                            variant="contained"
                             onClick={handleNext}
                             disabled={!isAnswered}
                             aria-disabled={!isAnswered}
-                            style={{
-                                order: 2,
-                                padding: '0.5rem 1.5rem',
-                                background: isAnswered ? '#1976d2' : '#c5d5ea',
-                                border: 'none',
-                                borderRadius: '8px',
-                                color: '#fff',
-                                fontWeight: 700,
-                                fontSize: '0.95rem',
-                                cursor: isAnswered ? 'pointer' : 'not-allowed',
-                                transition: 'background 0.2s',
-                            }}
+                            color="primary"
+                            sx={{ order: 2, fontWeight: 700 }}
                         >
                             {isLastStep ? 'Finish' : 'Next'}
-                        </button>
+                        </Button>
                         {step > 0 && (
-                            <button
+                            <Button
                                 type="button"
+                                variant="outlined"
                                 onClick={handleBack}
-                                style={{ order: 1, padding: '0.5rem 1.25rem', background: '#fff', border: '1.5px solid #1976d2', borderRadius: '8px', color: '#1976d2', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer' }}
+                                color="primary"
+                                sx={{ order: 1, fontWeight: 600 }}
                             >
                                 Back
-                            </button>
+                            </Button>
                         )}
                         <button
                             type="button"
                             onClick={handleSkip}
-                            style={{ order: 0, background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', color: '#666', textDecoration: 'underline', padding: '0.5rem 0' }}
+                            style={{
+                                order: 0,
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '0.9rem',
+                                color: theme.palette.text.secondary,
+                                textDecoration: 'underline',
+                                padding: '0.5rem 0',
+                            }}
                         >
                             Skip
                         </button>
@@ -587,7 +634,16 @@ const ApplicantWizard = ({ onProfileChange }) => {
                     <button
                         type="button"
                         onClick={requestReset}
-                        style={{ order: 0, background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', color: '#767676', textDecoration: 'underline', padding: 0 }}
+                        style={{
+                            order: 0,
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '0.875rem',
+                            color: theme.palette.text.secondary,
+                            textDecoration: 'underline',
+                            padding: 0,
+                        }}
                     >
                         Reset all &amp; close
                     </button>
