@@ -10,7 +10,8 @@ const darkThemeBootScript = `    <script>
       (function () {
         try {
           var s = localStorage.getItem('carwoods-color-scheme');
-          var preview = location.pathname === '/dark';
+          var p = location.pathname;
+          var preview = p === '/dark' || p.indexOf('/dark/') === 0;
           var dark = preview || s === 'dark' || (s !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
           if (dark) {
             document.documentElement.style.colorScheme = 'dark';

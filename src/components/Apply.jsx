@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { withDarkPath } from '../routePaths';
 import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
 import { Heading, SubHeading, Paragraph, InlineLink, PageHeader } from '../styles';
@@ -49,6 +50,7 @@ const QuickLinksList = styled.ul`
 const HAR_URL = 'https://www.har.com';
 
 const Apply = () => {
+    const { pathname } = useLocation();
     return (
         <div>
             <Helmet>
@@ -65,10 +67,12 @@ const Apply = () => {
 
             <StepList>
                 <li>
-                    <strong>Check eligibility</strong> — Review our <InternalLink to="/tenant-selection-criteria">Tenant Selection Criteria</InternalLink>.
+                    <strong>Check eligibility</strong> — Review our{' '}
+                    <InternalLink to={withDarkPath(pathname, '/tenant-selection-criteria')}>Tenant Selection Criteria</InternalLink>.
                 </li>
                 <li>
-                    <strong>Gather your documents</strong> — Use our <InternalLink to="/application-required-documents">Required Documents</InternalLink> list so your application is complete.
+                    <strong>Gather your documents</strong> — Use our{' '}
+                    <InternalLink to={withDarkPath(pathname, '/application-required-documents')}>Required Documents</InternalLink> list so your application is complete.
                 </li>
                 <li>
                     <strong>Submit your application</strong> — Go to the property page on <InlineLink href={HAR_URL} target="_blank" rel="noopener noreferrer" aria-label="har.com (opens in new tab)">har.com</InlineLink> to submit.
@@ -78,10 +82,10 @@ const Apply = () => {
             <SubHeading>Quick links</SubHeading>
             <QuickLinksList>
                 <li>
-                    <InternalLink to="/tenant-selection-criteria">Tenant Selection Criteria</InternalLink>
+                    <InternalLink to={withDarkPath(pathname, '/tenant-selection-criteria')}>Tenant Selection Criteria</InternalLink>
                 </li>
                 <li>
-                    <InternalLink to="/application-required-documents">Application Required Documents</InternalLink>
+                    <InternalLink to={withDarkPath(pathname, '/application-required-documents')}>Application Required Documents</InternalLink>
                 </li>
                 <li>
                     <InlineLink href={HAR_URL} target="_blank" rel="noopener noreferrer" aria-label="har.com – submit via the property listing (opens in new tab)">
@@ -89,7 +93,7 @@ const Apply = () => {
                     </InlineLink>
                 </li>
                 <li>
-                    <InternalLink to="/contact-us">Contact Us</InternalLink> (for other questions)
+                    <InternalLink to={withDarkPath(pathname, '/contact-us')}>Contact Us</InternalLink> (for other questions)
                 </li>
             </QuickLinksList>
         </div>

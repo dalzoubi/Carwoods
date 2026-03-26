@@ -62,6 +62,17 @@ export function applyThemeCssVariables(muiTheme) {
         '--nav-chrome-hover-bg',
         isDark ? 'rgba(255, 255, 255, 0.08)' : palette.primary.dark
     );
+    root.style.setProperty(
+        '--nav-chrome-focus-ring',
+        isDark ? palette.primary.light : palette.primary.light
+    );
+
+    const ctaBg = isDark ? palette.primary.dark : palette.primary.main;
+    const ctaHover = isDark ? palette.primary.main : palette.primary.dark;
+    const ctaText = isDark ? '#0d1117' : '#ffffff';
+    root.style.setProperty('--cta-button-bg', ctaBg);
+    root.style.setProperty('--cta-button-bg-hover', ctaHover);
+    root.style.setProperty('--cta-button-text', ctaText);
 
     const drawer = palette.drawer;
     root.style.setProperty('--palette-drawer-background', drawer.background);
@@ -89,6 +100,9 @@ export function applyThemeCssVariables(muiTheme) {
         '--menu-item-hover-bg',
         isDark ? 'rgba(144, 202, 249, 0.12)' : 'rgba(25, 118, 210, 0.08)'
     );
+    root.style.setProperty('--menu-item-hover-fg', isDark ? palette.primary.light : palette.primary.dark);
+    root.style.setProperty('--menu-item-active-bg', isDark ? 'rgba(144, 202, 249, 0.22)' : palette.primary.dark);
+    root.style.setProperty('--menu-item-active-fg', isDark ? '#ffffff' : '#ffffff');
 
     root.style.setProperty('--toc-nav-bg', isDark ? 'rgba(100, 181, 246, 0.08)' : '#f0f4ff');
     root.style.setProperty('--personalize-card-bg', isDark ? 'rgba(100, 181, 246, 0.08)' : '#f0f4ff');
@@ -281,6 +295,21 @@ export function buildTheme(mode) {
                         color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.45)' : undefined,
                         '&.Mui-checked': { color: theme.palette.primary.main },
                     }),
+                },
+            },
+            MuiButton: {
+                styleOverrides: {
+                    containedPrimary: ({ theme }) =>
+                        theme.palette.mode === 'dark'
+                            ? {
+                                  backgroundColor: theme.palette.primary.dark,
+                                  color: '#0d1117',
+                                  fontWeight: 700,
+                                  '&:hover': {
+                                      backgroundColor: theme.palette.primary.main,
+                                  },
+                              }
+                            : {},
                 },
             },
         },

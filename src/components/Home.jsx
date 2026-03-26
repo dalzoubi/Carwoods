@@ -1,9 +1,11 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { withDarkPath } from '../routePaths';
 import { Helmet } from 'react-helmet';
 import { Heading, Paragraph, Button } from '../styles';
 
 const Home = () => {
+    const { pathname } = useLocation();
     return (
         <div>
             <Helmet>
@@ -16,7 +18,7 @@ const Home = () => {
                 Crafting Comfort, One Home at a Time.
             </Paragraph>
             <Paragraph>
-                <Button as={Link} to="/apply">
+                <Button as={Link} to={withDarkPath(pathname, '/apply')}>
                     Renting? Start here — How to apply
                 </Button>
             </Paragraph>
