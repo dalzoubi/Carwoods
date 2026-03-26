@@ -1,14 +1,13 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
-import { ThemeProvider } from '@mui/material/styles';
-import theme from './theme';
 import App from './App';
+import { WithAppTheme } from './testUtils';
 
 expect.extend(toHaveNoViolations);
 
 const renderWithProviders = (ui) => render(
-  <ThemeProvider theme={theme}>{ui}</ThemeProvider>
+  <WithAppTheme>{ui}</WithAppTheme>
 );
 
 describe('Accessibility (axe)', () => {

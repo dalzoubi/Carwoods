@@ -1,11 +1,11 @@
 import React, { useCallback, useState } from 'react';
 import styled from 'styled-components';
 import { NavLink as RouterNavLink } from 'react-router-dom';
-import theme, { shadowCard } from './theme';
+import theme from './theme';
 
 export const Container = styled.main`
-    font-family: ${theme.typography.fontFamily};
-    color: ${theme.palette.text.secondary};
+    font-family: var(--typography-font-family);
+    color: var(--palette-text-secondary);
     max-width: 1200px;
     margin: 0 auto;
     padding: ${theme.spacing(2.5)};
@@ -14,10 +14,10 @@ export const Container = styled.main`
 export const Content = styled.section`
     margin-top: ${theme.spacing(2.5)};
     padding: ${theme.spacing(2.5)};
-    background: ${theme.palette.background.paper};
-    border-radius: ${theme.shape.borderRadius}px;
-    box-shadow: ${shadowCard};
-    color: ${theme.palette.text.secondary};
+    background: var(--palette-background-paper);
+    border-radius: var(--shape-border-radius);
+    box-shadow: var(--shadow-card);
+    color: var(--palette-text-secondary);
     animation: pageFadeIn 0.25s ease-out;
 
     @keyframes pageFadeIn {
@@ -33,75 +33,75 @@ export const Content = styled.section`
 `;
 
 export const NavLink = styled(RouterNavLink)`
-    color: ${theme.palette.text.primary};
+    color: var(--palette-text-primary);
     text-decoration: none;
     font-weight: bold;
     padding: 0.5rem 1rem;
     transition: background 0.3s, color 0.3s;
 
     &.active {
-        background: ${theme.palette.primary.dark};
+        background: var(--palette-primary-dark);
         border-radius: 4px;
     }
 
     &:hover {
-        background: ${theme.palette.primary.dark};
-        color: ${theme.palette.text.primary};
+        background: var(--palette-primary-dark);
+        color: var(--palette-text-primary);
         border-radius: 4px;
     }
 
     &:focus-visible {
-        outline: 2px solid ${theme.palette.primary.light};
+        outline: 2px solid var(--palette-primary-light);
         outline-offset: 2px;
     }
 `;
 
 export const Heading = styled.h1`
-    color: ${theme.palette.primary.main};
-    font-size: ${theme.typography.h1.fontSize};
-    font-weight: ${theme.typography.h1.fontWeight};
+    color: var(--palette-primary-main);
+    font-size: var(--typography-h1-font-size);
+    font-weight: var(--typography-h1-font-weight);
     margin-bottom: ${theme.spacing(1.25)};
 `;
 
 export const SubHeading = styled.h2`
-    color: ${theme.palette.primary.main};
-    font-size: ${theme.typography.h2.fontSize};
-    font-weight: ${theme.typography.h2.fontWeight};
+    color: var(--palette-primary-main);
+    font-size: var(--typography-h2-font-size);
+    font-weight: var(--typography-h2-font-weight);
     margin-top: ${theme.spacing(3)};
     margin-bottom: ${theme.spacing(1)};
     padding-bottom: ${theme.spacing(0.5)};
-    border-bottom: 2px solid ${theme.palette.primary.light};
+    border-bottom: 2px solid var(--palette-primary-light);
 `;
 
 export const SectionHeading = styled.h3`
-    color: ${theme.palette.text.secondary};
-    font-size: ${theme.typography.h3.fontSize};
-    font-weight: ${theme.typography.h3.fontWeight};
+    color: var(--palette-text-secondary);
+    font-size: var(--typography-h3-font-size);
+    font-weight: var(--typography-h3-font-weight);
     margin-top: ${theme.spacing(2)};
     margin-bottom: ${theme.spacing(0.75)};
 `;
 
 export const Paragraph = styled.p`
-    line-height: ${theme.typography.body1.lineHeight};
-    font-size: ${theme.typography.body1.fontSize};
+    line-height: var(--typography-body1-line-height);
+    font-size: var(--typography-body1-font-size);
 `;
 
 export const InlineLink = styled.a`
-    color: ${theme.palette.primary.main};
+    color: var(--palette-primary-main);
     text-decoration: underline;
     text-underline-offset: 2px;
     transition: color 0.2s;
 
     &:hover {
-        color: ${theme.palette.primary.dark};
+        color: var(--palette-primary-dark);
     }
 
     &:visited {
-        color: ${theme.palette.primary.dark};
+        color: var(--palette-primary-dark);
     }
 
     &:focus-visible {
-        outline: 2px solid ${theme.palette.primary.light};
+        outline: 2px solid var(--palette-primary-light);
         outline-offset: 2px;
         border-radius: 2px;
     }
@@ -110,29 +110,29 @@ export const InlineLink = styled.a`
 export const Button = styled.a`
     display: inline-block;
     padding: 12px 24px;
-    background-color: ${theme.palette.primary.main};
-    color: ${theme.palette.text.primary};
-    border-radius: ${theme.shape.borderRadius}px;
+    background-color: var(--palette-primary-main);
+    color: var(--palette-text-primary);
+    border-radius: var(--shape-border-radius);
     font-weight: bold;
-    font-size: ${theme.typography.body1.fontSize};
+    font-size: var(--typography-body1-font-size);
     text-decoration: none;
     transition: background-color 0.2s;
 
     &:hover {
-        background-color: ${theme.palette.primary.dark};
-        color: ${theme.palette.text.primary};
+        background-color: var(--palette-primary-dark);
+        color: var(--palette-text-primary);
     }
 
     &:focus-visible {
-        outline: 2px solid ${theme.palette.primary.light};
+        outline: 2px solid var(--palette-primary-light);
         outline-offset: 3px;
     }
 `;
 
 const TocNavBase = styled.nav`
-    background: #f0f4ff;
-    border-left: 4px solid ${theme.palette.primary.main};
-    border-radius: 0 ${theme.shape.borderRadius}px ${theme.shape.borderRadius}px 0;
+    background: var(--toc-nav-bg);
+    border-left: 4px solid var(--palette-primary-main);
+    border-radius: 0 var(--shape-border-radius) var(--shape-border-radius) 0;
     padding: ${theme.spacing(1.5)} ${theme.spacing(2.5)};
     margin: ${theme.spacing(2)} 0 ${theme.spacing(3)};
 
@@ -143,21 +143,21 @@ const TocNavBase = styled.nav`
 
     li {
         margin: ${theme.spacing(0.5)} 0;
-        font-size: ${theme.typography.body1.fontSize};
+        font-size: var(--typography-body1-font-size);
     }
 
     a {
-        color: ${theme.palette.primary.main};
+        color: var(--palette-primary-main);
         text-decoration: none;
         text-underline-offset: 2px;
 
         &:hover {
             text-decoration: underline;
-            color: ${theme.palette.primary.dark};
+            color: var(--palette-primary-dark);
         }
 
         &:focus-visible {
-            outline: 2px solid ${theme.palette.primary.light};
+            outline: 2px solid var(--palette-primary-light);
             outline-offset: 2px;
             border-radius: 2px;
         }
@@ -201,8 +201,8 @@ const SmoothDetailsSummaryButton = styled.button`
     all: unset;
     box-sizing: border-box;
     cursor: pointer;
-    color: ${theme.palette.primary.main};
-    font-size: ${theme.typography.body1.fontSize};
+    color: var(--palette-primary-main);
+    font-size: var(--typography-body1-font-size);
     line-height: 1.5;
     padding: ${theme.spacing(0.75)} 0;
     display: flex;
@@ -221,11 +221,11 @@ const SmoothDetailsSummaryButton = styled.button`
     }
 
     &:hover {
-        color: ${theme.palette.primary.dark};
+        color: var(--palette-primary-dark);
     }
 
     &:focus-visible {
-        outline: 2px solid ${theme.palette.primary.light};
+        outline: 2px solid var(--palette-primary-light);
         outline-offset: 2px;
         border-radius: 2px;
     }
@@ -257,18 +257,18 @@ export const SmoothDetails = ({ summary, children, defaultOpen = false }) => {
 const BackToTopBase = styled.a`
     display: inline-block;
     margin-top: ${theme.spacing(1.5)};
-    font-size: ${theme.typography.body2?.fontSize ?? '0.875rem'};
-    color: ${theme.palette.primary.main};
+    font-size: var(--typography-body2-font-size);
+    color: var(--palette-primary-main);
     text-decoration: none;
     text-underline-offset: 2px;
 
     &:hover {
         text-decoration: underline;
-        color: ${theme.palette.primary.dark};
+        color: var(--palette-primary-dark);
     }
 
     &:focus-visible {
-        outline: 2px solid ${theme.palette.primary.light};
+        outline: 2px solid var(--palette-primary-light);
         outline-offset: 2px;
         border-radius: 2px;
     }
@@ -311,9 +311,9 @@ export const PrintButton = styled.button`
     height: 40px;
     padding: 0;
     background: transparent;
-    color: ${theme.palette.primary.main};
-    border: 1.5px solid ${theme.palette.primary.main};
-    border-radius: ${theme.shape.borderRadius}px;
+    color: var(--palette-primary-main);
+    border: 1.5px solid var(--palette-primary-main);
+    border-radius: var(--shape-border-radius);
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
 
@@ -324,12 +324,12 @@ export const PrintButton = styled.button`
     }
 
     &:hover {
-        background: ${theme.palette.primary.main};
-        color: #fff;
+        background: var(--palette-primary-main);
+        color: var(--print-button-hover-text);
     }
 
     &:focus-visible {
-        outline: 2px solid ${theme.palette.primary.light};
+        outline: 2px solid var(--palette-primary-light);
         outline-offset: 2px;
     }
 
@@ -362,9 +362,9 @@ export const FilteredSection = styled.section`
 `;
 
 export const PersonalizeCard = styled.div`
-    background: #f0f4ff;
-    border-left: 4px solid ${theme.palette.primary.main};
-    border-radius: 0 ${theme.shape.borderRadius}px ${theme.shape.borderRadius}px 0;
+    background: var(--personalize-card-bg);
+    border-left: 4px solid var(--palette-primary-main);
+    border-radius: 0 var(--shape-border-radius) var(--shape-border-radius) 0;
     padding: ${theme.spacing(1.25)} ${theme.spacing(2)};
     margin: ${theme.spacing(2)} 0 ${theme.spacing(3)};
     display: flex;
@@ -389,9 +389,9 @@ export const PersonalizeCardText = styled.div`
 `;
 
 export const PersonalizeCardTitle = styled.p`
-    font-size: ${theme.typography.body1.fontSize};
+    font-size: var(--typography-body1-font-size);
     font-weight: 600;
-    color: ${theme.palette.primary.dark};
+    color: var(--palette-primary-dark);
     margin: 0 0 ${theme.spacing(0.25)};
 
     @media (max-width: 480px) {
@@ -401,7 +401,7 @@ export const PersonalizeCardTitle = styled.p`
 
 export const PersonalizeCardDesc = styled.p`
     font-size: 0.875rem;
-    color: ${theme.palette.text.secondary};
+    color: var(--palette-text-secondary);
     margin: 0;
 
     @media (max-width: 480px) {
@@ -415,10 +415,10 @@ export const PersonalizeCardButton = styled.button`
     align-items: center;
     gap: 0.4em;
     padding: ${theme.spacing(0.625)} ${theme.spacing(1.5)};
-    background: ${theme.palette.primary.main};
-    color: #fff;
+    background: var(--palette-primary-main);
+    color: var(--button-on-primary);
     border: none;
-    border-radius: ${theme.shape.borderRadius}px;
+    border-radius: var(--shape-border-radius);
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
@@ -426,11 +426,11 @@ export const PersonalizeCardButton = styled.button`
     white-space: nowrap;
 
     &:hover {
-        background: ${theme.palette.primary.dark};
+        background: var(--palette-primary-dark);
     }
 
     &:focus-visible {
-        outline: 2px solid ${theme.palette.primary.light};
+        outline: 2px solid var(--palette-primary-light);
         outline-offset: 2px;
     }
 
@@ -442,9 +442,9 @@ export const PersonalizeCardButton = styled.button`
 `;
 
 export const FilterBanner = styled.div`
-    background: #fff8e1;
-    border-left: 4px solid #f59e0b;
-    border-radius: 0 ${theme.shape.borderRadius}px ${theme.shape.borderRadius}px 0;
+    background: var(--filter-banner-bg);
+    border-left: 4px solid var(--filter-banner-border);
+    border-radius: 0 var(--shape-border-radius) var(--shape-border-radius) 0;
     padding: ${theme.spacing(1.5)} ${theme.spacing(2.5)};
     margin: ${theme.spacing(2)} 0 ${theme.spacing(3)};
     display: flex;
@@ -472,15 +472,15 @@ export const FilterBannerText = styled.div`
 export const FilterBannerLabel = styled.p`
     font-size: 0.85rem;
     font-weight: 700;
-    color: #92400e;
+    color: var(--filter-banner-label);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin: 0 0 ${theme.spacing(0.5)};
 `;
 
 export const FilterBannerChips = styled.p`
-    font-size: ${theme.typography.body1.fontSize};
-    color: #78350f;
+    font-size: var(--typography-body1-font-size);
+    color: var(--filter-banner-text);
     margin: 0;
     font-weight: 500;
 `;
@@ -503,9 +503,9 @@ export const FilterBannerEditButton = styled.button`
     align-items: center;
     padding: ${theme.spacing(0.5)} ${theme.spacing(1.5)};
     background: transparent;
-    color: #92400e;
-    border: 1.5px solid #f59e0b;
-    border-radius: ${theme.shape.borderRadius}px;
+    color: var(--filter-banner-edit-color);
+    border: 1.5px solid var(--filter-banner-border);
+    border-radius: var(--shape-border-radius);
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
@@ -513,11 +513,11 @@ export const FilterBannerEditButton = styled.button`
     white-space: nowrap;
 
     &:hover {
-        background: #fef3c7;
+        background: var(--filter-banner-edit-hover-bg);
     }
 
     &:focus-visible {
-        outline: 2px solid #f59e0b;
+        outline: 2px solid var(--filter-banner-edit-outline);
         outline-offset: 2px;
     }
 `;
@@ -526,10 +526,10 @@ export const FilterBannerResetButton = styled.button`
     display: inline-flex;
     align-items: center;
     padding: ${theme.spacing(0.5)} ${theme.spacing(1.5)};
-    background: #f59e0b;
+    background: var(--filter-banner-reset-bg);
     color: #fff;
     border: none;
-    border-radius: ${theme.shape.borderRadius}px;
+    border-radius: var(--shape-border-radius);
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
@@ -537,11 +537,11 @@ export const FilterBannerResetButton = styled.button`
     white-space: nowrap;
 
     &:hover {
-        background: #d97706;
+        background: var(--filter-banner-reset-hover);
     }
 
     &:focus-visible {
-        outline: 2px solid #92400e;
+        outline: 2px solid var(--filter-banner-reset-outline);
         outline-offset: 2px;
     }
 `;

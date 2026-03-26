@@ -4,23 +4,22 @@ import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
 import { Heading, SubHeading, Paragraph, InlineLink, PageHeader } from '../styles';
 import theme from '../theme';
-
 const InternalLink = styled(Link)`
-    color: ${theme.palette.primary.main};
+    color: var(--palette-primary-main);
     text-decoration: underline;
     text-underline-offset: 2px;
     transition: color 0.2s;
 
     &:hover {
-        color: ${theme.palette.primary.dark};
+        color: var(--palette-primary-dark);
     }
 
     &:visited {
-        color: ${theme.palette.primary.dark};
+        color: var(--palette-primary-dark);
     }
 
     &:focus-visible {
-        outline: 2px solid ${theme.palette.primary.light};
+        outline: 2px solid var(--palette-primary-light);
         outline-offset: 2px;
         border-radius: 2px;
     }
@@ -29,8 +28,8 @@ const InternalLink = styled(Link)`
 const StepList = styled.ol`
     margin: ${theme.spacing(2)} 0;
     padding-left: ${theme.spacing(3)};
-    font-size: ${theme.typography.body1.fontSize};
-    line-height: ${theme.typography.body1.lineHeight};
+    font-size: var(--typography-body1-font-size);
+    line-height: var(--typography-body1-line-height);
 
     li {
         margin-bottom: ${theme.spacing(1)};
@@ -43,7 +42,7 @@ const QuickLinksList = styled.ul`
 
     li {
         margin-bottom: ${theme.spacing(0.75)};
-        font-size: ${theme.typography.body1.fontSize};
+        font-size: var(--typography-body1-font-size);
     }
 `;
 

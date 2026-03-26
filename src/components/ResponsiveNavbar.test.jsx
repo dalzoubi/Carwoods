@@ -1,14 +1,13 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
-import theme from '../theme';
+import { WithAppTheme } from '../testUtils';
 import ResponsiveNavbar from './ResponsiveNavbar';
 
 const renderWithProviders = (ui) => render(
-  <ThemeProvider theme={theme}>
+  <WithAppTheme>
     <BrowserRouter>{ui}</BrowserRouter>
-  </ThemeProvider>
+  </WithAppTheme>
 );
 
 describe('ResponsiveNavbar', () => {
