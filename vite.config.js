@@ -10,10 +10,11 @@ const darkThemeBootScript = `    <script>
       (function () {
         try {
           var s = localStorage.getItem('carwoods-color-scheme');
-          var dark = s === 'dark' || (s !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          var preview = location.pathname === '/dark';
+          var dark = preview || s === 'dark' || (s !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
           if (dark) {
             document.documentElement.style.colorScheme = 'dark';
-            document.documentElement.style.backgroundColor = '#121212';
+            document.documentElement.style.backgroundColor = '#0d1117';
           }
         } catch (e) {}
       })();

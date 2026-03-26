@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { FEATURE_DARK_THEME } from './featureFlags';
 import { buildTheme, applyThemeCssVariables } from './theme';
@@ -17,15 +18,21 @@ function getSystemPrefersDark() {
 }
 
 /**
+ * @param {string | null} storedOverride
+ * @param {boolean} isDarkPreviewPath
  * @returns {'light' | 'dark'}
  */
-function resolveEffectiveMode(storedOverride) {
+function resolveEffectiveMode(storedOverride, isDarkPreviewPath) {
+    if (isDarkPreviewPath) return 'dark';
     if (!FEATURE_DARK_THEME) return 'light';
     if (storedOverride === 'light' || storedOverride === 'dark') return storedOverride;
     return getSystemPrefersDark() ? 'dark' : 'light';
 }
 
 export function ThemeModeProvider({ children }) {
+    const { pathname } = useLocation();
+    const isDarkPreviewPath = pathname === '/dark';
+
     const [storedOverride, setStoredOverride] = useState(() =>
         FEATURE_DARK_THEME ? readStoredColorScheme() : null
     );
@@ -46,8 +53,8 @@ export function ThemeModeProvider({ children }) {
     }, []);
 
     const effectiveMode = useMemo(
-        () => resolveEffectiveMode(storedOverride),
-        [storedOverride, systemDark]
+        () => resolveEffectiveMode(storedOverride, isDarkPreviewPath),
+        [storedOverride, systemDark, isDarkPreviewPath]
     );
 
     const muiTheme = useMemo(() => buildTheme(effectiveMode), [effectiveMode]);
@@ -79,6 +86,7 @@ export function ThemeModeProvider({ children }) {
             effectiveMode,
             storedOverride: FEATURE_DARK_THEME ? storedOverride : null,
             darkThemeFeatureEnabled: FEATURE_DARK_THEME,
+            isDarkPreviewPath,
             setOverrideLight,
             setOverrideDark,
             resetOverride,
@@ -87,6 +95,7 @@ export function ThemeModeProvider({ children }) {
         [
             effectiveMode,
             storedOverride,
+            isDarkPreviewPath,
             setOverrideLight,
             setOverrideDark,
             resetOverride,

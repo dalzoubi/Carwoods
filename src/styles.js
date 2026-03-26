@@ -33,20 +33,21 @@ export const Content = styled.section`
 `;
 
 export const NavLink = styled(RouterNavLink)`
-    color: var(--palette-text-primary);
+    color: var(--nav-chrome-text);
     text-decoration: none;
     font-weight: bold;
     padding: 0.5rem 1rem;
     transition: background 0.3s, color 0.3s;
 
     &.active {
-        background: var(--palette-primary-dark);
+        background: var(--nav-chrome-active-bg);
+        color: var(--nav-chrome-active-text);
         border-radius: 4px;
     }
 
     &:hover {
-        background: var(--palette-primary-dark);
-        color: var(--palette-text-primary);
+        background: var(--nav-chrome-hover-bg);
+        color: var(--nav-chrome-active-text);
         border-radius: 4px;
     }
 

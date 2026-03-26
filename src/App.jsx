@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Container, Content } from './styles';
 import Home from './components/Home';
 import Apply from './components/Apply';
@@ -18,6 +18,7 @@ const AppRoutes = () => {
         <Content key={location.pathname}>
             <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/dark" element={<Home />} />
                 <Route path="/apply" element={<Apply />} />
                 <Route path="/tenant-selection-criteria" element={<TenantSelectionCriteria />} />
                 <Route path="/application-required-documents" element={<ApplicationRequiredDocuments />} />
@@ -31,7 +32,7 @@ const AppRoutes = () => {
 };
 
 const App = () => (
-    <Router>
+    <>
         <a href="#main-content" className="sr-only sr-only-focusable">
             Skip to main content
         </a>
@@ -40,7 +41,7 @@ const App = () => (
             <AppRoutes />
         </Container>
         <Footer />
-    </Router>
+    </>
 );
 
 export default App;
