@@ -558,11 +558,18 @@ export const PrintHeader = styled.div`
         margin-bottom: 14pt;
         padding-bottom: 10pt;
         border-bottom: 1px solid #ccc;
+        /* Match light-mode print output even when the app is in dark mode */
+        color-scheme: light !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
 
     img {
         height: 44pt;
         width: auto;
+        /* Logo asset is light-on-transparent; invert so it reads on white paper (original behavior) */
+        filter: invert(1);
+        forced-color-adjust: none;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
