@@ -6,6 +6,20 @@ import fs from 'node:fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const darkThemeBootScript = `    <script>
+      (function () {
+        try {
+          var s = localStorage.getItem('carwoods-color-scheme');
+          var dark = s === 'dark' || (s !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) {
+            document.documentElement.style.colorScheme = 'dark';
+            document.documentElement.style.backgroundColor = '#121212';
+          }
+        } catch (e) {}
+      })();
+    </script>
+`;
+
 // Allow both real and original paths (Vite has path resolution issues on Windows network drives)
 const projectRoot = path.resolve(__dirname);
 const realRoot = fs.realpathSync.native(projectRoot);
@@ -17,7 +31,19 @@ export default defineConfig({
   resolve: {
     preserveSymlinks: true,
   },
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: 'inject-dark-theme-boot',
+      transformIndexHtml(html) {
+        const enabled = process.env.VITE_FEATURE_DARK_THEME === 'true';
+        return html.replace(
+          '<!--carwoods-dark-theme-boot-->',
+          enabled ? darkThemeBootScript : ''
+        );
+      },
+    },
+  ],
   // Match gh-pages deploy: homepage is carwoods.com, base path is /
   base: '/',
   build: {
