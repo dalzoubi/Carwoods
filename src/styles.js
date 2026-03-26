@@ -392,7 +392,7 @@ export const PersonalizeCardText = styled.div`
 export const PersonalizeCardTitle = styled.p`
     font-size: var(--typography-body1-font-size);
     font-weight: 600;
-    color: var(--palette-primary-dark);
+    color: var(--palette-primary-main);
     margin: 0 0 ${theme.spacing(0.25)};
 
     @media (max-width: 480px) {
@@ -416,18 +416,19 @@ export const PersonalizeCardButton = styled.button`
     align-items: center;
     gap: 0.4em;
     padding: ${theme.spacing(0.625)} ${theme.spacing(1.5)};
-    background: var(--palette-primary-main);
-    color: var(--button-on-primary);
+    background: var(--cta-button-bg);
+    color: var(--cta-button-text);
     border: none;
     border-radius: var(--shape-border-radius);
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, color 0.2s;
     white-space: nowrap;
 
     &:hover {
-        background: var(--palette-primary-dark);
+        background: var(--cta-button-bg-hover);
+        color: var(--cta-button-text);
     }
 
     &:focus-visible {
