@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 const FooterContainer = styled.footer`
     background-color: var(--palette-primary-main);
-    color: var(--palette-text-primary);
+    color: var(--footer-on-primary);
     text-align: center;
     padding: 1rem;
     width: 100%;
@@ -13,15 +13,22 @@ const FooterContainer = styled.footer`
 `;
 
 const linkStyles = `
-    color: var(--palette-text-link);
-    text-decoration: none;
+    color: var(--footer-link-on-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
     margin: 0 10px;
     font-size: 1.1rem;
     display: inline-flex;
     align-items: center;
 
     &:hover {
-        text-decoration: underline;
+        color: var(--footer-link-hover-on-primary);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--footer-link-hover-on-primary);
+        outline-offset: 3px;
+        border-radius: 2px;
     }
 
     svg {
@@ -38,7 +45,7 @@ const FooterLinkInternal = styled(Link)`
 `;
 
 const FooterSeparator = styled.span`
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--footer-separator-on-primary);
     margin: 0 2px;
     user-select: none;
 `;

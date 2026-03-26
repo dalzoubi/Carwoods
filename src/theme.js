@@ -88,6 +88,19 @@ export function applyThemeCssVariables(muiTheme) {
 
     root.style.setProperty('--button-on-primary', '#fff');
     root.style.setProperty('--print-button-hover-text', '#fff');
+
+    /* Footer sits on primary.main; these meet WCAG 2.1 AA ~4.5:1 for normal text on that bar. */
+    if (isDark) {
+        root.style.setProperty('--footer-on-primary', '#0f172a');
+        root.style.setProperty('--footer-link-on-primary', '#0f172a');
+        root.style.setProperty('--footer-link-hover-on-primary', '#020617');
+        root.style.setProperty('--footer-separator-on-primary', 'rgba(15, 23, 42, 0.45)');
+    } else {
+        root.style.setProperty('--footer-on-primary', '#ffffff');
+        root.style.setProperty('--footer-link-on-primary', '#ffffff');
+        root.style.setProperty('--footer-link-hover-on-primary', '#f5faff');
+        root.style.setProperty('--footer-separator-on-primary', 'rgba(255, 255, 255, 0.55)');
+    }
 }
 
 /**
