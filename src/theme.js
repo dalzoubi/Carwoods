@@ -119,7 +119,21 @@ export function applyThemeCssVariables(muiTheme) {
     root.style.setProperty('--filter-banner-reset-outline', isDark ? '#fcd34d' : '#92400e');
 
     root.style.setProperty('--button-on-primary', appChrome.contrastText);
-    root.style.setProperty('--print-button-hover-text', appChrome.contrastText);
+    /* Icon sits on primary.main fill — must contrast with blue, not chrome text */
+    root.style.setProperty(
+        '--print-button-hover-text',
+        muiTheme.palette.getContrastText(palette.primary.main)
+    );
+
+    const personalizeBg = isDark ? palette.primary.dark : palette.primary.main;
+    const personalizeHover = isDark ? palette.primary.main : palette.primary.dark;
+    root.style.setProperty('--personalize-button-bg', personalizeBg);
+    root.style.setProperty('--personalize-button-bg-hover', personalizeHover);
+    root.style.setProperty('--personalize-button-fg', muiTheme.palette.getContrastText(personalizeBg));
+    root.style.setProperty(
+        '--personalize-button-fg-hover',
+        muiTheme.palette.getContrastText(personalizeHover)
+    );
 
     /* Footer / chrome bar: high contrast using bar background + on-bar text */
     root.style.setProperty('--footer-on-primary', appChrome.contrastText);
