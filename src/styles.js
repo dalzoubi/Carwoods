@@ -563,7 +563,6 @@ export const PrintHeader = styled.div`
     img {
         height: 44pt;
         width: auto;
-        filter: invert(1);
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }

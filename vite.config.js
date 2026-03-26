@@ -38,7 +38,7 @@ export default defineConfig({
     {
       name: 'inject-dark-theme-boot',
       transformIndexHtml(html) {
-        const enabled = process.env.VITE_FEATURE_DARK_THEME === 'true';
+        const enabled = process.env.VITE_FEATURE_DARK_THEME !== 'false';
         return html.replace(
           '<!--carwoods-dark-theme-boot-->',
           enabled ? darkThemeBootScript : ''

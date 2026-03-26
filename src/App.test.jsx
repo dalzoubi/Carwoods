@@ -35,7 +35,7 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: /where houston finds home/i })).toBeInTheDocument();
   });
 
-  it('serves home at /dark/apply and shows dark preview in appearance menu', () => {
+  it('serves apply at /dark/apply and opens appearance menu', () => {
     window.matchMedia = vi.fn().mockImplementation((query) => ({
       matches: !query.includes('max-width'),
       media: query,
@@ -54,6 +54,6 @@ describe('App', () => {
     );
     expect(screen.getByRole('heading', { name: /how to apply to rent/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /appearance and theme/i }));
-    expect(screen.getByText(/dark preview/i)).toBeInTheDocument();
+    expect(screen.getByText(/^color theme$/i)).toBeInTheDocument();
   });
 });
