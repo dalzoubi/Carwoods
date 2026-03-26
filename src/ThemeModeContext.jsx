@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
+import { FEATURE_DARK_THEME } from './featureFlags';
 import { buildTheme, applyThemeCssVariables } from './theme';
 import { clearStoredColorScheme, readStoredColorScheme, writeStoredColorScheme } from './themePreferenceStorage';
 
@@ -19,15 +20,19 @@ function getSystemPrefersDark() {
  * @returns {'light' | 'dark'}
  */
 function resolveEffectiveMode(storedOverride) {
+    if (!FEATURE_DARK_THEME) return 'light';
     if (storedOverride === 'light' || storedOverride === 'dark') return storedOverride;
     return getSystemPrefersDark() ? 'dark' : 'light';
 }
 
 export function ThemeModeProvider({ children }) {
-    const [storedOverride, setStoredOverride] = useState(() => readStoredColorScheme());
-    const [systemDark, setSystemDark] = useState(() => getSystemPrefersDark());
+    const [storedOverride, setStoredOverride] = useState(() =>
+        FEATURE_DARK_THEME ? readStoredColorScheme() : null
+    );
+    const [systemDark, setSystemDark] = useState(() => (FEATURE_DARK_THEME ? getSystemPrefersDark() : false));
 
     useEffect(() => {
+        if (!FEATURE_DARK_THEME) return undefined;
         if (typeof window.matchMedia !== 'function') return undefined;
         let mq;
         try {
@@ -52,16 +57,19 @@ export function ThemeModeProvider({ children }) {
     }, [muiTheme]);
 
     const setOverrideLight = useCallback(() => {
+        if (!FEATURE_DARK_THEME) return;
         writeStoredColorScheme('light');
         setStoredOverride('light');
     }, []);
 
     const setOverrideDark = useCallback(() => {
+        if (!FEATURE_DARK_THEME) return;
         writeStoredColorScheme('dark');
         setStoredOverride('dark');
     }, []);
 
     const resetOverride = useCallback(() => {
+        if (!FEATURE_DARK_THEME) return;
         clearStoredColorScheme();
         setStoredOverride(null);
     }, []);
@@ -69,7 +77,8 @@ export function ThemeModeProvider({ children }) {
     const value = useMemo(
         () => ({
             effectiveMode,
-            storedOverride,
+            storedOverride: FEATURE_DARK_THEME ? storedOverride : null,
+            darkThemeFeatureEnabled: FEATURE_DARK_THEME,
             setOverrideLight,
             setOverrideDark,
             resetOverride,
