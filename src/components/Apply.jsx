@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { withDarkPath } from '../routePaths';
 import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
-import { Heading, SubHeading, Paragraph, InlineLink, PageHeader } from '../styles';
+import { Heading, Paragraph, InlineLink, PageHeader } from '../styles';
 import theme from '../theme';
 import RentalPropertyApplyTiles from './RentalPropertyApplyTiles';
 const InternalLink = styled(Link)`
@@ -35,16 +35,6 @@ const StepList = styled.ol`
 
     li {
         margin-bottom: ${theme.spacing(1)};
-    }
-`;
-
-const QuickLinksList = styled.ul`
-    margin: ${theme.spacing(2)} 0;
-    padding-left: ${theme.spacing(3)};
-
-    li {
-        margin-bottom: ${theme.spacing(0.75)};
-        font-size: var(--typography-body1-font-size);
     }
 `;
 
@@ -84,24 +74,6 @@ const Apply = () => {
                     <RentalPropertyApplyTiles />
                 </li>
             </StepList>
-
-            <SubHeading>Quick links</SubHeading>
-            <QuickLinksList>
-                <li>
-                    <InternalLink to={withDarkPath(pathname, '/tenant-selection-criteria')}>Tenant Selection Criteria</InternalLink>
-                </li>
-                <li>
-                    <InternalLink to={withDarkPath(pathname, '/application-required-documents')}>Application Required Documents</InternalLink>
-                </li>
-                <li>
-                    <InlineLink href={HAR_URL} target="_blank" rel="noopener noreferrer" aria-label="har.com – submit via the property listing (opens in new tab)">
-                        har.com (submit via the property listing)
-                    </InlineLink>
-                </li>
-                <li>
-                    <InternalLink to={withDarkPath(pathname, '/contact-us')}>Contact Us</InternalLink> (for other questions)
-                </li>
-            </QuickLinksList>
         </div>
     );
 };
