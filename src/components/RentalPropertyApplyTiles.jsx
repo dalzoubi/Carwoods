@@ -1,7 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
 import theme from '../theme';
-import { InlineLink } from '../styles';
 import { RENTAL_APPLY_PROPERTIES } from '../data/rentalPropertyApplyTiles.generated';
 
 const TileGrid = styled.div`
@@ -16,12 +15,10 @@ const TileGrid = styled.div`
     }
 `;
 
-const TileLink = styled.a`
+const TileCard = styled.article`
     display: flex;
     flex-direction: column;
     height: 100%;
-    text-decoration: none;
-    color: inherit;
     background: var(--palette-background-default);
     border: 1px solid var(--palette-divider, rgba(0, 0, 0, 0.12));
     border-radius: var(--shape-border-radius);
@@ -29,29 +26,36 @@ const TileLink = styled.a`
     box-shadow: var(--shadow-card);
     transition:
         box-shadow 0.2s ease,
-        border-color 0.2s ease,
-        transform 0.15s ease;
+        border-color 0.2s ease;
 
     &:hover {
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
         border-color: var(--palette-primary-light);
     }
 
-    &:focus-visible {
+    &:has(a:focus-visible) {
         outline: 2px solid var(--palette-primary-light);
         outline-offset: 2px;
+    }
+`;
+
+const PhotoLink = styled.a`
+    display: block;
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: var(--palette-action-hover);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+
+    &:focus-visible {
+        outline: 2px solid var(--palette-primary-light);
+        outline-offset: -2px;
     }
 
     &:hover img {
         transform: scale(1.03);
     }
-`;
-
-const PhotoWrap = styled.div`
-    position: relative;
-    aspect-ratio: 4 / 3;
-    background: var(--palette-action-hover);
-    overflow: hidden;
 `;
 
 const Photo = styled.img`
@@ -72,6 +76,7 @@ const RentBadge = styled.span`
     font-weight: 600;
     background: var(--cta-button-bg);
     color: var(--cta-button-text);
+    pointer-events: none;
 `;
 
 const TileBody = styled.div`
@@ -110,21 +115,36 @@ const DetailList = styled.ul`
     }
 `;
 
-const CtaRow = styled.div`
-    margin-top: auto;
-    padding-top: ${theme.spacing(0.5)};
+const TextLink = styled.a`
     font-size: 0.9375rem;
     font-weight: 600;
     color: var(--palette-primary-main);
     text-decoration: underline;
     text-underline-offset: 2px;
+    transition: color 0.2s;
+
+    &:hover {
+        color: var(--palette-primary-dark);
+    }
+
+    &:visited {
+        color: var(--palette-primary-dark);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--palette-primary-light);
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
 `;
 
-const HarNote = styled.p`
-    margin: ${theme.spacing(1.5)} 0 0;
-    font-size: var(--typography-body2-font-size, 0.875rem);
-    line-height: var(--typography-body2-line-height, 1.43);
-    color: var(--palette-text-secondary);
+const ApplyBlock = styled.div`
+    margin-top: auto;
+    padding-top: ${theme.spacing(0.5)};
+    display: flex;
+    flex-direction: column;
+    gap: ${theme.spacing(0.75)};
+    align-items: flex-start;
 `;
 
 const RentalPropertyApplyTiles = () => {
@@ -133,55 +153,44 @@ const RentalPropertyApplyTiles = () => {
   }
 
   return (
-    <>
-      <TileGrid>
-        {RENTAL_APPLY_PROPERTIES.map((p) => {
-          const label = `Apply for ${p.addressLine} — opens rental application (new tab)`;
-          return (
-            <TileLink
-              key={p.id}
+    <TileGrid>
+      {RENTAL_APPLY_PROPERTIES.map((p) => {
+        const applyLabel = `Apply for ${p.addressLine} — opens rental application (new tab)`;
+        const detailsLabel = `Full listing details for ${p.addressLine} (opens in new tab)`;
+        return (
+          <TileCard key={p.id}>
+            <PhotoLink
               href={p.applyUrl}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={label}
+              aria-label={applyLabel}
             >
-              <PhotoWrap>
-                <Photo src={p.photoUrl} alt="" loading="lazy" decoding="async" />
-                <RentBadge>{p.monthlyRentLabel}</RentBadge>
-              </PhotoWrap>
-              <TileBody>
-                <AddressBlock>
-                  <Street>{p.addressLine}</Street>
-                  <CityZip>{p.cityStateZip}</CityZip>
-                </AddressBlock>
-                <DetailList>
-                  {p.detailLines.map((line) => (
-                    <li key={line}>{line}</li>
-                  ))}
-                </DetailList>
-                <CtaRow>Apply now (RentSpree)</CtaRow>
-              </TileBody>
-            </TileLink>
-          );
-        })}
-      </TileGrid>
-      <HarNote>
-        Photos and listing details match{' '}
-        <InlineLink href="https://www.har.com" target="_blank" rel="noopener noreferrer">
-          HAR.com
-        </InlineLink>
-        . View the full listing:{' '}
-        {RENTAL_APPLY_PROPERTIES.map((p, i) => (
-          <React.Fragment key={p.id}>
-            {i > 0 ? ' · ' : null}
-            <InlineLink href={p.harListingUrl} target="_blank" rel="noopener noreferrer">
-              {p.addressLine}
-            </InlineLink>
-          </React.Fragment>
-        ))}
-        .
-      </HarNote>
-    </>
+              <Photo src={p.photoUrl} alt="" loading="lazy" decoding="async" />
+              <RentBadge>{p.monthlyRentLabel}</RentBadge>
+            </PhotoLink>
+            <TileBody>
+              <AddressBlock>
+                <Street>{p.addressLine}</Street>
+                <CityZip>{p.cityStateZip}</CityZip>
+              </AddressBlock>
+              <DetailList>
+                {p.detailLines.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </DetailList>
+              <ApplyBlock>
+                <TextLink href={p.applyUrl} target="_blank" rel="noopener noreferrer">
+                  Apply now (RentSpree)
+                </TextLink>
+                <TextLink href={p.harListingUrl} target="_blank" rel="noopener noreferrer" aria-label={detailsLabel}>
+                  Full property details
+                </TextLink>
+              </ApplyBlock>
+            </TileBody>
+          </TileCard>
+        );
+      })}
+    </TileGrid>
   );
 };
 
