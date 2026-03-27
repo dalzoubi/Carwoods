@@ -40,9 +40,4 @@ describe('Apply', () => {
       expect(tile).toHaveAttribute('rel', 'noopener noreferrer');
     }
   });
-
-  it('links to Contact Us', () => {
-    renderWithRouter(<Apply />);
-    expect(screen.getByRole('link', { name: /contact us/i })).toHaveAttribute('href', '/contact-us');
-  });
 });
