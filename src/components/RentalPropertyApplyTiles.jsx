@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import theme from '../theme';
 import { InlineLink } from '../styles';
-import { RENTAL_APPLY_PROPERTIES } from '../data/rentalPropertyApplyTiles';
+import { RENTAL_APPLY_PROPERTIES } from '../data/rentalPropertyApplyTiles.generated';
 
 const TileGrid = styled.div`
     display: grid;

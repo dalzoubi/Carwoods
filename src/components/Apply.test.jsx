@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Apply from './Apply';
+import { RENTAL_APPLY_PROPERTIES } from '../data/rentalPropertyApplyTiles.generated';
 
 const renderWithRouter = (ui) => render(<BrowserRouter>{ui}</BrowserRouter>);
 
@@ -28,13 +29,16 @@ describe('Apply', () => {
     expect(harLink).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
-  it('renders rental property tiles linking to RentSpree apply URLs', () => {
+  it('renders rental property tiles from generated HAR data', () => {
     renderWithRouter(<Apply />);
-    const bonnie = screen.getByRole('link', { name: /apply for 6314 bonnie chase ln/i });
-    expect(bonnie).toHaveAttribute('href', 'https://apply.link/Ba5-sy4');
-    expect(bonnie).toHaveAttribute('target', '_blank');
-    const sunrise = screen.getByRole('link', { name: /apply for 18920 sunrise ranch ct/i });
-    expect(sunrise).toHaveAttribute('href', 'https://apply.link/IUh3SsI');
+    expect(RENTAL_APPLY_PROPERTIES.length).toBeGreaterThan(0);
+    for (const p of RENTAL_APPLY_PROPERTIES) {
+      const re = new RegExp(`apply for ${p.addressLine.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i');
+      const tile = screen.getByRole('link', { name: re });
+      expect(tile).toHaveAttribute('href', p.applyUrl);
+      expect(tile).toHaveAttribute('target', '_blank');
+      expect(tile).toHaveAttribute('rel', 'noopener noreferrer');
+    }
   });
 
   it('links to Contact Us', () => {
