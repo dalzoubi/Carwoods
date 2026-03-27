@@ -28,6 +28,15 @@ describe('Apply', () => {
     expect(harLink).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
+  it('renders rental property tiles linking to RentSpree apply URLs', () => {
+    renderWithRouter(<Apply />);
+    const bonnie = screen.getByRole('link', { name: /apply for 6314 bonnie chase ln/i });
+    expect(bonnie).toHaveAttribute('href', 'https://apply.link/Ba5-sy4');
+    expect(bonnie).toHaveAttribute('target', '_blank');
+    const sunrise = screen.getByRole('link', { name: /apply for 18920 sunrise ranch ct/i });
+    expect(sunrise).toHaveAttribute('href', 'https://apply.link/IUh3SsI');
+  });
+
   it('links to Contact Us', () => {
     renderWithRouter(<Apply />);
     expect(screen.getByRole('link', { name: /contact us/i })).toHaveAttribute('href', '/contact-us');

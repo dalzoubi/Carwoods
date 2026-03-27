@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
 import { Heading, SubHeading, Paragraph, InlineLink, PageHeader } from '../styles';
 import theme from '../theme';
+import RentalPropertyApplyTiles from './RentalPropertyApplyTiles';
 const InternalLink = styled(Link)`
     color: var(--palette-primary-main);
     text-decoration: underline;
@@ -75,7 +76,12 @@ const Apply = () => {
                     <InternalLink to={withDarkPath(pathname, '/application-required-documents')}>Required Documents</InternalLink> list so your application is complete.
                 </li>
                 <li>
-                    <strong>Submit your application</strong> — Go to the property page on <InlineLink href={HAR_URL} target="_blank" rel="noopener noreferrer" aria-label="har.com (opens in new tab)">har.com</InlineLink> to submit.
+                    <strong>Submit your application</strong> — Choose a property below to open the online application (RentSpree), or go to the listing on{' '}
+                    <InlineLink href={HAR_URL} target="_blank" rel="noopener noreferrer" aria-label="har.com (opens in new tab)">
+                        har.com
+                    </InlineLink>{' '}
+                    to apply from there.
+                    <RentalPropertyApplyTiles />
                 </li>
             </StepList>
 
