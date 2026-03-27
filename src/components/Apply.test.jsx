@@ -20,13 +20,18 @@ describe('Apply', () => {
     expect(docsLinks[0]).toHaveAttribute('href', '/application-required-documents');
   });
 
-  it('links to har.com for submission', () => {
+  it('does not link to the HAR.com homepage; listing details are per-property homedetail URLs', () => {
     renderWithRouter(<Apply />);
-    const harLinks = screen.getAllByRole('link', { name: /har\.com/i });
-    const harLink = harLinks.find((el) => el.getAttribute('href') === 'https://www.har.com') ?? harLinks[0];
-    expect(harLink).toHaveAttribute('href', 'https://www.har.com');
-    expect(harLink).toHaveAttribute('target', '_blank');
-    expect(harLink).toHaveAttribute('rel', 'noopener noreferrer');
+    const allLinks = screen.getAllByRole('link');
+    expect(allLinks.some((el) => el.getAttribute('href') === 'https://www.har.com')).toBe(false);
+    for (const p of RENTAL_APPLY_PROPERTIES) {
+      const escaped = p.addressLine.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const details = screen.getByRole('link', {
+        name: new RegExp(`full listing details for ${escaped}`, 'i'),
+      });
+      expect(details).toHaveAttribute('href', p.harListingUrl);
+      expect(details).toHaveAttribute('target', '_blank');
+    }
   });
 
   it('renders rental property tiles from generated HAR data', () => {

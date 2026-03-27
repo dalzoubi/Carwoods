@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { withDarkPath } from '../routePaths';
 import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
-import { Heading, Paragraph, InlineLink, PageHeader } from '../styles';
+import { Heading, Paragraph, PageHeader } from '../styles';
 import theme from '../theme';
 import RentalPropertyApplyTiles from './RentalPropertyApplyTiles';
 const InternalLink = styled(Link)`
@@ -38,15 +38,13 @@ const StepList = styled.ol`
     }
 `;
 
-const HAR_URL = 'https://www.har.com';
-
 const Apply = () => {
     const { pathname } = useLocation();
     return (
         <div>
             <Helmet>
                 <title>Carwoods - How to Apply</title>
-                <meta name="description" content="How to apply to rent a Carwoods property. Review criteria, gather documents, and submit via har.com." />
+                <meta name="description" content="How to apply to rent a Carwoods property. Review criteria, gather documents, and submit your rental application online." />
             </Helmet>
             <PageHeader>
                 <Heading>How to Apply to Rent</Heading>
@@ -66,11 +64,7 @@ const Apply = () => {
                     <InternalLink to={withDarkPath(pathname, '/application-required-documents')}>Required Documents</InternalLink> list so your application is complete.
                 </li>
                 <li>
-                    <strong>Submit your application</strong> — Choose a property below to open the online application (RentSpree), or go to the listing on{' '}
-                    <InlineLink href={HAR_URL} target="_blank" rel="noopener noreferrer" aria-label="har.com (opens in new tab)">
-                        har.com
-                    </InlineLink>{' '}
-                    to apply from there.
+                    <strong>Submit your application</strong> — Choose a property below to start the online application (RentSpree). Each card also links to the full listing for photos and details.
                     <RentalPropertyApplyTiles />
                 </li>
             </StepList>
