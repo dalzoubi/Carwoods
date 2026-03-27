@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Apply from './Apply';
+import { RENTAL_APPLY_PROPERTIES } from '../data/rentalPropertyApplyTiles.generated';
 
 const renderWithRouter = (ui) => render(<BrowserRouter>{ui}</BrowserRouter>);
 
@@ -26,6 +27,18 @@ describe('Apply', () => {
     expect(harLink).toHaveAttribute('href', 'https://www.har.com');
     expect(harLink).toHaveAttribute('target', '_blank');
     expect(harLink).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('renders rental property tiles from generated HAR data', () => {
+    renderWithRouter(<Apply />);
+    expect(RENTAL_APPLY_PROPERTIES.length).toBeGreaterThan(0);
+    for (const p of RENTAL_APPLY_PROPERTIES) {
+      const re = new RegExp(`apply for ${p.addressLine.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i');
+      const tile = screen.getByRole('link', { name: re });
+      expect(tile).toHaveAttribute('href', p.applyUrl);
+      expect(tile).toHaveAttribute('target', '_blank');
+      expect(tile).toHaveAttribute('rel', 'noopener noreferrer');
+    }
   });
 
   it('links to Contact Us', () => {
