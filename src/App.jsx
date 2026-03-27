@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Container, Content } from './styles';
 import Home from './components/Home';
@@ -62,6 +63,7 @@ const App = () => (
             <AppRoutes />
         </Container>
         <Footer />
+        <Analytics />
     </>
 );
 
