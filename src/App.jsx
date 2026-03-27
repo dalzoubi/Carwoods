@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { Container, Content } from './styles';
+import { AppShell, Container, Content } from './styles';
 import Home from './components/Home';
 import Apply from './components/Apply';
 import TenantSelectionCriteria from './components/TenantSelectionCriteria';
@@ -54,7 +54,7 @@ const AppRoutes = () => {
 };
 
 const App = () => (
-    <>
+    <AppShell>
         <a href="#main-content" className="sr-only sr-only-focusable">
             Skip to main content
         </a>
@@ -64,7 +64,7 @@ const App = () => (
         </Container>
         <Footer />
         <Analytics />
-    </>
+    </AppShell>
 );
 
 export default App;

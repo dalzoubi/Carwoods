@@ -9,8 +9,8 @@ const FooterContainer = styled.footer`
     text-align: center;
     padding: 1rem;
     width: 100%;
-    position: relative;
-    bottom: 0;
+    flex-shrink: 0;
+    box-sizing: border-box;
 `;
 
 const linkStyles = `

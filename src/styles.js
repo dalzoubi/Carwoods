@@ -3,15 +3,33 @@ import styled from 'styled-components';
 import { NavLink as RouterNavLink } from 'react-router-dom';
 import theme from './theme';
 
+/** Full-height column: header + growing main + footer pinned to viewport bottom on short pages */
+export const AppShell = styled.div.attrs({ 'data-layout': 'app-shell' })`
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+`;
+
 export const Container = styled.main`
     font-family: var(--typography-font-family);
     color: var(--palette-text-secondary);
     max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
     padding: ${theme.spacing(2.5)};
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
 `;
 
 export const Content = styled.section`
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
     margin-top: ${theme.spacing(2.5)};
     padding: ${theme.spacing(2.5)};
     background: var(--palette-background-paper);

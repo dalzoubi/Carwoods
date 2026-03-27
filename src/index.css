@@ -28,6 +28,11 @@
 /* Font smoothing is handled by MUI CssBaseline via the theme */
 
 @media print {
+  /* Avoid viewport-height layout forcing extra blank pages when printing */
+  [data-layout='app-shell'] {
+    min-height: unset !important;
+  }
+
   /* ── Hide chrome ── */
   header,
   nav,
