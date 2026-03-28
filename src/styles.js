@@ -314,7 +314,9 @@ export function scrollToHashAnchor(href, { updateHistory = true } = {}) {
     const id = href.slice(1);
     const target = document.getElementById(id);
     if (!target) return false;
-    target.scrollIntoView({ behavior: 'smooth' });
+    if (typeof target.scrollIntoView === 'function') {
+        target.scrollIntoView({ behavior: 'smooth' });
+    }
     if (updateHistory) {
         history.pushState(null, '', href);
     }
