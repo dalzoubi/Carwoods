@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import ApplicationRequiredDocuments from './ApplicationRequiredDocuments';
 
@@ -754,10 +754,24 @@ describe('ApplicationRequiredDocuments', () => {
       fireEvent.click(screen.getByRole('button', { name: /skip/i }));
       fireEvent.click(screen.getByRole('button', { name: /skip/i }));
       expect(screen.getByText(/step 3 of 6/i)).toBeInTheDocument();
-      const noneOption = screen.getByRole('checkbox', { name: /^none$/i });
-      expect(noneOption).toHaveAttribute('aria-checked', 'false');
-      fireEvent.click(noneOption);
-      expect(noneOption).toHaveAttribute('aria-checked', 'true');
+      const vaOption = screen.getByRole('checkbox', { name: /va benefits/i });
+      expect(vaOption).toHaveAttribute('aria-checked', 'false');
+      fireEvent.click(vaOption);
+      expect(vaOption).toHaveAttribute('aria-checked', 'true');
+    });
+
+    it('selecting None on benefits step advances to the next step automatically', () => {
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      fireEvent.click(screen.getByRole('button', { name: /personalize this page/i }));
+      fireEvent.click(screen.getByRole('button', { name: /skip/i }));
+      fireEvent.click(screen.getByRole('button', { name: /skip/i }));
+      expect(screen.getByText(/step 3 of 6/i)).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('checkbox', { name: /^none$/i }));
+      expect(screen.getByText(/step 4 of 6/i)).toBeInTheDocument();
+      const dialog = screen.getByRole('dialog');
+      expect(
+        within(dialog).getByRole('heading', { name: /are you applying with housing assistance/i })
+      ).toBeInTheDocument();
     });
 
     it('benefits step uses role="group" for multi-select', () => {

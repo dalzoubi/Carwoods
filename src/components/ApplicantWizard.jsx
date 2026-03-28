@@ -335,10 +335,6 @@ const ApplicantWizard = ({ onProfileChange }) => {
     const requestReset = useCallback(() => setConfirmResetOpen(true), []);
     const cancelReset = useCallback(() => setConfirmResetOpen(false), []);
 
-    const handleSelect = useCallback((key, value, multi, noneValue) => {
-        setAnswers(prev => mergeAnswerSelect(prev, key, value, multi, noneValue));
-    }, []);
-
     const finishWizard = useCallback((answersSnapshot) => {
         const newProfile = {};
         QUESTIONS.forEach(q => {
@@ -351,6 +347,27 @@ const ApplicantWizard = ({ onProfileChange }) => {
         setOpen(false);
         if (onProfileChange) onProfileChange(newProfile);
     }, [onProfileChange]);
+
+    const handleMultiSelect = useCallback((key, value, noneValue) => {
+        flushSync(() => {
+            setAnswers(prev => {
+                const next = mergeAnswerSelect(prev, key, value, true, noneValue);
+                latestAnswersRef.current = next;
+                return next;
+            });
+        });
+        if (key !== 'benefits' || value !== noneValue) return;
+        const arr = latestAnswersRef.current[key];
+        const choseNoneOnly = Array.isArray(arr) && arr.length === 1 && arr[0] === noneValue;
+        if (!choseNoneOnly) return;
+        const qIndex = QUESTIONS.findIndex(q => q.key === key);
+        if (qIndex === -1 || stepRef.current !== qIndex) return;
+        if (qIndex < QUESTIONS.length - 1) {
+            setStep(s => s + 1);
+        } else {
+            finishWizard(latestAnswersRef.current);
+        }
+    }, [finishWizard]);
 
     const handleNext = useCallback(() => {
         const snapshot = latestAnswersRef.current;
@@ -574,7 +591,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
                                     onSelect={(val) => {
                                         setFocusedOptionIndex(idx);
                                         if (currentQ.multi) {
-                                            handleSelect(currentQ.key, val, true, currentQ.noneValue);
+                                            handleMultiSelect(currentQ.key, val, currentQ.noneValue);
                                         } else {
                                             handleSingleSelectAndAdvance(currentQ.key, val);
                                         }
