@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import TenantSelectionCriteria from './TenantSelectionCriteria';
 
 const STORAGE_KEY = 'carwoods_applicant_profile';
@@ -30,6 +30,29 @@ describe('TenantSelectionCriteria', () => {
   it('renders heading', () => {
     renderWithRouter(<TenantSelectionCriteria />);
     expect(screen.getByRole('heading', { name: /tenant selection criteria/i })).toBeInTheDocument();
+  });
+
+  it('renders apply flow navigation to How to Apply and Required documents', () => {
+    renderWithRouter(<TenantSelectionCriteria />);
+    expect(screen.getByRole('navigation', { name: /apply process navigation/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^back to how to apply$/i })).toHaveAttribute('href', '/apply');
+    expect(screen.getByRole('link', { name: /next: required documents/i })).toHaveAttribute(
+      'href',
+      '/application-required-documents'
+    );
+  });
+
+  it('keeps dark preview prefix on apply flow links', () => {
+    render(
+      <MemoryRouter initialEntries={['/dark/tenant-selection-criteria']}>
+        <TenantSelectionCriteria />
+      </MemoryRouter>
+    );
+    expect(screen.getByRole('link', { name: /^back to how to apply$/i })).toHaveAttribute('href', '/dark/apply');
+    expect(screen.getByRole('link', { name: /next: required documents/i })).toHaveAttribute(
+      'href',
+      '/dark/application-required-documents'
+    );
   });
 
   describe('Print button', () => {

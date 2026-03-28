@@ -135,6 +135,8 @@ const Apply = () => {
 
             <Paragraph>
                 All the information you need to apply is on this site. No need to call — follow the steps below.
+                When you finish reviewing eligibility or the documents list, use{' '}
+                <strong>Back to How to Apply</strong> at the top of those pages to return here and continue with step 3.
             </Paragraph>
 
             <StepTrack aria-label="Steps to apply">

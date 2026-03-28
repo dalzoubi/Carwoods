@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import { useLocation } from 'react-router-dom';
 import { Heading, SubHeading, Paragraph, InlineLink, TocNav, BackToTop, nestedListStyle, nestedUlStyle, PrintButton, PrintHeader, PageHeader, FilteredSection } from '../styles';
 import ApplicantWizard, { loadProfile } from './ApplicantWizard';
+import { ApplyFlowSubnav } from './ApplyFlowSubnav';
 import { withDarkPath } from '../routePaths';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
@@ -59,6 +60,8 @@ const ApplicationRequiredDocuments = () => {
           </svg>
         </PrintButton>
       </PageHeader>
+
+      <ApplyFlowSubnav phase="documents" />
 
       <Paragraph>
         We appreciate your interest in our properties. We do not discriminate based on race, color, religion, sex, familial status, national origin, disability, or other protected characteristics under the Texas Fair Housing Act.

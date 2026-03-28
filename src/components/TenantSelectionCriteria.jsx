@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { Heading, SubHeading, SectionHeading, Paragraph, TocNav, BackToTop, nestedListStyle, nestedUlStyle, PrintButton, PrintHeader, PrintFilterSummary, PageHeader, FilteredSection } from '../styles';
 import ApplicantWizard, { loadProfile, buildChipLabel } from './ApplicantWizard';
+import { ApplyFlowSubnav } from './ApplyFlowSubnav';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
 const TenantSelectionCriteria = () => {
@@ -53,6 +54,8 @@ const TenantSelectionCriteria = () => {
           </svg>
         </PrintButton>
       </PageHeader>
+
+      <ApplyFlowSubnav phase="eligibility" />
 
       <Paragraph>
         We appreciate your interest in our properties. We do not discriminate based on race, color, religion, sex, familial status, national origin, disability, or other protected characteristics under the Texas Fair Housing Act.
