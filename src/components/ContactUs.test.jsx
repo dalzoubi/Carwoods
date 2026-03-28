@@ -24,4 +24,10 @@ describe('ContactUs', () => {
     expect(screen.getAllByText(/har\.com/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/houston association of realtors/i)).toBeInTheDocument();
   });
+
+  it('links to Apply as the primary path', () => {
+    renderWithRouter(<ContactUs />);
+    const applyLink = screen.getByRole('link', { name: /^apply$/i });
+    expect(applyLink).toHaveAttribute('href', '/apply');
+  });
 });
