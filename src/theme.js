@@ -107,6 +107,26 @@ export function applyThemeCssVariables(muiTheme) {
     root.style.setProperty('--toc-nav-bg', isDark ? 'rgba(100, 181, 246, 0.08)' : '#f0f4ff');
     root.style.setProperty('--personalize-card-bg', isDark ? 'rgba(100, 181, 246, 0.08)' : '#f0f4ff');
 
+    /* Home hero: corduroy rib texture + panel (palette-driven, no scattered hex in JSX) */
+    const cordA = isDark ? 'rgba(15, 23, 42, 0.92)' : 'rgba(0, 40, 86, 0.88)';
+    const cordB = isDark ? 'rgba(30, 58, 95, 0.88)' : 'rgba(25, 90, 168, 0.82)';
+    const cordC = isDark ? 'rgba(45, 85, 130, 0.78)' : 'rgba(40, 110, 190, 0.72)';
+    root.style.setProperty('--home-corduroy-stripe-a', cordA);
+    root.style.setProperty('--home-corduroy-stripe-b', cordB);
+    root.style.setProperty('--home-corduroy-stripe-c', cordC);
+    root.style.setProperty(
+        '--home-corduroy-rib-gloss',
+        isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.14)'
+    );
+    root.style.setProperty('--home-hero-text', isDark ? 'rgba(255, 255, 255, 0.98)' : '#f5f9ff');
+    root.style.setProperty('--home-hero-subtext', isDark ? 'rgba(255, 255, 255, 0.82)' : 'rgba(245, 249, 255, 0.92)');
+    root.style.setProperty('--home-hero-accent', palette.secondary.main);
+    root.style.setProperty(
+        '--home-audience-card-bg',
+        isDark ? 'rgba(22, 27, 34, 0.92)' : 'rgba(255, 255, 255, 0.97)'
+    );
+    root.style.setProperty('--home-audience-card-border', isDark ? 'rgba(100, 181, 246, 0.35)' : 'rgba(25, 118, 210, 0.2)');
+
     root.style.setProperty('--filter-banner-bg', isDark ? 'rgba(245, 158, 11, 0.12)' : '#fff8e1');
     root.style.setProperty('--filter-banner-border', isDark ? '#b45309' : '#f59e0b');
     root.style.setProperty('--filter-banner-label', isDark ? '#fcd34d' : '#92400e');
