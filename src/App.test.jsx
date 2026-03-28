@@ -32,7 +32,7 @@ describe('App', () => {
 
   it('renders Home content at root path', () => {
     renderWithProviders(<App />);
-    expect(screen.getByRole('heading', { name: /where houston finds home/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /houston homes with texture/i })).toBeInTheDocument();
   });
 
   it('serves apply at /dark/apply and opens appearance menu', () => {
