@@ -17,12 +17,17 @@ export const Container = styled.main`
     max-width: 1200px;
     width: 100%;
     margin: 0 auto;
-    padding: ${theme.spacing(2.5)};
+    /* Tighter gutters on phones so content uses width; sm+ matches historical spacing */
+    padding: ${theme.spacing(1.5)};
     flex: 1 1 auto;
     min-height: 0;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+
+    @media (min-width: 600px) {
+        padding: ${theme.spacing(2.5)};
+    }
 `;
 
 export const Content = styled.section`
@@ -30,13 +35,18 @@ export const Content = styled.section`
     min-height: 0;
     display: flex;
     flex-direction: column;
-    margin-top: ${theme.spacing(2.5)};
-    padding: ${theme.spacing(2.5)};
+    margin-top: ${theme.spacing(1.5)};
+    padding: ${theme.spacing(1.5)};
     background: var(--palette-background-paper);
     border-radius: var(--shape-border-radius);
     box-shadow: var(--shadow-card);
     color: var(--palette-text-secondary);
     animation: pageFadeIn 0.25s ease-out;
+
+    @media (min-width: 600px) {
+        margin-top: ${theme.spacing(2.5)};
+        padding: ${theme.spacing(2.5)};
+    }
 
     @keyframes pageFadeIn {
         from {
