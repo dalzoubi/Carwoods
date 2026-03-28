@@ -1,28 +1,126 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 import { withDarkPath } from '../routePaths';
 import { Helmet } from 'react-helmet';
 import { Heading, Paragraph, Button } from '../styles';
 
+const listSx = {
+    m: 0,
+    pl: 2.25,
+    '& li': { mb: 0.75 },
+};
+
 const Home = () => {
     const { pathname } = useLocation();
+
     return (
-        <div>
+        <Stack component="article" spacing={3}>
             <Helmet>
-                <title>Carwoods - Home</title>
-                <meta name="description" content="Carwoods offers property management and rental services in Houston, TX. Find your next home with our dedicated team." />
+                <title>Carwoods — Houston rentals, managed right</title>
+                <meta
+                    name="description"
+                    content="Houston rentals and property management: clear applications, consistent communication, on-time rent collection, proactive maintenance, and disciplined asset care."
+                />
             </Helmet>
-            <Heading>Where Houston Finds Home</Heading>
-            <Paragraph>
-                Discover the ease of renting your dream property with us. Our dedicated team ensures a seamless experience and unparalleled comfort, offering a range of homes designed to fit your lifestyle. Proudly serving Houston and beyond, we’re here to make every house feel like home.
-                Crafting Comfort, One Home at a Time.
-            </Paragraph>
-            <Paragraph>
-                <Button as={Link} to={withDarkPath(pathname, '/apply')}>
-                    Renting? Start here — How to apply
-                </Button>
-            </Paragraph>
-        </div>
+
+            <Box sx={{ py: { xs: 0.5, sm: 1 } }}>
+                <Heading>Houston Rentals, Managed Right</Heading>
+                <Paragraph>Clear applications. Consistent communication.</Paragraph>
+                <Paragraph>
+                    On-time rent collection, proactive maintenance, and disciplined asset care
+                </Paragraph>
+            </Box>
+
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2.5} useFlexGap flexWrap="wrap">
+                <Paper
+                    elevation={0}
+                    sx={{
+                        flex: '1 1 300px',
+                        p: 2.5,
+                        bgcolor: 'background.paper',
+                        border: 1,
+                        borderColor: 'divider',
+                        backgroundImage: 'none',
+                    }}
+                >
+                    <Typography
+                        component="h2"
+                        variant="h2"
+                        sx={{
+                            mt: 0,
+                            mb: 1,
+                            pb: 0.5,
+                            color: 'primary.main',
+                            borderBottom: 2,
+                            borderColor: 'primary.light',
+                            fontSize: { xs: '1.35rem', sm: '1.5rem' },
+                        }}
+                    >
+                        Renters
+                    </Typography>
+                    <Typography color="text.secondary" sx={{ mb: 1.5 }}>
+                        Looking for a lease in Houston? We keep the path honest: what you need to apply, what
+                        to expect, and people who pick up the phone.
+                    </Typography>
+                    <Box component="ul" sx={{ ...listSx, color: 'text.secondary' }}>
+                        <li>Streamlined application steps and required-documents guidance</li>
+                        <li>Local listings mindset—we know this market&apos;s rhythms</li>
+                        <li>Respect for your time: fewer surprises, clearer next steps</li>
+                    </Box>
+                    <Box sx={{ mt: 2 }}>
+                        <Button as={Link} to={withDarkPath(pathname, '/apply')}>
+                            Start your application
+                        </Button>
+                    </Box>
+                </Paper>
+
+                <Paper
+                    elevation={0}
+                    sx={{
+                        flex: '1 1 300px',
+                        p: 2.5,
+                        bgcolor: 'background.paper',
+                        border: 1,
+                        borderColor: 'divider',
+                        backgroundImage: 'none',
+                    }}
+                >
+                    <Typography
+                        component="h2"
+                        variant="h2"
+                        sx={{
+                            mt: 0,
+                            mb: 1,
+                            pb: 0.5,
+                            color: 'primary.main',
+                            borderBottom: 2,
+                            borderColor: 'primary.light',
+                            fontSize: { xs: '1.35rem', sm: '1.5rem' },
+                        }}
+                    >
+                        Landlords & owners
+                    </Typography>
+                    <Typography color="text.secondary" sx={{ mb: 1.5 }}>
+                        Hand us the keys to the busywork. We market vacancies, screen tenants, coordinate
+                        repairs, and report back so you can stay focused on the big picture.
+                    </Typography>
+                    <Box component="ul" sx={{ ...listSx, color: 'text.secondary' }}>
+                        <li>Full-service property management tailored to your goals</li>
+                        <li>Maintenance coordination and vendor relationships</li>
+                        <li>Steady communication—you&apos;re never guessing what&apos;s happening</li>
+                    </Box>
+                    <Box sx={{ mt: 2 }}>
+                        <Button as={Link} to={withDarkPath(pathname, '/property-management')}>
+                            Explore property management
+                        </Button>
+                    </Box>
+                </Paper>
+            </Stack>
+        </Stack>
     );
 };
 
