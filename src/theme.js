@@ -3,16 +3,17 @@ import { createTheme } from '@mui/material/styles';
 const typography = {
     fontFamily:
         '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif',
+    /* Tighter scale vs body1 (1.1rem) so headings feel less oversized on screen */
     h1: {
-        fontSize: '2.5rem',
+        fontSize: '2rem',
         fontWeight: 600,
     },
     h2: {
-        fontSize: '1.75rem',
+        fontSize: '1.5rem',
         fontWeight: 600,
     },
     h3: {
-        fontSize: '1.35rem',
+        fontSize: '1.25rem',
         fontWeight: 600,
     },
     body1: {

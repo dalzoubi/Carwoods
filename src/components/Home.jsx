@@ -249,6 +249,7 @@ const Home = () => {
                     >
                         <Typography
                             variant="subtitle2"
+                            component="h2"
                             sx={{
                                 fontWeight: 800,
                                 color: 'primary.main',
