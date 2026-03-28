@@ -6,6 +6,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogTitle from '@mui/material/DialogTitle';
 import LinearProgress from '@mui/material/LinearProgress';
 import Button from '@mui/material/Button';
+import Tune from '@mui/icons-material/Tune';
 import { useTheme, alpha } from '@mui/material/styles';
 import {
     PersonalizeCard,
@@ -459,7 +460,10 @@ const ApplicantWizard = ({ onProfileChange }) => {
             ) : (
                 <PersonalizeCard role="region" aria-label="Personalize this page">
                     <PersonalizeCardText>
-                        <PersonalizeCardTitle>Filter for your situation</PersonalizeCardTitle>
+                        <PersonalizeCardTitle>
+                            <Tune aria-hidden />
+                            <span>Filter for your situation</span>
+                        </PersonalizeCardTitle>
                         <PersonalizeCardDesc>6 quick questions — see only what applies to you.</PersonalizeCardDesc>
                     </PersonalizeCardText>
                     <PersonalizeCardButton type="button" onClick={openWizard} aria-label="Personalize this page">

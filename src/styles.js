@@ -424,13 +424,25 @@ export const PersonalizeCardText = styled.div`
 `;
 
 export const PersonalizeCardTitle = styled.p`
+    display: flex;
+    align-items: center;
+    gap: ${theme.spacing(0.875)};
     font-size: var(--typography-body1-font-size);
     font-weight: 600;
     color: var(--palette-primary-main);
     margin: 0 0 ${theme.spacing(0.25)};
 
+    & > .MuiSvgIcon-root {
+        flex-shrink: 0;
+        font-size: 1.35rem;
+    }
+
     @media (max-width: 480px) {
         font-size: 0.9rem;
+
+        & > .MuiSvgIcon-root {
+            font-size: 1.2rem;
+        }
     }
 `;
 
