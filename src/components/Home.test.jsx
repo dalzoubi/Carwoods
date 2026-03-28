@@ -9,7 +9,7 @@ describe('Home', () => {
     it('renders heading', () => {
         renderWithRouter(<Home />);
         expect(
-            screen.getByRole('heading', { name: /houston homes with texture/i })
+            screen.getByRole('heading', { name: /houston rentals, managed right/i })
         ).toBeInTheDocument();
     });
 

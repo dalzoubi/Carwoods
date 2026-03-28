@@ -20,33 +20,27 @@ const Home = () => {
     return (
         <Stack component="article" spacing={3}>
             <Helmet>
-                <title>Carwoods — Houston rentals & property management</title>
+                <title>Carwoods — Houston rentals, managed right</title>
                 <meta
                     name="description"
-                    content="Carwoods helps Houston renters find a place to call home and gives landlords full-service property management—applications, maintenance, and local expertise."
+                    content="Houston rentals and property management: clear applications, consistent communication, on-time rent collection, proactive maintenance, and disciplined asset care."
                 />
             </Helmet>
 
-            <Stack spacing={1.75} sx={{ py: { xs: 0.5, sm: 1 } }}>
+            <Stack spacing={1.5} sx={{ py: { xs: 0.5, sm: 1 }, color: 'text.primary' }}>
                 <Typography
                     component="h1"
                     variant="h1"
                     sx={{
-                        color: 'text.primary',
                         fontSize: { xs: '1.85rem', sm: '2.35rem', md: '2.65rem' },
                         fontWeight: 700,
                         lineHeight: 1.15,
                         textWrap: 'balance',
                     }}
                 >
-                    Houston homes with texture—rentals and management that feel{' '}
-                    <Box component="span" sx={{ color: 'secondary.main' }}>
-                        broken-in, not broken-down
-                    </Box>
-                    .
+                    Houston Rentals, Managed Right
                 </Typography>
                 <Typography
-                    color="text.secondary"
                     sx={{
                         fontSize: '1.15rem',
                         lineHeight: 1.55,
@@ -54,19 +48,17 @@ const Home = () => {
                         textWrap: 'balance',
                     }}
                 >
-                    Carwoods is the crew renters trust for clear applications and steady communication, and the
-                    partner landlords lean on when they want rent collected, maintenance handled, and their asset
-                    treated like more than a line on a spreadsheet.
+                    Clear applications. Consistent communication.
                 </Typography>
                 <Typography
                     sx={{
-                        color: 'secondary.main',
-                        fontWeight: 600,
-                        fontSize: '1rem',
-                        letterSpacing: '0.02em',
+                        fontSize: '1.15rem',
+                        lineHeight: 1.55,
+                        maxWidth: '42rem',
+                        textWrap: 'balance',
                     }}
                 >
-                    Corduroy-comfort service. Denim-durable follow-through.
+                    On-time rent collection, proactive maintenance, and disciplined asset care
                 </Typography>
             </Stack>
 
