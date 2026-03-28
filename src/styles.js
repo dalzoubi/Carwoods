@@ -293,15 +293,31 @@ const BackToTopBase = styled.a`
     }
 `;
 
+/**
+ * Same behavior as {@link BackToTop} links: smooth scroll to an in-page id and sync the URL hash.
+ * @param {string} href Hash link, e.g. `#page-top`
+ * @param {{ updateHistory?: boolean }} [options]
+ * @returns {boolean} Whether a matching element was found
+ */
+export function scrollToHashAnchor(href, { updateHistory = true } = {}) {
+    if (!href?.startsWith('#')) return false;
+    const id = href.slice(1);
+    const target = document.getElementById(id);
+    if (!target) return false;
+    target.scrollIntoView({ behavior: 'smooth' });
+    if (updateHistory) {
+        history.pushState(null, '', href);
+    }
+    return true;
+}
+
 export const BackToTop = ({ href, children, ...props }) => {
     const handleClick = useCallback((e) => {
         if (!href?.startsWith('#')) return;
         const id = href.slice(1);
-        const target = document.getElementById(id);
-        if (!target) return;
+        if (!document.getElementById(id)) return;
         e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth' });
-        history.pushState(null, '', href);
+        scrollToHashAnchor(href);
     }, [href]);
 
     return React.createElement(BackToTopBase, { href, onClick: handleClick, ...props }, children);

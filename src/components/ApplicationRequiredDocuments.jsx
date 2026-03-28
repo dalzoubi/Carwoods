@@ -48,7 +48,6 @@ const ApplicationRequiredDocuments = () => {
         <title>Carwoods - Application Required Documents</title>
       </Helmet>
 
-      <span id="page-top" />
       <PrintHeader>
         <img src={carwoodsLogo} alt="Carwoods" />
       </PrintHeader>

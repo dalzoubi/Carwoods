@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useLayoutEffect, useMemo } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { AppShell, Container, Content } from './styles';
+import { AppShell, Container, Content, scrollToHashAnchor } from './styles';
 import Home from './components/Home';
 import Apply from './components/Apply';
 import TenantSelectionCriteria from './components/TenantSelectionCriteria';
@@ -13,6 +13,22 @@ import Accessibility from './components/Accessibility';
 import Footer from './components/Footer';
 import ResponsiveNavbar from './components/ResponsiveNavbar';
 import { isDarkPreviewRoute } from './routePaths';
+
+/**
+ * After route changes, scroll like “Back to top” links: smooth `scrollIntoView` on `#page-top`
+ * and sync the hash. Skips when the URL already targets another in-page section.
+ */
+function ScrollToTopOnRouteChange() {
+    const { pathname, hash } = useLocation();
+    useLayoutEffect(() => {
+        if (hash && hash !== '#page-top') return undefined;
+        const raf = requestAnimationFrame(() => {
+            scrollToHashAnchor('#page-top');
+        });
+        return () => cancelAnimationFrame(raf);
+    }, [pathname, hash]);
+    return null;
+}
 
 function PageRoutes() {
     const location = useLocation();
@@ -48,6 +64,7 @@ const AppRoutes = () => {
     const location = useLocation();
     return (
         <Content key={location.pathname}>
+            <span id="page-top" />
             <PageRoutes />
         </Content>
     );
@@ -55,6 +72,7 @@ const AppRoutes = () => {
 
 const App = () => (
     <AppShell>
+        <ScrollToTopOnRouteChange />
         <a href="#main-content" className="sr-only sr-only-focusable">
             Skip to main content
         </a>

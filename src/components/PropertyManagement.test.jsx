@@ -3,7 +3,14 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import PropertyManagement from './PropertyManagement';
 
-const renderWithRouter = (ui) => render(<BrowserRouter>{ui}</BrowserRouter>);
+/** Mirrors App shell: #page-top lives above routed page content (see App.jsx Content). */
+const renderWithRouter = (ui) =>
+    render(
+        <BrowserRouter>
+            <span id="page-top" />
+            {ui}
+        </BrowserRouter>
+    );
 
 const renderWithHash = (hash) => {
   Object.defineProperty(window, 'location', {

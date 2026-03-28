@@ -33,7 +33,6 @@ const TenantSelectionCriteria = () => {
         <title>Carwoods - Tenant Selection Criteria</title>
       </Helmet>
 
-      <span id="page-top" />
       <PrintHeader>
         <img src={carwoodsLogo} alt="Carwoods" />
       </PrintHeader>
