@@ -32,10 +32,4 @@ describe('Home', () => {
         expect(pmLink).toBeInTheDocument();
         expect(pmLink).toHaveAttribute('href', '/property-management');
     });
-
-    it('renders contact link', () => {
-        renderWithRouter(<Home />);
-        const contact = screen.getByRole('link', { name: /^contact us$/i });
-        expect(contact).toHaveAttribute('href', '/contact-us');
-    });
 });

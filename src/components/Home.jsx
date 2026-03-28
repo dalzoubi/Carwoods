@@ -6,7 +6,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { withDarkPath } from '../routePaths';
 import { Helmet } from 'react-helmet';
-import { Paragraph, InlineLink, Button } from '../styles';
+import { Heading, Paragraph, Button } from '../styles';
 
 const listSx = {
     m: 0,
@@ -27,40 +27,13 @@ const Home = () => {
                 />
             </Helmet>
 
-            <Stack spacing={1.5} sx={{ py: { xs: 0.5, sm: 1 }, color: 'text.primary' }}>
-                <Typography
-                    component="h1"
-                    variant="h1"
-                    sx={{
-                        fontSize: { xs: '1.85rem', sm: '2.35rem', md: '2.65rem' },
-                        fontWeight: 700,
-                        lineHeight: 1.15,
-                        textWrap: 'balance',
-                    }}
-                >
-                    Houston Rentals, Managed Right
-                </Typography>
-                <Typography
-                    sx={{
-                        fontSize: '1.15rem',
-                        lineHeight: 1.55,
-                        maxWidth: '42rem',
-                        textWrap: 'balance',
-                    }}
-                >
-                    Clear applications. Consistent communication.
-                </Typography>
-                <Typography
-                    sx={{
-                        fontSize: '1.15rem',
-                        lineHeight: 1.55,
-                        maxWidth: '42rem',
-                        textWrap: 'balance',
-                    }}
-                >
+            <Box sx={{ py: { xs: 0.5, sm: 1 } }}>
+                <Heading>Houston Rentals, Managed Right</Heading>
+                <Paragraph>Clear applications. Consistent communication.</Paragraph>
+                <Paragraph>
                     On-time rent collection, proactive maintenance, and disciplined asset care
-                </Typography>
-            </Stack>
+                </Paragraph>
+            </Box>
 
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2.5} useFlexGap flexWrap="wrap">
                 <Paper
@@ -147,11 +120,6 @@ const Home = () => {
                     </Box>
                 </Paper>
             </Stack>
-
-            <Paragraph sx={{ textAlign: 'center', mb: 0 }}>
-                <InlineLink href={withDarkPath(pathname, '/contact-us')}>Contact us</InlineLink>
-                {' — '}questions welcome, pressure not included.
-            </Paragraph>
         </Stack>
     );
 };
