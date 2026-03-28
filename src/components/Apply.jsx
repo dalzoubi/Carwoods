@@ -27,15 +27,98 @@ const InternalLink = styled(Link)`
     }
 `;
 
-const StepList = styled.ol`
-    margin: ${theme.spacing(2)} 0;
-    padding-left: ${theme.spacing(3)};
+const StepTrack = styled.ol`
+    list-style: none;
+    margin: ${theme.spacing(3)} 0 ${theme.spacing(2)};
+    padding: 0;
+`;
+
+const StepItem = styled.li`
+    display: flex;
+    gap: ${theme.spacing(2)};
+    align-items: stretch;
+    margin: 0;
+    padding: 0;
+
+    &:not(:last-child) {
+        margin-bottom: ${theme.spacing(2)};
+    }
+
+    @media (min-width: 600px) {
+        gap: ${theme.spacing(2.5)};
+    }
+`;
+
+const StepRail = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    width: 2.75rem;
+`;
+
+const StepBadge = styled.span`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1;
+    flex-shrink: 0;
+    background: var(--cta-button-bg);
+    color: var(--cta-button-text);
+    box-shadow: var(--shadow-card);
+`;
+
+const StepConnector = styled.span`
+    flex: 1;
+    width: 2px;
+    margin-top: ${theme.spacing(1)};
+    min-height: ${theme.spacing(2)};
+    background: var(--palette-divider, rgba(0, 0, 0, 0.12));
+    border-radius: 1px;
+
+    ${StepItem}:last-child & {
+        display: none;
+    }
+`;
+
+const StepBody = styled.div`
+    flex: 1;
+    min-width: 0;
+    background: var(--palette-background-paper);
+    border: 1px solid var(--palette-divider, rgba(0, 0, 0, 0.12));
+    border-radius: var(--shape-border-radius);
+    padding: ${theme.spacing(2)} ${theme.spacing(2.5)};
+    box-shadow: var(--shadow-card);
     font-size: var(--typography-body1-font-size);
     line-height: var(--typography-body1-line-height);
+    color: var(--palette-text-primary);
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
 
-    li {
-        margin-bottom: ${theme.spacing(1)};
+    &:hover,
+    &:has(a:focus-visible) {
+        border-color: var(--palette-primary-light);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     }
+`;
+
+const StepHeading = styled.h2`
+    margin: 0 0 ${theme.spacing(1)} 0;
+    font-size: var(--typography-h3-font-size);
+    font-weight: var(--typography-h3-font-weight);
+    line-height: 1.3;
+    color: var(--palette-text-primary);
+`;
+
+const StepDescription = styled.p`
+    margin: 0;
+    color: var(--palette-text-primary);
 `;
 
 const Apply = () => {
@@ -54,20 +137,53 @@ const Apply = () => {
                 All the information you need to apply is on this site. No need to call — follow the steps below.
             </Paragraph>
 
-            <StepList>
-                <li>
-                    <strong>Check eligibility</strong> — Review our{' '}
-                    <InternalLink to={withDarkPath(pathname, '/tenant-selection-criteria')}>Tenant Selection Criteria</InternalLink>.
-                </li>
-                <li>
-                    <strong>Gather your documents</strong> — Use our{' '}
-                    <InternalLink to={withDarkPath(pathname, '/application-required-documents')}>Required Documents</InternalLink> list so your application is complete.
-                </li>
-                <li>
-                    <strong>Submit your application</strong> — Choose a property below to start the online application (RentSpree). Each card also links to the full listing for photos and details.
-                    <RentalPropertyApplyTiles />
-                </li>
-            </StepList>
+            <StepTrack aria-label="Steps to apply">
+                <StepItem>
+                    <StepRail>
+                        <StepBadge aria-hidden="true">1</StepBadge>
+                        <StepConnector aria-hidden="true" />
+                    </StepRail>
+                    <StepBody>
+                        <StepHeading>Check eligibility</StepHeading>
+                        <StepDescription>
+                            Review our{' '}
+                            <InternalLink to={withDarkPath(pathname, '/tenant-selection-criteria')}>
+                                Tenant Selection Criteria
+                            </InternalLink>
+                            .
+                        </StepDescription>
+                    </StepBody>
+                </StepItem>
+                <StepItem>
+                    <StepRail>
+                        <StepBadge aria-hidden="true">2</StepBadge>
+                        <StepConnector aria-hidden="true" />
+                    </StepRail>
+                    <StepBody>
+                        <StepHeading>Gather your documents</StepHeading>
+                        <StepDescription>
+                            Use our{' '}
+                            <InternalLink to={withDarkPath(pathname, '/application-required-documents')}>
+                                Required Documents
+                            </InternalLink>{' '}
+                            list so your application is complete.
+                        </StepDescription>
+                    </StepBody>
+                </StepItem>
+                <StepItem>
+                    <StepRail>
+                        <StepBadge aria-hidden="true">3</StepBadge>
+                        <StepConnector aria-hidden="true" />
+                    </StepRail>
+                    <StepBody>
+                        <StepHeading>Submit your application</StepHeading>
+                        <StepDescription>
+                            Choose a property below to start the online application (RentSpree). Each card also links to the full listing for photos and details.
+                        </StepDescription>
+                        <RentalPropertyApplyTiles />
+                    </StepBody>
+                </StepItem>
+            </StepTrack>
         </div>
     );
 };
