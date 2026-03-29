@@ -3,6 +3,12 @@ import styled from 'styled-components';
 import theme from '../theme';
 import { RENTAL_APPLY_PROPERTIES } from '../data/rentalPropertyApplyTiles.generated';
 
+/** Opens in the browser; mobile OS typically offers the Maps app. */
+function mapsSearchUrl(addressLine, cityStateZip) {
+  const query = [addressLine, cityStateZip].filter(Boolean).join(', ');
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+
 const TileGrid = styled.div`
     display: grid;
     grid-template-columns: 1fr;
@@ -102,6 +108,26 @@ const CityZip = styled.div`
     font-size: 0.9375rem;
 `;
 
+const AddressMapLink = styled.a`
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 2px;
+    transition: color 0.2s ease;
+
+    &:hover ${Street},
+    &:hover ${CityZip} {
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        color: var(--palette-primary-main);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--palette-primary-light);
+        outline-offset: 2px;
+    }
+`;
+
 const DetailList = styled.ul`
     margin: 0;
     padding: 0;
@@ -170,8 +196,15 @@ const RentalPropertyApplyTiles = () => {
             </PhotoLink>
             <TileBody>
               <AddressBlock>
-                <Street>{p.addressLine}</Street>
-                <CityZip>{p.cityStateZip}</CityZip>
+                <AddressMapLink
+                  href={mapsSearchUrl(p.addressLine, p.cityStateZip)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Open map for ${p.addressLine}, ${p.cityStateZip} (new tab)`}
+                >
+                  <Street>{p.addressLine}</Street>
+                  <CityZip>{p.cityStateZip}</CityZip>
+                </AddressMapLink>
               </AddressBlock>
               <DetailList>
                 {p.detailLines.map((line) => (

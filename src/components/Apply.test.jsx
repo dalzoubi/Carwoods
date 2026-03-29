@@ -4,6 +4,11 @@ import { BrowserRouter } from 'react-router-dom';
 import Apply from './Apply';
 import { RENTAL_APPLY_PROPERTIES } from '../data/rentalPropertyApplyTiles.generated';
 
+function mapsSearchUrl(addressLine, cityStateZip) {
+  const query = [addressLine, cityStateZip].filter(Boolean).join(', ');
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+
 const renderWithRouter = (ui) => render(<BrowserRouter>{ui}</BrowserRouter>);
 
 describe('Apply', () => {
@@ -43,6 +48,19 @@ describe('Apply', () => {
       expect(tile).toHaveAttribute('href', p.applyUrl);
       expect(tile).toHaveAttribute('target', '_blank');
       expect(tile).toHaveAttribute('rel', 'noopener noreferrer');
+    }
+  });
+
+  it('links each property address to Google Maps search in a new tab', () => {
+    renderWithRouter(<Apply />);
+    for (const p of RENTAL_APPLY_PROPERTIES) {
+      const escaped = p.addressLine.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const mapLink = screen.getByRole('link', {
+        name: new RegExp(`open map for ${escaped}`, 'i'),
+      });
+      expect(mapLink).toHaveAttribute('href', mapsSearchUrl(p.addressLine, p.cityStateZip));
+      expect(mapLink).toHaveAttribute('target', '_blank');
+      expect(mapLink).toHaveAttribute('rel', 'noopener noreferrer');
     }
   });
 });
