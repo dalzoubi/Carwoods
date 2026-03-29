@@ -7,7 +7,7 @@ export const RENTAL_APPLY_PROPERTIES = [
         "id": "har-8469293",
         "addressLine": "6314 Bonnie Chase Ln",
         "cityStateZip": "Katy, TX 77449",
-        "monthlyRentLabel": "$1,925/mo",
+        "monthlyRentLabel": "$1,895/mo",
         "photoUrl": "https://mediahar.harstatic.com/752618828/lr/752618889.jpeg",
         "harListingUrl": "https://www.har.com/homedetail/6314-bonnie-chase-ln-katy-tx-77449/8469293",
         "applyUrl": "https://apply.link/Ba5-sy4",
