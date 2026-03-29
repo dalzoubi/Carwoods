@@ -204,7 +204,6 @@ const Home = () => {
                     alt="Modern home exterior with warm evening light"
                     width={1400}
                     height={560}
-                    loading="lazy"
                     decoding="async"
                     sizes="100vw"
                     sx={{
