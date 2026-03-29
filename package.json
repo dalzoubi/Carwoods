@@ -19,7 +19,9 @@
     "web-vitals": "^4.2.4"
   },
   "scripts": {
+    "predev": "node scripts/generatePublicIcons.mjs",
     "dev": "vite",
+    "prestart": "node scripts/generatePublicIcons.mjs",
     "start": "vite",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
