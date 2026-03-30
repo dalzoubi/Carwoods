@@ -23,7 +23,7 @@ const Accessibility = () => {
                 <li>Keyboard navigable content with visible focus indicators</li>
                 <li>Alternative text for images</li>
                 <li>Color contrast that meets WCAG guidelines</li>
-                <li>Skip links for keyboard users</li>
+                <li>A skip link to main content for keyboard users</li>
             </ul>
 
             <SubHeading>Feedback</SubHeading>
@@ -33,7 +33,7 @@ const Accessibility = () => {
             </Paragraph>
 
             <Paragraph>
-                <em>Last updated: February 2025</em>
+                <em>Last updated: March 2026</em>
             </Paragraph>
         </div>
     );

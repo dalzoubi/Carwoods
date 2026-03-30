@@ -122,6 +122,40 @@ describe('PropertyManagement', () => {
       fireEvent.click(link);
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
     });
+
+    it('moves focus to the next TOC link on ArrowDown', () => {
+      renderWithRouter(<PropertyManagement />);
+      const first = screen.getByRole('link', { name: /appointment of property manager/i });
+      const second = screen.getByRole('link', { name: /^term$/i });
+      first.focus();
+      fireEvent.keyDown(first, { key: 'ArrowDown' });
+      expect(second).toHaveFocus();
+    });
+
+    it('moves focus to the previous TOC link on ArrowUp', () => {
+      renderWithRouter(<PropertyManagement />);
+      const first = screen.getByRole('link', { name: /appointment of property manager/i });
+      const second = screen.getByRole('link', { name: /^term$/i });
+      second.focus();
+      fireEvent.keyDown(second, { key: 'ArrowUp' });
+      expect(first).toHaveFocus();
+    });
+
+    it('activates the focused TOC link on Space (smooth scroll)', () => {
+      renderWithRouter(<PropertyManagement />);
+      const link = screen.getByRole('link', { name: /management fee/i });
+      link.focus();
+      fireEvent.keyDown(link, { key: ' ' });
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth' });
+    });
+
+    it('does not wrap focus past the last TOC link on ArrowDown', () => {
+      renderWithRouter(<PropertyManagement />);
+      const last = screen.getByRole('link', { name: /entire agreement/i });
+      last.focus();
+      fireEvent.keyDown(last, { key: 'ArrowDown' });
+      expect(last).toHaveFocus();
+    });
   });
 
   describe('Deep linking', () => {

@@ -262,7 +262,45 @@ export const TocNav = forwardRef(({ children, ...props }, ref) => {
         history.pushState(null, '', `#${id}`);
     }, []);
 
-    return React.createElement(TocNavBase, { ref, onClick: handleClick, ...props }, children);
+    const handleKeyDown = useCallback((e) => {
+        const root = e.currentTarget;
+        const anchor = e.target.closest?.('a[href^="#"]');
+        if (!anchor || !root.contains(anchor)) return;
+
+        const links = Array.from(root.querySelectorAll('a[href^="#"]'));
+        if (links.length === 0) return;
+        const idx = links.indexOf(anchor);
+        if (idx === -1) return;
+
+        if (e.key === ' ' || e.key === 'Spacebar') {
+            e.preventDefault();
+            anchor.click();
+            return;
+        }
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (idx < links.length - 1) links[idx + 1].focus();
+            return;
+        }
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (idx > 0) links[idx - 1].focus();
+            return;
+        }
+        if (e.key === 'Home') {
+            e.preventDefault();
+            links[0].focus();
+            return;
+        }
+        if (e.key === 'End') {
+            e.preventDefault();
+            links[links.length - 1].focus();
+            return;
+        }
+    }, []);
+
+    return React.createElement(TocNavBase, { ref, onClick: handleClick, onKeyDown: handleKeyDown, ...props }, children);
 });
 TocNav.displayName = 'TocNav';
 

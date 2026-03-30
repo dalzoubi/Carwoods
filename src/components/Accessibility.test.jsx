@@ -23,7 +23,7 @@ describe('Accessibility', () => {
     expect(screen.getByText(/semantic html and clear heading structure/i)).toBeInTheDocument();
     expect(screen.getByText(/keyboard navigable content/i)).toBeInTheDocument();
     expect(screen.getByText(/alternative text for images/i)).toBeInTheDocument();
-    expect(screen.getByText(/skip links for keyboard users/i)).toBeInTheDocument();
+    expect(screen.getByText(/skip link to main content for keyboard users/i)).toBeInTheDocument();
   });
 
   it('renders Feedback section with link to contact page', () => {
@@ -36,6 +36,6 @@ describe('Accessibility', () => {
 
   it('displays last updated date', () => {
     renderWithRouter(<Accessibility />);
-    expect(screen.getByText(/last updated: february 2025/i)).toBeInTheDocument();
+    expect(screen.getByText(/last updated: march 2026/i)).toBeInTheDocument();
   });
 });
