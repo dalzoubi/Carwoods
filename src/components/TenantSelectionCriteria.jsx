@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { Heading, SubHeading, SectionHeading, Paragraph, TocNav, BackToTop, nestedListStyle, nestedUlStyle, PrintButton, PrintHeader, PrintFilterSummary, PageHeader, FilteredSection } from '../styles';
+import { Heading, SubHeading, SectionHeading, Paragraph, BackToTop, nestedListStyle, nestedUlStyle, PrintButton, PrintHeader, PrintFilterSummary, PageHeader, FilteredSection } from '../styles';
+import { TocPageLayout } from './TocPageLayout';
 import ApplicantWizard, { loadProfile, buildChipLabel } from './ApplicantWizard';
 import { ApplyFlowSubnav } from './ApplyFlowSubnav';
 import carwoodsLogo from '../assets/carwoods-logo.png';
@@ -25,6 +26,40 @@ const TenantSelectionCriteria = () => {
     cosignerPolicy:    !f || f.guarantorCosigner === 'cosigner' || f.guarantorCosigner === 'not-sure',
     pets:              !f || (f.hasPets && f.hasPets !== 'none'),
     petsRestrictions:  !f || f.hasPets === 'pets',
+  };
+
+  /** Matches TOC order: only visible sections get the next index. */
+  const sectionNumbers = useMemo(() => {
+    const seq = [
+      ['non-negotiable', true],
+      ['at-a-glance', true],
+      ['details', true],
+      ['housing-assistance', show.housingAssistance],
+      ['credit-exception', show.creditException],
+      ['guarantor-policy', show.guarantorPolicy],
+      ['cosigner-policy', show.cosignerPolicy],
+      ['pets', show.pets],
+    ];
+    let i = 0;
+    const map = {};
+    seq.forEach(([key, visible]) => {
+      if (visible) {
+        i += 1;
+        map[key] = i;
+      }
+    });
+    return map;
+  }, [
+    show.housingAssistance,
+    show.creditException,
+    show.guarantorPolicy,
+    show.cosignerPolicy,
+    show.pets,
+  ]);
+
+  const sectionTitle = (key, text) => {
+    const n = sectionNumbers[key];
+    return n != null ? `${n}. ${text}` : text;
   };
 
   return (
@@ -68,38 +103,41 @@ const TenantSelectionCriteria = () => {
 
       <ApplicantWizard onProfileChange={setProfile} />
 
-      <TocNav aria-label="Table of contents">
-        <SubHeading>Contents</SubHeading>
-        <ol>
-          <li><a href="#non-negotiable">Important: Read First</a></li>
-          <li><a href="#at-a-glance">At a glance</a></li>
-          <li>
-            <a href="#details">Details</a>
-            <ol type="a">
-              <li><a href="#employment">Employment</a></li>
-              <li><a href="#income">Income</a></li>
-              <li><a href="#rental-history">Rental history</a></li>
-              <li><a href="#credit">Credit</a></li>
-              <li><a href="#background">Background</a></li>
+      <TocPageLayout
+        toc={
+          <>
+            <SubHeading>Contents</SubHeading>
+            <ol>
+              <li><a href="#non-negotiable">Important: Read First</a></li>
+              <li><a href="#at-a-glance">At a glance</a></li>
+              <li>
+                <a href="#details">Details</a>
+                <ol type="a">
+                  <li><a href="#employment">Employment</a></li>
+                  <li><a href="#income">Income</a></li>
+                  <li><a href="#rental-history">Rental history</a></li>
+                  <li><a href="#credit">Credit</a></li>
+                  <li><a href="#background">Background</a></li>
+                </ol>
+              </li>
+              {show.housingAssistance && <li><a href="#housing-assistance">Housing Assistance</a></li>}
+              {show.creditException && <li><a href="#credit-exception">Discretionary credit exception (rare)</a></li>}
+              {show.guarantorPolicy && <li><a href="#guarantor-policy">Guarantor policy</a></li>}
+              {show.cosignerPolicy && <li><a href="#cosigner-policy">Co-signer policy</a></li>}
+              {show.pets && (
+                <li>
+                  <a href="#pets">Pets</a>
+                  <ol type="a">
+                    <li><a href="#assistance-animals">Assistance animals</a></li>
+                  </ol>
+                </li>
+              )}
             </ol>
-          </li>
-          {show.housingAssistance && <li><a href="#housing-assistance">Housing Assistance</a></li>}
-          {show.creditException && <li><a href="#credit-exception">Discretionary credit exception (rare)</a></li>}
-          {show.guarantorPolicy && <li><a href="#guarantor-policy">Guarantor policy</a></li>}
-          {show.cosignerPolicy && <li><a href="#cosigner-policy">Co-signer policy</a></li>}
-          {show.pets && (
-            <li>
-              <a href="#pets">Pets</a>
-              <ol type="a">
-                <li><a href="#assistance-animals">Assistance animals</a></li>
-              </ol>
-            </li>
-          )}
-        </ol>
-      </TocNav>
-
+          </>
+        }
+      >
       <section id="non-negotiable" aria-labelledby="heading-non-negotiable">
-        <SubHeading id="heading-non-negotiable">1. Important: Read First</SubHeading>
+        <SubHeading id="heading-non-negotiable">{sectionTitle('non-negotiable', 'Important: Read First')}</SubHeading>
         <ul>
           <li>All requirements below are <strong>mandatory</strong>. Applications that do not meet every requirement may be <strong>denied</strong>.</li>
           <li>No verbal assurances, explanations, or promises can replace documentation.</li>
@@ -111,7 +149,7 @@ const TenantSelectionCriteria = () => {
       </section>
 
       <section id="at-a-glance" aria-labelledby="heading-at-a-glance">
-        <SubHeading id="heading-at-a-glance">2. At a glance</SubHeading>
+        <SubHeading id="heading-at-a-glance">{sectionTitle('at-a-glance', 'At a glance')}</SubHeading>
         <ul>
           <li><strong>Employment:</strong> 24+ months of verifiable employment history</li>
           <li><strong>Income:</strong> Gross monthly income ≥ 3× monthly rent (or ≥ 2.5× your tenant portion if using housing assistance)</li>
@@ -123,7 +161,7 @@ const TenantSelectionCriteria = () => {
       </section>
 
       <section id="details" aria-labelledby="heading-details">
-        <SubHeading id="heading-details">3. Details</SubHeading>
+        <SubHeading id="heading-details">{sectionTitle('details', 'Details')}</SubHeading>
 
         <SectionHeading id="employment">a. Employment</SectionHeading>
         <ul>
@@ -179,7 +217,7 @@ const TenantSelectionCriteria = () => {
       </section>
 
       <FilteredSection id="housing-assistance" aria-labelledby="heading-housing-assistance" data-filtered={String(!show.housingAssistance)}>
-        <SubHeading id="heading-housing-assistance">4. Housing Assistance (Section 8 and others)</SubHeading>
+        <SubHeading id="heading-housing-assistance">{sectionTitle('housing-assistance', 'Housing Assistance (Section 8 and others)')}</SubHeading>
         <ul style={nestedListStyle}>
           <li>All applicants are screened using the same criteria for rental history, credit, criminal background, and references</li>
           <li>Income requirement is 2.5× your tenant portion of rent as determined by the Housing Authority</li>
@@ -192,7 +230,7 @@ const TenantSelectionCriteria = () => {
       </FilteredSection>
 
       <FilteredSection id="credit-exception" aria-labelledby="heading-credit-exception" data-filtered={String(!show.creditException)}>
-        <SubHeading id="heading-credit-exception">5. Discretionary credit exception (rare)</SubHeading>
+        <SubHeading id="heading-credit-exception">{sectionTitle('credit-exception', 'Discretionary credit exception (rare)')}</SubHeading>
         <Paragraph>
           Applicants who do not meet the minimum credit score requirement may be considered <strong>only</strong> if all
           conditions below are met. Approval under this exception is not guaranteed and remains at the sole discretion of the
@@ -209,7 +247,7 @@ const TenantSelectionCriteria = () => {
       </FilteredSection>
 
       <FilteredSection id="guarantor-policy" aria-labelledby="heading-guarantor-policy" data-filtered={String(!show.guarantorPolicy)}>
-          <SubHeading id="heading-guarantor-policy">6. Guarantor policy</SubHeading>
+          <SubHeading id="heading-guarantor-policy">{sectionTitle('guarantor-policy', 'Guarantor policy')}</SubHeading>
 
           <Paragraph>
               A guarantor is a qualified individual who agrees in writing to be financially responsible for the lease obligations
@@ -289,7 +327,7 @@ const TenantSelectionCriteria = () => {
       </FilteredSection>
 
       <FilteredSection id="cosigner-policy" aria-labelledby="heading-cosigner-policy" data-filtered={String(!show.cosignerPolicy)}>
-          <SubHeading id="heading-cosigner-policy">7. Co-signer policy</SubHeading>
+          <SubHeading id="heading-cosigner-policy">{sectionTitle('cosigner-policy', 'Co-signer policy')}</SubHeading>
 
           <Paragraph>
               A co-signer is <strong>not the same as a guarantor</strong>. A co-signer signs the lease itself as a
@@ -383,7 +421,7 @@ const TenantSelectionCriteria = () => {
       </FilteredSection>
 
       <FilteredSection id="pets" aria-labelledby="heading-pets" data-filtered={String(!show.pets)}>
-          <SubHeading id="heading-pets">8. Pets</SubHeading>
+          <SubHeading id="heading-pets">{sectionTitle('pets', 'Pets')}</SubHeading>
 
           <Paragraph>
             Pets are subject to separate approval. Restrictions may apply by type, breed, size, and quantity. Pet approval is not
@@ -450,6 +488,7 @@ const TenantSelectionCriteria = () => {
           </>)}
           <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </FilteredSection>
+      </TocPageLayout>
     </div>
   );
 };

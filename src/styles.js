@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, forwardRef } from 'react';
 import styled from 'styled-components';
 import { NavLink as RouterNavLink } from 'react-router-dom';
 import theme from './theme';
@@ -158,6 +158,48 @@ export const Button = styled.a`
     }
 `;
 
+export const TocPageLayoutGrid = styled.div.attrs({ 'data-toc-page-layout': true })`
+    display: block;
+
+    @media (min-width: 1200px) {
+        display: grid;
+        grid-template-columns: minmax(200px, 270px) minmax(0, 1fr);
+        gap: ${theme.spacing(3)};
+        align-items: start;
+    }
+
+    @media print {
+        display: block !important;
+    }
+`;
+
+export const TocPageAside = styled.aside.attrs({ 'data-toc-aside': true })`
+    @media (min-width: 1200px) {
+        position: sticky;
+        top: calc(var(--sticky-nav-offset, 48px) + 12px);
+        max-height: calc(100dvh - var(--sticky-nav-offset, 48px) - 24px);
+        overflow-y: auto;
+        align-self: start;
+    }
+
+    @media print {
+        position: static !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    & > nav {
+        @media (min-width: 1200px) {
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+    }
+`;
+
+export const TocPageMain = styled.div.attrs({ 'data-toc-page-main': true })`
+    min-width: 0;
+`;
+
 const TocNavBase = styled.nav`
     background: var(--toc-nav-bg);
     border-left: 4px solid var(--palette-primary-main);
@@ -165,7 +207,8 @@ const TocNavBase = styled.nav`
     padding: ${theme.spacing(1.5)} ${theme.spacing(2.5)};
     margin: ${theme.spacing(2)} 0 ${theme.spacing(3)};
 
-    ol, ul {
+    ol,
+    ul {
         margin: ${theme.spacing(0.5)} 0;
         padding-left: ${theme.spacing(2.5)};
     }
@@ -179,6 +222,13 @@ const TocNavBase = styled.nav`
         color: var(--palette-primary-main);
         text-decoration: none;
         text-underline-offset: 2px;
+        display: inline-block;
+        border-radius: 4px;
+        padding: 2px 4px;
+        margin: -2px -4px;
+        transition:
+            background-color 0.15s ease,
+            color 0.15s ease;
 
         &:hover {
             text-decoration: underline;
@@ -191,9 +241,16 @@ const TocNavBase = styled.nav`
             border-radius: 2px;
         }
     }
+
+    a.toc-scroll-spy-active {
+        font-weight: 600;
+        color: var(--toc-link-active-fg);
+        background-color: var(--toc-link-active-bg);
+        text-decoration: none;
+    }
 `;
 
-export const TocNav = ({ children, ...props }) => {
+export const TocNav = forwardRef(({ children, ...props }, ref) => {
     const handleClick = useCallback((e) => {
         const anchor = e.target.closest('a[href^="#"]');
         if (!anchor) return;
@@ -205,8 +262,9 @@ export const TocNav = ({ children, ...props }) => {
         history.pushState(null, '', `#${id}`);
     }, []);
 
-    return React.createElement(TocNavBase, { onClick: handleClick, ...props }, children);
-};
+    return React.createElement(TocNavBase, { ref, onClick: handleClick, ...props }, children);
+});
+TocNav.displayName = 'TocNav';
 
 const SmoothDetailsBody = styled.div`
     display: grid;

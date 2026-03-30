@@ -27,6 +27,10 @@
 
 /* Font smoothing is handled by MUI CssBaseline via the theme */
 
+html {
+  scroll-padding-top: calc(var(--sticky-nav-offset, 48px) + 12px);
+}
+
 @media print {
   /* Avoid viewport-height layout forcing extra blank pages when printing */
   [data-layout='app-shell'] {

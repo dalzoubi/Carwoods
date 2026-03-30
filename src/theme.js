@@ -106,6 +106,11 @@ export function applyThemeCssVariables(muiTheme) {
     root.style.setProperty('--menu-item-active-fg', isDark ? '#ffffff' : '#ffffff');
 
     root.style.setProperty('--toc-nav-bg', isDark ? 'rgba(100, 181, 246, 0.08)' : '#f0f4ff');
+    root.style.setProperty('--toc-link-active-fg', isDark ? palette.primary.light : palette.primary.dark);
+    root.style.setProperty(
+        '--toc-link-active-bg',
+        isDark ? 'rgba(144, 202, 249, 0.14)' : 'rgba(25, 118, 210, 0.1)'
+    );
     root.style.setProperty('--personalize-card-bg', isDark ? 'rgba(100, 181, 246, 0.08)' : '#f0f4ff');
 
     root.style.setProperty('--filter-banner-bg', isDark ? 'rgba(245, 158, 11, 0.12)' : '#fff8e1');

@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useLocation } from 'react-router-dom';
-import { Heading, SubHeading, Paragraph, InlineLink, TocNav, BackToTop, nestedListStyle, nestedUlStyle, PrintButton, PrintHeader, PageHeader, FilteredSection } from '../styles';
+import { Heading, SubHeading, Paragraph, InlineLink, BackToTop, nestedListStyle, nestedUlStyle, PrintButton, PrintHeader, PageHeader, FilteredSection } from '../styles';
+import { TocPageLayout } from './TocPageLayout';
 import ApplicantWizard, { loadProfile } from './ApplicantWizard';
 import { ApplyFlowSubnav } from './ApplyFlowSubnav';
 import { withDarkPath } from '../routePaths';
@@ -42,6 +43,46 @@ const ApplicationRequiredDocuments = () => {
 
   const anyBenefitSubsection = show.va || show.ssaSsi || show.ssdi || show.retirement || show.childSupport || show.otherBenefits;
 
+  /** Matches TOC order: only visible sections get the next index. */
+  const docSectionNumbers = useMemo(() => {
+    const benefitsVisible = show.benefits && anyBenefitSubsection;
+    const seq = [
+      ['identification', true],
+      ['employed', show.employed],
+      ['self-employed', show.selfEmployed],
+      ['rental-history', true],
+      ['pets-animals', show.petsSection],
+      ['benefits', benefitsVisible],
+      ['emergency-contact', true],
+      ['section-8', show.section8],
+      ['guarantor', show.guarantor],
+      ['cosigner', show.cosigner],
+    ];
+    let i = 0;
+    const map = {};
+    seq.forEach(([key, visible]) => {
+      if (visible) {
+        i += 1;
+        map[key] = i;
+      }
+    });
+    return map;
+  }, [
+    show.employed,
+    show.selfEmployed,
+    show.petsSection,
+    show.benefits,
+    anyBenefitSubsection,
+    show.section8,
+    show.guarantor,
+    show.cosigner,
+  ]);
+
+  const docTitle = (key, text) => {
+    const n = docSectionNumbers[key];
+    return n != null ? `${n}. ${text}` : text;
+  };
+
   return (
     <div>
       <Helmet>
@@ -77,45 +118,48 @@ const ApplicationRequiredDocuments = () => {
 
       <ApplicantWizard onProfileChange={setProfile} />
 
-      <TocNav aria-label="Table of contents">
-        <SubHeading>Contents</SubHeading>
-        <ol>
-          <li><a href="#identification">Personal Identification</a></li>
-          {show.employed && <li><a href="#employed">Employed</a></li>}
-          {show.selfEmployed && <li><a href="#self-employed">Self-Employed</a></li>}
-          <li><a href="#rental-history">Rental History</a></li>
-          {show.petsSection && (
-            <li>
-              <a href="#pets-animals">Pets and Assistance Animals</a>
-              <ol type="a">
-                {show.petsOnly && <li><a href="#pets-only">Pets</a></li>}
-                {show.serviceAnimal && <li><a href="#service-animals">Service Animals</a></li>}
-                {show.esa && <li><a href="#esa">Emotional Support Animals (ESA)</a></li>}
-              </ol>
-            </li>
-          )}
-          {show.benefits && anyBenefitSubsection && (
-            <li>
-              <a href="#benefits">Government or Other Benefits</a>
-              <ol type="a">
-                {show.va && <li><a href="#va-benefits">VA Benefits</a></li>}
-                {show.ssaSsi && <li><a href="#ssa-ssi">SSA / SSI</a></li>}
-                {show.ssdi && <li><a href="#ssdi">SSDI</a></li>}
-                {show.retirement && <li><a href="#retirement">Retirement / Pension</a></li>}
-                {show.childSupport && <li><a href="#child-support">Child Support or Spousal Maintenance</a></li>}
-                {show.otherBenefits && <li><a href="#other-benefits">All Other Benefits</a></li>}
-              </ol>
-            </li>
-          )}
-          <li><a href="#emergency-contact">Emergency Contact</a></li>
-          {show.section8 && <li><a href="#section-8">Section 8 / Housing Assistance</a></li>}
-          {show.guarantor && <li><a href="#guarantor">Guarantor</a></li>}
-          {show.cosigner && <li><a href="#cosigner">Co-Signer</a></li>}
-        </ol>
-      </TocNav>
-
+      <TocPageLayout
+        toc={
+          <>
+            <SubHeading>Contents</SubHeading>
+            <ol>
+              <li><a href="#identification">Personal Identification</a></li>
+              {show.employed && <li><a href="#employed">Employed</a></li>}
+              {show.selfEmployed && <li><a href="#self-employed">Self-Employed</a></li>}
+              <li><a href="#rental-history">Rental History</a></li>
+              {show.petsSection && (
+                <li>
+                  <a href="#pets-animals">Pets and Assistance Animals</a>
+                  <ol type="a">
+                    {show.petsOnly && <li><a href="#pets-only">Pets</a></li>}
+                    {show.serviceAnimal && <li><a href="#service-animals">Service Animals</a></li>}
+                    {show.esa && <li><a href="#esa">Emotional Support Animals (ESA)</a></li>}
+                  </ol>
+                </li>
+              )}
+              {show.benefits && anyBenefitSubsection && (
+                <li>
+                  <a href="#benefits">Government or Other Benefits</a>
+                  <ol type="a">
+                    {show.va && <li><a href="#va-benefits">VA Benefits</a></li>}
+                    {show.ssaSsi && <li><a href="#ssa-ssi">SSA / SSI</a></li>}
+                    {show.ssdi && <li><a href="#ssdi">SSDI</a></li>}
+                    {show.retirement && <li><a href="#retirement">Retirement / Pension</a></li>}
+                    {show.childSupport && <li><a href="#child-support">Child Support or Spousal Maintenance</a></li>}
+                    {show.otherBenefits && <li><a href="#other-benefits">All Other Benefits</a></li>}
+                  </ol>
+                </li>
+              )}
+              <li><a href="#emergency-contact">Emergency Contact</a></li>
+              {show.section8 && <li><a href="#section-8">Section 8 / Housing Assistance</a></li>}
+              {show.guarantor && <li><a href="#guarantor">Guarantor</a></li>}
+              {show.cosigner && <li><a href="#cosigner">Co-Signer</a></li>}
+            </ol>
+          </>
+        }
+      >
       <section id="identification" aria-labelledby="heading-identification">
-        <SubHeading id="heading-identification">1. Personal Identification (All Adults 18+)</SubHeading>
+        <SubHeading id="heading-identification">{docTitle('identification', 'Personal Identification (All Adults 18+)')}</SubHeading>
         <ol style={nestedListStyle}>
           <li>Valid government-issued photo ID (Driver&apos;s License or State ID, color copy).</li>
           <li>
@@ -132,7 +176,7 @@ const ApplicationRequiredDocuments = () => {
       </section>
 
       <FilteredSection id="employed" aria-labelledby="heading-employed" data-filtered={String(!show.employed)}>
-        <SubHeading id="heading-employed">2. If Employed</SubHeading>
+        <SubHeading id="heading-employed">{docTitle('employed', 'If Employed')}</SubHeading>
         <ol style={nestedListStyle}>
           <li>Most recent <strong>90 days</strong> of pay stubs showing year-to-date earnings.</li>
           <li>Written employment verification (HR letter or email confirming start date, position, and current status).</li>
@@ -146,7 +190,7 @@ const ApplicationRequiredDocuments = () => {
       </FilteredSection>
 
       <FilteredSection id="self-employed" aria-labelledby="heading-self-employed" data-filtered={String(!show.selfEmployed)}>
-        <SubHeading id="heading-self-employed">3. If Self-Employed</SubHeading>
+        <SubHeading id="heading-self-employed">{docTitle('self-employed', 'If Self-Employed')}</SubHeading>
         <ol style={nestedListStyle}>
           <li>Most recent <strong>two (2) years</strong> of filed federal tax returns.</li>
           <li>
@@ -159,7 +203,7 @@ const ApplicationRequiredDocuments = () => {
       </FilteredSection>
 
       <section id="rental-history" aria-labelledby="heading-rental-history">
-        <SubHeading id="heading-rental-history">4. Rental History</SubHeading>
+        <SubHeading id="heading-rental-history">{docTitle('rental-history', 'Rental History')}</SubHeading>
         <ol style={nestedListStyle}>
           <li>
             Landlord reference information for the past <strong>24 months</strong>
@@ -173,7 +217,7 @@ const ApplicationRequiredDocuments = () => {
       </section>
 
       <FilteredSection id="pets-animals" aria-labelledby="heading-pets-animals" data-filtered={String(!show.petsSection)}>
-        <SubHeading id="heading-pets-animals">5. Pets and Assistance Animals</SubHeading>
+        <SubHeading id="heading-pets-animals">{docTitle('pets-animals', 'Pets and Assistance Animals')}</SubHeading>
         <ol type="a" style={nestedListStyle}>
           <li id="pets-only" style={!show.petsOnly ? { display: 'none' } : undefined}>
             <strong>Pets (if applicable):</strong> Clear photos of each pet and current vaccination records.
@@ -202,7 +246,7 @@ const ApplicationRequiredDocuments = () => {
       </FilteredSection>
 
       <FilteredSection id="benefits" aria-labelledby="heading-benefits" data-filtered={String(!(show.benefits && anyBenefitSubsection))}>
-        <SubHeading id="heading-benefits">6. Applicants Receiving Government or Other Benefits</SubHeading>
+        <SubHeading id="heading-benefits">{docTitle('benefits', 'Applicants Receiving Government or Other Benefits')}</SubHeading>
         <ol type="a" style={nestedListStyle}>
           <li id="va-benefits" style={!show.va ? { display: 'none' } : undefined}>
             <strong>VA (Veterans Affairs) Benefits:</strong>
@@ -248,7 +292,7 @@ const ApplicationRequiredDocuments = () => {
       </FilteredSection>
 
       <section id="emergency-contact" aria-labelledby="heading-emergency-contact">
-        <SubHeading id="heading-emergency-contact">7. Emergency Contact</SubHeading>
+        <SubHeading id="heading-emergency-contact">{docTitle('emergency-contact', 'Emergency Contact')}</SubHeading>
         <ol style={nestedListStyle}>
           <li>
             Emergency contact for someone <strong>not residing</strong> in the household
@@ -259,7 +303,7 @@ const ApplicationRequiredDocuments = () => {
       </section>
 
       <FilteredSection id="section-8" aria-labelledby="heading-section-8" data-filtered={String(!show.section8)}>
-        <SubHeading id="heading-section-8">8. Section 8 / Housing Assistance Applicants (Additional Requirements)</SubHeading>
+        <SubHeading id="heading-section-8">{docTitle('section-8', 'Section 8 / Housing Assistance Applicants (Additional Requirements)')}</SubHeading>
         <ol style={nestedListStyle}>
           <li>Active Housing Choice Voucher showing tenant name, bedroom size, issue date, and expiration date.</li>
           <li>Tenant Rent Portion Estimate, affordability worksheet, or equivalent from the assigned caseworker or Housing Authority.</li>
@@ -277,7 +321,7 @@ const ApplicationRequiredDocuments = () => {
       </FilteredSection>
 
       <FilteredSection id="guarantor" aria-labelledby="heading-guarantor" data-filtered={String(!show.guarantor)}>
-        <SubHeading id="heading-guarantor">9. If a Guarantor is Required</SubHeading>
+        <SubHeading id="heading-guarantor">{docTitle('guarantor', 'If a Guarantor is Required')}</SubHeading>
         <Paragraph>
           A guarantor signs a separate guaranty agreement (not the lease) and is only liable if the primary tenant defaults. Guarantors are accepted only when requested by management — see{' '}
           <InlineLink href={withDarkPath(pathname, '/tenant-selection-criteria')}>Tenant Selection Criteria</InlineLink> for eligibility.
@@ -299,7 +343,7 @@ const ApplicationRequiredDocuments = () => {
       </FilteredSection>
 
       <FilteredSection id="cosigner" aria-labelledby="heading-cosigner" data-filtered={String(!show.cosigner)}>
-        <SubHeading id="heading-cosigner">10. If a Co-Signer is Required</SubHeading>
+        <SubHeading id="heading-cosigner">{docTitle('cosigner', 'If a Co-Signer is Required')}</SubHeading>
         <Paragraph>
           A co-signer is <strong>not the same as a guarantor</strong>. A co-signer signs the lease itself as a co-tenant and is jointly and severally liable for all lease obligations from day one — regardless of whether the primary tenant pays. Co-signers must meet the full applicant qualification standards. See{' '}
           <InlineLink href={withDarkPath(pathname, '/tenant-selection-criteria')}>Tenant Selection Criteria</InlineLink> for eligibility.
@@ -319,6 +363,7 @@ const ApplicationRequiredDocuments = () => {
         </ol>
         <BackToTop href="#page-top">↑ Back to top</BackToTop>
       </FilteredSection>
+      </TocPageLayout>
     </div>
   );
 };

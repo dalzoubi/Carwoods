@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import {
     AppBar,
     Toolbar,
@@ -46,7 +46,15 @@ const legalLinks = [
     { to: '/accessibility', label: 'Accessibility' },
 ];
 
+const LOGO_HEIGHT_PX = 32;
+
+const headerNavLinkStyle = {
+    padding: '0.3rem 0.55rem',
+    fontSize: '0.9rem',
+};
+
 const ResponsiveNavbar = () => {
+    const appBarRef = useRef(null);
     const navigate = useNavigate();
     const { pathname } = useLocation();
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -65,6 +73,27 @@ const ResponsiveNavbar = () => {
         resetOverride,
     } = useThemeMode();
     const showAppearanceMenu = darkThemeFeatureEnabled || isDarkPreviewPath;
+
+    useLayoutEffect(() => {
+        const el = appBarRef.current;
+        if (!el) return undefined;
+        const syncStickyOffset = () => {
+            document.documentElement.style.setProperty(
+                '--sticky-nav-offset',
+                `${Math.round(el.getBoundingClientRect().height)}px`
+            );
+        };
+        syncStickyOffset();
+        if (typeof ResizeObserver === 'undefined') {
+            window.addEventListener('resize', syncStickyOffset);
+            return () => window.removeEventListener('resize', syncStickyOffset);
+        }
+        const ro = new ResizeObserver(syncStickyOffset);
+        ro.observe(el);
+        return () => {
+            ro.disconnect();
+        };
+    }, []);
 
     const handleDrawerToggle = () => {
         setDrawerOpen(!drawerOpen);
@@ -227,15 +256,16 @@ const ResponsiveNavbar = () => {
     );
 
     const desktopLegalLinkStyle = {
-        fontSize: '0.8125rem',
+        fontSize: '0.75rem',
         fontWeight: 600,
         opacity: 0.92,
-        padding: '0.35rem 0.5rem',
+        padding: '0.25rem 0.45rem',
     };
 
     return (
         <>
             <AppBar
+                ref={appBarRef}
                 position="sticky"
                 elevation={0}
                 sx={{
@@ -247,10 +277,13 @@ const ResponsiveNavbar = () => {
                 }}
             >
                 <Toolbar
+                    variant="dense"
                     sx={{
+                        minHeight: 48,
+                        px: { xs: 1, sm: 1.5 },
                         flexWrap: 'wrap',
-                        rowGap: 0.5,
-                        columnGap: 0.5,
+                        rowGap: 0.25,
+                        columnGap: 0.25,
                     }}
                 >
                     {isMobile ? (
@@ -259,22 +292,24 @@ const ResponsiveNavbar = () => {
                                 edge="start"
                                 color="inherit"
                                 type="button"
+                                size="small"
                                 aria-label="open menu"
                                 aria-haspopup="dialog"
                                 aria-expanded={drawerOpen}
                                 aria-controls={drawerOpen ? DRAWER_PAPER_ID : undefined}
                                 onClick={handleDrawerToggle}
                             >
-                                <MenuIcon />
+                                <MenuIcon fontSize="small" />
                             </IconButton>
                             <NavLink to={withDarkPath(pathname, '/')} style={{ marginLeft: 'auto', marginRight: 'auto' }}>
-                                <img src={carwoodsLogo} alt="Carwoods" style={{ height: '40px' }} />
+                                <img src={carwoodsLogo} alt="Carwoods" style={{ height: `${LOGO_HEIGHT_PX}px`, display: 'block' }} />
                             </NavLink>
                             {showAppearanceMenu ? (
                                 <IconButton
                                     edge="end"
                                     color="inherit"
                                     type="button"
+                                    size="small"
                                     id="appearance-menu-button-toolbar"
                                     data-appearance-trigger="toolbar"
                                     aria-label="Appearance and theme"
@@ -301,13 +336,24 @@ const ResponsiveNavbar = () => {
                     ) : (
                         <>
                             <NavLink to={withDarkPath(pathname, '/')} style={{ flexShrink: 0 }}>
-                                <img src={carwoodsLogo} alt="Carwoods" style={{ height: '40px' }} />
+                                <img src={carwoodsLogo} alt="Carwoods" style={{ height: `${LOGO_HEIGHT_PX}px`, display: 'block' }} />
                             </NavLink>
                             <nav
                                 aria-label="main navigation"
-                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexGrow: 1, flexWrap: 'wrap', rowGap: 4 }}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexGrow: 1,
+                                    flexWrap: 'wrap',
+                                    rowGap: 2,
+                                }}
                             >
-                                <NavLink to={withDarkPath(pathname, '/')} className={({ isActive }) => (isActive ? 'active' : '')}>
+                                <NavLink
+                                    to={withDarkPath(pathname, '/')}
+                                    className={({ isActive }) => (isActive ? 'active' : '')}
+                                    style={headerNavLinkStyle}
+                                >
                                     Home
                                 </NavLink>
 
@@ -322,17 +368,17 @@ const ResponsiveNavbar = () => {
                                     aria-label="Tenant menu"
                                     sx={{
                                         color: 'inherit',
-                                        padding: '0.5rem 1rem',
+                                        padding: '0.3rem 0.55rem',
                                         fontWeight: 'bold',
-                                        fontSize: 'inherit',
+                                        fontSize: '0.9rem',
                                         borderRadius: '4px',
                                         '&:hover': {
                                             backgroundColor: 'var(--nav-chrome-hover-bg)',
                                         },
                                     }}
                                 >
-                                    <span style={{ marginRight: '0.25rem' }}>Tenant</span>
-                                    <KeyboardArrowDown fontSize="small" />
+                                    <span style={{ marginRight: '0.2rem' }}>Tenant</span>
+                                    <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
                                 </IconButton>
                                 <Menu
                                     id="tenant-menu"
@@ -385,17 +431,17 @@ const ResponsiveNavbar = () => {
                                     aria-label="Landlord menu"
                                     sx={{
                                         color: 'inherit',
-                                        padding: '0.5rem 1rem',
+                                        padding: '0.3rem 0.55rem',
                                         fontWeight: 'bold',
-                                        fontSize: 'inherit',
+                                        fontSize: '0.9rem',
                                         borderRadius: '4px',
                                         '&:hover': {
                                             backgroundColor: 'var(--nav-chrome-hover-bg)',
                                         },
                                     }}
                                 >
-                                    <span style={{ marginRight: '0.25rem' }}>Landlord</span>
-                                    <KeyboardArrowDown fontSize="small" />
+                                    <span style={{ marginRight: '0.2rem' }}>Landlord</span>
+                                    <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
                                 </IconButton>
                                 <Menu
                                     id="landlord-menu"
@@ -437,7 +483,11 @@ const ResponsiveNavbar = () => {
                                     ))}
                                 </Menu>
 
-                                <NavLink to={withDarkPath(pathname, '/contact-us')} className={({ isActive }) => (isActive ? 'active' : '')}>
+                                <NavLink
+                                    to={withDarkPath(pathname, '/contact-us')}
+                                    className={({ isActive }) => (isActive ? 'active' : '')}
+                                    style={headerNavLinkStyle}
+                                >
                                     Contact Us
                                 </NavLink>
 
@@ -482,6 +532,7 @@ const ResponsiveNavbar = () => {
                                     <IconButton
                                         color="inherit"
                                         type="button"
+                                        size="small"
                                         id="appearance-menu-button-toolbar"
                                         data-appearance-trigger="toolbar"
                                         aria-label="Appearance and theme"
@@ -489,7 +540,7 @@ const ResponsiveNavbar = () => {
                                         aria-expanded={Boolean(appearanceAnchor)}
                                         aria-controls={appearanceAnchor ? 'appearance-menu' : undefined}
                                         onClick={handleAppearanceOpen}
-                                        sx={{ ml: 0.5 }}
+                                        sx={{ ml: 0.25 }}
                                     >
                                         <SettingsBrightness />
                                     </IconButton>
