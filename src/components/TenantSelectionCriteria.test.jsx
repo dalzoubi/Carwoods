@@ -388,10 +388,25 @@ describe('TenantSelectionCriteria', () => {
       expect(screen.queryByText(/prohibited animals/i)).not.toBeInTheDocument();
     });
 
-    it('shows pet restrictions (b/c/d) when hasPets is pets', () => {
+    it('shows pet restrictions (a/b/c) when hasPets is pets and hides assistance animals', () => {
       renderWithProfile({ hasPets: 'pets' });
+      expect(screen.queryByRole('heading', { name: /^a\. assistance animals$/i })).not.toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /^a\. prohibited animals$/i })).toBeInTheDocument();
       expect(screen.getAllByText(/prohibited animals/i).length).toBeGreaterThan(0);
       expect(screen.getAllByText(/caged animals/i).length).toBeGreaterThan(0);
+    });
+
+    it('shows assistance animals subsection when filter is service or ESA', () => {
+      const { unmount } = renderWithProfile({ hasPets: 'service' });
+      expect(screen.getByRole('heading', { name: /^a\. assistance animals$/i })).toBeInTheDocument();
+      unmount();
+      renderWithProfile({ hasPets: 'esa' });
+      expect(screen.getByRole('heading', { name: /^a\. assistance animals$/i })).toBeInTheDocument();
+    });
+
+    it('omits assistance animals from TOC when filter is household pets only', () => {
+      renderWithProfile({ hasPets: 'pets' });
+      expect(screen.queryByRole('link', { name: /^assistance animals$/i })).not.toBeInTheDocument();
     });
 
     it('shows co-signer policy when guarantorCosigner is not-sure', () => {

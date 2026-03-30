@@ -25,8 +25,14 @@ const TenantSelectionCriteria = () => {
     guarantorPolicy:   !f || f.guarantorCosigner === 'guarantor' || f.guarantorCosigner === 'not-sure',
     cosignerPolicy:    !f || f.guarantorCosigner === 'cosigner' || f.guarantorCosigner === 'not-sure',
     pets:              !f || (f.hasPets && f.hasPets !== 'none'),
+    /** Household pets filter only — hide Fair Housing assistance-animal subsection. */
+    assistanceAnimals: !f || f.hasPets === 'service' || f.hasPets === 'esa',
     petsRestrictions:  !f || f.hasPets === 'pets',
   };
+
+  const petRestrictionLetters = show.assistanceAnimals
+    ? { prohibited: 'b', caged: 'c', breeds: 'd' }
+    : { prohibited: 'a', caged: 'b', breeds: 'c' };
 
   /** Matches TOC order: only visible sections get the next index. */
   const sectionNumbers = useMemo(() => {
@@ -144,7 +150,9 @@ const TenantSelectionCriteria = () => {
                 <li>
                   <a href="#pets">Pets</a>
                   <ol type="a">
-                    <li><a href="#assistance-animals">Assistance animals</a></li>
+                    {show.assistanceAnimals && (
+                      <li><a href="#assistance-animals">Assistance animals</a></li>
+                    )}
                     {show.petsRestrictions && (
                       <>
                         <li><a href="#pets-prohibited">Prohibited animals</a></li>
@@ -451,15 +459,17 @@ const TenantSelectionCriteria = () => {
             guaranteed even if all other criteria are met.
           </Paragraph>
 
+          {show.assistanceAnimals && (<>
           <SectionHeading id="assistance-animals">a. Assistance animals</SectionHeading>
           <Paragraph>
             Assistance animals (service animals and emotional support animals) are <strong>not pets</strong>. They are reasonable
             accommodations for disabilities under the Fair Housing Act. Breed, size, and species restrictions do not apply to
             assistance animals when properly documented. We evaluate assistance-animal requests in accordance with applicable law.
           </Paragraph>
+          </>)}
 
           {show.petsRestrictions && (<>
-          <SectionHeading id="pets-prohibited">b. Prohibited animals</SectionHeading>
+          <SectionHeading id="pets-prohibited">{petRestrictionLetters.prohibited}. Prohibited animals</SectionHeading>
           <ul>
             <li>Exotic animals</li>
             <li>Farm animals (e.g., hoofed animals, livestock)</li>
@@ -469,12 +479,12 @@ const TenantSelectionCriteria = () => {
             <li>Fowl</li>
           </ul>
 
-          <SectionHeading id="pets-caged">c. Caged animals</SectionHeading>
+          <SectionHeading id="pets-caged">{petRestrictionLetters.caged}. Caged animals</SectionHeading>
           <ul>
             <li>No caged animals allowed</li>
           </ul>
 
-          <SectionHeading id="pets-breeds">d. Prohibited dog breeds</SectionHeading>
+          <SectionHeading id="pets-breeds">{petRestrictionLetters.breeds}. Prohibited dog breeds</SectionHeading>
           <ul>
               <li>Akita</li>
               <li>Alaskan Malamute</li>
