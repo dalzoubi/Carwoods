@@ -25,6 +25,21 @@ export function stripDarkPreviewPrefix(pathname) {
     return pathname;
 }
 
+/** Routes that show the header print control (see ResponsiveNavbar). */
+const PRINTABLE_PAGE_PATHS = new Set([
+    '/tenant-selection-criteria',
+    '/application-required-documents',
+    '/property-management',
+]);
+
+/**
+ * True when the current route should show the print button in the site header.
+ * @param {string} pathname - `location.pathname` (may include `/dark` preview prefix).
+ */
+export function isPrintablePageRoute(pathname) {
+    return PRINTABLE_PAGE_PATHS.has(stripDarkPreviewPrefix(pathname));
+}
+
 export function withDarkPath(pathname, to) {
     if (!isDarkPreviewRoute(pathname)) return to;
     if (typeof to === 'string') {

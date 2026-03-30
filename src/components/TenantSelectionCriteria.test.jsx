@@ -62,21 +62,6 @@ describe('TenantSelectionCriteria', () => {
     );
   });
 
-  describe('Print button', () => {
-    it('renders a print button', () => {
-      renderWithRouter(<TenantSelectionCriteria />);
-      expect(screen.getByRole('button', { name: /print this page/i })).toBeInTheDocument();
-    });
-
-    it('calls window.print when the print button is clicked', () => {
-      const printSpy = vi.spyOn(window, 'print').mockImplementation(() => {});
-      renderWithRouter(<TenantSelectionCriteria />);
-      fireEvent.click(screen.getByRole('button', { name: /print this page/i }));
-      expect(printSpy).toHaveBeenCalledTimes(1);
-      printSpy.mockRestore();
-    });
-  });
-
   it('contains fair housing statement', () => {
     renderWithRouter(<TenantSelectionCriteria />);
     expect(screen.getByText(/we do not discriminate based on race, color, religion, sex, familial status, national origin, disability/i)).toBeInTheDocument();

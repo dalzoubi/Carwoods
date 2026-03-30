@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { Heading, SubHeading, SectionHeading, Paragraph, BackToTop, nestedListStyle, nestedUlStyle, PrintButton, PrintHeader, PrintFilterSummary, PageHeader, FilteredSection } from '../styles';
+import { Heading, SubHeading, SectionHeading, Paragraph, BackToTop, nestedListStyle, nestedUlStyle, PrintHeader, PrintFilterSummary, PageHeader, FilteredSection } from '../styles';
 import { TocPageLayout } from './TocPageLayout';
 import ApplicantWizard, { loadProfile, buildChipLabel } from './ApplicantWizard';
 import { ApplyFlowSubnav } from './ApplyFlowSubnav';
@@ -82,11 +82,6 @@ const TenantSelectionCriteria = () => {
       </PrintFilterSummary>
       <PageHeader>
         <Heading>Tenant Selection Criteria</Heading>
-        <PrintButton onClick={() => window.print()} aria-label="Print this page">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-            <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
-          </svg>
-        </PrintButton>
       </PageHeader>
 
       <ApplyFlowSubnav phase="eligibility" />
@@ -122,13 +117,41 @@ const TenantSelectionCriteria = () => {
               </li>
               {show.housingAssistance && <li><a href="#housing-assistance">Housing Assistance</a></li>}
               {show.creditException && <li><a href="#credit-exception">Discretionary credit exception (rare)</a></li>}
-              {show.guarantorPolicy && <li><a href="#guarantor-policy">Guarantor policy</a></li>}
-              {show.cosignerPolicy && <li><a href="#cosigner-policy">Co-signer policy</a></li>}
+              {show.guarantorPolicy && (
+                <li>
+                  <a href="#guarantor-policy">Guarantor policy</a>
+                  <ol type="a">
+                    <li><a href="#guarantor-when">When a guarantor may be considered</a></li>
+                    <li><a href="#guarantor-qualification">Guarantor qualification requirements (mandatory)</a></li>
+                    <li><a href="#guarantor-legal">Guarantor legal and payment terms</a></li>
+                    <li><a href="#guarantor-notes">Important notes</a></li>
+                  </ol>
+                </li>
+              )}
+              {show.cosignerPolicy && (
+                <li>
+                  <a href="#cosigner-policy">Co-signer policy</a>
+                  <ol type="a">
+                    <li><a href="#cosigner-differences">Key differences from a guarantor</a></li>
+                    <li><a href="#cosigner-when">When a co-signer may be considered</a></li>
+                    <li><a href="#cosigner-qualification">Co-signer qualification requirements (mandatory)</a></li>
+                    <li><a href="#cosigner-legal">Co-signer legal and payment terms</a></li>
+                    <li><a href="#cosigner-notes">Important notes</a></li>
+                  </ol>
+                </li>
+              )}
               {show.pets && (
                 <li>
                   <a href="#pets">Pets</a>
                   <ol type="a">
                     <li><a href="#assistance-animals">Assistance animals</a></li>
+                    {show.petsRestrictions && (
+                      <>
+                        <li><a href="#pets-prohibited">Prohibited animals</a></li>
+                        <li><a href="#pets-caged">Caged animals</a></li>
+                        <li><a href="#pets-breeds">Prohibited dog breeds</a></li>
+                      </>
+                    )}
                   </ol>
                 </li>
               )}
@@ -256,7 +279,7 @@ const TenantSelectionCriteria = () => {
               to all applicants.
             </Paragraph>
 
-            <SectionHeading>a. When a guarantor may be considered</SectionHeading>
+            <SectionHeading id="guarantor-when">a. When a guarantor may be considered</SectionHeading>
             <ul>
               <li>
                 A guarantor may be considered only when an applicant meets <strong>all</strong> screening requirements for credit,
@@ -272,7 +295,7 @@ const TenantSelectionCriteria = () => {
               </li>
             </ul>
 
-            <SectionHeading>b. Guarantor qualification requirements (mandatory)</SectionHeading>
+            <SectionHeading id="guarantor-qualification">b. Guarantor qualification requirements (mandatory)</SectionHeading>
             <ul>
               <li><strong>Identity:</strong> Valid government-issued photo ID (color copy).</li>
               <li>
@@ -292,7 +315,7 @@ const TenantSelectionCriteria = () => {
               <li><strong>Residency:</strong> Guarantor must reside in the United States and be reachable for verification.</li>
             </ul>
 
-            <SectionHeading>c. Guarantor legal and payment terms</SectionHeading>
+            <SectionHeading id="guarantor-legal">c. Guarantor legal and payment terms</SectionHeading>
             <ul>
               <li>
                 The guarantor must complete a separate application and pass screening. Application fees (if any) apply.
@@ -315,7 +338,7 @@ const TenantSelectionCriteria = () => {
               </li>
             </ul>
 
-            <SectionHeading>d. Important notes</SectionHeading>
+            <SectionHeading id="guarantor-notes">d. Important notes</SectionHeading>
             <ul>
               <li>No side payments or undisclosed arrangements are permitted.</li>
               <li>Documentation must be complete and verifiable. Incomplete guarantor packages will not be processed.</li>
@@ -337,7 +360,7 @@ const TenantSelectionCriteria = () => {
               published qualification standard.
             </Paragraph>
 
-            <SectionHeading>a. Key differences from a guarantor</SectionHeading>
+            <SectionHeading id="cosigner-differences">a. Key differences from a guarantor</SectionHeading>
             <ul>
               <li><strong>Liability timing:</strong> A co-signer is liable from day one; a guarantor is only called upon after the primary tenant defaults.</li>
               <li><strong>Document signed:</strong> A co-signer signs the lease agreement itself; a guarantor signs a separate guaranty agreement.</li>
@@ -345,7 +368,7 @@ const TenantSelectionCriteria = () => {
               <li><strong>Qualification standard:</strong> A co-signer must meet all the same income, credit, background, employment, and rental history requirements as any primary applicant — there is no reduced standard.</li>
             </ul>
 
-            <SectionHeading>b. When a co-signer may be considered</SectionHeading>
+            <SectionHeading id="cosigner-when">b. When a co-signer may be considered</SectionHeading>
             <ul>
               <li>
                 A co-signer may be considered only when the primary applicant meets all screening requirements for credit,
@@ -361,7 +384,7 @@ const TenantSelectionCriteria = () => {
               </li>
             </ul>
 
-            <SectionHeading>c. Co-signer qualification requirements (mandatory)</SectionHeading>
+            <SectionHeading id="cosigner-qualification">c. Co-signer qualification requirements (mandatory)</SectionHeading>
             <ul>
               <li><strong>Identity:</strong> Valid government-issued photo ID (color copy).</li>
               <li>
@@ -383,7 +406,7 @@ const TenantSelectionCriteria = () => {
               <li><strong>Residency:</strong> Co-signer must reside in the United States and be reachable for verification.</li>
             </ul>
 
-            <SectionHeading>d. Co-signer legal and payment terms</SectionHeading>
+            <SectionHeading id="cosigner-legal">d. Co-signer legal and payment terms</SectionHeading>
             <ul>
               <li>
                 The co-signer must complete a full application and pass all screening. Application fees (if any) apply.
@@ -409,7 +432,7 @@ const TenantSelectionCriteria = () => {
               </li>
             </ul>
 
-            <SectionHeading>e. Important notes</SectionHeading>
+            <SectionHeading id="cosigner-notes">e. Important notes</SectionHeading>
             <ul>
               <li>No side payments or undisclosed arrangements are permitted.</li>
               <li>Documentation must be complete and verifiable. Incomplete co-signer packages will not be processed.</li>
@@ -436,7 +459,7 @@ const TenantSelectionCriteria = () => {
           </Paragraph>
 
           {show.petsRestrictions && (<>
-          <SectionHeading>b. Prohibited animals</SectionHeading>
+          <SectionHeading id="pets-prohibited">b. Prohibited animals</SectionHeading>
           <ul>
             <li>Exotic animals</li>
             <li>Farm animals (e.g., hoofed animals, livestock)</li>
@@ -446,12 +469,12 @@ const TenantSelectionCriteria = () => {
             <li>Fowl</li>
           </ul>
 
-          <SectionHeading>c. Caged animals</SectionHeading>
+          <SectionHeading id="pets-caged">c. Caged animals</SectionHeading>
           <ul>
             <li>No caged animals allowed</li>
           </ul>
 
-          <SectionHeading>d. Prohibited dog breeds</SectionHeading>
+          <SectionHeading id="pets-breeds">d. Prohibited dog breeds</SectionHeading>
           <ul>
               <li>Akita</li>
               <li>Alaskan Malamute</li>

@@ -22,11 +22,12 @@ import LightMode from '@mui/icons-material/LightMode';
 import DarkMode from '@mui/icons-material/DarkMode';
 import SettingsBrightness from '@mui/icons-material/SettingsBrightness';
 import RestartAlt from '@mui/icons-material/RestartAlt';
+import Print from '@mui/icons-material/Print';
 import { NavLink } from '../styles';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useThemeMode } from '../ThemeModeContext';
 import { FEATURE_DARK_THEME } from '../featureFlags';
-import { stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
+import { isPrintablePageRoute, stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
 const DRAWER_PAPER_ID = 'main-navigation-drawer';
@@ -53,6 +54,16 @@ const headerNavLinkStyle = {
     fontSize: '0.9rem',
 };
 
+/** Matches theme/appearance control; visible focus ring for keyboard users (WCAG 2.4.7). */
+const toolbarChromeIconButtonSx = {
+    flexShrink: 0,
+    color: 'inherit',
+    '&.Mui-focusVisible': {
+        outline: '2px solid var(--nav-chrome-focus-ring)',
+        outlineOffset: 2,
+    },
+};
+
 const ResponsiveNavbar = () => {
     const appBarRef = useRef(null);
     const navigate = useNavigate();
@@ -73,6 +84,7 @@ const ResponsiveNavbar = () => {
         resetOverride,
     } = useThemeMode();
     const showAppearanceMenu = darkThemeFeatureEnabled || isDarkPreviewPath;
+    const showPrintButton = isPrintablePageRoute(pathname);
 
     useLayoutEffect(() => {
         const el = appBarRef.current;
@@ -128,6 +140,49 @@ const ResponsiveNavbar = () => {
         setAppearanceAnchor(null);
         setAppearanceMenuLabelledBy(undefined);
     };
+
+    const showToolbarActions = showPrintButton || showAppearanceMenu;
+    const headerToolbarActions = showToolbarActions ? (
+        <Box
+            sx={{
+                display: 'flex',
+                alignItems: 'center',
+                flexShrink: 0,
+                gap: 0.5,
+                ml: { xs: 0, md: 'auto' },
+            }}
+        >
+            {showPrintButton ? (
+                <IconButton
+                    color="inherit"
+                    type="button"
+                    size="small"
+                    aria-label="Print this page"
+                    onClick={() => window.print()}
+                    sx={toolbarChromeIconButtonSx}
+                >
+                    <Print aria-hidden />
+                </IconButton>
+            ) : null}
+            {showAppearanceMenu ? (
+                <IconButton
+                    color="inherit"
+                    type="button"
+                    size="small"
+                    id="appearance-menu-button-toolbar"
+                    data-appearance-trigger="toolbar"
+                    aria-label="Appearance and theme"
+                    aria-haspopup="true"
+                    aria-expanded={Boolean(appearanceAnchor)}
+                    aria-controls={appearanceAnchor ? 'appearance-menu' : undefined}
+                    onClick={handleAppearanceOpen}
+                    sx={toolbarChromeIconButtonSx}
+                >
+                    <SettingsBrightness aria-hidden />
+                </IconButton>
+            ) : null}
+        </Box>
+    ) : null;
 
     const listItemButtonSx = {
         '&:hover': {
@@ -301,26 +356,20 @@ const ResponsiveNavbar = () => {
                             >
                                 <MenuIcon fontSize="small" />
                             </IconButton>
-                            <NavLink to={withDarkPath(pathname, '/')} style={{ marginLeft: 'auto', marginRight: 'auto' }}>
-                                <img src={carwoodsLogo} alt="Carwoods" style={{ height: `${LOGO_HEIGHT_PX}px`, display: 'block' }} />
-                            </NavLink>
-                            {showAppearanceMenu ? (
-                                <IconButton
-                                    edge="end"
-                                    color="inherit"
-                                    type="button"
-                                    size="small"
-                                    id="appearance-menu-button-toolbar"
-                                    data-appearance-trigger="toolbar"
-                                    aria-label="Appearance and theme"
-                                    aria-haspopup="true"
-                                    aria-expanded={Boolean(appearanceAnchor)}
-                                    aria-controls={appearanceAnchor ? 'appearance-menu' : undefined}
-                                    onClick={handleAppearanceOpen}
-                                >
-                                    <SettingsBrightness />
-                                </IconButton>
-                            ) : null}
+                            <Box
+                                sx={{
+                                    flex: '1 1 auto',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    minWidth: 0,
+                                }}
+                            >
+                                <NavLink to={withDarkPath(pathname, '/')}>
+                                    <img src={carwoodsLogo} alt="Carwoods" style={{ height: `${LOGO_HEIGHT_PX}px`, display: 'block' }} />
+                                </NavLink>
+                            </Box>
+                            {headerToolbarActions}
                             <Drawer
                                 anchor="left"
                                 open={drawerOpen}
@@ -527,25 +576,8 @@ const ResponsiveNavbar = () => {
                                         </NavLink>
                                     </React.Fragment>
                                 ))}
-
-                                {showAppearanceMenu ? (
-                                    <IconButton
-                                        color="inherit"
-                                        type="button"
-                                        size="small"
-                                        id="appearance-menu-button-toolbar"
-                                        data-appearance-trigger="toolbar"
-                                        aria-label="Appearance and theme"
-                                        aria-haspopup="true"
-                                        aria-expanded={Boolean(appearanceAnchor)}
-                                        aria-controls={appearanceAnchor ? 'appearance-menu' : undefined}
-                                        onClick={handleAppearanceOpen}
-                                        sx={{ ml: 0.25 }}
-                                    >
-                                        <SettingsBrightness />
-                                    </IconButton>
-                                ) : null}
                             </nav>
+                            {headerToolbarActions}
                         </>
                     )}
                 </Toolbar>

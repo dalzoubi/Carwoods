@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isDarkPreviewRoute, stripDarkPreviewPrefix, withDarkPath } from './routePaths';
+import { isDarkPreviewRoute, isPrintablePageRoute, stripDarkPreviewPrefix, withDarkPath } from './routePaths';
 
 describe('routePaths', () => {
     it('isDarkPreviewRoute', () => {
@@ -24,5 +24,13 @@ describe('routePaths', () => {
         expect(stripDarkPreviewPrefix('/dark')).toBe('/');
         expect(stripDarkPreviewPrefix('/dark/apply')).toBe('/apply');
         expect(stripDarkPreviewPrefix('/apply')).toBe('/apply');
+    });
+
+    it('isPrintablePageRoute', () => {
+        expect(isPrintablePageRoute('/')).toBe(false);
+        expect(isPrintablePageRoute('/tenant-selection-criteria')).toBe(true);
+        expect(isPrintablePageRoute('/dark/tenant-selection-criteria')).toBe(true);
+        expect(isPrintablePageRoute('/application-required-documents')).toBe(true);
+        expect(isPrintablePageRoute('/property-management')).toBe(true);
     });
 });
