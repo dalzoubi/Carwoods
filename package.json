@@ -75,6 +75,7 @@
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "jest-axe": "^9.0.0",
     "jsdom": "^28.1.0",
+    "png-to-ico": "^3.0.1",
     "serve": "^14.2.4",
     "sharp": "^0.34.5",
     "vite": "^7.3.1",

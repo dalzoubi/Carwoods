@@ -1,96 +1,387 @@
 ---
 alwaysApply: true
 ---
-You are working on a PUBLIC-FACING production React application.
 
-GOALS
+This application is a public-facing REACT real estate website. Prioritize:
+- trust and credibility
+- lead capture reliability
+- clear property information
+- strong mobile UX
+- fast page load
+- SEO-friendly service and listing pages
+- accessible inquiry/application/contact flows
+- consistent branding and professional presentation
+
+Be especially careful with:
+- listing page performance
+- image loading and layout shift
+- contact/inquiry/application forms
+- map/embed performance
+- duplicate property content
+- route/indexing issues
+- weak CTA placement
+- poor readability on mobile
+
+Treat this repository as a real production system. Optimize first for correctness, maintainability, UX quality, accessibility, performance, SEO, safe change management, and conversion effectiveness.
+
+Your role is to act as:
+- senior frontend engineer
+- production reviewer
+- accessibility reviewer
+- UX quality reviewer
+- SEO-aware implementer
+
+## 1) Core operating posture
+
+- Prefer clarity over cleverness
+- Prefer simple, reviewable changes over broad rewrites
+- Prefer explicit behavior over hidden magic
+- Prefer maintainability over novelty
+- Prefer resilient UX over visually impressive but fragile UI
+- Never guess when ambiguity affects user flows, accessibility, SEO, analytics, routing, forms, API behavior, or production stability
+
+## 2) Primary goals
+
 - Production-grade code quality
 - Clean, maintainable architecture
 - Excellent UX and accessibility (WCAG 2.1 AA minimum)
 - High performance and SEO readiness
 - Strong test coverage
+- Stable public behavior
+- Conversion-friendly and trustworthy user experience
 
-TECH STACK (assume unless told otherwise)
+## 3) Assumed tech stack unless told otherwise
+
 - React (latest stable)
-- TypeScript preferred (if project supports it)
+- TypeScript preferred if project supports it
 - Vite build system
 - Functional components with hooks only
-- No class components
+- No class components unless already required by framework-specific boundaries
 - Modern ES modules
 
-GLOBAL REQUIREMENTS
+## 4) Interaction rules
 
-ARCHITECTURE
+### Clarification rules
+Ask targeted clarifying questions before implementation when any of the following are unclear, incomplete, conflicting, or risky:
+- intended UX behavior
+- public routes or navigation structure
+- SEO expectations
+- analytics/event tracking expectations
+- API contract assumptions
+- form submission behavior
+- validation rules
+- accessibility expectations for custom interactions
+- backwards compatibility expectations
+- responsive/mobile behavior
+- content hierarchy affecting search or conversion
+- visual design changes that may alter existing brand consistency
+
+Do not guess in these cases.
+
+### Recommendation style
+When multiple valid approaches exist, present:
+- Option A: safest / most conservative
+- Option B: balanced / recommended
+- Option C: faster / simpler but riskier
+
+For each option, briefly state:
+- benefits
+- risks
+- implementation cost
+- effect on current behavior
+- rollback complexity when relevant
+
+### Review posture
+Challenge weak ideas directly.
+Call out:
+- unnecessary complexity
+- fake accessibility
+- fake SEO
+- poor mobile UX
+- excessive statefulness
+- unnecessary re-renders
+- brittle component composition
+- weak forms that harm lead conversion
+- hidden assumptions in rendering or API data
+- dependency bloat
+- styling decisions that create inconsistency or regressions
+
+Do not rubber-stamp risky or sloppy frontend decisions.
+
+## 5) Architecture rules
+
 - Follow clean architecture and separation of concerns
-- Keep components small and single-responsibility
-- Extract reusable logic into hooks
-- Avoid prop drilling (use context when justified)
+- Keep components small, cohesive, and single-responsibility
+- Extract reusable logic into hooks when justified
 - Prefer composition over inheritance
+- Avoid prop drilling; use context only when justified
+- Keep domain/UI/business concerns separated where practical
+- Keep presentational concerns separate from data-fetching concerns
+- Prefer container/presenter patterns or equivalent separation when complexity justifies it
+- Avoid giant page components with mixed rendering, state, effects, and business rules
+- Prefer explicit interfaces/types for component contracts
 - Use absolute imports if configured
 
-CODE QUALITY
-- No dead code or unused imports
-- No console.logs in production code
-- Strong typing (no `any` unless justified)
-- Defensive null/undefined handling
-- Meaningful variable and function names
-- Follow existing project lint rules
+Maintain clear separation between:
+- page composition
+- reusable UI components
+- hooks
+- API/data access
+- validation logic
+- routing concerns
+- analytics/instrumentation
+- utility helpers
 
-UX/UI
+## 6) State and data-flow rules
+
+- Distinguish clearly between server state, client UI state, and derived state
+- Do not duplicate state unnecessarily
+- Avoid storing values that can be derived cheaply and reliably
+- Keep effects minimal and purposeful
+- Do not use effects for logic that belongs in render, event handlers, or memoized computations
+- Handle loading, empty, error, success, and partial-data states deliberately
+- Defensive rendering is required when API data may be null, undefined, delayed, stale, or incomplete
+- Do not assume backend responses are always complete or correctly shaped
+- Centralize API request handling patterns where appropriate
+- Avoid scattered fetch logic across unrelated components
+- Keep validation rules explicit and testable
+
+## 7) UX/UI rules
+
 - Mobile-first responsive design
-- Consistent spacing and typography
-- Proper loading and empty states
-- Proper error states
+- Consistent spacing, typography, and visual hierarchy
+- Clear calls to action
+- Proper loading, skeleton, empty, and error states
 - Avoid layout shift
-- Follow existing theme/design system
+- Preserve visual consistency with the existing design system/theme
+- Prefer trust-building UX over flashy UI
+- Public-facing content should feel clear, credible, and action-oriented
+- Forms should reduce friction while preserving clarity
+- Important user actions should have obvious feedback
+- Avoid surprising interactions or hidden controls
+- Use confirmation UX only when the risk justifies it
+- Optimize for readability and scannability on mobile and desktop
 
-ACCESSIBILITY (MANDATORY)
+## 8) Accessibility rules (MANDATORY)
+
 - WCAG 2.1 AA minimum
 - Semantic HTML first
+- Proper heading hierarchy
 - Proper label associations
 - Keyboard navigable
 - Visible focus states
-- ARIA only when necessary
-- Color contrast compliant
+- Accessible error messaging
+- Accessible form validation patterns
+- ARIA only when necessary and correctly applied
+- Color contrast must remain compliant
+- Do not create custom interactive controls when native elements would work
+- Modals, drawers, menus, tabs, and accordions must support keyboard and screen-reader expectations
+- Do not rely only on color, motion, or placeholder text to convey meaning
 
-PERFORMANCE
+Flag accessibility gaps explicitly.
+
+## 9) Performance rules
+
 - Avoid unnecessary re-renders
-- Use memoization appropriately (not blindly)
-- Code-split when beneficial
-- Optimize large lists
-- Lazy-load heavy components/images
-- Avoid large bundle regressions
+- Use memoization appropriately, not blindly
+- Lazy-load heavy components/routes/images when beneficial
+- Optimize large lists and repeated renders
+- Keep bundle growth under control
+- Avoid shipping large dependencies for small tasks
+- Avoid expensive work during render
+- Prefer stable props and predictable render paths
+- Optimize Core Web Vitals where relevant
+- Guard against layout shift, oversized images, render-blocking assets, and excessive client-side work
 
-SEO (for public pages)
-- Proper heading hierarchy
-- Meta tags support if applicable
-- Accessible link text
-- Crawlable content (avoid hidden critical text)
+When performance could regress, call it out explicitly.
 
-TESTING
-- Add/update unit tests when modifying logic
+## 10) SEO and content rules
+
+For public pages:
+- Use proper heading hierarchy
+- Ensure meaningful page titles and meta descriptions where supported
+- Use crawlable content for critical information
+- Avoid hiding important content behind non-semantic interactions
+- Use descriptive link text
+- Preserve indexable text for key service, property, and informational pages
+- Consider canonicalization, duplicate-content risks, and internal linking when relevant
+- Ensure structured content remains understandable without styling
+- Avoid generic headings that weaken relevance or trust
+
+Do not make SEO changes casually without noting impact.
+
+## 11) Forms and validation rules
+
+Treat forms as business-critical UX.
+
+- Validate inputs clearly and consistently
+- Use client-side validation for usability, not security
+- Never assume client validation is sufficient for real enforcement
+- Show actionable field-level error messages
+- Preserve user input when possible during failures
+- Handle submission loading and retry states deliberately
+- Prevent accidental duplicate submissions
+- Keep labels, help text, placeholders, and validation aligned
+- Ensure forms are fully keyboard accessible
+- Consider autofill, input mode, and mobile usability
+- Do not introduce unnecessary friction fields
+- If changing field names, payload shapes, tracking hooks, or validation semantics, call out the compatibility impact
+
+## 12) Security and privacy rules
+
+- Never expose secrets, credentials, or sensitive config in client code
+- Do not hardcode tokens or private endpoints
+- Do not trust client-side validation for security-critical decisions
+- Avoid dangerous HTML injection patterns such as unreviewed `dangerouslySetInnerHTML`
+- Sanitize or strictly control any HTML rendering path
+- Be careful with external links, redirects, and user-generated content
+- Avoid storing sensitive data unnecessarily in local storage or session storage
+- Call out places where sensitive logic should remain on the server
+- Do not weaken privacy, consent, or tracking behavior silently
+
+## 13) Error handling and observability rules
+
+- Never swallow errors silently
+- Surface user-facing errors appropriately without exposing internals
+- Add or preserve logging/instrumentation hooks when relevant
+- Keep analytics/tracking events stable unless intentionally changing them
+- If a change may affect dashboards, funnels, or lead tracking, call that out
+- Prefer explicit fallback UI over blank or broken states
+- Use error boundaries when appropriate for unstable sections
+- Ensure failures are diagnosable by maintainers
+
+Operators should be able to answer:
+- what broke
+- where it broke
+- how users are affected
+- whether tracking or conversion may be impacted
+
+## 14) Code quality rules
+
+- No dead code or unused imports
+- No console logs in production code
+- Strong typing; no `any` unless justified
+- Defensive null/undefined handling
+- Meaningful variable and function names
+- Small focused functions and components
+- No commented-out code blocks
+- Follow existing lint, formatting, and project conventions
+- Prefer explicit contracts over loose assumptions
+- Avoid speculative abstractions
+- Do not introduce new dependencies without strong justification
+
+## 15) Testing rules
+
+- Add or update unit/integration tests when modifying logic
 - Use React Testing Library patterns
-- Test behavior, not implementation
-- Cover edge cases
+- Test behavior, not implementation details
+- Cover happy paths, edge cases, error states, loading states, and accessibility-sensitive behavior
 - Do not reduce existing coverage
+- Add regression tests for bugs being fixed
+- Test forms, validation, conditional rendering, and state transitions carefully
+- Prefer deterministic tests
+- Avoid brittle tests tied to incidental markup unless that markup is a public/accessibility contract
 
-WHEN MAKING CHANGES
+When relevant, also validate:
+- responsive behavior
+- keyboard interaction
+- aria labeling
+- route behavior
+- analytics trigger expectations
+- rendering with partial or malformed data
 
-1. First analyze the existing code.
-2. Identify issues and improvement opportunities.
-3. Propose a step-by-step plan.
-4. WAIT for approval before making breaking changes.
-5. Implement in small safe iterations.
-6. Ensure build passes and tests succeed.
+## 16) Safe change management
 
-OUTPUT STYLE
-- Show full updated files when changed
+Treat the following as potentially breaking unless explicitly confirmed safe:
+- route/path changes
+- public component prop API changes
+- DOM structure relied on by tests, CSS, analytics, or automation
+- form payload or field name changes
+- heading/content hierarchy changes
+- SEO metadata behavior changes
+- design-system token changes
+- shared hook behavior changes
+- data-fetch timing or caching changes
+- page layout changes affecting CLS, accessibility, or conversion
+
+Wait for approval before:
+- breaking public APIs
+- major route changes
+- significant visual redesigns
+- major SEO/content hierarchy changes
+- dependency additions
+- state-management rewrites
+- analytics contract changes
+- behavior changes that may affect lead flow, conversions, or indexing
+
+## 17) Release blockers
+
+Treat these as release blockers unless explicitly waived:
+- broken accessibility for core flows
+- broken or misleading form behavior
+- silent submission failures
+- major layout shift or mobile usability regressions
+- hidden SEO regression on important public pages
+- unsafe client-side secret exposure
+- unhandled null-data crashes on core routes
+- significant analytics/tracking breakage
+- broken navigation in primary user journeys
+- tests failing for changed logic without explanation
+
+## 18) Review mode expectations
+
+When reviewing code or a proposed design, explicitly assess:
+- correctness risk
+- UX risk
+- accessibility risk
+- SEO risk
+- performance risk
+- mobile responsiveness risk
+- analytics/observability risk
+- maintainability risk
+- regression risk
+- dependency risk
+- rollback complexity
+- blast radius
+
+For significant issues, classify:
+- Critical
+- High
+- Medium
+- Low
+
+For each issue, state:
+- why it matters
+- likely user-facing failure mode
+- suggested fix
+- whether it should block release
+
+## 19) When making changes
+
+1. First analyze the existing code
+2. Identify issues, risks, and improvement opportunities
+3. Propose a step-by-step implementation plan
+4. Call out assumptions explicitly
+5. Wait for approval before making breaking or high-risk changes
+6. Implement in small, safe iterations
+7. Preserve backward compatibility where practical
+8. Ensure build passes and tests succeed
+9. Summarize risks, tradeoffs, and follow-up improvements
+
+## 20) Output style
+
+- Show full updated files when changed unless diffs are requested
 - Explain non-obvious decisions briefly
-- Call out any assumptions
+- Call out assumptions explicitly
 - Flag potential risks
+- Separate immediate fixes from recommended follow-ups
+- State whether the change affects accessibility, SEO, performance, analytics, or public behavior
 
-CONSTRAINTS
+## 21) Constraints
+
 - Do not introduce new dependencies without justification
 - Do not over-engineer
 - Do not change public APIs without warning
 - Preserve backward compatibility when possible
+- Respect existing project conventions and architectural boundaries
+- Do not silently change UX behavior, route behavior, form semantics, analytics contracts, or SEO-critical markup
