@@ -7,12 +7,14 @@ import {
     List,
     ListItemButton,
     ListItemText,
+    ListSubheader,
     Menu,
     MenuItem,
     useTheme,
     useMediaQuery,
     Divider,
     Typography,
+    Box,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown';
@@ -27,6 +29,8 @@ import { FEATURE_DARK_THEME } from '../featureFlags';
 import { stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
+const DRAWER_PAPER_ID = 'main-navigation-drawer';
+
 const tenantLinks = [
     { to: '/apply', label: 'Apply' },
     { to: '/tenant-selection-criteria', label: 'Selection Criteria' },
@@ -37,6 +41,11 @@ const landlordLinks = [
     { to: '/property-management', label: 'Property Management' },
 ];
 
+const legalLinks = [
+    { to: '/privacy', label: 'Privacy Policy' },
+    { to: '/accessibility', label: 'Accessibility' },
+];
+
 const ResponsiveNavbar = () => {
     const navigate = useNavigate();
     const { pathname } = useLocation();
@@ -44,8 +53,9 @@ const ResponsiveNavbar = () => {
     const [tenantAnchor, setTenantAnchor] = useState(null);
     const [landlordAnchor, setLandlordAnchor] = useState(null);
     const [appearanceAnchor, setAppearanceAnchor] = useState(null);
+    const [appearanceMenuLabelledBy, setAppearanceMenuLabelledBy] = useState(undefined);
     const muiTheme = useTheme();
-    const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
+    const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
     const {
         storedOverride,
         darkThemeFeatureEnabled,
@@ -61,139 +71,198 @@ const ResponsiveNavbar = () => {
     };
 
     const handleTenantOpen = (e) => {
+        setLandlordAnchor(null);
+        setAppearanceAnchor(null);
         setTenantAnchor(e.currentTarget);
     };
     const handleTenantClose = () => {
         setTenantAnchor(null);
     };
     const handleLandlordOpen = (e) => {
+        setTenantAnchor(null);
+        setAppearanceAnchor(null);
         setLandlordAnchor(e.currentTarget);
     };
     const handleLandlordClose = () => {
         setLandlordAnchor(null);
     };
     const handleAppearanceOpen = (e) => {
+        setTenantAnchor(null);
+        setLandlordAnchor(null);
         setAppearanceAnchor(e.currentTarget);
+        const trigger = e.currentTarget.getAttribute('data-appearance-trigger');
+        setAppearanceMenuLabelledBy(
+            trigger === 'drawer' ? 'appearance-menu-button-drawer' : 'appearance-menu-button-toolbar'
+        );
     };
     const handleAppearanceClose = () => {
         setAppearanceAnchor(null);
+        setAppearanceMenuLabelledBy(undefined);
+    };
+
+    const listItemButtonSx = {
+        '&:hover': {
+            backgroundColor: muiTheme.palette.drawer.hover,
+        },
+        '&.active': {
+            backgroundColor: 'var(--nav-chrome-active-bg)',
+        },
+    };
+
+    const subheaderSx = {
+        bgcolor: 'transparent',
+        color: muiTheme.palette.drawer.text,
+        pl: 2,
+        pt: 1,
+        pb: 0,
+        fontSize: '0.875rem',
+        fontWeight: 600,
+        opacity: 0.9,
+        lineHeight: 1.5,
     };
 
     const drawerContent = (
         <div style={{ backgroundColor: muiTheme.palette.drawer.background, height: '100%' }}>
-            <List>
-                <ListItemButton
-                    component={NavLink}
-                    to={withDarkPath(pathname, '/')}
-                    className={({ isActive }) => (isActive ? 'active' : '')}
-                    onClick={handleDrawerToggle}
-                    sx={{
-                        '&:hover': {
-                            backgroundColor: muiTheme.palette.drawer.hover,
-                        },
-                        '&.active': {
-                            backgroundColor: 'var(--nav-chrome-active-bg)',
-                        },
-                    }}
-                >
-                    <ListItemText primary="Home" style={{ color: muiTheme.palette.drawer.text }} />
-                </ListItemButton>
-
-                <ListItemText
-                    primary="Tenant"
-                    sx={{
-                        color: muiTheme.palette.drawer.text,
-                        paddingLeft: 2,
-                        paddingTop: 1,
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        opacity: 0.9,
-                    }}
-                />
-                {tenantLinks.map(({ to, label }) => (
+            <nav aria-label="main navigation">
+                <List disablePadding>
                     <ListItemButton
-                        key={to}
                         component={NavLink}
-                        to={withDarkPath(pathname, to)}
+                        to={withDarkPath(pathname, '/')}
                         className={({ isActive }) => (isActive ? 'active' : '')}
                         onClick={handleDrawerToggle}
-                        sx={{
-                            pl: 3,
-                            '&:hover': {
-                                backgroundColor: muiTheme.palette.drawer.hover,
-                            },
-                            '&.active': {
-                                backgroundColor: 'var(--nav-chrome-active-bg)',
-                            },
-                        }}
+                        sx={listItemButtonSx}
                     >
-                        <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
+                        <ListItemText primary="Home" style={{ color: muiTheme.palette.drawer.text }} />
                     </ListItemButton>
-                ))}
 
-                <ListItemText
-                    primary="Landlord"
-                    sx={{
-                        color: muiTheme.palette.drawer.text,
-                        paddingLeft: 2,
-                        paddingTop: 1.5,
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        opacity: 0.9,
-                    }}
-                />
-                {landlordLinks.map(({ to, label }) => (
+                    <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
+                        Tenant
+                    </ListSubheader>
+                    {tenantLinks.map(({ to, label }) => (
+                        <ListItemButton
+                            key={to}
+                            component={NavLink}
+                            to={withDarkPath(pathname, to)}
+                            className={({ isActive }) => (isActive ? 'active' : '')}
+                            onClick={handleDrawerToggle}
+                            sx={{
+                                pl: 3,
+                                ...listItemButtonSx,
+                            }}
+                        >
+                            <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
+                        </ListItemButton>
+                    ))}
+
+                    <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
+                        Landlord
+                    </ListSubheader>
+                    {landlordLinks.map(({ to, label }) => (
+                        <ListItemButton
+                            key={to}
+                            component={NavLink}
+                            to={withDarkPath(pathname, to)}
+                            className={({ isActive }) => (isActive ? 'active' : '')}
+                            onClick={handleDrawerToggle}
+                            sx={{
+                                pl: 3,
+                                ...listItemButtonSx,
+                            }}
+                        >
+                            <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
+                        </ListItemButton>
+                    ))}
+
                     <ListItemButton
-                        key={to}
                         component={NavLink}
-                        to={withDarkPath(pathname, to)}
+                        to={withDarkPath(pathname, '/contact-us')}
                         className={({ isActive }) => (isActive ? 'active' : '')}
                         onClick={handleDrawerToggle}
-                        sx={{
-                            pl: 3,
-                            '&:hover': {
-                                backgroundColor: muiTheme.palette.drawer.hover,
-                            },
-                            '&.active': {
-                                backgroundColor: 'var(--nav-chrome-active-bg)',
-                            },
-                        }}
+                        sx={listItemButtonSx}
                     >
-                        <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
+                        <ListItemText primary="Contact Us" style={{ color: muiTheme.palette.drawer.text }} />
                     </ListItemButton>
-                ))}
 
-                <ListItemButton
-                    component={NavLink}
-                    to={withDarkPath(pathname, '/contact-us')}
-                    onClick={handleDrawerToggle}
-                    sx={{
-                        '&:hover': {
-                            backgroundColor: muiTheme.palette.drawer.hover,
-                        },
-                    }}
-                >
-                    <ListItemText primary="Contact Us" style={{ color: muiTheme.palette.drawer.text }} />
-                </ListItemButton>
-            </List>
+                    {showAppearanceMenu ? (
+                        <ListItemButton
+                            onClick={handleAppearanceOpen}
+                            aria-haspopup="true"
+                            aria-expanded={Boolean(appearanceAnchor)}
+                            aria-controls={appearanceAnchor ? 'appearance-menu' : undefined}
+                            id="appearance-menu-button-drawer"
+                            data-appearance-trigger="drawer"
+                            sx={{
+                                ...listItemButtonSx,
+                                '&:hover': {
+                                    backgroundColor: muiTheme.palette.drawer.hover,
+                                },
+                            }}
+                        >
+                            <SettingsBrightness sx={{ mr: 1.5, color: muiTheme.palette.drawer.text }} fontSize="small" />
+                            <ListItemText primary="Appearance" style={{ color: muiTheme.palette.drawer.text }} />
+                        </ListItemButton>
+                    ) : null}
+
+                    <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
+                        Legal
+                    </ListSubheader>
+                    {legalLinks.map(({ to, label }) => (
+                        <ListItemButton
+                            key={to}
+                            component={NavLink}
+                            to={withDarkPath(pathname, to)}
+                            className={({ isActive }) => (isActive ? 'active' : '')}
+                            onClick={handleDrawerToggle}
+                            sx={{
+                                pl: 3,
+                                ...listItemButtonSx,
+                            }}
+                        >
+                            <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
+                        </ListItemButton>
+                    ))}
+                </List>
+            </nav>
         </div>
     );
+
+    const desktopLegalLinkStyle = {
+        fontSize: '0.8125rem',
+        fontWeight: 600,
+        opacity: 0.92,
+        padding: '0.35rem 0.5rem',
+    };
 
     return (
         <>
             <AppBar
-                position="static"
-                style={{ backgroundColor: muiTheme.palette.appChrome.main, width: '100%' }}
+                position="sticky"
+                elevation={0}
+                sx={{
+                    top: 0,
+                    zIndex: (t) => t.zIndex.appBar,
+                    width: '100%',
+                    backgroundColor: muiTheme.palette.appChrome.main,
+                    backgroundImage: 'none',
+                }}
             >
-                <Toolbar>
+                <Toolbar
+                    sx={{
+                        flexWrap: 'wrap',
+                        rowGap: 0.5,
+                        columnGap: 0.5,
+                    }}
+                >
                     {isMobile ? (
                         <>
                             <IconButton
                                 edge="start"
                                 color="inherit"
-                                aria-label="open drawer"
-                                aria-haspopup="true"
+                                type="button"
+                                aria-label="open menu"
+                                aria-haspopup="dialog"
                                 aria-expanded={drawerOpen}
+                                aria-controls={drawerOpen ? DRAWER_PAPER_ID : undefined}
                                 onClick={handleDrawerToggle}
                             >
                                 <MenuIcon />
@@ -205,6 +274,9 @@ const ResponsiveNavbar = () => {
                                 <IconButton
                                     edge="end"
                                     color="inherit"
+                                    type="button"
+                                    id="appearance-menu-button-toolbar"
+                                    data-appearance-trigger="toolbar"
                                     aria-label="Appearance and theme"
                                     aria-haspopup="true"
                                     aria-expanded={Boolean(appearanceAnchor)}
@@ -218,7 +290,10 @@ const ResponsiveNavbar = () => {
                                 anchor="left"
                                 open={drawerOpen}
                                 onClose={handleDrawerToggle}
-                                aria-label="menu drawer"
+                                PaperProps={{
+                                    id: DRAWER_PAPER_ID,
+                                    'aria-label': 'Site menu',
+                                }}
                             >
                                 {drawerContent}
                             </Drawer>
@@ -228,7 +303,10 @@ const ResponsiveNavbar = () => {
                             <NavLink to={withDarkPath(pathname, '/')} style={{ flexShrink: 0 }}>
                                 <img src={carwoodsLogo} alt="Carwoods" style={{ height: '40px' }} />
                             </NavLink>
-                            <nav aria-label="main navigation" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexGrow: 1 }}>
+                            <nav
+                                aria-label="main navigation"
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexGrow: 1, flexWrap: 'wrap', rowGap: 4 }}
+                            >
                                 <NavLink to={withDarkPath(pathname, '/')} className={({ isActive }) => (isActive ? 'active' : '')}>
                                     Home
                                 </NavLink>
@@ -236,6 +314,7 @@ const ResponsiveNavbar = () => {
                                 <IconButton
                                     component="span"
                                     disableRipple
+                                    id="tenant-menu-button"
                                     onClick={handleTenantOpen}
                                     aria-haspopup="true"
                                     aria-expanded={Boolean(tenantAnchor)}
@@ -261,7 +340,12 @@ const ResponsiveNavbar = () => {
                                     open={Boolean(tenantAnchor)}
                                     onClose={handleTenantClose}
                                     MenuListProps={{
-                                        'aria-labelledby': 'tenant-menu',
+                                        'aria-labelledby': 'tenant-menu-button',
+                                    }}
+                                    slotProps={{
+                                        paper: {
+                                            sx: { backgroundImage: 'none' },
+                                        },
                                     }}
                                     anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
                                     transformOrigin={{ vertical: 'top', horizontal: 'left' }}
@@ -293,6 +377,7 @@ const ResponsiveNavbar = () => {
                                 <IconButton
                                     component="span"
                                     disableRipple
+                                    id="landlord-menu-button"
                                     onClick={handleLandlordOpen}
                                     aria-haspopup="true"
                                     aria-expanded={Boolean(landlordAnchor)}
@@ -318,7 +403,12 @@ const ResponsiveNavbar = () => {
                                     open={Boolean(landlordAnchor)}
                                     onClose={handleLandlordClose}
                                     MenuListProps={{
-                                        'aria-labelledby': 'landlord-menu',
+                                        'aria-labelledby': 'landlord-menu-button',
+                                    }}
+                                    slotProps={{
+                                        paper: {
+                                            sx: { backgroundImage: 'none' },
+                                        },
                                     }}
                                     anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
                                     transformOrigin={{ vertical: 'top', horizontal: 'left' }}
@@ -351,9 +441,49 @@ const ResponsiveNavbar = () => {
                                     Contact Us
                                 </NavLink>
 
+                                <Box
+                                    component="span"
+                                    aria-hidden="true"
+                                    sx={{
+                                        color: 'var(--nav-chrome-text)',
+                                        opacity: 0.5,
+                                        userSelect: 'none',
+                                        px: 0.25,
+                                        fontSize: '0.75rem',
+                                    }}
+                                >
+                                    |
+                                </Box>
+
+                                {legalLinks.map(({ to, label }, i) => (
+                                    <React.Fragment key={to}>
+                                        {i > 0 ? (
+                                            <Box
+                                                component="span"
+                                                aria-hidden="true"
+                                                sx={{
+                                                    color: 'var(--nav-chrome-text)',
+                                                    opacity: 0.5,
+                                                    userSelect: 'none',
+                                                    px: 0.25,
+                                                    fontSize: '0.75rem',
+                                                }}
+                                            >
+                                                |
+                                            </Box>
+                                        ) : null}
+                                        <NavLink to={withDarkPath(pathname, to)} style={desktopLegalLinkStyle}>
+                                            {label}
+                                        </NavLink>
+                                    </React.Fragment>
+                                ))}
+
                                 {showAppearanceMenu ? (
                                     <IconButton
                                         color="inherit"
+                                        type="button"
+                                        id="appearance-menu-button-toolbar"
+                                        data-appearance-trigger="toolbar"
                                         aria-label="Appearance and theme"
                                         aria-haspopup="true"
                                         aria-expanded={Boolean(appearanceAnchor)}
@@ -378,8 +508,11 @@ const ResponsiveNavbar = () => {
                     anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                     transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                     slotProps={{
+                        paper: {
+                            sx: { backgroundImage: 'none' },
+                        },
                         list: {
-                            'aria-labelledby': 'appearance-menu',
+                            ...(appearanceMenuLabelledBy ? { 'aria-labelledby': appearanceMenuLabelledBy } : {}),
                         },
                     }}
                 >
