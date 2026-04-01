@@ -1,0 +1,143 @@
+{
+  "nav": {
+    "home": "Home",
+    "tenant": "Tenant",
+    "landlord": "Landlord",
+    "contactUs": "Contact Us",
+    "openMenu": "open menu",
+    "appearance": "Appearance and theme",
+    "language": "Language",
+    "selectLanguage": "Select language",
+    "privacy": "Privacy Policy",
+    "accessibility": "Accessibility"
+  },
+  "tenantLinks": {
+    "apply": "Apply",
+    "selectionCriteria": "Selection Criteria",
+    "requiredDocuments": "Required Documents"
+  },
+  "landlordLinks": {
+    "propertyManagement": "Property Management"
+  },
+  "appearance": {
+    "colorTheme": "Color theme",
+    "light": "Light",
+    "dark": "Dark",
+    "useDeviceSetting": "Use device setting",
+    "deviceSettingHint": "Your choice is saved in this browser. Reset clears the override and follows your device again.",
+    "darkPreview": "Dark preview",
+    "darkPreviewDescription": "URLs under /dark/… force dark styling for testing without enabling the feature flag.",
+    "exitPreview": "Exit preview (go home)"
+  },
+  "home": {
+    "title": "Carwoods — Houston rentals, managed right",
+    "metaDescription": "Houston rentals and property management: clear applications, consistent communication, on-time rent collection, proactive maintenance, and disciplined asset care.",
+    "heroHeading": "Houston Rentals, Managed Right",
+    "heroSubtitle": "Clear applications. Consistent communication. On-time rent collection, proactive maintenance, and disciplined asset care.",
+    "heroImageAlt": "Keys to a new home resting on a welcome mat",
+    "midHeroAlt": "Modern home exterior with warm evening light",
+    "highlightsLabel": "Company highlights",
+    "highlight1Label": "Houston market focus",
+    "highlight1Detail": "Local leasing rhythms, not generic playbooks",
+    "highlight2Label": "Operations you can feel",
+    "highlight2Detail": "Applications, rent, and maintenance in one flow",
+    "highlight3Label": "Communication that holds",
+    "highlight3Detail": "Fewer gaps, clearer next steps",
+    "audienceLabel": "Choose renters or property owners",
+    "rentersTitle": "Renters",
+    "rentersBody": "Looking for a lease in Houston? We keep the path honest: what you need to apply, what to expect, and people who pick up the phone.",
+    "rentersBullet1": "Streamlined application steps and required-documents guidance",
+    "rentersBullet2": "Local listings mindset—we know this market's rhythms",
+    "rentersBullet3": "Respect for your time: fewer surprises, clearer next steps",
+    "rentersCta": "Start your application",
+    "ownersTitle": "Landlords & owners",
+    "ownersBody": "Hand us the keys to the busywork. We market vacancies, screen tenants, coordinate repairs, and report back so you can stay focused on the big picture.",
+    "ownersBullet1": "Full-service property management tailored to your goals",
+    "ownersBullet2": "Maintenance coordination and vendor relationships",
+    "ownersBullet3": "Steady communication—you're never guessing what's happening",
+    "ownersCta": "Explore property management"
+  },
+  "apply": {
+    "title": "Carwoods - How to Apply",
+    "metaDescription": "How to apply to rent a Carwoods property. Review criteria, gather documents, and submit your rental application online.",
+    "heading": "How to Apply to Rent",
+    "intro": "All the information you need to apply is on this site. No need to call — follow the steps below. When you finish reviewing eligibility or the documents list, use Back to How to Apply at the top of those pages to return here and continue with step 3.",
+    "stepsLabel": "Steps to apply",
+    "step1Heading": "Check eligibility",
+    "step1Body": "Review our",
+    "step1LinkText": "Tenant Selection Criteria",
+    "step2Heading": "Gather your documents",
+    "step2Body": "Use our",
+    "step2LinkText": "Required Documents",
+    "step2BodySuffix": "list so your application is complete.",
+    "step3Heading": "Submit your application",
+    "step3Body": "Choose a property below to start the online application (RentSpree). Each card also links to the full listing for photos and details."
+  },
+  "contact": {
+    "title": "Carwoods - Contact Us",
+    "metaDescription": "Start with our Apply page for leasing steps and documents. Contact our HAR.com agent when you need direct help after following that process.",
+    "heading": "Contact Us",
+    "para1Prefix": "For rental applications and most leasing-related questions, please begin with our",
+    "applyLinkText": "Apply",
+    "para1Suffix": "page. It explains eligibility, required documentation, and how to submit through the listing channel. Following that workflow first allows us to assist you efficiently and consistently.",
+    "para2": "If you have already worked through those steps, or you have a matter that cannot be addressed there—such as property management services or another topic that requires direct outreach—please contact our licensed agent on HAR.com (Houston Association of Realtors). We encourage using this channel when self-service options are not sufficient.",
+    "ctaButton": "Contact Our Agent on HAR.com",
+    "ctaAriaLabel": "Contact our agent on HAR.com (opens in new tab)"
+  },
+  "privacy": {
+    "title": "Carwoods - Privacy Policy",
+    "metaDescription": "Carwoods privacy policy — how we collect, use, and protect your information.",
+    "heading": "Privacy Policy",
+    "intro": "Carwoods (\"we,\" \"our,\" or \"us\") is committed to protecting your privacy. This policy describes how we handle information when you use our website and services.",
+    "collectHeading": "Information We Collect",
+    "collectBody": "When you visit our site, we may collect information you provide directly, such as when you contact us or submit an application. If you use third-party services (e.g., HAR.com for property inquiries or applications), their privacy policies govern that data.",
+    "useHeading": "How We Use Information",
+    "useBody": "We use information to respond to inquiries, process applications, provide property management services, and comply with legal obligations. We do not sell your personal information.",
+    "thirdPartyHeading": "Third Parties",
+    "thirdPartyBody": "Our site may link to external services (e.g., Texas Real Estate Commission, HAR.com). We are not responsible for their privacy practices. Please review their policies before sharing information.",
+    "contactHeading": "Contact",
+    "contactBody": "For privacy-related questions or to request access to your information, contact us through our",
+    "contactLink": "Contact Us",
+    "contactBodySuffix": "page.",
+    "lastUpdated": "Last updated: February 2025"
+  },
+  "accessibility": {
+    "title": "Carwoods - Accessibility Statement",
+    "metaDescription": "Carwoods commitment to digital accessibility and WCAG compliance.",
+    "heading": "Accessibility Statement",
+    "intro": "Carwoods is committed to ensuring our website is accessible to people with disabilities. We aim to comply with the Web Content Accessibility Guidelines (WCAG) 2.1 at Level AA.",
+    "measuresHeading": "Measures We Take",
+    "measure1": "Semantic HTML and clear heading structure",
+    "measure2": "Keyboard navigable content with visible focus indicators",
+    "measure3": "Alternative text for images",
+    "measure4": "Color contrast that meets WCAG guidelines",
+    "measure5": "A skip link to main content for keyboard users",
+    "feedbackHeading": "Feedback",
+    "feedbackBody": "If you encounter any accessibility barriers on our site, please contact us through our",
+    "feedbackLink": "Contact Us",
+    "feedbackBodySuffix": "page. We will work to address the issue promptly.",
+    "lastUpdated": "Last updated: March 2026"
+  },
+  "footer": {
+    "copyright": "© 2026 Carwoods. All rights reserved.",
+    "trecNotice": "Texas Real Estate Commission Consumer Protection Notice",
+    "trecNoticeAriaLabel": "Texas Real Estate Commission Consumer Protection Notice (opens in new tab)",
+    "trecBrokerage": "Texas Real Estate Commission Information About Brokerage Services",
+    "trecBrokerageAriaLabel": "Texas Real Estate Commission Information About Brokerage Services (opens in new tab)",
+    "privacyPolicy": "Privacy Policy",
+    "accessibility": "Accessibility"
+  },
+  "applyFlowSubnav": {
+    "label": "Apply process navigation",
+    "backToApply": "Back to How to Apply",
+    "nextRequiredDocs": "Next: Required documents",
+    "step1Criteria": "Step 1: Tenant Selection Criteria"
+  },
+  "skipToMain": "Skip to main content",
+  "languageNames": {
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "ar": "العربية"
+  }
+}

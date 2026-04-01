@@ -1,4 +1,31 @@
-/* Screen-reader only: visible on focus for keyboard users */
+/* ── RTL / direction-aware layout ── */
+
+/* In RTL mode, logical properties like margin-inline-start/end and
+   padding-inline-start/end handle mirroring automatically.
+   The dir="rtl" attribute is set on <html> by LanguageContext. */
+
+[dir="rtl"] .MuiDrawer-paper {
+  /* MUI Drawer anchors left by default; for RTL flip to right is handled
+     by MUI direction="rtl" in the theme. The CSS below is only for
+     any styled-component or custom CSS that uses physical directions. */
+}
+
+/* Ensure list indentation uses logical padding in print RTL contexts */
+[dir="rtl"] ul,
+[dir="rtl"] ol {
+  padding-inline-start: 1.4em;
+  padding-inline-end: 0;
+}
+
+/* Arabic text is denser; add a touch more line-height for readability */
+[dir="rtl"] body,
+[lang="ar"] body,
+:lang(ar) {
+  font-family: 'Segoe UI', Tahoma, 'Noto Sans Arabic', Arial, sans-serif;
+  line-height: 1.75;
+}
+
+/* ── Screen-reader only: visible on focus for keyboard users ── */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -127,7 +154,7 @@ html {
   ul, ol {
     margin-top: 2pt !important;
     margin-bottom: 2pt !important;
-    padding-left: 18pt !important;
+    padding-inline-start: 18pt !important;
   }
 
   li {

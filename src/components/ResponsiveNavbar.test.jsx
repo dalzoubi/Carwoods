@@ -1,9 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeModeProvider } from '../ThemeModeContext';
+import { LanguageProvider } from '../LanguageContext';
 import { WithAppTheme } from '../testUtils';
 import ResponsiveNavbar from './ResponsiveNavbar';
+import i18n from '../i18n';
 
 const renderWithProviders = (ui) => render(
   <WithAppTheme>{ui}</WithAppTheme>
@@ -12,13 +14,24 @@ const renderWithProviders = (ui) => render(
 const renderNavAt = (path) =>
   render(
     <MemoryRouter initialEntries={[path]}>
-      <ThemeModeProvider>
-        <ResponsiveNavbar />
-      </ThemeModeProvider>
+      <LanguageProvider>
+        <ThemeModeProvider>
+          <ResponsiveNavbar />
+        </ThemeModeProvider>
+      </LanguageProvider>
     </MemoryRouter>
   );
 
 describe('ResponsiveNavbar', () => {
+  beforeEach(async () => {
+    localStorage.clear();
+    await i18n.changeLanguage('en');
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+  });
+
   it('renders logo with alt text', () => {
     renderWithProviders(<ResponsiveNavbar />);
     expect(screen.getByAltText('Carwoods')).toBeInTheDocument();
@@ -89,6 +102,56 @@ describe('ResponsiveNavbar', () => {
       fireEvent.click(screen.getByRole('button', { name: /print this page/i }));
       expect(printSpy).toHaveBeenCalledTimes(1);
       printSpy.mockRestore();
+    });
+  });
+
+  describe('Language menu', () => {
+    beforeEach(() => {
+      // Ensure desktop mode so toolbar language button is visible
+      window.matchMedia = vi.fn().mockImplementation((query) => ({
+        matches: !query.includes('max-width'),
+        media: query,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }));
+    });
+
+    it('renders language icon button in toolbar', () => {
+      renderWithProviders(<ResponsiveNavbar />);
+      expect(
+        screen.getByRole('button', { name: /select language/i })
+      ).toBeInTheDocument();
+    });
+
+    it('opens language menu on click and shows all supported languages', () => {
+      renderWithProviders(<ResponsiveNavbar />);
+      fireEvent.click(screen.getByRole('button', { name: /select language/i }));
+      expect(screen.getByRole('menuitem', { name: /english/i })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /español/i })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /français/i })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: /العربية/i })).toBeInTheDocument();
+    });
+
+    it('selects a language and closes menu', async () => {
+      renderWithProviders(<ResponsiveNavbar />);
+      fireEvent.click(screen.getByRole('button', { name: /select language/i }));
+      await act(async () => {
+        fireEvent.click(screen.getByRole('menuitem', { name: /español/i }));
+      });
+      // Menu should be closed after selection
+      expect(screen.queryByRole('menuitem', { name: /español/i })).not.toBeInTheDocument();
+    });
+
+    it('language menu has aria-labelledby referencing the toolbar button', () => {
+      renderWithProviders(<ResponsiveNavbar />);
+      const btn = screen.getByRole('button', { name: /select language/i });
+      fireEvent.click(btn);
+      // The button id should be set
+      expect(btn).toHaveAttribute('id', 'language-menu-button-toolbar');
+      expect(btn).toHaveAttribute('aria-expanded', 'true');
     });
   });
 });

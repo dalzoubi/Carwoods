@@ -1,45 +1,48 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Heading, SubHeading, Paragraph, InlineLink } from '../styles';
 import { withDarkPath } from '../routePaths';
 
 const Privacy = () => {
     const { pathname } = useLocation();
+    const { t } = useTranslation();
     return (
         <div>
             <Helmet>
-                <title>Carwoods - Privacy Policy</title>
-                <meta name="description" content="Carwoods privacy policy — how we collect, use, and protect your information." />
+                <title>{t('privacy.title')}</title>
+                <meta name="description" content={t('privacy.metaDescription')} />
             </Helmet>
-            <Heading>Privacy Policy</Heading>
+            <Heading>{t('privacy.heading')}</Heading>
             <Paragraph>
-                Carwoods (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This policy describes how we handle information when you use our website and services.
+                {t('privacy.intro')}
             </Paragraph>
 
-            <SubHeading>Information We Collect</SubHeading>
+            <SubHeading>{t('privacy.collectHeading')}</SubHeading>
             <Paragraph>
-                When you visit our site, we may collect information you provide directly, such as when you contact us or submit an application. If you use third-party services (e.g., HAR.com for property inquiries or applications), their privacy policies govern that data.
+                {t('privacy.collectBody')}
             </Paragraph>
 
-            <SubHeading>How We Use Information</SubHeading>
+            <SubHeading>{t('privacy.useHeading')}</SubHeading>
             <Paragraph>
-                We use information to respond to inquiries, process applications, provide property management services, and comply with legal obligations. We do not sell your personal information.
+                {t('privacy.useBody')}
             </Paragraph>
 
-            <SubHeading>Third Parties</SubHeading>
+            <SubHeading>{t('privacy.thirdPartyHeading')}</SubHeading>
             <Paragraph>
-                Our site may link to external services (e.g., Texas Real Estate Commission, HAR.com). We are not responsible for their privacy practices. Please review their policies before sharing information.
+                {t('privacy.thirdPartyBody')}
             </Paragraph>
 
-            <SubHeading>Contact</SubHeading>
+            <SubHeading>{t('privacy.contactHeading')}</SubHeading>
             <Paragraph>
-                For privacy-related questions or to request access to your information, contact us through our{' '}
-                <InlineLink href={withDarkPath(pathname, '/contact-us')}>Contact Us</InlineLink> page.
+                {t('privacy.contactBody')}{' '}
+                <InlineLink href={withDarkPath(pathname, '/contact-us')}>{t('privacy.contactLink')}</InlineLink>
+                {' '}{t('privacy.contactBodySuffix')}
             </Paragraph>
 
             <Paragraph>
-                <em>Last updated: February 2025</em>
+                <em>{t('privacy.lastUpdated')}</em>
             </Paragraph>
         </div>
     );

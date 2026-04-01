@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import App from './App';
 import { ThemeModeProvider } from './ThemeModeContext';
+import { LanguageProvider } from './LanguageContext';
 import { WithAppTheme } from './testUtils';
 
 const renderWithProviders = (ui) => render(
@@ -47,9 +48,11 @@ describe('App', () => {
     }));
     render(
       <MemoryRouter initialEntries={['/dark/apply']}>
-        <ThemeModeProvider>
-          <App />
-        </ThemeModeProvider>
+        <LanguageProvider>
+          <ThemeModeProvider>
+            <App />
+          </ThemeModeProvider>
+        </LanguageProvider>
       </MemoryRouter>
     );
     expect(screen.getByRole('heading', { name: /how to apply to rent/i })).toBeInTheDocument();

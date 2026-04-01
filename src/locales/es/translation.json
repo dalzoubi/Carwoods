@@ -1,0 +1,143 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "tenant": "Inquilino",
+    "landlord": "Propietario",
+    "contactUs": "Contáctenos",
+    "openMenu": "abrir menú",
+    "appearance": "Apariencia",
+    "language": "Idioma",
+    "selectLanguage": "Seleccionar idioma",
+    "privacy": "Política de Privacidad",
+    "accessibility": "Accesibilidad"
+  },
+  "tenantLinks": {
+    "apply": "Solicitar",
+    "selectionCriteria": "Criterios de Selección",
+    "requiredDocuments": "Documentos Requeridos"
+  },
+  "landlordLinks": {
+    "propertyManagement": "Administración de Propiedades"
+  },
+  "appearance": {
+    "colorTheme": "Tema de color",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "useDeviceSetting": "Usar configuración del dispositivo",
+    "deviceSettingHint": "Su elección se guarda en este navegador. Restablecer borra la anulación y sigue su dispositivo nuevamente.",
+    "darkPreview": "Vista previa oscura",
+    "darkPreviewDescription": "Las URL bajo /dark/… fuerzan el estilo oscuro para pruebas sin habilitar el indicador de función.",
+    "exitPreview": "Salir de la vista previa (ir al inicio)"
+  },
+  "home": {
+    "title": "Carwoods — Alquileres en Houston, bien gestionados",
+    "metaDescription": "Alquileres y gestión de propiedades en Houston: solicitudes claras, comunicación constante, cobro de renta a tiempo, mantenimiento proactivo y cuidado disciplinado de activos.",
+    "heroHeading": "Alquileres en Houston, Bien Gestionados",
+    "heroSubtitle": "Solicitudes claras. Comunicación constante. Cobro de renta a tiempo, mantenimiento proactivo y cuidado disciplinado de activos.",
+    "heroImageAlt": "Llaves de un nuevo hogar sobre un tapete de bienvenida",
+    "midHeroAlt": "Exterior de casa moderna con luz cálida de tarde",
+    "highlightsLabel": "Destacados de la empresa",
+    "highlight1Label": "Enfoque en el mercado de Houston",
+    "highlight1Detail": "Ritmos de arrendamiento local, no guías genéricas",
+    "highlight2Label": "Operaciones que se sienten",
+    "highlight2Detail": "Solicitudes, renta y mantenimiento en un solo flujo",
+    "highlight3Label": "Comunicación que se mantiene",
+    "highlight3Detail": "Menos vacíos, pasos siguientes más claros",
+    "audienceLabel": "Elija inquilinos o propietarios",
+    "rentersTitle": "Inquilinos",
+    "rentersBody": "¿Buscando un arrendamiento en Houston? Mantenemos el camino honesto: lo que necesita para solicitar, qué esperar y personas que contestan el teléfono.",
+    "rentersBullet1": "Pasos de solicitud simplificados y guía de documentos requeridos",
+    "rentersBullet2": "Mentalidad de listados locales: conocemos los ritmos de este mercado",
+    "rentersBullet3": "Respeto por su tiempo: menos sorpresas, pasos siguientes más claros",
+    "rentersCta": "Iniciar su solicitud",
+    "ownersTitle": "Propietarios",
+    "ownersBody": "Déjenos las llaves del trabajo tedioso. Comercializamos vacantes, seleccionamos inquilinos, coordinamos reparaciones e informamos para que pueda enfocarse en el panorama general.",
+    "ownersBullet1": "Gestión integral de propiedades adaptada a sus objetivos",
+    "ownersBullet2": "Coordinación de mantenimiento y relaciones con proveedores",
+    "ownersBullet3": "Comunicación constante: nunca adivinará qué está pasando",
+    "ownersCta": "Explorar la gestión de propiedades"
+  },
+  "apply": {
+    "title": "Carwoods - Cómo Solicitar",
+    "metaDescription": "Cómo solicitar alquilar una propiedad de Carwoods. Revise los criterios, reúna documentos y envíe su solicitud de arrendamiento en línea.",
+    "heading": "Cómo Solicitar el Arrendamiento",
+    "intro": "Toda la información que necesita para solicitar está en este sitio. No es necesario llamar: siga los pasos a continuación. Cuando termine de revisar la elegibilidad o la lista de documentos, use Volver a Cómo Solicitar en la parte superior de esas páginas para regresar aquí y continuar con el paso 3.",
+    "stepsLabel": "Pasos para solicitar",
+    "step1Heading": "Verificar elegibilidad",
+    "step1Body": "Revise nuestros",
+    "step1LinkText": "Criterios de Selección de Inquilinos",
+    "step2Heading": "Reunir sus documentos",
+    "step2Body": "Use nuestra lista de",
+    "step2LinkText": "Documentos Requeridos",
+    "step2BodySuffix": "para que su solicitud esté completa.",
+    "step3Heading": "Enviar su solicitud",
+    "step3Body": "Elija una propiedad a continuación para iniciar la solicitud en línea (RentSpree). Cada tarjeta también enlaza al listado completo con fotos y detalles."
+  },
+  "contact": {
+    "title": "Carwoods - Contáctenos",
+    "metaDescription": "Comience con nuestra página Solicitar para los pasos de arrendamiento y documentos. Contacte a nuestro agente en HAR.com cuando necesite ayuda directa después de seguir ese proceso.",
+    "heading": "Contáctenos",
+    "para1Prefix": "Para solicitudes de arrendamiento y la mayoría de las preguntas relacionadas con el arrendamiento, comience con nuestra página",
+    "applyLinkText": "Solicitar",
+    "para1Suffix": "Explica la elegibilidad, la documentación requerida y cómo enviar a través del canal de listado. Seguir ese flujo de trabajo primero nos permite asistirle de manera eficiente y consistente.",
+    "para2": "Si ya ha seguido esos pasos, o tiene un asunto que no se puede abordar allí, como servicios de administración de propiedades u otro tema que requiera contacto directo, comuníquese con nuestro agente licenciado en HAR.com (Houston Association of Realtors). Alentamos el uso de este canal cuando las opciones de autoservicio no son suficientes.",
+    "ctaButton": "Contactar a Nuestro Agente en HAR.com",
+    "ctaAriaLabel": "Contactar a nuestro agente en HAR.com (se abre en una nueva pestaña)"
+  },
+  "privacy": {
+    "title": "Carwoods - Política de Privacidad",
+    "metaDescription": "Política de privacidad de Carwoods: cómo recopilamos, usamos y protegemos su información.",
+    "heading": "Política de Privacidad",
+    "intro": "Carwoods (\"nosotros,\" \"nuestro,\" o \"nos\") se compromete a proteger su privacidad. Esta política describe cómo manejamos la información cuando usa nuestro sitio web y servicios.",
+    "collectHeading": "Información que Recopilamos",
+    "collectBody": "Cuando visita nuestro sitio, podemos recopilar información que proporciona directamente, como cuando nos contacta o envía una solicitud. Si usa servicios de terceros (p. ej., HAR.com para consultas o solicitudes de propiedades), sus políticas de privacidad rigen esos datos.",
+    "useHeading": "Cómo Usamos la Información",
+    "useBody": "Usamos la información para responder consultas, procesar solicitudes, brindar servicios de administración de propiedades y cumplir con las obligaciones legales. No vendemos su información personal.",
+    "thirdPartyHeading": "Terceros",
+    "thirdPartyBody": "Nuestro sitio puede enlazar a servicios externos (p. ej., Texas Real Estate Commission, HAR.com). No somos responsables de sus prácticas de privacidad. Revise sus políticas antes de compartir información.",
+    "contactHeading": "Contacto",
+    "contactBody": "Para preguntas relacionadas con la privacidad o para solicitar acceso a su información, contáctenos a través de nuestra página de",
+    "contactLink": "Contáctenos",
+    "contactBodySuffix": "",
+    "lastUpdated": "Última actualización: febrero de 2025"
+  },
+  "accessibility": {
+    "title": "Carwoods - Declaración de Accesibilidad",
+    "metaDescription": "Compromiso de Carwoods con la accesibilidad digital y el cumplimiento de WCAG.",
+    "heading": "Declaración de Accesibilidad",
+    "intro": "Carwoods se compromete a garantizar que nuestro sitio web sea accesible para personas con discapacidades. Nuestro objetivo es cumplir con las Pautas de Accesibilidad para el Contenido Web (WCAG) 2.1 en el Nivel AA.",
+    "measuresHeading": "Medidas que Tomamos",
+    "measure1": "HTML semántico y estructura de encabezados clara",
+    "measure2": "Contenido navegable por teclado con indicadores de enfoque visibles",
+    "measure3": "Texto alternativo para imágenes",
+    "measure4": "Contraste de color que cumple con las pautas de WCAG",
+    "measure5": "Un enlace de salto al contenido principal para usuarios de teclado",
+    "feedbackHeading": "Comentarios",
+    "feedbackBody": "Si encuentra alguna barrera de accesibilidad en nuestro sitio, contáctenos a través de nuestra página de",
+    "feedbackLink": "Contáctenos",
+    "feedbackBodySuffix": "Trabajaremos para abordar el problema de manera oportuna.",
+    "lastUpdated": "Última actualización: marzo de 2026"
+  },
+  "footer": {
+    "copyright": "© 2026 Carwoods. Todos los derechos reservados.",
+    "trecNotice": "Aviso de Protección al Consumidor de la Comisión de Bienes Raíces de Texas",
+    "trecNoticeAriaLabel": "Aviso de Protección al Consumidor de la Comisión de Bienes Raíces de Texas (se abre en una nueva pestaña)",
+    "trecBrokerage": "Información de la Comisión de Bienes Raíces de Texas sobre Servicios de Corretaje",
+    "trecBrokerageAriaLabel": "Información de la Comisión de Bienes Raíces de Texas sobre Servicios de Corretaje (se abre en una nueva pestaña)",
+    "privacyPolicy": "Política de Privacidad",
+    "accessibility": "Accesibilidad"
+  },
+  "applyFlowSubnav": {
+    "label": "Navegación del proceso de solicitud",
+    "backToApply": "Volver a Cómo Solicitar",
+    "nextRequiredDocs": "Siguiente: Documentos requeridos",
+    "step1Criteria": "Paso 1: Criterios de Selección de Inquilinos"
+  },
+  "skipToMain": "Saltar al contenido principal",
+  "languageNames": {
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "ar": "العربية"
+  }
+}

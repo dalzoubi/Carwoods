@@ -2,10 +2,12 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { withDarkPath } from '../routePaths';
 import { Helmet } from 'react-helmet';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { Heading, Paragraph, PageHeader } from '../styles';
 import theme from '../theme';
 import RentalPropertyApplyTiles from './RentalPropertyApplyTiles';
+
 const InternalLink = styled(Link)`
     color: var(--palette-primary-main);
     text-decoration: underline;
@@ -123,34 +125,33 @@ const StepDescription = styled.p`
 
 const Apply = () => {
     const { pathname } = useLocation();
+    const { t } = useTranslation();
     return (
         <div>
             <Helmet>
-                <title>Carwoods - How to Apply</title>
-                <meta name="description" content="How to apply to rent a Carwoods property. Review criteria, gather documents, and submit your rental application online." />
+                <title>{t('apply.title')}</title>
+                <meta name="description" content={t('apply.metaDescription')} />
             </Helmet>
             <PageHeader>
-                <Heading>How to Apply to Rent</Heading>
+                <Heading>{t('apply.heading')}</Heading>
             </PageHeader>
 
             <Paragraph>
-                All the information you need to apply is on this site. No need to call — follow the steps below.
-                When you finish reviewing eligibility or the documents list, use{' '}
-                <strong>Back to How to Apply</strong> at the top of those pages to return here and continue with step 3.
+                {t('apply.intro')}
             </Paragraph>
 
-            <StepTrack aria-label="Steps to apply">
+            <StepTrack aria-label={t('apply.stepsLabel')}>
                 <StepItem>
                     <StepRail>
                         <StepBadge aria-hidden="true">1</StepBadge>
                         <StepConnector aria-hidden="true" />
                     </StepRail>
                     <StepBody>
-                        <StepHeading>Check eligibility</StepHeading>
+                        <StepHeading>{t('apply.step1Heading')}</StepHeading>
                         <StepDescription>
-                            Review our{' '}
+                            {t('apply.step1Body')}{' '}
                             <InternalLink to={withDarkPath(pathname, '/tenant-selection-criteria')}>
-                                Tenant Selection Criteria
+                                {t('apply.step1LinkText')}
                             </InternalLink>
                             .
                         </StepDescription>
@@ -162,13 +163,13 @@ const Apply = () => {
                         <StepConnector aria-hidden="true" />
                     </StepRail>
                     <StepBody>
-                        <StepHeading>Gather your documents</StepHeading>
+                        <StepHeading>{t('apply.step2Heading')}</StepHeading>
                         <StepDescription>
-                            Use our{' '}
+                            {t('apply.step2Body')}{' '}
                             <InternalLink to={withDarkPath(pathname, '/application-required-documents')}>
-                                Required Documents
+                                {t('apply.step2LinkText')}
                             </InternalLink>{' '}
-                            list so your application is complete.
+                            {t('apply.step2BodySuffix')}
                         </StepDescription>
                     </StepBody>
                 </StepItem>
@@ -178,9 +179,9 @@ const Apply = () => {
                         <StepConnector aria-hidden="true" />
                     </StepRail>
                     <StepBody>
-                        <StepHeading>Submit your application</StepHeading>
+                        <StepHeading>{t('apply.step3Heading')}</StepHeading>
                         <StepDescription>
-                            Choose a property below to start the online application (RentSpree). Each card also links to the full listing for photos and details.
+                            {t('apply.step3Body')}
                         </StepDescription>
                         <RentalPropertyApplyTiles />
                     </StepBody>

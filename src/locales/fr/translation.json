@@ -1,0 +1,143 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "tenant": "Locataire",
+    "landlord": "Propriétaire",
+    "contactUs": "Contactez-nous",
+    "openMenu": "ouvrir le menu",
+    "appearance": "Apparence",
+    "language": "Langue",
+    "selectLanguage": "Sélectionner la langue",
+    "privacy": "Politique de confidentialité",
+    "accessibility": "Accessibilité"
+  },
+  "tenantLinks": {
+    "apply": "Postuler",
+    "selectionCriteria": "Critères de sélection",
+    "requiredDocuments": "Documents requis"
+  },
+  "landlordLinks": {
+    "propertyManagement": "Gestion immobilière"
+  },
+  "appearance": {
+    "colorTheme": "Thème de couleur",
+    "light": "Clair",
+    "dark": "Sombre",
+    "useDeviceSetting": "Utiliser le paramètre de l'appareil",
+    "deviceSettingHint": "Votre choix est enregistré dans ce navigateur. La réinitialisation efface le remplacement et suit à nouveau votre appareil.",
+    "darkPreview": "Aperçu sombre",
+    "darkPreviewDescription": "Les URL sous /dark/… forcent le style sombre pour les tests sans activer le drapeau de fonctionnalité.",
+    "exitPreview": "Quitter l'aperçu (aller à l'accueil)"
+  },
+  "home": {
+    "title": "Carwoods — Locations à Houston, bien gérées",
+    "metaDescription": "Locations et gestion immobilière à Houston : candidatures claires, communication cohérente, collecte de loyer à temps, entretien proactif et gestion disciplinée des actifs.",
+    "heroHeading": "Locations à Houston, Bien Gérées",
+    "heroSubtitle": "Candidatures claires. Communication cohérente. Collecte de loyer à temps, entretien proactif et gestion disciplinée des actifs.",
+    "heroImageAlt": "Clés d'une nouvelle maison reposant sur un paillasson de bienvenue",
+    "midHeroAlt": "Extérieur de maison moderne avec une lumière chaude en soirée",
+    "highlightsLabel": "Points forts de l'entreprise",
+    "highlight1Label": "Concentration sur le marché de Houston",
+    "highlight1Detail": "Rythmes de location locaux, pas des playbooks génériques",
+    "highlight2Label": "Des opérations que vous ressentez",
+    "highlight2Detail": "Candidatures, loyer et entretien en un seul flux",
+    "highlight3Label": "Une communication qui tient",
+    "highlight3Detail": "Moins d'écarts, des prochaines étapes plus claires",
+    "audienceLabel": "Choisissez locataires ou propriétaires",
+    "rentersTitle": "Locataires",
+    "rentersBody": "Vous cherchez une location à Houston ? Nous gardons le chemin honnête : ce dont vous avez besoin pour postuler, à quoi s'attendre, et des personnes qui répondent au téléphone.",
+    "rentersBullet1": "Étapes de candidature simplifiées et guide des documents requis",
+    "rentersBullet2": "Esprit de listes locales — nous connaissons les rythmes de ce marché",
+    "rentersBullet3": "Respect de votre temps : moins de surprises, prochaines étapes plus claires",
+    "rentersCta": "Commencer votre candidature",
+    "ownersTitle": "Propriétaires",
+    "ownersBody": "Confiez-nous les tâches fastidieuses. Nous commercialisons les vacances, sélectionnons les locataires, coordonnons les réparations et rendons compte pour que vous puissiez vous concentrer sur la vue d'ensemble.",
+    "ownersBullet1": "Gestion immobilière complète adaptée à vos objectifs",
+    "ownersBullet2": "Coordination de l'entretien et relations avec les fournisseurs",
+    "ownersBullet3": "Communication régulière — vous ne devinez jamais ce qui se passe",
+    "ownersCta": "Explorer la gestion immobilière"
+  },
+  "apply": {
+    "title": "Carwoods - Comment postuler",
+    "metaDescription": "Comment postuler pour louer une propriété Carwoods. Examinez les critères, rassemblez des documents et soumettez votre demande de location en ligne.",
+    "heading": "Comment Postuler pour Louer",
+    "intro": "Toutes les informations dont vous avez besoin pour postuler se trouvent sur ce site. Pas besoin d'appeler — suivez les étapes ci-dessous. Lorsque vous avez terminé de vérifier l'éligibilité ou la liste des documents, utilisez Retour à Comment postuler en haut de ces pages pour revenir ici et continuer avec l'étape 3.",
+    "stepsLabel": "Étapes pour postuler",
+    "step1Heading": "Vérifier l'éligibilité",
+    "step1Body": "Consultez nos",
+    "step1LinkText": "Critères de sélection des locataires",
+    "step2Heading": "Rassembler vos documents",
+    "step2Body": "Utilisez notre liste de",
+    "step2LinkText": "Documents requis",
+    "step2BodySuffix": "pour que votre candidature soit complète.",
+    "step3Heading": "Soumettre votre candidature",
+    "step3Body": "Choisissez une propriété ci-dessous pour démarrer la candidature en ligne (RentSpree). Chaque carte renvoie également au listing complet avec photos et détails."
+  },
+  "contact": {
+    "title": "Carwoods - Contactez-nous",
+    "metaDescription": "Commencez par notre page Postuler pour les étapes de location et les documents. Contactez notre agent sur HAR.com lorsque vous avez besoin d'aide directe après avoir suivi ce processus.",
+    "heading": "Contactez-nous",
+    "para1Prefix": "Pour les candidatures à la location et la plupart des questions liées à la location, veuillez commencer par notre page",
+    "applyLinkText": "Postuler",
+    "para1Suffix": "Elle explique l'éligibilité, la documentation requise et comment soumettre via le canal de listing. Suivre d'abord ce flux de travail nous permet de vous assister efficacement et systématiquement.",
+    "para2": "Si vous avez déjà suivi ces étapes, ou si vous avez une question qui ne peut pas y être traitée — comme les services de gestion immobilière ou un autre sujet qui nécessite un contact direct — veuillez contacter notre agent agréé sur HAR.com (Houston Association of Realtors). Nous encourageons l'utilisation de ce canal lorsque les options en libre-service ne sont pas suffisantes.",
+    "ctaButton": "Contacter notre agent sur HAR.com",
+    "ctaAriaLabel": "Contacter notre agent sur HAR.com (s'ouvre dans un nouvel onglet)"
+  },
+  "privacy": {
+    "title": "Carwoods - Politique de confidentialité",
+    "metaDescription": "Politique de confidentialité de Carwoods — comment nous collectons, utilisons et protégeons vos informations.",
+    "heading": "Politique de Confidentialité",
+    "intro": "Carwoods (« nous », « notre » ou « nos ») s'engage à protéger votre vie privée. Cette politique décrit comment nous traitons les informations lorsque vous utilisez notre site Web et nos services.",
+    "collectHeading": "Informations que nous collectons",
+    "collectBody": "Lorsque vous visitez notre site, nous pouvons collecter des informations que vous fournissez directement, par exemple lorsque vous nous contactez ou soumettez une candidature. Si vous utilisez des services tiers (p. ex., HAR.com pour les demandes de propriété ou les candidatures), leurs politiques de confidentialité régissent ces données.",
+    "useHeading": "Comment nous utilisons les informations",
+    "useBody": "Nous utilisons les informations pour répondre aux demandes, traiter les candidatures, fournir des services de gestion immobilière et respecter les obligations légales. Nous ne vendons pas vos informations personnelles.",
+    "thirdPartyHeading": "Tiers",
+    "thirdPartyBody": "Notre site peut renvoyer à des services externes (p. ex., Texas Real Estate Commission, HAR.com). Nous ne sommes pas responsables de leurs pratiques en matière de confidentialité. Veuillez consulter leurs politiques avant de partager des informations.",
+    "contactHeading": "Contact",
+    "contactBody": "Pour les questions liées à la confidentialité ou pour demander l'accès à vos informations, contactez-nous via notre page",
+    "contactLink": "Contactez-nous",
+    "contactBodySuffix": "",
+    "lastUpdated": "Dernière mise à jour : février 2025"
+  },
+  "accessibility": {
+    "title": "Carwoods - Déclaration d'accessibilité",
+    "metaDescription": "Engagement de Carwoods envers l'accessibilité numérique et la conformité WCAG.",
+    "heading": "Déclaration d'Accessibilité",
+    "intro": "Carwoods s'engage à garantir que notre site Web est accessible aux personnes handicapées. Nous visons à nous conformer aux Directives pour l'accessibilité aux contenus Web (WCAG) 2.1 au niveau AA.",
+    "measuresHeading": "Mesures que nous prenons",
+    "measure1": "HTML sémantique et structure de titres claire",
+    "measure2": "Contenu navigable au clavier avec des indicateurs de mise au point visibles",
+    "measure3": "Texte alternatif pour les images",
+    "measure4": "Contraste des couleurs conforme aux directives WCAG",
+    "measure5": "Un lien de saut vers le contenu principal pour les utilisateurs du clavier",
+    "feedbackHeading": "Commentaires",
+    "feedbackBody": "Si vous rencontrez des obstacles d'accessibilité sur notre site, veuillez nous contacter via notre page",
+    "feedbackLink": "Contactez-nous",
+    "feedbackBodySuffix": "Nous travaillerons à résoudre le problème rapidement.",
+    "lastUpdated": "Dernière mise à jour : mars 2026"
+  },
+  "footer": {
+    "copyright": "© 2026 Carwoods. Tous droits réservés.",
+    "trecNotice": "Avis de protection du consommateur de la Commission immobilière du Texas",
+    "trecNoticeAriaLabel": "Avis de protection du consommateur de la Commission immobilière du Texas (s'ouvre dans un nouvel onglet)",
+    "trecBrokerage": "Informations de la Commission immobilière du Texas sur les services de courtage",
+    "trecBrokerageAriaLabel": "Informations de la Commission immobilière du Texas sur les services de courtage (s'ouvre dans un nouvel onglet)",
+    "privacyPolicy": "Politique de confidentialité",
+    "accessibility": "Accessibilité"
+  },
+  "applyFlowSubnav": {
+    "label": "Navigation du processus de candidature",
+    "backToApply": "Retour à Comment postuler",
+    "nextRequiredDocs": "Suivant : Documents requis",
+    "step1Criteria": "Étape 1 : Critères de sélection des locataires"
+  },
+  "skipToMain": "Aller au contenu principal",
+  "languageNames": {
+    "en": "English",
+    "es": "Español",
+    "fr": "Français",
+    "ar": "العربية"
+  }
+}
