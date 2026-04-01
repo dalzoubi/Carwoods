@@ -346,7 +346,7 @@ const ResponsiveNavbar = () => {
                     </ListItemButton>
 
                     <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
-                        Legal
+                        {t('nav.legal')}
                     </ListSubheader>
                     {legalLinks.map(({ to, label }) => (
                         <ListItemButton

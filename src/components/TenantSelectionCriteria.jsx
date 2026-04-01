@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
+import { useTranslation } from 'react-i18next';
 import { Heading, SubHeading, SectionHeading, Paragraph, BackToTop, nestedListStyle, nestedUlStyle, PrintHeader, PrintFilterSummary, PageHeader, FilteredSection } from '../styles';
 import { TocPageLayout } from './TocPageLayout';
 import ApplicantWizard, { loadProfile, buildChipLabel } from './ApplicantWizard';
@@ -7,6 +8,7 @@ import { ApplyFlowSubnav } from './ApplyFlowSubnav';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
 const TenantSelectionCriteria = () => {
+  const { t } = useTranslation();
   const [profile, setProfile] = useState(() => loadProfile());
 
   useEffect(() => {
@@ -25,7 +27,6 @@ const TenantSelectionCriteria = () => {
     guarantorPolicy:   !f || f.guarantorCosigner === 'guarantor' || f.guarantorCosigner === 'not-sure',
     cosignerPolicy:    !f || f.guarantorCosigner === 'cosigner' || f.guarantorCosigner === 'not-sure',
     pets:              !f || (f.hasPets && f.hasPets !== 'none'),
-    /** Household pets filter only — hide Fair Housing assistance-animal subsection. */
     assistanceAnimals: !f || f.hasPets === 'service' || f.hasPets === 'esa',
     petsRestrictions:  !f || f.hasPets === 'pets',
   };
@@ -34,7 +35,6 @@ const TenantSelectionCriteria = () => {
     ? { prohibited: 'b', caged: 'c', breeds: 'd' }
     : { prohibited: 'a', caged: 'b', breeds: 'c' };
 
-  /** Matches TOC order: only visible sections get the next index. */
   const sectionNumbers = useMemo(() => {
     const seq = [
       ['non-negotiable', true],
@@ -71,35 +71,31 @@ const TenantSelectionCriteria = () => {
   return (
     <div className="tenant-criteria">
       <Helmet>
-        <title>Carwoods - Tenant Selection Criteria</title>
+        <title>{t('tenantCriteria.title')}</title>
       </Helmet>
 
       <PrintHeader>
-        <img src={carwoodsLogo} alt="Carwoods" />
+        <img src={carwoodsLogo} alt={t('common.carwoodsAlt')} />
       </PrintHeader>
       <PrintFilterSummary>
-        <div className="pfs-label">Filtered view</div>
+        <div className="pfs-label">{t('tenantCriteria.filteredView')}</div>
         <div className="pfs-criteria">
-          {profile ? buildChipLabel(profile) : 'No filters active — showing all sections'}
+          {profile ? buildChipLabel(profile) : t('tenantCriteria.noFilters')}
         </div>
         <div className="pfs-date">
-          Generated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          {t('tenantCriteria.generated')} {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
         </div>
       </PrintFilterSummary>
       <PageHeader>
-        <Heading>Tenant Selection Criteria</Heading>
+        <Heading>{t('tenantCriteria.heading')}</Heading>
       </PageHeader>
 
       <ApplyFlowSubnav phase="eligibility" />
 
-      <Paragraph>
-        We appreciate your interest in our properties. We do not discriminate based on race, color, religion, sex, familial status, national origin, disability, or other protected characteristics under the Texas Fair Housing Act.
-      </Paragraph>
+      <Paragraph>{t('tenantCriteria.fairHousing')}</Paragraph>
 
       <Paragraph>
-        All applicants must meet <strong>every</strong> requirement below. These standards are applied consistently to
-        all applicants, including those using housing assistance (Section 8 or similar programs). Meeting some criteria
-        does not qualify an applicant.
+        {t('tenantCriteria.allMust')}
       </Paragraph>
 
       <ApplicantWizard onProfileChange={setProfile} />
@@ -107,57 +103,57 @@ const TenantSelectionCriteria = () => {
       <TocPageLayout
         toc={
           <>
-            <SubHeading>Contents</SubHeading>
+            <SubHeading>{t('tenantCriteria.tocContents')}</SubHeading>
             <ol>
-              <li><a href="#non-negotiable">Important: Read First</a></li>
-              <li><a href="#at-a-glance">At a glance</a></li>
+              <li><a href="#non-negotiable">{t('tenantCriteria.toc1')}</a></li>
+              <li><a href="#at-a-glance">{t('tenantCriteria.toc2')}</a></li>
               <li>
-                <a href="#details">Details</a>
+                <a href="#details">{t('tenantCriteria.toc3')}</a>
                 <ol type="a">
-                  <li><a href="#employment">Employment</a></li>
-                  <li><a href="#income">Income</a></li>
-                  <li><a href="#rental-history">Rental history</a></li>
-                  <li><a href="#credit">Credit</a></li>
-                  <li><a href="#background">Background</a></li>
+                  <li><a href="#employment">{t('tenantCriteria.toc3a')}</a></li>
+                  <li><a href="#income">{t('tenantCriteria.toc3b')}</a></li>
+                  <li><a href="#rental-history">{t('tenantCriteria.toc3c')}</a></li>
+                  <li><a href="#credit">{t('tenantCriteria.toc3d')}</a></li>
+                  <li><a href="#background">{t('tenantCriteria.toc3e')}</a></li>
                 </ol>
               </li>
-              {show.housingAssistance && <li><a href="#housing-assistance">Housing Assistance</a></li>}
-              {show.creditException && <li><a href="#credit-exception">Discretionary credit exception (rare)</a></li>}
+              {show.housingAssistance && <li><a href="#housing-assistance">{t('tenantCriteria.toc4')}</a></li>}
+              {show.creditException && <li><a href="#credit-exception">{t('tenantCriteria.toc5')}</a></li>}
               {show.guarantorPolicy && (
                 <li>
-                  <a href="#guarantor-policy">Guarantor policy</a>
+                  <a href="#guarantor-policy">{t('tenantCriteria.toc6')}</a>
                   <ol type="a">
-                    <li><a href="#guarantor-when">When a guarantor may be considered</a></li>
-                    <li><a href="#guarantor-qualification">Guarantor qualification requirements (mandatory)</a></li>
-                    <li><a href="#guarantor-legal">Guarantor legal and payment terms</a></li>
-                    <li><a href="#guarantor-notes">Important notes</a></li>
+                    <li><a href="#guarantor-when">{t('tenantCriteria.toc6a')}</a></li>
+                    <li><a href="#guarantor-qualification">{t('tenantCriteria.toc6b')}</a></li>
+                    <li><a href="#guarantor-legal">{t('tenantCriteria.toc6c')}</a></li>
+                    <li><a href="#guarantor-notes">{t('tenantCriteria.toc6d')}</a></li>
                   </ol>
                 </li>
               )}
               {show.cosignerPolicy && (
                 <li>
-                  <a href="#cosigner-policy">Co-signer policy</a>
+                  <a href="#cosigner-policy">{t('tenantCriteria.toc7')}</a>
                   <ol type="a">
-                    <li><a href="#cosigner-differences">Key differences from a guarantor</a></li>
-                    <li><a href="#cosigner-when">When a co-signer may be considered</a></li>
-                    <li><a href="#cosigner-qualification">Co-signer qualification requirements (mandatory)</a></li>
-                    <li><a href="#cosigner-legal">Co-signer legal and payment terms</a></li>
-                    <li><a href="#cosigner-notes">Important notes</a></li>
+                    <li><a href="#cosigner-differences">{t('tenantCriteria.toc7a')}</a></li>
+                    <li><a href="#cosigner-when">{t('tenantCriteria.toc7b')}</a></li>
+                    <li><a href="#cosigner-qualification">{t('tenantCriteria.toc7c')}</a></li>
+                    <li><a href="#cosigner-legal">{t('tenantCriteria.toc7d')}</a></li>
+                    <li><a href="#cosigner-notes">{t('tenantCriteria.toc7e')}</a></li>
                   </ol>
                 </li>
               )}
               {show.pets && (
                 <li>
-                  <a href="#pets">Pets</a>
+                  <a href="#pets">{t('tenantCriteria.toc8')}</a>
                   <ol type="a">
                     {show.assistanceAnimals && (
-                      <li><a href="#assistance-animals">Assistance animals</a></li>
+                      <li><a href="#assistance-animals">{t('tenantCriteria.toc8a')}</a></li>
                     )}
                     {show.petsRestrictions && (
                       <>
-                        <li><a href="#pets-prohibited">Prohibited animals</a></li>
-                        <li><a href="#pets-caged">Caged animals</a></li>
-                        <li><a href="#pets-breeds">Prohibited dog breeds</a></li>
+                        <li><a href="#pets-prohibited">{t('tenantCriteria.toc8b')}</a></li>
+                        <li><a href="#pets-caged">{t('tenantCriteria.toc8c')}</a></li>
+                        <li><a href="#pets-breeds">{t('tenantCriteria.toc8d')}</a></li>
                       </>
                     )}
                   </ol>
@@ -168,323 +164,224 @@ const TenantSelectionCriteria = () => {
         }
       >
       <section id="non-negotiable" aria-labelledby="heading-non-negotiable">
-        <SubHeading id="heading-non-negotiable">{sectionTitle('non-negotiable', 'Important: Read First')}</SubHeading>
+        <SubHeading id="heading-non-negotiable">{sectionTitle('non-negotiable', t('tenantCriteria.nonNegHeading'))}</SubHeading>
         <ul>
-          <li>All requirements below are <strong>mandatory</strong>. Applications that do not meet every requirement may be <strong>denied</strong>.</li>
-          <li>No verbal assurances, explanations, or promises can replace documentation.</li>
-          <li>Incomplete applications will not be processed.</li>
-          <li>Housing assistance (Section 8) does <strong>not</strong> waive credit, background, employment, or rental history standards.</li>
-          <li>Submitting an application does not guarantee approval.</li>
+          <li>{t('tenantCriteria.nonNeg1')}</li>
+          <li>{t('tenantCriteria.nonNeg2')}</li>
+          <li>{t('tenantCriteria.nonNeg3')}</li>
+          <li>{t('tenantCriteria.nonNeg4')}</li>
+          <li>{t('tenantCriteria.nonNeg5')}</li>
         </ul>
-        <BackToTop href="#page-top">↑ Back to top</BackToTop>
+        <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </section>
 
       <section id="at-a-glance" aria-labelledby="heading-at-a-glance">
-        <SubHeading id="heading-at-a-glance">{sectionTitle('at-a-glance', 'At a glance')}</SubHeading>
+        <SubHeading id="heading-at-a-glance">{sectionTitle('at-a-glance', t('tenantCriteria.glanceHeading'))}</SubHeading>
         <ul>
-          <li><strong>Employment:</strong> 24+ months of verifiable employment history</li>
-          <li><strong>Income:</strong> Gross monthly income ≥ 3× monthly rent (or ≥ 2.5× your tenant portion if using housing assistance)</li>
-          <li><strong>Rental history:</strong> 24+ months of verifiable rental or mortgage payment history</li>
-          <li><strong>Credit:</strong> Minimum score of 650 (strictly enforced)</li>
-          <li><strong>Background:</strong> No criminal convictions, evictions, bankruptcies, or housing-related collections/negatives</li>
+          <li><strong>{t('tenantCriteria.glance1').split(':')[0]}:</strong>{t('tenantCriteria.glance1').split(':').slice(1).join(':')}</li>
+          <li><strong>{t('tenantCriteria.glance2').split(':')[0]}:</strong>{t('tenantCriteria.glance2').split(':').slice(1).join(':')}</li>
+          <li><strong>{t('tenantCriteria.glance3').split(':')[0]}:</strong>{t('tenantCriteria.glance3').split(':').slice(1).join(':')}</li>
+          <li><strong>{t('tenantCriteria.glance4').split(':')[0]}:</strong>{t('tenantCriteria.glance4').split(':').slice(1).join(':')}</li>
+          <li><strong>{t('tenantCriteria.glance5').split(':')[0]}:</strong>{t('tenantCriteria.glance5').split(':').slice(1).join(':')}</li>
         </ul>
-        <BackToTop href="#page-top">↑ Back to top</BackToTop>
+        <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </section>
 
       <section id="details" aria-labelledby="heading-details">
-        <SubHeading id="heading-details">{sectionTitle('details', 'Details')}</SubHeading>
+        <SubHeading id="heading-details">{sectionTitle('details', t('tenantCriteria.detailsHeading'))}</SubHeading>
 
-        <SectionHeading id="employment">a. Employment</SectionHeading>
+        <SectionHeading id="employment">{t('tenantCriteria.employmentHeading')}</SectionHeading>
         <ul>
-          <li>Minimum <strong>24 consecutive months</strong> of verifiable employment history</li>
-          <li>Employment gaps must be documented</li>
-          <li>Recent job starts, short-term work, or unverified employment do not qualify</li>
-          <li>Self-employment requires <strong>24 months of tax returns</strong></li>
+          <li>{t('tenantCriteria.emp1')}</li>
+          <li>{t('tenantCriteria.emp2')}</li>
+          <li>{t('tenantCriteria.emp3')}</li>
+          <li>{t('tenantCriteria.emp4')}</li>
         </ul>
 
-        <SectionHeading id="income">b. Income</SectionHeading>
+        <SectionHeading id="income">{t('tenantCriteria.incomeHeading')}</SectionHeading>
         <ul>
-          <li>Gross monthly income must be at least <strong>3× the monthly rent</strong></li>
+          <li>{t('tenantCriteria.inc1')}</li>
+          <li>{t('tenantCriteria.inc2')}</li>
+          <li>{t('tenantCriteria.inc3')}</li>
+          <li>{t('tenantCriteria.inc4')}</li>
+        </ul>
+
+        <SectionHeading id="rental-history">{t('tenantCriteria.rentalHistHeading')}</SectionHeading>
+        <ul>
+          <li>{t('tenantCriteria.rh1')}</li>
+          <li>{t('tenantCriteria.rh2')}</li>
+          <li>{t('tenantCriteria.rh3')}</li>
+          <li>{t('tenantCriteria.rh4')}</li>
+        </ul>
+
+        <SectionHeading id="credit">{t('tenantCriteria.creditHeading')}</SectionHeading>
+        <ul>
+          <li>{t('tenantCriteria.cred1')}</li>
           <li>
-            For housing assistance applicants, the income requirement is based on <strong>2.5× your tenant portion</strong> of rent as
-            determined by the Housing Authority
-          </li>
-          <li>Income must be <strong>verifiable, recurring, and stable</strong></li>
-          <li>Bank statements may be required to confirm cash-flow stability</li>
-        </ul>
-
-        <SectionHeading id="rental-history">c. Rental history</SectionHeading>
-        <ul>
-          <li>Minimum <strong>24 months</strong> of verifiable rental or mortgage payment history</li>
-          <li>Landlord references must be verifiable and responsive</li>
-          <li>Family/friend landlords are not accepted</li>
-          <li>Rental history must demonstrate on-time payments and proper care of the property</li>
-        </ul>
-
-        <SectionHeading id="credit">d. Credit (strictly enforced)</SectionHeading>
-        <ul>
-          <li>Minimum credit score of <strong>650</strong></li>
-          <li>
-            The following are disqualifying:
+            {t('tenantCriteria.cred2')}
             <ul style={nestedUlStyle}>
-              <li>Housing-related collections (utilities/energy/water/landlord claims)</li>
-              <li>Unpaid auto loan charge-offs, repossessions, or major delinquencies</li>
-              <li>Pattern of unpaid obligations or excessive collections</li>
+              <li>{t('tenantCriteria.cred2a')}</li>
+              <li>{t('tenantCriteria.cred2b')}</li>
+              <li>{t('tenantCriteria.cred2c')}</li>
             </ul>
           </li>
-          <li>While we welcome written explanations, rental decisions are based on verified credit reports and consistent criteria</li>
+          <li>{t('tenantCriteria.cred3')}</li>
         </ul>
 
-        <SectionHeading id="background">e. Background</SectionHeading>
+        <SectionHeading id="background">{t('tenantCriteria.backgroundHeading')}</SectionHeading>
         <ul>
-          <li><strong>No criminal convictions</strong></li>
-          <li><strong>No evictions</strong></li>
-          <li><strong>No bankruptcies</strong></li>
-          <li><strong>No housing-related collections/negatives</strong> on the credit report</li>
-          <li>We do not deny applicants based on being a victim of domestic violence, dating violence, sexual assault, or stalking, in compliance with Texas law</li>
-          <li>Inconsistencies between disclosures and screening results may result in denial</li>
+          <li><strong>{t('tenantCriteria.bg1')}</strong></li>
+          <li><strong>{t('tenantCriteria.bg2')}</strong></li>
+          <li><strong>{t('tenantCriteria.bg3')}</strong></li>
+          <li><strong>{t('tenantCriteria.bg4')}</strong></li>
+          <li>{t('tenantCriteria.bg5')}</li>
+          <li>{t('tenantCriteria.bg6')}</li>
         </ul>
-        <BackToTop href="#page-top">↑ Back to top</BackToTop>
+        <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </section>
 
       <FilteredSection id="housing-assistance" aria-labelledby="heading-housing-assistance" data-filtered={String(!show.housingAssistance)}>
-        <SubHeading id="heading-housing-assistance">{sectionTitle('housing-assistance', 'Housing Assistance (Section 8 and others)')}</SubHeading>
+        <SubHeading id="heading-housing-assistance">{sectionTitle('housing-assistance', t('tenantCriteria.housingAssistHeading'))}</SubHeading>
         <ul style={nestedListStyle}>
-          <li>All applicants are screened using the same criteria for rental history, credit, criminal background, and references</li>
-          <li>Income requirement is 2.5× your tenant portion of rent as determined by the Housing Authority</li>
-          <li>Provide: valid voucher, RFTA packet, and your caseworker&apos;s contact information</li>
-          <li>No side payments; all rent amounts must be approved and documented by the Housing Authority</li>
-          <li>Voucher must be active and valid through the expected lease start date</li>
-          <li>Move-in requires Housing Authority inspection and rent reasonableness approval</li>
+          <li>{t('tenantCriteria.ha1')}</li>
+          <li>{t('tenantCriteria.ha2')}</li>
+          <li>{t('tenantCriteria.ha3')}</li>
+          <li>{t('tenantCriteria.ha4')}</li>
+          <li>{t('tenantCriteria.ha5')}</li>
+          <li>{t('tenantCriteria.ha6')}</li>
         </ul>
-        <BackToTop href="#page-top">↑ Back to top</BackToTop>
+        <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </FilteredSection>
 
       <FilteredSection id="credit-exception" aria-labelledby="heading-credit-exception" data-filtered={String(!show.creditException)}>
-        <SubHeading id="heading-credit-exception">{sectionTitle('credit-exception', 'Discretionary credit exception (rare)')}</SubHeading>
-        <Paragraph>
-          Applicants who do not meet the minimum credit score requirement may be considered <strong>only</strong> if all
-          conditions below are met. Approval under this exception is not guaranteed and remains at the sole discretion of the
-          owner/agent.
-        </Paragraph>
+        <SubHeading id="heading-credit-exception">{sectionTitle('credit-exception', t('tenantCriteria.creditExcHeading'))}</SubHeading>
+        <Paragraph>{t('tenantCriteria.creditExcIntro')}</Paragraph>
         <ul>
-          <li><strong>36+ months</strong> of verifiable, on-time rental history</li>
-          <li><strong>No housing-related collections</strong> (utilities/energy/water/landlord claims) in the past <strong>36 months</strong></li>
-          <li><strong>No unpaid auto loan charge-offs or repossessions</strong> in the past <strong>48 months</strong></li>
-          <li>Demonstrated <strong>positive bank balances and cash flow</strong> for the most recent <strong>60 days</strong></li>
-          <li>All other criteria (employment, income, background, references) must still be met</li>
+          <li>{t('tenantCriteria.ce1')}</li>
+          <li>{t('tenantCriteria.ce2')}</li>
+          <li>{t('tenantCriteria.ce3')}</li>
+          <li>{t('tenantCriteria.ce4')}</li>
+          <li>{t('tenantCriteria.ce5')}</li>
         </ul>
-        <BackToTop href="#page-top">↑ Back to top</BackToTop>
+        <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </FilteredSection>
 
       <FilteredSection id="guarantor-policy" aria-labelledby="heading-guarantor-policy" data-filtered={String(!show.guarantorPolicy)}>
-          <SubHeading id="heading-guarantor-policy">{sectionTitle('guarantor-policy', 'Guarantor policy')}</SubHeading>
+          <SubHeading id="heading-guarantor-policy">{sectionTitle('guarantor-policy', t('tenantCriteria.guarantorHeading'))}</SubHeading>
+          <Paragraph>{t('tenantCriteria.guarantorIntro')}</Paragraph>
 
-          <Paragraph>
-              A guarantor is a qualified individual who agrees in writing to be financially responsible for the lease obligations
-              if the tenant fails to pay or otherwise defaults. A guarantor is not a substitute for incomplete documentation and is
-              not a &quot;character reference.&quot; Guarantors are accepted only under the standards below, which are applied consistently
-              to all applicants.
-            </Paragraph>
+          <SectionHeading id="guarantor-when">{t('tenantCriteria.gwHeading')}</SectionHeading>
+          <ul>
+            <li>{t('tenantCriteria.gw1')}</li>
+            <li>{t('tenantCriteria.gw2')}</li>
+            <li>{t('tenantCriteria.gw3')}</li>
+          </ul>
 
-            <SectionHeading id="guarantor-when">a. When a guarantor may be considered</SectionHeading>
-            <ul>
-              <li>
-                A guarantor may be considered only when an applicant meets <strong>all</strong> screening requirements for credit,
-                background, rental history, and documentation, but does not fully meet the income requirement.
-              </li>
-              <li>
-                A guarantor is <strong>not</strong> available to offset disqualifying items such as criminal convictions, evictions,
-                bankruptcies, housing-related collections/negatives, or material misrepresentations.
-              </li>
-              <li>
-                Approval with a guarantor is not guaranteed and remains subject to owner/agent discretion based on documented risk
-                factors and consistency with published standards.
-              </li>
-            </ul>
+          <SectionHeading id="guarantor-qualification">{t('tenantCriteria.gqHeading')}</SectionHeading>
+          <ul>
+            <li>{t('tenantCriteria.gq1')}</li>
+            <li>{t('tenantCriteria.gq2')}</li>
+            <li>{t('tenantCriteria.gq3')}</li>
+            <li>{t('tenantCriteria.gq4')}</li>
+            <li>{t('tenantCriteria.gq5')}</li>
+            <li>{t('tenantCriteria.gq6')}</li>
+            <li>{t('tenantCriteria.gq7')}</li>
+          </ul>
 
-            <SectionHeading id="guarantor-qualification">b. Guarantor qualification requirements (mandatory)</SectionHeading>
-            <ul>
-              <li><strong>Identity:</strong> Valid government-issued photo ID (color copy).</li>
-              <li>
-                <strong>Income:</strong> Verifiable gross monthly income of at least <strong>4× the monthly rent</strong> (for housing
-                assistance applicants, 4× the full contract rent).
-              </li>
-              <li>
-                <strong>Employment:</strong> 24+ months of verifiable employment or self-employment history (self-employment requires
-                24 months of tax returns).
-              </li>
-              <li><strong>Credit:</strong> Minimum credit score of <strong>700</strong> (strictly enforced).</li>
-              <li>
-                <strong>Credit disqualifiers:</strong> Housing-related collections (utilities/energy/water/landlord claims), repossessions,
-                charge-offs, or a pattern of unpaid obligations may result in denial.
-              </li>
-              <li><strong>Background:</strong> No criminal convictions, evictions, or bankruptcies.</li>
-              <li><strong>Residency:</strong> Guarantor must reside in the United States and be reachable for verification.</li>
-            </ul>
+          <SectionHeading id="guarantor-legal">{t('tenantCriteria.glHeading')}</SectionHeading>
+          <ul>
+            <li>{t('tenantCriteria.gl1')}</li>
+            <li>{t('tenantCriteria.gl2')}</li>
+            <li>{t('tenantCriteria.gl3')}</li>
+            <li>{t('tenantCriteria.gl4')}</li>
+            <li>{t('tenantCriteria.gl5')}</li>
+          </ul>
 
-            <SectionHeading id="guarantor-legal">c. Guarantor legal and payment terms</SectionHeading>
-            <ul>
-              <li>
-                The guarantor must complete a separate application and pass screening. Application fees (if any) apply.
-              </li>
-              <li>
-                The guarantor must sign a guaranty agreement that provides <strong>joint and several liability</strong> for all lease
-                obligations, including rent, fees, damages, and legal costs, to the fullest extent permitted by law.
-              </li>
-              <li>
-                The guarantor remains responsible for the lease term and any extensions/renewals unless released in writing by the
-                owner/agent.
-              </li>
-              <li>
-                The presence of a guarantor does not change payment due dates or late fee policies.
-              </li>
-              <li>
-                At lease renewal, the tenant must independently meet all published income and qualification requirements, or the
-                guarantor must agree in writing to remain in force for the renewal term. If neither condition is met, the lease may
-                be non-renewed.
-              </li>
-            </ul>
-
-            <SectionHeading id="guarantor-notes">d. Important notes</SectionHeading>
-            <ul>
-              <li>No side payments or undisclosed arrangements are permitted.</li>
-              <li>Documentation must be complete and verifiable. Incomplete guarantor packages will not be processed.</li>
-              <li>
-                Carwoods reserves the right to request additional documentation to verify identity, income, and stability.
-              </li>
-            </ul>
-          <BackToTop href="#page-top">↑ Back to top</BackToTop>
+          <SectionHeading id="guarantor-notes">{t('tenantCriteria.gnHeading')}</SectionHeading>
+          <ul>
+            <li>{t('tenantCriteria.gn1')}</li>
+            <li>{t('tenantCriteria.gn2')}</li>
+            <li>{t('tenantCriteria.gn3')}</li>
+          </ul>
+          <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </FilteredSection>
 
       <FilteredSection id="cosigner-policy" aria-labelledby="heading-cosigner-policy" data-filtered={String(!show.cosignerPolicy)}>
-          <SubHeading id="heading-cosigner-policy">{sectionTitle('cosigner-policy', 'Co-signer policy')}</SubHeading>
+          <SubHeading id="heading-cosigner-policy">{sectionTitle('cosigner-policy', t('tenantCriteria.cosignerHeading'))}</SubHeading>
+          <Paragraph>{t('tenantCriteria.cosignerIntro')}</Paragraph>
 
-          <Paragraph>
-              A co-signer is <strong>not the same as a guarantor</strong>. A co-signer signs the lease itself as a
-              co-tenant and is jointly and severally liable for all lease obligations from the first day of the tenancy —
-              regardless of whether the primary tenant pays. Because a co-signer is legally a co-tenant under Texas law,
-              they are subject to the <strong>full applicant screening process</strong> and must independently meet every
-              published qualification standard.
-            </Paragraph>
+          <SectionHeading id="cosigner-differences">{t('tenantCriteria.cdHeading')}</SectionHeading>
+          <ul>
+            <li>{t('tenantCriteria.cd1')}</li>
+            <li>{t('tenantCriteria.cd2')}</li>
+            <li>{t('tenantCriteria.cd3')}</li>
+            <li>{t('tenantCriteria.cd4')}</li>
+          </ul>
 
-            <SectionHeading id="cosigner-differences">a. Key differences from a guarantor</SectionHeading>
-            <ul>
-              <li><strong>Liability timing:</strong> A co-signer is liable from day one; a guarantor is only called upon after the primary tenant defaults.</li>
-              <li><strong>Document signed:</strong> A co-signer signs the lease agreement itself; a guarantor signs a separate guaranty agreement.</li>
-              <li><strong>Occupancy:</strong> A co-signer may or may not reside in the unit; a guarantor does not reside in the unit.</li>
-              <li><strong>Qualification standard:</strong> A co-signer must meet all the same income, credit, background, employment, and rental history requirements as any primary applicant — there is no reduced standard.</li>
-            </ul>
+          <SectionHeading id="cosigner-when">{t('tenantCriteria.cwHeading')}</SectionHeading>
+          <ul>
+            <li>{t('tenantCriteria.cw1')}</li>
+            <li>{t('tenantCriteria.cw2')}</li>
+            <li>{t('tenantCriteria.cw3')}</li>
+          </ul>
 
-            <SectionHeading id="cosigner-when">b. When a co-signer may be considered</SectionHeading>
-            <ul>
-              <li>
-                A co-signer may be considered only when the primary applicant meets all screening requirements for credit,
-                background, rental history, and documentation, but does not fully meet the income requirement.
-              </li>
-              <li>
-                A co-signer is <strong>not</strong> available to offset disqualifying items such as criminal convictions,
-                evictions, bankruptcies, housing-related collections/negatives, or material misrepresentations by the
-                primary applicant.
-              </li>
-              <li>
-                Approval with a co-signer is not guaranteed and remains subject to owner/agent discretion.
-              </li>
-            </ul>
+          <SectionHeading id="cosigner-qualification">{t('tenantCriteria.cqHeading')}</SectionHeading>
+          <ul>
+            <li>{t('tenantCriteria.cq1')}</li>
+            <li>{t('tenantCriteria.cq2')}</li>
+            <li>{t('tenantCriteria.cq3')}</li>
+            <li>{t('tenantCriteria.cq4')}</li>
+            <li>{t('tenantCriteria.cq5')}</li>
+            <li>{t('tenantCriteria.cq6')}</li>
+            <li>{t('tenantCriteria.cq7')}</li>
+            <li>{t('tenantCriteria.cq8')}</li>
+          </ul>
 
-            <SectionHeading id="cosigner-qualification">c. Co-signer qualification requirements (mandatory)</SectionHeading>
-            <ul>
-              <li><strong>Identity:</strong> Valid government-issued photo ID (color copy).</li>
-              <li>
-                <strong>Income:</strong> Verifiable gross monthly income of at least <strong>4× the monthly rent</strong>.
-                Combined household income (co-signer + primary applicant) must still demonstrate the ability to sustain the
-                full rent obligation.
-              </li>
-              <li>
-                <strong>Employment:</strong> 24+ months of verifiable employment or self-employment history (self-employment
-                requires 24 months of tax returns).
-              </li>
-              <li><strong>Credit:</strong> Minimum credit score of <strong>700</strong> (strictly enforced).</li>
-              <li>
-                <strong>Credit disqualifiers:</strong> Housing-related collections (utilities/energy/water/landlord claims),
-                repossessions, charge-offs, or a pattern of unpaid obligations may result in denial.
-              </li>
-              <li><strong>Background:</strong> No criminal convictions, evictions, or bankruptcies.</li>
-              <li><strong>Rental history:</strong> 24+ months of verifiable rental or mortgage payment history.</li>
-              <li><strong>Residency:</strong> Co-signer must reside in the United States and be reachable for verification.</li>
-            </ul>
+          <SectionHeading id="cosigner-legal">{t('tenantCriteria.clHeading')}</SectionHeading>
+          <ul>
+            <li>{t('tenantCriteria.cl1')}</li>
+            <li>{t('tenantCriteria.cl2')}</li>
+            <li>{t('tenantCriteria.cl3')}</li>
+            <li>{t('tenantCriteria.cl4')}</li>
+            <li>{t('tenantCriteria.cl5')}</li>
+            <li>{t('tenantCriteria.cl6')}</li>
+          </ul>
 
-            <SectionHeading id="cosigner-legal">d. Co-signer legal and payment terms</SectionHeading>
-            <ul>
-              <li>
-                The co-signer must complete a full application and pass all screening. Application fees (if any) apply.
-              </li>
-              <li>
-                The co-signer signs the lease as a co-tenant and bears <strong>joint and several liability</strong> for all
-                lease obligations — including rent, fees, damages, and legal costs — from the lease start date.
-              </li>
-              <li>
-                The co-signer&apos;s liability is not contingent on the primary tenant&apos;s default. Management may pursue the
-                co-signer directly for any unpaid obligation without first exhausting remedies against the primary tenant.
-              </li>
-              <li>
-                The co-signer remains responsible for the full lease term and any extensions or renewals unless released in
-                writing by the owner/agent.
-              </li>
-              <li>
-                At lease renewal, all co-signers must re-qualify under the then-current published standards, or the lease
-                may be non-renewed.
-              </li>
-              <li>
-                The presence of a co-signer does not change payment due dates, late fee policies, or any other lease terms.
-              </li>
-            </ul>
-
-            <SectionHeading id="cosigner-notes">e. Important notes</SectionHeading>
-            <ul>
-              <li>No side payments or undisclosed arrangements are permitted.</li>
-              <li>Documentation must be complete and verifiable. Incomplete co-signer packages will not be processed.</li>
-              <li>
-                Carwoods reserves the right to request additional documentation to verify identity, income, and stability.
-              </li>
-            </ul>
-          <BackToTop href="#page-top">↑ Back to top</BackToTop>
+          <SectionHeading id="cosigner-notes">{t('tenantCriteria.cnHeading')}</SectionHeading>
+          <ul>
+            <li>{t('tenantCriteria.cn1')}</li>
+            <li>{t('tenantCriteria.cn2')}</li>
+            <li>{t('tenantCriteria.cn3')}</li>
+          </ul>
+          <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </FilteredSection>
 
       <FilteredSection id="pets" aria-labelledby="heading-pets" data-filtered={String(!show.pets)}>
-          <SubHeading id="heading-pets">{sectionTitle('pets', 'Pets')}</SubHeading>
-
-          <Paragraph>
-            Pets are subject to separate approval. Restrictions may apply by type, breed, size, and quantity. Pet approval is not
-            guaranteed even if all other criteria are met.
-          </Paragraph>
+          <SubHeading id="heading-pets">{sectionTitle('pets', t('tenantCriteria.petsHeading'))}</SubHeading>
+          <Paragraph>{t('tenantCriteria.petsIntro')}</Paragraph>
 
           {show.assistanceAnimals && (<>
-          <SectionHeading id="assistance-animals">a. Assistance animals</SectionHeading>
-          <Paragraph>
-            Assistance animals (service animals and emotional support animals) are <strong>not pets</strong>. They are reasonable
-            accommodations for disabilities under the Fair Housing Act. Breed, size, and species restrictions do not apply to
-            assistance animals when properly documented. We evaluate assistance-animal requests in accordance with applicable law.
-          </Paragraph>
+          <SectionHeading id="assistance-animals">{t('tenantCriteria.assistanceHeading')}</SectionHeading>
+          <Paragraph>{t('tenantCriteria.assistanceBody')}</Paragraph>
           </>)}
 
           {show.petsRestrictions && (<>
-          <SectionHeading id="pets-prohibited">{petRestrictionLetters.prohibited}. Prohibited animals</SectionHeading>
+          <SectionHeading id="pets-prohibited">{petRestrictionLetters.prohibited}. {t('tenantCriteria.prohibitedHeading')}</SectionHeading>
           <ul>
-            <li>Exotic animals</li>
-            <li>Farm animals (e.g., hoofed animals, livestock)</li>
-            <li>Saddle animals</li>
-            <li>Reptiles</li>
-            <li>Primates</li>
-            <li>Fowl</li>
+            <li>{t('tenantCriteria.prohibitedLi1')}</li>
+            <li>{t('tenantCriteria.prohibitedLi2')}</li>
+            <li>{t('tenantCriteria.prohibitedLi3')}</li>
+            <li>{t('tenantCriteria.prohibitedLi4')}</li>
+            <li>{t('tenantCriteria.prohibitedLi5')}</li>
+            <li>{t('tenantCriteria.prohibitedLi6')}</li>
           </ul>
 
-          <SectionHeading id="pets-caged">{petRestrictionLetters.caged}. Caged animals</SectionHeading>
+          <SectionHeading id="pets-caged">{petRestrictionLetters.caged}. {t('tenantCriteria.cagedHeading')}</SectionHeading>
           <ul>
-            <li>No caged animals allowed</li>
+            <li>{t('tenantCriteria.cagedLi1')}</li>
           </ul>
 
-          <SectionHeading id="pets-breeds">{petRestrictionLetters.breeds}. Prohibited dog breeds</SectionHeading>
+          <SectionHeading id="pets-breeds">{petRestrictionLetters.breeds}. {t('tenantCriteria.breedsHeading')}</SectionHeading>
           <ul>
               <li>Akita</li>
               <li>Alaskan Malamute</li>
@@ -519,7 +416,7 @@ const TenantSelectionCriteria = () => {
               <li>Any mixed breed containing any of the above breeds</li>
             </ul>
           </>)}
-          <BackToTop href="#page-top">↑ Back to top</BackToTop>
+          <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </FilteredSection>
       </TocPageLayout>
     </div>
