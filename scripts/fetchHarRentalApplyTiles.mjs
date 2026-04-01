@@ -195,7 +195,20 @@ export const RENTAL_APPLY_PROPERTIES = [];
   const tiles = [];
   for (const id of HAR_RENTAL_LISTING_IDS) {
     console.log(`[fetchHarRentalApplyTiles] Fetching HAR listing ${id}…`);
-    tiles.push(await fetchListing(String(id).trim()));
+    try {
+      tiles.push(await fetchListing(String(id).trim()));
+    } catch (err) {
+      if (existsSync(OUT)) {
+        console.warn(
+          `[fetchHarRentalApplyTiles] Warning: ${err.message}. ` +
+          `Keeping existing generated file (network may be restricted in this environment).`
+        );
+        process.exit(0);
+      }
+      // No cached fallback available — surface the error so the developer knows
+      // the generated file needs to be created locally first.
+      throw err;
+    }
   }
 
   const serialized = JSON.stringify(tiles, null, 4);
