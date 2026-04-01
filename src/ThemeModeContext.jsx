@@ -8,6 +8,7 @@ import { FEATURE_DARK_THEME } from './featureFlags';
 import { buildTheme, applyThemeCssVariables } from './theme';
 import { clearStoredColorScheme, readStoredColorScheme, writeStoredColorScheme } from './themePreferenceStorage';
 import { isDarkPreviewRoute } from './routePaths';
+import { useLanguage } from './LanguageContext';
 
 const ThemeModeContext = createContext(null);
 
@@ -36,12 +37,10 @@ function resolveEffectiveMode(storedOverride, isDarkPreviewPath) {
     return getSystemPrefersDark() ? 'dark' : 'light';
 }
 
-/**
- * @param {{ isRTL?: boolean, children: React.ReactNode }} props
- */
-export function ThemeModeProvider({ children, isRTL = false }) {
+export function ThemeModeProvider({ children }) {
     const { pathname } = useLocation();
     const isDarkPreviewPath = isDarkPreviewRoute(pathname);
+    const { isRTL } = useLanguage();
 
     const [storedOverride, setStoredOverride] = useState(() =>
         FEATURE_DARK_THEME ? readStoredColorScheme() : null
