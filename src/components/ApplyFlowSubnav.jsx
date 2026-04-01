@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import theme from '../theme';
 import { withDarkPath } from '../routePaths';
@@ -65,18 +66,19 @@ const MidDot = styled.span`
  */
 export function ApplyFlowSubnav({ phase }) {
     const { pathname } = useLocation();
+    const { t } = useTranslation();
     const applyHref = withDarkPath(pathname, '/apply');
     const criteriaHref = withDarkPath(pathname, '/tenant-selection-criteria');
     const docsHref = withDarkPath(pathname, '/application-required-documents');
 
     return (
-        <FlowNav aria-label="Apply process navigation">
-            <FlowLink to={applyHref}>Back to How to Apply</FlowLink>
+        <FlowNav aria-label={t('applyFlowSubnav.label')}>
+            <FlowLink to={applyHref}>{t('applyFlowSubnav.backToApply')}</FlowLink>
             <MidDot aria-hidden="true">·</MidDot>
             {phase === 'eligibility' ? (
-                <FlowLinkSecondary to={docsHref}>Next: Required documents</FlowLinkSecondary>
+                <FlowLinkSecondary to={docsHref}>{t('applyFlowSubnav.nextRequiredDocs')}</FlowLinkSecondary>
             ) : (
-                <FlowLinkSecondary to={criteriaHref}>Step 1: Tenant Selection Criteria</FlowLinkSecondary>
+                <FlowLinkSecondary to={criteriaHref}>{t('applyFlowSubnav.step1Criteria')}</FlowLinkSecondary>
             )}
         </FlowNav>
     );

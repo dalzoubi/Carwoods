@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { withDarkPath } from '../routePaths';
 
 const FooterContainer = styled.footer`
@@ -33,7 +34,7 @@ const linkStyles = `
     }
 
     svg {
-        margin-right: 5px;
+        margin-inline-end: 5px;
     }
 `;
 
@@ -53,20 +54,21 @@ const FooterSeparator = styled.span`
 
 const Footer = () => {
     const { pathname } = useLocation();
+    const { t } = useTranslation();
     return (
         <FooterContainer>
-            <p>&copy; 2026 Carwoods. All rights reserved.</p>
-            <FooterLink href="https://www.trec.texas.gov/sites/default/files/pdf-forms/CN%201-2.pdf" target="_blank" rel="noopener noreferrer" aria-label="Texas Real Estate Commission Consumer Protection Notice (opens in new tab)">
-                Texas Real Estate Commission Consumer Protection Notice
+            <p>{t('footer.copyright')}</p>
+            <FooterLink href="https://www.trec.texas.gov/sites/default/files/pdf-forms/CN%201-2.pdf" target="_blank" rel="noopener noreferrer" aria-label={t('footer.trecNoticeAriaLabel')}>
+                {t('footer.trecNotice')}
             </FooterLink>
             <FooterSeparator aria-hidden="true">|</FooterSeparator>
-            <FooterLink href="https://members.har.com/mhf/terms/dispBrokerInfo.cfm?sitetype=aws&cid=735771" target="_blank" rel="noopener noreferrer" aria-label="Texas Real Estate Commission Information About Brokerage Services (opens in new tab)">
-                Texas Real Estate Commission Information About Brokerage Services
+            <FooterLink href="https://members.har.com/mhf/terms/dispBrokerInfo.cfm?sitetype=aws&cid=735771" target="_blank" rel="noopener noreferrer" aria-label={t('footer.trecBrokerageAriaLabel')}>
+                {t('footer.trecBrokerage')}
             </FooterLink>
             <FooterSeparator aria-hidden="true">|</FooterSeparator>
-            <FooterLinkInternal to={withDarkPath(pathname, '/privacy')}>Privacy Policy</FooterLinkInternal>
+            <FooterLinkInternal to={withDarkPath(pathname, '/privacy')}>{t('footer.privacyPolicy')}</FooterLinkInternal>
             <FooterSeparator aria-hidden="true">|</FooterSeparator>
-            <FooterLinkInternal to={withDarkPath(pathname, '/accessibility')}>Accessibility</FooterLinkInternal>
+            <FooterLinkInternal to={withDarkPath(pathname, '/accessibility')}>{t('footer.accessibility')}</FooterLinkInternal>
         </FooterContainer>
     );
 };

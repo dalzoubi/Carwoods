@@ -23,29 +23,17 @@ import DarkMode from '@mui/icons-material/DarkMode';
 import SettingsBrightness from '@mui/icons-material/SettingsBrightness';
 import RestartAlt from '@mui/icons-material/RestartAlt';
 import Print from '@mui/icons-material/Print';
+import Language from '@mui/icons-material/Language';
 import { NavLink } from '../styles';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useThemeMode } from '../ThemeModeContext';
+import { useLanguage } from '../LanguageContext';
 import { FEATURE_DARK_THEME } from '../featureFlags';
 import { isPrintablePageRoute, stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
+import { useTranslation } from 'react-i18next';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
 const DRAWER_PAPER_ID = 'main-navigation-drawer';
-
-const tenantLinks = [
-    { to: '/apply', label: 'Apply' },
-    { to: '/tenant-selection-criteria', label: 'Selection Criteria' },
-    { to: '/application-required-documents', label: 'Required Documents' },
-];
-
-const landlordLinks = [
-    { to: '/property-management', label: 'Property Management' },
-];
-
-const legalLinks = [
-    { to: '/privacy', label: 'Privacy Policy' },
-    { to: '/accessibility', label: 'Accessibility' },
-];
 
 const LOGO_HEIGHT_PX = 32;
 
@@ -72,7 +60,9 @@ const ResponsiveNavbar = () => {
     const [tenantAnchor, setTenantAnchor] = useState(null);
     const [landlordAnchor, setLandlordAnchor] = useState(null);
     const [appearanceAnchor, setAppearanceAnchor] = useState(null);
+    const [languageAnchor, setLanguageAnchor] = useState(null);
     const [appearanceMenuLabelledBy, setAppearanceMenuLabelledBy] = useState(undefined);
+    const [languageMenuLabelledBy, setLanguageMenuLabelledBy] = useState(undefined);
     const muiTheme = useTheme();
     const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
     const {
@@ -83,6 +73,9 @@ const ResponsiveNavbar = () => {
         setOverrideDark,
         resetOverride,
     } = useThemeMode();
+    const { currentLanguage, supportedLanguages, changeLanguage } = useLanguage();
+    const { t } = useTranslation();
+
     const showAppearanceMenu = darkThemeFeatureEnabled || isDarkPreviewPath;
     const showPrintButton = isPrintablePageRoute(pathname);
 
@@ -114,6 +107,7 @@ const ResponsiveNavbar = () => {
     const handleTenantOpen = (e) => {
         setLandlordAnchor(null);
         setAppearanceAnchor(null);
+        setLanguageAnchor(null);
         setTenantAnchor(e.currentTarget);
     };
     const handleTenantClose = () => {
@@ -122,6 +116,7 @@ const ResponsiveNavbar = () => {
     const handleLandlordOpen = (e) => {
         setTenantAnchor(null);
         setAppearanceAnchor(null);
+        setLanguageAnchor(null);
         setLandlordAnchor(e.currentTarget);
     };
     const handleLandlordClose = () => {
@@ -130,6 +125,7 @@ const ResponsiveNavbar = () => {
     const handleAppearanceOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setLanguageAnchor(null);
         setAppearanceAnchor(e.currentTarget);
         const trigger = e.currentTarget.getAttribute('data-appearance-trigger');
         setAppearanceMenuLabelledBy(
@@ -140,8 +136,37 @@ const ResponsiveNavbar = () => {
         setAppearanceAnchor(null);
         setAppearanceMenuLabelledBy(undefined);
     };
+    const handleLanguageOpen = (e) => {
+        setTenantAnchor(null);
+        setLandlordAnchor(null);
+        setAppearanceAnchor(null);
+        setLanguageAnchor(e.currentTarget);
+        const trigger = e.currentTarget.getAttribute('data-language-trigger');
+        setLanguageMenuLabelledBy(
+            trigger === 'drawer' ? 'language-menu-button-drawer' : 'language-menu-button-toolbar'
+        );
+    };
+    const handleLanguageClose = () => {
+        setLanguageAnchor(null);
+        setLanguageMenuLabelledBy(undefined);
+    };
 
-    const showToolbarActions = showPrintButton || showAppearanceMenu;
+    const tenantLinks = [
+        { to: '/apply', label: t('tenantLinks.apply') },
+        { to: '/tenant-selection-criteria', label: t('tenantLinks.selectionCriteria') },
+        { to: '/application-required-documents', label: t('tenantLinks.requiredDocuments') },
+    ];
+
+    const landlordLinks = [
+        { to: '/property-management', label: t('landlordLinks.propertyManagement') },
+    ];
+
+    const legalLinks = [
+        { to: '/privacy', label: t('nav.privacy') },
+        { to: '/accessibility', label: t('nav.accessibility') },
+    ];
+
+    const showToolbarActions = showPrintButton || showAppearanceMenu || true; // language always shown
     const headerToolbarActions = showToolbarActions ? (
         <Box
             sx={{
@@ -157,7 +182,7 @@ const ResponsiveNavbar = () => {
                     color="inherit"
                     type="button"
                     size="small"
-                    aria-label="Print this page"
+                    aria-label={t('nav.print', 'Print this page')}
                     onClick={() => window.print()}
                     sx={toolbarChromeIconButtonSx}
                 >
@@ -171,7 +196,7 @@ const ResponsiveNavbar = () => {
                     size="small"
                     id="appearance-menu-button-toolbar"
                     data-appearance-trigger="toolbar"
-                    aria-label="Appearance and theme"
+                    aria-label={t('nav.appearance')}
                     aria-haspopup="true"
                     aria-expanded={Boolean(appearanceAnchor)}
                     aria-controls={appearanceAnchor ? 'appearance-menu' : undefined}
@@ -181,6 +206,21 @@ const ResponsiveNavbar = () => {
                     <SettingsBrightness aria-hidden />
                 </IconButton>
             ) : null}
+            <IconButton
+                color="inherit"
+                type="button"
+                size="small"
+                id="language-menu-button-toolbar"
+                data-language-trigger="toolbar"
+                aria-label={t('nav.selectLanguage')}
+                aria-haspopup="true"
+                aria-expanded={Boolean(languageAnchor)}
+                aria-controls={languageAnchor ? 'language-menu' : undefined}
+                onClick={handleLanguageOpen}
+                sx={toolbarChromeIconButtonSx}
+            >
+                <Language aria-hidden />
+            </IconButton>
         </Box>
     ) : null;
 
@@ -207,7 +247,7 @@ const ResponsiveNavbar = () => {
 
     const drawerContent = (
         <div style={{ backgroundColor: muiTheme.palette.drawer.background, height: '100%' }}>
-            <nav aria-label="main navigation">
+            <nav aria-label={t('nav.home')}>
                 <List disablePadding>
                     <ListItemButton
                         component={NavLink}
@@ -216,11 +256,11 @@ const ResponsiveNavbar = () => {
                         onClick={handleDrawerToggle}
                         sx={listItemButtonSx}
                     >
-                        <ListItemText primary="Home" style={{ color: muiTheme.palette.drawer.text }} />
+                        <ListItemText primary={t('nav.home')} style={{ color: muiTheme.palette.drawer.text }} />
                     </ListItemButton>
 
                     <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
-                        Tenant
+                        {t('nav.tenant')}
                     </ListSubheader>
                     {tenantLinks.map(({ to, label }) => (
                         <ListItemButton
@@ -239,7 +279,7 @@ const ResponsiveNavbar = () => {
                     ))}
 
                     <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
-                        Landlord
+                        {t('nav.landlord')}
                     </ListSubheader>
                     {landlordLinks.map(({ to, label }) => (
                         <ListItemButton
@@ -264,7 +304,7 @@ const ResponsiveNavbar = () => {
                         onClick={handleDrawerToggle}
                         sx={listItemButtonSx}
                     >
-                        <ListItemText primary="Contact Us" style={{ color: muiTheme.palette.drawer.text }} />
+                        <ListItemText primary={t('nav.contactUs')} style={{ color: muiTheme.palette.drawer.text }} />
                     </ListItemButton>
 
                     {showAppearanceMenu ? (
@@ -283,12 +323,30 @@ const ResponsiveNavbar = () => {
                             }}
                         >
                             <SettingsBrightness sx={{ mr: 1.5, color: muiTheme.palette.drawer.text }} fontSize="small" />
-                            <ListItemText primary="Appearance" style={{ color: muiTheme.palette.drawer.text }} />
+                            <ListItemText primary={t('nav.appearance')} style={{ color: muiTheme.palette.drawer.text }} />
                         </ListItemButton>
                     ) : null}
 
+                    <ListItemButton
+                        onClick={handleLanguageOpen}
+                        aria-haspopup="true"
+                        aria-expanded={Boolean(languageAnchor)}
+                        aria-controls={languageAnchor ? 'language-menu' : undefined}
+                        id="language-menu-button-drawer"
+                        data-language-trigger="drawer"
+                        sx={{
+                            ...listItemButtonSx,
+                            '&:hover': {
+                                backgroundColor: muiTheme.palette.drawer.hover,
+                            },
+                        }}
+                    >
+                        <Language sx={{ mr: 1.5, color: muiTheme.palette.drawer.text }} fontSize="small" />
+                        <ListItemText primary={t('nav.language')} style={{ color: muiTheme.palette.drawer.text }} />
+                    </ListItemButton>
+
                     <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
-                        Legal
+                        {t('nav.legal')}
                     </ListSubheader>
                     {legalLinks.map(({ to, label }) => (
                         <ListItemButton
@@ -348,7 +406,7 @@ const ResponsiveNavbar = () => {
                                 color="inherit"
                                 type="button"
                                 size="small"
-                                aria-label="open menu"
+                                aria-label={t('nav.openMenu')}
                                 aria-haspopup="dialog"
                                 aria-expanded={drawerOpen}
                                 aria-controls={drawerOpen ? DRAWER_PAPER_ID : undefined}
@@ -403,7 +461,7 @@ const ResponsiveNavbar = () => {
                                     className={({ isActive }) => (isActive ? 'active' : '')}
                                     style={headerNavLinkStyle}
                                 >
-                                    Home
+                                    {t('nav.home')}
                                 </NavLink>
 
                                 <IconButton
@@ -414,7 +472,7 @@ const ResponsiveNavbar = () => {
                                     aria-haspopup="true"
                                     aria-expanded={Boolean(tenantAnchor)}
                                     aria-controls={tenantAnchor ? 'tenant-menu' : undefined}
-                                    aria-label="Tenant menu"
+                                    aria-label={t('nav.tenant') + ' menu'}
                                     sx={{
                                         color: 'inherit',
                                         padding: '0.3rem 0.55rem',
@@ -426,7 +484,7 @@ const ResponsiveNavbar = () => {
                                         },
                                     }}
                                 >
-                                    <span style={{ marginRight: '0.2rem' }}>Tenant</span>
+                                    <span style={{ marginInlineEnd: '0.2rem' }}>{t('nav.tenant')}</span>
                                     <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
                                 </IconButton>
                                 <Menu
@@ -477,7 +535,7 @@ const ResponsiveNavbar = () => {
                                     aria-haspopup="true"
                                     aria-expanded={Boolean(landlordAnchor)}
                                     aria-controls={landlordAnchor ? 'landlord-menu' : undefined}
-                                    aria-label="Landlord menu"
+                                    aria-label={t('nav.landlord') + ' menu'}
                                     sx={{
                                         color: 'inherit',
                                         padding: '0.3rem 0.55rem',
@@ -489,7 +547,7 @@ const ResponsiveNavbar = () => {
                                         },
                                     }}
                                 >
-                                    <span style={{ marginRight: '0.2rem' }}>Landlord</span>
+                                    <span style={{ marginInlineEnd: '0.2rem' }}>{t('nav.landlord')}</span>
                                     <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
                                 </IconButton>
                                 <Menu
@@ -537,7 +595,7 @@ const ResponsiveNavbar = () => {
                                     className={({ isActive }) => (isActive ? 'active' : '')}
                                     style={headerNavLinkStyle}
                                 >
-                                    Contact Us
+                                    {t('nav.contactUs')}
                                 </NavLink>
 
                                 <Box
@@ -602,10 +660,10 @@ const ResponsiveNavbar = () => {
                     {isDarkPreviewPath && !FEATURE_DARK_THEME ? (
                         <>
                             <Typography variant="caption" sx={{ px: 2, pt: 1, pb: 0.5, display: 'block', color: 'text.secondary' }}>
-                                Dark preview
+                                {t('appearance.darkPreview')}
                             </Typography>
                             <Typography variant="body2" sx={{ px: 2, pb: 1, maxWidth: 280, color: 'text.secondary' }}>
-                                URLs under <strong>/dark/…</strong> force dark styling for testing without enabling the feature flag.
+                                {t('appearance.darkPreviewDescription')}
                             </Typography>
                             <MenuItem
                                 onClick={() => {
@@ -614,13 +672,13 @@ const ResponsiveNavbar = () => {
                                 }}
                             >
                                 <LightMode fontSize="small" sx={{ mr: 1 }} />
-                                Exit preview (go home)
+                                {t('appearance.exitPreview')}
                             </MenuItem>
                         </>
                     ) : (
                         <>
                             <Typography variant="caption" sx={{ px: 2, pt: 1, pb: 0.5, display: 'block', color: 'text.secondary' }}>
-                                Color theme
+                                {t('appearance.colorTheme')}
                             </Typography>
                             <MenuItem
                                 onClick={() => {
@@ -630,7 +688,7 @@ const ResponsiveNavbar = () => {
                                 selected={storedOverride === 'light'}
                             >
                                 <LightMode fontSize="small" sx={{ mr: 1 }} />
-                                Light
+                                {t('appearance.light')}
                             </MenuItem>
                             <MenuItem
                                 onClick={() => {
@@ -640,7 +698,7 @@ const ResponsiveNavbar = () => {
                                 selected={storedOverride === 'dark'}
                             >
                                 <DarkMode fontSize="small" sx={{ mr: 1 }} />
-                                Dark
+                                {t('appearance.dark')}
                             </MenuItem>
                             <Divider />
                             <MenuItem
@@ -651,15 +709,59 @@ const ResponsiveNavbar = () => {
                                 disabled={storedOverride === null}
                             >
                                 <RestartAlt fontSize="small" sx={{ mr: 1 }} />
-                                Use device setting
+                                {t('appearance.useDeviceSetting')}
                             </MenuItem>
                             <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', color: 'text.secondary', maxWidth: 260 }}>
-                                Your choice is saved in this browser. Reset clears the override and follows your device again.
+                                {t('appearance.deviceSettingHint')}
                             </Typography>
                         </>
                     )}
                 </Menu>
             ) : null}
+            <Menu
+                id="language-menu"
+                anchorEl={languageAnchor}
+                open={Boolean(languageAnchor)}
+                onClose={handleLanguageClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                slotProps={{
+                    paper: {
+                        sx: { backgroundImage: 'none' },
+                    },
+                    list: {
+                        'aria-label': t('nav.selectLanguage'),
+                        ...(languageMenuLabelledBy ? { 'aria-labelledby': languageMenuLabelledBy } : {}),
+                    },
+                }}
+            >
+                <Typography variant="caption" sx={{ px: 2, pt: 1, pb: 0.5, display: 'block', color: 'text.secondary' }}>
+                    {t('nav.language')}
+                </Typography>
+                {supportedLanguages.map((lang) => (
+                    <MenuItem
+                        key={lang}
+                        selected={currentLanguage === lang}
+                        onClick={() => {
+                            changeLanguage(lang);
+                            handleLanguageClose();
+                        }}
+                        lang={lang}
+                        sx={{
+                            '&:hover': {
+                                backgroundColor: 'var(--menu-item-hover-bg)',
+                                color: 'var(--menu-item-hover-fg)',
+                            },
+                            '&.Mui-selected': {
+                                backgroundColor: 'var(--menu-item-active-bg)',
+                                color: 'var(--menu-item-active-fg)',
+                            },
+                        }}
+                    >
+                        {t(`languageNames.${lang}`)}
+                    </MenuItem>
+                ))}
+            </Menu>
         </>
     );
 };

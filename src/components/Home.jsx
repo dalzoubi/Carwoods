@@ -9,6 +9,7 @@ import ChevronRight from '@mui/icons-material/ChevronRight';
 import { withDarkPath } from '../routePaths';
 import { Helmet } from 'react-helmet';
 import { Heading } from '../styles';
+import { useTranslation } from 'react-i18next';
 import heroKeysImg from '../assets/home/hero-keys.jpg';
 import midHeroImg from '../assets/home/mid-hero-home.jpg';
 import rentersPhoto from '../assets/home/renters-space.jpg';
@@ -82,12 +83,6 @@ const audienceTileLinkSx = (theme) => ({
     },
 });
 
-const HIGHLIGHTS = [
-    { label: 'Houston market focus', detail: 'Local leasing rhythms, not generic playbooks' },
-    { label: 'Operations you can feel', detail: 'Applications, rent, and maintenance in one flow' },
-    { label: 'Communication that holds', detail: 'Fewer gaps, clearer next steps' },
-];
-
 const cardImageSx = {
     width: '100%',
     height: '100%',
@@ -97,7 +92,7 @@ const cardImageSx = {
 
 /**
  * Full-bleed image band: `borderRadius` matches the tile + `overflow: hidden` so the photo follows
- * the card’s curves (no square corners cutting off the rounding); bottom stays curved into the copy.
+ * the card's curves (no square corners cutting off the rounding); bottom stays curved into the copy.
  */
 const audienceTileImageFrameSx = {
     position: 'relative',
@@ -111,16 +106,23 @@ const audienceTileImageFrameSx = {
 const Home = () => {
     const theme = useTheme();
     const { pathname } = useLocation();
+    const { t } = useTranslation();
     const heroTint = alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.14 : 0.08);
     const heroBorder = alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.35 : 0.22);
+
+    const highlights = [
+        { label: t('home.highlight1Label'), detail: t('home.highlight1Detail') },
+        { label: t('home.highlight2Label'), detail: t('home.highlight2Detail') },
+        { label: t('home.highlight3Label'), detail: t('home.highlight3Detail') },
+    ];
 
     return (
         <Stack component="article" spacing={3.5}>
             <Helmet>
-                <title>Carwoods — Houston rentals, managed right</title>
+                <title>{t('home.title')}</title>
                 <meta
                     name="description"
-                    content="Houston rentals and property management: clear applications, consistent communication, on-time rent collection, proactive maintenance, and disciplined asset care."
+                    content={t('home.metaDescription')}
                 />
                 <link rel="preload" as="image" href={heroKeysImg} />
             </Helmet>
@@ -141,7 +143,7 @@ const Home = () => {
                 }}
             >
                 <Box>
-                    <Heading>Houston Rentals, Managed Right</Heading>
+                    <Heading>{t('home.heroHeading')}</Heading>
                     <Typography
                         variant="subtitle1"
                         component="p"
@@ -154,8 +156,7 @@ const Home = () => {
                             lineHeight: 1.45,
                         }}
                     >
-                        Clear applications. Consistent communication. On-time rent collection, proactive
-                        maintenance, and disciplined asset care.
+                        {t('home.heroSubtitle')}
                     </Typography>
                 </Box>
                 <Box
@@ -174,7 +175,7 @@ const Home = () => {
                     <Box
                         component="img"
                         src={heroKeysImg}
-                        alt="Keys to a new home resting on a welcome mat"
+                        alt={t('home.heroImageAlt')}
                         width={800}
                         height={600}
                         sizes="(max-width: 900px) 100vw, 45vw"
@@ -201,7 +202,7 @@ const Home = () => {
                 <Box
                     component="img"
                     src={midHeroImg}
-                    alt="Modern home exterior with warm evening light"
+                    alt={t('home.midHeroAlt')}
                     width={1400}
                     height={560}
                     decoding="async"
@@ -217,7 +218,7 @@ const Home = () => {
 
             <Stack
                 component="section"
-                aria-label="Company highlights"
+                aria-label={t('home.highlightsLabel')}
                 direction={{ xs: 'column', sm: 'row' }}
                 spacing={0}
                 sx={{
@@ -229,14 +230,14 @@ const Home = () => {
                     borderColor: 'divider',
                 }}
             >
-                {HIGHLIGHTS.map((item, index) => (
+                {highlights.map((item, index) => (
                     <Box
                         key={item.label}
                         sx={{
                             flex: '1 1 0',
                             px: { xs: 2, sm: 2.5 },
                             py: { xs: 1.5, sm: 1 },
-                            textAlign: { xs: 'left', sm: 'center' },
+                            textAlign: { xs: 'start', sm: 'center' },
                             borderLeft:
                                 index > 0
                                     ? { xs: 'none', sm: '1px solid' }
@@ -268,7 +269,7 @@ const Home = () => {
 
             <Stack
                 component="section"
-                aria-label="Choose renters or property owners"
+                aria-label={t('home.audienceLabel')}
                 direction={{ xs: 'column', md: 'row' }}
                 spacing={2.75}
                 useFlexGap
@@ -303,16 +304,15 @@ const Home = () => {
                             variant="h2"
                             sx={audienceTitleSx}
                         >
-                            Renters
+                            {t('home.rentersTitle')}
                         </Typography>
                         <Typography color="text.secondary" sx={{ mb: 1.5 }}>
-                            Looking for a lease in Houston? We keep the path honest: what you need to apply, what
-                            to expect, and people who pick up the phone.
+                            {t('home.rentersBody')}
                         </Typography>
                         <Box component="ul" sx={{ ...listSx, color: 'text.secondary' }}>
-                            <li>Streamlined application steps and required-documents guidance</li>
-                            <li>Local listings mindset—we know this market&apos;s rhythms</li>
-                            <li>Respect for your time: fewer surprises, clearer next steps</li>
+                            <li>{t('home.rentersBullet1')}</li>
+                            <li>{t('home.rentersBullet2')}</li>
+                            <li>{t('home.rentersBullet3')}</li>
                         </Box>
                         <Typography
                             id="home-renters-cta"
@@ -329,7 +329,7 @@ const Home = () => {
                                 textUnderlineOffset: '3px',
                             }}
                         >
-                            Start your application
+                            {t('home.rentersCta')}
                             <ChevronRight sx={{ fontSize: '1.35rem' }} aria-hidden />
                         </Typography>
                     </Box>
@@ -363,16 +363,15 @@ const Home = () => {
                             variant="h2"
                             sx={audienceTitleSx}
                         >
-                            Landlords & owners
+                            {t('home.ownersTitle')}
                         </Typography>
                         <Typography color="text.secondary" sx={{ mb: 1.5 }}>
-                            Hand us the keys to the busywork. We market vacancies, screen tenants, coordinate
-                            repairs, and report back so you can stay focused on the big picture.
+                            {t('home.ownersBody')}
                         </Typography>
                         <Box component="ul" sx={{ ...listSx, color: 'text.secondary' }}>
-                            <li>Full-service property management tailored to your goals</li>
-                            <li>Maintenance coordination and vendor relationships</li>
-                            <li>Steady communication—you&apos;re never guessing what&apos;s happening</li>
+                            <li>{t('home.ownersBullet1')}</li>
+                            <li>{t('home.ownersBullet2')}</li>
+                            <li>{t('home.ownersBullet3')}</li>
                         </Box>
                         <Typography
                             id="home-owners-cta"
@@ -389,7 +388,7 @@ const Home = () => {
                                 textUnderlineOffset: '3px',
                             }}
                         >
-                            Explore property management
+                            {t('home.ownersCta')}
                             <ChevronRight sx={{ fontSize: '1.35rem' }} aria-hidden />
                         </Typography>
                     </Box>

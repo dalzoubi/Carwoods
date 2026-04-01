@@ -1,10 +1,13 @@
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
+import { useTranslation } from 'react-i18next';
 import { Heading, SubHeading, Paragraph, BackToTop, PrintHeader, PageHeader } from '../styles';
 import { TocPageLayout } from './TocPageLayout';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
 const PropertyManagement = () => {
+  const { t } = useTranslation();
+
   useEffect(() => {
     const hash = window.location.hash.slice(1);
     if (hash) {
@@ -16,179 +19,135 @@ const PropertyManagement = () => {
   return (
         <div>
             <Helmet>
-                <title>Carwoods - Property Management</title>
+                <title>{t('propertyManagement.title')}</title>
             </Helmet>
             <PrintHeader>
-              <img src={carwoodsLogo} alt="Carwoods" />
+              <img src={carwoodsLogo} alt={t('common.carwoodsAlt')} />
             </PrintHeader>
             <PageHeader>
-              <Heading>Property Management</Heading>
+              <Heading>{t('propertyManagement.heading')}</Heading>
             </PageHeader>
 
             <TocPageLayout
               toc={
                 <>
-                  <SubHeading>Contents</SubHeading>
+                  <SubHeading>{t('common.contents')}</SubHeading>
                   <ol>
-                    <li><a href="#section-1">Appointment of Property Manager</a></li>
-                    <li><a href="#section-2">Term</a></li>
-                    <li><a href="#section-3">Management Fee</a></li>
-                    <li><a href="#section-4">Services Provided</a></li>
-                    <li><a href="#section-5">Expenses</a></li>
-                    <li><a href="#section-6">Reserve Fund</a></li>
-                    <li><a href="#section-7">Owner&apos;s Responsibilities</a></li>
-                    <li><a href="#section-8">Annual Reporting</a></li>
-                    <li><a href="#section-9">Termination</a></li>
-                    <li><a href="#section-10">Indemnification</a></li>
-                    <li><a href="#section-11">Governing Law</a></li>
-                    <li><a href="#section-12">Entire Agreement</a></li>
+                    <li><a href="#section-1">{t('propertyManagement.toc1')}</a></li>
+                    <li><a href="#section-2">{t('propertyManagement.toc2')}</a></li>
+                    <li><a href="#section-3">{t('propertyManagement.toc3')}</a></li>
+                    <li><a href="#section-4">{t('propertyManagement.toc4')}</a></li>
+                    <li><a href="#section-5">{t('propertyManagement.toc5')}</a></li>
+                    <li><a href="#section-6">{t('propertyManagement.toc6')}</a></li>
+                    <li><a href="#section-7">{t('propertyManagement.toc7')}</a></li>
+                    <li><a href="#section-8">{t('propertyManagement.toc8')}</a></li>
+                    <li><a href="#section-9">{t('propertyManagement.toc9')}</a></li>
+                    <li><a href="#section-10">{t('propertyManagement.toc10')}</a></li>
+                    <li><a href="#section-11">{t('propertyManagement.toc11')}</a></li>
+                    <li><a href="#section-12">{t('propertyManagement.toc12')}</a></li>
                   </ol>
                 </>
               }
             >
             <section aria-labelledby="section-1">
-                <SubHeading id="section-1">1. Appointment of Property Manager</SubHeading>
-                <Paragraph>
-                    The Owner appoints the Property Manager as the exclusive agent to rent, lease, operate, and manage
-                    the Property.
-                </Paragraph>
-                <BackToTop href="#page-top">↑ Back to top</BackToTop>
+                <SubHeading id="section-1">{t('propertyManagement.s1Heading')}</SubHeading>
+                <Paragraph>{t('propertyManagement.s1Body')}</Paragraph>
+                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
             </section>
 
             <section aria-labelledby="section-2">
-                <SubHeading id="section-2">2. Term</SubHeading>
-                <Paragraph>
-                    This Agreement shall commence on [Start Date] and continue until [End Date] unless terminated earlier
-                    in accordance with the terms herein.
-                </Paragraph>
-                <BackToTop href="#page-top">↑ Back to top</BackToTop>
+                <SubHeading id="section-2">{t('propertyManagement.s2Heading')}</SubHeading>
+                <Paragraph>{t('propertyManagement.s2Body')}</Paragraph>
+                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
             </section>
 
             <section aria-labelledby="section-3">
-                <SubHeading id="section-3">3. Management Fee</SubHeading>
-                <Paragraph>
-                    The Owner agrees to pay the Property Manager a management fee of 8% of the monthly rental income.
-                    Additional fees may apply for specific services as outlined in Section 4.
-                </Paragraph>
-                <BackToTop href="#page-top">↑ Back to top</BackToTop>
+                <SubHeading id="section-3">{t('propertyManagement.s3Heading')}</SubHeading>
+                <Paragraph>{t('propertyManagement.s3Body')}</Paragraph>
+                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
             </section>
 
             <section aria-labelledby="section-4">
-                <SubHeading id="section-4">4. Services Provided</SubHeading>
-                <Paragraph>The Property Manager agrees to perform the following services:</Paragraph>
+                <SubHeading id="section-4">{t('propertyManagement.s4Heading')}</SubHeading>
+                <Paragraph>{t('propertyManagement.s4Intro')}</Paragraph>
                 <ul>
-                    <li>Marketing and advertising the Property for rent.</li>
-                    <li>Screening and selecting tenants.</li>
-                    <li>Collecting rent and security deposits.</li>
-                    <li>Conducting regular property inspections.</li>
-                    <li>Arranging for repairs and maintenance.</li>
-                    <li>Handling tenant complaints and disputes.</li>
-                    <li>Preparing and enforcing lease agreements.</li>
-                    <li>Providing annual financial statements to the Owner.</li>
-                    <li>Providing monthly financial statements to the Owner upon request.</li>
+                    <li>{t('propertyManagement.s4Li1')}</li>
+                    <li>{t('propertyManagement.s4Li2')}</li>
+                    <li>{t('propertyManagement.s4Li3')}</li>
+                    <li>{t('propertyManagement.s4Li4')}</li>
+                    <li>{t('propertyManagement.s4Li5')}</li>
+                    <li>{t('propertyManagement.s4Li6')}</li>
+                    <li>{t('propertyManagement.s4Li7')}</li>
+                    <li>{t('propertyManagement.s4Li8')}</li>
+                    <li>{t('propertyManagement.s4Li9')}</li>
                 </ul>
-                <BackToTop href="#page-top">↑ Back to top</BackToTop>
+                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
             </section>
 
             <section aria-labelledby="section-5">
-                <SubHeading id="section-5">5. Expenses</SubHeading>
-                <Paragraph>
-                    The Owner agrees to reimburse the Property Manager for all reasonable expenses incurred in the
-                    management of the Property, including but not limited to:
-                </Paragraph>
+                <SubHeading id="section-5">{t('propertyManagement.s5Heading')}</SubHeading>
+                <Paragraph>{t('propertyManagement.s5Intro')}</Paragraph>
                 <ul>
-                    <li>Maintenance and repair costs.</li>
-                    <li>Advertising and marketing expenses.</li>
-                    <li>Legal fees for lease enforcement and eviction processes.</li>
+                    <li>{t('propertyManagement.s5Li1')}</li>
+                    <li>{t('propertyManagement.s5Li2')}</li>
+                    <li>{t('propertyManagement.s5Li3')}</li>
                 </ul>
-                <BackToTop href="#page-top">↑ Back to top</BackToTop>
+                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
             </section>
 
             <section aria-labelledby="section-6">
-                <SubHeading id="section-6">6. Reserve Fund</SubHeading>
-                <Paragraph>
-                    The Owner agrees to establish and maintain a reserve fund of $1,000 to be held by the Property
-                    Manager. This fund is to be used for emergency repairs, unforeseen expenses, and any other expenses
-                    necessary for the upkeep and maintenance of the property that are not covered by the regular
-                    operating budget. The Property Manager is authorized to use this reserve fund as needed to cover
-                    such expenses.
-                </Paragraph>
-                <Paragraph>
-                    The Property Manager shall notify the Owner promptly when the reserve fund falls below the specified
-                    amount. The reserve fund will be replenished from the rental income collected by the Property
-                    Manager until it reaches the $1,000 level. The Property Manager shall provide the Owner with an
-                    accounting of all expenditures from the reserve fund in the monthly financial reports.
-                </Paragraph>
-                <BackToTop href="#page-top">↑ Back to top</BackToTop>
+                <SubHeading id="section-6">{t('propertyManagement.s6Heading')}</SubHeading>
+                <Paragraph>{t('propertyManagement.s6Body1')}</Paragraph>
+                <Paragraph>{t('propertyManagement.s6Body2')}</Paragraph>
+                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
             </section>
 
             <section aria-labelledby="section-7">
-                <SubHeading id="section-7">7. Owner&apos;s Responsibilities</SubHeading>
-                <Paragraph>The Owner agrees to:</Paragraph>
+                <SubHeading id="section-7">{t('propertyManagement.s7Heading')}</SubHeading>
+                <Paragraph>{t('propertyManagement.s7Intro')}</Paragraph>
                 <ul>
-                    <li>Maintain adequate property insurance.</li>
-                    <li>Provide funds for necessary repairs and maintenance.</li>
-                    <li>Approve any repair or maintenance costs exceeding $500.00 before work is performed.</li>
+                    <li>{t('propertyManagement.s7Li1')}</li>
+                    <li>{t('propertyManagement.s7Li2')}</li>
+                    <li>{t('propertyManagement.s7Li3')}</li>
                 </ul>
-                <BackToTop href="#page-top">↑ Back to top</BackToTop>
+                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
             </section>
 
             <section aria-labelledby="section-8">
-                <SubHeading id="section-8">8. Annual Reporting</SubHeading>
-                <Paragraph>
-                    The Property Manager shall provide the Owner with detailed annual reports, including but not limited
-                    to, the following:
-                </Paragraph>
+                <SubHeading id="section-8">{t('propertyManagement.s8Heading')}</SubHeading>
+                <Paragraph>{t('propertyManagement.s8Intro')}</Paragraph>
                 <ol>
-                    <li>An income statement showing rental income, management fees, operating expenses, and any other
-                        deductions.
-                    </li>
-                    <li>A balance sheet showing the current financial status of the property.</li>
-                    <li>A statement of the reserve fund, including all contributions and expenditures.</li>
-                    <li>A summary of any significant events or issues that occurred during the calendar year.</li>
+                    <li>{t('propertyManagement.s8Li1')}</li>
+                    <li>{t('propertyManagement.s8Li2')}</li>
+                    <li>{t('propertyManagement.s8Li3')}</li>
+                    <li>{t('propertyManagement.s8Li4')}</li>
                 </ol>
-                <Paragraph>
-                    These reports shall be delivered to the Owner within 15 days after the end of each calendar year.
-                </Paragraph>
-                <BackToTop href="#page-top">↑ Back to top</BackToTop>
+                <Paragraph>{t('propertyManagement.s8Footer')}</Paragraph>
+                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
             </section>
 
             <section aria-labelledby="section-9">
-                <SubHeading id="section-9">9. Termination</SubHeading>
-                <Paragraph>
-                    Either party may terminate this Agreement with 30 days&apos; written notice. In the event of termination,
-                    the Property Manager shall be entitled to all management fees and reimbursement for expenses
-                    incurred up to the date of termination.
-                </Paragraph>
-                <BackToTop href="#page-top">↑ Back to top</BackToTop>
+                <SubHeading id="section-9">{t('propertyManagement.s9Heading')}</SubHeading>
+                <Paragraph>{t('propertyManagement.s9Body')}</Paragraph>
+                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
             </section>
 
             <section aria-labelledby="section-10">
-                <SubHeading id="section-10">10. Indemnification</SubHeading>
-                <Paragraph>
-                    The Owner agrees to indemnify and hold the Property Manager harmless from any and all claims, losses,
-                    damages, liabilities, and expenses arising out of or related to the management of the Property,
-                    except in cases of gross negligence or willful misconduct by the Property Manager.
-                </Paragraph>
-                <BackToTop href="#page-top">↑ Back to top</BackToTop>
+                <SubHeading id="section-10">{t('propertyManagement.s10Heading')}</SubHeading>
+                <Paragraph>{t('propertyManagement.s10Body')}</Paragraph>
+                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
             </section>
 
             <section aria-labelledby="section-11">
-                <SubHeading id="section-11">11. Governing Law</SubHeading>
-                <Paragraph>
-                    This Agreement shall be governed by and construed in accordance with the laws of the State of
-                    TEXAS.
-                </Paragraph>
-                <BackToTop href="#page-top">↑ Back to top</BackToTop>
+                <SubHeading id="section-11">{t('propertyManagement.s11Heading')}</SubHeading>
+                <Paragraph>{t('propertyManagement.s11Body')}</Paragraph>
+                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
             </section>
 
             <section aria-labelledby="section-12">
-                <SubHeading id="section-12">12. Entire Agreement</SubHeading>
-                <Paragraph>
-                    This Agreement constitutes the entire agreement between the parties and supersedes all prior
-                    agreements or understandings, whether written or oral, relating to the subject matter herein.
-                </Paragraph>
-                <BackToTop href="#page-top">↑ Back to top</BackToTop>
+                <SubHeading id="section-12">{t('propertyManagement.s12Heading')}</SubHeading>
+                <Paragraph>{t('propertyManagement.s12Body')}</Paragraph>
+                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
             </section>
             </TocPageLayout>
         </div>

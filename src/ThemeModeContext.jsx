@@ -1,12 +1,19 @@
 import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
+import rtlPlugin from 'stylis-plugin-rtl';
 import { FEATURE_DARK_THEME } from './featureFlags';
 import { buildTheme, applyThemeCssVariables } from './theme';
 import { clearStoredColorScheme, readStoredColorScheme, writeStoredColorScheme } from './themePreferenceStorage';
 import { isDarkPreviewRoute } from './routePaths';
+import { useLanguage } from './LanguageContext';
 
 const ThemeModeContext = createContext(null);
+
+const ltrCache = createCache({ key: 'css' });
+const rtlCache = createCache({ key: 'cssrtl', stylisPlugins: [rtlPlugin] });
 
 function getSystemPrefersDark() {
     if (typeof window === 'undefined') return false;
@@ -33,6 +40,7 @@ function resolveEffectiveMode(storedOverride, isDarkPreviewPath) {
 export function ThemeModeProvider({ children }) {
     const { pathname } = useLocation();
     const isDarkPreviewPath = isDarkPreviewRoute(pathname);
+    const { isRTL } = useLanguage();
 
     const [storedOverride, setStoredOverride] = useState(() =>
         FEATURE_DARK_THEME ? readStoredColorScheme() : null
@@ -58,7 +66,7 @@ export function ThemeModeProvider({ children }) {
         [storedOverride, systemDark, isDarkPreviewPath]
     );
 
-    const muiTheme = useMemo(() => buildTheme(effectiveMode), [effectiveMode]);
+    const muiTheme = useMemo(() => buildTheme(effectiveMode, isRTL), [effectiveMode, isRTL]);
 
     useLayoutEffect(() => {
         applyThemeCssVariables(muiTheme);
@@ -104,9 +112,13 @@ export function ThemeModeProvider({ children }) {
         ]
     );
 
+    const emotionCache = isRTL ? rtlCache : ltrCache;
+
     return (
         <ThemeModeContext.Provider value={value}>
-            <MuiThemeProvider theme={muiTheme}>{children}</MuiThemeProvider>
+            <CacheProvider value={emotionCache}>
+                <MuiThemeProvider theme={muiTheme}>{children}</MuiThemeProvider>
+            </CacheProvider>
         </ThemeModeContext.Provider>
     );
 }

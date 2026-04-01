@@ -153,8 +153,9 @@ export function applyThemeCssVariables(muiTheme) {
 
 /**
  * @param {'light' | 'dark'} mode
+ * @param {boolean} [isRTL]
  */
-export function buildTheme(mode) {
+export function buildTheme(mode, isRTL = false) {
     const isDark = mode === 'dark';
 
     /** Softer top/bottom bars in dark mode (less saturated than primary.main). */
@@ -163,6 +164,7 @@ export function buildTheme(mode) {
         : { main: '#1976d2', contrastText: '#ffffff' };
 
     return createTheme({
+        direction: isRTL ? 'rtl' : 'ltr',
         palette: {
             mode,
             primary: isDark

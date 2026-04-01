@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Heading, SubHeading, Paragraph, InlineLink, BackToTop, nestedListStyle, nestedUlStyle, PrintHeader, PageHeader, FilteredSection } from '../styles';
 import { TocPageLayout } from './TocPageLayout';
 import ApplicantWizard, { loadProfile } from './ApplicantWizard';
@@ -10,6 +11,7 @@ import carwoodsLogo from '../assets/carwoods-logo.png';
 
 const ApplicationRequiredDocuments = () => {
   const { pathname } = useLocation();
+  const { t } = useTranslation();
   const [profile, setProfile] = useState(() => loadProfile());
 
   useEffect(() => {
@@ -43,7 +45,6 @@ const ApplicationRequiredDocuments = () => {
 
   const anyBenefitSubsection = show.va || show.ssaSsi || show.ssdi || show.retirement || show.childSupport || show.otherBenefits;
 
-  /** Matches TOC order: only visible sections get the next index. */
   const docSectionNumbers = useMemo(() => {
     const benefitsVisible = show.benefits && anyBenefitSubsection;
     const seq = [
@@ -86,29 +87,24 @@ const ApplicationRequiredDocuments = () => {
   return (
     <div>
       <Helmet>
-        <title>Carwoods - Application Required Documents</title>
+        <title>{t('requiredDocs.title')}</title>
       </Helmet>
 
       <PrintHeader>
-        <img src={carwoodsLogo} alt="Carwoods" />
+        <img src={carwoodsLogo} alt={t('common.carwoodsAlt')} />
       </PrintHeader>
       <PageHeader>
-        <Heading>Application Required Documents</Heading>
+        <Heading>{t('requiredDocs.heading')}</Heading>
       </PageHeader>
 
       <ApplyFlowSubnav phase="documents" />
 
-      <Paragraph>
-        We appreciate your interest in our properties. We do not discriminate based on race, color, religion, sex, familial status, national origin, disability, or other protected characteristics under the Texas Fair Housing Act.
-      </Paragraph>
+      <Paragraph>{t('requiredDocs.fairHousing')}</Paragraph>
 
       <Paragraph>
-        All documents listed below are required for <strong>each adult applicant (18 years or older)</strong>.
-        Incomplete applications will <strong>not</strong> be processed.
-        Providing documents does not guarantee approval.
-        Documents are handled confidentially and used only for screening purposes.
-        Please also review our{' '}
-        <InlineLink href={withDarkPath(pathname, '/tenant-selection-criteria')}>Tenant Selection Criteria</InlineLink> for full eligibility requirements.
+        {t('requiredDocs.intro')}{' '}
+        <InlineLink href={withDarkPath(pathname, '/tenant-selection-criteria')}>{t('requiredDocs.introLink')}</InlineLink>{' '}
+        {t('requiredDocs.introSuffix')}
       </Paragraph>
 
       <ApplicantWizard onProfileChange={setProfile} />
@@ -116,247 +112,226 @@ const ApplicationRequiredDocuments = () => {
       <TocPageLayout
         toc={
           <>
-            <SubHeading>Contents</SubHeading>
+            <SubHeading>{t('requiredDocs.tocContents')}</SubHeading>
             <ol>
-              <li><a href="#identification">Personal Identification</a></li>
-              {show.employed && <li><a href="#employed">Employed</a></li>}
-              {show.selfEmployed && <li><a href="#self-employed">Self-Employed</a></li>}
-              <li><a href="#rental-history">Rental History</a></li>
+              <li><a href="#identification">{t('requiredDocs.tocIdentification')}</a></li>
+              {show.employed && <li><a href="#employed">{t('requiredDocs.tocEmployed')}</a></li>}
+              {show.selfEmployed && <li><a href="#self-employed">{t('requiredDocs.tocSelfEmployed')}</a></li>}
+              <li><a href="#rental-history">{t('requiredDocs.tocRentalHistory')}</a></li>
               {show.petsSection && (
                 <li>
-                  <a href="#pets-animals">Pets and Assistance Animals</a>
+                  <a href="#pets-animals">{t('requiredDocs.tocPetsAnimals')}</a>
                   <ol type="a">
-                    {show.petsOnly && <li><a href="#pets-only">Pets</a></li>}
-                    {show.serviceAnimal && <li><a href="#service-animals">Service Animals</a></li>}
-                    {show.esa && <li><a href="#esa">Emotional Support Animals (ESA)</a></li>}
+                    {show.petsOnly && <li><a href="#pets-only">{t('requiredDocs.tocPetsOnly')}</a></li>}
+                    {show.serviceAnimal && <li><a href="#service-animals">{t('requiredDocs.tocServiceAnimals')}</a></li>}
+                    {show.esa && <li><a href="#esa">{t('requiredDocs.tocEsa')}</a></li>}
                   </ol>
                 </li>
               )}
               {show.benefits && anyBenefitSubsection && (
                 <li>
-                  <a href="#benefits">Government or Other Benefits</a>
+                  <a href="#benefits">{t('requiredDocs.tocBenefits')}</a>
                   <ol type="a">
-                    {show.va && <li><a href="#va-benefits">VA Benefits</a></li>}
-                    {show.ssaSsi && <li><a href="#ssa-ssi">SSA / SSI</a></li>}
-                    {show.ssdi && <li><a href="#ssdi">SSDI</a></li>}
-                    {show.retirement && <li><a href="#retirement">Retirement / Pension</a></li>}
-                    {show.childSupport && <li><a href="#child-support">Child Support or Spousal Maintenance</a></li>}
-                    {show.otherBenefits && <li><a href="#other-benefits">All Other Benefits</a></li>}
+                    {show.va && <li><a href="#va-benefits">{t('requiredDocs.tocVa')}</a></li>}
+                    {show.ssaSsi && <li><a href="#ssa-ssi">{t('requiredDocs.tocSsaSsi')}</a></li>}
+                    {show.ssdi && <li><a href="#ssdi">{t('requiredDocs.tocSsdi')}</a></li>}
+                    {show.retirement && <li><a href="#retirement">{t('requiredDocs.tocRetirement')}</a></li>}
+                    {show.childSupport && <li><a href="#child-support">{t('requiredDocs.tocChildSupport')}</a></li>}
+                    {show.otherBenefits && <li><a href="#other-benefits">{t('requiredDocs.tocOtherBenefits')}</a></li>}
                   </ol>
                 </li>
               )}
-              <li><a href="#emergency-contact">Emergency Contact</a></li>
-              {show.section8 && <li><a href="#section-8">Section 8 / Housing Assistance</a></li>}
-              {show.guarantor && <li><a href="#guarantor">Guarantor</a></li>}
-              {show.cosigner && <li><a href="#cosigner">Co-Signer</a></li>}
+              <li><a href="#emergency-contact">{t('requiredDocs.tocEmergencyContact')}</a></li>
+              {show.section8 && <li><a href="#section-8">{t('requiredDocs.tocSection8')}</a></li>}
+              {show.guarantor && <li><a href="#guarantor">{t('requiredDocs.tocGuarantor')}</a></li>}
+              {show.cosigner && <li><a href="#cosigner">{t('requiredDocs.tocCosigner')}</a></li>}
             </ol>
           </>
         }
       >
       <section id="identification" aria-labelledby="heading-identification">
-        <SubHeading id="heading-identification">{docTitle('identification', 'Personal Identification (All Adults 18+)')}</SubHeading>
+        <SubHeading id="heading-identification">{docTitle('identification', t('requiredDocs.idHeading'))}</SubHeading>
         <ol style={nestedListStyle}>
-          <li>Valid government-issued photo ID (Driver&apos;s License or State ID, color copy).</li>
+          <li>{t('requiredDocs.id1')}</li>
           <li>
-            Social Security Number verification (one of the following, color copy, showing full SSN):
+            {t('requiredDocs.id2')}
             <ul style={nestedUlStyle}>
-              <li>Social Security Card</li>
-              <li>W-2</li>
-              <li>1099</li>
-              <li>Most recent tax return</li>
+              <li>{t('requiredDocs.id2a')}</li>
+              <li>{t('requiredDocs.id2b')}</li>
+              <li>{t('requiredDocs.id2c')}</li>
+              <li>{t('requiredDocs.id2d')}</li>
             </ul>
           </li>
         </ol>
-        <BackToTop href="#page-top">↑ Back to top</BackToTop>
+        <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </section>
 
       <FilteredSection id="employed" aria-labelledby="heading-employed" data-filtered={String(!show.employed)}>
-        <SubHeading id="heading-employed">{docTitle('employed', 'If Employed')}</SubHeading>
+        <SubHeading id="heading-employed">{docTitle('employed', t('requiredDocs.employedHeading'))}</SubHeading>
         <ol style={nestedListStyle}>
-          <li>Most recent <strong>90 days</strong> of pay stubs showing year-to-date earnings.</li>
-          <li>Written employment verification (HR letter or email confirming start date, position, and current status).</li>
-          <li>
-            Bank statements for the most recent <strong>60 days</strong>
-            (original bank-exported PDF, all pages, <strong>must clearly show the applicant&apos;s full name and current address</strong>).
-          </li>
-          <li>Employer or HR contact information for verification (name, email, direct phone number).</li>
+          <li>{t('requiredDocs.emp1')}</li>
+          <li>{t('requiredDocs.emp2')}</li>
+          <li>{t('requiredDocs.emp3')}</li>
+          <li>{t('requiredDocs.emp4')}</li>
         </ol>
-        <BackToTop href="#page-top">↑ Back to top</BackToTop>
+        <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </FilteredSection>
 
       <FilteredSection id="self-employed" aria-labelledby="heading-self-employed" data-filtered={String(!show.selfEmployed)}>
-        <SubHeading id="heading-self-employed">{docTitle('self-employed', 'If Self-Employed')}</SubHeading>
+        <SubHeading id="heading-self-employed">{docTitle('self-employed', t('requiredDocs.selfEmployedHeading'))}</SubHeading>
         <ol style={nestedListStyle}>
-          <li>Most recent <strong>two (2) years</strong> of filed federal tax returns.</li>
-          <li>
-            Last <strong>6 months</strong> of bank statements
-            (original bank-exported PDF, all pages, <strong>must clearly show the applicant&apos;s full name and current address</strong>).
-          </li>
-          <li>Business documentation (EIN letter, certificate of formation, or business license).</li>
+          <li>{t('requiredDocs.se1')}</li>
+          <li>{t('requiredDocs.se2')}</li>
+          <li>{t('requiredDocs.se3')}</li>
         </ol>
-        <BackToTop href="#page-top">↑ Back to top</BackToTop>
+        <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </FilteredSection>
 
       <section id="rental-history" aria-labelledby="heading-rental-history">
-        <SubHeading id="heading-rental-history">{docTitle('rental-history', 'Rental History')}</SubHeading>
+        <SubHeading id="heading-rental-history">{docTitle('rental-history', t('requiredDocs.rentalHistHeading'))}</SubHeading>
         <ol style={nestedListStyle}>
-          <li>
-            Landlord reference information for the past <strong>24 months</strong>
-            (landlord name, email, and phone number).
-          </li>
-          <li>
-            If no rental history but paying a mortgage, provide the last <strong>24 months</strong> of mortgage payment history.
-          </li>
+          <li>{t('requiredDocs.rh1')}</li>
+          <li>{t('requiredDocs.rh2')}</li>
         </ol>
-        <BackToTop href="#page-top">↑ Back to top</BackToTop>
+        <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </section>
 
       <FilteredSection id="pets-animals" aria-labelledby="heading-pets-animals" data-filtered={String(!show.petsSection)}>
-        <SubHeading id="heading-pets-animals">{docTitle('pets-animals', 'Pets and Assistance Animals')}</SubHeading>
+        <SubHeading id="heading-pets-animals">{docTitle('pets-animals', t('requiredDocs.petsAnimalsHeading'))}</SubHeading>
         <ol type="a" style={nestedListStyle}>
           <li id="pets-only" style={!show.petsOnly ? { display: 'none' } : undefined}>
-            <strong>Pets (if applicable):</strong> Clear photos of each pet and current vaccination records.
+            <strong>{t('requiredDocs.petsLi')}</strong>
           </li>
           <li id="service-animals" style={!show.serviceAnimal ? { display: 'none' } : undefined}>
-            <strong>Service Animals:</strong> Under the Fair Housing Act and Texas Property Code, service animals are dogs (or miniature horses) individually trained to perform specific tasks directly related to a person&apos;s disability. We will not request documentation proving the animal is a certified or trained service animal, nor will we require the animal to demonstrate its task. However, we may ask:
+            <strong>{t('requiredDocs.serviceAnimalLi')}</strong>
             <ul style={nestedUlStyle}>
-              <li>Whether the applicant has a disability-related need for the animal (yes/no only — we will not ask for the nature or extent of the disability).</li>
-              <li>What specific task or work the animal has been trained to perform.</li>
+              <li>{t('requiredDocs.sa1')}</li>
+              <li>{t('requiredDocs.sa2')}</li>
             </ul>
-            No pet deposit, pet fee, or pet rent may be charged for a service animal. The applicant remains liable for any damage caused by the animal beyond normal wear and tear.
+            {t('requiredDocs.saFooter')}
           </li>
           <li id="esa" style={!show.esa ? { display: 'none' } : undefined}>
-            <strong>Emotional Support Animals (ESA) and Other Assistance Animals:</strong> When the disability-related need for an ESA or other assistance animal is not obvious or known, we may request <strong>reliable documentation</strong> from a licensed healthcare professional (physician, psychiatrist, therapist, or other licensed mental health professional) currently treating the applicant. The letter must:
+            <strong>{t('requiredDocs.esaLi')}</strong>
             <ul style={nestedUlStyle}>
-              <li>Be written on the provider&apos;s official letterhead.</li>
-              <li>Include the provider&apos;s name, license type, license number, state of licensure, and direct contact information.</li>
-              <li>Confirm that the applicant has a disability (without disclosing the specific diagnosis).</li>
-              <li>State that the animal provides disability-related support or therapeutic benefit.</li>
-              <li>Be dated within the past <strong>12 months</strong>.</li>
+              <li>{t('requiredDocs.esa1')}</li>
+              <li>{t('requiredDocs.esa2')}</li>
+              <li>{t('requiredDocs.esa3')}</li>
+              <li>{t('requiredDocs.esa4')}</li>
+              <li>{t('requiredDocs.esa5')}</li>
             </ul>
-            <strong>Online certificates, registry IDs, vest documentation, or letters from internet-based services are not accepted</strong> and do not constitute reliable documentation under HUD guidelines. No pet deposit, pet fee, or pet rent may be charged for an approved assistance animal. The applicant remains liable for damage caused by the animal beyond normal wear and tear.
+            <strong>{t('requiredDocs.esaFooter')}</strong>
           </li>
         </ol>
-        <BackToTop href="#page-top">↑ Back to top</BackToTop>
+        <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </FilteredSection>
 
       <FilteredSection id="benefits" aria-labelledby="heading-benefits" data-filtered={String(!(show.benefits && anyBenefitSubsection))}>
-        <SubHeading id="heading-benefits">{docTitle('benefits', 'Applicants Receiving Government or Other Benefits')}</SubHeading>
+        <SubHeading id="heading-benefits">{docTitle('benefits', t('requiredDocs.benefitsHeading'))}</SubHeading>
         <ol type="a" style={nestedListStyle}>
           <li id="va-benefits" style={!show.va ? { display: 'none' } : undefined}>
-            <strong>VA (Veterans Affairs) Benefits:</strong>
+            <strong>{t('requiredDocs.vaLi')}</strong>
             <ul style={nestedUlStyle}>
-              <li>Current VA Benefits Award Letter (dated within the past <strong>12 months</strong>) showing benefit type, monthly amount, and effective date.</li>
-              <li>Most recent <strong>2 months</strong> of bank statements confirming VA deposit amounts.</li>
-              <li>DD-214 (Certificate of Release or Discharge from Active Duty) is accepted as supplemental identity verification but is not required.</li>
+              <li>{t('requiredDocs.va1')}</li>
+              <li>{t('requiredDocs.va2')}</li>
+              <li>{t('requiredDocs.va3')}</li>
             </ul>
           </li>
           <li id="ssa-ssi" style={!show.ssaSsi ? { display: 'none' } : undefined}>
-            <strong>Social Security (SSA) or Supplemental Security Income (SSI):</strong>
+            <strong>{t('requiredDocs.ssaSsiLi')}</strong>
             <ul style={nestedUlStyle}>
-              <li>Current SSA Award Letter or Benefit Verification Letter (obtainable at ssa.gov) dated within the past <strong>12 months</strong>, showing monthly benefit amount.</li>
-              <li>Most recent <strong>2 months</strong> of bank statements confirming SSA/SSI deposit amounts.</li>
+              <li>{t('requiredDocs.ssaSsi1')}</li>
+              <li>{t('requiredDocs.ssaSsi2')}</li>
             </ul>
           </li>
           <li id="ssdi" style={!show.ssdi ? { display: 'none' } : undefined}>
-            <strong>Social Security Disability Insurance (SSDI):</strong>
+            <strong>{t('requiredDocs.ssdiLi')}</strong>
             <ul style={nestedUlStyle}>
-              <li>Current SSDI Award Letter dated within the past <strong>12 months</strong>, showing monthly benefit amount and disability onset date.</li>
-              <li>Most recent <strong>2 months</strong> of bank statements confirming SSDI deposit amounts.</li>
+              <li>{t('requiredDocs.ssdi1')}</li>
+              <li>{t('requiredDocs.ssdi2')}</li>
             </ul>
           </li>
           <li id="retirement" style={!show.retirement ? { display: 'none' } : undefined}>
-            <strong>Retirement / Pension Income:</strong>
+            <strong>{t('requiredDocs.retirementLi')}</strong>
             <ul style={nestedUlStyle}>
-              <li>Most recent pension or retirement benefit statement (e.g., TCDRS, TRS, FERS, or private pension) dated within the past <strong>12 months</strong>.</li>
-              <li>Most recent <strong>2 months</strong> of bank statements confirming deposit amounts.</li>
+              <li>{t('requiredDocs.ret1')}</li>
+              <li>{t('requiredDocs.ret2')}</li>
             </ul>
           </li>
           <li id="child-support" style={!show.childSupport ? { display: 'none' } : undefined}>
-            <strong>Child Support or Spousal Maintenance:</strong>
+            <strong>{t('requiredDocs.childSupportLi')}</strong>
             <ul style={nestedUlStyle}>
-              <li>Court order or divorce decree showing the awarded amount and duration.</li>
-              <li>Most recent <strong>3 months</strong> of bank statements or OAG (Texas Office of the Attorney General) payment history confirming consistent receipt.</li>
+              <li>{t('requiredDocs.cs1')}</li>
+              <li>{t('requiredDocs.cs2')}</li>
             </ul>
           </li>
           <li id="other-benefits" style={!show.otherBenefits ? { display: 'none' } : undefined}>
-            <strong>All Other Benefits:</strong> Official award or benefit letter from the issuing agency (dated within the past <strong>12 months</strong>) plus most recent <strong>2 months</strong> of bank statements confirming deposit amounts.
+            <strong>{t('requiredDocs.otherBenefitsLi')}</strong>
           </li>
         </ol>
-        <BackToTop href="#page-top">↑ Back to top</BackToTop>
+        <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </FilteredSection>
 
       <section id="emergency-contact" aria-labelledby="heading-emergency-contact">
-        <SubHeading id="heading-emergency-contact">{docTitle('emergency-contact', 'Emergency Contact')}</SubHeading>
+        <SubHeading id="heading-emergency-contact">{docTitle('emergency-contact', t('requiredDocs.emergencyHeading'))}</SubHeading>
         <ol style={nestedListStyle}>
-          <li>
-            Emergency contact for someone <strong>not residing</strong> in the household
-            (full name, address, email, and phone number).
-          </li>
+          <li>{t('requiredDocs.em1')}</li>
         </ol>
-        <BackToTop href="#page-top">↑ Back to top</BackToTop>
+        <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </section>
 
       <FilteredSection id="section-8" aria-labelledby="heading-section-8" data-filtered={String(!show.section8)}>
-        <SubHeading id="heading-section-8">{docTitle('section-8', 'Section 8 / Housing Assistance Applicants (Additional Requirements)')}</SubHeading>
+        <SubHeading id="heading-section-8">{docTitle('section-8', t('requiredDocs.sec8Heading'))}</SubHeading>
         <ol style={nestedListStyle}>
-          <li>Active Housing Choice Voucher showing tenant name, bedroom size, issue date, and expiration date.</li>
-          <li>Tenant Rent Portion Estimate, affordability worksheet, or equivalent from the assigned caseworker or Housing Authority.</li>
-          <li>Completed RFTA (Request for Tenancy Approval) packet (tenant sections).</li>
-          <li>Caseworker&apos;s full name, email address, and direct phone number.</li>
-          <li>Proof that household composition matches the voucher.</li>
-          <li>Housing Authority inspection and rent reasonableness approval are required prior to move-in.</li>
-          <li>HAP Contract and Housing Authority lease addendum are required <strong>after approval</strong> and inspection.</li>
-          <li>
-            Section 8 applicants are subject to the <strong>same credit, background, and rental history requirements</strong>
-            as all other applicants. No side payments are permitted.
-          </li>
+          <li>{t('requiredDocs.s8Li1')}</li>
+          <li>{t('requiredDocs.s8Li2')}</li>
+          <li>{t('requiredDocs.s8Li3')}</li>
+          <li>{t('requiredDocs.s8Li4')}</li>
+          <li>{t('requiredDocs.s8Li5')}</li>
+          <li>{t('requiredDocs.s8Li6')}</li>
+          <li>{t('requiredDocs.s8Li7')}</li>
+          <li>{t('requiredDocs.s8Li8')}</li>
         </ol>
-        <BackToTop href="#page-top">↑ Back to top</BackToTop>
+        <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </FilteredSection>
 
       <FilteredSection id="guarantor" aria-labelledby="heading-guarantor" data-filtered={String(!show.guarantor)}>
-        <SubHeading id="heading-guarantor">{docTitle('guarantor', 'If a Guarantor is Required')}</SubHeading>
+        <SubHeading id="heading-guarantor">{docTitle('guarantor', t('requiredDocs.guarantorHeading'))}</SubHeading>
         <Paragraph>
-          A guarantor signs a separate guaranty agreement (not the lease) and is only liable if the primary tenant defaults. Guarantors are accepted only when requested by management — see{' '}
-          <InlineLink href={withDarkPath(pathname, '/tenant-selection-criteria')}>Tenant Selection Criteria</InlineLink> for eligibility.
+          {t('requiredDocs.guarantorIntro')}{' '}
+          <InlineLink href={withDarkPath(pathname, '/tenant-selection-criteria')}>{t('requiredDocs.guarantorIntroLink')}</InlineLink>{' '}
+          {t('requiredDocs.guarantorIntroSuffix')}
         </Paragraph>
         <ol style={nestedListStyle}>
-          <li>Valid government-issued photo ID (color copy).</li>
-          <li>Social Security Number verification (SS card, W-2, 1099, or most recent tax return; showing full SSN).</li>
-          <li>Most recent <strong>90 days</strong> of pay stubs showing year-to-date earnings.</li>
-          <li>Written employment verification (HR letter/email confirming start date, position, and current status).</li>
-          <li>Bank statements for the most recent <strong>60 days</strong> (original bank-exported PDFs, all pages).</li>
-          <li>If self-employed: most recent <strong>2 years</strong> of filed federal tax returns and last <strong>6 months</strong> of bank statements.</li>
-          <li>
-            Landlord reference information for the past <strong>24 months</strong> (landlord name, email, and phone number).
-            If no rental history but paying a mortgage, provide the last <strong>24 months</strong> of mortgage payment history.
-          </li>
-          <li>Signed guaranty agreement (provided by management; separate from the lease).</li>
+          <li>{t('requiredDocs.g1')}</li>
+          <li>{t('requiredDocs.g2')}</li>
+          <li>{t('requiredDocs.g3')}</li>
+          <li>{t('requiredDocs.g4')}</li>
+          <li>{t('requiredDocs.g5')}</li>
+          <li>{t('requiredDocs.g6')}</li>
+          <li>{t('requiredDocs.g7')}</li>
+          <li>{t('requiredDocs.g8')}</li>
         </ol>
-        <BackToTop href="#page-top">↑ Back to top</BackToTop>
+        <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </FilteredSection>
 
       <FilteredSection id="cosigner" aria-labelledby="heading-cosigner" data-filtered={String(!show.cosigner)}>
-        <SubHeading id="heading-cosigner">{docTitle('cosigner', 'If a Co-Signer is Required')}</SubHeading>
+        <SubHeading id="heading-cosigner">{docTitle('cosigner', t('requiredDocs.cosignerHeading'))}</SubHeading>
         <Paragraph>
-          A co-signer is <strong>not the same as a guarantor</strong>. A co-signer signs the lease itself as a co-tenant and is jointly and severally liable for all lease obligations from day one — regardless of whether the primary tenant pays. Co-signers must meet the full applicant qualification standards. See{' '}
-          <InlineLink href={withDarkPath(pathname, '/tenant-selection-criteria')}>Tenant Selection Criteria</InlineLink> for eligibility.
+          {t('requiredDocs.cosignerIntro')}{' '}
+          <InlineLink href={withDarkPath(pathname, '/tenant-selection-criteria')}>{t('requiredDocs.cosignerIntroLink')}</InlineLink>{' '}
+          {t('requiredDocs.cosignerIntroSuffix')}
         </Paragraph>
         <ol style={nestedListStyle}>
-          <li>Valid government-issued photo ID (color copy).</li>
-          <li>Social Security Number verification (SS card, W-2, 1099, or most recent tax return; showing full SSN).</li>
-          <li>Most recent <strong>90 days</strong> of pay stubs showing year-to-date earnings.</li>
-          <li>Written employment verification (HR letter/email confirming start date, position, and current status).</li>
-          <li>Bank statements for the most recent <strong>60 days</strong> (original bank-exported PDFs, all pages).</li>
-          <li>If self-employed: most recent <strong>2 years</strong> of filed federal tax returns and last <strong>6 months</strong> of bank statements.</li>
-          <li>
-            Landlord reference information for the past <strong>24 months</strong> (landlord name, email, and phone number).
-            If no rental history but paying a mortgage, provide the last <strong>24 months</strong> of mortgage payment history.
-          </li>
-          <li>Completed rental application and consent to full credit, background, and rental history screening.</li>
+          <li>{t('requiredDocs.c1')}</li>
+          <li>{t('requiredDocs.c2')}</li>
+          <li>{t('requiredDocs.c3')}</li>
+          <li>{t('requiredDocs.c4')}</li>
+          <li>{t('requiredDocs.c5')}</li>
+          <li>{t('requiredDocs.c6')}</li>
+          <li>{t('requiredDocs.c7')}</li>
+          <li>{t('requiredDocs.c8')}</li>
         </ol>
-        <BackToTop href="#page-top">↑ Back to top</BackToTop>
+        <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
       </FilteredSection>
       </TocPageLayout>
     </div>
