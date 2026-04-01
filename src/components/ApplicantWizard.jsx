@@ -8,6 +8,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 import Button from '@mui/material/Button';
 import Tune from '@mui/icons-material/Tune';
 import { useTheme, alpha } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 import {
     PersonalizeCard,
     PersonalizeCardText,
@@ -25,76 +26,69 @@ import {
 
 const STORAGE_KEY = 'carwoods_applicant_profile';
 
+// Structural question definitions — no display strings; those come from translations.
 const QUESTIONS = [
     {
         key: 'employment',
-        question: 'What is your employment status?',
         multi: false,
-        options: [
-            { value: 'employed', label: 'Employed', desc: 'Working for an employer (W-2)' },
-            { value: 'self-employed', label: 'Self-Employed', desc: 'Own a business or work as a contractor' },
-            { value: 'both', label: 'Both', desc: 'Employed and also self-employed' },
-            { value: 'not-employed', label: 'Not currently employed', desc: 'Retired, student, or other' },
-        ],
+        optionValues: ['employed', 'self-employed', 'both', 'not-employed'],
     },
     {
         key: 'hasPets',
-        question: 'Do you have any pets or animals?',
         multi: false,
-        options: [
-            { value: 'none', label: 'No pets or animals', desc: '' },
-            { value: 'pets', label: 'Yes — pet(s)', desc: 'Cats, dogs, or other household pets' },
-            { value: 'service', label: 'Yes — service animal', desc: 'Trained to perform tasks related to a disability' },
-            { value: 'esa', label: 'Yes — ESA or assistance animal', desc: 'Emotional support or other assistance animal' },
-        ],
+        optionValues: ['none', 'pets', 'service', 'esa'],
     },
     {
         key: 'benefits',
-        question: 'Are you receiving any government or other benefits?',
-        hint: 'Select all that apply',
         multi: true,
         noneValue: 'none',
-        options: [
-            { value: 'none', label: 'None', desc: '' },
-            { value: 'va', label: 'VA Benefits', desc: 'Veterans Affairs benefits' },
-            { value: 'ssa-ssi', label: 'Social Security (SSA / SSI)', desc: '' },
-            { value: 'ssdi', label: 'SSDI', desc: 'Social Security Disability Insurance' },
-            { value: 'retirement', label: 'Retirement / Pension', desc: '' },
-            { value: 'child-support', label: 'Child Support or Spousal Maintenance', desc: '' },
-            { value: 'other-benefits', label: 'Other benefits', desc: 'Any other government or agency benefits' },
-        ],
+        optionValues: ['none', 'va', 'ssa-ssi', 'ssdi', 'retirement', 'child-support', 'other-benefits'],
     },
     {
         key: 'section8',
-        question: 'Are you applying with housing assistance (Section 8 or similar)?',
         multi: false,
-        options: [
-            { value: 'no', label: 'No', desc: '' },
-            { value: 'yes', label: 'Yes', desc: 'I have a Housing Choice Voucher or similar' },
-        ],
+        optionValues: ['no', 'yes'],
     },
     {
         key: 'guarantorCosigner',
-        question: 'Will you need a guarantor or co-signer?',
         multi: false,
-        options: [
-            { value: 'neither', label: 'Neither', desc: '' },
-            { value: 'guarantor', label: 'Guarantor', desc: 'Signs a separate guaranty agreement' },
-            { value: 'cosigner', label: 'Co-Signer', desc: 'Signs the lease as a co-tenant' },
-            { value: 'not-sure', label: 'Not sure', desc: 'I may need one but am not certain' },
-        ],
+        optionValues: ['neither', 'guarantor', 'cosigner', 'not-sure'],
     },
     {
         key: 'creditScore',
-        question: 'Do you know your approximate credit score?',
         multi: false,
-        options: [
-            { value: 'unknown', label: "I don't know", desc: '' },
-            { value: '650-above', label: '650 or above', desc: 'Meets the minimum credit requirement' },
-            { value: 'below-650', label: 'Below 650', desc: 'Below the standard minimum' },
-        ],
+        optionValues: ['unknown', '650-above', 'below-650'],
     },
 ];
+
+// Maps option value strings to their translation key suffix (camelCase).
+const OPTION_VALUE_TO_KEY = {
+    'self-employed': 'selfEmployed',
+    'not-employed': 'notEmployed',
+    'ssa-ssi': 'ssaSsi',
+    'child-support': 'childSupport',
+    'other-benefits': 'otherBenefits',
+    'not-sure': 'notSure',
+    '650-above': 'above650',
+    'below-650': 'below650',
+};
+
+function optionKey(value) {
+    return OPTION_VALUE_TO_KEY[value] ?? value;
+}
+
+function getLocalizedQuestions(t) {
+    return QUESTIONS.map(q => ({
+        ...q,
+        question: t(`wizard.questions.${q.key}.question`),
+        hint: q.key === 'benefits' ? t('wizard.questions.benefits.hint') : undefined,
+        options: q.optionValues.map(value => ({
+            value,
+            label: t(`wizard.questions.${q.key}.options.${optionKey(value)}.label`),
+            desc: t(`wizard.questions.${q.key}.options.${optionKey(value)}.desc`),
+        })),
+    }));
+}
 
 function loadProfile() {
     try {
@@ -121,29 +115,52 @@ function clearProfile() {
     }
 }
 
-export function buildChipLabel(profile) {
+export function buildChipLabel(profile, t) {
     const parts = [];
 
-    const empMap = { employed: 'Employed', 'self-employed': 'Self-Employed', both: 'Employed + Self-Employed', 'not-employed': 'Not Employed' };
+    const empMap = {
+        employed: t('wizard.chipLabel.employed'),
+        'self-employed': t('wizard.chipLabel.selfEmployed'),
+        both: t('wizard.chipLabel.employedBoth'),
+        'not-employed': t('wizard.chipLabel.notEmployed'),
+    };
     if (profile.employment && empMap[profile.employment]) parts.push(empMap[profile.employment]);
 
-    const petsMap = { pets: 'Pets', service: 'Service Animal', esa: 'ESA / Assistance Animal' };
+    const petsMap = {
+        pets: t('wizard.chipLabel.pets'),
+        service: t('wizard.chipLabel.serviceAnimal'),
+        esa: t('wizard.chipLabel.esa'),
+    };
     if (profile.hasPets && petsMap[profile.hasPets]) parts.push(petsMap[profile.hasPets]);
 
-    const benefitMap = { va: 'VA Benefits', 'ssa-ssi': 'SSA/SSI', ssdi: 'SSDI', retirement: 'Retirement', 'child-support': 'Child Support', 'other-benefits': 'Other Benefits' };
+    const benefitMap = {
+        va: t('wizard.chipLabel.va'),
+        'ssa-ssi': t('wizard.chipLabel.ssaSsi'),
+        ssdi: t('wizard.chipLabel.ssdi'),
+        retirement: t('wizard.chipLabel.retirement'),
+        'child-support': t('wizard.chipLabel.childSupport'),
+        'other-benefits': t('wizard.chipLabel.otherBenefits'),
+    };
     if (Array.isArray(profile.benefits)) {
         profile.benefits.filter(b => b !== 'none').forEach(b => { if (benefitMap[b]) parts.push(benefitMap[b]); });
     }
 
-    if (profile.section8 === 'yes') parts.push('Section 8');
+    if (profile.section8 === 'yes') parts.push(t('wizard.chipLabel.section8'));
 
-    const gcMap = { guarantor: 'Guarantor', cosigner: 'Co-Signer', 'not-sure': 'Guarantor/Co-Signer (unsure)' };
+    const gcMap = {
+        guarantor: t('wizard.chipLabel.guarantor'),
+        cosigner: t('wizard.chipLabel.cosigner'),
+        'not-sure': t('wizard.chipLabel.guarantorUnsure'),
+    };
     if (profile.guarantorCosigner && gcMap[profile.guarantorCosigner]) parts.push(gcMap[profile.guarantorCosigner]);
 
-    const creditMap = { 'below-650': 'Credit below 650', unknown: 'Credit unknown' };
+    const creditMap = {
+        'below-650': t('wizard.chipLabel.creditBelow650'),
+        unknown: t('wizard.chipLabel.creditUnknown'),
+    };
     if (profile.creditScore && creditMap[profile.creditScore]) parts.push(creditMap[profile.creditScore]);
 
-    return parts.length ? parts.join(' · ') : 'Custom filters active';
+    return parts.length ? parts.join(' · ') : t('wizard.chipLabel.customFilters');
 }
 
 function getInitialAnswers(profile) {
@@ -298,6 +315,7 @@ const OptionCard = ({ option, selected, multi, onSelect, tabIndex }) => {
 
 const ApplicantWizard = ({ onProfileChange }) => {
     const theme = useTheme();
+    const { t } = useTranslation();
     const [profile, setProfile] = useState(() => loadProfile());
     const [open, setOpen] = useState(false);
     const [step, setStep] = useState(0);
@@ -310,6 +328,8 @@ const ApplicantWizard = ({ onProfileChange }) => {
     stepRef.current = step;
 
     const hasFilters = profile !== null;
+
+    const localizedQuestions = getLocalizedQuestions(t);
 
     const openWizard = useCallback(() => {
         const initial = getInitialAnswers(loadProfile());
@@ -449,7 +469,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
         }
     }, [open]);
 
-    const currentQ = QUESTIONS[step];
+    const currentQ = localizedQuestions[step];
     const currentAnswer = answers[currentQ.key];
     const isAnswered = currentQ.multi
         ? Array.isArray(currentAnswer) && currentAnswer.length > 0
@@ -457,37 +477,39 @@ const ApplicantWizard = ({ onProfileChange }) => {
     const isLastStep = step === QUESTIONS.length - 1;
     const progress = ((step) / QUESTIONS.length) * 100;
 
+    const stepLabel = t('wizard.dialog.stepOf', { step: step + 1, total: QUESTIONS.length });
+
     return (
         <>
             {hasFilters ? (
-                <FilterBanner role="region" aria-label="Active filters" aria-live="polite" aria-atomic="true">
+                <FilterBanner role="region" aria-label={t('wizard.filterBanner.regionLabel')} aria-live="polite" aria-atomic="true">
                     <FilterBannerText>
-                        <FilterBannerLabel>Filtered view</FilterBannerLabel>
-                        <FilterBannerChips>{buildChipLabel(profile)}</FilterBannerChips>
+                        <FilterBannerLabel>{t('wizard.filterBanner.label')}</FilterBannerLabel>
+                        <FilterBannerChips>{buildChipLabel(profile, t)}</FilterBannerChips>
                     </FilterBannerText>
                     <FilterBannerActions>
-                        <FilterBannerEditButton type="button" onClick={openWizard} aria-label="Edit filters">
-                            Edit filters
+                        <FilterBannerEditButton type="button" onClick={openWizard} aria-label={t('wizard.filterBanner.editAriaLabel')}>
+                            {t('wizard.filterBanner.editButton')}
                         </FilterBannerEditButton>
-                        <FilterBannerResetButton type="button" onClick={requestReset} aria-label="Reset filters and show all sections">
-                            Reset — show all
+                        <FilterBannerResetButton type="button" onClick={requestReset} aria-label={t('wizard.filterBanner.resetAriaLabel')}>
+                            {t('wizard.filterBanner.resetButton')}
                         </FilterBannerResetButton>
                     </FilterBannerActions>
                 </FilterBanner>
             ) : (
-                <PersonalizeCard role="region" aria-label="Personalize this page">
+                <PersonalizeCard role="region" aria-label={t('wizard.personalizeCard.regionLabel')}>
                     <PersonalizeCardText>
                         <PersonalizeCardTitle>
                             <Tune aria-hidden />
-                            <span>Filter for your situation</span>
+                            <span>{t('wizard.personalizeCard.title')}</span>
                         </PersonalizeCardTitle>
-                        <PersonalizeCardDesc>6 quick questions — see only what applies to you.</PersonalizeCardDesc>
+                        <PersonalizeCardDesc>{t('wizard.personalizeCard.desc')}</PersonalizeCardDesc>
                     </PersonalizeCardText>
-                    <PersonalizeCardButton type="button" onClick={openWizard} aria-label="Personalize this page">
+                    <PersonalizeCardButton type="button" onClick={openWizard} aria-label={t('wizard.personalizeCard.ariaLabel')}>
                         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" style={{ width: '1em', height: '1em', fill: 'currentColor', flexShrink: 0 }}>
                             <path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/>
                         </svg>
-                        Personalize
+                        {t('wizard.personalizeCard.button')}
                     </PersonalizeCardButton>
                 </PersonalizeCard>
             )}
@@ -501,19 +523,19 @@ const ApplicantWizard = ({ onProfileChange }) => {
                 aria-describedby="confirm-reset-desc"
             >
                 <DialogTitle id="confirm-reset-title" sx={{ fontWeight: 700, fontSize: '1.1rem', pb: 1 }}>
-                    Reset personalizations?
+                    {t('wizard.confirmReset.title')}
                 </DialogTitle>
                 <DialogContent sx={{ pt: 0 }}>
                     <p id="confirm-reset-desc" style={{ margin: 0, fontSize: '0.95rem', color: theme.palette.text.secondary }}>
-                        This will clear your saved filters and show all document sections.
+                        {t('wizard.confirmReset.body')}
                     </p>
                 </DialogContent>
                 <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
                     <Button variant="outlined" onClick={cancelReset} color="inherit">
-                        Cancel
+                        {t('wizard.confirmReset.cancel')}
                     </Button>
                     <Button variant="contained" onClick={handleReset} color="error">
-                        Reset
+                        {t('wizard.confirmReset.reset')}
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -532,12 +554,12 @@ const ApplicantWizard = ({ onProfileChange }) => {
                             aria-atomic="true"
                             style={{ fontSize: '0.85rem', color: theme.palette.text.secondary, fontWeight: 600 }}
                         >
-                            Step {step + 1} of {QUESTIONS.length}
+                            {stepLabel}
                         </span>
                         <button
                             type="button"
                             onClick={closeWizard}
-                            aria-label="Close wizard"
+                            aria-label={t('wizard.dialog.closeAriaLabel')}
                             style={{
                                 background: 'none',
                                 border: 'none',
@@ -554,7 +576,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
                     <LinearProgress
                         variant="determinate"
                         value={progress}
-                        aria-label={`Step ${step + 1} of ${QUESTIONS.length}`}
+                        aria-label={stepLabel}
                         aria-valuenow={step + 1}
                         aria-valuemin={1}
                         aria-valuemax={QUESTIONS.length}
@@ -622,7 +644,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
                             color="primary"
                             sx={{ order: 2, fontWeight: 700 }}
                         >
-                            {isLastStep ? 'Finish' : 'Next'}
+                            {isLastStep ? t('wizard.dialog.finish') : t('wizard.dialog.next')}
                         </Button>
                         {step > 0 && (
                             <Button
@@ -632,7 +654,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
                                 color="primary"
                                 sx={{ order: 1, fontWeight: 600 }}
                             >
-                                Back
+                                {t('wizard.dialog.back')}
                             </Button>
                         )}
                         <button
@@ -649,7 +671,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
                                 padding: '0.5rem 0',
                             }}
                         >
-                            Skip
+                            {t('wizard.dialog.skip')}
                         </button>
                     </div>
                     <button
@@ -666,7 +688,7 @@ const ApplicantWizard = ({ onProfileChange }) => {
                             padding: 0,
                         }}
                     >
-                        Reset all &amp; close
+                        {t('wizard.dialog.resetAll')}
                     </button>
                 </div>
             </Dialog>
