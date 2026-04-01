@@ -80,7 +80,7 @@ const TenantSelectionCriteria = () => {
       <PrintFilterSummary>
         <div className="pfs-label">{t('tenantCriteria.filteredView')}</div>
         <div className="pfs-criteria">
-          {profile ? buildChipLabel(profile) : t('tenantCriteria.noFilters')}
+          {profile ? buildChipLabel(profile, t) : t('tenantCriteria.noFilters')}
         </div>
         <div className="pfs-date">
           {t('tenantCriteria.generated')} {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}

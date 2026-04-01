@@ -475,6 +475,118 @@
     "c7": "Landlord reference information for the past 24 months (landlord name, email, and phone number). If no rental history but paying a mortgage, provide the last 24 months of mortgage payment history.",
     "c8": "Completed rental application and consent to full credit, background, and rental history screening."
   },
+  "wizard": {
+    "personalizeCard": {
+      "title": "Filter for your situation",
+      "desc": "6 quick questions — see only what applies to you.",
+      "button": "Personalize",
+      "ariaLabel": "Personalize this page",
+      "regionLabel": "Personalize this page"
+    },
+    "filterBanner": {
+      "regionLabel": "Active filters",
+      "label": "Filtered view",
+      "editButton": "Edit filters",
+      "editAriaLabel": "Edit filters",
+      "resetButton": "Reset — show all",
+      "resetAriaLabel": "Reset filters and show all sections"
+    },
+    "dialog": {
+      "stepOf": "Step {{step}} of {{total}}",
+      "closeAriaLabel": "Close wizard",
+      "next": "Next",
+      "finish": "Finish",
+      "back": "Back",
+      "skip": "Skip",
+      "resetAll": "Reset all & close",
+      "progressAriaLabel": "Step {{step}} of {{total}}"
+    },
+    "confirmReset": {
+      "title": "Reset personalizations?",
+      "body": "This will clear your saved filters and show all document sections.",
+      "cancel": "Cancel",
+      "reset": "Reset"
+    },
+    "chipLabel": {
+      "employed": "Employed",
+      "selfEmployed": "Self-Employed",
+      "employedBoth": "Employed + Self-Employed",
+      "notEmployed": "Not Employed",
+      "pets": "Pets",
+      "serviceAnimal": "Service Animal",
+      "esa": "ESA / Assistance Animal",
+      "va": "VA Benefits",
+      "ssaSsi": "SSA/SSI",
+      "ssdi": "SSDI",
+      "retirement": "Retirement",
+      "childSupport": "Child Support",
+      "otherBenefits": "Other Benefits",
+      "section8": "Section 8",
+      "guarantor": "Guarantor",
+      "cosigner": "Co-Signer",
+      "guarantorUnsure": "Guarantor/Co-Signer (unsure)",
+      "creditBelow650": "Credit below 650",
+      "creditUnknown": "Credit unknown",
+      "customFilters": "Custom filters active"
+    },
+    "questions": {
+      "employment": {
+        "question": "What is your employment status?",
+        "options": {
+          "employed": { "label": "Employed", "desc": "Working for an employer (W-2)" },
+          "selfEmployed": { "label": "Self-Employed", "desc": "Own a business or work as a contractor" },
+          "both": { "label": "Both", "desc": "Employed and also self-employed" },
+          "notEmployed": { "label": "Not currently employed", "desc": "Retired, student, or other" }
+        }
+      },
+      "hasPets": {
+        "question": "Do you have any pets or animals?",
+        "options": {
+          "none": { "label": "No pets or animals", "desc": "" },
+          "pets": { "label": "Yes — pet(s)", "desc": "Cats, dogs, or other household pets" },
+          "service": { "label": "Yes — service animal", "desc": "Trained to perform tasks related to a disability" },
+          "esa": { "label": "Yes — ESA or assistance animal", "desc": "Emotional support or other assistance animal" }
+        }
+      },
+      "benefits": {
+        "question": "Are you receiving any government or other benefits?",
+        "hint": "Select all that apply",
+        "options": {
+          "none": { "label": "None", "desc": "" },
+          "va": { "label": "VA Benefits", "desc": "Veterans Affairs benefits" },
+          "ssaSsi": { "label": "Social Security (SSA / SSI)", "desc": "" },
+          "ssdi": { "label": "SSDI", "desc": "Social Security Disability Insurance" },
+          "retirement": { "label": "Retirement / Pension", "desc": "" },
+          "childSupport": { "label": "Child Support or Spousal Maintenance", "desc": "" },
+          "otherBenefits": { "label": "Other benefits", "desc": "Any other government or agency benefits" }
+        }
+      },
+      "section8": {
+        "question": "Are you applying with housing assistance (Section 8 or similar)?",
+        "options": {
+          "no": { "label": "No", "desc": "" },
+          "yes": { "label": "Yes", "desc": "I have a Housing Choice Voucher or similar" }
+        }
+      },
+      "guarantorCosigner": {
+        "question": "Will you need a guarantor or co-signer?",
+        "options": {
+          "neither": { "label": "Neither", "desc": "" },
+          "guarantor": { "label": "Guarantor", "desc": "Signs a separate guaranty agreement" },
+          "cosigner": { "label": "Co-Signer", "desc": "Signs the lease as a co-tenant" },
+          "notSure": { "label": "Not sure", "desc": "I may need one but am not certain" }
+        }
+      },
+      "creditScore": {
+        "question": "Do you know your approximate credit score?",
+        "options": {
+          "unknown": { "label": "I don't know", "desc": "" },
+          "above650": { "label": "650 or above", "desc": "Meets the minimum credit requirement" },
+          "below650": { "label": "Below 650", "desc": "Below the standard minimum" }
+        }
+      }
+    }
+  },
   "skipToMain": "Skip to main content",
   "languageNames": {
     "en": "English",

@@ -475,6 +475,118 @@
     "c7": "Información de referencia del arrendador de los últimos 24 meses. Si no tiene historial de arrendamiento, proporcione los últimos 24 meses del historial de pagos de hipoteca.",
     "c8": "Solicitud de arrendamiento completa y consentimiento para la revisión completa de crédito, antecedentes e historial de arrendamiento."
   },
+  "wizard": {
+    "personalizeCard": {
+      "title": "Filtrar para su situación",
+      "desc": "6 preguntas rápidas — vea solo lo que le aplica.",
+      "button": "Personalizar",
+      "ariaLabel": "Personalizar esta página",
+      "regionLabel": "Personalizar esta página"
+    },
+    "filterBanner": {
+      "regionLabel": "Filtros activos",
+      "label": "Vista filtrada",
+      "editButton": "Editar filtros",
+      "editAriaLabel": "Editar filtros",
+      "resetButton": "Restablecer — mostrar todo",
+      "resetAriaLabel": "Restablecer filtros y mostrar todas las secciones"
+    },
+    "dialog": {
+      "stepOf": "Paso {{step}} de {{total}}",
+      "closeAriaLabel": "Cerrar asistente",
+      "next": "Siguiente",
+      "finish": "Finalizar",
+      "back": "Atrás",
+      "skip": "Omitir",
+      "resetAll": "Restablecer todo y cerrar",
+      "progressAriaLabel": "Paso {{step}} de {{total}}"
+    },
+    "confirmReset": {
+      "title": "¿Restablecer personalizaciones?",
+      "body": "Se borrarán los filtros guardados y se mostrarán todas las secciones.",
+      "cancel": "Cancelar",
+      "reset": "Restablecer"
+    },
+    "chipLabel": {
+      "employed": "Empleado",
+      "selfEmployed": "Trabajador Independiente",
+      "employedBoth": "Empleado + Trabajador Independiente",
+      "notEmployed": "Sin Empleo",
+      "pets": "Mascotas",
+      "serviceAnimal": "Animal de Servicio",
+      "esa": "ESA / Animal de Asistencia",
+      "va": "Beneficios VA",
+      "ssaSsi": "SSA/SSI",
+      "ssdi": "SSDI",
+      "retirement": "Jubilación",
+      "childSupport": "Manutención",
+      "otherBenefits": "Otros Beneficios",
+      "section8": "Section 8",
+      "guarantor": "Garante",
+      "cosigner": "Cofirmante",
+      "guarantorUnsure": "Garante/Cofirmante (no seguro)",
+      "creditBelow650": "Crédito por debajo de 650",
+      "creditUnknown": "Crédito desconocido",
+      "customFilters": "Filtros personalizados activos"
+    },
+    "questions": {
+      "employment": {
+        "question": "¿Cuál es su situación laboral?",
+        "options": {
+          "employed": { "label": "Empleado", "desc": "Trabajando para un empleador (W-2)" },
+          "selfEmployed": { "label": "Trabajador Independiente", "desc": "Tiene un negocio o trabaja como contratista" },
+          "both": { "label": "Ambos", "desc": "Empleado y también trabajador independiente" },
+          "notEmployed": { "label": "Sin empleo actualmente", "desc": "Jubilado, estudiante u otro" }
+        }
+      },
+      "hasPets": {
+        "question": "¿Tiene mascotas o animales?",
+        "options": {
+          "none": { "label": "No tengo mascotas ni animales", "desc": "" },
+          "pets": { "label": "Sí — mascota(s)", "desc": "Gatos, perros u otras mascotas domésticas" },
+          "service": { "label": "Sí — animal de servicio", "desc": "Entrenado para realizar tareas relacionadas con una discapacidad" },
+          "esa": { "label": "Sí — ESA o animal de asistencia", "desc": "Animal de apoyo emocional u otro animal de asistencia" }
+        }
+      },
+      "benefits": {
+        "question": "¿Recibe beneficios gubernamentales u otros beneficios?",
+        "hint": "Seleccione todos los que apliquen",
+        "options": {
+          "none": { "label": "Ninguno", "desc": "" },
+          "va": { "label": "Beneficios VA", "desc": "Beneficios del Departamento de Asuntos de Veteranos" },
+          "ssaSsi": { "label": "Seguro Social (SSA / SSI)", "desc": "" },
+          "ssdi": { "label": "SSDI", "desc": "Seguro de Discapacidad del Seguro Social" },
+          "retirement": { "label": "Jubilación / Pensión", "desc": "" },
+          "childSupport": { "label": "Manutención de Menores o Cónyuge", "desc": "" },
+          "otherBenefits": { "label": "Otros beneficios", "desc": "Cualquier otro beneficio gubernamental o de agencia" }
+        }
+      },
+      "section8": {
+        "question": "¿Está solicitando con asistencia de vivienda (Sección 8 o similar)?",
+        "options": {
+          "no": { "label": "No", "desc": "" },
+          "yes": { "label": "Sí", "desc": "Tengo un Vale de Elección de Vivienda o similar" }
+        }
+      },
+      "guarantorCosigner": {
+        "question": "¿Necesitará un garante o cofirmante?",
+        "options": {
+          "neither": { "label": "Ninguno", "desc": "" },
+          "guarantor": { "label": "Garante", "desc": "Firma un acuerdo de garantía separado" },
+          "cosigner": { "label": "Cofirmante", "desc": "Firma el contrato como co-inquilino" },
+          "notSure": { "label": "No estoy seguro", "desc": "Es posible que necesite uno pero no estoy seguro" }
+        }
+      },
+      "creditScore": {
+        "question": "¿Conoce su puntaje de crédito aproximado?",
+        "options": {
+          "unknown": { "label": "No lo sé", "desc": "" },
+          "above650": { "label": "650 o más", "desc": "Cumple el requisito mínimo de crédito" },
+          "below650": { "label": "Por debajo de 650", "desc": "Por debajo del mínimo estándar" }
+        }
+      }
+    }
+  },
   "skipToMain": "Saltar al contenido principal",
   "languageNames": {
     "en": "English",

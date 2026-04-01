@@ -475,6 +475,118 @@
     "c7": "Informations de référence du propriétaire pour les 24 derniers mois. Si aucun historique de location, fournir les 24 derniers mois d'historique de paiement hypothécaire.",
     "c8": "Candidature complète et consentement à la vérification complète du crédit, des antécédents et de l'historique de location."
   },
+  "wizard": {
+    "personalizeCard": {
+      "title": "Filtrer selon votre situation",
+      "desc": "6 questions rapides — voyez uniquement ce qui vous concerne.",
+      "button": "Personnaliser",
+      "ariaLabel": "Personnaliser cette page",
+      "regionLabel": "Personnaliser cette page"
+    },
+    "filterBanner": {
+      "regionLabel": "Filtres actifs",
+      "label": "Vue filtrée",
+      "editButton": "Modifier les filtres",
+      "editAriaLabel": "Modifier les filtres",
+      "resetButton": "Réinitialiser — tout afficher",
+      "resetAriaLabel": "Réinitialiser les filtres et afficher toutes les sections"
+    },
+    "dialog": {
+      "stepOf": "Étape {{step}} sur {{total}}",
+      "closeAriaLabel": "Fermer l'assistant",
+      "next": "Suivant",
+      "finish": "Terminer",
+      "back": "Retour",
+      "skip": "Passer",
+      "resetAll": "Tout réinitialiser et fermer",
+      "progressAriaLabel": "Étape {{step}} sur {{total}}"
+    },
+    "confirmReset": {
+      "title": "Réinitialiser les personnalisations ?",
+      "body": "Cela effacera vos filtres enregistrés et affichera toutes les sections.",
+      "cancel": "Annuler",
+      "reset": "Réinitialiser"
+    },
+    "chipLabel": {
+      "employed": "Employé",
+      "selfEmployed": "Travailleur indépendant",
+      "employedBoth": "Employé + Travailleur indépendant",
+      "notEmployed": "Sans emploi",
+      "pets": "Animaux de compagnie",
+      "serviceAnimal": "Animal d'assistance",
+      "esa": "ESA / Animal d'assistance émotionnelle",
+      "va": "Prestations VA",
+      "ssaSsi": "SSA/SSI",
+      "ssdi": "SSDI",
+      "retirement": "Retraite",
+      "childSupport": "Pension alimentaire",
+      "otherBenefits": "Autres prestations",
+      "section8": "Section 8",
+      "guarantor": "Garant",
+      "cosigner": "Co-signataire",
+      "guarantorUnsure": "Garant/Co-signataire (incertain)",
+      "creditBelow650": "Crédit inférieur à 650",
+      "creditUnknown": "Crédit inconnu",
+      "customFilters": "Filtres personnalisés actifs"
+    },
+    "questions": {
+      "employment": {
+        "question": "Quel est votre statut d'emploi ?",
+        "options": {
+          "employed": { "label": "Employé", "desc": "Travaillant pour un employeur (W-2)" },
+          "selfEmployed": { "label": "Travailleur indépendant", "desc": "Possède une entreprise ou travaille comme contractant" },
+          "both": { "label": "Les deux", "desc": "Employé et également travailleur indépendant" },
+          "notEmployed": { "label": "Sans emploi actuellement", "desc": "Retraité, étudiant ou autre" }
+        }
+      },
+      "hasPets": {
+        "question": "Avez-vous des animaux de compagnie ou des animaux ?",
+        "options": {
+          "none": { "label": "Pas d'animaux", "desc": "" },
+          "pets": { "label": "Oui — animal(aux)", "desc": "Chats, chiens ou autres animaux domestiques" },
+          "service": { "label": "Oui — animal d'assistance", "desc": "Entraîné pour effectuer des tâches liées à un handicap" },
+          "esa": { "label": "Oui — ESA ou animal de soutien", "desc": "Animal de soutien émotionnel ou autre animal d'assistance" }
+        }
+      },
+      "benefits": {
+        "question": "Recevez-vous des prestations gouvernementales ou autres ?",
+        "hint": "Sélectionnez tout ce qui s'applique",
+        "options": {
+          "none": { "label": "Aucune", "desc": "" },
+          "va": { "label": "Prestations VA", "desc": "Prestations des Affaires des anciens combattants" },
+          "ssaSsi": { "label": "Sécurité sociale (SSA / SSI)", "desc": "" },
+          "ssdi": { "label": "SSDI", "desc": "Assurance invalidité de la Sécurité sociale" },
+          "retirement": { "label": "Retraite / Pension", "desc": "" },
+          "childSupport": { "label": "Pension alimentaire ou maintien conjugal", "desc": "" },
+          "otherBenefits": { "label": "Autres prestations", "desc": "Toute autre prestation gouvernementale ou d'agence" }
+        }
+      },
+      "section8": {
+        "question": "Postulez-vous avec une aide au logement (Section 8 ou similaire) ?",
+        "options": {
+          "no": { "label": "Non", "desc": "" },
+          "yes": { "label": "Oui", "desc": "J'ai un bon de choix de logement ou similaire" }
+        }
+      },
+      "guarantorCosigner": {
+        "question": "Aurez-vous besoin d'un garant ou d'un co-signataire ?",
+        "options": {
+          "neither": { "label": "Aucun", "desc": "" },
+          "guarantor": { "label": "Garant", "desc": "Signe un accord de garantie séparé" },
+          "cosigner": { "label": "Co-signataire", "desc": "Signe le bail en tant que co-locataire" },
+          "notSure": { "label": "Pas sûr", "desc": "Je pourrais en avoir besoin mais je ne suis pas certain" }
+        }
+      },
+      "creditScore": {
+        "question": "Connaissez-vous votre score de crédit approximatif ?",
+        "options": {
+          "unknown": { "label": "Je ne sais pas", "desc": "" },
+          "above650": { "label": "650 ou plus", "desc": "Répond à l'exigence minimale de crédit" },
+          "below650": { "label": "Inférieur à 650", "desc": "En dessous du minimum standard" }
+        }
+      }
+    }
+  },
   "skipToMain": "Aller au contenu principal",
   "languageNames": {
     "en": "English",
