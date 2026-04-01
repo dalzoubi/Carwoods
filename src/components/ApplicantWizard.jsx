@@ -239,8 +239,13 @@ const OptionCard = ({ option, selected, multi, onSelect, tabIndex }) => {
     const primary = theme.palette.primary.main;
     const paper = theme.palette.background.paper;
     const selectedBg = theme.palette.mode === 'dark' ? alpha(primary, 0.18) : alpha(primary, 0.1);
-    const borderDefault = theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.18) : '#d0d7e3';
-    const indicatorBorder = isSelected ? primary : theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.35) : '#9aa5b4';
+    const borderDefault =
+        theme.palette.mode === 'dark' ? alpha(theme.palette.common.white, 0.18) : alpha(theme.palette.text.primary, 0.14);
+    const indicatorBorder = isSelected
+        ? primary
+        : theme.palette.mode === 'dark'
+          ? alpha(theme.palette.common.white, 0.35)
+          : alpha(theme.palette.text.primary, 0.28);
     const indicatorFill = isSelected ? primary : paper;
     const markColor = theme.palette.getContrastText(primary);
 
@@ -256,7 +261,7 @@ const OptionCard = ({ option, selected, multi, onSelect, tabIndex }) => {
                 alignItems: 'flex-start',
                 gap: '0.75rem',
                 width: '100%',
-                textAlign: 'left',
+                textAlign: 'start',
                 padding: '0.75rem 1rem',
                 marginBottom: '0.5rem',
                 background: isSelected ? selectedBg : paper,

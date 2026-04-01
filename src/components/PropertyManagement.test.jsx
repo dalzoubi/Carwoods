@@ -43,8 +43,8 @@ describe('PropertyManagement', () => {
   });
 
   it('table of contents links all 12 sections', () => {
-    const { container } = renderWithRouter(<PropertyManagement />);
-    const nav = container.querySelector('nav[aria-label="Table of contents"]');
+    renderWithRouter(<PropertyManagement />);
+    const nav = screen.getByRole('navigation', { name: /table of contents/i });
     const links = nav.querySelectorAll('a');
     expect(links.length).toBe(12);
   });

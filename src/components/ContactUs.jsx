@@ -1,9 +1,10 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { useTranslation } from 'react-i18next';
 import { Heading, Paragraph, Button } from '../styles';
+import { withDarkPath } from '../routePaths';
 
 const InternalLink = styled(Link)`
     color: var(--palette-primary-main);
@@ -29,6 +30,7 @@ const InternalLink = styled(Link)`
 const HAR_AGENT_URL = 'https://www.har.com/dennis-alzoubi/agent_dalzoubi';
 
 const ContactUs = () => {
+    const { pathname } = useLocation();
     const { t } = useTranslation();
     return (
         <div>
@@ -42,7 +44,7 @@ const ContactUs = () => {
             <Heading>{t('contact.heading')}</Heading>
             <Paragraph>
                 {t('contact.para1Prefix')}{' '}
-                <InternalLink to="/apply">{t('contact.applyLinkText')}</InternalLink>
+                <InternalLink to={withDarkPath(pathname, '/apply')}>{t('contact.applyLinkText')}</InternalLink>
                 {' '}{t('contact.para1Suffix')}
             </Paragraph>
             <Paragraph>

@@ -76,6 +76,10 @@ const ResponsiveNavbar = () => {
     const { currentLanguage, supportedLanguages, changeLanguage } = useLanguage();
     const { t } = useTranslation();
 
+    const menuHorizontalOrigin = muiTheme.direction === 'rtl' ? 'right' : 'left';
+    const menuAnchorOrigin = { vertical: 'bottom', horizontal: menuHorizontalOrigin };
+    const menuTransformOrigin = { vertical: 'top', horizontal: menuHorizontalOrigin };
+
     const showAppearanceMenu = darkThemeFeatureEnabled || isDarkPreviewPath;
     const showPrintButton = isPrintablePageRoute(pathname);
 
@@ -424,17 +428,17 @@ const ResponsiveNavbar = () => {
                                 }}
                             >
                                 <NavLink to={withDarkPath(pathname, '/')}>
-                                    <img src={carwoodsLogo} alt="Carwoods" style={{ height: `${LOGO_HEIGHT_PX}px`, display: 'block' }} />
+                                    <img src={carwoodsLogo} alt={t('common.carwoodsAlt')} style={{ height: `${LOGO_HEIGHT_PX}px`, display: 'block' }} />
                                 </NavLink>
                             </Box>
                             {headerToolbarActions}
                             <Drawer
-                                anchor="left"
+                                anchor={muiTheme.direction === 'rtl' ? 'right' : 'left'}
                                 open={drawerOpen}
                                 onClose={handleDrawerToggle}
                                 PaperProps={{
                                     id: DRAWER_PAPER_ID,
-                                    'aria-label': 'Site menu',
+                                    'aria-label': t('nav.siteMenu'),
                                 }}
                             >
                                 {drawerContent}
@@ -443,10 +447,10 @@ const ResponsiveNavbar = () => {
                     ) : (
                         <>
                             <NavLink to={withDarkPath(pathname, '/')} style={{ flexShrink: 0 }}>
-                                <img src={carwoodsLogo} alt="Carwoods" style={{ height: `${LOGO_HEIGHT_PX}px`, display: 'block' }} />
+                                <img src={carwoodsLogo} alt={t('common.carwoodsAlt')} style={{ height: `${LOGO_HEIGHT_PX}px`, display: 'block' }} />
                             </NavLink>
                             <nav
-                                aria-label="main navigation"
+                                aria-label={t('nav.mainNavigation')}
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',
@@ -472,7 +476,7 @@ const ResponsiveNavbar = () => {
                                     aria-haspopup="true"
                                     aria-expanded={Boolean(tenantAnchor)}
                                     aria-controls={tenantAnchor ? 'tenant-menu' : undefined}
-                                    aria-label={t('nav.tenant') + ' menu'}
+                                    aria-label={t('nav.tenantMenu')}
                                     sx={{
                                         color: 'inherit',
                                         padding: '0.3rem 0.55rem',
@@ -500,8 +504,8 @@ const ResponsiveNavbar = () => {
                                             sx: { backgroundImage: 'none' },
                                         },
                                     }}
-                                    anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                                    transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                                    anchorOrigin={menuAnchorOrigin}
+                                    transformOrigin={menuTransformOrigin}
                                 >
                                     {tenantLinks.map(({ to, label }) => (
                                         <MenuItem
@@ -535,7 +539,7 @@ const ResponsiveNavbar = () => {
                                     aria-haspopup="true"
                                     aria-expanded={Boolean(landlordAnchor)}
                                     aria-controls={landlordAnchor ? 'landlord-menu' : undefined}
-                                    aria-label={t('nav.landlord') + ' menu'}
+                                    aria-label={t('nav.landlordMenu')}
                                     sx={{
                                         color: 'inherit',
                                         padding: '0.3rem 0.55rem',
@@ -563,8 +567,8 @@ const ResponsiveNavbar = () => {
                                             sx: { backgroundImage: 'none' },
                                         },
                                     }}
-                                    anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                                    transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                                    anchorOrigin={menuAnchorOrigin}
+                                    transformOrigin={menuTransformOrigin}
                                 >
                                     {landlordLinks.map(({ to, label }) => (
                                         <MenuItem

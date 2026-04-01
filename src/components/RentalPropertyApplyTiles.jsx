@@ -75,7 +75,7 @@ const Photo = styled.img`
 const RentBadge = styled.span`
     position: absolute;
     top: ${theme.spacing(1)};
-    right: ${theme.spacing(1)};
+    inset-inline-end: ${theme.spacing(1)};
     padding: ${theme.spacing(0.5)} ${theme.spacing(1)};
     border-radius: 4px;
     font-size: 0.875rem;

@@ -10,7 +10,11 @@
     "selectLanguage": "اختر اللغة",
     "legal": "قانوني",
     "privacy": "سياسة الخصوصية",
-    "accessibility": "إمكانية الوصول"
+    "accessibility": "إمكانية الوصول",
+    "mainNavigation": "التنقل الرئيسي",
+    "siteMenu": "قائمة الموقع",
+    "tenantMenu": "قائمة المستأجر",
+    "landlordMenu": "قائمة المالك"
   },
   "tenantLinks": {
     "apply": "تقديم الطلب",
@@ -137,7 +141,8 @@
   "common": {
     "contents": "المحتويات",
     "backToTop": "↑ العودة إلى الأعلى",
-    "carwoodsAlt": "كارووودز"
+    "carwoodsAlt": "كارووودز",
+    "tableOfContentsNavLabel": "جدول المحتويات"
   },
   "propertyManagement": {
     "title": "كارووودز - إدارة الممتلكات",

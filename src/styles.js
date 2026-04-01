@@ -202,15 +202,18 @@ export const TocPageMain = styled.div.attrs({ 'data-toc-page-main': true })`
 
 const TocNavBase = styled.nav`
     background: var(--toc-nav-bg);
-    border-left: 4px solid var(--palette-primary-main);
-    border-radius: 0 var(--shape-border-radius) var(--shape-border-radius) 0;
+    border-inline-start: 4px solid var(--palette-primary-main);
+    border-start-start-radius: 0;
+    border-start-end-radius: var(--shape-border-radius);
+    border-end-end-radius: var(--shape-border-radius);
+    border-end-start-radius: 0;
     padding: ${theme.spacing(1.5)} ${theme.spacing(2.5)};
     margin: ${theme.spacing(2)} 0 ${theme.spacing(3)};
 
     ol,
     ul {
         margin: ${theme.spacing(0.5)} 0;
-        padding-left: ${theme.spacing(2.5)};
+        padding-inline-start: ${theme.spacing(2.5)};
     }
 
     li {
@@ -506,8 +509,11 @@ export const FilteredSection = styled.section`
 
 export const PersonalizeCard = styled.div`
     background: var(--personalize-card-bg);
-    border-left: 4px solid var(--palette-primary-main);
-    border-radius: 0 var(--shape-border-radius) var(--shape-border-radius) 0;
+    border-inline-start: 4px solid var(--palette-primary-main);
+    border-start-start-radius: 0;
+    border-start-end-radius: var(--shape-border-radius);
+    border-end-end-radius: var(--shape-border-radius);
+    border-end-start-radius: 0;
     padding: ${theme.spacing(1.25)} ${theme.spacing(2)};
     margin: ${theme.spacing(2)} 0 ${theme.spacing(3)};
     display: flex;
@@ -599,8 +605,11 @@ export const PersonalizeCardButton = styled.button.attrs({ type: 'button' })`
 
 export const FilterBanner = styled.div`
     background: var(--filter-banner-bg);
-    border-left: 4px solid var(--filter-banner-border);
-    border-radius: 0 var(--shape-border-radius) var(--shape-border-radius) 0;
+    border-inline-start: 4px solid var(--filter-banner-border);
+    border-start-start-radius: 0;
+    border-start-end-radius: var(--shape-border-radius);
+    border-end-end-radius: var(--shape-border-radius);
+    border-end-start-radius: 0;
     padding: ${theme.spacing(1.5)} ${theme.spacing(2.5)};
     margin: ${theme.spacing(2)} 0 ${theme.spacing(3)};
     display: flex;

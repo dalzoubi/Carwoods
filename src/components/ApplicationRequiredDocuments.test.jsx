@@ -91,8 +91,8 @@ describe('ApplicationRequiredDocuments', () => {
     });
 
     it('uses alphabetic (a, b, c) numbering for sub-lists in table of contents', () => {
-      const { container } = renderWithRouter(<ApplicationRequiredDocuments />);
-      const nav = container.querySelector('nav[aria-label="Table of contents"]');
+      renderWithRouter(<ApplicationRequiredDocuments />);
+      const nav = screen.getByRole('navigation', { name: /table of contents/i });
       const alphaLists = nav.querySelectorAll('ol[type="a"]');
       expect(alphaLists.length).toBeGreaterThanOrEqual(2);
     });
