@@ -10,7 +10,11 @@
     "selectLanguage": "Select language",
     "legal": "Legal",
     "privacy": "Privacy Policy",
-    "accessibility": "Accessibility"
+    "accessibility": "Accessibility",
+    "mainNavigation": "Main navigation",
+    "siteMenu": "Site menu",
+    "tenantMenu": "Tenant menu",
+    "landlordMenu": "Landlord menu"
   },
   "tenantLinks": {
     "apply": "Apply",
@@ -137,7 +141,8 @@
   "common": {
     "contents": "Contents",
     "backToTop": "↑ Back to top",
-    "carwoodsAlt": "Carwoods"
+    "carwoodsAlt": "Carwoods",
+    "tableOfContentsNavLabel": "Table of contents"
   },
   "propertyManagement": {
     "title": "Carwoods - Property Management",

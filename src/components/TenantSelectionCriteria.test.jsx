@@ -73,8 +73,8 @@ describe('TenantSelectionCriteria', () => {
   });
 
   it('uses alphabetic (a, b, c) numbering for Details sub-list in table of contents', () => {
-    const { container } = renderWithRouter(<TenantSelectionCriteria />);
-    const nav = container.querySelector('nav[aria-label="Table of contents"]');
+    renderWithRouter(<TenantSelectionCriteria />);
+    const nav = screen.getByRole('navigation', { name: /table of contents/i });
     const alphaLists = nav.querySelectorAll('ol[type="a"]');
     expect(alphaLists.length).toBeGreaterThanOrEqual(1);
   });

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import ContactUs from './ContactUs';
 
 const renderWithRouter = (ui) => render(<BrowserRouter>{ui}</BrowserRouter>);
@@ -29,5 +29,15 @@ describe('ContactUs', () => {
     renderWithRouter(<ContactUs />);
     const applyLink = screen.getByRole('link', { name: /^apply$/i });
     expect(applyLink).toHaveAttribute('href', '/apply');
+  });
+
+  it('keeps dark preview prefix on Apply link', () => {
+    render(
+      <MemoryRouter initialEntries={['/dark/contact-us']}>
+        <ContactUs />
+      </MemoryRouter>
+    );
+    const applyLink = screen.getByRole('link', { name: /^apply$/i });
+    expect(applyLink).toHaveAttribute('href', '/dark/apply');
   });
 });

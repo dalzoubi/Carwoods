@@ -1,10 +1,10 @@
-const { test, expect } = require('@playwright/test');
+import { test, expect } from '@playwright/test';
 
 test.describe('Critical path: Home → Tenant Criteria → Application Docs', () => {
   test('navigates from Home to Tenant Selection Criteria via Tenant menu', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByRole('heading', { name: /where houston finds home/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /houston rentals, managed right/i })).toBeVisible();
 
     await page.getByRole('button', { name: /tenant menu/i }).click();
     await page.getByRole('link', { name: /selection criteria/i }).click();

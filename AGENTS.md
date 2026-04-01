@@ -17,7 +17,7 @@ Carwoods is a static React 18 website (no backend/database) for property managem
 
 - **Unit tests**: `npx vitest run`. All run in jsdom, no server needed.
 - **Lint**: `npx eslint src/` — there are 2 pre-existing `no-restricted-globals` errors in `src/styles.js` (usage of `history`). These are not regressions.
-- **E2E tests**: `npm run test:e2e` requires Playwright Chromium (`npm run test:e2e:install`). Note: `playwright.config.js` uses CommonJS syntax (`require`/`module.exports`) but `package.json` has `"type": "module"`, which causes a `ReferenceError: require is not defined` when running E2E tests. This is a pre-existing issue.
+- **E2E tests**: `npm run test:e2e` requires Playwright Chromium (`npm run test:e2e:install`). Use **`playwright.config.mjs`** and **`e2e/*.spec.mjs`** (ESM) so Playwright loads under `"type": "module"` in `package.json`.
 
 ### Gotchas
 

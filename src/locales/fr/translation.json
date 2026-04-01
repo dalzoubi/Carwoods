@@ -10,7 +10,11 @@
     "selectLanguage": "Sélectionner la langue",
     "legal": "Mentions légales",
     "privacy": "Politique de confidentialité",
-    "accessibility": "Accessibilité"
+    "accessibility": "Accessibilité",
+    "mainNavigation": "Navigation principale",
+    "siteMenu": "Menu du site",
+    "tenantMenu": "Menu locataire",
+    "landlordMenu": "Menu propriétaire"
   },
   "tenantLinks": {
     "apply": "Postuler",
@@ -137,7 +141,8 @@
   "common": {
     "contents": "Sommaire",
     "backToTop": "↑ Retour en haut",
-    "carwoodsAlt": "Carwoods"
+    "carwoodsAlt": "Carwoods",
+    "tableOfContentsNavLabel": "Table des matières"
   },
   "propertyManagement": {
     "title": "Carwoods - Gestion immobilière",
