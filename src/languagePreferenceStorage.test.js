@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
     clearStoredLanguage,
     readStoredLanguage,
+    readValidStoredLanguage,
     writeStoredLanguage,
 } from './languagePreferenceStorage';
 
@@ -15,6 +16,16 @@ describe('languagePreferenceStorage', () => {
 
     it('returns null when unset', () => {
         expect(readStoredLanguage()).toBeNull();
+    });
+
+    it('readValidStoredLanguage returns null for invalid codes', () => {
+        localStorage.setItem(STORAGE_KEY, 'de');
+        expect(readValidStoredLanguage(['en', 'es', 'fr', 'ar'])).toBeNull();
+    });
+
+    it('readValidStoredLanguage returns code when supported', () => {
+        writeStoredLanguage('fr');
+        expect(readValidStoredLanguage(['en', 'es', 'fr', 'ar'])).toBe('fr');
     });
 
     it('writes and reads a language code', () => {

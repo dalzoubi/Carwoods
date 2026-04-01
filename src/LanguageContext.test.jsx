@@ -16,13 +16,14 @@ function renderWithProviders(ui) {
 
 // Simple consumer that exposes context values via data attributes
 function LanguageConsumer() {
-    const { currentLanguage, direction, isRTL } = useLanguage();
+    const { currentLanguage, direction, isRTL, storedLanguageOverride } = useLanguage();
     return (
         <div
             data-testid="consumer"
             data-lang={currentLanguage}
             data-dir={direction}
             data-rtl={String(isRTL)}
+            data-override={storedLanguageOverride ?? ''}
         />
     );
 }
@@ -151,6 +152,55 @@ describe('LanguageProvider', () => {
 
         // Language should remain unchanged
         expect(screen.getByTestId('consumer').dataset.lang).toBe(initialLang);
+    });
+
+    it('persists explicit choice in localStorage', async () => {
+        function SwitcherConsumer() {
+            const { changeLanguage } = useLanguage();
+            return <button onClick={() => changeLanguage('fr')}>Pick French</button>;
+        }
+
+        renderWithProviders(<SwitcherConsumer />);
+        await act(async () => {
+            screen.getByText('Pick French').click();
+        });
+        expect(localStorage.getItem('carwoods-language')).toBe('fr');
+    });
+
+    it('resetLanguagePreference clears storage and follows browser language', async () => {
+        const nav = { language: 'es', languages: ['es-MX', 'en'] };
+        vi.stubGlobal('navigator', nav);
+
+        function ResetConsumer() {
+            const { currentLanguage, changeLanguage, resetLanguagePreference, storedLanguageOverride } =
+                useLanguage();
+            return (
+                <>
+                    <button onClick={() => changeLanguage('fr')}>Pick French</button>
+                    <button onClick={() => void resetLanguagePreference()}>Reset</button>
+                    <div
+                        data-testid="consumer"
+                        data-lang={currentLanguage}
+                        data-override={storedLanguageOverride ?? ''}
+                    />
+                </>
+            );
+        }
+
+        renderWithProviders(<ResetConsumer />);
+        await act(async () => {
+            screen.getByText('Pick French').click();
+        });
+        expect(screen.getByTestId('consumer').dataset.override).toBe('fr');
+
+        await act(async () => {
+            screen.getByText('Reset').click();
+        });
+        expect(localStorage.getItem('carwoods-language')).toBeNull();
+        expect(screen.getByTestId('consumer').dataset.lang).toBe('es');
+        expect(screen.getByTestId('consumer').dataset.override).toBe('');
+
+        vi.unstubAllGlobals();
     });
 
     it('throws if used outside LanguageProvider', () => {

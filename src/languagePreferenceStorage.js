@@ -9,6 +9,16 @@ export function readStoredLanguage() {
     }
 }
 
+/**
+ * Returns the stored code only if it is in supportedList; otherwise null.
+ * @param {readonly string[]} supportedList
+ */
+export function readValidStoredLanguage(supportedList) {
+    const raw = readStoredLanguage();
+    if (raw && supportedList.includes(raw)) return raw;
+    return null;
+}
+
 /** Persists a language code to localStorage. */
 export function writeStoredLanguage(lang) {
     try {

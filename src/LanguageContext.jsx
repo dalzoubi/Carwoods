@@ -7,17 +7,31 @@ import React, {
     useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SUPPORTED_LANGUAGES, getDirection } from './i18n';
-import { readStoredLanguage, writeStoredLanguage } from './languagePreferenceStorage';
+import { SUPPORTED_LANGUAGES, getDirection, resolveBrowserLanguage } from './i18n';
+import {
+    clearStoredLanguage,
+    readValidStoredLanguage,
+    writeStoredLanguage,
+} from './languagePreferenceStorage';
 
 const LanguageContext = createContext(null);
 
 export function LanguageProvider({ children }) {
     const { i18n } = useTranslation();
 
-    const [currentLanguage, setCurrentLanguage] = useState(
-        () => readStoredLanguage() || i18n.language || 'en'
+    const [storedOverride, setStoredOverride] = useState(() =>
+        readValidStoredLanguage(SUPPORTED_LANGUAGES)
     );
+
+    const [currentLanguage, setCurrentLanguage] = useState(() => {
+        const override = readValidStoredLanguage(SUPPORTED_LANGUAGES);
+        if (override) return override;
+        const raw = String(i18n.language || 'en').toLowerCase().replace(/_/g, '-');
+        const base = raw.split('-')[0];
+        if (SUPPORTED_LANGUAGES.includes(raw)) return raw;
+        if (SUPPORTED_LANGUAGES.includes(base)) return base;
+        return resolveBrowserLanguage();
+    });
 
     const direction = useMemo(() => getDirection(currentLanguage), [currentLanguage]);
 
@@ -27,15 +41,42 @@ export function LanguageProvider({ children }) {
         document.documentElement.setAttribute('lang', currentLanguage);
     }, [direction, currentLanguage]);
 
+    useEffect(() => {
+        let cancelled = false;
+        const onBrowserLanguageChange = () => {
+            if (readValidStoredLanguage(SUPPORTED_LANGUAGES) !== null) return;
+            const next = resolveBrowserLanguage();
+            void (async () => {
+                if (cancelled || i18n.language === next) return;
+                await i18n.changeLanguage(next);
+                if (!cancelled) setCurrentLanguage(next);
+            })();
+        };
+        window.addEventListener('languagechange', onBrowserLanguageChange);
+        return () => {
+            cancelled = true;
+            window.removeEventListener('languagechange', onBrowserLanguageChange);
+        };
+    }, [i18n]);
+
     const changeLanguage = useCallback(
         async (lang) => {
             if (!SUPPORTED_LANGUAGES.includes(lang)) return;
-            await i18n.changeLanguage(lang);
             writeStoredLanguage(lang);
+            setStoredOverride(lang);
+            await i18n.changeLanguage(lang);
             setCurrentLanguage(lang);
         },
         [i18n]
     );
+
+    const resetLanguagePreference = useCallback(async () => {
+        clearStoredLanguage();
+        setStoredOverride(null);
+        const next = resolveBrowserLanguage();
+        await i18n.changeLanguage(next);
+        setCurrentLanguage(next);
+    }, [i18n]);
 
     const value = useMemo(
         () => ({
@@ -43,9 +84,11 @@ export function LanguageProvider({ children }) {
             direction,
             isRTL: direction === 'rtl',
             supportedLanguages: SUPPORTED_LANGUAGES,
+            storedLanguageOverride: storedOverride,
             changeLanguage,
+            resetLanguagePreference,
         }),
-        [currentLanguage, direction, changeLanguage]
+        [currentLanguage, direction, storedOverride, changeLanguage, resetLanguagePreference]
     );
 
     return (
