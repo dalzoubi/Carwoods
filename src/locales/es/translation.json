@@ -598,5 +598,9 @@
     "es": "Español",
     "fr": "Français",
     "ar": "العربية"
+  },
+  "languagePreference": {
+    "useBrowserLanguage": "Usar idioma del navegador",
+    "browserLanguageHint": "Su elección se guarda en este navegador. Restablecer borra la anulación y vuelve a seguir el idioma del navegador (inglés si no es compatible)."
   }
 }

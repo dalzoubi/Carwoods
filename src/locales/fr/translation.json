@@ -598,5 +598,9 @@
     "es": "Español",
     "fr": "Français",
     "ar": "العربية"
+  },
+  "languagePreference": {
+    "useBrowserLanguage": "Utiliser la langue du navigateur",
+    "browserLanguageHint": "Votre choix est enregistré dans ce navigateur. La réinitialisation efface le remplacement et suit à nouveau la langue du navigateur (anglais si non prise en charge)."
   }
 }

@@ -73,7 +73,13 @@ const ResponsiveNavbar = () => {
         setOverrideDark,
         resetOverride,
     } = useThemeMode();
-    const { currentLanguage, supportedLanguages, changeLanguage } = useLanguage();
+    const {
+        currentLanguage,
+        supportedLanguages,
+        changeLanguage,
+        storedLanguageOverride,
+        resetLanguagePreference,
+    } = useLanguage();
     const { t } = useTranslation();
 
     const menuHorizontalOrigin = muiTheme.direction === 'rtl' ? 'right' : 'left';
@@ -765,6 +771,20 @@ const ResponsiveNavbar = () => {
                         {t(`languageNames.${lang}`)}
                     </MenuItem>
                 ))}
+                <Divider />
+                <MenuItem
+                    onClick={() => {
+                        void resetLanguagePreference();
+                        handleLanguageClose();
+                    }}
+                    disabled={storedLanguageOverride === null}
+                >
+                    <RestartAlt fontSize="small" sx={{ marginInlineEnd: 1 }} />
+                    {t('languagePreference.useBrowserLanguage')}
+                </MenuItem>
+                <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', color: 'text.secondary', maxWidth: 260 }}>
+                    {t('languagePreference.browserLanguageHint')}
+                </Typography>
             </Menu>
         </>
     );
