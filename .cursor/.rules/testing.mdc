@@ -1,0 +1,28 @@
+---
+description: "Unit test conventions for Vitest and React Testing Library"
+globs:
+  - "**/*.test.*"
+  - "src/setupTests.*"
+  - "src/testUtils.*"
+alwaysApply: false
+---
+
+# Unit test rules
+
+- Framework: Vitest + jsdom + React Testing Library. No server needed.
+- Test behavior, not implementation details.
+- Cover happy paths, edge cases, error states, loading states, and a11y behavior.
+- Do not reduce existing test coverage.
+- Add regression tests for bugs being fixed.
+- Prefer deterministic tests; avoid brittle assertions tied to incidental markup.
+
+## i18n in tests
+
+- Reset language in `beforeEach`: `await i18n.changeLanguage('en')` — import `i18n` from `src/i18n.js` (not `'i18next'`).
+- `src/setupTests.js` imports `./i18n` globally — do not remove that import.
+- Components using `useLanguage()` need `<LanguageProvider>` in tests. Components using only `useTranslation()` do not.
+- Prefer `WithAppTheme` from `src/testUtils.jsx` over ad-hoc provider stacks — it already provides `LanguageProvider` + `ThemeProvider`.
+
+## Known issues
+
+- Two pre-existing `no-restricted-globals` lint errors in `src/styles.js` (usage of `history`). These are not regressions — do not try to fix them.

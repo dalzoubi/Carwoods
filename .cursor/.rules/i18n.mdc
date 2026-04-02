@@ -1,0 +1,32 @@
+---
+description: "Internationalisation, translation files, and RTL layout rules"
+globs:
+  - "src/locales/**/*"
+  - "src/i18n.js"
+  - "src/LanguageContext.jsx"
+  - "src/languagePreferenceStorage.js"
+alwaysApply: false
+---
+
+# i18n rules
+
+Read AGENTS.md "Internationalisation" section for full architecture before editing these files.
+
+## Translations
+
+- Add keys to **all four** locale files (en, es, fr, ar) simultaneously.
+- Use `useTranslation()` hook — never hard-code English in JSX.
+- For sentences with inline links: use prefix/linkText/suffix key pattern (see `contact.para1Prefix` / `contact.applyLinkText` / `contact.para1Suffix`).
+- Do not translate proper nouns: HAR.com, RentSpree, RFTA, W-2, 1099, SSN, VA, SSDI, SSA/SSI, Section 8, TCDRS, TRS, FERS, dog breed names.
+
+## Provider architecture
+
+- Provider order in `index.jsx`: `LanguageProvider` → `ThemeModeProvider` → app. Reversing breaks the RTL Emotion cache.
+- `ThemeModeProvider` reads `isRTL` internally from `useLanguage()` — do not pass as prop.
+
+## RTL layout
+
+- JS inline styles: `marginInlineEnd` / `marginInlineStart`, not `marginRight` / `marginLeft`.
+- Styled-components CSS: `margin-inline-end`, not `margin-right`.
+- MUI `direction: 'rtl'` flips most spacing — verify Drawer anchor, icon placement, flex direction.
+- Arabic font stack is set via `[dir="rtl"] body` in `index.css` — do not override inline.

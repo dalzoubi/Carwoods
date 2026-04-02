@@ -1,0 +1,14 @@
+---
+description: "Playwright E2E test conventions"
+globs:
+  - "e2e/**/*"
+  - "playwright.config.*"
+alwaysApply: false
+---
+
+# E2E test rules
+
+- Use ESM: `playwright.config.mjs` and `e2e/*.spec.mjs` — package has `"type": "module"`.
+- Browser: Chromium only. Install with `npm run test:e2e:install`.
+- Run: `npm run test:e2e`.
+- Dev server must be running (`npm run dev`) or configured in `playwright.config.mjs` webServer.

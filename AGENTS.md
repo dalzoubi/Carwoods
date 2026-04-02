@@ -1,30 +1,92 @@
 # AGENTS.md
 
-## Cursor Cloud specific instructions
+## Overview
 
-### Overview
+Carwoods is a static React 18 website (no backend/database) for property management in Houston. Uses Vite 7, MUI v6, styled-components, i18next (en/es/fr/ar), and npm as the package manager. No TypeScript.
 
-Carwoods is a static React 18 website (no backend/database) for property management in Houston. Uses Vite 7, MUI v6, and npm as the package manager.
+## Commands
 
-### Running the app
+| Task | Command |
+|---|---|
+| Dev server (port 3000) | `npm run dev` |
+| Production build → `build/` | `npm run build` |
+| Unit tests (jsdom, no server) | `npx vitest run` |
+| Lint | `npx eslint src/` |
+| E2E tests (Playwright) | `npm run test:e2e` |
+| Install E2E browser | `npm run test:e2e:install` |
+| Refresh HAR listings | `npm run update-rental-tiles` |
 
-- `npm run dev` starts the Vite dev server on port 3000.
-- `npm run build` outputs a production build to `build/`.
-- **Dark theme** follows system preference and saved choice by default (feature **on**). Disable the feature with `VITE_FEATURE_DARK_THEME=false` in the environment or `.env`.
-- **Dark preview:** open **`/dark`** or **`/dark/…`** to force dark styling regardless of flag; use the header appearance menu to exit preview.
+## Project structure
 
-### Testing
+```
+src/
+├── index.jsx              # App entry — LanguageProvider → ThemeModeProvider → App
+├── App.jsx                # Routes (incl. /dark/* synthetic location)
+├── theme.js               # buildTheme() + applyThemeCssVariables()
+├── styles.js              # Styled-components consuming CSS variables
+├── index.css              # Global CSS, print rules, RTL overrides
+├── i18n.js                # i18next init with all four locale bundles
+├── ThemeModeContext.jsx    # Dark mode provider (reads isRTL internally)
+├── LanguageContext.jsx     # Language/RTL provider, sets <html dir> and <html lang>
+├── routePaths.js           # withDarkPath() for /dark/* link prefixing
+├── featureFlags.js         # VITE_FEATURE_DARK_THEME flag
+├── testUtils.jsx           # WithAppTheme test helper
+├── locales/{en,es,fr,ar}/translation.json
+├── data/
+│   ├── harRentalListingIds.js
+│   └── rentalPropertyApplyTiles.generated.js  ← DO NOT DELETE
+├── components/
+│   ├── Home.jsx, Apply.jsx, ContactUs.jsx, Privacy.jsx, Accessibility.jsx
+│   ├── ResponsiveNavbar.jsx, Footer.jsx, ApplyFlowSubnav.jsx
+│   ├── ApplicantWizard.jsx, TenantSelectionCriteria.jsx
+│   ├── RentalPropertyApplyTiles.jsx, PropertyManagement.jsx
+│   ├── ApplicationRequiredDocuments.jsx, TocPageLayout.jsx
+│   └── *.test.jsx (co-located unit tests)
+scripts/
+├── fetchHarRentalApplyTiles.mjs   # prebuild — falls back to committed file on 403
+└── generatePublicIcons.mjs
+e2e/
+└── critical-path.spec.mjs         # Playwright E2E (ESM)
+```
 
-- **Unit tests**: `npx vitest run`. All run in jsdom, no server needed.
-- **Lint**: `npx eslint src/` — there are 2 pre-existing `no-restricted-globals` errors in `src/styles.js` (usage of `history`). These are not regressions.
-- **E2E tests**: `npm run test:e2e` requires Playwright Chromium (`npm run test:e2e:install`). Use **`playwright.config.mjs`** and **`e2e/*.spec.mjs`** (ESM) so Playwright loads under `"type": "module"` in `package.json`.
+## Dos and don'ts
 
-### Gotchas
+**Always:**
+- Use `useTranslation()` for all user-visible strings — add keys to all four locale files
+- Use MUI theme / CSS variables for colors — new variables go in `applyThemeCssVariables`
+- Use logical CSS properties (`margin-inline-start` not `margin-left`) for RTL
+- Set `type="button"` on non-submit buttons inside forms
+- Test in light + dark + `/dark/…` preview + print when touching UI
 
-- The Vite dev server uses `usePolling: true` for file watching (configured for container compatibility).
-- No secrets or API keys are required; the `.env` file only contains `CHOKIDAR_USEPOLLING=true`.
-- The `homepage` field in `package.json` is `https://carwoods.com` for GitHub Pages deployment; this does not affect the dev server.
-- **HAR listing fetch**: `scripts/fetchHarRentalApplyTiles.mjs` is run as `prebuild`. HAR.com may return 403 in restricted environments (e.g. Vercel CI). The script gracefully falls back to the committed `src/data/rentalPropertyApplyTiles.generated.js` when a network error occurs and the file already exists. **Never delete the generated file from the repo.** To update listings locally, run `npm run update-rental-tiles`.
+**Never:**
+- Hard-code English text in JSX
+- Hard-code hex colors in components
+- Delete `src/data/rentalPropertyApplyTiles.generated.js`
+- Pass `isRTL` as a prop to `ThemeModeProvider` (it reads from `LanguageContext` internally)
+- Reverse provider order: `LanguageProvider` must wrap `ThemeModeProvider`
+- Use physical CSS directions (`margin-left`) in styled-components or print rules
+
+**Ask first:**
+- Adding new dependencies
+- Route or path changes
+- Form field/payload changes
+- SEO metadata or heading hierarchy changes
+- Design token or shared hook behavior changes
+
+## Dark theme
+
+- Feature **on** by default. Disable with `VITE_FEATURE_DARK_THEME=false` in `.env`.
+- **Dark preview:** open `/dark` or `/dark/…` to force dark styling; exit via header appearance menu.
+- `vite.config.js` `transformIndexHtml` injects an early flash-prevention script when the flag is not `false`. Changes to flag semantics must update both `featureFlags.js` and the Vite plugin.
+
+## Gotchas
+
+- Vite dev server uses `usePolling: true` (container compatibility).
+- No secrets or API keys; `.env` only contains `CHOKIDAR_USEPOLLING=true`.
+- `homepage` in `package.json` is `https://carwoods.com` (GitHub Pages); does not affect dev server.
+- **HAR listing fetch**: `scripts/fetchHarRentalApplyTiles.mjs` runs as `prebuild`. May get 403 in CI. Falls back to committed generated file. **Never delete the generated file.**
+- 2 pre-existing `no-restricted-globals` lint errors in `src/styles.js` (`history`) — not regressions.
+- E2E files must be ESM (`.mjs`) because `package.json` has `"type": "module"`.
 
 ---
 
@@ -117,36 +179,3 @@ The site supports **English, Spanish, French, and Arabic** via `i18next` + `reac
 - Wrap components that use `useLanguage()` (e.g. `ResponsiveNavbar`, `ThemeModeProvider`) with `<LanguageProvider>` in tests; components that only use `useTranslation()` do not need it.
 - The `WithAppTheme` helper (`src/testUtils.jsx`) already provides `LanguageProvider` — prefer it over ad-hoc provider stacks.
 
----
-
-## Suggested user "base prompt" snippets (copy when opening a task)
-
-You can paste one of these at the start of a request to align the agent with this repo:
-
-**Theming / dark mode**
-
-> Follow `AGENTS.md` (Theming & styling). Use MUI theme + `applyThemeCssVariables` / CSS variables; no light-only hex in dialogs or wizards. Respect `/dark` preview and `withDarkPath` for links. Verify print if the page has `PrintHeader` or print CSS.
-
-**New page or route**
-
-> Follow `AGENTS.md`. Add routes in `App.jsx` (and under `/dark` via the existing pattern). Prefix internal links with `withDarkPath` where appropriate. Run `npx vitest run` and `npm run build`.
-
-**Accessibility**
-
-> Follow `AGENTS.md` contrast rules; use `getContrastText` or dedicated footer/CTA tokens. Do not assume yellow or white text on arbitrary blues passes WCAG AA.
-
-**Print**
-
-> Do not remove `PrintHeader` img invert without replacing with another guaranteed dark-on-white treatment. Keep `color-scheme: light` on the print header block if the app supports dark mode. Use logical CSS properties in print rules for RTL compatibility. Hide any interactive-only UI (wizard, filter banner, dialogs) with `@media print { display: none }`.
-
-**Multi-language / i18n**
-
-> Follow `AGENTS.md` (Internationalisation). Add all strings to all four locale files (`en`, `es`, `fr`, `ar`). Use `useTranslation()` — never hard-code English in JSX. Use logical CSS properties (not `margin-left`) so RTL mirrors automatically. `ThemeModeProvider` reads `isRTL` from `LanguageContext` internally — do not pass it as a prop. Reset `i18n.changeLanguage('en')` in test `beforeEach` to prevent language bleed. Run `npx vitest run` and `npm run build` when done.
-
-**Wizard / filter (ApplicantWizard)**
-
-> The `ApplicantWizard` and its `QUESTIONS` / `buildChipLabel` contain user-visible strings — translate all of them via `useTranslation()` following the established pattern in the locale files. The wizard dialog, filter banner, and personalize card are already hidden in print; keep those `@media print { display: none }` rules intact.
-
-**Build / deployment**
-
-> The `prebuild` script fetches HAR listings and may receive a 403 in CI. It falls back to the committed `src/data/rentalPropertyApplyTiles.generated.js` when the file exists — never delete that file. To refresh listings, run `npm run update-rental-tiles` locally and commit the result.

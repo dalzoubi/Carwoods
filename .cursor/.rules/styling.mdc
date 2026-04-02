@@ -1,0 +1,37 @@
+---
+description: "Theming, dark mode, CSS variables, and print styling rules"
+globs:
+  - "src/styles.js"
+  - "src/theme.js"
+  - "src/ThemeModeContext.jsx"
+  - "src/index.css"
+alwaysApply: false
+---
+
+# Theming & styling rules
+
+Read AGENTS.md "Theming & styling" section for full architecture before editing these files.
+
+## Color system
+
+- MUI components: use `useTheme()`, `sx`, or theme component overrides — no hardcoded hex.
+- Styled-components: use CSS variables (`var(--palette-…)`, `var(--cta-button-…)`, etc.).
+- New variables: add in `applyThemeCssVariables` in `src/theme.js` next to related tokens — do not scatter hex values.
+- Contrast: use `theme.palette.getContrastText(bg)` or dedicated tokens. `--button-on-primary` and `--footer-on-primary` are tied to app chrome only.
+
+## Dark mode
+
+- No light-only inline styles in shared flows (dialogs, wizards, cards, nav).
+- MUI surfaces (Dialog, Paper, Menu): set `backgroundImage: 'none'` on Paper where needed — dark elevation can look wrong otherwise.
+- Feature flag: `import.meta.env.VITE_FEATURE_DARK_THEME !== 'false'` (on by default). Changes to flag semantics must update both `featureFlags.js` and the Vite `transformIndexHtml` plugin.
+
+## Print
+
+- Global print rules: `src/index.css` (hides header/nav/footer, forces light paper).
+- `PrintHeader` uses `filter: invert(1)` on the logo img and `color-scheme: light` on container — do not remove without replacement.
+- Hide interactive UI with `@media print { display: none }`.
+- Use logical CSS properties in print rules for RTL compatibility.
+
+## After changes
+
+Verify: light mode + dark mode + `/dark/…` preview + print preview.
