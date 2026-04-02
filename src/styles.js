@@ -719,18 +719,27 @@ export const PrintHeader = styled.div`
         justify-content: center;
         align-items: center;
         margin-bottom: 14pt;
-        padding-bottom: 10pt;
-        border-bottom: 1px solid #ccc;
+        padding-block-end: 10pt;
+        padding-block-start: 6pt;
+        /* Beat index.css rule that forces all div backgrounds to white in print */
+        background: #000 !important;
+        border-bottom: 1px solid #333;
         /* Match light-mode print output even when the app is in dark mode */
         color-scheme: light !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
+
+        & img {
+            /* Print: asset is white-on-transparent; global print CSS paints all divs white, so without
+               a dark band the logo vanishes when the browser omits filter effects. Show it on black. */
+            filter: none;
+        }
     }
 
     img {
         height: 44pt;
         width: auto;
-        /* Logo asset is light-on-transparent; invert so it reads on white paper (original behavior) */
+        /* Screen: logo is light-on-transparent for the nav bar */
         filter: invert(1);
         forced-color-adjust: none;
         -webkit-print-color-adjust: exact;
