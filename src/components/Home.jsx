@@ -69,14 +69,14 @@ const audienceTileLinkSx = (theme) => ({
                 : `0 10px 28px ${alpha(theme.palette.primary.main, 0.08)}`
         }`,
     },
-    '@media (hover: hover)': {
-        '&:hover': {
-            borderColor: 'primary.light',
-            boxShadow:
-                theme.palette.mode === 'dark'
-                    ? `0 12px 32px ${alpha(theme.palette.common.black, 0.45)}`
-                    : `0 14px 36px ${alpha(theme.palette.primary.main, 0.14)}`,
-        },
+    // Unqualified :hover (like Apply step cards): iPadOS reports (hover: none) even with a trackpad,
+    // which would hide hover feedback under @media (hover: hover) only.
+    '&:hover': {
+        borderColor: 'primary.light',
+        boxShadow:
+            theme.palette.mode === 'dark'
+                ? `0 12px 32px ${alpha(theme.palette.common.black, 0.45)}`
+                : `0 14px 36px ${alpha(theme.palette.primary.main, 0.14)}`,
     },
     '@media (prefers-reduced-motion: reduce)': {
         transition: 'none',
