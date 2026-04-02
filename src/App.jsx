@@ -17,14 +17,14 @@ import { isDarkPreviewRoute } from './routePaths';
 
 /**
  * After route changes, scroll like “Back to top” links: smooth `scrollIntoView` on `#page-top`
- * and sync the hash. Skips when the URL already targets another in-page section.
+ * without mutating the URL hash. Skips when the URL already targets another in-page section.
  */
 function ScrollToTopOnRouteChange() {
     const { pathname, hash } = useLocation();
     useLayoutEffect(() => {
         if (hash && hash !== '#page-top') return undefined;
         const raf = requestAnimationFrame(() => {
-            scrollToHashAnchor('#page-top');
+            scrollToHashAnchor('#page-top', { updateHistory: false });
         });
         return () => cancelAnimationFrame(raf);
     }, [pathname, hash]);
