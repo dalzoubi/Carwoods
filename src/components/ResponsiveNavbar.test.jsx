@@ -153,5 +153,20 @@ describe('ResponsiveNavbar', () => {
       expect(btn).toHaveAttribute('id', 'language-menu-button-toolbar');
       expect(btn).toHaveAttribute('aria-expanded', 'true');
     });
+
+    it('language menu includes reset to browser language when override is set', async () => {
+      localStorage.setItem('carwoods-language', 'fr');
+      await i18n.changeLanguage('fr');
+      renderWithProviders(<ResponsiveNavbar />);
+      fireEvent.click(screen.getByRole('button', { name: /select language|sélectionner la langue|seleccionar idioma|اختر اللغة/i }));
+      const resetItem = screen.getByRole('menuitem', {
+        name: /browser language|idioma del navegador|langue du navigateur|لغة المتصفح/i,
+      });
+      expect(resetItem).not.toHaveAttribute('aria-disabled', 'true');
+      await act(async () => {
+        fireEvent.click(resetItem);
+      });
+      expect(localStorage.getItem('carwoods-language')).toBeNull();
+    });
   });
 });

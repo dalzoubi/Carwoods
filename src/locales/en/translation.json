@@ -598,5 +598,9 @@
     "es": "Español",
     "fr": "Français",
     "ar": "العربية"
+  },
+  "languagePreference": {
+    "useBrowserLanguage": "Use browser language",
+    "browserLanguageHint": "Your choice is saved in this browser. Reset clears the override and follows your browser language again (English if unsupported)."
   }
 }
