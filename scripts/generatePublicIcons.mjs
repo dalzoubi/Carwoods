@@ -16,6 +16,7 @@ import pngToIco from 'png-to-ico';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 const srcLogo = join(root, 'src', 'assets', 'carwoods-logo.png');
+const printLogoOut = join(root, 'src', 'assets', 'carwoods-logo-print.png');
 const publicDir = join(root, 'public');
 
 /**
@@ -79,6 +80,18 @@ async function houseOnlyExtractSharp() {
   return sharp(srcLogo).extract({ left: 0, top: 0, width: w, height: cropH });
 }
 
+/**
+ * Black artwork on transparent for print/PDF: avoids CSS `filter` (often dropped when printing).
+ * Source logo is light-on-transparent; negate RGB only so alpha stays correct.
+ */
+async function writePrintLogoPng() {
+  await sharp(srcLogo)
+    .ensureAlpha()
+    .negate({ alpha: false })
+    .png()
+    .toFile(printLogoOut);
+}
+
 /** Apple touch icon: house-only crop (tab favicon is the checked-in favicon.png). */
 async function writeAppleTouchIconHouseOnly() {
   const pipeline = await houseOnlyExtractSharp();
@@ -121,7 +134,8 @@ if (!existsSync(srcLogo)) {
 
 await writeFaviconIcoFromPng();
 await writeAppleTouchIconHouseOnly();
+await writePrintLogoPng();
 
 console.log(
-  '[generatePublicIcons] Wrote favicon.ico (from favicon.png), apple-touch-icon.png → public/ (logo192.png / logo512.png are checked in)'
+  '[generatePublicIcons] Wrote favicon.ico (from favicon.png), apple-touch-icon.png → public/, carwoods-logo-print.png → src/assets/ (logo192.png / logo512.png are checked in)'
 );

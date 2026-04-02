@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { Heading, SubHeading, SectionHeading, Paragraph, BackToTop, nestedListStyle, nestedUlStyle, PrintHeader, PrintFilterSummary, PageHeader, FilteredSection } from '../styles';
+import { Heading, SubHeading, SectionHeading, Paragraph, BackToTop, nestedListStyle, nestedUlStyle, PrintHeader, PrintHeaderLogo, PrintHeaderLogoPrint, PrintFilterSummary, PageHeader, FilteredSection } from '../styles';
 import { TocPageLayout } from './TocPageLayout';
 import ApplicantWizard, { loadProfile, buildChipLabel } from './ApplicantWizard';
 import { ApplyFlowSubnav } from './ApplyFlowSubnav';
 import carwoodsLogo from '../assets/carwoods-logo.png';
+import carwoodsLogoPrint from '../assets/carwoods-logo-print.png';
 
 const TenantSelectionCriteria = () => {
   const { t } = useTranslation();
@@ -75,7 +76,8 @@ const TenantSelectionCriteria = () => {
       </Helmet>
 
       <PrintHeader>
-        <img src={carwoodsLogo} alt={t('common.carwoodsAlt')} />
+        <PrintHeaderLogo src={carwoodsLogo} alt="" aria-hidden />
+        <PrintHeaderLogoPrint src={carwoodsLogoPrint} alt={t('common.carwoodsAlt')} />
       </PrintHeader>
       <PrintFilterSummary>
         <div className="pfs-label">{t('tenantCriteria.filteredView')}</div>

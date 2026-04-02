@@ -719,7 +719,9 @@ export const PrintHeader = styled.div`
         justify-content: center;
         align-items: center;
         margin-bottom: 14pt;
-        padding-bottom: 10pt;
+        padding-block-end: 10pt;
+        /* Logo prints via invert below; keep band explicitly white (matches global print div reset) */
+        background: #fff !important;
         border-bottom: 1px solid #ccc;
         /* Match light-mode print output even when the app is in dark mode */
         color-scheme: light !important;
@@ -727,18 +729,36 @@ export const PrintHeader = styled.div`
         print-color-adjust: exact;
     }
 
-    img {
-        height: 44pt;
-        width: auto;
-        /* Logo asset is light-on-transparent; invert so it reads on white paper (original behavior) */
-        filter: invert(1);
-        forced-color-adjust: none;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-
     span {
         display: none;
+    }
+`;
+
+/** Navbar-style inverted mark on screen; hidden when printing (see PrintHeaderLogoPrint). */
+export const PrintHeaderLogo = styled.img`
+    height: 44pt;
+    width: auto;
+    filter: invert(1);
+    forced-color-adjust: none;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+
+    @media print {
+        display: none !important;
+    }
+`;
+
+/** Black-on-transparent asset from prebuild; visible only in print (no CSS filter). */
+export const PrintHeaderLogoPrint = styled.img`
+    display: none;
+    height: 44pt;
+    width: auto;
+    forced-color-adjust: none;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+
+    @media print {
+        display: block !important;
     }
 `;
 

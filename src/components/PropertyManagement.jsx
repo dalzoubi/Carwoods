@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { Heading, SubHeading, Paragraph, BackToTop, PrintHeader, PageHeader } from '../styles';
+import { Heading, SubHeading, Paragraph, BackToTop, PrintHeader, PrintHeaderLogo, PrintHeaderLogoPrint, PageHeader } from '../styles';
 import { TocPageLayout } from './TocPageLayout';
 import carwoodsLogo from '../assets/carwoods-logo.png';
+import carwoodsLogoPrint from '../assets/carwoods-logo-print.png';
 
 const PropertyManagement = () => {
   const { t } = useTranslation();
@@ -22,7 +23,8 @@ const PropertyManagement = () => {
                 <title>{t('propertyManagement.title')}</title>
             </Helmet>
             <PrintHeader>
-              <img src={carwoodsLogo} alt={t('common.carwoodsAlt')} />
+              <PrintHeaderLogo src={carwoodsLogo} alt="" aria-hidden />
+              <PrintHeaderLogoPrint src={carwoodsLogoPrint} alt={t('common.carwoodsAlt')} />
             </PrintHeader>
             <PageHeader>
               <Heading>{t('propertyManagement.heading')}</Heading>
