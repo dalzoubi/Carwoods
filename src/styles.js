@@ -729,18 +729,36 @@ export const PrintHeader = styled.div`
         print-color-adjust: exact;
     }
 
-    img {
-        height: 44pt;
-        width: auto;
-        /* Asset is white-on-transparent: invert → dark mark on white (print) / nav-style on screen */
-        filter: invert(1);
-        forced-color-adjust: none;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-
     span {
         display: none;
+    }
+`;
+
+/** Navbar-style inverted mark on screen; hidden when printing (see PrintHeaderLogoPrint). */
+export const PrintHeaderLogo = styled.img`
+    height: 44pt;
+    width: auto;
+    filter: invert(1);
+    forced-color-adjust: none;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+
+    @media print {
+        display: none !important;
+    }
+`;
+
+/** Black-on-transparent asset from prebuild; visible only in print (no CSS filter). */
+export const PrintHeaderLogoPrint = styled.img`
+    display: none;
+    height: 44pt;
+    width: auto;
+    forced-color-adjust: none;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+
+    @media print {
+        display: block !important;
     }
 `;
 

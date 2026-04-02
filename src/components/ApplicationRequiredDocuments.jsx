@@ -2,12 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heading, SubHeading, Paragraph, InlineLink, BackToTop, nestedListStyle, nestedUlStyle, PrintHeader, PageHeader, FilteredSection } from '../styles';
+import { Heading, SubHeading, Paragraph, InlineLink, BackToTop, nestedListStyle, nestedUlStyle, PrintHeader, PrintHeaderLogo, PrintHeaderLogoPrint, PageHeader, FilteredSection } from '../styles';
 import { TocPageLayout } from './TocPageLayout';
 import ApplicantWizard, { loadProfile } from './ApplicantWizard';
 import { ApplyFlowSubnav } from './ApplyFlowSubnav';
 import { withDarkPath } from '../routePaths';
 import carwoodsLogo from '../assets/carwoods-logo.png';
+import carwoodsLogoPrint from '../assets/carwoods-logo-print.png';
 
 const ApplicationRequiredDocuments = () => {
   const { pathname } = useLocation();
@@ -91,7 +92,8 @@ const ApplicationRequiredDocuments = () => {
       </Helmet>
 
       <PrintHeader>
-        <img src={carwoodsLogo} alt={t('common.carwoodsAlt')} />
+        <PrintHeaderLogo src={carwoodsLogo} alt="" aria-hidden />
+        <PrintHeaderLogoPrint src={carwoodsLogoPrint} alt={t('common.carwoodsAlt')} />
       </PrintHeader>
       <PageHeader>
         <Heading>{t('requiredDocs.heading')}</Heading>
