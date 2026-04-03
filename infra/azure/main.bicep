@@ -1,8 +1,11 @@
 // Deploy with: az deployment group create -g carwoods.com -f main.bicep
 // targetScope defaults to resourceGroup — deploy INTO existing RG carwoods.com
 
-@description('Azure region for resources (defaults to resource group location).')
+@description('Azure region for most resources (defaults to resource group location).')
 param location string = resourceGroup().location
+
+@description('Azure region for the PostgreSQL Flexible Server. Defaults to location. Override when the subscription is offer-restricted in the primary region.')
+param postgresLocation string = location
 
 @description('Globally unique storage account name (lowercase, no hyphens, max 24 chars).')
 param storageAccountName string
@@ -45,7 +48,7 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
 
 resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
   name: postgresServerName
-  location: location
+  location: postgresLocation
   sku: {
     name: 'Standard_B1ms'
     tier: 'Burstable'

@@ -1,12 +1,13 @@
-# Azure infrastructure — `carwoods.com` (East US 2)
+# Azure infrastructure — `carwoods.com` (East US 2 / East US)
 
-This folder defines **Infrastructure as Code** for the tenant portal backend. All resources for this project must live in resource group `**carwoods.com`** in region **East US 2** (`eastus2`).
+This folder defines **Infrastructure as Code** for the tenant portal backend. All resources for this project must live in resource group `**carwoods.com`**. Storage, plan, and function app deploy to **East US 2** (`eastus2`); the PostgreSQL Flexible Server deploys to **East US** (`eastus`) because the subscription is offer-restricted for PostgreSQL in `eastus2`.
 
 
 | Item           | Value                                                                                            |
 | -------------- | ------------------------------------------------------------------------------------------------ |
 | Resource group | `carwoods.com` (exact name; enforced in CI)                                                      |
-| Region         | `eastus2` (East US 2)                                                                            |
+| Region (non-PG resources) | `eastus2` (East US 2) — storage, plan, function app                         |
+| Region (PostgreSQL)       | `eastus` (East US) — offer-restricted in `eastus2` on this subscription     |
 | Template       | `[main.bicep](./main.bicep)`                                                                     |
 | CI workflow    | `[.github/workflows/azure-infrastructure.yml](../../.github/workflows/azure-infrastructure.yml)` |
 
@@ -169,6 +170,7 @@ Open the **Variables** tab → **New repository variable**.
 | `AZURE_STORAGE_ACCOUNT_NAME`  | **Globally unique**, **3–24** chars, **lowercase letters and numbers only** (no hyphens).                                                                                               | `carwoodssitea7b2`  |
 | `AZURE_POSTGRES_SERVER_NAME`  | **Globally unique** DNS name for **Azure Database for PostgreSQL – Flexible Server**. **3–63** chars, **lowercase** letters, numbers, hyphens; cannot start or end with a hyphen.        | `carwoods-api-2026-pg` |
 | `AZURE_LOCATION`              | **Recommended.** Set to `eastus2` so **push-triggered** runs use the same region as your resource group when the workflow creates the RG. If unset, the workflow defaults to `eastus2`. | `eastus2`           |
+| `AZURE_POSTGRES_LOCATION`    | **Optional.** Overrides the PostgreSQL Flexible Server region independently of `AZURE_LOCATION`. Set if the subscription is offer-restricted for PostgreSQL in the primary region. Falls back to `AZURE_LOCATION` when unset. | `eastus`            |
 
 
 **Check name availability (CLI, after `az login`):**
@@ -190,7 +192,7 @@ az storage account check-name --name carwoodssitea7b2 --query nameAvailable -o t
 
 1. **Actions** → workflow **Azure infrastructure** → **Run workflow**.
 2. **Branch:** `main` (or the branch your federated credential trusts).
-3. **Location:** default `eastus2` unless you have a reason to change it (must stay consistent with RG **East US 2**).
+3. **Location:** default `eastus2` for the resource group / non-PostgreSQL resources. **PostgreSQL location:** default `eastus` (the subscription is offer-restricted for PostgreSQL Flexible Server in `eastus2`).
 4. **What-if only:** set to `true` for the **first** run to preview ARM changes without applying; then run again with `false` to deploy.
 
 **Automatic runs:** On **push** to `main`, the workflow also runs when `infra/azure/main.bicep` or `.github/workflows/azure-infrastructure.yml` changes. To avoid accidental deploys, remove or comment out the `push:` block in the YAML.
@@ -368,6 +370,7 @@ After the Flexible Server exists, apply SQL in order against database **`carwood
 | Variable | `AZURE_STORAGE_ACCOUNT_NAME`              |
 | Variable | `AZURE_POSTGRES_SERVER_NAME`              |
 | Variable | `AZURE_LOCATION` (recommended: `eastus2`) |
+| Variable | `AZURE_POSTGRES_LOCATION` (optional: `eastus`) |
 
 
 ---
