@@ -1,4 +1,4 @@
-# Provisions Azure resources for the tenant portal API into resource group **carwoods.com** only (East US 2).
+# Provisions Azure resources for the tenant portal API into resource group **carwoods.com** only (East US).
 # Uses OpenID Connect (no client secret in GitHub).
 # Full runbook: Entra federated credential subjects, RBAC, GitHub secrets/variables, naming rules, troubleshooting → infra/azure/README.md
 
@@ -17,7 +17,7 @@ on:
       location:
         description: 'Azure region for the resource group (if creating)'
         type: string
-        default: eastus2
+        default: eastus
   push:
     branches:
       - main
@@ -58,7 +58,7 @@ jobs:
           elif [ -n "${{ vars.AZURE_LOCATION }}" ]; then
             echo "location=${{ vars.AZURE_LOCATION }}" >> "$GITHUB_OUTPUT"
           else
-            echo "location=eastus2" >> "$GITHUB_OUTPUT"
+            echo "location=eastus" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Install Bicep CLI
