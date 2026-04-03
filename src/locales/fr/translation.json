@@ -76,7 +76,15 @@
     "step2LinkText": "Documents requis",
     "step2BodySuffix": "pour que votre candidature soit complète.",
     "step3Heading": "Soumettre votre candidature",
-    "step3Body": "Choisissez une propriété ci-dessous pour démarrer la candidature en ligne (RentSpree). Chaque carte renvoie également au listing complet avec photos et détails."
+    "step3Body": "Choisissez une propriété ci-dessous pour démarrer la candidature en ligne (RentSpree). Chaque carte renvoie également au listing complet avec photos et détails.",
+    "listingsLoading": "Chargement des annonces de location…",
+    "listingsEmpty": "Aucune annonce de location n’est disponible pour le moment.",
+    "listingsUnavailable": "Impossible de charger les dernières annonces. Veuillez réessayer plus tard.",
+    "applyRentSpree": "Postuler maintenant (RentSpree)",
+    "fullPropertyDetails": "Détails complets de la propriété",
+    "fullListingDetailsAria": "Détails complets de l’annonce pour {{addressLine}} (s’ouvre dans un nouvel onglet)",
+    "applyPhotoAria": "Postuler pour {{addressLine}} — ouvre la demande de location (nouvel onglet)",
+    "openMapAria": "Ouvrir la carte pour {{addressLine}}, {{cityStateZip}} (nouvel onglet)"
   },
   "contact": {
     "title": "Carwoods - Contactez-nous",

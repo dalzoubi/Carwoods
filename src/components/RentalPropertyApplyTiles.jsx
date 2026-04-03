@@ -1,6 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import CircularProgress from '@mui/material/CircularProgress';
+import { useTranslation } from 'react-i18next';
 import theme from '../theme';
+import {
+  FEATURE_APPLY_DUAL_SOURCE_COMPARE_DEV,
+  FEATURE_APPLY_FROM_API,
+  VITE_API_BASE_URL_RESOLVED,
+} from '../featureFlags';
+import {
+  fetchPublicApplyProperties,
+  logDualSourceApplyMismatch,
+} from '../publicApplyProperties';
 import { RENTAL_APPLY_PROPERTIES } from '../data/rentalPropertyApplyTiles.generated';
 
 /** Opens in the browser; mobile OS typically offers the Maps app. */
@@ -173,16 +184,33 @@ const ApplyBlock = styled.div`
     align-items: flex-start;
 `;
 
-const RentalPropertyApplyTiles = () => {
-  if (!RENTAL_APPLY_PROPERTIES.length) {
-    return null;
-  }
+const ListingsLoading = styled.div`
+    display: flex;
+    align-items: center;
+    gap: ${theme.spacing(1.5)};
+    margin-top: ${theme.spacing(2)};
+    color: var(--palette-text-secondary);
+    font-size: var(--typography-body1-font-size);
+`;
 
+const ListingsStatus = styled.p`
+    margin: ${theme.spacing(2)} 0 0;
+    color: var(--palette-text-secondary);
+    font-size: var(--typography-body1-font-size);
+`;
+
+const ListingsAlert = styled.p`
+    margin: ${theme.spacing(2)} 0 0;
+    color: var(--palette-error-main);
+    font-size: var(--typography-body1-font-size);
+`;
+
+function TileList({ tiles, t }) {
   return (
     <TileGrid>
-      {RENTAL_APPLY_PROPERTIES.map((p) => {
-        const applyLabel = `Apply for ${p.addressLine} — opens rental application (new tab)`;
-        const detailsLabel = `Full listing details for ${p.addressLine} (opens in new tab)`;
+      {tiles.map((p) => {
+        const applyLabel = t('apply.applyPhotoAria', { addressLine: p.addressLine });
+        const detailsLabel = t('apply.fullListingDetailsAria', { addressLine: p.addressLine });
         return (
           <TileCard key={p.id}>
             <PhotoLink
@@ -200,23 +228,31 @@ const RentalPropertyApplyTiles = () => {
                   href={mapsSearchUrl(p.addressLine, p.cityStateZip)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={`Open map for ${p.addressLine}, ${p.cityStateZip} (new tab)`}
+                  aria-label={t('apply.openMapAria', {
+                    addressLine: p.addressLine,
+                    cityStateZip: p.cityStateZip,
+                  })}
                 >
                   <Street>{p.addressLine}</Street>
                   <CityZip>{p.cityStateZip}</CityZip>
                 </AddressMapLink>
               </AddressBlock>
               <DetailList>
-                {p.detailLines.map((line) => (
-                  <li key={line}>{line}</li>
+                {p.detailLines.map((line, idx) => (
+                  <li key={`${idx}-${line}`}>{line}</li>
                 ))}
               </DetailList>
               <ApplyBlock>
                 <TextLink href={p.applyUrl} target="_blank" rel="noopener noreferrer">
-                  Apply now (RentSpree)
+                  {t('apply.applyRentSpree')}
                 </TextLink>
-                <TextLink href={p.harListingUrl} target="_blank" rel="noopener noreferrer" aria-label={detailsLabel}>
-                  Full property details
+                <TextLink
+                  href={p.harListingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={detailsLabel}
+                >
+                  {t('apply.fullPropertyDetails')}
                 </TextLink>
               </ApplyBlock>
             </TileBody>
@@ -225,6 +261,63 @@ const RentalPropertyApplyTiles = () => {
       })}
     </TileGrid>
   );
+}
+
+const RentalPropertyApplyTiles = () => {
+  const { t } = useTranslation();
+  const [tiles, setTiles] = useState(() => (FEATURE_APPLY_FROM_API ? null : RENTAL_APPLY_PROPERTIES));
+  const [loadError, setLoadError] = useState(false);
+
+  useEffect(() => {
+    if (!FEATURE_APPLY_FROM_API) {
+      return undefined;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const apiTiles = await fetchPublicApplyProperties(VITE_API_BASE_URL_RESOLVED);
+        if (cancelled) return;
+        if (FEATURE_APPLY_DUAL_SOURCE_COMPARE_DEV && RENTAL_APPLY_PROPERTIES.length > 0) {
+          logDualSourceApplyMismatch(apiTiles, RENTAL_APPLY_PROPERTIES);
+        }
+        if (apiTiles.length > 0) {
+          setTiles(apiTiles);
+          return;
+        }
+        setTiles(RENTAL_APPLY_PROPERTIES);
+      } catch {
+        if (cancelled) return;
+        setLoadError(true);
+        setTiles(RENTAL_APPLY_PROPERTIES);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (FEATURE_APPLY_FROM_API && tiles === null) {
+    return (
+      <ListingsLoading role="status" aria-live="polite">
+        <CircularProgress size={36} aria-hidden />
+        <span>{t('apply.listingsLoading')}</span>
+      </ListingsLoading>
+    );
+  }
+
+  if (!tiles || tiles.length === 0) {
+    if (FEATURE_APPLY_FROM_API) {
+      if (loadError && RENTAL_APPLY_PROPERTIES.length === 0) {
+        return (
+          <ListingsAlert role="alert">{t('apply.listingsUnavailable')}</ListingsAlert>
+        );
+      }
+      return <ListingsStatus role="status">{t('apply.listingsEmpty')}</ListingsStatus>;
+    }
+    return null;
+  }
+
+  return <TileList tiles={tiles} t={t} />;
 };
 
 export default RentalPropertyApplyTiles;
