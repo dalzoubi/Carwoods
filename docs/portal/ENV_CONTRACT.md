@@ -7,7 +7,7 @@ Values are **names only**; store secrets in Azure Key Vault or Function App sett
 
 | Name                   | Description                                                                        |
 | ---------------------- | ---------------------------------------------------------------------------------- |
-| `AZURE_RESOURCE_GROUP` | Must be `**carwoods.com`** for this project. CI/deploy scripts should assert this. |
+| `AZURE_RESOURCE_GROUP` | Must be **`carwoods.com`** for this project. CI/deploy scripts should assert this. |
 
 
 ## Azure Functions (`apps/api`)
@@ -25,7 +25,7 @@ Values are **names only**; store secrets in Azure Key Vault or Function App sett
 | `ENTRA_TENANT_ID`                                 | Yes         | External ID tenant ID                                 |
 | `ENTRA_API_AUDIENCE`                              | Yes         | API app registration audience / scope                 |
 | `ENTRA_ISSUER`                                    | Yes         | Token issuer URL for JWT validation                   |
-| `CORS_ALLOWED_ORIGINS`                            | Prod        | Comma-separated origins (e.g. `https://carwoods.com`) |
+| `CORS_ALLOWED_ORIGINS`                            | Recommended | Comma-separated origins allowed to call anonymous HTTP APIs from the browser (e.g. `https://carwoods.com,https://www.carwoods.com`). Used by `GET /api/public/apply-properties`. Defaults in code include localhost + carwoods.com if unset. |
 
 
 ## Feature flags (API or shared config)
@@ -43,7 +43,7 @@ Values are **names only**; store secrets in Azure Key Vault or Function App sett
 
 | Variable                 | Description                                                      |
 | ------------------------ | ---------------------------------------------------------------- |
-| `VITE_API_BASE_URL`      | Base URL for portal/public API (e.g. `https://api.carwoods.com`) |
+| `VITE_API_BASE_URL`      | Base URL for portal/public API (no trailing slash). Production example: `https://carwoods-api-2026.azurewebsites.net` until a custom domain is used. |
 | `VITE_ENTRA_CLIENT_ID`   | SPA app registration client ID                                   |
 | `VITE_ENTRA_AUTHORITY`   | External ID authority URL                                        |
 | `VITE_ENTRA_API_SCOPE`   | Scope(s) for API token                                           |

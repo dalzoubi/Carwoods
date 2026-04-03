@@ -12,7 +12,7 @@ Property management and rentals in Houston and beyond. Tenant selection criteria
 
 ## Tenant portal (Azure)
 
-Monorepo workspaces: `apps/api` (Azure Functions, TypeScript), `packages/domain`, `packages/config`. Documentation: **`docs/portal/`**. Database migrations: **`infra/db/migrations/`**. Azure Bicep: **`infra/azure/`** (deploy into resource group **`carwoods.com`**). CI: **`.github/workflows/azure-infrastructure.yml`** — see **`infra/azure/README.md`** for OIDC setup and required secrets/variables.
+Monorepo workspaces: `apps/api` (Azure Functions, TypeScript), `packages/domain`, `packages/config`. Documentation: **`docs/portal/`**. Database migrations: **`infra/db/migrations/`**. Azure Bicep: **`infra/azure/`** (deploy into resource group **`carwoods.com`**). CI: **`.github/workflows/azure-infrastructure.yml`** (Bicep) and **`.github/workflows/azure-functions-deploy.yml`** (API code) — see **`infra/azure/README.md`** for OIDC, secrets, variables, and post-deploy steps.
 
 ```bash
 npm install

@@ -16,8 +16,18 @@ cp local.settings.json.example local.settings.json
 func start
 ```
 
-Health check: `GET http://localhost:7071/api/health`
+Endpoints (local default port **7071**):
+
+| Method | Path | Auth |
+|--------|------|------|
+| GET | `/api/health` | Anonymous |
+| GET, OPTIONS | `/api/public/apply-properties` | Anonymous (CORS via `CORS_ALLOWED_ORIGINS`) |
+
+`public/apply-properties` returns `{ "properties": [] }` until listings are loaded from PostgreSQL.
 
 ## Deploy
 
-Build artifacts are deployed to the Function App created in resource group **`carwoods.com`** (see `infra/azure/`).
+- **CI:** GitHub Actions [`.github/workflows/azure-functions-deploy.yml`](../../.github/workflows/azure-functions-deploy.yml) (same `AZURE_*` secrets + `AZURE_FUNCTION_APP_NAME` variable as infra).
+- **Manual:** `func azure functionapp publish <name>` after `npm run build` and `npm prune --omit=dev` (see [`infra/azure/README.md`](../../infra/azure/README.md) Part G).
+
+Resource group: **`carwoods.com`**.
