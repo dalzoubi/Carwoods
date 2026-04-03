@@ -22,10 +22,12 @@ Values are **names only**; store secrets in Azure Key Vault or Function App sett
 | `BLOB_ACCOUNT_URL`                                | If using MI | `https://{account}.blob.core.windows.net`             |
 | `ACS_CONNECTION_STRING` or ACS + MI               | Yes (email) | Azure Communication Services                          |
 | `GEMINI_API_KEY`                                  | Yes (AI)    | Backend only; never in Vite env                       |
-| `ENTRA_TENANT_ID`                                 | Yes         | External ID tenant ID                                 |
-| `ENTRA_API_AUDIENCE`                              | Yes         | API app registration audience / scope                 |
-| `ENTRA_ISSUER`                                    | Yes         | Token issuer URL for JWT validation                   |
-| `CORS_ALLOWED_ORIGINS`                            | Recommended | Comma-separated origins allowed to call anonymous HTTP APIs from the browser (e.g. `https://carwoods.com,https://www.carwoods.com`). Used by `GET /api/public/apply-properties`. Defaults in code include localhost + carwoods.com if unset. |
+| `ENTRA_TENANT_ID`                                 | Yes         | External ID tenant ID (reference; not used directly by current JWT code) |
+| `ENTRA_API_AUDIENCE`                              | Yes         | API app registration audience (`aud`) for JWT validation |
+| `ENTRA_ISSUER`                                    | Yes         | Token issuer (`iss`) — must match access tokens exactly (including trailing slash) |
+| `ENTRA_OPENID_METADATA_URL`                       | No          | Full OpenID metadata URL; if unset, `{ENTRA_ISSUER}/.well-known/openid-configuration` |
+| `ENTRA_ADMIN_OBJECT_IDS`                          | Yes (admin) | Comma-separated Entra object IDs (`oid` claim). Required for `admin/*`; first call upserts `users` as `ADMIN`. Empty → 403 on admin routes. |
+| `CORS_ALLOWED_ORIGINS`                            | Recommended | Comma-separated origins for browser calls (public + portal + admin). Supports `*` patterns (e.g. Vercel previews). Defaults include localhost + carwoods.com if unset. |
 
 
 ## Feature flags (API or shared config)

@@ -4,11 +4,12 @@ import {
   type HttpResponseInit,
   type InvocationContext,
 } from '@azure/functions';
+import { listPublicApplyProperties } from '../lib/propertiesRepo.js';
 import { corsHeadersForRequest } from '../lib/corsHeaders.js';
+import { getPool, hasDatabaseUrl } from '../lib/db.js';
 
 /**
- * Public read-only listings for the marketing /apply page.
- * TODO: load `apply_visible` rows from PostgreSQL when DATABASE_URL is configured.
+ * Public read-only listings for the marketing /apply page (`metadata.apply` + `apply_visible`).
  */
 async function publicApplyPropertiesHandler(
   request: HttpRequest,
@@ -20,14 +21,38 @@ async function publicApplyPropertiesHandler(
     return { status: 204, headers };
   }
 
-  return {
-    status: 200,
-    headers: {
-      ...headers,
-      'Content-Type': 'application/json; charset=utf-8',
-    },
-    jsonBody: { properties: [] as unknown[] },
-  };
+  if (!hasDatabaseUrl()) {
+    return {
+      status: 200,
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+      jsonBody: { properties: [] },
+    };
+  }
+
+  try {
+    const pool = getPool();
+    const properties = await listPublicApplyProperties(pool);
+    return {
+      status: 200,
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+      jsonBody: { properties },
+    };
+  } catch {
+    return {
+      status: 200,
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+      jsonBody: { properties: [] },
+    };
+  }
 }
 
 app.http('publicApplyProperties', {

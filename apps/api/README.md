@@ -21,9 +21,17 @@ Endpoints (local default port **7071**):
 | Method | Path | Auth |
 |--------|------|------|
 | GET | `/api/health` | Anonymous |
-| GET, OPTIONS | `/api/public/apply-properties` | Anonymous (CORS via `CORS_ALLOWED_ORIGINS`) |
+| GET, OPTIONS | `/api/public/apply-properties` | Anonymous (CORS). Returns tiles for `apply_visible` rows with valid `metadata.apply` (empty list if `DATABASE_URL` unset or DB error). |
+| GET, OPTIONS | `/api/portal/me` | Bearer JWT (`ENTRA_*` + JWKS). **401** without token. |
+| GET, POST, OPTIONS | `/api/admin/properties` | Admin Bearer JWT + `ENTRA_ADMIN_OBJECT_IDS` |
+| GET, PATCH, DELETE, OPTIONS | `/api/admin/properties/{id}` | Admin |
+| GET, POST, OPTIONS | `/api/admin/leases` | Admin (`GET ?property_id=` filters) |
+| GET, PATCH, DELETE, OPTIONS | `/api/admin/leases/{id}` | Admin |
+| POST, OPTIONS | `/api/admin/leases/{leaseId}/tenants` | Admin; body `{ "userId": "<uuid>" }` links an existing `users` row |
 
-`public/apply-properties` returns `{ "properties": [] }` until listings are loaded from PostgreSQL.
+**HAR:** `POST`/`PATCH` on properties with non-empty `har_listing_id` runs a **blocking** HAR fetch (same parsing as `scripts/fetchHarRentalApplyTiles.mjs`). Failure → **422** `har_sync_failed` (no row created/updated).
+
+See [`docs/portal/ENV_CONTRACT.md`](../../docs/portal/ENV_CONTRACT.md) and [`docs/portal/APPLY_METADATA.md`](../../docs/portal/APPLY_METADATA.md).
 
 ## Deploy
 
