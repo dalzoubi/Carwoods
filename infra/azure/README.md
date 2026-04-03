@@ -1,12 +1,13 @@
-# Azure infrastructure — `carwoods.com` (East US)
+# Azure infrastructure — `carwoods.com` (East US 2 / East US)
 
-This folder defines **Infrastructure as Code** for the tenant portal backend. All resources for this project must live in resource group `**carwoods.com`** in region **East US** (`eastus`).
+This folder defines **Infrastructure as Code** for the tenant portal backend. All resources for this project must live in resource group `**carwoods.com`**. Storage, plan, and function app deploy to **East US 2** (`eastus2`); the PostgreSQL Flexible Server deploys to **East US** (`eastus`) because the subscription is offer-restricted for PostgreSQL in `eastus2`.
 
 
 | Item           | Value                                                                                            |
 | -------------- | ------------------------------------------------------------------------------------------------ |
 | Resource group | `carwoods.com` (exact name; enforced in CI)                                                      |
-| Region         | `eastus` (East US)                                                                               |
+| Region (non-PG resources) | `eastus2` (East US 2) — storage, plan, function app                         |
+| Region (PostgreSQL)       | `eastus` (East US) — offer-restricted in `eastus2` on this subscription     |
 | Template       | `[main.bicep](./main.bicep)`                                                                     |
 | CI workflow    | `[.github/workflows/azure-infrastructure.yml](../../.github/workflows/azure-infrastructure.yml)` |
 
@@ -46,7 +47,7 @@ The template is **scoped to an existing or new resource group** (`carwoods.com`)
 
 ### If the group already exists (your case)
 
-- Confirm in **Azure Portal → Resource groups → carwoods.com** that **Location** is **East US**.
+- Confirm in **Azure Portal → Resource groups → carwoods.com** that **Location** is **East US 2**.
 - The workflow’s `az group create` step is **idempotent**: it will not change an existing group’s region. If the name `carwoods.com` is taken in another region in a different subscription, fix **subscription** or **name** in Azure — do not change the enforced name in this repo without a deliberate policy change.
 
 ### If you are creating it for the first time
@@ -57,7 +58,7 @@ az account set --subscription "<YOUR_SUBSCRIPTION_ID_OR_NAME>"
 
 az group create \
   --name carwoods.com \
-  --location eastus
+  --location eastus2
 ```
 
 ---
@@ -168,7 +169,8 @@ Open the **Variables** tab → **New repository variable**.
 | `AZURE_FUNCTION_APP_NAME`     | **Globally unique** in Azure. Letters, numbers, hyphens; see [naming rules](https://learn.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftwebsites). | `carwoods-api-a7b2` |
 | `AZURE_STORAGE_ACCOUNT_NAME`  | **Globally unique**, **3–24** chars, **lowercase letters and numbers only** (no hyphens).                                                                                               | `carwoodssitea7b2`  |
 | `AZURE_POSTGRES_SERVER_NAME`  | **Globally unique** DNS name for **Azure Database for PostgreSQL – Flexible Server**. **3–63** chars, **lowercase** letters, numbers, hyphens; cannot start or end with a hyphen.        | `carwoods-api-2026-pg` |
-| `AZURE_LOCATION`              | **Recommended.** Set to `eastus` so **push-triggered** runs use the same region as your resource group when the workflow creates the RG. If unset, the workflow defaults to `eastus`. | `eastus`            |
+| `AZURE_LOCATION`              | **Recommended.** Set to `eastus2` so **push-triggered** runs use the same region as your resource group when the workflow creates the RG. If unset, the workflow defaults to `eastus2`. | `eastus2`           |
+| `AZURE_POSTGRES_LOCATION`    | **Optional.** Overrides the PostgreSQL Flexible Server region independently of `AZURE_LOCATION`. Set if the subscription is offer-restricted for PostgreSQL in the primary region. Falls back to `AZURE_LOCATION` when unset. | `eastus`            |
 
 
 **Check name availability (CLI, after `az login`):**
@@ -190,7 +192,7 @@ az storage account check-name --name carwoodssitea7b2 --query nameAvailable -o t
 
 1. **Actions** → workflow **Azure infrastructure** → **Run workflow**.
 2. **Branch:** `main` (or the branch your federated credential trusts).
-3. **Location:** default `eastus` unless you have a reason to change it (must stay consistent with RG **East US**).
+3. **Location:** default `eastus2` for the resource group / non-PostgreSQL resources. **PostgreSQL location:** default `eastus` (the subscription is offer-restricted for PostgreSQL Flexible Server in `eastus2`).
 4. **What-if only:** set to `true` for the **first** run to preview ARM changes without applying; then run again with `false` to deploy.
 
 **Automatic runs:** On **push** to `main`, the workflow also runs when `infra/azure/main.bicep` or `.github/workflows/azure-infrastructure.yml` changes. To avoid accidental deploys, remove or comment out the `push:` block in the YAML.
@@ -278,7 +280,7 @@ Run from the **repository root** (adjust path if you run from `infra/azure`):
 az login
 az account set --subscription "<SUBSCRIPTION_ID>"
 
-az group create --name carwoods.com --location eastus   # skip if RG exists
+az group create --name carwoods.com --location eastus2   # skip if RG exists
 
 az deployment group create \
   --resource-group carwoods.com \
@@ -351,7 +353,7 @@ After the Flexible Server exists, apply SQL in order against database **`carwood
 
 ### G6. Later: more Azure resources
 
-- **Blob / ACS** — add in **carwoods.com**, **East US**, or extend Bicep.
+- **Blob / ACS** — add in **carwoods.com**, **East US 2**, or extend Bicep.
 
 ---
 
@@ -367,7 +369,8 @@ After the Flexible Server exists, apply SQL in order against database **`carwood
 | Variable | `AZURE_FUNCTION_APP_NAME`                 |
 | Variable | `AZURE_STORAGE_ACCOUNT_NAME`              |
 | Variable | `AZURE_POSTGRES_SERVER_NAME`              |
-| Variable | `AZURE_LOCATION` (recommended: `eastus`) |
+| Variable | `AZURE_LOCATION` (recommended: `eastus2`) |
+| Variable | `AZURE_POSTGRES_LOCATION` (optional: `eastus`) |
 
 
 ---
