@@ -1,22 +1,22 @@
 # Azure infrastructure (`carwoods.com`)
 
-All application Azure resources for the tenant portal **must** be deployed into resource group **`carwoods.com`**.
+All application Azure resources for the tenant portal **must** be deployed into resource group **carwoods.com** (region **East US 2** / `eastus2`).
 
 ## GitHub Actions (automatic deploy)
 
 Workflow: [`.github/workflows/azure-infrastructure.yml`](../../.github/workflows/azure-infrastructure.yml).
 
 - **Triggers:** `workflow_dispatch` (manual; optional **What-if only**), or `push` to `main` when `infra/azure/main.bicep` or this workflow file changes.
-- **Target:** Always resource group **`carwoods.com`** (enforced in the workflow).
+- **Target:** Always resource group **carwoods.com** (enforced in the workflow). Default region for new RG creation is **East US 2** (`eastus2`).
 
 ### One-time Azure setup (OpenID Connect — no client secret in GitHub)
 
 1. **Microsoft Entra ID → App registrations → New registration** (or use an existing CI app). Name e.g. `github-carwoods-infra`.
 2. **Certificates & secrets → Federated credentials → Add**:
-   - **Federated credential scenario:** GitHub Actions deploying Azure resources.
-   - **Organization** / **Repository:** your GitHub org/user and `carwoods` repo.
-   - **Entity type:** Branch, ref `refs/heads/main` (or **Environment** if you prefer `environment: production` in the workflow).
-   - **Name:** e.g. `github-main-carwoods`.
+  - **Federated credential scenario:** GitHub Actions deploying Azure resources.
+  - **Organization** / **Repository:** your GitHub org/user and `carwoods` repo.
+  - **Entity type:** Branch, ref `refs/heads/main` (or **Environment** if you prefer `environment: production` in the workflow).
+  - **Name:** e.g. `github-main-carwoods`.
 3. **Subscription → Access control (IAM) → Add role assignment:** role **Contributor** (or a custom role scoped to RG `carwoods.com` only) to this app.
 4. **Copy** Application (client) ID, Directory (tenant) ID, and your **Subscription ID**.
 
@@ -24,19 +24,23 @@ Workflow: [`.github/workflows/azure-infrastructure.yml`](../../.github/workflows
 
 **Secrets** (Settings → Secrets and variables → Actions):
 
-| Secret | Value |
-|--------|--------|
-| `AZURE_CLIENT_ID` | App registration *Application (client) ID* |
-| `AZURE_TENANT_ID` | *Directory (tenant) ID* |
-| `AZURE_SUBSCRIPTION_ID` | Azure subscription ID |
+
+| Secret                  | Value                                      |
+| ----------------------- | ------------------------------------------ |
+| `AZURE_CLIENT_ID`       | App registration *Application (client) ID* |
+| `AZURE_TENANT_ID`       | *Directory (tenant) ID*                    |
+| `AZURE_SUBSCRIPTION_ID` | Azure subscription ID                      |
+
 
 **Variables** (same page → *Variables* tab):
 
-| Variable | Example | Notes |
-|----------|---------|--------|
-| `AZURE_FUNCTION_APP_NAME` | `carwoods-api-xxxxx` | Globally unique; allowed characters per Azure Functions naming |
-| `AZURE_STORAGE_ACCOUNT_NAME` | `carwoodssitexxxxx` | Lowercase letters and numbers only, **3–24** chars, globally unique |
-| `AZURE_LOCATION` | `southcentralus` | Optional; used on `push` runs when not using `workflow_dispatch` |
+
+| Variable                     | Example              | Notes                                                               |
+| ---------------------------- | -------------------- | ------------------------------------------------------------------- |
+| `AZURE_FUNCTION_APP_NAME`    | `carwoods-api-xxxxx` | Globally unique; allowed characters per Azure Functions naming      |
+| `AZURE_STORAGE_ACCOUNT_NAME` | `carwoodssitexxxxx`  | Lowercase letters and numbers only, **3–24** chars, globally unique |
+| `AZURE_LOCATION`             | `eastus2`            | Optional; used on `push` runs when not using `workflow_dispatch` (must match RG region) |
+
 
 Run **Actions → Azure infrastructure → Run workflow**; set **What-if only** to `true` first to preview changes.
 
@@ -47,7 +51,7 @@ To deploy only manually, delete or comment out the `push:` block in the workflow
 ## Deploy (resource group scoped, local CLI)
 
 ```bash
-az group create -n carwoods.com -l southcentralus   # if it does not exist
+az group create -n carwoods.com -l eastus2   # if it does not exist (East US 2)
 
 az deployment group create \
   --resource-group carwoods.com \

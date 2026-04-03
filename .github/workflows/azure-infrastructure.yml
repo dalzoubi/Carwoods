@@ -16,7 +16,7 @@ on:
       location:
         description: 'Azure region for the resource group (if creating)'
         type: string
-        default: southcentralus
+        default: eastus2
   push:
     branches:
       - main
@@ -57,7 +57,7 @@ jobs:
           elif [ -n "${{ vars.AZURE_LOCATION }}" ]; then
             echo "location=${{ vars.AZURE_LOCATION }}" >> "$GITHUB_OUTPUT"
           else
-            echo "location=southcentralus" >> "$GITHUB_OUTPUT"
+            echo "location=eastus2" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Install Bicep CLI
