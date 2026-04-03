@@ -11,7 +11,7 @@ param storageAccountName string
 param functionAppName string
 
 @description('Node.js version on Functions.')
-param nodeVersion string = '20'
+param nodeVersion string = '24'
 
 @description('Globally unique Azure SQL logical server name (lowercase, alphanumeric + hyphens, 1–63 chars).')
 param sqlServerName string
@@ -131,6 +131,10 @@ resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
         {
           name: 'FUNCTIONS_WORKER_RUNTIME'
           value: 'node'
+        }
+        {
+          name: 'AzureWebJobsFeatureFlags'
+          value: 'EnableWorkerIndexing'
         }
         {
           name: 'DATABASE_URL'

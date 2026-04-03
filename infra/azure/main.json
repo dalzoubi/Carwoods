@@ -30,7 +30,7 @@
     },
     "nodeVersion": {
       "type": "string",
-      "defaultValue": "20",
+      "defaultValue": "24",
       "metadata": {
         "description": "Node.js version on Functions."
       }
@@ -169,6 +169,10 @@
             {
               "name": "FUNCTIONS_WORKER_RUNTIME",
               "value": "node"
+            },
+            {
+              "name": "AzureWebJobsFeatureFlags",
+              "value": "EnableWorkerIndexing"
             },
             {
               "name": "DATABASE_URL",

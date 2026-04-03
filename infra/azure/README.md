@@ -22,7 +22,7 @@ The template is **scoped to an existing or new resource group** (`carwoods.com`)
 | ------------------------------------------ | -------------------------------------------------------------------------------------------------- |
 | **Storage account** (`storageAccountName`) | Functions runtime storage (`AzureWebJobsStorage`), file share content for the Function App         |
 | **App Service plan**                       | Name `{functionAppName}-plan`, **Linux Consumption** (SKU `Y1`, Dynamic)                           |
-| **Function App** (`functionAppName`)       | **Linux**, Node **20**, Functions runtime **~4**, **system-assigned managed identity**, HTTPS only |
+| **Function App** (`functionAppName`)       | **Linux**, Node **24**, Functions runtime **~4**, **system-assigned managed identity**, HTTPS only |
 | **Azure SQL logical server** (`sqlServerName`) | SQL Server 2022, TLS 1.2, public access enabled, firewall open to Azure services. |
 | **Azure SQL database** (`sqlDatabaseName`) | **Basic** tier, 5 DTUs, 2 GiB max. ~$5/month. Collation `SQL_Latin1_General_CP1_CI_AS`. Database `carwoods_portal` (override via Bicep param). |
 | **Firewall rule** `AllowAzureServices`     | `0.0.0.0`–`0.0.0.0` so **Azure services** (including this Function App's outbound IPs) can connect. |

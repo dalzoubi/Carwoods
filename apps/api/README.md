@@ -4,7 +4,7 @@ Azure Functions (Node.js, TypeScript) for the tenant portal and admin API.
 
 ## Prerequisites
 
-- Node 20+
+- Node 24+
 - [Azure Functions Core Tools v4](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
 
 ## Local run
