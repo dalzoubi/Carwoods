@@ -87,6 +87,7 @@ e2e/
 - No secrets or API keys; `.env` only contains `CHOKIDAR_USEPOLLING=true`.
 - `homepage` in `package.json` is `https://carwoods.com` (GitHub Pages); does not affect dev server.
 - **HAR listing fetch**: `scripts/fetchHarRentalApplyTiles.mjs` runs as `prebuild`. May get 403 in CI. Falls back to committed generated file. **Never delete the generated file.**
+- **Apply page API (optional):** If `VITE_API_BASE_URL` is set and `VITE_FEATURE_APPLY_API` is not `false`, `/apply` loads tiles from `GET {base}/api/public/apply-properties` first, then falls back to the generated file. In dev, API vs generated differences log to the console unless `VITE_FEATURE_APPLY_DUAL_SOURCE=false`.
 - 2 pre-existing `no-restricted-globals` lint errors in `src/styles.js` (`history`) — not regressions.
 - E2E files must be ESM (`.mjs`) because `package.json` has `"type": "module"`.
 

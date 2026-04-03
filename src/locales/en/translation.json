@@ -76,7 +76,15 @@
     "step2LinkText": "Required Documents",
     "step2BodySuffix": "list so your application is complete.",
     "step3Heading": "Submit your application",
-    "step3Body": "Choose a property below to start the online application (RentSpree). Each card also links to the full listing for photos and details."
+    "step3Body": "Choose a property below to start the online application (RentSpree). Each card also links to the full listing for photos and details.",
+    "listingsLoading": "Loading rental listings…",
+    "listingsEmpty": "No rental listings are available to show right now.",
+    "listingsUnavailable": "We could not load the latest listings. Please try again later.",
+    "applyRentSpree": "Apply now (RentSpree)",
+    "fullPropertyDetails": "Full property details",
+    "fullListingDetailsAria": "Full listing details for {{addressLine}} (opens in new tab)",
+    "applyPhotoAria": "Apply for {{addressLine}} — opens rental application (new tab)",
+    "openMapAria": "Open map for {{addressLine}}, {{cityStateZip}} (new tab)"
   },
   "contact": {
     "title": "Carwoods - Contact Us",

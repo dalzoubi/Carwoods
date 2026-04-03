@@ -42,6 +42,7 @@ export function applyThemeCssVariables(muiTheme) {
     root.style.setProperty('--palette-primary-main', palette.primary.main);
     root.style.setProperty('--palette-primary-light', palette.primary.light);
     root.style.setProperty('--palette-primary-dark', palette.primary.dark);
+    root.style.setProperty('--palette-error-main', palette.error.main);
 
     root.style.setProperty('--palette-text-primary', palette.text.primary);
     root.style.setProperty('--palette-text-secondary', palette.text.secondary);

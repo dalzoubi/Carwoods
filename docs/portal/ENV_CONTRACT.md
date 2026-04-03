@@ -47,7 +47,8 @@ Values are **names only**; store secrets in Azure Key Vault or Function App sett
 | `VITE_ENTRA_CLIENT_ID`   | SPA app registration client ID                                   |
 | `VITE_ENTRA_AUTHORITY`   | External ID authority URL                                        |
 | `VITE_ENTRA_API_SCOPE`   | Scope(s) for API token                                           |
-| `VITE_FEATURE_APPLY_API` | When `true`, load apply tiles from API                           |
+| `VITE_FEATURE_APPLY_API` | When **not** `false`, and `VITE_API_BASE_URL` is set, `/apply` uses `GET /api/public/apply-properties` first; falls back to the generated file on error or empty API response. |
+| `VITE_FEATURE_APPLY_DUAL_SOURCE` | Dev only: set to `false` to disable console compare of API vs generated tiles. |
 
 
 **Never** set `GEMINI_API_KEY`, `DATABASE_URL`, `BLOB_`* secrets, or ACS secrets in `VITE_*`.
