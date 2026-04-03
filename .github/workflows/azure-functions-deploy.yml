@@ -51,7 +51,9 @@ jobs:
         working-directory: apps/api
         run: |
           npm ci
+          rm -rf dist
           npm run build
+          node --input-type=module -e "import('./dist/src/index.js').then(() => console.log('Entry import OK'))"
           npm prune --omit=dev
 
       - name: Deploy to Azure Functions
@@ -61,3 +63,23 @@ jobs:
           package: ${{ github.workspace }}/apps/api
           respect-funcignore: true
           scm-do-build-during-deployment: false
+
+      - name: Verify deployed health endpoint
+        env:
+          FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
+        run: |
+          url="https://${FUNCTION_APP_NAME}.azurewebsites.net/api/health"
+          echo "Checking ${url}"
+          for i in {1..12}; do
+            status="$(curl -sS -o /tmp/health.json -w "%{http_code}" "${url}" || true)"
+            if [ "${status}" = "200" ]; then
+              echo "Healthcheck passed."
+              cat /tmp/health.json
+              exit 0
+            fi
+            echo "Attempt ${i}/12: HTTP ${status}"
+            sleep 10
+          done
+          echo "::error::Healthcheck failed for ${url}"
+          cat /tmp/health.json || true
+          exit 1
