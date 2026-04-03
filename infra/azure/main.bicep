@@ -13,7 +13,22 @@ param functionAppName string
 @description('Node.js version on Functions.')
 param nodeVersion string = '20'
 
+@description('Globally unique PostgreSQL Flexible Server name (lowercase, alphanumeric + hyphens, 3–63 chars).')
+param postgresServerName string
+
+@description('PostgreSQL admin user (cannot be azure_superuser, admin, etc.).')
+param postgresAdminUser string = 'carwoodsadmin'
+
+@secure()
+@description('PostgreSQL admin password. Avoid @ : / ? # and spaces in DATABASE_URL compatibility.')
+param postgresAdminPassword string
+
+@description('Logical database created on the server for the portal.')
+param postgresDatabaseName string = 'carwoods_portal'
+
 var hostingPlanName = '${functionAppName}-plan'
+
+var databaseUrl = 'postgresql://${postgresAdminUser}:${postgresAdminPassword}@${postgres.properties.fullyQualifiedDomainName}:5432/${postgresDatabaseName}?sslmode=require'
 
 resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: storageAccountName
@@ -25,6 +40,52 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   properties: {
     supportsHttpsTrafficOnly: true
     minimumTlsVersion: 'TLS1_2'
+  }
+}
+
+resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
+  name: postgresServerName
+  location: location
+  sku: {
+    name: 'Standard_B1ms'
+    tier: 'Burstable'
+  }
+  properties: {
+    version: '16'
+    administratorLogin: postgresAdminUser
+    administratorLoginPassword: postgresAdminPassword
+    storage: {
+      storageSizeGB: 32
+    }
+    backup: {
+      backupRetentionDays: 7
+      geoRedundantBackup: 'Disabled'
+    }
+    highAvailability: {
+      mode: 'Disabled'
+    }
+    network: {
+      publicNetworkAccess: 'Enabled'
+    }
+  }
+}
+
+resource postgresDb 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2024-08-01' = {
+  parent: postgres
+  name: postgresDatabaseName
+  properties: {
+    charset: 'UTF8'
+    collation: 'en_US.utf8'
+  }
+}
+
+// Allows Azure services (including Consumption Functions outbound) to reach the server.
+resource postgresFirewallAzure 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2024-08-01' = {
+  parent: postgres
+  name: 'AllowAzureServices'
+  properties: {
+    startIpAddress: '0.0.0.0'
+    endIpAddress: '0.0.0.0'
   }
 }
 
@@ -44,6 +105,10 @@ resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
   name: functionAppName
   location: location
   kind: 'functionapp,linux'
+  dependsOn: [
+    postgresDb
+    postgresFirewallAzure
+  ]
   properties: {
     serverFarmId: plan.id
     httpsOnly: true
@@ -70,6 +135,10 @@ resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
           name: 'FUNCTIONS_WORKER_RUNTIME'
           value: 'node'
         }
+        {
+          name: 'DATABASE_URL'
+          value: databaseUrl
+        }
       ]
     }
   }
@@ -82,3 +151,6 @@ output functionAppNameOut string = functionApp.name
 output functionAppHost string = 'https://${functionApp.properties.defaultHostName}'
 output storageAccountNameOut string = storage.name
 output principalId string = functionApp.identity.principalId
+output postgresServerNameOut string = postgres.name
+output postgresFqdn string = postgres.properties.fullyQualifiedDomainName
+output postgresDatabaseNameOut string = postgresDatabaseName

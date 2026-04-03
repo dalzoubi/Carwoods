@@ -23,9 +23,11 @@ The template is **scoped to an existing or new resource group** (`carwoods.com`)
 | **Storage account** (`storageAccountName`) | Functions runtime storage (`AzureWebJobsStorage`), file share content for the Function App         |
 | **App Service plan**                       | Name `{functionAppName}-plan`, **Linux Consumption** (SKU `Y1`, Dynamic)                           |
 | **Function App** (`functionAppName`)       | **Linux**, Node **20**, Functions runtime **~4**, **system-assigned managed identity**, HTTPS only |
+| **PostgreSQL Flexible Server** (`postgresServerName`) | **Burstable** `Standard_B1ms`, PostgreSQL **16**, 32 GiB storage, 7-day backup, HA off. Database `carwoods_portal` (override via Bicep param). |
+| **Firewall rule** `AllowAzureServices`     | `0.0.0.0`–`0.0.0.0` so **Azure services** (including this Function App’s outbound IPs) can connect. |
 
 
-**Not included yet** (add later in Bicep or Portal): Azure Database for PostgreSQL, Blob containers for uploads, Azure Communication Services, Key Vault, Application Insights wiring, custom domains, VNet integration.
+**Not in Bicep yet** (Portal or future Bicep): Blob containers for uploads, Azure Communication Services, Key Vault references, Application Insights wiring, custom domains, VNet integration for PostgreSQL.
 
 **Important:** This workflow only provisions the **shell** (hosting + storage). Deploying **your compiled** `apps/api` code is a separate step (`func azure functionapp publish`, GitHub Actions deploy job, or VS Code — document that in portal docs when you add it).
 
@@ -142,11 +144,12 @@ Path: **GitHub repo → Settings → Secrets and variables → Actions**.
 Open the **Secrets** tab → **New repository secret**. Create exactly these **names** (case-sensitive):
 
 
-| Secret name             | Where to get the value                                                     |
-| ----------------------- | -------------------------------------------------------------------------- |
-| `AZURE_CLIENT_ID`       | App registration → **Application (client) ID**                             |
-| `AZURE_TENANT_ID`       | Entra tenant → **Directory (tenant) ID** (same as on app overview)         |
-| `AZURE_SUBSCRIPTION_ID` | Azure Portal → **Subscriptions** → your subscription → **Subscription ID** |
+| Secret name                       | Where to get the value                                                     |
+| --------------------------------- | -------------------------------------------------------------------------- |
+| `AZURE_CLIENT_ID`                 | App registration → **Application (client) ID**                             |
+| `AZURE_TENANT_ID`                 | Entra tenant → **Directory (tenant) ID** (same as on app overview)         |
+| `AZURE_SUBSCRIPTION_ID`           | Azure Portal → **Subscriptions** → your subscription → **Subscription ID** |
+| `AZURE_POSTGRES_ADMIN_PASSWORD`   | Choose a strong password for the PostgreSQL admin user. **Avoid** `@ : / ? #` and spaces so `DATABASE_URL` in the Function App stays valid. Store only in GitHub Secrets (or pass securely for manual `az deployment`). |
 
 
 **CLI alternative for subscription ID:**
@@ -160,11 +163,12 @@ az account show --query id -o tsv
 Open the **Variables** tab → **New repository variable**.
 
 
-| Variable name                | Rules                                                                                                                                                                                   | Example             |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| `AZURE_FUNCTION_APP_NAME`    | **Globally unique** in Azure. Letters, numbers, hyphens; see [naming rules](https://learn.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftwebsites). | `carwoods-api-a7b2` |
-| `AZURE_STORAGE_ACCOUNT_NAME` | **Globally unique**, **3–24** chars, **lowercase letters and numbers only** (no hyphens).                                                                                               | `carwoodssitea7b2`  |
-| `AZURE_LOCATION`             | **Recommended.** Set to `eastus2` so **push-triggered** runs use the same region as your resource group when the workflow creates the RG. If unset, the workflow defaults to `eastus2`. | `eastus2`           |
+| Variable name                 | Rules                                                                                                                                                                                   | Example             |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| `AZURE_FUNCTION_APP_NAME`     | **Globally unique** in Azure. Letters, numbers, hyphens; see [naming rules](https://learn.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftwebsites). | `carwoods-api-a7b2` |
+| `AZURE_STORAGE_ACCOUNT_NAME`  | **Globally unique**, **3–24** chars, **lowercase letters and numbers only** (no hyphens).                                                                                               | `carwoodssitea7b2`  |
+| `AZURE_POSTGRES_SERVER_NAME`  | **Globally unique** DNS name for **Azure Database for PostgreSQL – Flexible Server**. **3–63** chars, **lowercase** letters, numbers, hyphens; cannot start or end with a hyphen.        | `carwoods-api-2026-pg` |
+| `AZURE_LOCATION`              | **Recommended.** Set to `eastus2` so **push-triggered** runs use the same region as your resource group when the workflow creates the RG. If unset, the workflow defaults to `eastus2`. | `eastus2`           |
 
 
 **Check name availability (CLI, after `az login`):**
@@ -174,6 +178,10 @@ Open the **Variables** tab → **New repository variable**.
 az storage account check-name --name carwoodssitea7b2 --query nameAvailable -o tsv
 
 # Function app name: try creating in dry run or pick a unique suffix
+
+# PostgreSQL flexible server names must be globally unique; if deploy fails with a name conflict,
+# choose another AZURE_POSTGRES_SERVER_NAME or list existing servers in the subscription:
+# az postgres flexible-server list --query "[].name" -o tsv
 ```
 
 ---
@@ -187,7 +195,7 @@ az storage account check-name --name carwoodssitea7b2 --query nameAvailable -o t
 
 **Automatic runs:** On **push** to `main`, the workflow also runs when `infra/azure/main.bicep` or `.github/workflows/azure-infrastructure.yml` changes. To avoid accidental deploys, remove or comment out the `push:` block in the YAML.
 
-**Success:** The job **Deployment outputs** prints JSON with `functionAppHost`, `functionAppNameOut`, `storageAccountNameOut`, `principalId` (managed identity).
+**Success:** The job **Deployment outputs** prints JSON with `functionAppHost`, `functionAppNameOut`, `storageAccountNameOut`, `principalId` (managed identity), plus `postgresFqdn`, `postgresServerNameOut`, `postgresDatabaseNameOut`.
 
 **Failure — common causes:**
 
@@ -197,6 +205,8 @@ az storage account check-name --name carwoodssitea7b2 --query nameAvailable -o t
 | **No subscriptions found** (often for `***`) | See [below](#troubleshooting-no-subscriptions-found) — wrong subscription/tenant secret, or app has **no RBAC** on that subscription. |
 | `Authorization failed` / 403 | RBAC: app must be **Contributor** (or equivalent) on **carwoods.com** or subscription. |
 | Storage name invalid / taken | `AZURE_STORAGE_ACCOUNT_NAME`: length, lowercase, global uniqueness. |
+| PostgreSQL name invalid / taken | `AZURE_POSTGRES_SERVER_NAME`: 3–63 chars, lowercase, hyphens OK, globally unique (ARM error “already exists” → pick a new name; `az postgres flexible-server list`). |
+| Missing DB password | Set secret `AZURE_POSTGRES_ADMIN_PASSWORD`. |
 | Wrong subscription | `AZURE_SUBSCRIPTION_ID` must be the subscription where `carwoods.com` lives. |
 
 ### Troubleshooting: AADSTS700213 (no matching federated identity)
@@ -320,7 +330,7 @@ Requires [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-fu
 | Name | Purpose | Example / note |
 |------|---------|------------------|
 | `CORS_ALLOWED_ORIGINS` | Browser origins allowed to call anonymous HTTP endpoints (comma-separated). | `https://carwoods.com,https://www.carwoods.com` — add Vercel preview URLs if needed. |
-| `DATABASE_URL` | PostgreSQL (when wired). | From Key Vault reference later. |
+| `DATABASE_URL` | Set automatically by **Bicep** (`postgresql://…?sslmode=require`). | Optional hardening: move to **Key Vault reference** and rotate password without redeploying Bicep. |
 | Others | Entra API validation, Blob, ACS, Gemini — see [`docs/portal/ENV_CONTRACT.md`](../../docs/portal/ENV_CONTRACT.md). | |
 
 Save and allow the app to restart.
@@ -332,10 +342,16 @@ In Vercel / `.env` for production builds:
 - `VITE_API_BASE_URL=https://<AZURE_FUNCTION_APP_NAME>.azurewebsites.net`
 - Keep `VITE_FEATURE_APPLY_API` unset or not `false` so `/apply` can use the API (it will show an empty list until the DB endpoint returns rows).
 
-### G5. Later: data and more Azure resources
+### G5. Database migrations
 
-- **PostgreSQL / Blob / ACS** — extend Bicep or create in **carwoods.com**, **East US 2**.
-- Implement loading **`apply_visible`** properties in `GET /api/public/apply-properties` (replace the temporary empty array in code).
+After the Flexible Server exists, apply SQL in order against database **`carwoods_portal`** (name from Bicep; connect with **pgAdmin**, `psql`, or Azure Cloud Shell):
+
+1. `infra/db/migrations/001_initial_portal.sql`
+2. `infra/db/migrations/002_seed_lookup_and_notification_types.sql`
+
+### G6. Later: more Azure resources
+
+- **Blob / ACS** — add in **carwoods.com**, **East US 2**, or extend Bicep.
 
 ---
 
@@ -347,8 +363,10 @@ In Vercel / `.env` for production builds:
 | Secret   | `AZURE_CLIENT_ID`                         |
 | Secret   | `AZURE_TENANT_ID`                         |
 | Secret   | `AZURE_SUBSCRIPTION_ID`                   |
+| Secret   | `AZURE_POSTGRES_ADMIN_PASSWORD`           |
 | Variable | `AZURE_FUNCTION_APP_NAME`                 |
 | Variable | `AZURE_STORAGE_ACCOUNT_NAME`              |
+| Variable | `AZURE_POSTGRES_SERVER_NAME`              |
 | Variable | `AZURE_LOCATION` (recommended: `eastus2`) |
 
 

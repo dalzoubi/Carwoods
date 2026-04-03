@@ -69,13 +69,23 @@ jobs:
       - name: Validate Bicep
         run: az bicep build --file infra/azure/main.bicep
 
-      - name: Check required repository variables
+      - name: Check required repository variables and secrets
         env:
           FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
           STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
+          POSTGRES_SERVER_NAME: ${{ vars.AZURE_POSTGRES_SERVER_NAME }}
+          POSTGRES_ADMIN_PASSWORD: ${{ secrets.AZURE_POSTGRES_ADMIN_PASSWORD }}
         run: |
           if [ -z "$FUNCTION_APP_NAME" ] || [ -z "$STORAGE_ACCOUNT_NAME" ]; then
             echo "::error::Set GitHub repository Variables: AZURE_FUNCTION_APP_NAME and AZURE_STORAGE_ACCOUNT_NAME (globally unique, see infra/azure/README.md)."
+            exit 1
+          fi
+          if [ -z "$POSTGRES_SERVER_NAME" ]; then
+            echo "::error::Set GitHub repository Variable AZURE_POSTGRES_SERVER_NAME (globally unique PostgreSQL Flexible Server name, 3–63 chars, lowercase letters, numbers, hyphens — see infra/azure/README.md)."
+            exit 1
+          fi
+          if [ -z "$POSTGRES_ADMIN_PASSWORD" ]; then
+            echo "::error::Set GitHub repository Secret AZURE_POSTGRES_ADMIN_PASSWORD (PostgreSQL admin password; avoid @ : / ? # for DATABASE_URL — see infra/azure/README.md)."
             exit 1
           fi
 
@@ -98,19 +108,25 @@ jobs:
         env:
           FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
           STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
+          POSTGRES_SERVER_NAME: ${{ vars.AZURE_POSTGRES_SERVER_NAME }}
+          POSTGRES_ADMIN_PASSWORD: ${{ secrets.AZURE_POSTGRES_ADMIN_PASSWORD }}
         run: |
           az deployment group what-if \
             --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
             --template-file infra/azure/main.bicep \
             --parameters \
               functionAppName="$FUNCTION_APP_NAME" \
-              storageAccountName="$STORAGE_ACCOUNT_NAME"
+              storageAccountName="$STORAGE_ACCOUNT_NAME" \
+              postgresServerName="$POSTGRES_SERVER_NAME" \
+              postgresAdminPassword="$POSTGRES_ADMIN_PASSWORD"
 
       - name: Deploy Bicep
         if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true') }}
         env:
           FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
           STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
+          POSTGRES_SERVER_NAME: ${{ vars.AZURE_POSTGRES_SERVER_NAME }}
+          POSTGRES_ADMIN_PASSWORD: ${{ secrets.AZURE_POSTGRES_ADMIN_PASSWORD }}
         run: |
           az deployment group create \
             --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
@@ -119,6 +135,8 @@ jobs:
             --parameters \
               functionAppName="$FUNCTION_APP_NAME" \
               storageAccountName="$STORAGE_ACCOUNT_NAME" \
+              postgresServerName="$POSTGRES_SERVER_NAME" \
+              postgresAdminPassword="$POSTGRES_ADMIN_PASSWORD" \
             --output none
 
       - name: Deployment outputs
