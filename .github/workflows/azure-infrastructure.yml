@@ -187,8 +187,8 @@ jobs:
             https://api.github.com/repos/microsoft/go-sqlcmd/releases/latest \
             | jq -r '.tag_name' | sed 's/^v//')
           curl -sSL \
-            "https://github.com/microsoft/go-sqlcmd/releases/download/v${SQLCMD_VERSION}/sqlcmd-linux-amd64.tar.gz" \
-            | sudo tar -xz -C /usr/local/bin sqlcmd
+            "https://github.com/microsoft/go-sqlcmd/releases/download/v${SQLCMD_VERSION}/sqlcmd-linux-amd64.tar.bz2" \
+            | sudo tar -xj -C /usr/local/bin sqlcmd
           sqlcmd --version
 
       - name: Run migrations (idempotent)
