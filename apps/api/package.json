@@ -13,11 +13,11 @@
   "dependencies": {
     "@azure/functions": "^4.7.0",
     "jose": "^6.2.2",
-    "pg": "^8.20.0"
+    "mssql": "^12.2.1"
   },
   "devDependencies": {
+    "@types/mssql": "^9.1.11",
     "@types/node": "^22.10.0",
-    "@types/pg": "^8.20.0",
     "typescript": "^5.7.2"
   }
 }

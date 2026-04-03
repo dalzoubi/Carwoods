@@ -17,7 +17,7 @@ Values are **names only**; store secrets in Azure Key Vault or Function App sett
 | ------------------------------------------------- | ----------- | ----------------------------------------------------- |
 | `FUNCTIONS_WORKER_RUNTIME`                        | Yes         | `node`                                                |
 | `AzureWebJobsStorage`                             | Yes (Azure) | Storage account connection for Functions runtime      |
-| `DATABASE_URL`                                    | Yes         | PostgreSQL connection string (prefer SSL)             |
+| `DATABASE_URL`                                    | Yes         | Azure SQL ADO.NET connection string set by Bicep (Server=<host>,1433;Database=<db>;User Id=<user>;Password=<pass>;Encrypt=yes;TrustServerCertificate=no)             |
 | `BLOB_CONNECTION_STRING` or managed identity vars | Yes         | Blob access for SAS generation                        |
 | `BLOB_ACCOUNT_URL`                                | If using MI | `https://{account}.blob.core.windows.net`             |
 | `ACS_CONNECTION_STRING` or ACS + MI               | Yes (email) | Azure Communication Services                          |
@@ -58,5 +58,5 @@ Values are **names only**; store secrets in Azure Key Vault or Function App sett
 ## Local development
 
 - Copy `.env.example` at repo root and `apps/api/local.settings.json.example` → `local.settings.json` (gitignored).
-- Use a dev PostgreSQL instance and Azurite for storage if desired.
+- Use a local SQL Server instance (or `mcr.microsoft.com/mssql/server:2022-latest` via Docker) and Azurite for storage if desired.
 

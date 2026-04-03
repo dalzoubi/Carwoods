@@ -1,4 +1,4 @@
-import type pg from 'pg';
+import type { PoolClient, QueryResult } from './db.js';
 import type { AccessTokenClaims } from './jwtVerify.js';
 
 export type UserRow = {
@@ -12,8 +12,10 @@ export type UserRow = {
   status: string;
 };
 
+type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
+
 export async function findUserBySubject(
-  client: pg.PoolClient,
+  client: Queryable,
   externalAuthSubject: string
 ): Promise<UserRow | null> {
   const r = await client.query<UserRow>(
@@ -26,27 +28,36 @@ export async function findUserBySubject(
 
 /**
  * Ensures the caller has an ADMIN row keyed by JWT `sub`.
+ * T-SQL MERGE replaces the PostgreSQL INSERT … ON CONFLICT DO UPDATE.
  */
 export async function ensureAdminUser(
-  client: pg.PoolClient,
+  client: PoolClient,
   claims: AccessTokenClaims
 ): Promise<UserRow> {
-  const email =
-    claims.email ??
-    claims.preferred_username ??
-    'admin@unknown';
+  const email = claims.email ?? claims.preferred_username ?? 'admin@unknown';
+  const sub = claims.sub;
+  const firstName = claims.given_name ?? null;
+  const lastName = claims.family_name ?? null;
+
   const r = await client.query<UserRow>(
-    `INSERT INTO users (external_auth_subject, email, first_name, last_name, role, status)
-     VALUES ($1, $2, $3, $4, 'ADMIN', 'ACTIVE')
-     ON CONFLICT (external_auth_subject) DO UPDATE SET
-       email = EXCLUDED.email,
-       role = 'ADMIN',
-       status = 'ACTIVE',
-       first_name = COALESCE(EXCLUDED.first_name, users.first_name),
-       last_name = COALESCE(EXCLUDED.last_name, users.last_name),
-       updated_at = now()
-     RETURNING id, external_auth_subject, email, first_name, last_name, phone, role, status`,
-    [claims.sub, email, claims.given_name ?? null, claims.family_name ?? null]
+    `MERGE users AS target
+     USING (SELECT $1 AS external_auth_subject) AS src
+       ON target.external_auth_subject = src.external_auth_subject
+     WHEN MATCHED THEN
+       UPDATE SET
+         email       = $2,
+         role        = 'ADMIN',
+         status      = 'ACTIVE',
+         first_name  = COALESCE($3, target.first_name),
+         last_name   = COALESCE($4, target.last_name),
+         updated_at  = GETUTCDATE()
+     WHEN NOT MATCHED THEN
+       INSERT (id, external_auth_subject, email, first_name, last_name, role, status)
+       VALUES (NEWID(), $1, $2, $3, $4, 'ADMIN', 'ACTIVE')
+     OUTPUT INSERTED.id, INSERTED.external_auth_subject, INSERTED.email,
+            INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
+            INSERTED.role, INSERTED.status;`,
+    [sub, email, firstName, lastName]
   );
   return r.rows[0]!;
 }

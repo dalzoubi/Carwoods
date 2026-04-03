@@ -1,7 +1,7 @@
-import type pg from 'pg';
+import type { PoolClient } from './db.js';
 
 export async function writeAudit(
-  client: pg.PoolClient,
+  client: PoolClient,
   params: {
     actorUserId: string;
     entityType: string;
@@ -12,8 +12,8 @@ export async function writeAudit(
   }
 ): Promise<void> {
   await client.query(
-    `INSERT INTO audit_log (actor_user_id, entity_type, entity_id, action, before_json, after_json)
-     VALUES ($1, $2, $3::uuid, $4, $5::jsonb, $6::jsonb)`,
+    `INSERT INTO audit_log (id, actor_user_id, entity_type, entity_id, action, before_json, after_json)
+     VALUES (NEWID(), $1, $2, $3, $4, $5, $6)`,
     [
       params.actorUserId,
       params.entityType,
