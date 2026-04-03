@@ -303,7 +303,7 @@ $env:AZURE_RESOURCE_GROUP = 'carwoods.com'
 
 ## Part G — After infrastructure: deploy API code and configure the app
 
-**Carwoods production Function App (reference):** host **`https://carwoods-api-2026.azurewebsites.net`**, app name **`carwoods-api-2026`**. Set GitHub repository Variable **`AZURE_FUNCTION_APP_NAME`** to `carwoods-api-2026` (must match Bicep). Vite / Vercel: **`VITE_API_BASE_URL=https://carwoods-api-2026.azurewebsites.net`** (no trailing slash).
+**Carwoods production Function App (reference):** host **`https://carwoods-com-api.azurewebsites.net`**, app name **`carwoods-com-api`**. Set GitHub repository Variable **`AZURE_FUNCTION_APP_NAME`** to `carwoods-com-api` (must match Bicep). Vite / Vercel: **`VITE_API_BASE_URL=https://carwoods-com-api.azurewebsites.net`** (no trailing slash).
 
 ### G1. Deploy `apps/api` (GitHub Actions — recommended)
 

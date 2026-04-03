@@ -83,3 +83,23 @@ jobs:
           echo "::error::Healthcheck failed for ${url}"
           cat /tmp/health.json || true
           exit 1
+
+      - name: Verify deployed public apply endpoint
+        env:
+          FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
+        run: |
+          url="https://${FUNCTION_APP_NAME}.azurewebsites.net/api/public/apply-properties"
+          echo "Checking ${url}"
+          for i in {1..12}; do
+            status="$(curl -sS -o /tmp/apply-properties.json -w "%{http_code}" "${url}" || true)"
+            if [ "${status}" = "200" ]; then
+              echo "Public apply endpoint passed."
+              cat /tmp/apply-properties.json
+              exit 0
+            fi
+            echo "Attempt ${i}/12: HTTP ${status}"
+            sleep 10
+          done
+          echo "::error::Public apply endpoint failed for ${url}"
+          cat /tmp/apply-properties.json || true
+          exit 1

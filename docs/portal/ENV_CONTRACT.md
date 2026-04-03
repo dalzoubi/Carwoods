@@ -45,7 +45,7 @@ Values are **names only**; store secrets in Azure Key Vault or Function App sett
 
 | Variable                 | Description                                                      |
 | ------------------------ | ---------------------------------------------------------------- |
-| `VITE_API_BASE_URL`      | Base URL for portal/public API (no trailing slash). Production example: `https://carwoods-api-2026.azurewebsites.net` until a custom domain is used. |
+| `VITE_API_BASE_URL`      | Base URL for portal/public API (no trailing slash). Production example: `https://carwoods-com-api.azurewebsites.net` until a custom domain is used. |
 | `VITE_ENTRA_CLIENT_ID`   | SPA app registration client ID                                   |
 | `VITE_ENTRA_AUTHORITY`   | External ID authority URL                                        |
 | `VITE_ENTRA_API_SCOPE`   | Scope(s) for API token                                           |
