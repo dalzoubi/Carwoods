@@ -1,0 +1,130 @@
+# Provisions Azure resources for the tenant portal API into resource group **carwoods.com** only.
+# Uses OpenID Connect (no client secret in GitHub). See infra/azure/README.md for one-time Azure setup.
+
+name: Azure infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'What-if only (show changes, do not apply)'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+        default: 'false'
+      location:
+        description: 'Azure region for the resource group (if creating)'
+        type: string
+        default: southcentralus
+  push:
+    branches:
+      - main
+    paths:
+      - 'infra/azure/main.bicep'
+      - '.github/workflows/azure-infrastructure.yml'
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AZURE_RESOURCE_GROUP: carwoods.com
+
+jobs:
+  deploy:
+    name: Deploy Bicep to carwoods.com
+    runs-on: ubuntu-latest
+    concurrency:
+      group: azure-infra-carwoods-com
+      cancel-in-progress: false
+
+    steps:
+      - name: Enforce resource group name
+        run: |
+          if [ "${{ env.AZURE_RESOURCE_GROUP }}" != "carwoods.com" ]; then
+            echo "::error::Workflow must target resource group carwoods.com"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - name: Resolve Azure region
+        id: region
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "location=${{ github.event.inputs.location }}" >> "$GITHUB_OUTPUT"
+          elif [ -n "${{ vars.AZURE_LOCATION }}" ]; then
+            echo "location=${{ vars.AZURE_LOCATION }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "location=southcentralus" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Bicep CLI
+        run: |
+          az bicep install
+          az bicep version
+
+      - name: Validate Bicep
+        run: az bicep build --file infra/azure/main.bicep
+
+      - name: Check required repository variables
+        env:
+          FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
+          STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
+        run: |
+          if [ -z "$FUNCTION_APP_NAME" ] || [ -z "$STORAGE_ACCOUNT_NAME" ]; then
+            echo "::error::Set GitHub repository Variables: AZURE_FUNCTION_APP_NAME and AZURE_STORAGE_ACCOUNT_NAME (globally unique, see infra/azure/README.md)."
+            exit 1
+          fi
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Ensure resource group exists
+        run: |
+          az group create \
+            --name "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --location "${{ steps.region.outputs.location }}" \
+            --output none
+
+      - name: What-if (dry run)
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' }}
+        env:
+          FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
+          STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
+        run: |
+          az deployment group what-if \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --template-file infra/azure/main.bicep \
+            --parameters \
+              functionAppName="$FUNCTION_APP_NAME" \
+              storageAccountName="$STORAGE_ACCOUNT_NAME"
+
+      - name: Deploy Bicep
+        if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true') }}
+        env:
+          FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
+          STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
+        run: |
+          az deployment group create \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --template-file infra/azure/main.bicep \
+            --name "carwoods-infra-${{ github.run_id }}" \
+            --parameters \
+              functionAppName="$FUNCTION_APP_NAME" \
+              storageAccountName="$STORAGE_ACCOUNT_NAME" \
+            --output none
+
+      - name: Deployment outputs
+        if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true') }}
+        run: |
+          az deployment group show \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --name "carwoods-infra-${{ github.run_id }}" \
+            --query properties.outputs \
+            -o json
