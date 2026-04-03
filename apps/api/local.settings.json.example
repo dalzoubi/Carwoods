@@ -1,0 +1,9 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "AZURE_RESOURCE_GROUP": "carwoods.com",
+    "DATABASE_URL": "postgresql://user:pass@localhost:5432/carwoods_portal"
+  }
+}

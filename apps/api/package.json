@@ -1,0 +1,20 @@
+{
+  "name": "@carwoods/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/src/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -p tsconfig.json --watch",
+    "start": "func start",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2"
+  }
+}
