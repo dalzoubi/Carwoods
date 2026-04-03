@@ -170,6 +170,7 @@ Open the **Variables** tab → **New repository variable**.
 | `AZURE_STORAGE_ACCOUNT_NAME` | **Globally unique**, **3–24** chars, **lowercase letters and numbers only** (no hyphens).                                                                                               | `carwoodssitea7b2`  |
 | `AZURE_SQL_SERVER_NAME`      | **Globally unique** DNS name for the Azure SQL logical server. **1–63** chars, **lowercase** letters, numbers, hyphens; cannot start or end with a hyphen.                              | `carwoods-api-sql`  |
 | `AZURE_LOCATION`             | **Recommended.** Set to `eastus2` so push-triggered runs use the same region as your resource group. If unset, the workflow defaults to `eastus2`. | `eastus2`           |
+| `AZURE_SQL_ADMIN_USER`       | **Optional.** Admin login for the SQL server used by the `db-migrate` job. If unset, defaults to `carwoodsadmin` (the Bicep param default). Only needed if you deployed with a custom `sqlAdminUser`. | `carwoodsadmin`     |
 
 
 **Check name availability (CLI, after `az login`):**
@@ -193,7 +194,10 @@ az sql server list --query "[].name" -o tsv
 
 **Automatic runs:** On **push** to `main`, the workflow also runs when `infra/azure/main.bicep` or `.github/workflows/azure-infrastructure.yml` changes. To avoid accidental deploys, remove or comment out the `push:` block in the YAML.
 
-**Success:** The job **Deployment outputs** prints JSON with `functionAppHost`, `functionAppNameOut`, `storageAccountNameOut`, `principalId` (managed identity), plus `sqlServerFqdn`, `sqlServerNameOut`, `sqlDatabaseNameOut`.
+**Success:** The workflow runs two jobs:
+
+1. **Deploy Bicep to carwoods.com** — provisions/updates Azure resources and prints JSON outputs (`functionAppHost`, `sqlServerFqdn`, etc.).
+2. **Apply DB migrations** — installs `go-sqlcmd`, creates a `__migrations` tracking table if absent, then applies each migration file in `infra/db/migrations/` in order. Already-applied migrations are skipped (idempotent). Skipped automatically on dry-run runs. Can be disabled via the `run_migrations` input.
 
 **Failure — common causes:**
 
@@ -344,20 +348,24 @@ In Vercel / `.env` for production builds:
 
 ### G5. Database migrations
 
-After the SQL database exists, apply SQL in order using **SSMS**, **Azure Data Studio**, **sqlcmd**, or Azure Cloud Shell:
+Migrations run **automatically** as part of the **Azure infrastructure** workflow (the `db-migrate` job that runs after Bicep deploy). They are idempotent — re-running the workflow will skip any already-applied migration.
 
-1. `infra/db/migrations/001_initial_portal.sql`
-2. `infra/db/migrations/002_seed_lookup_and_notification_types.sql`
+Migration state is tracked in `dbo.__migrations` in `carwoods_portal`. To view:
 
-Connect to: `<sqlServerFqdn>,1433` → database `carwoods_portal`, login `carwoodsadmin`.
+```sql
+SELECT name, applied_at FROM dbo.__migrations ORDER BY applied_at;
+```
+
+**Manual fallback** (Azure Cloud Shell or local `sqlcmd`):
 
 ```bash
-# Azure Cloud Shell / local (requires sqlcmd or sqlpackage)
-sqlcmd -S <sqlServerFqdn>,1433 -d carwoods_portal -U carwoodsadmin -P '<password>' \
+sqlcmd -S <sqlServerFqdn>,1433 -d carwoods_portal -U carwoodsadmin -P '<password>' -C \
   -i infra/db/migrations/001_initial_portal.sql
-sqlcmd -S <sqlServerFqdn>,1433 -d carwoods_portal -U carwoodsadmin -P '<password>' \
+sqlcmd -S <sqlServerFqdn>,1433 -d carwoods_portal -U carwoodsadmin -P '<password>' -C \
   -i infra/db/migrations/002_seed_lookup_and_notification_types.sql
 ```
+
+**Adding new migrations:** create `infra/db/migrations/003_….sql` and push to `main`. The workflow will pick it up automatically. Name must start with a unique numeric prefix that sorts after existing migrations.
 
 ### G6. Later: more Azure resources
 
@@ -378,6 +386,7 @@ sqlcmd -S <sqlServerFqdn>,1433 -d carwoods_portal -U carwoodsadmin -P '<password
 | Variable | `AZURE_STORAGE_ACCOUNT_NAME`              |
 | Variable | `AZURE_SQL_SERVER_NAME`                   |
 | Variable | `AZURE_LOCATION` (recommended: `eastus2`) |
+| Variable | `AZURE_SQL_ADMIN_USER` (optional: defaults to `carwoodsadmin`) |
 
 
 ---
