@@ -10,6 +10,15 @@ Property management and rentals in Houston and beyond. Tenant selection criteria
 - **Vitest** for unit tests
 - **Playwright** for E2E tests
 
+## Tenant portal (Azure)
+
+Monorepo workspaces: `apps/api` (Azure Functions, TypeScript), `packages/domain`, `packages/config`. Documentation: **`docs/portal/`**. Database migrations: **`infra/db/migrations/`**. Azure Bicep: **`infra/azure/`** (deploy into resource group **`carwoods.com`**).
+
+```bash
+npm install
+npm run build:api
+```
+
 ## Available Scripts
 
 In the project directory, you can run:

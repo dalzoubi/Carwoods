@@ -24,3 +24,15 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .cursor/plans/*
+
+# Azure Functions / workspace build outputs
+apps/api/dist
+apps/api/local.settings.json
+packages/domain/dist
+packages/config/dist
+.env
+!.env.example
+packages/config/node_modules/
+apps/api/node_modules/
+packages/domain/node_modules/
+packages/domain/node_modules/

@@ -4,6 +4,8 @@
 
 Carwoods is a static React 18 website (no backend/database) for property management in Houston. Uses Vite 7, MUI v6, styled-components, i18next (en/es/fr/ar), and npm as the package manager. No TypeScript.
 
+**Tenant portal (in progress):** Azure backend, PostgreSQL, and shared packages live under `apps/api`, `packages/*`, `infra/`, and `docs/portal/`. See [docs/portal/MONOREPO.md](docs/portal/MONOREPO.md) and [docs/portal/IMPLEMENTATION_PROMPT.md](docs/portal/IMPLEMENTATION_PROMPT.md). Azure resources MUST use resource group **`carwoods.com`**.
+
 ## Commands
 
 | Task | Command |
