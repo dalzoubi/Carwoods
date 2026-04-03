@@ -14,6 +14,13 @@ on:
           - 'false'
           - 'true'
         default: 'false'
+      run_migrations:
+        description: 'Apply DB migrations after deploy'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+        default: 'true'
       location:
         description: 'Azure region for the resource group (if creating)'
         type: string
@@ -23,6 +30,7 @@ on:
       - main
     paths:
       - 'infra/azure/main.bicep'
+      - 'infra/db/migrations/**'
       - '.github/workflows/azure-infrastructure.yml'
 
 permissions:
@@ -39,6 +47,11 @@ jobs:
     concurrency:
       group: azure-infra-carwoods-com
       cancel-in-progress: false
+    outputs:
+      sql_fqdn: ${{ steps.outputs.outputs.sql_fqdn }}
+      sql_database: ${{ steps.outputs.outputs.sql_database }}
+      # true when this run actually deployed (not a dry-run)
+      deployed: ${{ steps.outputs.outputs.deployed }}
 
     steps:
       - name: Enforce resource group name
@@ -139,11 +152,99 @@ jobs:
               sqlAdminPassword="$SQL_ADMIN_PASSWORD" \
             --output none
 
-      - name: Deployment outputs
+      - name: Capture deployment outputs
+        id: outputs
         if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true') }}
         run: |
-          az deployment group show \
+          DEPLOY_JSON=$(az deployment group show \
             --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
             --name "carwoods-infra-${{ github.run_id }}" \
             --query properties.outputs \
-            -o json
+            -o json)
+          echo "$DEPLOY_JSON"
+          SQL_FQDN=$(echo "$DEPLOY_JSON" | jq -r '.sqlServerFqdn.value')
+          SQL_DB=$(echo "$DEPLOY_JSON" | jq -r '.sqlDatabaseNameOut.value')
+          echo "sql_fqdn=$SQL_FQDN" >> "$GITHUB_OUTPUT"
+          echo "sql_database=$SQL_DB" >> "$GITHUB_OUTPUT"
+          echo "deployed=true" >> "$GITHUB_OUTPUT"
+
+  db-migrate:
+    name: Apply DB migrations
+    needs: deploy
+    # Skip on dry-run, or when the caller explicitly opts out
+    if: |
+      needs.deploy.outputs.deployed == 'true' &&
+      (github.event_name != 'workflow_dispatch' || github.event.inputs.run_migrations == 'true')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install sqlcmd (go-sqlcmd)
+        run: |
+          # Install the go-sqlcmd binary directly — works on Ubuntu 22 and 24.
+          SQLCMD_VERSION=$(curl -sSL \
+            https://api.github.com/repos/microsoft/go-sqlcmd/releases/latest \
+            | jq -r '.tag_name' | sed 's/^v//')
+          curl -sSL \
+            "https://github.com/microsoft/go-sqlcmd/releases/download/v${SQLCMD_VERSION}/sqlcmd-linux-amd64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin sqlcmd
+          sqlcmd --version
+
+      - name: Run migrations (idempotent)
+        env:
+          SQL_FQDN: ${{ needs.deploy.outputs.sql_fqdn }}
+          SQL_DATABASE: ${{ needs.deploy.outputs.sql_database }}
+          SQL_ADMIN_PASSWORD: ${{ secrets.AZURE_SQL_ADMIN_PASSWORD }}
+          SQL_ADMIN_USER: ${{ vars.AZURE_SQL_ADMIN_USER }}
+        run: |
+          set -euo pipefail
+
+          HOST="${SQL_FQDN},1433"
+          DB="$SQL_DATABASE"
+          USER="${SQL_ADMIN_USER:-carwoodsadmin}"
+          PASS="$SQL_ADMIN_PASSWORD"
+
+          run_sql() {
+            sqlcmd -S "$HOST" -d "$DB" -U "$USER" -P "$PASS" \
+              -C -l 30 -t 120 "$@"
+          }
+
+          echo "→ Ensuring __migrations tracking table exists"
+          run_sql -Q "
+            IF NOT EXISTS (
+              SELECT 1 FROM sys.tables
+              WHERE name = '__migrations' AND schema_id = SCHEMA_ID('dbo')
+            )
+            CREATE TABLE dbo.__migrations (
+              name        NVARCHAR(200) NOT NULL PRIMARY KEY,
+              applied_at  DATETIMEOFFSET NOT NULL DEFAULT SYSDATETIMEOFFSET()
+            );"
+
+          apply_migration() {
+            local NAME="$1"
+            local FILE="$2"
+
+            # Check if already applied
+            APPLIED=$(run_sql -h -1 -Q "
+              SET NOCOUNT ON;
+              SELECT COUNT(*) FROM dbo.__migrations WHERE name = '${NAME}';" \
+              | tr -d '[:space:]')
+
+            if [ "$APPLIED" = "1" ]; then
+              echo "  ✓ $NAME — already applied, skipping"
+              return
+            fi
+
+            echo "  → Applying $NAME …"
+            run_sql -i "$FILE"
+            run_sql -Q "
+              INSERT INTO dbo.__migrations (name) VALUES ('${NAME}');"
+            echo "  ✓ $NAME — done"
+          }
+
+          apply_migration "001_initial_portal"         "infra/db/migrations/001_initial_portal.sql"
+          apply_migration "002_seed_lookup_and_notification_types" \
+                          "infra/db/migrations/002_seed_lookup_and_notification_types.sql"
+
+          echo "All migrations applied."
