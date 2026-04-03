@@ -4,7 +4,7 @@
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "node",
     "AZURE_RESOURCE_GROUP": "carwoods.com",
-    "DATABASE_URL": "postgresql://user:pass@localhost:5432/carwoods_portal",
+    "DATABASE_URL": "Server=localhost,1433;Database=carwoods_portal;User Id=sa;Password=<your-local-sa-password>;Encrypt=yes;TrustServerCertificate=yes",
     "CORS_ALLOWED_ORIGINS": "http://localhost:3000,https://carwoods.com,https://www.carwoods.com",
     "ENTRA_ISSUER": "https://your-tenant.ciamlogin.com/your-tenant-id/v2.0",
     "ENTRA_API_AUDIENCE": "api://your-api-app-client-id",

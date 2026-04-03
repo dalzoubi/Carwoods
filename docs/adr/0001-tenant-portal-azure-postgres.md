@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (implementation in progress).
+Superseded — database changed to **Azure SQL (Basic tier)** due to `LocationIsOfferRestricted` errors when provisioning PostgreSQL Flexible Server in `eastus2`. See current Bicep template and `infra/azure/README.md`.
 
 ## Context
 
@@ -11,7 +11,7 @@ The public site is a static React + Vite app. We need a production tenant mainte
 ## Decision
 
 - **API:** Azure Functions (Node.js, TypeScript), clean architecture layers inside `apps/api`.
-- **Database:** Azure Database for PostgreSQL.
+- **Database:** Azure SQL (Basic tier, 5 DTUs, ~$5/month). Originally PostgreSQL; changed due to region offer restriction.
 - **Files:** Azure Blob Storage with private containers and short-lived SAS.
 - **Email:** Azure Communication Services Email.
 - **AI:** Google Gemini invoked only from the API for admin reply suggestions.

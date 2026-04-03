@@ -1,4 +1,4 @@
-# Provisions Azure resources for the tenant portal API into resource group **carwoods.com** only (East US 2; PostgreSQL in East US).
+# Provisions Azure resources for the tenant portal API into resource group **carwoods.com** only (East US 2).
 # Uses OpenID Connect (no client secret in GitHub).
 # Full runbook: Entra federated credential subjects, RBAC, GitHub secrets/variables, naming rules, troubleshooting → infra/azure/README.md
 
@@ -15,13 +15,9 @@ on:
           - 'true'
         default: 'false'
       location:
-        description: 'Azure region for the resource group and non-PostgreSQL resources (if creating)'
+        description: 'Azure region for the resource group (if creating)'
         type: string
         default: eastus2
-      postgres_location:
-        description: 'Azure region for the PostgreSQL Flexible Server (override if subscription is offer-restricted in the primary region)'
-        type: string
-        default: eastus
   push:
     branches:
       - main
@@ -59,14 +55,10 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "location=${{ github.event.inputs.location }}" >> "$GITHUB_OUTPUT"
-            echo "postgres_location=${{ github.event.inputs.postgres_location }}" >> "$GITHUB_OUTPUT"
           elif [ -n "${{ vars.AZURE_LOCATION }}" ]; then
             echo "location=${{ vars.AZURE_LOCATION }}" >> "$GITHUB_OUTPUT"
-            PG_LOC="${{ vars.AZURE_POSTGRES_LOCATION }}"
-            echo "postgres_location=${PG_LOC:-${{ vars.AZURE_LOCATION }}}" >> "$GITHUB_OUTPUT"
           else
             echo "location=eastus2" >> "$GITHUB_OUTPUT"
-            echo "postgres_location=eastus" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Install Bicep CLI
@@ -81,19 +73,19 @@ jobs:
         env:
           FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
           STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
-          POSTGRES_SERVER_NAME: ${{ vars.AZURE_POSTGRES_SERVER_NAME }}
-          POSTGRES_ADMIN_PASSWORD: ${{ secrets.AZURE_POSTGRES_ADMIN_PASSWORD }}
+          SQL_SERVER_NAME: ${{ vars.AZURE_SQL_SERVER_NAME }}
+          SQL_ADMIN_PASSWORD: ${{ secrets.AZURE_SQL_ADMIN_PASSWORD }}
         run: |
           if [ -z "$FUNCTION_APP_NAME" ] || [ -z "$STORAGE_ACCOUNT_NAME" ]; then
             echo "::error::Set GitHub repository Variables: AZURE_FUNCTION_APP_NAME and AZURE_STORAGE_ACCOUNT_NAME (globally unique, see infra/azure/README.md)."
             exit 1
           fi
-          if [ -z "$POSTGRES_SERVER_NAME" ]; then
-            echo "::error::Set GitHub repository Variable AZURE_POSTGRES_SERVER_NAME (globally unique PostgreSQL Flexible Server name, 3–63 chars, lowercase letters, numbers, hyphens — see infra/azure/README.md)."
+          if [ -z "$SQL_SERVER_NAME" ]; then
+            echo "::error::Set GitHub repository Variable AZURE_SQL_SERVER_NAME (globally unique Azure SQL logical server name, 1–63 chars, lowercase letters, numbers, hyphens — see infra/azure/README.md)."
             exit 1
           fi
-          if [ -z "$POSTGRES_ADMIN_PASSWORD" ]; then
-            echo "::error::Set GitHub repository Secret AZURE_POSTGRES_ADMIN_PASSWORD (PostgreSQL admin password; avoid @ : / ? # for DATABASE_URL — see infra/azure/README.md)."
+          if [ -z "$SQL_ADMIN_PASSWORD" ]; then
+            echo "::error::Set GitHub repository Secret AZURE_SQL_ADMIN_PASSWORD (Azure SQL admin password; min 8 chars, must include uppercase, lowercase, digit, special — see infra/azure/README.md)."
             exit 1
           fi
 
@@ -116,8 +108,8 @@ jobs:
         env:
           FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
           STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
-          POSTGRES_SERVER_NAME: ${{ vars.AZURE_POSTGRES_SERVER_NAME }}
-          POSTGRES_ADMIN_PASSWORD: ${{ secrets.AZURE_POSTGRES_ADMIN_PASSWORD }}
+          SQL_SERVER_NAME: ${{ vars.AZURE_SQL_SERVER_NAME }}
+          SQL_ADMIN_PASSWORD: ${{ secrets.AZURE_SQL_ADMIN_PASSWORD }}
         run: |
           az deployment group what-if \
             --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
@@ -125,17 +117,16 @@ jobs:
             --parameters \
               functionAppName="$FUNCTION_APP_NAME" \
               storageAccountName="$STORAGE_ACCOUNT_NAME" \
-              postgresServerName="$POSTGRES_SERVER_NAME" \
-              postgresAdminPassword="$POSTGRES_ADMIN_PASSWORD" \
-              postgresLocation="${{ steps.region.outputs.postgres_location }}"
+              sqlServerName="$SQL_SERVER_NAME" \
+              sqlAdminPassword="$SQL_ADMIN_PASSWORD"
 
       - name: Deploy Bicep
         if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true') }}
         env:
           FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
           STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
-          POSTGRES_SERVER_NAME: ${{ vars.AZURE_POSTGRES_SERVER_NAME }}
-          POSTGRES_ADMIN_PASSWORD: ${{ secrets.AZURE_POSTGRES_ADMIN_PASSWORD }}
+          SQL_SERVER_NAME: ${{ vars.AZURE_SQL_SERVER_NAME }}
+          SQL_ADMIN_PASSWORD: ${{ secrets.AZURE_SQL_ADMIN_PASSWORD }}
         run: |
           az deployment group create \
             --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
@@ -144,9 +135,8 @@ jobs:
             --parameters \
               functionAppName="$FUNCTION_APP_NAME" \
               storageAccountName="$STORAGE_ACCOUNT_NAME" \
-              postgresServerName="$POSTGRES_SERVER_NAME" \
-              postgresAdminPassword="$POSTGRES_ADMIN_PASSWORD" \
-              postgresLocation="${{ steps.region.outputs.postgres_location }}" \
+              sqlServerName="$SQL_SERVER_NAME" \
+              sqlAdminPassword="$SQL_ADMIN_PASSWORD" \
             --output none
 
       - name: Deployment outputs

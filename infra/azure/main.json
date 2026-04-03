@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.42.1.51946",
-      "templateHash": "14894511861030276584"
+      "templateHash": "10391667333500635929"
     }
   },
   "parameters": {
@@ -13,14 +13,7 @@
       "type": "string",
       "defaultValue": "[resourceGroup().location]",
       "metadata": {
-        "description": "Azure region for most resources (defaults to resource group location)."
-      }
-    },
-    "postgresLocation": {
-      "type": "string",
-      "defaultValue": "[parameters('location')]",
-      "metadata": {
-        "description": "Azure region for the PostgreSQL Flexible Server. Defaults to location. Override when the subscription is offer-restricted in the primary region."
+        "description": "Azure region for resources (defaults to resource group location)."
       }
     },
     "storageAccountName": {
@@ -42,30 +35,30 @@
         "description": "Node.js version on Functions."
       }
     },
-    "postgresServerName": {
+    "sqlServerName": {
       "type": "string",
       "metadata": {
-        "description": "Globally unique PostgreSQL Flexible Server name (lowercase, alphanumeric + hyphens, 3–63 chars)."
+        "description": "Globally unique Azure SQL logical server name (lowercase, alphanumeric + hyphens, 1–63 chars)."
       }
     },
-    "postgresAdminUser": {
+    "sqlAdminUser": {
       "type": "string",
       "defaultValue": "carwoodsadmin",
       "metadata": {
-        "description": "PostgreSQL admin user (cannot be azure_superuser, admin, etc.)."
+        "description": "Azure SQL admin login."
       }
     },
-    "postgresAdminPassword": {
+    "sqlAdminPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "PostgreSQL admin password. Avoid @ : / ? # and spaces in DATABASE_URL compatibility."
+        "description": "Azure SQL admin password (min 8 chars, must include uppercase, lowercase, digit, special)."
       }
     },
-    "postgresDatabaseName": {
+    "sqlDatabaseName": {
       "type": "string",
       "defaultValue": "carwoods_portal",
       "metadata": {
-        "description": "Logical database created on the server for the portal."
+        "description": "Database name on the logical SQL server."
       }
     }
   },
@@ -88,55 +81,48 @@
       }
     },
     {
-      "type": "Microsoft.DBforPostgreSQL/flexibleServers",
-      "apiVersion": "2024-08-01",
-      "name": "[parameters('postgresServerName')]",
-      "location": "[parameters('postgresLocation')]",
-      "sku": {
-        "name": "Standard_B1ms",
-        "tier": "Burstable"
-      },
+      "type": "Microsoft.Sql/servers",
+      "apiVersion": "2023-08-01-preview",
+      "name": "[parameters('sqlServerName')]",
+      "location": "[parameters('location')]",
       "properties": {
-        "version": "16",
-        "administratorLogin": "[parameters('postgresAdminUser')]",
-        "administratorLoginPassword": "[parameters('postgresAdminPassword')]",
-        "storage": {
-          "storageSizeGB": 32
-        },
-        "backup": {
-          "backupRetentionDays": 7,
-          "geoRedundantBackup": "Disabled"
-        },
-        "highAvailability": {
-          "mode": "Disabled"
-        },
-        "network": {
-          "publicNetworkAccess": "Enabled"
-        }
+        "administratorLogin": "[parameters('sqlAdminUser')]",
+        "administratorLoginPassword": "[parameters('sqlAdminPassword')]",
+        "minimalTlsVersion": "1.2",
+        "publicNetworkAccess": "Enabled"
       }
     },
     {
-      "type": "Microsoft.DBforPostgreSQL/flexibleServers/databases",
-      "apiVersion": "2024-08-01",
-      "name": "[format('{0}/{1}', parameters('postgresServerName'), parameters('postgresDatabaseName'))]",
+      "type": "Microsoft.Sql/servers/databases",
+      "apiVersion": "2023-08-01-preview",
+      "name": "[format('{0}/{1}', parameters('sqlServerName'), parameters('sqlDatabaseName'))]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Basic",
+        "tier": "Basic",
+        "capacity": 5
+      },
       "properties": {
-        "charset": "UTF8",
-        "collation": "en_US.utf8"
+        "collation": "SQL_Latin1_General_CP1_CI_AS",
+        "maxSizeBytes": 2147483648,
+        "zoneRedundant": false,
+        "readScale": "Disabled",
+        "requestedBackupStorageRedundancy": "Local"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', parameters('postgresServerName'))]"
+        "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]"
       ]
     },
     {
-      "type": "Microsoft.DBforPostgreSQL/flexibleServers/firewallRules",
-      "apiVersion": "2024-08-01",
-      "name": "[format('{0}/{1}', parameters('postgresServerName'), 'AllowAzureServices')]",
+      "type": "Microsoft.Sql/servers/firewallRules",
+      "apiVersion": "2023-08-01-preview",
+      "name": "[format('{0}/{1}', parameters('sqlServerName'), 'AllowAzureServices')]",
       "properties": {
         "startIpAddress": "0.0.0.0",
         "endIpAddress": "0.0.0.0"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', parameters('postgresServerName'))]"
+        "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]"
       ]
     },
     {
@@ -186,7 +172,7 @@
             },
             {
               "name": "DATABASE_URL",
-              "value": "[format('postgresql://{0}:{1}@{2}:5432/{3}?sslmode=require', parameters('postgresAdminUser'), parameters('postgresAdminPassword'), reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', parameters('postgresServerName')), '2024-08-01').fullyQualifiedDomainName, parameters('postgresDatabaseName'))]"
+              "value": "[format('Server={0},1433;Database={1};User Id={2};Password={3};Encrypt=yes;TrustServerCertificate=no', reference(resourceId('Microsoft.Sql/servers', parameters('sqlServerName')), '2023-08-01-preview').fullyQualifiedDomainName, parameters('sqlDatabaseName'), parameters('sqlAdminUser'), parameters('sqlAdminPassword'))]"
             }
           ]
         }
@@ -196,9 +182,9 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-        "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', parameters('postgresServerName'))]",
-        "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers/databases', parameters('postgresServerName'), parameters('postgresDatabaseName'))]",
-        "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers/firewallRules', parameters('postgresServerName'), 'AllowAzureServices')]",
+        "[resourceId('Microsoft.Sql/servers/databases', parameters('sqlServerName'), parameters('sqlDatabaseName'))]",
+        "[resourceId('Microsoft.Sql/servers/firewallRules', parameters('sqlServerName'), 'AllowAzureServices')]",
+        "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
       ]
     }
@@ -220,17 +206,17 @@
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Web/sites', parameters('functionAppName')), '2023-12-01', 'full').identity.principalId]"
     },
-    "postgresServerNameOut": {
+    "sqlServerNameOut": {
       "type": "string",
-      "value": "[parameters('postgresServerName')]"
+      "value": "[parameters('sqlServerName')]"
     },
-    "postgresFqdn": {
+    "sqlServerFqdn": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', parameters('postgresServerName')), '2024-08-01').fullyQualifiedDomainName]"
+      "value": "[reference(resourceId('Microsoft.Sql/servers', parameters('sqlServerName')), '2023-08-01-preview').fullyQualifiedDomainName]"
     },
-    "postgresDatabaseNameOut": {
+    "sqlDatabaseNameOut": {
       "type": "string",
-      "value": "[parameters('postgresDatabaseName')]"
+      "value": "[parameters('sqlDatabaseName')]"
     }
   }
 }

@@ -1,15 +1,14 @@
-# Azure infrastructure — `carwoods.com` (East US 2 / East US)
+# Azure infrastructure — `carwoods.com` (East US 2)
 
-This folder defines **Infrastructure as Code** for the tenant portal backend. All resources for this project must live in resource group `**carwoods.com`**. Storage, plan, and function app deploy to **East US 2** (`eastus2`); the PostgreSQL Flexible Server deploys to **East US** (`eastus`) because the subscription is offer-restricted for PostgreSQL in `eastus2`.
+This folder defines **Infrastructure as Code** for the tenant portal backend. All resources for this project must live in resource group `carwoods.com` in region **East US 2** (`eastus2`).
 
 
 | Item           | Value                                                                                            |
 | -------------- | ------------------------------------------------------------------------------------------------ |
 | Resource group | `carwoods.com` (exact name; enforced in CI)                                                      |
-| Region (non-PG resources) | `eastus2` (East US 2) — storage, plan, function app                         |
-| Region (PostgreSQL)       | `eastus` (East US) — offer-restricted in `eastus2` on this subscription     |
-| Template       | `[main.bicep](./main.bicep)`                                                                     |
-| CI workflow    | `[.github/workflows/azure-infrastructure.yml](../../.github/workflows/azure-infrastructure.yml)` |
+| Region         | `eastus2` (East US 2)                                                                            |
+| Template       | [`main.bicep`](./main.bicep)                                                                     |
+| CI workflow    | [`.github/workflows/azure-infrastructure.yml`](../../.github/workflows/azure-infrastructure.yml) |
 
 
 ---
@@ -24,13 +23,14 @@ The template is **scoped to an existing or new resource group** (`carwoods.com`)
 | **Storage account** (`storageAccountName`) | Functions runtime storage (`AzureWebJobsStorage`), file share content for the Function App         |
 | **App Service plan**                       | Name `{functionAppName}-plan`, **Linux Consumption** (SKU `Y1`, Dynamic)                           |
 | **Function App** (`functionAppName`)       | **Linux**, Node **20**, Functions runtime **~4**, **system-assigned managed identity**, HTTPS only |
-| **PostgreSQL Flexible Server** (`postgresServerName`) | **Burstable** `Standard_B1ms`, PostgreSQL **16**, 32 GiB storage, 7-day backup, HA off. Database `carwoods_portal` (override via Bicep param). |
-| **Firewall rule** `AllowAzureServices`     | `0.0.0.0`–`0.0.0.0` so **Azure services** (including this Function App’s outbound IPs) can connect. |
+| **Azure SQL logical server** (`sqlServerName`) | SQL Server 2022, TLS 1.2, public access enabled, firewall open to Azure services. |
+| **Azure SQL database** (`sqlDatabaseName`) | **Basic** tier, 5 DTUs, 2 GiB max. ~$5/month. Collation `SQL_Latin1_General_CP1_CI_AS`. Database `carwoods_portal` (override via Bicep param). |
+| **Firewall rule** `AllowAzureServices`     | `0.0.0.0`–`0.0.0.0` so **Azure services** (including this Function App's outbound IPs) can connect. |
 
 
-**Not in Bicep yet** (Portal or future Bicep): Blob containers for uploads, Azure Communication Services, Key Vault references, Application Insights wiring, custom domains, VNet integration for PostgreSQL.
+**Not in Bicep yet** (Portal or future Bicep): Blob containers for uploads, Azure Communication Services, Key Vault references, Application Insights wiring, custom domains, VNet integration for SQL.
 
-**Important:** This workflow only provisions the **shell** (hosting + storage). Deploying **your compiled** `apps/api` code is a separate step (`func azure functionapp publish`, GitHub Actions deploy job, or VS Code — document that in portal docs when you add it).
+**Important:** This workflow only provisions the **shell** (hosting + storage + database). Deploying **your compiled** `apps/api` code is a separate step (`func azure functionapp publish`, GitHub Actions deploy job, or VS Code — document that in portal docs when you add it).
 
 ---
 
@@ -48,7 +48,7 @@ The template is **scoped to an existing or new resource group** (`carwoods.com`)
 ### If the group already exists (your case)
 
 - Confirm in **Azure Portal → Resource groups → carwoods.com** that **Location** is **East US 2**.
-- The workflow’s `az group create` step is **idempotent**: it will not change an existing group’s region. If the name `carwoods.com` is taken in another region in a different subscription, fix **subscription** or **name** in Azure — do not change the enforced name in this repo without a deliberate policy change.
+- The workflow's `az group create` step is **idempotent**: it will not change an existing group's region. If the name `carwoods.com` is taken in another region in a different subscription, fix **subscription** or **name** in Azure — do not change the enforced name in this repo without a deliberate policy change.
 
 ### If you are creating it for the first time
 
@@ -89,15 +89,15 @@ GitHub Actions will authenticate **without** storing an Azure client secret, usi
    - **Name:** e.g. `github-carwoods-main`.
 4. **Save.**
 
-**Critical — repository name casing:** GitHub’s OIDC **subject** uses the **exact** owner and repository names from the repository URL. Example: if the repo is `https://github.com/dalzoubi/Carwoods`, the subject contains **`Carwoods`** (capital C). If you entered `carwoods` in the federated credential wizard, login fails with **`AADSTS700213`** (*No matching federated identity record*). **Fix:** edit the federated credential in Entra and set the subject to match the error message exactly (see [Troubleshooting: AADSTS700213](#troubleshooting-aadsts700213-no-matching-federated-identity) below).
+**Critical — repository name casing:** GitHub's OIDC **subject** uses the **exact** owner and repository names from the repository URL. Example: if the repo is `https://github.com/dalzoubi/Carwoods`, the subject contains **`Carwoods`** (capital C). If you entered `carwoods` in the federated credential wizard, login fails with **`AADSTS700213`** (*No matching federated identity record*). **Fix:** edit the federated credential in Entra and set the subject to match the error message exactly (see [Troubleshooting: AADSTS700213](#troubleshooting-aadsts700213-no-matching-federated-identity) below).
 
 **Manual fields (if your portal UI differs):**
 
 | Field | Value |
 | ----- | ----- |
 | **Issuer** | `https://token.actions.githubusercontent.com` |
-| **Subject identifier** | Must match GitHub’s assertion **byte-for-byte**. Typical form: `repo:OWNER/RepoName:ref:refs/heads/BRANCH` — **OWNER** and **RepoName** casing must match `github.com/OWNER/RepoName`. |
-| **Audience** | `api://AzureADTokenExchange` (default for Azure’s GitHub federation) |
+| **Subject identifier** | Must match GitHub's assertion **byte-for-byte**. Typical form: `repo:OWNER/RepoName:ref:refs/heads/BRANCH` — **OWNER** and **RepoName** casing must match `github.com/OWNER/RepoName`. |
+| **Audience** | `api://AzureADTokenExchange` (default for Azure's GitHub federation) |
 
 **Subject examples:**
 
@@ -145,12 +145,12 @@ Path: **GitHub repo → Settings → Secrets and variables → Actions**.
 Open the **Secrets** tab → **New repository secret**. Create exactly these **names** (case-sensitive):
 
 
-| Secret name                       | Where to get the value                                                     |
-| --------------------------------- | -------------------------------------------------------------------------- |
-| `AZURE_CLIENT_ID`                 | App registration → **Application (client) ID**                             |
-| `AZURE_TENANT_ID`                 | Entra tenant → **Directory (tenant) ID** (same as on app overview)         |
-| `AZURE_SUBSCRIPTION_ID`           | Azure Portal → **Subscriptions** → your subscription → **Subscription ID** |
-| `AZURE_POSTGRES_ADMIN_PASSWORD`   | Choose a strong password for the PostgreSQL admin user. **Avoid** `@ : / ? #` and spaces so `DATABASE_URL` in the Function App stays valid. Store only in GitHub Secrets (or pass securely for manual `az deployment`). |
+| Secret name                    | Where to get the value                                                     |
+| ------------------------------ | -------------------------------------------------------------------------- |
+| `AZURE_CLIENT_ID`              | App registration → **Application (client) ID**                             |
+| `AZURE_TENANT_ID`              | Entra tenant → **Directory (tenant) ID** (same as on app overview)         |
+| `AZURE_SUBSCRIPTION_ID`        | Azure Portal → **Subscriptions** → your subscription → **Subscription ID** |
+| `AZURE_SQL_ADMIN_PASSWORD`     | Choose a strong password for the SQL admin user. Must be ≥ 8 chars and include at least one uppercase letter, one lowercase letter, one digit, and one special character. Do **not** use the password in a plain-text connection string outside of GitHub Secrets or Azure Key Vault. |
 
 
 **CLI alternative for subscription ID:**
@@ -164,13 +164,12 @@ az account show --query id -o tsv
 Open the **Variables** tab → **New repository variable**.
 
 
-| Variable name                 | Rules                                                                                                                                                                                   | Example             |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| `AZURE_FUNCTION_APP_NAME`     | **Globally unique** in Azure. Letters, numbers, hyphens; see [naming rules](https://learn.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftwebsites). | `carwoods-api-a7b2` |
-| `AZURE_STORAGE_ACCOUNT_NAME`  | **Globally unique**, **3–24** chars, **lowercase letters and numbers only** (no hyphens).                                                                                               | `carwoodssitea7b2`  |
-| `AZURE_POSTGRES_SERVER_NAME`  | **Globally unique** DNS name for **Azure Database for PostgreSQL – Flexible Server**. **3–63** chars, **lowercase** letters, numbers, hyphens; cannot start or end with a hyphen.        | `carwoods-api-2026-pg` |
-| `AZURE_LOCATION`              | **Recommended.** Set to `eastus2` so **push-triggered** runs use the same region as your resource group when the workflow creates the RG. If unset, the workflow defaults to `eastus2`. | `eastus2`           |
-| `AZURE_POSTGRES_LOCATION`    | **Optional.** Overrides the PostgreSQL Flexible Server region independently of `AZURE_LOCATION`. Set if the subscription is offer-restricted for PostgreSQL in the primary region. Falls back to `AZURE_LOCATION` when unset. | `eastus`            |
+| Variable name                | Rules                                                                                                                                                                                   | Example             |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| `AZURE_FUNCTION_APP_NAME`    | **Globally unique** in Azure. Letters, numbers, hyphens; see [naming rules](https://learn.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftwebsites). | `carwoods-api-a7b2` |
+| `AZURE_STORAGE_ACCOUNT_NAME` | **Globally unique**, **3–24** chars, **lowercase letters and numbers only** (no hyphens).                                                                                               | `carwoodssitea7b2`  |
+| `AZURE_SQL_SERVER_NAME`      | **Globally unique** DNS name for the Azure SQL logical server. **1–63** chars, **lowercase** letters, numbers, hyphens; cannot start or end with a hyphen.                              | `carwoods-api-sql`  |
+| `AZURE_LOCATION`             | **Recommended.** Set to `eastus2` so push-triggered runs use the same region as your resource group. If unset, the workflow defaults to `eastus2`. | `eastus2`           |
 
 
 **Check name availability (CLI, after `az login`):**
@@ -179,11 +178,8 @@ Open the **Variables** tab → **New repository variable**.
 # Storage account name must be available globally
 az storage account check-name --name carwoodssitea7b2 --query nameAvailable -o tsv
 
-# Function app name: try creating in dry run or pick a unique suffix
-
-# PostgreSQL flexible server names must be globally unique; if deploy fails with a name conflict,
-# choose another AZURE_POSTGRES_SERVER_NAME or list existing servers in the subscription:
-# az postgres flexible-server list --query "[].name" -o tsv
+# Azure SQL server names must be globally unique:
+az sql server list --query "[].name" -o tsv
 ```
 
 ---
@@ -192,12 +188,12 @@ az storage account check-name --name carwoodssitea7b2 --query nameAvailable -o t
 
 1. **Actions** → workflow **Azure infrastructure** → **Run workflow**.
 2. **Branch:** `main` (or the branch your federated credential trusts).
-3. **Location:** default `eastus2` for the resource group / non-PostgreSQL resources. **PostgreSQL location:** default `eastus` (the subscription is offer-restricted for PostgreSQL Flexible Server in `eastus2`).
+3. **Location:** default `eastus2` (must stay consistent with RG **East US 2**).
 4. **What-if only:** set to `true` for the **first** run to preview ARM changes without applying; then run again with `false` to deploy.
 
 **Automatic runs:** On **push** to `main`, the workflow also runs when `infra/azure/main.bicep` or `.github/workflows/azure-infrastructure.yml` changes. To avoid accidental deploys, remove or comment out the `push:` block in the YAML.
 
-**Success:** The job **Deployment outputs** prints JSON with `functionAppHost`, `functionAppNameOut`, `storageAccountNameOut`, `principalId` (managed identity), plus `postgresFqdn`, `postgresServerNameOut`, `postgresDatabaseNameOut`.
+**Success:** The job **Deployment outputs** prints JSON with `functionAppHost`, `functionAppNameOut`, `storageAccountNameOut`, `principalId` (managed identity), plus `sqlServerFqdn`, `sqlServerNameOut`, `sqlDatabaseNameOut`.
 
 **Failure — common causes:**
 
@@ -207,8 +203,8 @@ az storage account check-name --name carwoodssitea7b2 --query nameAvailable -o t
 | **No subscriptions found** (often for `***`) | See [below](#troubleshooting-no-subscriptions-found) — wrong subscription/tenant secret, or app has **no RBAC** on that subscription. |
 | `Authorization failed` / 403 | RBAC: app must be **Contributor** (or equivalent) on **carwoods.com** or subscription. |
 | Storage name invalid / taken | `AZURE_STORAGE_ACCOUNT_NAME`: length, lowercase, global uniqueness. |
-| PostgreSQL name invalid / taken | `AZURE_POSTGRES_SERVER_NAME`: 3–63 chars, lowercase, hyphens OK, globally unique (ARM error “already exists” → pick a new name; `az postgres flexible-server list`). |
-| Missing DB password | Set secret `AZURE_POSTGRES_ADMIN_PASSWORD`. |
+| SQL server name invalid / taken | `AZURE_SQL_SERVER_NAME`: 1–63 chars, lowercase, hyphens OK, globally unique. |
+| Missing SQL password | Set secret `AZURE_SQL_ADMIN_PASSWORD` (≥ 8 chars, complexity required). |
 | Wrong subscription | `AZURE_SUBSCRIPTION_ID` must be the subscription where `carwoods.com` lives. |
 
 ### Troubleshooting: AADSTS700213 (no matching federated identity)
@@ -228,7 +224,7 @@ Entra only accepts the token if **one** federated credential on that app registr
    - correct **repository name casing** (`Carwoods` vs `carwoods`),
    - branch ref `refs/heads/main` if the workflow runs on `main`.
 4. **Issuer** must remain `https://token.actions.githubusercontent.com`.
-5. **Audience** must be `api://AzureADTokenExchange` (default when using Azure’s GitHub federation template).
+5. **Audience** must be `api://AzureADTokenExchange` (default when using Azure's GitHub federation template).
 6. Save, wait **1–2 minutes**, re-run the workflow.
 
 **How to confirm the subject before it fails:** In GitHub, open the repo and copy the path from the browser URL — e.g. `github.com/dalzoubi/Carwoods` → subject contains `dalzoubi/Carwoods` with that exact casing.
@@ -245,14 +241,14 @@ This usually appears right after **`azure/login`** in GitHub Actions (the `***` 
    - Azure Portal → **Subscriptions** → open the subscription that contains resource group **carwoods.com** → copy **Subscription ID** (GUID).  
    - In GitHub → **Settings → Secrets and variables → Actions**, edit the secret — no spaces, no quotes, full GUID.
 
-2. **`AZURE_TENANT_ID` matches that subscription’s directory**  
+2. **`AZURE_TENANT_ID` matches that subscription's directory**  
    - The subscription belongs to one Entra tenant. On the subscription overview, note the **Directory** (tenant name).  
-   - **App registration** for GitHub OIDC must live in **that same tenant**, and `AZURE_TENANT_ID` must be **that** tenant’s ID (Entra → **Overview** → **Tenant ID**).  
+   - **App registration** for GitHub OIDC must live in **that same tenant**, and `AZURE_TENANT_ID` must be **that** tenant's ID (Entra → **Overview** → **Tenant ID**).  
    - If the app is in tenant **A** but the subscription is in tenant **B**, login can succeed but **no subscriptions** appear for the app.
 
 3. **The app registration has Azure RBAC on that subscription or RG**  
    - OIDC login does not grant access by itself. Assign **Contributor** (or narrower role) to the **enterprise application** (service principal) for your CI app:  
-     **Subscriptions** → your subscription → **Access control (IAM)** → **Add role assignment** → **Contributor** → member = your app’s **name** (search under enterprise applications / service principals).  
+     **Subscriptions** → your subscription → **Access control (IAM)** → **Add role assignment** → **Contributor** → member = your app's **name** (search under enterprise applications / service principals).  
    - Or assign **Contributor** only on resource group **carwoods.com** (see Part C).
 
 4. **Propagation delay**  
@@ -287,7 +283,9 @@ az deployment group create \
   --template-file infra/azure/main.bicep \
   --parameters \
     functionAppName="<YOUR_FUNCTION_APP_NAME>" \
-    storageAccountName="<YOUR_STORAGE_ACCOUNT_NAME>"
+    storageAccountName="<YOUR_STORAGE_ACCOUNT_NAME>" \
+    sqlServerName="<YOUR_SQL_SERVER_NAME>" \
+    sqlAdminPassword="<YOUR_SQL_ADMIN_PASSWORD>"
 ```
 
 PowerShell guard (optional):
@@ -311,7 +309,7 @@ Workflow: **[`.github/workflows/azure-functions-deploy.yml`](../../.github/workf
 - **Uses the same OIDC secrets** as the infra workflow (`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`) and **`AZURE_FUNCTION_APP_NAME`** (repository Variable — must match the name from Bicep).
 - After a successful run, test:
   - `GET https://<AZURE_FUNCTION_APP_NAME>.azurewebsites.net/api/health`
-  - `GET https://<AZURE_FUNCTION_APP_NAME>.azurewebsites.net/api/public/apply-properties` → `{ "properties": [] }` until PostgreSQL-backed listings exist.
+  - `GET https://<AZURE_FUNCTION_APP_NAME>.azurewebsites.net/api/public/apply-properties` → `{ "properties": [] }` until SQL-backed listings exist.
 
 ### G2. Deploy from your machine (optional)
 
@@ -332,7 +330,7 @@ Requires [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-fu
 | Name | Purpose | Example / note |
 |------|---------|------------------|
 | `CORS_ALLOWED_ORIGINS` | Browser origins allowed to call anonymous HTTP endpoints (comma-separated). | `https://carwoods.com,https://www.carwoods.com` — add Vercel preview URLs if needed. |
-| `DATABASE_URL` | Set automatically by **Bicep** (`postgresql://…?sslmode=require`). | Optional hardening: move to **Key Vault reference** and rotate password without redeploying Bicep. |
+| `DATABASE_URL` | Set automatically by **Bicep** (`Server=<fqdn>,1433;Database=...`). | Optional hardening: move to **Key Vault reference** and rotate password without redeploying Bicep. |
 | Others | Entra API validation, Blob, ACS, Gemini — see [`docs/portal/ENV_CONTRACT.md`](../../docs/portal/ENV_CONTRACT.md). | |
 
 Save and allow the app to restart.
@@ -346,10 +344,20 @@ In Vercel / `.env` for production builds:
 
 ### G5. Database migrations
 
-After the Flexible Server exists, apply SQL in order against database **`carwoods_portal`** (name from Bicep; connect with **pgAdmin**, `psql`, or Azure Cloud Shell):
+After the SQL database exists, apply SQL in order using **SSMS**, **Azure Data Studio**, **sqlcmd**, or Azure Cloud Shell:
 
 1. `infra/db/migrations/001_initial_portal.sql`
 2. `infra/db/migrations/002_seed_lookup_and_notification_types.sql`
+
+Connect to: `<sqlServerFqdn>,1433` → database `carwoods_portal`, login `carwoodsadmin`.
+
+```bash
+# Azure Cloud Shell / local (requires sqlcmd or sqlpackage)
+sqlcmd -S <sqlServerFqdn>,1433 -d carwoods_portal -U carwoodsadmin -P '<password>' \
+  -i infra/db/migrations/001_initial_portal.sql
+sqlcmd -S <sqlServerFqdn>,1433 -d carwoods_portal -U carwoodsadmin -P '<password>' \
+  -i infra/db/migrations/002_seed_lookup_and_notification_types.sql
+```
 
 ### G6. Later: more Azure resources
 
@@ -365,12 +373,11 @@ After the Flexible Server exists, apply SQL in order against database **`carwood
 | Secret   | `AZURE_CLIENT_ID`                         |
 | Secret   | `AZURE_TENANT_ID`                         |
 | Secret   | `AZURE_SUBSCRIPTION_ID`                   |
-| Secret   | `AZURE_POSTGRES_ADMIN_PASSWORD`           |
+| Secret   | `AZURE_SQL_ADMIN_PASSWORD`                |
 | Variable | `AZURE_FUNCTION_APP_NAME`                 |
 | Variable | `AZURE_STORAGE_ACCOUNT_NAME`              |
-| Variable | `AZURE_POSTGRES_SERVER_NAME`              |
+| Variable | `AZURE_SQL_SERVER_NAME`                   |
 | Variable | `AZURE_LOCATION` (recommended: `eastus2`) |
-| Variable | `AZURE_POSTGRES_LOCATION` (optional: `eastus`) |
 
 
 ---
@@ -380,4 +387,4 @@ After the Flexible Server exists, apply SQL in order against database **`carwood
 - [Use GitHub Actions to connect to Azure](https://learn.microsoft.com/azure/developer/github/connect-from-azure)
 - [Azure/login action](https://github.com/Azure/login)
 - [Bicep overview](https://learn.microsoft.com/azure/azure-resource-manager/bicep/overview)
-
+- [Azure SQL Database pricing](https://azure.microsoft.com/pricing/details/azure-sql-database/single/)

@@ -16,7 +16,7 @@ Source of truth: [`infra/db/migrations/001_initial_portal.sql`](../../infra/db/m
 
 ## Indexes (summary)
 
-- Users: `lower(email)`
+- Users: `email` (plain index; case-insensitive collation `SQL_Latin1_General_CP1_CI_AS` handles case-insensitive search)
 - Properties: `har_listing_id`, partial on `apply_visible`
 - Leases: by `property_id`, partial active
 - `lease_tenants`: `user_id`

@@ -7,7 +7,7 @@ Use this as the authoritative product + technical brief. **Do not expose storage
 - **Public marketing site** remains on Vite + React (current repo).
 - **Tenant portal** at `/portal`: password-protected, app-like (not marketing layout).
 - **Admin**: properties, leases, tenants, service requests, messaging, vendors (model + optional UI flag), config, exports, notifications.
-- **Data**: PostgreSQL, private Blob uploads (SAS), email via Azure Communication Services Email, **Gemini only on backend** for admin reply suggestions.
+- **Data**: Azure SQL (Basic tier), private Blob uploads (SAS), email via Azure Communication Services Email, **Gemini only on backend** for admin reply suggestions.
 - **Retention**: 5 years; revoke portal access after lease rules but **do not delete** tenant/request history.
 
 ## Azure placement
@@ -21,7 +21,7 @@ Use this as the authoritative product + technical brief. **Do not expose storage
 |--------|--------|
 | Auth | Microsoft Entra External ID (Google, Apple, Microsoft, email/password, magic link / OTP as configured) |
 | API | Node.js **TypeScript** Azure Functions (preferred) |
-| DB | Azure Database for PostgreSQL |
+| DB | Azure SQL (Basic tier, ~$5/month) |
 | Files | Azure Blob Storage (private containers, short-lived SAS) |
 | Email | Azure Communication Services Email |
 | AI | Gemini via backend adapter only |

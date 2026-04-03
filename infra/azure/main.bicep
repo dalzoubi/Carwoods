@@ -1,11 +1,8 @@
 // Deploy with: az deployment group create -g carwoods.com -f main.bicep
 // targetScope defaults to resourceGroup — deploy INTO existing RG carwoods.com
 
-@description('Azure region for most resources (defaults to resource group location).')
+@description('Azure region for resources (defaults to resource group location).')
 param location string = resourceGroup().location
-
-@description('Azure region for the PostgreSQL Flexible Server. Defaults to location. Override when the subscription is offer-restricted in the primary region.')
-param postgresLocation string = location
 
 @description('Globally unique storage account name (lowercase, no hyphens, max 24 chars).')
 param storageAccountName string
@@ -16,22 +13,24 @@ param functionAppName string
 @description('Node.js version on Functions.')
 param nodeVersion string = '20'
 
-@description('Globally unique PostgreSQL Flexible Server name (lowercase, alphanumeric + hyphens, 3–63 chars).')
-param postgresServerName string
+@description('Globally unique Azure SQL logical server name (lowercase, alphanumeric + hyphens, 1–63 chars).')
+param sqlServerName string
 
-@description('PostgreSQL admin user (cannot be azure_superuser, admin, etc.).')
-param postgresAdminUser string = 'carwoodsadmin'
+@description('Azure SQL admin login.')
+param sqlAdminUser string = 'carwoodsadmin'
 
 @secure()
-@description('PostgreSQL admin password. Avoid @ : / ? # and spaces in DATABASE_URL compatibility.')
-param postgresAdminPassword string
+@description('Azure SQL admin password (min 8 chars, must include uppercase, lowercase, digit, special).')
+param sqlAdminPassword string
 
-@description('Logical database created on the server for the portal.')
-param postgresDatabaseName string = 'carwoods_portal'
+@description('Database name on the logical SQL server.')
+param sqlDatabaseName string = 'carwoods_portal'
 
 var hostingPlanName = '${functionAppName}-plan'
 
-var databaseUrl = 'postgresql://${postgresAdminUser}:${postgresAdminPassword}@${postgres.properties.fullyQualifiedDomainName}:5432/${postgresDatabaseName}?sslmode=require'
+// mssql connection string accepted by the tedious driver via the DATABASE_URL env var.
+// Format: Server=<fqdn>,1433;Database=<db>;User Id=<user>;Password=<pass>;Encrypt=yes;TrustServerCertificate=no
+var databaseUrl = 'Server=${sqlServer.properties.fullyQualifiedDomainName},1433;Database=${sqlDatabaseName};User Id=${sqlAdminUser};Password=${sqlAdminPassword};Encrypt=yes;TrustServerCertificate=no'
 
 resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: storageAccountName
@@ -46,45 +45,40 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   }
 }
 
-resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
-  name: postgresServerName
-  location: postgresLocation
+// Azure SQL logical server (hosts one or more databases)
+resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' = {
+  name: sqlServerName
+  location: location
+  properties: {
+    administratorLogin: sqlAdminUser
+    administratorLoginPassword: sqlAdminPassword
+    minimalTlsVersion: '1.2'
+    publicNetworkAccess: 'Enabled'
+  }
+}
+
+// Cheapest non-serverless option: Basic tier, 5 DTUs, 2 GiB. ~$5/month.
+resource sqlDb 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {
+  parent: sqlServer
+  name: sqlDatabaseName
+  location: location
   sku: {
-    name: 'Standard_B1ms'
-    tier: 'Burstable'
+    name: 'Basic'
+    tier: 'Basic'
+    capacity: 5
   }
   properties: {
-    version: '16'
-    administratorLogin: postgresAdminUser
-    administratorLoginPassword: postgresAdminPassword
-    storage: {
-      storageSizeGB: 32
-    }
-    backup: {
-      backupRetentionDays: 7
-      geoRedundantBackup: 'Disabled'
-    }
-    highAvailability: {
-      mode: 'Disabled'
-    }
-    network: {
-      publicNetworkAccess: 'Enabled'
-    }
+    collation: 'SQL_Latin1_General_CP1_CI_AS'
+    maxSizeBytes: 2147483648 // 2 GiB (Basic max)
+    zoneRedundant: false
+    readScale: 'Disabled'
+    requestedBackupStorageRedundancy: 'Local'
   }
 }
 
-resource postgresDb 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2024-08-01' = {
-  parent: postgres
-  name: postgresDatabaseName
-  properties: {
-    charset: 'UTF8'
-    collation: 'en_US.utf8'
-  }
-}
-
-// Allows Azure services (including Consumption Functions outbound) to reach the server.
-resource postgresFirewallAzure 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2024-08-01' = {
-  parent: postgres
+// Allows all Azure-internal IPs (including Consumption Functions) to reach the server.
+resource sqlFirewallAzure 'Microsoft.Sql/servers/firewallRules@2023-08-01-preview' = {
+  parent: sqlServer
   name: 'AllowAzureServices'
   properties: {
     startIpAddress: '0.0.0.0'
@@ -109,8 +103,8 @@ resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
   location: location
   kind: 'functionapp,linux'
   dependsOn: [
-    postgresDb
-    postgresFirewallAzure
+    sqlDb
+    sqlFirewallAzure
   ]
   properties: {
     serverFarmId: plan.id
@@ -154,6 +148,6 @@ output functionAppNameOut string = functionApp.name
 output functionAppHost string = 'https://${functionApp.properties.defaultHostName}'
 output storageAccountNameOut string = storage.name
 output principalId string = functionApp.identity.principalId
-output postgresServerNameOut string = postgres.name
-output postgresFqdn string = postgres.properties.fullyQualifiedDomainName
-output postgresDatabaseNameOut string = postgresDatabaseName
+output sqlServerNameOut string = sqlServer.name
+output sqlServerFqdn string = sqlServer.properties.fullyQualifiedDomainName
+output sqlDatabaseNameOut string = sqlDatabaseName
