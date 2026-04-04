@@ -616,8 +616,8 @@
       "checkMe": "Vérifier /portal/me",
       "openTenant": "Ouvrir l'espace locataire",
       "openAdmin": "Ouvrir l'espace admin",
-      "saveToken": "Enregistrer le jeton en session",
-      "clearToken": "Effacer le jeton enregistré",
+      "signIn": "Se connecter avec Entra",
+      "signOut": "Se déconnecter",
       "refreshSession": "Actualiser la session enregistrée"
     },
     "entraHeading": "Vérifications d'environnement SPA Entra",
@@ -628,6 +628,14 @@
     "sessionSaved": "Jeton enregistré",
     "sessionNotSaved": "Aucun jeton enregistré",
     "sessionSubject": "Sujet de session : {{subject}}",
+    "authStatus": {
+      "unconfigured": "Entra non configuré",
+      "initializing": "Initialisation de l'authentification",
+      "unauthenticated": "Déconnecté",
+      "authenticating": "Connexion en cours",
+      "authenticated": "Connecté",
+      "error": "Erreur d'authentification"
+    },
     "status": {
       "idle": "Inactif",
       "loading": "Vérification",
@@ -650,9 +658,11 @@
       "tenant": "Espace locataire",
       "admin": "Espace admin",
       "retryAuth": "Relancer la vérification d'authentification",
-      "clearToken": "Effacer le jeton"
+      "signIn": "Se connecter",
+      "signOut": "Se déconnecter"
     },
-    "authRequired": "Enregistrez un jeton bearer dans la configuration du portail avant d'utiliser cet espace.",
+    "authRequired": "Connectez-vous depuis la configuration du portail avant d'utiliser cet espace.",
+    "authUnconfigured": "Configurez les variables d'environnement Entra avant d'utiliser les espaces du portail.",
     "authLoading": "Vérification de la session portail enregistrée…",
     "authError": "Impossible de valider la session portail enregistrée.",
     "authForbidden": "Votre session actuelle n'est pas autorisée pour l'espace admin.",

@@ -616,8 +616,8 @@
       "checkMe": "Check /portal/me",
       "openTenant": "Open tenant workspace",
       "openAdmin": "Open admin workspace",
-      "saveToken": "Save token to session",
-      "clearToken": "Clear saved token",
+      "signIn": "Sign in with Entra",
+      "signOut": "Sign out",
       "refreshSession": "Refresh saved session"
     },
     "entraHeading": "Entra SPA environment checks",
@@ -628,6 +628,14 @@
     "sessionSaved": "Token saved",
     "sessionNotSaved": "No saved token",
     "sessionSubject": "Session subject: {{subject}}",
+    "authStatus": {
+      "unconfigured": "Entra not configured",
+      "initializing": "Initializing auth",
+      "unauthenticated": "Signed out",
+      "authenticating": "Signing in",
+      "authenticated": "Signed in",
+      "error": "Auth error"
+    },
     "status": {
       "idle": "Idle",
       "loading": "Checking",
@@ -650,9 +658,11 @@
       "tenant": "Tenant workspace",
       "admin": "Admin workspace",
       "retryAuth": "Retry auth check",
-      "clearToken": "Clear token"
+      "signIn": "Sign in",
+      "signOut": "Sign out"
     },
-    "authRequired": "Save a bearer token in Portal Setup before using this workspace.",
+    "authRequired": "Sign in from Portal Setup before using this workspace.",
+    "authUnconfigured": "Configure Entra environment values before using portal workspaces.",
     "authLoading": "Checking saved portal session…",
     "authError": "Unable to validate the saved portal session.",
     "authForbidden": "Your current session is not authorized for admin workspace access.",

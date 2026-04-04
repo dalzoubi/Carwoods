@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
@@ -8,7 +8,6 @@ import {
   Button,
   Chip,
   Stack,
-  TextField,
   Typography,
 } from '@mui/material';
 import { VITE_API_BASE_URL_RESOLVED } from '../featureFlags';
@@ -26,21 +25,29 @@ function statusColor(status) {
   return 'default';
 }
 
+function authStatusColor(status) {
+  if (status === 'authenticated') return 'success';
+  if (status === 'unauthenticated' || status === 'unconfigured') return 'default';
+  if (status === 'error') return 'error';
+  return 'warning';
+}
+
 const PortalSetup = () => {
   const { pathname } = useLocation();
   const { t } = useTranslation();
   const [health, setHealth] = useState({ state: 'idle', detail: '' });
-  const [me, setMe] = useState({ state: 'idle', detail: '' });
   const {
-    token: savedToken,
+    authStatus,
+    authError,
+    account,
+    isAuthenticated,
     meStatus,
     meData,
     meError,
-    saveToken,
-    clearToken,
+    signIn,
+    signOut,
     refreshMe,
   } = usePortalAuth();
-  const [bearerToken, setBearerToken] = useState(savedToken);
   const entraClientId = (import.meta.env.VITE_ENTRA_CLIENT_ID ?? '').trim();
   const entraAuthority = (import.meta.env.VITE_ENTRA_AUTHORITY ?? '').trim();
   const entraScope = (import.meta.env.VITE_ENTRA_API_SCOPE ?? '').trim();
@@ -48,10 +55,6 @@ const PortalSetup = () => {
   const baseUrl = useMemo(() => VITE_API_BASE_URL_RESOLVED || '', []);
   const healthUrl = baseUrl ? endpoint(baseUrl, '/api/health') : '';
   const meUrl = baseUrl ? endpoint(baseUrl, '/api/portal/me') : '';
-
-  useEffect(() => {
-    setBearerToken(savedToken);
-  }, [savedToken]);
 
   const fetchHealth = async () => {
     if (!baseUrl) return;
@@ -75,39 +78,6 @@ const PortalSetup = () => {
       });
     } catch (error) {
       setHealth({
-        state: 'error',
-        detail: error instanceof Error ? error.message : t('portalSetup.errors.unknown'),
-      });
-    }
-  };
-
-  const fetchMe = async () => {
-    if (!baseUrl) return;
-    if (!bearerToken.trim()) {
-      setMe({ state: 'error', detail: t('portalSetup.errors.tokenRequired') });
-      return;
-    }
-    setMe({ state: 'loading', detail: '' });
-    try {
-      const res = await fetch(meUrl, {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${bearerToken.trim()}`,
-        },
-        credentials: 'omit',
-      });
-      if (!res.ok) {
-        setMe({
-          state: 'error',
-          detail: t('portalSetup.errors.httpStatus', { status: res.status }),
-        });
-        return;
-      }
-      const payload = await res.json();
-      const subject = payload?.subject ? String(payload.subject) : t('portalSetup.labels.ok');
-      setMe({ state: 'ok', detail: subject });
-    } catch (error) {
-      setMe({
         state: 'error',
         detail: error instanceof Error ? error.message : t('portalSetup.errors.unknown'),
       });
@@ -203,25 +173,27 @@ const PortalSetup = () => {
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
               <Chip
                 size="small"
-                color={savedToken ? 'success' : 'default'}
-                label={savedToken ? t('portalSetup.sessionSaved') : t('portalSetup.sessionNotSaved')}
+                color={authStatusColor(authStatus)}
+                label={t(`portalSetup.authStatus.${authStatus}`)}
               />
               <Typography color="text.secondary">
-                {meStatus === 'ok'
-                  ? t('portalSetup.sessionSubject', { subject: meData?.subject ?? t('portalSetup.notConfigured') })
-                  : meStatus === 'error'
-                    ? meError || t('portalSetup.errors.unknown')
-                    : t(`portalSetup.status.${meStatus}`)}
+                {authStatus === 'authenticated'
+                  ? t('portalSetup.sessionSubject', {
+                      subject: account?.username ?? meData?.subject ?? t('portalSetup.notConfigured'),
+                    })
+                  : authStatus === 'error'
+                    ? authError || t('portalSetup.errors.unknown')
+                    : t('portalSetup.sessionNotSaved')}
               </Typography>
             </Stack>
             <Stack direction="row" spacing={1.25} sx={{ flexWrap: 'wrap' }}>
-              <Button type="button" variant="contained" onClick={() => saveToken(bearerToken)} disabled={!bearerToken.trim()}>
-                {t('portalSetup.actions.saveToken')}
+              <Button type="button" variant="contained" onClick={signIn} disabled={authStatus === 'initializing' || authStatus === 'authenticating'}>
+                {t('portalSetup.actions.signIn')}
               </Button>
-              <Button type="button" variant="outlined" onClick={clearToken}>
-                {t('portalSetup.actions.clearToken')}
+              <Button type="button" variant="outlined" onClick={signOut} disabled={!isAuthenticated}>
+                {t('portalSetup.actions.signOut')}
               </Button>
-              <Button type="button" variant="outlined" onClick={refreshMe} disabled={!savedToken}>
+              <Button type="button" variant="outlined" onClick={refreshMe} disabled={!isAuthenticated}>
                 {t('portalSetup.actions.refreshSession')}
               </Button>
             </Stack>
@@ -270,23 +242,22 @@ const PortalSetup = () => {
               {t('portalSetup.meHeading')}
             </Typography>
             <Typography color="text.secondary">{meUrl || t('portalSetup.notConfigured')}</Typography>
-            <TextField
-              label={t('portalSetup.tokenLabel')}
-              value={bearerToken}
-              onChange={(event) => setBearerToken(event.target.value)}
-              fullWidth
-              multiline
-              minRows={3}
-            />
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
               <Chip
                 size="small"
-                color={statusColor(me.state)}
-                label={t(`portalSetup.status.${me.state}`)}
+                color={statusColor(meStatus)}
+                label={t(`portalSetup.status.${meStatus}`)}
               />
-              {me.detail && <Typography>{me.detail}</Typography>}
+              {meStatus === 'ok' && (
+                <Typography>
+                  {t('portalSetup.sessionSubject', {
+                    subject: meData?.subject ?? t('portalSetup.notConfigured'),
+                  })}
+                </Typography>
+              )}
+              {meStatus === 'error' && <Typography>{meError || t('portalSetup.errors.unknown')}</Typography>}
             </Stack>
-            <Button type="button" variant="contained" onClick={fetchMe} disabled={!baseUrl || me.state === 'loading'}>
+            <Button type="button" variant="contained" onClick={refreshMe} disabled={!isAuthenticated || meStatus === 'loading'}>
               {t('portalSetup.actions.checkMe')}
             </Button>
           </Stack>

@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { EventType, InteractionRequiredAuthError } from '@azure/msal-browser';
 import { VITE_API_BASE_URL_RESOLVED } from './featureFlags';
-import { loadPortalBearerToken, savePortalBearerToken } from './portalAuthStorage';
+import { ENTRA_AUTH_CONFIGURED, ENTRA_SCOPES, msalInstance } from './entraAuth';
 
 const PortalAuthContext = createContext(null);
 
@@ -9,7 +10,11 @@ function endpoint(baseUrl, path) {
 }
 
 export const PortalAuthProvider = ({ children }) => {
-  const [token, setToken] = useState(() => loadPortalBearerToken());
+  const [authStatus, setAuthStatus] = useState(
+    ENTRA_AUTH_CONFIGURED ? 'initializing' : 'unconfigured'
+  );
+  const [authError, setAuthError] = useState('');
+  const [account, setAccount] = useState(null);
   const [meStatus, setMeStatus] = useState('idle');
   const [meData, setMeData] = useState(null);
   const [meError, setMeError] = useState('');
@@ -18,29 +23,125 @@ export const PortalAuthProvider = ({ children }) => {
   const baseUrl = VITE_API_BASE_URL_RESOLVED || '';
   const meUrl = baseUrl ? endpoint(baseUrl, '/api/portal/me') : '';
 
-  const saveToken = useCallback((nextToken) => {
-    const normalized = (nextToken ?? '').trim();
-    setToken(normalized);
-    savePortalBearerToken(normalized);
+  const syncActiveAccount = useCallback(() => {
+    if (!msalInstance) {
+      setAccount(null);
+      setAuthStatus('unconfigured');
+      return null;
+    }
+    const active =
+      msalInstance.getActiveAccount() ?? msalInstance.getAllAccounts()[0] ?? null;
+    if (active) {
+      msalInstance.setActiveAccount(active);
+      setAccount(active);
+      setAuthStatus('authenticated');
+      return active;
+    }
+    setAccount(null);
+    setAuthStatus('unauthenticated');
+    return null;
   }, []);
 
-  const clearToken = useCallback(() => {
-    setToken('');
+  const clearSessionData = useCallback(() => {
     setMeStatus('idle');
     setMeData(null);
     setMeError('');
-    savePortalBearerToken('');
   }, []);
+
+  const signIn = useCallback(async () => {
+    if (!msalInstance) {
+      setAuthStatus('unconfigured');
+      return;
+    }
+    setAuthStatus('authenticating');
+    setAuthError('');
+    try {
+      const result = await msalInstance.loginPopup({
+        scopes: ENTRA_SCOPES,
+        prompt: 'select_account',
+      });
+      if (result.account) {
+        msalInstance.setActiveAccount(result.account);
+        setAccount(result.account);
+      }
+      syncActiveAccount();
+      setRefreshTick((x) => x + 1);
+    } catch (error) {
+      setAuthStatus('error');
+      setAuthError(error instanceof Error ? error.message : 'auth_failed');
+    }
+  }, [syncActiveAccount]);
+
+  const signOut = useCallback(async () => {
+    if (!msalInstance) {
+      setAuthStatus('unconfigured');
+      return;
+    }
+    try {
+      await msalInstance.logoutPopup({
+        account: msalInstance.getActiveAccount() ?? undefined,
+      });
+    } catch {
+      // Even if logout popup fails, clear local auth state.
+    } finally {
+      setAccount(null);
+      setAuthError('');
+      setAuthStatus('unauthenticated');
+      clearSessionData();
+    }
+  }, [clearSessionData]);
 
   const refreshMe = useCallback(() => {
     setRefreshTick((x) => x + 1);
   }, []);
 
   useEffect(() => {
-    if (!baseUrl || !token) {
-      setMeStatus('idle');
-      setMeData(null);
-      setMeError('');
+    if (!ENTRA_AUTH_CONFIGURED || !msalInstance) {
+      setAuthStatus('unconfigured');
+      clearSessionData();
+      return;
+    }
+    let mounted = true;
+    let callbackId = null;
+
+    const initialize = async () => {
+      setAuthStatus('initializing');
+      setAuthError('');
+      try {
+        await msalInstance.initialize();
+        await msalInstance.handleRedirectPromise();
+        if (mounted) {
+          syncActiveAccount();
+        }
+      } catch (error) {
+        if (!mounted) return;
+        setAuthStatus('error');
+        setAuthError(error instanceof Error ? error.message : 'auth_init_failed');
+      }
+    };
+
+    callbackId = msalInstance.addEventCallback((event) => {
+      if (
+        event.eventType === EventType.LOGIN_SUCCESS ||
+        event.eventType === EventType.ACQUIRE_TOKEN_SUCCESS ||
+        event.eventType === EventType.LOGOUT_SUCCESS
+      ) {
+        syncActiveAccount();
+      }
+    });
+
+    initialize();
+    return () => {
+      mounted = false;
+      if (callbackId) {
+        msalInstance.removeEventCallback(callbackId);
+      }
+    };
+  }, [clearSessionData, syncActiveAccount]);
+
+  useEffect(() => {
+    if (!baseUrl || !meUrl || authStatus !== 'authenticated' || !account || !msalInstance) {
+      clearSessionData();
       return;
     }
 
@@ -49,15 +150,33 @@ export const PortalAuthProvider = ({ children }) => {
       setMeStatus('loading');
       setMeError('');
       try {
+        let tokenResponse;
+        try {
+          tokenResponse = await msalInstance.acquireTokenSilent({
+            account,
+            scopes: ENTRA_SCOPES,
+          });
+        } catch (error) {
+          if (error instanceof InteractionRequiredAuthError) {
+            tokenResponse = await msalInstance.acquireTokenPopup({
+              account,
+              scopes: ENTRA_SCOPES,
+            });
+          } else {
+            throw error;
+          }
+        }
+
         const res = await fetch(meUrl, {
           method: 'GET',
           headers: {
             Accept: 'application/json',
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${tokenResponse.accessToken}`,
           },
           credentials: 'omit',
           signal: controller.signal,
         });
+
         if (!res.ok) {
           setMeStatus('error');
           setMeData(null);
@@ -77,21 +196,36 @@ export const PortalAuthProvider = ({ children }) => {
 
     run();
     return () => controller.abort();
-  }, [baseUrl, meUrl, refreshTick, token]);
+  }, [account, authStatus, baseUrl, clearSessionData, meUrl, refreshTick]);
 
   const value = useMemo(
     () => ({
       baseUrl,
       meUrl,
-      token,
+      authStatus,
+      authError,
+      account,
+      isAuthenticated: authStatus === 'authenticated',
       meStatus,
       meData,
       meError,
-      saveToken,
-      clearToken,
+      signIn,
+      signOut,
       refreshMe,
     }),
-    [baseUrl, clearToken, meData, meError, meStatus, meUrl, refreshMe, saveToken, token]
+    [
+      account,
+      authError,
+      authStatus,
+      baseUrl,
+      meData,
+      meError,
+      meStatus,
+      meUrl,
+      refreshMe,
+      signIn,
+      signOut,
+    ]
   );
 
   return <PortalAuthContext.Provider value={value}>{children}</PortalAuthContext.Provider>;

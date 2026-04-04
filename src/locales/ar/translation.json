@@ -616,8 +616,8 @@
       "checkMe": "فحص /portal/me",
       "openTenant": "فتح مساحة المستأجر",
       "openAdmin": "فتح مساحة الإدارة",
-      "saveToken": "حفظ الرمز في الجلسة",
-      "clearToken": "مسح الرمز المحفوظ",
+      "signIn": "تسجيل الدخول عبر Entra",
+      "signOut": "تسجيل الخروج",
       "refreshSession": "تحديث الجلسة المحفوظة"
     },
     "entraHeading": "فحوصات بيئة Entra لتطبيق SPA",
@@ -628,6 +628,14 @@
     "sessionSaved": "تم حفظ الرمز",
     "sessionNotSaved": "لا يوجد رمز محفوظ",
     "sessionSubject": "معرّف الجلسة: {{subject}}",
+    "authStatus": {
+      "unconfigured": "Entra غير مُعد",
+      "initializing": "جارٍ تهيئة التوثيق",
+      "unauthenticated": "تم تسجيل الخروج",
+      "authenticating": "جارٍ تسجيل الدخول",
+      "authenticated": "تم تسجيل الدخول",
+      "error": "خطأ في التوثيق"
+    },
     "status": {
       "idle": "خامل",
       "loading": "جارٍ الفحص",
@@ -650,9 +658,11 @@
       "tenant": "مساحة المستأجر",
       "admin": "مساحة الإدارة",
       "retryAuth": "إعادة فحص التوثيق",
-      "clearToken": "مسح الرمز"
+      "signIn": "تسجيل الدخول",
+      "signOut": "تسجيل الخروج"
     },
-    "authRequired": "احفظ رمز bearer في إعداد البوابة قبل استخدام هذه المساحة.",
+    "authRequired": "سجّل الدخول من إعداد البوابة قبل استخدام هذه المساحة.",
+    "authUnconfigured": "قم بإعداد متغيرات بيئة Entra قبل استخدام مساحات البوابة.",
     "authLoading": "جارٍ التحقق من جلسة البوابة المحفوظة…",
     "authError": "تعذر التحقق من جلسة البوابة المحفوظة.",
     "authForbidden": "جلستك الحالية غير مخولة للوصول إلى مساحة الإدارة.",

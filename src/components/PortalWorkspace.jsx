@@ -12,7 +12,7 @@ function roleKey(role) {
 const PortalWorkspace = ({ role = 'tenant' }) => {
   const { pathname } = useLocation();
   const { t } = useTranslation();
-  const { token, meStatus, meData, meError, refreshMe, clearToken } = usePortalAuth();
+  const { authStatus, isAuthenticated, meStatus, meData, meError, refreshMe, signIn, signOut } = usePortalAuth();
   const key = roleKey(role);
   const userRole = meData?.user?.role ?? '';
   const isAdminRoute = key === 'admin';
@@ -34,13 +34,16 @@ const PortalWorkspace = ({ role = 'tenant' }) => {
           </Button>
         </Stack>
 
-        {!token && (
+        {authStatus === 'unconfigured' && (
+          <Alert severity="warning">{t('portalWorkspace.authUnconfigured')}</Alert>
+        )}
+        {authStatus !== 'unconfigured' && !isAuthenticated && (
           <Alert severity="warning">{t('portalWorkspace.authRequired')}</Alert>
         )}
-        {token && meStatus === 'loading' && (
+        {isAuthenticated && meStatus === 'loading' && (
           <Alert severity="info">{t('portalWorkspace.authLoading')}</Alert>
         )}
-        {token && meStatus === 'error' && (
+        {isAuthenticated && meStatus === 'error' && (
           <Stack spacing={1}>
             <Alert severity="error">
               {t('portalWorkspace.authError')} {meError ? `(${meError})` : ''}
@@ -49,8 +52,8 @@ const PortalWorkspace = ({ role = 'tenant' }) => {
               <Button type="button" variant="outlined" onClick={refreshMe}>
                 {t('portalWorkspace.actions.retryAuth')}
               </Button>
-              <Button type="button" variant="outlined" onClick={clearToken}>
-                {t('portalWorkspace.actions.clearToken')}
+              <Button type="button" variant="outlined" onClick={signOut}>
+                {t('portalWorkspace.actions.signOut')}
               </Button>
             </Stack>
           </Stack>
@@ -58,7 +61,12 @@ const PortalWorkspace = ({ role = 'tenant' }) => {
         {showRoleGuard && (
           <Alert severity="error">{t('portalWorkspace.authForbidden')}</Alert>
         )}
-        {token && meStatus === 'ok' && (
+        {!isAuthenticated && authStatus !== 'unconfigured' && (
+          <Button type="button" variant="contained" onClick={signIn}>
+            {t('portalWorkspace.actions.signIn')}
+          </Button>
+        )}
+        {isAuthenticated && meStatus === 'ok' && (
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
             <Chip size="small" color="success" label={t('portalWorkspace.authenticated')} />
             <Typography color="text.secondary">

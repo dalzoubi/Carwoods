@@ -616,8 +616,8 @@
       "checkMe": "Comprobar /portal/me",
       "openTenant": "Abrir espacio de inquilino",
       "openAdmin": "Abrir espacio de administración",
-      "saveToken": "Guardar token en sesión",
-      "clearToken": "Borrar token guardado",
+      "signIn": "Iniciar sesión con Entra",
+      "signOut": "Cerrar sesión",
       "refreshSession": "Actualizar sesión guardada"
     },
     "entraHeading": "Comprobaciones de entorno SPA de Entra",
@@ -628,6 +628,14 @@
     "sessionSaved": "Token guardado",
     "sessionNotSaved": "Sin token guardado",
     "sessionSubject": "Sujeto de sesión: {{subject}}",
+    "authStatus": {
+      "unconfigured": "Entra no configurado",
+      "initializing": "Inicializando autenticación",
+      "unauthenticated": "Sesión cerrada",
+      "authenticating": "Iniciando sesión",
+      "authenticated": "Sesión iniciada",
+      "error": "Error de autenticación"
+    },
     "status": {
       "idle": "Inactivo",
       "loading": "Comprobando",
@@ -650,9 +658,11 @@
       "tenant": "Espacio de inquilino",
       "admin": "Espacio de administración",
       "retryAuth": "Reintentar comprobación de autenticación",
-      "clearToken": "Borrar token"
+      "signIn": "Iniciar sesión",
+      "signOut": "Cerrar sesión"
     },
-    "authRequired": "Guarde un token bearer en Configuración del Portal antes de usar este espacio.",
+    "authRequired": "Inicie sesión desde Configuración del Portal antes de usar este espacio.",
+    "authUnconfigured": "Configure los valores de entorno de Entra antes de usar los espacios del portal.",
     "authLoading": "Comprobando sesión guardada del portal…",
     "authError": "No se pudo validar la sesión guardada del portal.",
     "authForbidden": "Su sesión actual no está autorizada para el espacio de administración.",
