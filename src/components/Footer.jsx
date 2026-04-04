@@ -1,8 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { withDarkPath } from '../routePaths';
 
 const FooterContainer = styled.footer`
     background-color: var(--palette-app-chrome-main);
@@ -42,10 +40,6 @@ const FooterLink = styled.a`
     ${linkStyles}
 `;
 
-const FooterLinkInternal = styled(Link)`
-    ${linkStyles}
-`;
-
 const FooterSeparator = styled.span`
     color: var(--footer-separator-on-primary);
     margin: 0 2px;
@@ -53,7 +47,6 @@ const FooterSeparator = styled.span`
 `;
 
 const Footer = () => {
-    const { pathname } = useLocation();
     const { t } = useTranslation();
     return (
         <FooterContainer>
@@ -65,12 +58,6 @@ const Footer = () => {
             <FooterLink href="https://members.har.com/mhf/terms/dispBrokerInfo.cfm?sitetype=aws&cid=735771" target="_blank" rel="noopener noreferrer" aria-label={t('footer.trecBrokerageAriaLabel')}>
                 {t('footer.trecBrokerage')}
             </FooterLink>
-            <FooterSeparator aria-hidden="true">|</FooterSeparator>
-            <FooterLinkInternal to={withDarkPath(pathname, '/privacy')}>{t('footer.privacyPolicy')}</FooterLinkInternal>
-            <FooterSeparator aria-hidden="true">|</FooterSeparator>
-            <FooterLinkInternal to={withDarkPath(pathname, '/terms-of-service')}>{t('footer.termsOfService')}</FooterLinkInternal>
-            <FooterSeparator aria-hidden="true">|</FooterSeparator>
-            <FooterLinkInternal to={withDarkPath(pathname, '/accessibility')}>{t('footer.accessibility')}</FooterLinkInternal>
         </FooterContainer>
     );
 };

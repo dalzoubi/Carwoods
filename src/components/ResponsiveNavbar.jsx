@@ -59,12 +59,13 @@ const ResponsiveNavbar = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [tenantAnchor, setTenantAnchor] = useState(null);
     const [landlordAnchor, setLandlordAnchor] = useState(null);
+    const [legalAnchor, setLegalAnchor] = useState(null);
     const [appearanceAnchor, setAppearanceAnchor] = useState(null);
     const [languageAnchor, setLanguageAnchor] = useState(null);
     const [appearanceMenuLabelledBy, setAppearanceMenuLabelledBy] = useState(undefined);
     const [languageMenuLabelledBy, setLanguageMenuLabelledBy] = useState(undefined);
     const muiTheme = useTheme();
-    const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
+    const isMobile = useMediaQuery(muiTheme.breakpoints.down('lg'));
     const {
         storedOverride,
         darkThemeFeatureEnabled,
@@ -116,6 +117,7 @@ const ResponsiveNavbar = () => {
 
     const handleTenantOpen = (e) => {
         setLandlordAnchor(null);
+        setLegalAnchor(null);
         setAppearanceAnchor(null);
         setLanguageAnchor(null);
         setTenantAnchor(e.currentTarget);
@@ -125,6 +127,7 @@ const ResponsiveNavbar = () => {
     };
     const handleLandlordOpen = (e) => {
         setTenantAnchor(null);
+        setLegalAnchor(null);
         setAppearanceAnchor(null);
         setLanguageAnchor(null);
         setLandlordAnchor(e.currentTarget);
@@ -132,9 +135,20 @@ const ResponsiveNavbar = () => {
     const handleLandlordClose = () => {
         setLandlordAnchor(null);
     };
+    const handleLegalOpen = (e) => {
+        setTenantAnchor(null);
+        setLandlordAnchor(null);
+        setAppearanceAnchor(null);
+        setLanguageAnchor(null);
+        setLegalAnchor(e.currentTarget);
+    };
+    const handleLegalClose = () => {
+        setLegalAnchor(null);
+    };
     const handleAppearanceOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setLegalAnchor(null);
         setLanguageAnchor(null);
         setAppearanceAnchor(e.currentTarget);
         const trigger = e.currentTarget.getAttribute('data-appearance-trigger');
@@ -149,6 +163,7 @@ const ResponsiveNavbar = () => {
     const handleLanguageOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setLegalAnchor(null);
         setAppearanceAnchor(null);
         setLanguageAnchor(e.currentTarget);
         const trigger = e.currentTarget.getAttribute('data-language-trigger');
@@ -381,13 +396,6 @@ const ResponsiveNavbar = () => {
         </div>
     );
 
-    const desktopLegalLinkStyle = {
-        fontSize: '0.75rem',
-        fontWeight: 600,
-        opacity: 0.92,
-        padding: '0.25rem 0.45rem',
-    };
-
     return (
         <>
             <AppBar
@@ -603,6 +611,69 @@ const ResponsiveNavbar = () => {
                                     ))}
                                 </Menu>
 
+                                <IconButton
+                                    component="span"
+                                    disableRipple
+                                    id="legal-menu-button"
+                                    onClick={handleLegalOpen}
+                                    aria-haspopup="true"
+                                    aria-expanded={Boolean(legalAnchor)}
+                                    aria-controls={legalAnchor ? 'legal-menu' : undefined}
+                                    aria-label={t('nav.legal')}
+                                    sx={{
+                                        color: 'inherit',
+                                        padding: '0.3rem 0.55rem',
+                                        fontWeight: 'bold',
+                                        fontSize: '0.9rem',
+                                        borderRadius: '4px',
+                                        '&:hover': {
+                                            backgroundColor: 'var(--nav-chrome-hover-bg)',
+                                        },
+                                    }}
+                                >
+                                    <span style={{ marginInlineEnd: '0.2rem' }}>{t('nav.legal')}</span>
+                                    <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
+                                </IconButton>
+                                <Menu
+                                    id="legal-menu"
+                                    anchorEl={legalAnchor}
+                                    open={Boolean(legalAnchor)}
+                                    onClose={handleLegalClose}
+                                    MenuListProps={{
+                                        'aria-labelledby': 'legal-menu-button',
+                                    }}
+                                    slotProps={{
+                                        paper: {
+                                            sx: { backgroundImage: 'none' },
+                                        },
+                                    }}
+                                    anchorOrigin={menuAnchorOrigin}
+                                    transformOrigin={menuTransformOrigin}
+                                >
+                                    {legalLinks.map(({ to, label }) => (
+                                        <MenuItem
+                                            key={to}
+                                            component={NavLink}
+                                            to={withDarkPath(pathname, to)}
+                                            className={({ isActive }) => (isActive ? 'active' : '')}
+                                            onClick={handleLegalClose}
+                                            sx={{
+                                                color: 'text.secondary',
+                                                '&:hover': {
+                                                    backgroundColor: 'var(--menu-item-hover-bg)',
+                                                    color: 'var(--menu-item-hover-fg)',
+                                                },
+                                                '&.active': {
+                                                    backgroundColor: 'var(--menu-item-active-bg)',
+                                                    color: 'var(--menu-item-active-fg)',
+                                                },
+                                            }}
+                                        >
+                                            {label}
+                                        </MenuItem>
+                                    ))}
+                                </Menu>
+
                                 <NavLink
                                     to={withDarkPath(pathname, '/contact-us')}
                                     className={({ isActive }) => (isActive ? 'active' : '')}
@@ -610,43 +681,6 @@ const ResponsiveNavbar = () => {
                                 >
                                     {t('nav.contactUs')}
                                 </NavLink>
-
-                                <Box
-                                    component="span"
-                                    aria-hidden="true"
-                                    sx={{
-                                        color: 'var(--nav-chrome-text)',
-                                        opacity: 0.5,
-                                        userSelect: 'none',
-                                        px: 0.25,
-                                        fontSize: '0.75rem',
-                                    }}
-                                >
-                                    |
-                                </Box>
-
-                                {legalLinks.map(({ to, label }, i) => (
-                                    <React.Fragment key={to}>
-                                        {i > 0 ? (
-                                            <Box
-                                                component="span"
-                                                aria-hidden="true"
-                                                sx={{
-                                                    color: 'var(--nav-chrome-text)',
-                                                    opacity: 0.5,
-                                                    userSelect: 'none',
-                                                    px: 0.25,
-                                                    fontSize: '0.75rem',
-                                                }}
-                                            >
-                                                |
-                                            </Box>
-                                        ) : null}
-                                        <NavLink to={withDarkPath(pathname, to)} style={desktopLegalLinkStyle}>
-                                            {label}
-                                        </NavLink>
-                                    </React.Fragment>
-                                ))}
                             </nav>
                             {headerToolbarActions}
                         </>
