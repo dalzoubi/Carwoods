@@ -116,6 +116,20 @@ jobs:
             --location "${{ steps.region.outputs.location }}" \
             --output none
 
+      - name: Detect existing Function App
+        id: detect_app
+        env:
+          FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
+        run: |
+          if az functionapp show \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --name "$FUNCTION_APP_NAME" \
+            --query id -o tsv >/dev/null 2>&1; then
+            echo "adopt_existing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "adopt_existing=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: What-if (dry run)
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' }}
         env:
@@ -131,7 +145,8 @@ jobs:
               functionAppName="$FUNCTION_APP_NAME" \
               storageAccountName="$STORAGE_ACCOUNT_NAME" \
               sqlServerName="$SQL_SERVER_NAME" \
-              sqlAdminPassword="$SQL_ADMIN_PASSWORD"
+              sqlAdminPassword="$SQL_ADMIN_PASSWORD" \
+              adoptExistingFunctionApp="${{ steps.detect_app.outputs.adopt_existing }}"
 
       - name: Deploy Bicep
         if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true') }}
@@ -150,6 +165,7 @@ jobs:
               storageAccountName="$STORAGE_ACCOUNT_NAME" \
               sqlServerName="$SQL_SERVER_NAME" \
               sqlAdminPassword="$SQL_ADMIN_PASSWORD" \
+              adoptExistingFunctionApp="${{ steps.detect_app.outputs.adopt_existing }}" \
             --output none
 
       - name: Capture deployment outputs

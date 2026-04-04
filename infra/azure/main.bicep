@@ -10,6 +10,9 @@ param storageAccountName string
 @description('Globally unique Function App name.')
 param functionAppName string
 
+@description('When true, keep an existing Function App as-is (no plan/site mutation).')
+param adoptExistingFunctionApp bool = false
+
 @description('Node.js version on Functions.')
 param nodeVersion string = '24'
 
@@ -86,7 +89,7 @@ resource sqlFirewallAzure 'Microsoft.Sql/servers/firewallRules@2023-08-01-previe
   }
 }
 
-resource plan 'Microsoft.Web/serverfarms@2023-12-01' = {
+resource plan 'Microsoft.Web/serverfarms@2023-12-01' = if (!adoptExistingFunctionApp) {
   name: hostingPlanName
   location: location
   sku: {
@@ -98,7 +101,7 @@ resource plan 'Microsoft.Web/serverfarms@2023-12-01' = {
   }
 }
 
-resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
+resource functionApp 'Microsoft.Web/sites@2023-12-01' = if (!adoptExistingFunctionApp) {
   name: functionAppName
   location: location
   kind: 'functionapp,linux'
@@ -148,10 +151,10 @@ resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
   }
 }
 
-output functionAppNameOut string = functionApp.name
-output functionAppHost string = 'https://${functionApp.properties.defaultHostName}'
+output functionAppNameOut string = functionAppName
+output functionAppHost string = 'https://${reference(resourceId('Microsoft.Web/sites', functionAppName), '2023-12-01').defaultHostName}'
 output storageAccountNameOut string = storage.name
-output principalId string = functionApp.identity.principalId
+output principalId string = reference(resourceId('Microsoft.Web/sites', functionAppName), '2023-12-01', 'full').identity.principalId
 output sqlServerNameOut string = sqlServer.name
 output sqlServerFqdn string = sqlServer.properties.fullyQualifiedDomainName
 output sqlDatabaseNameOut string = sqlDatabaseName

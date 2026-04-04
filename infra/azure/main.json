@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.42.1.51946",
-      "templateHash": "10391667333500635929"
+      "version": "0.41.2.15936",
+      "templateHash": "16197099464872901590"
     }
   },
   "parameters": {
@@ -26,6 +26,13 @@
       "type": "string",
       "metadata": {
         "description": "Globally unique Function App name."
+      }
+    },
+    "adoptExistingFunctionApp": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "When true, keep an existing Function App as-is (no plan/site mutation)."
       }
     },
     "nodeVersion": {
@@ -126,6 +133,7 @@
       ]
     },
     {
+      "condition": "[not(parameters('adoptExistingFunctionApp'))]",
       "type": "Microsoft.Web/serverfarms",
       "apiVersion": "2023-12-01",
       "name": "[variables('hostingPlanName')]",
@@ -139,6 +147,7 @@
       }
     },
     {
+      "condition": "[not(parameters('adoptExistingFunctionApp'))]",
       "type": "Microsoft.Web/sites",
       "apiVersion": "2023-12-01",
       "name": "[parameters('functionAppName')]",
