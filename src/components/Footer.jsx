@@ -68,6 +68,8 @@ const Footer = () => {
             <FooterSeparator aria-hidden="true">|</FooterSeparator>
             <FooterLinkInternal to={withDarkPath(pathname, '/privacy')}>{t('footer.privacyPolicy')}</FooterLinkInternal>
             <FooterSeparator aria-hidden="true">|</FooterSeparator>
+            <FooterLinkInternal to={withDarkPath(pathname, '/terms-of-service')}>{t('footer.termsOfService')}</FooterLinkInternal>
+            <FooterSeparator aria-hidden="true">|</FooterSeparator>
             <FooterLinkInternal to={withDarkPath(pathname, '/accessibility')}>{t('footer.accessibility')}</FooterLinkInternal>
         </FooterContainer>
     );

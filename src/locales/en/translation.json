@@ -10,6 +10,7 @@
     "selectLanguage": "Select language",
     "legal": "Legal",
     "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
     "accessibility": "Accessibility",
     "mainNavigation": "Main navigation",
     "siteMenu": "Site menu",
@@ -116,6 +117,31 @@
     "contactBodySuffix": "page.",
     "lastUpdated": "Last updated: February 2025"
   },
+  "terms": {
+    "title": "Carwoods - Terms of Service",
+    "metaDescription": "Carwoods terms of service for website use, listing information, third-party tools, and user responsibilities.",
+    "heading": "Terms of Service",
+    "intro": "These Terms of Service (\"Terms\") govern your use of the Carwoods website and related services. By using this site, you agree to these Terms.",
+    "useOfSiteHeading": "Use of This Site",
+    "useOfSiteBody": "You may use this site to review rental information, application guidance, and property management services for lawful personal or business purposes. You agree not to misuse the site, attempt unauthorized access, or interfere with site operations.",
+    "listingsHeading": "Listings and Information Accuracy",
+    "listingsBody": "We work to keep listing details, pricing, and availability current, but information can change without notice. The site content is provided for general information and does not guarantee that any property will remain available or that any application will be approved.",
+    "thirdPartyHeading": "Third-Party Services",
+    "thirdPartyBody": "Some actions may route you to third-party services such as HAR.com or RentSpree. Those services have their own terms, policies, and availability. We are not responsible for third-party content, downtime, or actions outside our control.",
+    "eligibilityHeading": "Applications and Eligibility",
+    "eligibilityBody": "Submitting an inquiry or application does not create a lease, management agreement, or promise of acceptance. Final decisions are made after required screening, documentation review, and compliance checks under applicable laws and company standards.",
+    "prohibitedUseHeading": "Prohibited Use",
+    "prohibitedUseBody": "You may not copy, scrape, republish, or commercially exploit site content without written permission. You also may not upload malicious code, submit false information, or use this site in a way that violates law or another person's rights.",
+    "liabilityHeading": "Disclaimer and Limitation of Liability",
+    "liabilityBody": "This site is provided \"as is\" and \"as available\" without warranties of any kind, to the extent allowed by law. Carwoods is not liable for indirect, incidental, special, or consequential damages arising from your use of the site or reliance on posted information.",
+    "changesHeading": "Changes to These Terms",
+    "changesBody": "We may update these Terms from time to time. Updated Terms are effective when posted on this page. Your continued use of the site after updates means you accept the revised Terms.",
+    "contactHeading": "Contact",
+    "contactBody": "If you have questions about these Terms, please contact us through our",
+    "contactLink": "Contact Us",
+    "contactBodySuffix": "page.",
+    "lastUpdated": "Last updated: April 2026"
+  },
   "accessibility": {
     "title": "Carwoods - Accessibility Statement",
     "metaDescription": "Carwoods commitment to digital accessibility and WCAG compliance.",
@@ -140,6 +166,7 @@
     "trecBrokerage": "Texas Real Estate Commission Information About Brokerage Services",
     "trecBrokerageAriaLabel": "Texas Real Estate Commission Information About Brokerage Services (opens in new tab)",
     "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
     "accessibility": "Accessibility"
   },
   "applyFlowSubnav": {
@@ -606,7 +633,7 @@
     "title": "Carwoods - Portal Setup",
     "metaDescription": "Maintenance portal setup checks for API connectivity and authenticated access.",
     "heading": "Maintenance Portal Setup",
-    "intro": "Use these checks to validate API connectivity before building the tenant and admin portal screens.",
+    "intro": "Use these checks to validate API connectivity before building tenant, landlord, and admin portal screens.",
     "apiBaseMissing": "Set VITE_API_BASE_URL in your root .env file to enable portal API checks.",
     "apiBaseHeading": "Portal API base URL",
     "healthHeading": "Health endpoint check",
@@ -617,7 +644,8 @@
       "checkHealth": "Check health",
       "checkMe": "Check /portal/me",
       "openTenant": "Open tenant workspace",
-      "openAdmin": "Open landlord workspace",
+      "openLandlord": "Open landlord workspace",
+      "openAdmin": "Open admin workspace",
       "signIn": "Sign in with Entra",
       "signOut": "Sign out",
       "refreshSession": "Refresh saved session"
@@ -659,7 +687,8 @@
       "backToSite": "Back to main site",
       "backToSetup": "Back to setup",
       "tenant": "Tenant workspace",
-      "admin": "Landlord workspace",
+      "landlord": "Landlord workspace",
+      "admin": "Admin workspace",
       "retryAuth": "Retry auth check",
       "signIn": "Sign in",
       "signOut": "Sign out"
@@ -668,7 +697,7 @@
     "authUnconfigured": "Configure Entra environment values before using portal workspaces.",
     "authLoading": "Checking saved portal session…",
     "authError": "Unable to validate the saved portal session.",
-    "authForbidden": "Your current session is not authorized for admin workspace access.",
+    "authForbidden": "Your current session is not authorized for this workspace.",
     "authenticated": "Authenticated",
     "accountSummary": "Subject: {{subject}} | Role: {{role}}",
     "tenant": {
@@ -678,12 +707,43 @@
       "next2": "Implement requests list/create screens using portal APIs.",
       "next3": "Add attachment upload intent + message thread UI."
     },
-    "admin": {
+    "landlord": {
       "heading": "Landlord Portal Workspace",
       "intro": "This route is reserved for landlord operations and request management.",
       "next1": "Add landlord access guard using /api/portal/me and role data.",
       "next2": "Build properties/leases/request dashboards with paging.",
       "next3": "Add audit-friendly mutation flows and status updates."
+    },
+    "admin": {
+      "heading": "Admin Portal Workspace",
+      "intro": "This route is reserved for admin-level controls and cross-account management.",
+      "next1": "Add admin-only controls for role assignment and policy settings.",
+      "next2": "Add admin-level reporting and export safeguards.",
+      "next3": "Add audit review tools for privileged actions."
+    }
+  },
+  "portalHeader": {
+    "title": "Maintenance Portal",
+    "notSignedIn": "Not signed in",
+    "nav": {
+      "setup": "Setup",
+      "tenant": "Tenant",
+      "landlord": "Landlord",
+      "admin": "Admin"
+    },
+    "status": {
+      "signedIn": "Signed in",
+      "signedOut": "Signed out"
+    },
+    "roles": {
+      "admin": "Admin",
+      "landlord": "Landlord",
+      "tenant": "Tenant",
+      "unknown": "Unknown role"
+    },
+    "actions": {
+      "signIn": "Sign in",
+      "signOut": "Sign out"
     }
   },
   "socialSignIn": {

@@ -12,7 +12,7 @@ CREATE TABLE users (
     first_name           NVARCHAR(200)     NULL,
     last_name            NVARCHAR(200)     NULL,
     phone                NVARCHAR(50)      NULL,
-    role                 NVARCHAR(20)      NOT NULL CHECK (role IN ('ADMIN', 'TENANT', 'VENDOR')),
+    role                 NVARCHAR(20)      NOT NULL CHECK (role IN ('ADMIN', 'LANDLORD', 'TENANT')),
     status               NVARCHAR(20)      NOT NULL CHECK (status IN ('ACTIVE', 'INVITED', 'DISABLED')),
     created_at           DATETIMEOFFSET    NOT NULL DEFAULT SYSDATETIMEOFFSET(),
     updated_at           DATETIMEOFFSET    NOT NULL DEFAULT SYSDATETIMEOFFSET(),

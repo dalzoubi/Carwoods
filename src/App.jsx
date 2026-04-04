@@ -11,10 +11,12 @@ import PropertyManagement from './components/PropertyManagement';
 import ContactUs from './components/ContactUs';
 import Privacy from './components/Privacy';
 import Accessibility from './components/Accessibility';
+import TermsOfService from './components/TermsOfService';
 import Footer from './components/Footer';
 import ResponsiveNavbar from './components/ResponsiveNavbar';
 import PortalSetup from './components/PortalSetup';
 import PortalWorkspace from './components/PortalWorkspace';
+import PortalHeader from './components/PortalHeader';
 import { isDarkPreviewRoute, stripDarkPreviewPrefix } from './routePaths';
 
 /**
@@ -58,9 +60,11 @@ function PageRoutes() {
             <Route path="/property-management" element={<PropertyManagement />} />
             <Route path="/contact-us" element={<ContactUs />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/accessibility" element={<Accessibility />} />
             <Route path="/portal" element={<PortalSetup />} />
             <Route path="/portal/tenant" element={<PortalWorkspace role="tenant" />} />
+            <Route path="/portal/landlord" element={<PortalWorkspace role="landlord" />} />
             <Route path="/portal/admin" element={<PortalWorkspace role="admin" />} />
         </Routes>
     );
@@ -88,6 +92,7 @@ const App = () => {
                 {t('skipToMain')}
             </a>
             {!isPortalShell && <ResponsiveNavbar />}
+            {isPortalShell && <PortalHeader />}
             <Container id="main-content">
                 <AppRoutes />
             </Container>

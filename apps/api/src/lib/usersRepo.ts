@@ -12,6 +12,14 @@ export type UserRow = {
   status: string;
 };
 
+export const UserRole = {
+  ADMIN: 'ADMIN',
+  LANDLORD: 'LANDLORD',
+  TENANT: 'TENANT',
+} as const;
+
+export type UserRoleType = (typeof UserRole)[keyof typeof UserRole];
+
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
 
 export async function findUserBySubject(
@@ -27,14 +35,15 @@ export async function findUserBySubject(
 }
 
 /**
- * Ensures the caller has an ADMIN row keyed by JWT `sub`.
+ * Ensures the caller has a management row keyed by JWT `sub`.
  * T-SQL MERGE replaces the PostgreSQL INSERT … ON CONFLICT DO UPDATE.
  */
-export async function ensureAdminUser(
+export async function ensureManagementUser(
   client: PoolClient,
-  claims: AccessTokenClaims
+  claims: AccessTokenClaims,
+  role: UserRoleType
 ): Promise<UserRow> {
-  const email = claims.email ?? claims.preferred_username ?? 'admin@unknown';
+  const email = claims.email ?? claims.preferred_username ?? 'user@unknown';
   const sub = claims.sub;
   const firstName = claims.given_name ?? null;
   const lastName = claims.family_name ?? null;
@@ -46,18 +55,18 @@ export async function ensureAdminUser(
      WHEN MATCHED THEN
        UPDATE SET
          email       = $2,
-         role        = 'ADMIN',
+         role        = $5,
          status      = 'ACTIVE',
          first_name  = COALESCE($3, target.first_name),
          last_name   = COALESCE($4, target.last_name),
          updated_at  = GETUTCDATE()
      WHEN NOT MATCHED THEN
        INSERT (id, external_auth_subject, email, first_name, last_name, role, status)
-       VALUES (NEWID(), $1, $2, $3, $4, 'ADMIN', 'ACTIVE')
+       VALUES (NEWID(), $1, $2, $3, $4, $5, 'ACTIVE')
      OUTPUT INSERTED.id, INSERTED.external_auth_subject, INSERTED.email,
             INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
             INSERTED.role, INSERTED.status;`,
-    [sub, email, firstName, lastName]
+    [sub, email, firstName, lastName, role]
   );
   return r.rows[0]!;
 }

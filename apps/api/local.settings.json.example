@@ -9,6 +9,7 @@
     "ENTRA_ISSUER": "https://your-tenant.ciamlogin.com/your-tenant-id/v2.0",
     "ENTRA_API_AUDIENCE": "api://your-api-app-client-id",
     "ENTRA_OPENID_METADATA_URL": "",
-    "ENTRA_ADMIN_OBJECT_IDS": "your-admin-user-object-id"
+    "ENTRA_ADMIN_OBJECT_IDS": "your-admin-user-object-id",
+    "ENTRA_LANDLORD_OBJECT_IDS": "your-landlord-user-object-id"
   }
 }

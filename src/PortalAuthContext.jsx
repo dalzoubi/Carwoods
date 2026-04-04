@@ -247,3 +247,8 @@ export function usePortalAuth() {
   return value;
 }
 
+export function hasLandlordAccess(role) {
+  const normalized = String(role ?? '').toUpperCase();
+  return normalized === 'LANDLORD' || normalized === 'ADMIN';
+}
+

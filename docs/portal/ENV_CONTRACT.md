@@ -26,7 +26,8 @@ Values are **names only**; store secrets in Azure Key Vault or Function App sett
 | `ENTRA_API_AUDIENCE`                              | Yes         | API app registration audience (`aud`) for JWT validation |
 | `ENTRA_ISSUER`                                    | Yes         | Token issuer (`iss`) — must match access tokens exactly (including trailing slash) |
 | `ENTRA_OPENID_METADATA_URL`                       | No          | Full OpenID metadata URL; if unset, `{ENTRA_ISSUER}/.well-known/openid-configuration` |
-| `ENTRA_ADMIN_OBJECT_IDS`                          | Yes (admin) | Comma-separated Entra object IDs (`oid` claim). Required for `admin/*`; first call upserts `users` as `ADMIN`. Empty → 403 on admin routes. |
+| `ENTRA_ADMIN_OBJECT_IDS`                          | Yes (admin) | Comma-separated Entra object IDs (`oid` claim). Admin users are upserted with role `ADMIN`. |
+| `ENTRA_LANDLORD_OBJECT_IDS`                       | Yes (landlord/admin APIs) | Comma-separated Entra object IDs (`oid` claim) for landlord users. Landlord users are upserted with role `LANDLORD`. Admin users also pass landlord authorization checks. |
 | `CORS_ALLOWED_ORIGINS`                            | Recommended | Comma-separated origins for browser calls (public + portal + admin). Supports `*` patterns (e.g. Vercel previews). Defaults include localhost + carwoods.com if unset. |
 
 

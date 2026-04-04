@@ -10,6 +10,7 @@
     "selectLanguage": "Seleccionar idioma",
     "legal": "Legal",
     "privacy": "Política de Privacidad",
+    "terms": "Términos del Servicio",
     "accessibility": "Accesibilidad",
     "mainNavigation": "Navegación principal",
     "siteMenu": "Menú del sitio",
@@ -116,6 +117,31 @@
     "contactBodySuffix": "",
     "lastUpdated": "Última actualización: febrero de 2025"
   },
+  "terms": {
+    "title": "Carwoods - Términos del Servicio",
+    "metaDescription": "Términos del servicio de Carwoods para uso del sitio web, información de anuncios, herramientas de terceros y responsabilidades del usuario.",
+    "heading": "Términos del Servicio",
+    "intro": "Estos Términos del Servicio (\"Términos\") rigen su uso del sitio web de Carwoods y servicios relacionados. Al usar este sitio, usted acepta estos Términos.",
+    "useOfSiteHeading": "Uso de este sitio",
+    "useOfSiteBody": "Puede usar este sitio para revisar información de alquiler, orientación para solicitudes y servicios de administración de propiedades con fines personales o comerciales legales. Usted acepta no hacer un uso indebido del sitio, no intentar acceso no autorizado y no interferir con el funcionamiento del sitio.",
+    "listingsHeading": "Anuncios y exactitud de la información",
+    "listingsBody": "Trabajamos para mantener actualizados los detalles de anuncios, precios y disponibilidad, pero la información puede cambiar sin previo aviso. El contenido del sitio se proporciona con fines informativos generales y no garantiza que una propiedad siga disponible ni que una solicitud sea aprobada.",
+    "thirdPartyHeading": "Servicios de terceros",
+    "thirdPartyBody": "Algunas acciones pueden dirigirle a servicios de terceros como HAR.com o RentSpree. Esos servicios tienen sus propios términos, políticas y disponibilidad. No somos responsables del contenido de terceros, interrupciones o acciones fuera de nuestro control.",
+    "eligibilityHeading": "Solicitudes y elegibilidad",
+    "eligibilityBody": "Enviar una consulta o solicitud no crea un contrato de arrendamiento, acuerdo de administración ni promesa de aceptación. Las decisiones finales se toman después de la evaluación requerida, revisión de documentación y verificaciones de cumplimiento según las leyes aplicables y los estándares de la empresa.",
+    "prohibitedUseHeading": "Uso prohibido",
+    "prohibitedUseBody": "No puede copiar, extraer, republicar ni explotar comercialmente el contenido del sitio sin permiso por escrito. Tampoco puede cargar código malicioso, enviar información falsa o usar este sitio de una forma que viole la ley o los derechos de otra persona.",
+    "liabilityHeading": "Descargo y limitación de responsabilidad",
+    "liabilityBody": "Este sitio se proporciona \"tal cual\" y \"según disponibilidad\" sin garantías de ningún tipo, en la medida permitida por la ley. Carwoods no es responsable por daños indirectos, incidentales, especiales o consecuentes derivados del uso del sitio o de la confianza en la información publicada.",
+    "changesHeading": "Cambios a estos Términos",
+    "changesBody": "Podemos actualizar estos Términos de vez en cuando. Los Términos actualizados entran en vigor cuando se publican en esta página. Su uso continuo del sitio después de las actualizaciones significa que acepta los Términos revisados.",
+    "contactHeading": "Contacto",
+    "contactBody": "Si tiene preguntas sobre estos Términos, contáctenos a través de nuestra página de",
+    "contactLink": "Contáctenos",
+    "contactBodySuffix": "",
+    "lastUpdated": "Última actualización: abril de 2026"
+  },
   "accessibility": {
     "title": "Carwoods - Declaración de Accesibilidad",
     "metaDescription": "Compromiso de Carwoods con la accesibilidad digital y el cumplimiento de WCAG.",
@@ -140,6 +166,7 @@
     "trecBrokerage": "Información de la Comisión de Bienes Raíces de Texas sobre Servicios de Corretaje",
     "trecBrokerageAriaLabel": "Información de la Comisión de Bienes Raíces de Texas sobre Servicios de Corretaje (se abre en una nueva pestaña)",
     "privacyPolicy": "Política de Privacidad",
+    "termsOfService": "Términos del Servicio",
     "accessibility": "Accesibilidad"
   },
   "applyFlowSubnav": {
@@ -606,7 +633,7 @@
     "title": "Carwoods - Configuración del Portal",
     "metaDescription": "Comprobaciones de configuración del portal de mantenimiento para conectividad API y acceso autenticado.",
     "heading": "Configuración del Portal de Mantenimiento",
-    "intro": "Use estas comprobaciones para validar la conectividad API antes de crear las pantallas del portal de inquilino y administración.",
+    "intro": "Use estas comprobaciones para validar la conectividad API antes de crear las pantallas del portal de inquilino, propietario y administrador.",
     "apiBaseMissing": "Configure VITE_API_BASE_URL en su archivo .env raíz para habilitar las comprobaciones de API del portal.",
     "apiBaseHeading": "URL base de la API del portal",
     "healthHeading": "Comprobación del endpoint de salud",
@@ -617,7 +644,8 @@
       "checkHealth": "Comprobar salud",
       "checkMe": "Comprobar /portal/me",
       "openTenant": "Abrir espacio de inquilino",
-      "openAdmin": "Abrir espacio de propietario",
+      "openLandlord": "Abrir espacio de propietario",
+      "openAdmin": "Abrir espacio de administrador",
       "signIn": "Iniciar sesión con Entra",
       "signOut": "Cerrar sesión",
       "refreshSession": "Actualizar sesión guardada"
@@ -659,7 +687,8 @@
       "backToSite": "Volver al sitio principal",
       "backToSetup": "Volver a configuración",
       "tenant": "Espacio de inquilino",
-      "admin": "Espacio de propietario",
+      "landlord": "Espacio de propietario",
+      "admin": "Espacio de administrador",
       "retryAuth": "Reintentar comprobación de autenticación",
       "signIn": "Iniciar sesión",
       "signOut": "Cerrar sesión"
@@ -668,7 +697,7 @@
     "authUnconfigured": "Configure los valores de entorno de Entra antes de usar los espacios del portal.",
     "authLoading": "Comprobando sesión guardada del portal…",
     "authError": "No se pudo validar la sesión guardada del portal.",
-    "authForbidden": "Su sesión actual no está autorizada para el espacio de administración.",
+    "authForbidden": "Su sesión actual no está autorizada para este espacio.",
     "authenticated": "Autenticado",
     "accountSummary": "Sujeto: {{subject}} | Rol: {{role}}",
     "tenant": {
@@ -678,12 +707,43 @@
       "next2": "Implementar pantallas de listado/creación de solicitudes usando APIs del portal.",
       "next3": "Agregar intención de carga de adjuntos + UI de hilo de mensajes."
     },
-    "admin": {
+    "landlord": {
       "heading": "Espacio del Portal del Propietario",
       "intro": "Esta ruta está reservada para operaciones del propietario y gestión de solicitudes.",
       "next1": "Agregar protección de acceso del propietario usando /api/portal/me y datos de rol.",
       "next2": "Construir paneles de propiedades/arrendamientos/solicitudes con paginación.",
       "next3": "Agregar flujos de mutación con trazabilidad y actualizaciones de estado."
+    },
+    "admin": {
+      "heading": "Espacio del Portal de Administración",
+      "intro": "Esta ruta está reservada para controles de administrador y gestión entre cuentas.",
+      "next1": "Agregar controles solo para administrador para asignación de roles y políticas.",
+      "next2": "Agregar reportes de nivel administrador y protecciones de exportación.",
+      "next3": "Agregar herramientas de auditoría para acciones privilegiadas."
+    }
+  },
+  "portalHeader": {
+    "title": "Portal de Mantenimiento",
+    "notSignedIn": "Sin sesión iniciada",
+    "nav": {
+      "setup": "Configuración",
+      "tenant": "Inquilino",
+      "landlord": "Propietario",
+      "admin": "Administrador"
+    },
+    "status": {
+      "signedIn": "Sesión iniciada",
+      "signedOut": "Sesión cerrada"
+    },
+    "roles": {
+      "admin": "Administrador",
+      "landlord": "Propietario",
+      "tenant": "Inquilino",
+      "unknown": "Rol desconocido"
+    },
+    "actions": {
+      "signIn": "Iniciar sesión",
+      "signOut": "Cerrar sesión"
     }
   },
   "socialSignIn": {

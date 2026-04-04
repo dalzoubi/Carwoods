@@ -5,16 +5,17 @@ import {
   type InvocationContext,
 } from '@azure/functions';
 import { writeAudit } from '../lib/auditRepo.js';
-import { requireAdmin, jsonResponse } from '../lib/adminRequest.js';
+import { requireLandlordOrAdmin, jsonResponse } from '../lib/managementRequest.js';
 import { getPool } from '../lib/db.js';
 import {
-  getPropertyById,
-  insertProperty,
-  listPropertiesAdmin,
-  softDeleteProperty,
-  updateProperty,
-} from '../lib/propertiesRepo.js';
-import { harColumnsForCreate, harColumnsForPatch } from '../lib/propertyHarSync.js';
+  getLeaseById,
+  insertLease,
+  listLeasesLandlord,
+  listLeasesForProperty,
+  softDeleteLease,
+  updateLease,
+} from '../lib/leasesRepo.js';
+import { getPropertyById } from '../lib/propertiesRepo.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
   if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>;
@@ -29,18 +30,23 @@ function bool(v: unknown): boolean | undefined {
   return typeof v === 'boolean' ? v : undefined;
 }
 
-async function adminPropertiesCollection(
+const LEASE_STATUSES = new Set(['ACTIVE', 'ENDED', 'UPCOMING', 'TERMINATED']);
+
+async function landlordLeasesCollection(
   request: HttpRequest,
   _context: InvocationContext
 ): Promise<HttpResponseInit> {
-  const gate = await requireAdmin(request);
+  const gate = await requireLandlordOrAdmin(request);
   if (!gate.ok) return gate.response;
   const { ctx } = gate;
   const pool = getPool();
 
   if (request.method === 'GET') {
-    const rows = await listPropertiesAdmin(pool);
-    return jsonResponse(200, ctx.headers, { properties: rows });
+    const propertyId = request.query.get('property_id')?.trim();
+    const rows = propertyId
+      ? await listLeasesForProperty(pool, propertyId)
+      : await listLeasesLandlord(pool);
+    return jsonResponse(200, ctx.headers, { leases: rows });
   }
 
   if (request.method === 'POST') {
@@ -51,53 +57,40 @@ async function adminPropertiesCollection(
       return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
     }
     const b = asRecord(body);
-    const street = str(b.street);
-    const city = str(b.city);
-    const state = str(b.state);
-    const zip = str(b.zip);
-    if (!street || !city || !state || !zip) {
-      return jsonResponse(400, ctx.headers, { error: 'missing_required_fields' });
+    const property_id = str(b.property_id);
+    const start_date = str(b.start_date);
+    const status = str(b.status);
+    if (!property_id || !start_date || !status || !LEASE_STATUSES.has(status)) {
+      return jsonResponse(400, ctx.headers, { error: 'missing_or_invalid_fields' });
+    }
+
+    const prop = await getPropertyById(pool, property_id);
+    if (!prop) {
+      return jsonResponse(400, ctx.headers, { error: 'property_not_found' });
     }
 
     const client = await pool.connect();
     try {
-      let har;
-      try {
-        har = await harColumnsForCreate({
-          har_listing_id: b.har_listing_id as string | null | undefined,
-          metadata: b.metadata,
-        });
-      } catch (e) {
-        const message = e instanceof Error ? e.message : 'har_sync_failed';
-        return jsonResponse(422, ctx.headers, { error: 'har_sync_failed', message });
-      }
-
       await client.query('BEGIN');
-      const row = await insertProperty(client, {
-        name: str(b.name) ?? null,
-        street,
-        city,
-        state,
-        zip,
-        har_listing_id: har.har_listing_id,
-        listing_source: har.listing_source,
-        apply_visible: bool(b.apply_visible) ?? false,
-        metadata: har.metadata,
-        har_sync_status: har.har_sync_status,
-        har_sync_error: har.har_sync_error,
-        har_last_synced_at: har.har_last_synced_at,
+      const row = await insertLease(client, {
+        property_id,
+        start_date,
+        end_date: str(b.end_date) ?? null,
+        month_to_month: bool(b.month_to_month) ?? false,
+        status,
+        notes: str(b.notes) ?? null,
         created_by: ctx.user.id,
       });
       await writeAudit(client, {
         actorUserId: ctx.user.id,
-        entityType: 'PROPERTY',
+        entityType: 'LEASE',
         entityId: row.id,
         action: 'CREATE',
         before: null,
         after: row,
       });
       await client.query('COMMIT');
-      return jsonResponse(201, ctx.headers, { property: row });
+      return jsonResponse(201, ctx.headers, { lease: row });
     } catch (e) {
       await client.query('ROLLBACK');
       throw e;
@@ -109,11 +102,11 @@ async function adminPropertiesCollection(
   return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
 }
 
-async function adminPropertiesItem(
+async function landlordLeasesItem(
   request: HttpRequest,
   _context: InvocationContext
 ): Promise<HttpResponseInit> {
-  const gate = await requireAdmin(request);
+  const gate = await requireLandlordOrAdmin(request);
   if (!gate.ok) return gate.response;
   const { ctx } = gate;
   const id = request.params.id;
@@ -123,15 +116,12 @@ async function adminPropertiesItem(
   const pool = getPool();
 
   if (request.method === 'GET') {
-    const row = await getPropertyById(pool, id);
+    const row = await getLeaseById(pool, id);
     if (!row) return jsonResponse(404, ctx.headers, { error: 'not_found' });
-    return jsonResponse(200, ctx.headers, { property: row });
+    return jsonResponse(200, ctx.headers, { lease: row });
   }
 
   if (request.method === 'PATCH') {
-    const current = await getPropertyById(pool, id);
-    if (!current) return jsonResponse(404, ctx.headers, { error: 'not_found' });
-
     let body: unknown;
     try {
       body = await request.json();
@@ -139,48 +129,24 @@ async function adminPropertiesItem(
       return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
     }
     const b = asRecord(body);
-
-    let har;
-    try {
-      har = await harColumnsForPatch(
-        {
-          har_listing_id: current.har_listing_id,
-          listing_source: current.listing_source,
-          metadata: current.metadata,
-          har_sync_status: current.har_sync_status,
-          har_sync_error: current.har_sync_error,
-          har_last_synced_at: current.har_last_synced_at,
-        },
-        {
-          har_listing_id: b.har_listing_id as string | null | undefined,
-          metadata: b.metadata,
-        }
-      );
-    } catch (e) {
-      const message = e instanceof Error ? e.message : 'har_sync_failed';
-      return jsonResponse(422, ctx.headers, { error: 'har_sync_failed', message });
+    const status = str(b.status);
+    if (status && !LEASE_STATUSES.has(status)) {
+      return jsonResponse(400, ctx.headers, { error: 'invalid_status' });
     }
 
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      const before = await getPropertyById(client, id);
-      const row = await updateProperty(
+      const before = await getLeaseById(client, id);
+      const row = await updateLease(
         client,
         id,
         {
-          name: b.name !== undefined ? (str(b.name) ?? null) : undefined,
-          street: str(b.street),
-          city: str(b.city),
-          state: str(b.state),
-          zip: str(b.zip),
-          har_listing_id: har.har_listing_id,
-          listing_source: har.listing_source,
-          apply_visible: bool(b.apply_visible),
-          metadata: har.metadata,
-          har_sync_status: har.har_sync_status,
-          har_sync_error: har.har_sync_error,
-          har_last_synced_at: har.har_last_synced_at,
+          start_date: str(b.start_date),
+          end_date: b.end_date !== undefined ? str(b.end_date) ?? null : undefined,
+          month_to_month: bool(b.month_to_month),
+          status,
+          notes: b.notes !== undefined ? str(b.notes) ?? null : undefined,
         },
         ctx.user.id
       );
@@ -190,14 +156,14 @@ async function adminPropertiesItem(
       }
       await writeAudit(client, {
         actorUserId: ctx.user.id,
-        entityType: 'PROPERTY',
+        entityType: 'LEASE',
         entityId: row.id,
         action: 'UPDATE',
         before: before ?? null,
         after: row,
       });
       await client.query('COMMIT');
-      return jsonResponse(200, ctx.headers, { property: row });
+      return jsonResponse(200, ctx.headers, { lease: row });
     } catch (e) {
       await client.query('ROLLBACK');
       throw e;
@@ -210,19 +176,19 @@ async function adminPropertiesItem(
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      const before = await getPropertyById(client, id);
+      const before = await getLeaseById(client, id);
       if (!before) {
         await client.query('ROLLBACK');
         return jsonResponse(404, ctx.headers, { error: 'not_found' });
       }
-      const ok = await softDeleteProperty(client, id, ctx.user.id);
+      const ok = await softDeleteLease(client, id, ctx.user.id);
       if (!ok) {
         await client.query('ROLLBACK');
         return jsonResponse(404, ctx.headers, { error: 'not_found' });
       }
       await writeAudit(client, {
         actorUserId: ctx.user.id,
-        entityType: 'PROPERTY',
+        entityType: 'LEASE',
         entityId: id,
         action: 'DELETE',
         before,
@@ -241,16 +207,17 @@ async function adminPropertiesItem(
   return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
 }
 
-app.http('adminPropertiesCollection', {
+app.http('landlordLeasesCollection', {
   methods: ['GET', 'POST', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'admin/properties',
-  handler: adminPropertiesCollection,
+  route: 'landlord/leases',
+  handler: landlordLeasesCollection,
 });
 
-app.http('adminPropertiesItem', {
+app.http('landlordLeasesItem', {
   methods: ['GET', 'PATCH', 'DELETE', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'admin/properties/{id}',
-  handler: adminPropertiesItem,
+  route: 'landlord/leases/{id}',
+  handler: landlordLeasesItem,
 });
+

@@ -48,7 +48,7 @@ MERGE notification_event_types AS target
 USING (VALUES
   ('request_submitted',      'Request submitted'),
   ('request_status_changed', 'Request status changed'),
-  ('admin_message_posted',   'Admin message posted'),
+  ('landlord_message_posted','Landlord message posted'),
   ('tenant_message_posted',  'Tenant message posted'),
   ('request_completed',      'Request completed'),
   ('invite_sent',            'Invite sent')

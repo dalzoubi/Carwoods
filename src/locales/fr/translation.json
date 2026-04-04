@@ -10,6 +10,7 @@
     "selectLanguage": "Sélectionner la langue",
     "legal": "Mentions légales",
     "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation",
     "accessibility": "Accessibilité",
     "mainNavigation": "Navigation principale",
     "siteMenu": "Menu du site",
@@ -116,6 +117,31 @@
     "contactBodySuffix": "",
     "lastUpdated": "Dernière mise à jour : février 2025"
   },
+  "terms": {
+    "title": "Carwoods - Conditions d'utilisation",
+    "metaDescription": "Conditions d'utilisation de Carwoods concernant l'utilisation du site, les informations d'annonces, les outils tiers et les responsabilités de l'utilisateur.",
+    "heading": "Conditions d'utilisation",
+    "intro": "Les présentes Conditions d'utilisation (« Conditions ») régissent votre utilisation du site Carwoods et des services associés. En utilisant ce site, vous acceptez ces Conditions.",
+    "useOfSiteHeading": "Utilisation de ce site",
+    "useOfSiteBody": "Vous pouvez utiliser ce site pour consulter des informations locatives, des consignes de candidature et des services de gestion immobilière à des fins personnelles ou professionnelles licites. Vous acceptez de ne pas détourner le site, de ne pas tenter un accès non autorisé et de ne pas perturber son fonctionnement.",
+    "listingsHeading": "Annonces et exactitude des informations",
+    "listingsBody": "Nous nous efforçons de maintenir à jour les détails des annonces, les prix et les disponibilités, mais ces informations peuvent changer sans préavis. Le contenu du site est fourni à titre informatif général et ne garantit pas qu'un bien restera disponible ni qu'une candidature sera approuvée.",
+    "thirdPartyHeading": "Services tiers",
+    "thirdPartyBody": "Certaines actions peuvent vous rediriger vers des services tiers tels que HAR.com ou RentSpree. Ces services ont leurs propres conditions, politiques et disponibilités. Nous ne sommes pas responsables des contenus tiers, des indisponibilités ou des actions hors de notre contrôle.",
+    "eligibilityHeading": "Candidatures et éligibilité",
+    "eligibilityBody": "L'envoi d'une demande d'information ou d'une candidature ne crée pas de bail, d'accord de gestion ni de promesse d'acceptation. Les décisions finales sont prises après les vérifications requises, l'examen des documents et les contrôles de conformité selon les lois applicables et les normes de l'entreprise.",
+    "prohibitedUseHeading": "Utilisation interdite",
+    "prohibitedUseBody": "Vous ne pouvez pas copier, extraire, republier ou exploiter commercialement le contenu du site sans autorisation écrite. Vous ne pouvez pas non plus téléverser de code malveillant, soumettre de fausses informations, ni utiliser ce site d'une manière contraire à la loi ou aux droits d'autrui.",
+    "liabilityHeading": "Avertissement et limitation de responsabilité",
+    "liabilityBody": "Ce site est fourni « en l'état » et « selon disponibilité » sans garantie d'aucune sorte, dans les limites autorisées par la loi. Carwoods ne saurait être tenue responsable des dommages indirects, accessoires, spéciaux ou consécutifs découlant de votre utilisation du site ou de votre confiance dans les informations publiées.",
+    "changesHeading": "Modifications de ces Conditions",
+    "changesBody": "Nous pouvons mettre à jour ces Conditions de temps à autre. Les Conditions mises à jour prennent effet dès leur publication sur cette page. Votre utilisation continue du site après publication signifie que vous acceptez les Conditions révisées.",
+    "contactHeading": "Contact",
+    "contactBody": "Si vous avez des questions sur ces Conditions, veuillez nous contacter via notre page",
+    "contactLink": "Contactez-nous",
+    "contactBodySuffix": "",
+    "lastUpdated": "Dernière mise à jour : avril 2026"
+  },
   "accessibility": {
     "title": "Carwoods - Déclaration d'accessibilité",
     "metaDescription": "Engagement de Carwoods envers l'accessibilité numérique et la conformité WCAG.",
@@ -140,6 +166,7 @@
     "trecBrokerage": "Informations de la Commission immobilière du Texas sur les services de courtage",
     "trecBrokerageAriaLabel": "Informations de la Commission immobilière du Texas sur les services de courtage (s'ouvre dans un nouvel onglet)",
     "privacyPolicy": "Politique de confidentialité",
+    "termsOfService": "Conditions d'utilisation",
     "accessibility": "Accessibilité"
   },
   "applyFlowSubnav": {
@@ -606,7 +633,7 @@
     "title": "Carwoods - Configuration du Portail",
     "metaDescription": "Vérifications de configuration du portail de maintenance pour la connectivité API et l'accès authentifié.",
     "heading": "Configuration du Portail de Maintenance",
-    "intro": "Utilisez ces vérifications pour valider la connectivité API avant de créer les écrans du portail locataire et admin.",
+    "intro": "Utilisez ces vérifications pour valider la connectivité API avant de créer les écrans des portails locataire, propriétaire et admin.",
     "apiBaseMissing": "Définissez VITE_API_BASE_URL dans votre fichier .env à la racine pour activer les vérifications API du portail.",
     "apiBaseHeading": "URL de base de l'API du portail",
     "healthHeading": "Vérification de l'endpoint de santé",
@@ -617,7 +644,8 @@
       "checkHealth": "Vérifier la santé",
       "checkMe": "Vérifier /portal/me",
       "openTenant": "Ouvrir l'espace locataire",
-      "openAdmin": "Ouvrir l'espace propriétaire",
+      "openLandlord": "Ouvrir l'espace propriétaire",
+      "openAdmin": "Ouvrir l'espace admin",
       "signIn": "Se connecter avec Entra",
       "signOut": "Se déconnecter",
       "refreshSession": "Actualiser la session enregistrée"
@@ -659,7 +687,8 @@
       "backToSite": "Retour au site principal",
       "backToSetup": "Retour à la configuration",
       "tenant": "Espace locataire",
-      "admin": "Espace propriétaire",
+      "landlord": "Espace propriétaire",
+      "admin": "Espace admin",
       "retryAuth": "Relancer la vérification d'authentification",
       "signIn": "Se connecter",
       "signOut": "Se déconnecter"
@@ -668,7 +697,7 @@
     "authUnconfigured": "Configurez les variables d'environnement Entra avant d'utiliser les espaces du portail.",
     "authLoading": "Vérification de la session portail enregistrée…",
     "authError": "Impossible de valider la session portail enregistrée.",
-    "authForbidden": "Votre session actuelle n'est pas autorisée pour l'espace admin.",
+    "authForbidden": "Votre session actuelle n'est pas autorisée pour cet espace.",
     "authenticated": "Authentifié",
     "accountSummary": "Sujet : {{subject}} | Rôle : {{role}}",
     "tenant": {
@@ -678,12 +707,43 @@
       "next2": "Implémenter les écrans liste/création des demandes via les APIs du portail.",
       "next3": "Ajouter l'intention d'upload de pièces jointes + UI de fil de messages."
     },
-    "admin": {
+    "landlord": {
       "heading": "Espace Portail Propriétaire",
       "intro": "Cette route est réservée aux opérations du propriétaire et à la gestion des demandes.",
       "next1": "Ajouter une protection d'accès propriétaire via /api/portal/me et les données de rôle.",
       "next2": "Construire des tableaux de bord propriétés/baux/demandes avec pagination.",
       "next3": "Ajouter des flux de mutation traçables et des mises à jour de statut."
+    },
+    "admin": {
+      "heading": "Espace Portail Admin",
+      "intro": "Cette route est réservée aux contrôles admin et à la gestion inter-comptes.",
+      "next1": "Ajouter des contrôles réservés aux admins pour l'attribution des rôles et des politiques.",
+      "next2": "Ajouter des rapports de niveau admin et des protections d'export.",
+      "next3": "Ajouter des outils d'audit pour les actions privilégiées."
+    }
+  },
+  "portalHeader": {
+    "title": "Portail de Maintenance",
+    "notSignedIn": "Non connecté",
+    "nav": {
+      "setup": "Configuration",
+      "tenant": "Locataire",
+      "landlord": "Propriétaire",
+      "admin": "Admin"
+    },
+    "status": {
+      "signedIn": "Connecté",
+      "signedOut": "Déconnecté"
+    },
+    "roles": {
+      "admin": "Admin",
+      "landlord": "Propriétaire",
+      "tenant": "Locataire",
+      "unknown": "Rôle inconnu"
+    },
+    "actions": {
+      "signIn": "Se connecter",
+      "signOut": "Se déconnecter"
     }
   },
   "socialSignIn": {

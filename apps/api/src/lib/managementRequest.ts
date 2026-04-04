@@ -2,21 +2,26 @@ import type { HttpRequest, HttpResponseInit } from '@azure/functions';
 import { getPool, hasDatabaseUrl } from './db.js';
 import { corsHeadersForRequest } from './corsHeaders.js';
 import { getBearerToken, verifyAccessToken, entraAuthConfigured } from './jwtVerify.js';
-import { isAdminOid } from './adminGate.js';
-import { ensureAdminUser, type UserRow } from './usersRepo.js';
+import { resolveManagementRole } from './managementGate.js';
+import {
+  ensureManagementUser,
+  UserRole,
+  type UserRow,
+} from './usersRepo.js';
 
-export type AdminContext = {
+export type ManagementContext = {
   user: UserRow;
+  role: 'ADMIN' | 'LANDLORD';
   headers: Record<string, string>;
 };
 
 /**
- * OPTIONS, missing DB, missing Entra config, bad/missing token, or non-admin → HttpResponseInit.
- * Otherwise DB client + admin user (upserted).
+ * OPTIONS, missing DB, missing Entra config, bad/missing token, or non-management user → HttpResponseInit.
+ * Otherwise DB client + management user (upserted).
  */
-export async function requireAdmin(
+export async function requireLandlordOrAdmin(
   request: HttpRequest
-): Promise<{ ok: true; ctx: AdminContext } | { ok: false; response: HttpResponseInit }> {
+): Promise<{ ok: true; ctx: ManagementContext } | { ok: false; response: HttpResponseInit }> {
   const headers = corsHeadersForRequest(request);
   if (request.method === 'OPTIONS') {
     return { ok: false, response: { status: 204, headers } };
@@ -68,7 +73,8 @@ export async function requireAdmin(
     };
   }
 
-  if (!isAdminOid(claims.oid, claims.sub)) {
+  const resolvedRole = resolveManagementRole(claims.oid, claims.sub);
+  if (!resolvedRole) {
     return {
       ok: false,
       response: {
@@ -83,9 +89,13 @@ export async function requireAdmin(
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const user = await ensureAdminUser(client, claims);
+    const user = await ensureManagementUser(
+      client,
+      claims,
+      resolvedRole === 'ADMIN' ? UserRole.ADMIN : UserRole.LANDLORD
+    );
     await client.query('COMMIT');
-    return { ok: true, ctx: { user, headers } };
+    return { ok: true, ctx: { user, role: resolvedRole, headers } };
   } catch (e) {
     await client.query('ROLLBACK');
     throw e;
@@ -108,3 +118,4 @@ export function jsonResponse(
     jsonBody: body,
   };
 }
+

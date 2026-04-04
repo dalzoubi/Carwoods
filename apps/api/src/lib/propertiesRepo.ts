@@ -39,7 +39,7 @@ export async function listPublicApplyProperties(
   return tiles;
 }
 
-export async function listPropertiesAdmin(
+export async function listPropertiesLandlord(
   client: Queryable
 ): Promise<PropertyRowFull[]> {
   const r = await client.query<PropertyRowFull>(

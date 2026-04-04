@@ -4,6 +4,6 @@
 import './functions/healthCheck.js';
 import './functions/publicApplyProperties.js';
 import './functions/portalMe.js';
-import './functions/adminProperties.js';
-import './functions/adminLeases.js';
-import './functions/adminLeaseTenants.js';
+import './functions/landlordProperties.js';
+import './functions/landlordLeases.js';
+import './functions/landlordLeaseTenants.js';

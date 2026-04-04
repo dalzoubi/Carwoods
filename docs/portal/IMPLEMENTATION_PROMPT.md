@@ -6,8 +6,8 @@ Use this as the authoritative product + technical brief. **Do not expose storage
 
 - **Public marketing site** remains on Vite + React (current repo).
 - **Tenant portal** at `/portal`: password-protected, app-like (not marketing layout).
-- **Admin**: properties, leases, tenants, service requests, messaging, vendors (model + optional UI flag), config, exports, notifications.
-- **Data**: Azure SQL (Basic tier), private Blob uploads (SAS), email via Azure Communication Services Email, **Gemini only on backend** for admin reply suggestions.
+- **Admin + Landlord**: properties, leases, tenants, service requests, messaging, config, exports, notifications.
+- **Data**: Azure SQL (Basic tier), private Blob uploads (SAS), email via Azure Communication Services Email, **Gemini only on backend** for landlord/admin reply suggestions.
 - **Retention**: 5 years; revoke portal access after lease rules but **do not delete** tenant/request history.
 
 ## Azure placement
@@ -37,8 +37,8 @@ Use this as the authoritative product + technical brief. **Do not expose storage
    - `ListingSyncProvider.syncProperty(propertyId): SyncResult`
    - `supports(config): boolean`
    - Implementations: **`HarScrapeProvider`** (same extraction strategy as current Node script, server-side only), **`HarIdxSyncProvider`** (feature-flagged / placeholder until credentialed IDX exists), **`ManualListingProvider`** (manual fields).
-3. **Admin create/update — blocking HAR sync when `har_listing_id` is set:**
-   - `POST /api/admin/properties` and `PATCH /api/admin/properties/:id` accept optional `har_listing_id`.
+3. **Landlord/Admin create/update — blocking HAR sync when `har_listing_id` is set:**
+   - `POST /api/landlord/properties` and `PATCH /api/landlord/properties/:id` accept optional `har_listing_id`.
    - If present, backend **fetches and parses HAR in the same request**, normalizes metadata, persists to `properties.metadata` (with `last_synced_at`, `sync_source`, `sync_confidence`) **atomically with the property row** before returning success.
    - On failure: return a clear **integration/validation error**; do not silently succeed with empty/stale HAR data for a **new** property that required HAR.
 4. **Manual overrides:** admin can lock selected fields; sync must respect locks.
@@ -46,14 +46,14 @@ Use this as the authoritative product + technical brief. **Do not expose storage
 
 ## Security & RBAC
 
-- Validate **Entra bearer tokens** on every portal/admin API; map `oid`/`sub` → `users.external_auth_subject`.
-- **RBAC + row-level** rules: tenant sees only own lease/property context and non-internal messages; admin sees all; vendor scoped to assigned requests when feature enabled.
+- Validate **Entra bearer tokens** on every portal/landlord/admin API; map `oid`/`sub` → `users.external_auth_subject`.
+- **RBAC + row-level** rules: tenant sees only own lease/property context and non-internal messages; landlord sees landlord scope; admin sees all.
 - Rate-limit sensitive endpoints; audit all mutations; structured logs + correlation IDs.
 
 ## Phasing
 
-1. **Phase 1:** IaC (RG `carwoods.com`), schema/migrations, Entra integration, RBAC, properties/leases/tenants admin CRUD, public apply-properties API, `/apply` behind flag.
-2. **Phase 2:** Requests, uploads, tenant + admin UI, threading, canned replies, statuses, notifications.
+1. **Phase 1:** IaC (RG `carwoods.com`), schema/migrations, Entra integration, RBAC, properties/leases/tenants landlord/admin CRUD, public apply-properties API, `/apply` behind flag.
+2. **Phase 2:** Requests, uploads, tenant + landlord/admin UI, threading, canned replies, statuses, notifications.
 3. **Phase 3:** Gemini suggest-reply, CSV export, HAR hardening (retries, observability), lease revocation job, vendor enhancements, optional realtime.
 
 See [PHASE_GATES.md](./PHASE_GATES.md) for exit criteria.

@@ -5,7 +5,7 @@ import {
   type InvocationContext,
 } from '@azure/functions';
 import { writeAudit } from '../lib/auditRepo.js';
-import { requireAdmin, jsonResponse } from '../lib/adminRequest.js';
+import { requireLandlordOrAdmin, jsonResponse } from '../lib/managementRequest.js';
 import { getPool } from '../lib/db.js';
 import { getLeaseById, linkLeaseTenant } from '../lib/leasesRepo.js';
 
@@ -14,11 +14,11 @@ function asRecord(v: unknown): Record<string, unknown> {
   return {};
 }
 
-async function adminLeaseTenantsPost(
+async function landlordLeaseTenantsPost(
   request: HttpRequest,
   _context: InvocationContext
 ): Promise<HttpResponseInit> {
-  const gate = await requireAdmin(request);
+  const gate = await requireLandlordOrAdmin(request);
   if (!gate.ok) return gate.response;
   const { ctx } = gate;
 
@@ -76,9 +76,10 @@ async function adminLeaseTenantsPost(
   }
 }
 
-app.http('adminLeaseTenantsPost', {
+app.http('landlordLeaseTenantsPost', {
   methods: ['POST', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'admin/leases/{leaseId}/tenants',
-  handler: adminLeaseTenantsPost,
+  route: 'landlord/leases/{leaseId}/tenants',
+  handler: landlordLeaseTenantsPost,
 });
+

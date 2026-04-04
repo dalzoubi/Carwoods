@@ -3,11 +3,13 @@ import { Link, useLocation } from 'react-router-dom';
 import { Alert, Box, Button, Chip, Stack, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { withDarkPath } from '../routePaths';
-import { usePortalAuth } from '../PortalAuthContext';
+import { hasLandlordAccess, usePortalAuth } from '../PortalAuthContext';
 import SocialSignInButtons from './SocialSignInButtons';
 
 function roleKey(role) {
-  return role === 'admin' ? 'admin' : 'tenant';
+  if (role === 'admin') return 'admin';
+  if (role === 'landlord') return 'landlord';
+  return 'tenant';
 }
 
 const PortalWorkspace = ({ role = 'tenant' }) => {
@@ -15,10 +17,11 @@ const PortalWorkspace = ({ role = 'tenant' }) => {
   const { t } = useTranslation();
   const { authStatus, isAuthenticated, meStatus, meData, meError, refreshMe, signOut } = usePortalAuth();
   const key = roleKey(role);
-  const userRole = meData?.user?.role ?? '';
-  const isAdminRoute = key === 'admin';
-  const isAdminAllowed = String(userRole).toUpperCase() === 'ADMIN';
-  const showRoleGuard = isAdminRoute && meStatus === 'ok' && !isAdminAllowed;
+  const userRole = String(meData?.user?.role ?? '').toUpperCase();
+  const isAdminAllowed = userRole === 'ADMIN';
+  const isLandlordAllowed = hasLandlordAccess(userRole);
+  const showRoleGuard = meStatus === 'ok'
+    && ((key === 'admin' && !isAdminAllowed) || (key === 'landlord' && !isLandlordAllowed));
 
   return (
     <Box sx={{ py: 4 }}>
@@ -32,6 +35,9 @@ const PortalWorkspace = ({ role = 'tenant' }) => {
           </Button>
           <Button component={Link} to={withDarkPath(pathname, '/portal/tenant')} type="button" variant={key === 'tenant' ? 'contained' : 'outlined'}>
             {t('portalWorkspace.actions.tenant')}
+          </Button>
+          <Button component={Link} to={withDarkPath(pathname, '/portal/landlord')} type="button" variant={key === 'landlord' ? 'contained' : 'outlined'}>
+            {t('portalWorkspace.actions.landlord')}
           </Button>
           <Button component={Link} to={withDarkPath(pathname, '/portal/admin')} type="button" variant={key === 'admin' ? 'contained' : 'outlined'}>
             {t('portalWorkspace.actions.admin')}

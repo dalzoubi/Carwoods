@@ -30,7 +30,7 @@ export async function listLeasesForProperty(
   return r.rows;
 }
 
-export async function listLeasesAdmin(
+export async function listLeasesLandlord(
   client: Queryable
 ): Promise<LeaseRowFull[]> {
   const r = await client.query<LeaseRowFull>(

@@ -175,6 +175,7 @@ const ResponsiveNavbar = () => {
 
     const legalLinks = [
         { to: '/privacy', label: t('nav.privacy') },
+        { to: '/terms-of-service', label: t('nav.terms') },
         { to: '/accessibility', label: t('nav.accessibility') },
     ];
 
