@@ -2,12 +2,7 @@ import type { HttpRequest, HttpResponseInit } from '@azure/functions';
 import { getPool, hasDatabaseUrl } from './db.js';
 import { corsHeadersForRequest } from './corsHeaders.js';
 import { getBearerToken, verifyAccessToken, entraAuthConfigured } from './jwtVerify.js';
-import { resolveManagementRole } from './managementGate.js';
-import {
-  ensureManagementUser,
-  UserRole,
-  type UserRow,
-} from './usersRepo.js';
+import { findUserByClaims, type UserRow } from './usersRepo.js';
 
 export type ManagementContext = {
   user: UserRow;
@@ -17,7 +12,7 @@ export type ManagementContext = {
 
 /**
  * OPTIONS, missing DB, missing Entra config, bad/missing token, or non-management user → HttpResponseInit.
- * Otherwise DB client + management user (upserted).
+ * Otherwise DB-backed management user resolved from JWT email.
  */
 export async function requireLandlordOrAdmin(
   request: HttpRequest
@@ -73,32 +68,35 @@ export async function requireLandlordOrAdmin(
     };
   }
 
-  const resolvedRole = resolveManagementRole(claims.oid, claims.sub);
-  if (!resolvedRole) {
-    return {
-      ok: false,
-      response: {
-        status: 403,
-        headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-        jsonBody: { error: 'forbidden' },
-      },
-    };
-  }
-
   const pool = getPool();
   const client = await pool.connect();
   try {
-    await client.query('BEGIN');
-    const user = await ensureManagementUser(
-      client,
-      claims,
-      resolvedRole === 'ADMIN' ? UserRole.ADMIN : UserRole.LANDLORD
-    );
-    await client.query('COMMIT');
-    return { ok: true, ctx: { user, role: resolvedRole, headers } };
-  } catch (e) {
-    await client.query('ROLLBACK');
-    throw e;
+    const user = await findUserByClaims(client, claims);
+    if (!user) {
+      return {
+        ok: false,
+        response: {
+          status: 403,
+          headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
+          jsonBody: { error: 'forbidden' },
+        },
+      };
+    }
+    const role = String(user.role ?? '').toUpperCase();
+    const status = String(user.status ?? '').toUpperCase();
+    const isActive = status === 'ACTIVE' || status === 'INVITED';
+    const isAllowedRole = role === 'ADMIN' || role === 'LANDLORD';
+    if (!isActive || !isAllowedRole) {
+      return {
+        ok: false,
+        response: {
+          status: 403,
+          headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
+          jsonBody: { error: 'forbidden' },
+        },
+      };
+    }
+    return { ok: true, ctx: { user, role: role as 'ADMIN' | 'LANDLORD', headers } };
   } finally {
     client.release();
   }

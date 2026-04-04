@@ -11,7 +11,7 @@ import {
   verifyAccessToken,
   entraAuthConfigured,
 } from '../lib/jwtVerify.js';
-import { findUserBySubject } from '../lib/usersRepo.js';
+import { findUserByClaims } from '../lib/usersRepo.js';
 
 async function portalMeHandler(
   request: HttpRequest,
@@ -57,12 +57,12 @@ async function portalMeHandler(
     };
   }
 
-  let user: Awaited<ReturnType<typeof findUserBySubject>> = null;
+  let user: Awaited<ReturnType<typeof findUserByClaims>> = null;
   if (hasDatabaseUrl()) {
     const pool = getPool();
     const c = await pool.connect();
     try {
-      user = await findUserBySubject(c, claims.sub);
+      user = await findUserByClaims(c, claims);
     } finally {
       c.release();
     }

@@ -23,11 +23,11 @@ Endpoints (local default port **7071**):
 | GET | `/api/health` | Anonymous |
 | GET, OPTIONS | `/api/public/apply-properties` | Anonymous (CORS). Returns tiles for `apply_visible` rows with valid `metadata.apply` (empty list if `DATABASE_URL` unset or DB error). |
 | GET, OPTIONS | `/api/portal/me` | Bearer JWT (`ENTRA_*` + JWKS). **401** without token. |
-| GET, POST, OPTIONS | `/api/landlord/properties` | Landlord or Admin Bearer JWT + `ENTRA_LANDLORD_OBJECT_IDS` / `ENTRA_ADMIN_OBJECT_IDS` |
-| GET, PATCH, DELETE, OPTIONS | `/api/landlord/properties/{id}` | Landlord or Admin |
-| GET, POST, OPTIONS | `/api/landlord/leases` | Landlord or Admin (`GET ?property_id=` filters) |
-| GET, PATCH, DELETE, OPTIONS | `/api/landlord/leases/{id}` | Landlord or Admin |
-| POST, OPTIONS | `/api/landlord/leases/{leaseId}/tenants` | Landlord or Admin; body `{ "userId": "<uuid>" }` links an existing `users` row |
+| GET, POST, OPTIONS | `/api/landlord/properties` | Landlord or Admin Bearer JWT + onboarded `users` row (email match) |
+| GET, PATCH, DELETE, OPTIONS | `/api/landlord/properties/{id}` | Landlord or Admin (onboarded email role) |
+| GET, POST, OPTIONS | `/api/landlord/leases` | Landlord or Admin (onboarded email role; `GET ?property_id=` filters) |
+| GET, PATCH, DELETE, OPTIONS | `/api/landlord/leases/{id}` | Landlord or Admin (onboarded email role) |
+| POST, OPTIONS | `/api/landlord/leases/{leaseId}/tenants` | Landlord or Admin (onboarded email role); body `{ "userId": "<uuid>" }` links an existing `users` row |
 
 **HAR:** `POST`/`PATCH` on properties with non-empty `har_listing_id` runs a **blocking** HAR fetch (same parsing as `scripts/fetchHarRentalApplyTiles.mjs`). Failure → **422** `har_sync_failed` (no row created/updated).
 

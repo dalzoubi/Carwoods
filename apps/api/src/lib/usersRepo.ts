@@ -22,6 +22,10 @@ export type UserRoleType = (typeof UserRole)[keyof typeof UserRole];
 
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
 
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
 export async function findUserBySubject(
   client: Queryable,
   externalAuthSubject: string
@@ -32,6 +36,32 @@ export async function findUserBySubject(
     [externalAuthSubject]
   );
   return r.rows[0] ?? null;
+}
+
+export async function findUserByEmail(
+  client: Queryable,
+  email: string
+): Promise<UserRow | null> {
+  const normalized = normalizeEmail(email);
+  const r = await client.query<UserRow>(
+    `SELECT id, external_auth_subject, email, first_name, last_name, phone, role, status
+     FROM users
+     WHERE LOWER(email) = $1`,
+    [normalized]
+  );
+  return r.rows[0] ?? null;
+}
+
+export async function findUserByClaims(
+  client: Queryable,
+  claims: AccessTokenClaims
+): Promise<UserRow | null> {
+  const email = claims.email ?? claims.preferred_username;
+  if (email) {
+    const byEmail = await findUserByEmail(client, email);
+    if (byEmail) return byEmail;
+  }
+  return findUserBySubject(client, claims.sub);
 }
 
 /**
