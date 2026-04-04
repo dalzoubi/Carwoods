@@ -19,10 +19,12 @@
   "tenantLinks": {
     "apply": "Postuler",
     "selectionCriteria": "Critères de sélection",
-    "requiredDocuments": "Documents requis"
+    "requiredDocuments": "Documents requis",
+    "tenantPortal": "Portail locataire"
   },
   "landlordLinks": {
-    "propertyManagement": "Gestion immobilière"
+    "propertyManagement": "Gestion immobilière",
+    "adminPortal": "Portail admin"
   },
   "appearance": {
     "colorTheme": "Thème de couleur",

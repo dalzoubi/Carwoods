@@ -19,10 +19,12 @@
   "tenantLinks": {
     "apply": "Apply",
     "selectionCriteria": "Selection Criteria",
-    "requiredDocuments": "Required Documents"
+    "requiredDocuments": "Required Documents",
+    "tenantPortal": "Tenant Portal"
   },
   "landlordLinks": {
-    "propertyManagement": "Property Management"
+    "propertyManagement": "Property Management",
+    "adminPortal": "Admin Portal"
   },
   "appearance": {
     "colorTheme": "Color theme",

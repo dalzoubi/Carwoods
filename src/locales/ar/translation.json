@@ -19,10 +19,12 @@
   "tenantLinks": {
     "apply": "تقديم الطلب",
     "selectionCriteria": "معايير الاختيار",
-    "requiredDocuments": "المستندات المطلوبة"
+    "requiredDocuments": "المستندات المطلوبة",
+    "tenantPortal": "بوابة المستأجر"
   },
   "landlordLinks": {
-    "propertyManagement": "إدارة الممتلكات"
+    "propertyManagement": "إدارة الممتلكات",
+    "adminPortal": "بوابة الإدارة"
   },
   "appearance": {
     "colorTheme": "نظام الألوان",
