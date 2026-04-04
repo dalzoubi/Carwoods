@@ -615,12 +615,19 @@
       "checkHealth": "Vérifier la santé",
       "checkMe": "Vérifier /portal/me",
       "openTenant": "Ouvrir l'espace locataire",
-      "openAdmin": "Ouvrir l'espace admin"
+      "openAdmin": "Ouvrir l'espace admin",
+      "saveToken": "Enregistrer le jeton en session",
+      "clearToken": "Effacer le jeton enregistré",
+      "refreshSession": "Actualiser la session enregistrée"
     },
     "entraHeading": "Vérifications d'environnement SPA Entra",
     "entraClientId": "VITE_ENTRA_CLIENT_ID",
     "entraAuthority": "VITE_ENTRA_AUTHORITY",
     "entraScope": "VITE_ENTRA_API_SCOPE",
+    "sessionHeading": "Jeton de session du portail",
+    "sessionSaved": "Jeton enregistré",
+    "sessionNotSaved": "Aucun jeton enregistré",
+    "sessionSubject": "Sujet de session : {{subject}}",
     "status": {
       "idle": "Inactif",
       "loading": "Vérification",
@@ -641,8 +648,16 @@
     "actions": {
       "backToSetup": "Retour à la configuration",
       "tenant": "Espace locataire",
-      "admin": "Espace admin"
+      "admin": "Espace admin",
+      "retryAuth": "Relancer la vérification d'authentification",
+      "clearToken": "Effacer le jeton"
     },
+    "authRequired": "Enregistrez un jeton bearer dans la configuration du portail avant d'utiliser cet espace.",
+    "authLoading": "Vérification de la session portail enregistrée…",
+    "authError": "Impossible de valider la session portail enregistrée.",
+    "authForbidden": "Votre session actuelle n'est pas autorisée pour l'espace admin.",
+    "authenticated": "Authentifié",
+    "accountSummary": "Sujet : {{subject}} | Rôle : {{role}}",
     "tenant": {
       "heading": "Espace Portail Locataire",
       "intro": "Cette route est réservée aux fonctionnalités de maintenance côté locataire.",

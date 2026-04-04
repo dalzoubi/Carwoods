@@ -615,12 +615,19 @@
       "checkHealth": "Comprobar salud",
       "checkMe": "Comprobar /portal/me",
       "openTenant": "Abrir espacio de inquilino",
-      "openAdmin": "Abrir espacio de administración"
+      "openAdmin": "Abrir espacio de administración",
+      "saveToken": "Guardar token en sesión",
+      "clearToken": "Borrar token guardado",
+      "refreshSession": "Actualizar sesión guardada"
     },
     "entraHeading": "Comprobaciones de entorno SPA de Entra",
     "entraClientId": "VITE_ENTRA_CLIENT_ID",
     "entraAuthority": "VITE_ENTRA_AUTHORITY",
     "entraScope": "VITE_ENTRA_API_SCOPE",
+    "sessionHeading": "Token de sesión del portal",
+    "sessionSaved": "Token guardado",
+    "sessionNotSaved": "Sin token guardado",
+    "sessionSubject": "Sujeto de sesión: {{subject}}",
     "status": {
       "idle": "Inactivo",
       "loading": "Comprobando",
@@ -641,8 +648,16 @@
     "actions": {
       "backToSetup": "Volver a configuración",
       "tenant": "Espacio de inquilino",
-      "admin": "Espacio de administración"
+      "admin": "Espacio de administración",
+      "retryAuth": "Reintentar comprobación de autenticación",
+      "clearToken": "Borrar token"
     },
+    "authRequired": "Guarde un token bearer en Configuración del Portal antes de usar este espacio.",
+    "authLoading": "Comprobando sesión guardada del portal…",
+    "authError": "No se pudo validar la sesión guardada del portal.",
+    "authForbidden": "Su sesión actual no está autorizada para el espacio de administración.",
+    "authenticated": "Autenticado",
+    "accountSummary": "Sujeto: {{subject}} | Rol: {{role}}",
     "tenant": {
       "heading": "Espacio del Portal de Inquilino",
       "intro": "Esta ruta está reservada para funciones de mantenimiento orientadas a inquilinos.",

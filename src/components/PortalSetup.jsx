@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { VITE_API_BASE_URL_RESOLVED } from '../featureFlags';
 import { withDarkPath } from '../routePaths';
+import { usePortalAuth } from '../PortalAuthContext';
 
 function endpoint(baseUrl, path) {
   return `${baseUrl.replace(/\/$/, '')}${path}`;
@@ -30,7 +31,16 @@ const PortalSetup = () => {
   const { t } = useTranslation();
   const [health, setHealth] = useState({ state: 'idle', detail: '' });
   const [me, setMe] = useState({ state: 'idle', detail: '' });
-  const [bearerToken, setBearerToken] = useState('');
+  const {
+    token: savedToken,
+    meStatus,
+    meData,
+    meError,
+    saveToken,
+    clearToken,
+    refreshMe,
+  } = usePortalAuth();
+  const [bearerToken, setBearerToken] = useState(savedToken);
   const entraClientId = (import.meta.env.VITE_ENTRA_CLIENT_ID ?? '').trim();
   const entraAuthority = (import.meta.env.VITE_ENTRA_AUTHORITY ?? '').trim();
   const entraScope = (import.meta.env.VITE_ENTRA_API_SCOPE ?? '').trim();
@@ -38,6 +48,10 @@ const PortalSetup = () => {
   const baseUrl = useMemo(() => VITE_API_BASE_URL_RESOLVED || '', []);
   const healthUrl = baseUrl ? endpoint(baseUrl, '/api/health') : '';
   const meUrl = baseUrl ? endpoint(baseUrl, '/api/portal/me') : '';
+
+  useEffect(() => {
+    setBearerToken(savedToken);
+  }, [savedToken]);
 
   const fetchHealth = async () => {
     if (!baseUrl) return;
@@ -169,6 +183,47 @@ const PortalSetup = () => {
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
               <Chip size="small" color={entraScope ? 'success' : 'default'} label={t('portalSetup.entraScope')} />
               <Typography color="text.secondary">{entraScope || t('portalSetup.notConfigured')}</Typography>
+            </Stack>
+          </Stack>
+        </Box>
+
+        <Box
+          sx={{
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 2,
+            p: 2,
+            backgroundColor: 'background.paper',
+          }}
+        >
+          <Stack spacing={1.5}>
+            <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
+              {t('portalSetup.sessionHeading')}
+            </Typography>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+              <Chip
+                size="small"
+                color={savedToken ? 'success' : 'default'}
+                label={savedToken ? t('portalSetup.sessionSaved') : t('portalSetup.sessionNotSaved')}
+              />
+              <Typography color="text.secondary">
+                {meStatus === 'ok'
+                  ? t('portalSetup.sessionSubject', { subject: meData?.subject ?? t('portalSetup.notConfigured') })
+                  : meStatus === 'error'
+                    ? meError || t('portalSetup.errors.unknown')
+                    : t(`portalSetup.status.${meStatus}`)}
+              </Typography>
+            </Stack>
+            <Stack direction="row" spacing={1.25} sx={{ flexWrap: 'wrap' }}>
+              <Button type="button" variant="contained" onClick={() => saveToken(bearerToken)} disabled={!bearerToken.trim()}>
+                {t('portalSetup.actions.saveToken')}
+              </Button>
+              <Button type="button" variant="outlined" onClick={clearToken}>
+                {t('portalSetup.actions.clearToken')}
+              </Button>
+              <Button type="button" variant="outlined" onClick={refreshMe} disabled={!savedToken}>
+                {t('portalSetup.actions.refreshSession')}
+              </Button>
             </Stack>
           </Stack>
         </Box>

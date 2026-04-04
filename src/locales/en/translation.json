@@ -615,12 +615,19 @@
       "checkHealth": "Check health",
       "checkMe": "Check /portal/me",
       "openTenant": "Open tenant workspace",
-      "openAdmin": "Open admin workspace"
+      "openAdmin": "Open admin workspace",
+      "saveToken": "Save token to session",
+      "clearToken": "Clear saved token",
+      "refreshSession": "Refresh saved session"
     },
     "entraHeading": "Entra SPA environment checks",
     "entraClientId": "VITE_ENTRA_CLIENT_ID",
     "entraAuthority": "VITE_ENTRA_AUTHORITY",
     "entraScope": "VITE_ENTRA_API_SCOPE",
+    "sessionHeading": "Portal session token",
+    "sessionSaved": "Token saved",
+    "sessionNotSaved": "No saved token",
+    "sessionSubject": "Session subject: {{subject}}",
     "status": {
       "idle": "Idle",
       "loading": "Checking",
@@ -641,8 +648,16 @@
     "actions": {
       "backToSetup": "Back to setup",
       "tenant": "Tenant workspace",
-      "admin": "Admin workspace"
+      "admin": "Admin workspace",
+      "retryAuth": "Retry auth check",
+      "clearToken": "Clear token"
     },
+    "authRequired": "Save a bearer token in Portal Setup before using this workspace.",
+    "authLoading": "Checking saved portal session…",
+    "authError": "Unable to validate the saved portal session.",
+    "authForbidden": "Your current session is not authorized for admin workspace access.",
+    "authenticated": "Authenticated",
+    "accountSummary": "Subject: {{subject}} | Role: {{role}}",
     "tenant": {
       "heading": "Tenant Portal Workspace",
       "intro": "This route is reserved for tenant-focused maintenance features.",

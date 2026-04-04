@@ -7,6 +7,7 @@ import './index.css';
 import App from './App';
 import { ThemeModeProvider } from './ThemeModeContext';
 import { LanguageProvider } from './LanguageContext';
+import { PortalAuthProvider } from './PortalAuthContext';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -15,8 +16,10 @@ root.render(
     <BrowserRouter>
       <LanguageProvider>
         <ThemeModeProvider>
-          <CssBaseline />
-          <App />
+          <PortalAuthProvider>
+            <CssBaseline />
+            <App />
+          </PortalAuthProvider>
         </ThemeModeProvider>
       </LanguageProvider>
     </BrowserRouter>

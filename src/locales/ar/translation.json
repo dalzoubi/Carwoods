@@ -615,12 +615,19 @@
       "checkHealth": "فحص الصحة",
       "checkMe": "فحص /portal/me",
       "openTenant": "فتح مساحة المستأجر",
-      "openAdmin": "فتح مساحة الإدارة"
+      "openAdmin": "فتح مساحة الإدارة",
+      "saveToken": "حفظ الرمز في الجلسة",
+      "clearToken": "مسح الرمز المحفوظ",
+      "refreshSession": "تحديث الجلسة المحفوظة"
     },
     "entraHeading": "فحوصات بيئة Entra لتطبيق SPA",
     "entraClientId": "VITE_ENTRA_CLIENT_ID",
     "entraAuthority": "VITE_ENTRA_AUTHORITY",
     "entraScope": "VITE_ENTRA_API_SCOPE",
+    "sessionHeading": "رمز جلسة البوابة",
+    "sessionSaved": "تم حفظ الرمز",
+    "sessionNotSaved": "لا يوجد رمز محفوظ",
+    "sessionSubject": "معرّف الجلسة: {{subject}}",
     "status": {
       "idle": "خامل",
       "loading": "جارٍ الفحص",
@@ -641,8 +648,16 @@
     "actions": {
       "backToSetup": "العودة إلى الإعداد",
       "tenant": "مساحة المستأجر",
-      "admin": "مساحة الإدارة"
+      "admin": "مساحة الإدارة",
+      "retryAuth": "إعادة فحص التوثيق",
+      "clearToken": "مسح الرمز"
     },
+    "authRequired": "احفظ رمز bearer في إعداد البوابة قبل استخدام هذه المساحة.",
+    "authLoading": "جارٍ التحقق من جلسة البوابة المحفوظة…",
+    "authError": "تعذر التحقق من جلسة البوابة المحفوظة.",
+    "authForbidden": "جلستك الحالية غير مخولة للوصول إلى مساحة الإدارة.",
+    "authenticated": "تم التوثيق",
+    "accountSummary": "المعرّف: {{subject}} | الدور: {{role}}",
     "tenant": {
       "heading": "مساحة بوابة المستأجر",
       "intro": "هذا المسار مخصص لميزات الصيانة الخاصة بالمستأجر.",
