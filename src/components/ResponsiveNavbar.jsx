@@ -165,10 +165,12 @@ const ResponsiveNavbar = () => {
         { to: '/apply', label: t('tenantLinks.apply') },
         { to: '/tenant-selection-criteria', label: t('tenantLinks.selectionCriteria') },
         { to: '/application-required-documents', label: t('tenantLinks.requiredDocuments') },
+        { to: '/portal/tenant', label: t('tenantLinks.tenantPortal') },
     ];
 
     const landlordLinks = [
         { to: '/property-management', label: t('landlordLinks.propertyManagement') },
+        { to: '/portal/admin', label: t('landlordLinks.landlordPortal') },
     ];
 
     const legalLinks = [

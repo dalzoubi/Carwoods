@@ -19,10 +19,12 @@
   "tenantLinks": {
     "apply": "Postuler",
     "selectionCriteria": "Critères de sélection",
-    "requiredDocuments": "Documents requis"
+    "requiredDocuments": "Documents requis",
+    "tenantPortal": "Portail locataire"
   },
   "landlordLinks": {
-    "propertyManagement": "Gestion immobilière"
+    "propertyManagement": "Gestion immobilière",
+    "landlordPortal": "Portail propriétaire"
   },
   "appearance": {
     "colorTheme": "Thème de couleur",
@@ -615,7 +617,7 @@
       "checkHealth": "Vérifier la santé",
       "checkMe": "Vérifier /portal/me",
       "openTenant": "Ouvrir l'espace locataire",
-      "openAdmin": "Ouvrir l'espace admin",
+      "openAdmin": "Ouvrir l'espace propriétaire",
       "signIn": "Se connecter avec Entra",
       "signOut": "Se déconnecter",
       "refreshSession": "Actualiser la session enregistrée"
@@ -654,9 +656,10 @@
   "portalWorkspace": {
     "nextHeading": "Prochaines étapes d'implémentation",
     "actions": {
+      "backToSite": "Retour au site principal",
       "backToSetup": "Retour à la configuration",
       "tenant": "Espace locataire",
-      "admin": "Espace admin",
+      "admin": "Espace propriétaire",
       "retryAuth": "Relancer la vérification d'authentification",
       "signIn": "Se connecter",
       "signOut": "Se déconnecter"
@@ -676,9 +679,9 @@
       "next3": "Ajouter l'intention d'upload de pièces jointes + UI de fil de messages."
     },
     "admin": {
-      "heading": "Espace Portail Admin",
-      "intro": "Cette route est réservée aux opérations admin et à la gestion des demandes.",
-      "next1": "Ajouter une protection d'accès admin via /api/portal/me et les données de rôle.",
+      "heading": "Espace Portail Propriétaire",
+      "intro": "Cette route est réservée aux opérations du propriétaire et à la gestion des demandes.",
+      "next1": "Ajouter une protection d'accès propriétaire via /api/portal/me et les données de rôle.",
       "next2": "Construire des tableaux de bord propriétés/baux/demandes avec pagination.",
       "next3": "Ajouter des flux de mutation traçables et des mises à jour de statut."
     }

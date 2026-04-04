@@ -98,6 +98,9 @@ const PortalSetup = () => {
         <Typography color="text.secondary">{t('portalSetup.intro')}</Typography>
 
         <Stack direction="row" spacing={1.25} sx={{ flexWrap: 'wrap' }}>
+          <Button component={Link} to={withDarkPath(pathname, '/')} type="button" variant="text">
+            {t('portalWorkspace.actions.backToSite')}
+          </Button>
           <Button component={Link} to={withDarkPath(pathname, '/portal/tenant')} type="button" variant="outlined">
             {t('portalSetup.actions.openTenant')}
           </Button>
