@@ -69,6 +69,8 @@ async function portalMeHandler(
     }
   }
 
+  const tokenRole = claims.role ?? claims.roles?.[0] ?? claims.app_roles?.[0] ?? null;
+
   return {
     status: 200,
     headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
@@ -76,7 +78,7 @@ async function portalMeHandler(
       subject: claims.sub,
       oid: claims.oid ?? null,
       email: primaryEmailFromClaims(claims) ?? null,
-      role: user?.role ?? null,
+      role: user?.role ?? tokenRole,
       user,
     },
   };
