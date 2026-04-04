@@ -4,9 +4,49 @@ import { VITE_API_BASE_URL_RESOLVED } from './featureFlags';
 import { ENTRA_AUTH_CONFIGURED, ENTRA_LOGIN_SCOPES, ENTRA_SCOPES, msalInstance } from './entraAuth';
 
 const PortalAuthContext = createContext(null);
+const ID_TOKEN_CLAIMS_STORAGE_KEY = 'portal.idTokenClaimsByHomeAccountId';
 
 function endpoint(baseUrl, path) {
   return `${baseUrl.replace(/\/$/, '')}${path}`;
+}
+
+function readStoredClaimsByHomeAccountId() {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = window.localStorage.getItem(ID_TOKEN_CLAIMS_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeStoredClaimsByHomeAccountId(map) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(ID_TOKEN_CLAIMS_STORAGE_KEY, JSON.stringify(map));
+  } catch {
+    // Best-effort cache persistence.
+  }
+}
+
+function persistIdTokenClaims(account, idTokenClaims) {
+  const homeAccountId = account?.homeAccountId;
+  if (!homeAccountId || !idTokenClaims || typeof idTokenClaims !== 'object') return;
+  const current = readStoredClaimsByHomeAccountId();
+  current[homeAccountId] = idTokenClaims;
+  writeStoredClaimsByHomeAccountId(current);
+}
+
+function hydrateAccountClaims(account) {
+  if (!account) return null;
+  if (account.idTokenClaims) return account;
+  const homeAccountId = account.homeAccountId;
+  if (!homeAccountId) return account;
+  const claims = readStoredClaimsByHomeAccountId()[homeAccountId];
+  if (!claims || typeof claims !== 'object') return account;
+  return { ...account, idTokenClaims: claims };
 }
 
 export const PortalAuthProvider = ({ children }) => {
@@ -33,7 +73,7 @@ export const PortalAuthProvider = ({ children }) => {
       msalInstance.getActiveAccount() ?? msalInstance.getAllAccounts()[0] ?? null;
     if (active) {
       msalInstance.setActiveAccount(active);
-      setAccount(active);
+      setAccount(hydrateAccountClaims(active));
       setAuthStatus('authenticated');
       return active;
     }
@@ -65,8 +105,9 @@ export const PortalAuthProvider = ({ children }) => {
       }
       const result = await msalInstance.loginPopup(request);
       if (result.account) {
+        persistIdTokenClaims(result.account, result.idTokenClaims);
         msalInstance.setActiveAccount(result.account);
-        setAccount(result.account);
+        setAccount(hydrateAccountClaims(result.account));
       }
       syncActiveAccount();
       setRefreshTick((x) => x + 1);
@@ -89,6 +130,7 @@ export const PortalAuthProvider = ({ children }) => {
       // Best-effort cache clear; local state reset below handles the rest.
     }
     msalInstance.setActiveAccount(null);
+    writeStoredClaimsByHomeAccountId({});
     setAccount(null);
     setAuthError('');
     setAuthStatus('unauthenticated');
@@ -169,6 +211,20 @@ export const PortalAuthProvider = ({ children }) => {
             throw error;
           }
         }
+
+        persistIdTokenClaims(tokenResponse.account, tokenResponse.idTokenClaims);
+        setAccount((prev) => {
+          const sourceAccount = tokenResponse.account ?? prev;
+          const nextAccount = hydrateAccountClaims(sourceAccount);
+          if (!nextAccount) return prev;
+          if (
+            prev?.homeAccountId === nextAccount.homeAccountId &&
+            prev?.idTokenClaims
+          ) {
+            return prev;
+          }
+          return nextAccount;
+        });
 
         const res = await fetch(meUrl, {
           method: 'GET',
