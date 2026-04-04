@@ -1,5 +1,5 @@
 import type { PoolClient, QueryResult } from './db.js';
-import type { AccessTokenClaims } from './jwtVerify.js';
+import { primaryEmailFromClaims, type AccessTokenClaims } from './jwtVerify.js';
 
 export type UserRow = {
   id: string;
@@ -56,11 +56,25 @@ export async function findUserByClaims(
   client: Queryable,
   claims: AccessTokenClaims
 ): Promise<UserRow | null> {
-  const email = claims.email ?? claims.preferred_username;
-  if (email) {
+  const subjectCandidates = [claims.oid, claims.sub].filter(
+    (value, index, arr): value is string =>
+      Boolean(value && value.trim().length > 0 && arr.indexOf(value) === index)
+  );
+  for (const subject of subjectCandidates) {
+    const bySubject = await findUserBySubject(client, subject);
+    if (bySubject) return bySubject;
+  }
+
+  const emailCandidates = [
+    primaryEmailFromClaims(claims),
+    ...(claims.emails ?? []),
+  ].filter((value, index, arr): value is string => Boolean(value && arr.indexOf(value) === index));
+
+  for (const email of emailCandidates) {
     const byEmail = await findUserByEmail(client, email);
     if (byEmail) return byEmail;
   }
+
   return findUserBySubject(client, claims.sub);
 }
 
@@ -73,7 +87,7 @@ export async function ensureManagementUser(
   claims: AccessTokenClaims,
   role: UserRoleType
 ): Promise<UserRow> {
-  const email = claims.email ?? claims.preferred_username ?? 'user@unknown';
+  const email = primaryEmailFromClaims(claims) ?? 'user@unknown';
   const sub = claims.sub;
   const firstName = claims.given_name ?? null;
   const lastName = claims.family_name ?? null;

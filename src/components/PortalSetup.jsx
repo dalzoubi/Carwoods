@@ -15,6 +15,39 @@ import { withDarkPath } from '../routePaths';
 import { usePortalAuth } from '../PortalAuthContext';
 import SocialSignInButtons from './SocialSignInButtons';
 
+function firstNonEmpty(values) {
+  for (const v of values) {
+    if (typeof v === 'string') {
+      const s = v.trim();
+      if (s) return s;
+    }
+  }
+  return '';
+}
+
+function normalizeRole(rawRole) {
+  const normalized = String(rawRole ?? '')
+    .trim()
+    .toUpperCase()
+    .replace(/[\s-]+/g, '_');
+  if (!normalized) return '';
+  if (normalized === 'PROPERTY_MANAGER' || normalized === 'OWNER') return 'LANDLORD';
+  return normalized;
+}
+
+function roleFromAccountClaims(account) {
+  const claims = account?.idTokenClaims ?? {};
+  const candidates = [];
+  if (typeof claims.role === 'string') candidates.push(claims.role);
+  if (Array.isArray(claims.roles)) candidates.push(...claims.roles);
+  if (Array.isArray(claims.app_roles)) candidates.push(...claims.app_roles);
+  for (const candidate of candidates) {
+    const normalized = normalizeRole(candidate);
+    if (normalized) return normalized;
+  }
+  return '';
+}
+
 function endpoint(baseUrl, path) {
   return `${baseUrl.replace(/\/$/, '')}${path}`;
 }
@@ -51,6 +84,37 @@ const PortalSetup = () => {
   const entraClientId = (import.meta.env.VITE_ENTRA_CLIENT_ID ?? '').trim();
   const entraAuthority = (import.meta.env.VITE_ENTRA_AUTHORITY ?? '').trim();
   const entraScope = (import.meta.env.VITE_ENTRA_API_SCOPE ?? '').trim();
+  const userFirstName = meData?.user?.first_name ?? '';
+  const userLastName = meData?.user?.last_name ?? '';
+  const profileName = `${userFirstName} ${userLastName}`.trim();
+  const displayName = firstNonEmpty([
+    profileName,
+    account?.name,
+    meData?.email,
+    account?.username,
+    meData?.subject,
+    t('portalSetup.notConfigured'),
+  ]);
+  const effectiveRole = firstNonEmpty([
+    normalizeRole(meData?.user?.role),
+    normalizeRole(meData?.role),
+    roleFromAccountClaims(account),
+  ]);
+  const tokenDetailsJson = useMemo(() => {
+    if (!account) return '';
+    const tokenDetails = {
+      account: {
+        homeAccountId: account.homeAccountId ?? null,
+        localAccountId: account.localAccountId ?? null,
+        username: account.username ?? null,
+        tenantId: account.tenantId ?? null,
+        environment: account.environment ?? null,
+        name: account.name ?? null,
+      },
+      idTokenClaims: account.idTokenClaims ?? null,
+    };
+    return JSON.stringify(tokenDetails, null, 2);
+  }, [account]);
 
   const baseUrl = useMemo(() => VITE_API_BASE_URL_RESOLVED || '', []);
   const healthUrl = baseUrl ? endpoint(baseUrl, '/api/health') : '';
@@ -185,7 +249,7 @@ const PortalSetup = () => {
               <Typography color="text.secondary">
                 {authStatus === 'authenticated'
                   ? t('portalSetup.sessionSubject', {
-                      subject: account?.username ?? meData?.subject ?? t('portalSetup.notConfigured'),
+                      subject: displayName,
                     })
                   : authStatus === 'error'
                     ? authError || t('portalSetup.errors.unknown')
@@ -204,6 +268,43 @@ const PortalSetup = () => {
                 </Button>
               </Stack>
             )}
+            <Box
+              sx={{
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1.5,
+                p: 1.5,
+                backgroundColor: 'background.default',
+              }}
+            >
+              <Stack spacing={1}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {t('portalSetup.tokenDetailsHeading')}
+                </Typography>
+                {tokenDetailsJson ? (
+                  <Box
+                    component="pre"
+                    sx={{
+                      m: 0,
+                      p: 1.25,
+                      borderRadius: 1,
+                      backgroundColor: 'background.paper',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      overflowX: 'auto',
+                      maxHeight: 320,
+                      fontSize: '0.75rem',
+                      lineHeight: 1.4,
+                      fontFamily: 'monospace',
+                    }}
+                  >
+                    {tokenDetailsJson}
+                  </Box>
+                ) : (
+                  <Typography color="text.secondary">{t('portalSetup.tokenDetailsUnavailable')}</Typography>
+                )}
+              </Stack>
+            </Box>
           </Stack>
         </Box>
 
@@ -258,8 +359,13 @@ const PortalSetup = () => {
               {meStatus === 'ok' && (
                 <Typography>
                   {t('portalSetup.sessionSubject', {
-                    subject: meData?.subject ?? t('portalSetup.notConfigured'),
+                    subject: displayName,
                   })}
+                </Typography>
+              )}
+              {meStatus === 'ok' && Boolean(effectiveRole) && (
+                <Typography color="text.secondary">
+                  {effectiveRole}
                 </Typography>
               )}
               {meStatus === 'error' && <Typography>{meError || t('portalSetup.errors.unknown')}</Typography>}

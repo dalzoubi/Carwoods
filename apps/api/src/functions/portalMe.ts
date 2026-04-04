@@ -8,6 +8,7 @@ import { corsHeadersForRequest } from '../lib/corsHeaders.js';
 import { hasDatabaseUrl, getPool } from '../lib/db.js';
 import {
   getBearerToken,
+  primaryEmailFromClaims,
   verifyAccessToken,
   entraAuthConfigured,
 } from '../lib/jwtVerify.js';
@@ -74,7 +75,7 @@ async function portalMeHandler(
     jsonBody: {
       subject: claims.sub,
       oid: claims.oid ?? null,
-      email: claims.email ?? claims.preferred_username ?? null,
+      email: primaryEmailFromClaims(claims) ?? null,
       user,
     },
   };

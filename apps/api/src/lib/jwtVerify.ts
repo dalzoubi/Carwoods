@@ -5,6 +5,8 @@ export type AccessTokenClaims = {
   sub: string;
   oid?: string;
   email?: string;
+  upn?: string;
+  emails?: string[];
   preferred_username?: string;
   given_name?: string;
   family_name?: string;
@@ -23,6 +25,20 @@ export function getBearerToken(authHeader: string | null | undefined): string | 
   if (!authHeader?.startsWith('Bearer ')) return null;
   const t = authHeader.slice('Bearer '.length).trim();
   return t || null;
+}
+
+function readString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value : undefined;
+}
+
+function readStringArray(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const values = value.filter((v): v is string => typeof v === 'string' && v.trim().length > 0);
+  return values.length > 0 ? values : undefined;
+}
+
+export function primaryEmailFromClaims(claims: AccessTokenClaims): string | undefined {
+  return claims.email ?? claims.preferred_username ?? claims.upn ?? claims.emails?.[0];
 }
 
 /**
@@ -45,12 +61,13 @@ export async function verifyAccessToken(token: string): Promise<AccessTokenClaim
   }
   return {
     sub,
-    oid: typeof payload.oid === 'string' ? payload.oid : undefined,
-    email: typeof payload.email === 'string' ? payload.email : undefined,
-    preferred_username:
-      typeof payload.preferred_username === 'string' ? payload.preferred_username : undefined,
-    given_name: typeof payload.given_name === 'string' ? payload.given_name : undefined,
-    family_name: typeof payload.family_name === 'string' ? payload.family_name : undefined,
+    oid: readString(payload.oid),
+    email: readString(payload.email),
+    upn: readString(payload.upn),
+    emails: readStringArray(payload.emails),
+    preferred_username: readString(payload.preferred_username),
+    given_name: readString(payload.given_name),
+    family_name: readString(payload.family_name),
   };
 }
 

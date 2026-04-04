@@ -251,4 +251,3 @@ export function hasLandlordAccess(role) {
   const normalized = String(role ?? '').toUpperCase();
   return normalized === 'LANDLORD' || normalized === 'ADMIN';
 }
-

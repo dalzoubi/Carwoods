@@ -660,6 +660,8 @@
     "sessionSaved": "Jeton enregistré",
     "sessionNotSaved": "Aucun jeton enregistré",
     "sessionSubject": "Sujet de session : {{subject}}",
+    "tokenDetailsHeading": "Détails du jeton",
+    "tokenDetailsUnavailable": "Aucun détail de jeton disponible.",
     "authStatus": {
       "unconfigured": "Entra non configuré",
       "initializing": "Initialisation de l'authentification",

@@ -660,6 +660,8 @@
     "sessionSaved": "Token guardado",
     "sessionNotSaved": "Sin token guardado",
     "sessionSubject": "Sujeto de sesión: {{subject}}",
+    "tokenDetailsHeading": "Detalles del token",
+    "tokenDetailsUnavailable": "No hay detalles del token disponibles.",
     "authStatus": {
       "unconfigured": "Entra no configurado",
       "initializing": "Inicializando autenticación",

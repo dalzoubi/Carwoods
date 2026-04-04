@@ -27,4 +27,3 @@ export const msalInstance = ENTRA_AUTH_CONFIGURED
       },
     })
   : null;
-

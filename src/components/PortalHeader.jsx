@@ -13,8 +13,41 @@ import { useTranslation } from 'react-i18next';
 import { withDarkPath } from '../routePaths';
 import { usePortalAuth } from '../PortalAuthContext';
 
+function firstNonEmpty(values) {
+  for (const v of values) {
+    if (typeof v === 'string') {
+      const s = v.trim();
+      if (s) return s;
+    }
+  }
+  return '';
+}
+
+function normalizeRole(rawRole) {
+  const normalized = String(rawRole ?? '')
+    .trim()
+    .toUpperCase()
+    .replace(/[\s-]+/g, '_');
+  if (!normalized) return '';
+  if (normalized === 'PROPERTY_MANAGER' || normalized === 'OWNER') return 'LANDLORD';
+  return normalized;
+}
+
+function roleFromAccountClaims(account) {
+  const claims = account?.idTokenClaims ?? {};
+  const candidates = [];
+  if (typeof claims.role === 'string') candidates.push(claims.role);
+  if (Array.isArray(claims.roles)) candidates.push(...claims.roles);
+  if (Array.isArray(claims.app_roles)) candidates.push(...claims.app_roles);
+  for (const candidate of candidates) {
+    const normalized = normalizeRole(candidate);
+    if (normalized) return normalized;
+  }
+  return '';
+}
+
 function roleLabel(role, t) {
-  const normalized = String(role ?? '').toUpperCase();
+  const normalized = normalizeRole(role);
   if (normalized === 'ADMIN') return t('portalHeader.roles.admin');
   if (normalized === 'LANDLORD') return t('portalHeader.roles.landlord');
   if (normalized === 'TENANT') return t('portalHeader.roles.tenant');
@@ -26,8 +59,21 @@ const PortalHeader = () => {
   const { pathname } = useLocation();
   const { t } = useTranslation();
   const { isAuthenticated, account, meData, signIn, signOut } = usePortalAuth();
-  const accountName = account?.username ?? meData?.email ?? t('portalHeader.notSignedIn');
-  const role = meData?.user?.role ?? '';
+  const userFirstName = meData?.user?.first_name ?? '';
+  const userLastName = meData?.user?.last_name ?? '';
+  const profileName = `${userFirstName} ${userLastName}`.trim();
+  const accountName = firstNonEmpty([
+    profileName,
+    account?.name,
+    meData?.email,
+    account?.username,
+    t('portalHeader.notSignedIn'),
+  ]);
+  const role = firstNonEmpty([
+    normalizeRole(meData?.user?.role),
+    normalizeRole(meData?.role),
+    roleFromAccountClaims(account),
+  ]);
 
   return (
     <AppBar position="sticky" color="default" elevation={0} sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>

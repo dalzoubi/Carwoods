@@ -660,6 +660,8 @@
     "sessionSaved": "Token saved",
     "sessionNotSaved": "No saved token",
     "sessionSubject": "Session subject: {{subject}}",
+    "tokenDetailsHeading": "Token details",
+    "tokenDetailsUnavailable": "No token details available.",
     "authStatus": {
       "unconfigured": "Entra not configured",
       "initializing": "Initializing auth",

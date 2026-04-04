@@ -660,6 +660,8 @@
     "sessionSaved": "تم حفظ الرمز",
     "sessionNotSaved": "لا يوجد رمز محفوظ",
     "sessionSubject": "معرّف الجلسة: {{subject}}",
+    "tokenDetailsHeading": "تفاصيل الرمز",
+    "tokenDetailsUnavailable": "لا توجد تفاصيل رمز متاحة.",
     "authStatus": {
       "unconfigured": "Entra غير مُعد",
       "initializing": "جارٍ تهيئة التوثيق",
