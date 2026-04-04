@@ -600,6 +600,36 @@
       }
     }
   },
+  "portalSetup": {
+    "title": "Carwoods - Configuration du Portail",
+    "metaDescription": "Vérifications de configuration du portail de maintenance pour la connectivité API et l'accès authentifié.",
+    "heading": "Configuration du Portail de Maintenance",
+    "intro": "Utilisez ces vérifications pour valider la connectivité API avant de créer les écrans du portail locataire et admin.",
+    "apiBaseMissing": "Définissez VITE_API_BASE_URL dans votre fichier .env à la racine pour activer les vérifications API du portail.",
+    "apiBaseHeading": "URL de base de l'API du portail",
+    "healthHeading": "Vérification de l'endpoint de santé",
+    "meHeading": "Vérification authentifiée de /portal/me",
+    "notConfigured": "Non configuré",
+    "tokenLabel": "Jeton d'accès Bearer",
+    "actions": {
+      "checkHealth": "Vérifier la santé",
+      "checkMe": "Vérifier /portal/me"
+    },
+    "status": {
+      "idle": "Inactif",
+      "loading": "Vérification",
+      "ok": "Réussi",
+      "error": "Échec"
+    },
+    "labels": {
+      "ok": "OK"
+    },
+    "errors": {
+      "httpStatus": "HTTP {{status}}",
+      "tokenRequired": "Collez un jeton bearer avant d'exécuter cette vérification.",
+      "unknown": "Erreur inattendue"
+    }
+  },
   "skipToMain": "Aller au contenu principal",
   "languageNames": {
     "en": "English",

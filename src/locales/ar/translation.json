@@ -600,6 +600,36 @@
       }
     }
   },
+  "portalSetup": {
+    "title": "كارووودز - إعداد البوابة",
+    "metaDescription": "فحوصات إعداد بوابة الصيانة للتحقق من اتصال API والوصول الموثق.",
+    "heading": "إعداد بوابة الصيانة",
+    "intro": "استخدم هذه الفحوصات للتحقق من اتصال API قبل بناء شاشات بوابة المستأجر والإدارة.",
+    "apiBaseMissing": "عيّن VITE_API_BASE_URL في ملف .env الجذر لتفعيل فحوصات API الخاصة بالبوابة.",
+    "apiBaseHeading": "عنوان API الأساسي للبوابة",
+    "healthHeading": "فحص نقطة الصحة",
+    "meHeading": "فحص /portal/me بعد التوثيق",
+    "notConfigured": "غير مُعد",
+    "tokenLabel": "رمز وصول Bearer",
+    "actions": {
+      "checkHealth": "فحص الصحة",
+      "checkMe": "فحص /portal/me"
+    },
+    "status": {
+      "idle": "خامل",
+      "loading": "جارٍ الفحص",
+      "ok": "ناجح",
+      "error": "فشل"
+    },
+    "labels": {
+      "ok": "OK"
+    },
+    "errors": {
+      "httpStatus": "HTTP {{status}}",
+      "tokenRequired": "ألصق رمز bearer قبل تشغيل هذا الفحص.",
+      "unknown": "خطأ غير متوقع"
+    }
+  },
   "skipToMain": "الانتقال إلى المحتوى الرئيسي",
   "languageNames": {
     "en": "English",

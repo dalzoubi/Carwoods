@@ -600,6 +600,36 @@
       }
     }
   },
+  "portalSetup": {
+    "title": "Carwoods - Configuración del Portal",
+    "metaDescription": "Comprobaciones de configuración del portal de mantenimiento para conectividad API y acceso autenticado.",
+    "heading": "Configuración del Portal de Mantenimiento",
+    "intro": "Use estas comprobaciones para validar la conectividad API antes de crear las pantallas del portal de inquilino y administración.",
+    "apiBaseMissing": "Configure VITE_API_BASE_URL en su archivo .env raíz para habilitar las comprobaciones de API del portal.",
+    "apiBaseHeading": "URL base de la API del portal",
+    "healthHeading": "Comprobación del endpoint de salud",
+    "meHeading": "Comprobación autenticada de /portal/me",
+    "notConfigured": "No configurado",
+    "tokenLabel": "Token de acceso Bearer",
+    "actions": {
+      "checkHealth": "Comprobar salud",
+      "checkMe": "Comprobar /portal/me"
+    },
+    "status": {
+      "idle": "Inactivo",
+      "loading": "Comprobando",
+      "ok": "Correcto",
+      "error": "Error"
+    },
+    "labels": {
+      "ok": "OK"
+    },
+    "errors": {
+      "httpStatus": "HTTP {{status}}",
+      "tokenRequired": "Pegue un token bearer antes de ejecutar esta comprobación.",
+      "unknown": "Error inesperado"
+    }
+  },
   "skipToMain": "Saltar al contenido principal",
   "languageNames": {
     "en": "English",

@@ -600,6 +600,36 @@
       }
     }
   },
+  "portalSetup": {
+    "title": "Carwoods - Portal Setup",
+    "metaDescription": "Maintenance portal setup checks for API connectivity and authenticated access.",
+    "heading": "Maintenance Portal Setup",
+    "intro": "Use these checks to validate API connectivity before building the tenant and admin portal screens.",
+    "apiBaseMissing": "Set VITE_API_BASE_URL in your root .env file to enable portal API checks.",
+    "apiBaseHeading": "Portal API base URL",
+    "healthHeading": "Health endpoint check",
+    "meHeading": "Authenticated /portal/me check",
+    "notConfigured": "Not configured",
+    "tokenLabel": "Bearer access token",
+    "actions": {
+      "checkHealth": "Check health",
+      "checkMe": "Check /portal/me"
+    },
+    "status": {
+      "idle": "Idle",
+      "loading": "Checking",
+      "ok": "Pass",
+      "error": "Fail"
+    },
+    "labels": {
+      "ok": "OK"
+    },
+    "errors": {
+      "httpStatus": "HTTP {{status}}",
+      "tokenRequired": "Paste a bearer token before running this check.",
+      "unknown": "Unexpected error"
+    }
+  },
   "skipToMain": "Skip to main content",
   "languageNames": {
     "en": "English",

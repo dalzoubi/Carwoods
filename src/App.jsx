@@ -13,7 +13,8 @@ import Privacy from './components/Privacy';
 import Accessibility from './components/Accessibility';
 import Footer from './components/Footer';
 import ResponsiveNavbar from './components/ResponsiveNavbar';
-import { isDarkPreviewRoute } from './routePaths';
+import PortalSetup from './components/PortalSetup';
+import { isDarkPreviewRoute, stripDarkPreviewPrefix } from './routePaths';
 
 /**
  * After route changes, scroll like “Back to top” links: smooth `scrollIntoView` on `#page-top`
@@ -57,6 +58,7 @@ function PageRoutes() {
             <Route path="/contact-us" element={<ContactUs />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/accessibility" element={<Accessibility />} />
+            <Route path="/portal" element={<PortalSetup />} />
         </Routes>
     );
 }
@@ -73,17 +75,20 @@ const AppRoutes = () => {
 
 const App = () => {
     const { t } = useTranslation();
+    const location = useLocation();
+    const strippedPath = stripDarkPreviewPrefix(location.pathname);
+    const isPortalShell = strippedPath.startsWith('/portal');
     return (
         <AppShell>
             <ScrollToTopOnRouteChange />
             <a href="#main-content" className="sr-only sr-only-focusable">
                 {t('skipToMain')}
             </a>
-            <ResponsiveNavbar />
+            {!isPortalShell && <ResponsiveNavbar />}
             <Container id="main-content">
                 <AppRoutes />
             </Container>
-            <Footer />
+            {!isPortalShell && <Footer />}
             <Analytics />
         </AppShell>
     );
