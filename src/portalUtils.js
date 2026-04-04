@@ -14,7 +14,10 @@ export function normalizeRole(rawRole) {
     .toUpperCase()
     .replace(/[\s-]+/g, '_');
   if (!normalized) return '';
-  if (normalized === 'PROPERTY_MANAGER' || normalized === 'OWNER') return 'LANDLORD';
+  if (
+    normalized === 'PROPERTY_MANAGER'
+    || normalized === 'OWNER'
+  ) return 'LANDLORD';
   return normalized;
 }
 
