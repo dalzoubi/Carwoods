@@ -3,5 +3,36 @@
     "vercel": {
       "enabled": true
     }
+  },
+  "files.watcherExclude": {
+    "**/.git/**": true,
+    "**/node_modules/**": true,
+    "**/build/**": true,
+    "**/dist/**": true,
+    "**/.next/**": true,
+    "**/.turbo/**": true,
+    "**/.cache/**": true,
+    "**/coverage/**": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/build": true,
+    "**/dist": true,
+    "**/.next": true,
+    "**/.turbo": true,
+    "**/.cache": true,
+    "**/coverage": true
+  },
+  "files.exclude": {
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true
+  },
+  "git.autorefresh": true,
+  "git.untrackedChanges": "mixed",
+  "typescript.tsserver.watchOptions": {
+    "watchFile": "useFsEventsOnParentDirectory",
+    "watchDirectory": "useFsEvents",
+    "fallbackPolling": "dynamicPriority",
+    "synchronousWatchDirectory": false
   }
 }
