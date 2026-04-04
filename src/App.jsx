@@ -14,6 +14,7 @@ import Accessibility from './components/Accessibility';
 import Footer from './components/Footer';
 import ResponsiveNavbar from './components/ResponsiveNavbar';
 import PortalSetup from './components/PortalSetup';
+import PortalWorkspace from './components/PortalWorkspace';
 import { isDarkPreviewRoute, stripDarkPreviewPrefix } from './routePaths';
 
 /**
@@ -59,6 +60,8 @@ function PageRoutes() {
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/accessibility" element={<Accessibility />} />
             <Route path="/portal" element={<PortalSetup />} />
+            <Route path="/portal/tenant" element={<PortalWorkspace role="tenant" />} />
+            <Route path="/portal/admin" element={<PortalWorkspace role="admin" />} />
         </Routes>
     );
 }

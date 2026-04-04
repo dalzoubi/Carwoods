@@ -613,8 +613,14 @@
     "tokenLabel": "Jeton d'accès Bearer",
     "actions": {
       "checkHealth": "Vérifier la santé",
-      "checkMe": "Vérifier /portal/me"
+      "checkMe": "Vérifier /portal/me",
+      "openTenant": "Ouvrir l'espace locataire",
+      "openAdmin": "Ouvrir l'espace admin"
     },
+    "entraHeading": "Vérifications d'environnement SPA Entra",
+    "entraClientId": "VITE_ENTRA_CLIENT_ID",
+    "entraAuthority": "VITE_ENTRA_AUTHORITY",
+    "entraScope": "VITE_ENTRA_API_SCOPE",
     "status": {
       "idle": "Inactif",
       "loading": "Vérification",
@@ -628,6 +634,28 @@
       "httpStatus": "HTTP {{status}}",
       "tokenRequired": "Collez un jeton bearer avant d'exécuter cette vérification.",
       "unknown": "Erreur inattendue"
+    }
+  },
+  "portalWorkspace": {
+    "nextHeading": "Prochaines étapes d'implémentation",
+    "actions": {
+      "backToSetup": "Retour à la configuration",
+      "tenant": "Espace locataire",
+      "admin": "Espace admin"
+    },
+    "tenant": {
+      "heading": "Espace Portail Locataire",
+      "intro": "Cette route est réservée aux fonctionnalités de maintenance côté locataire.",
+      "next1": "Ajouter un en-tête locataire authentifié et une protection de session.",
+      "next2": "Implémenter les écrans liste/création des demandes via les APIs du portail.",
+      "next3": "Ajouter l'intention d'upload de pièces jointes + UI de fil de messages."
+    },
+    "admin": {
+      "heading": "Espace Portail Admin",
+      "intro": "Cette route est réservée aux opérations admin et à la gestion des demandes.",
+      "next1": "Ajouter une protection d'accès admin via /api/portal/me et les données de rôle.",
+      "next2": "Construire des tableaux de bord propriétés/baux/demandes avec pagination.",
+      "next3": "Ajouter des flux de mutation traçables et des mises à jour de statut."
     }
   },
   "skipToMain": "Aller au contenu principal",

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Alert,
   Box,
@@ -11,6 +12,7 @@ import {
   Typography,
 } from '@mui/material';
 import { VITE_API_BASE_URL_RESOLVED } from '../featureFlags';
+import { withDarkPath } from '../routePaths';
 
 function endpoint(baseUrl, path) {
   return `${baseUrl.replace(/\/$/, '')}${path}`;
@@ -24,10 +26,14 @@ function statusColor(status) {
 }
 
 const PortalSetup = () => {
+  const { pathname } = useLocation();
   const { t } = useTranslation();
   const [health, setHealth] = useState({ state: 'idle', detail: '' });
   const [me, setMe] = useState({ state: 'idle', detail: '' });
   const [bearerToken, setBearerToken] = useState('');
+  const entraClientId = (import.meta.env.VITE_ENTRA_CLIENT_ID ?? '').trim();
+  const entraAuthority = (import.meta.env.VITE_ENTRA_AUTHORITY ?? '').trim();
+  const entraScope = (import.meta.env.VITE_ENTRA_API_SCOPE ?? '').trim();
 
   const baseUrl = useMemo(() => VITE_API_BASE_URL_RESOLVED || '', []);
   const healthUrl = baseUrl ? endpoint(baseUrl, '/api/health') : '';
@@ -107,6 +113,15 @@ const PortalSetup = () => {
         </Typography>
         <Typography color="text.secondary">{t('portalSetup.intro')}</Typography>
 
+        <Stack direction="row" spacing={1.25} sx={{ flexWrap: 'wrap' }}>
+          <Button component={Link} to={withDarkPath(pathname, '/portal/tenant')} type="button" variant="outlined">
+            {t('portalSetup.actions.openTenant')}
+          </Button>
+          <Button component={Link} to={withDarkPath(pathname, '/portal/admin')} type="button" variant="outlined">
+            {t('portalSetup.actions.openAdmin')}
+          </Button>
+        </Stack>
+
         {!baseUrl && (
           <Alert severity="warning">{t('portalSetup.apiBaseMissing')}</Alert>
         )}
@@ -127,6 +142,34 @@ const PortalSetup = () => {
             <Typography>
               {baseUrl || t('portalSetup.notConfigured')}
             </Typography>
+          </Stack>
+        </Box>
+
+        <Box
+          sx={{
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 2,
+            p: 2,
+            backgroundColor: 'background.paper',
+          }}
+        >
+          <Stack spacing={1.5}>
+            <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
+              {t('portalSetup.entraHeading')}
+            </Typography>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+              <Chip size="small" color={entraClientId ? 'success' : 'default'} label={t('portalSetup.entraClientId')} />
+              <Typography color="text.secondary">{entraClientId || t('portalSetup.notConfigured')}</Typography>
+            </Stack>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+              <Chip size="small" color={entraAuthority ? 'success' : 'default'} label={t('portalSetup.entraAuthority')} />
+              <Typography color="text.secondary">{entraAuthority || t('portalSetup.notConfigured')}</Typography>
+            </Stack>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+              <Chip size="small" color={entraScope ? 'success' : 'default'} label={t('portalSetup.entraScope')} />
+              <Typography color="text.secondary">{entraScope || t('portalSetup.notConfigured')}</Typography>
+            </Stack>
           </Stack>
         </Box>
 

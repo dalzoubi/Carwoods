@@ -613,8 +613,14 @@
     "tokenLabel": "Token de acceso Bearer",
     "actions": {
       "checkHealth": "Comprobar salud",
-      "checkMe": "Comprobar /portal/me"
+      "checkMe": "Comprobar /portal/me",
+      "openTenant": "Abrir espacio de inquilino",
+      "openAdmin": "Abrir espacio de administración"
     },
+    "entraHeading": "Comprobaciones de entorno SPA de Entra",
+    "entraClientId": "VITE_ENTRA_CLIENT_ID",
+    "entraAuthority": "VITE_ENTRA_AUTHORITY",
+    "entraScope": "VITE_ENTRA_API_SCOPE",
     "status": {
       "idle": "Inactivo",
       "loading": "Comprobando",
@@ -628,6 +634,28 @@
       "httpStatus": "HTTP {{status}}",
       "tokenRequired": "Pegue un token bearer antes de ejecutar esta comprobación.",
       "unknown": "Error inesperado"
+    }
+  },
+  "portalWorkspace": {
+    "nextHeading": "Próximos pasos de implementación",
+    "actions": {
+      "backToSetup": "Volver a configuración",
+      "tenant": "Espacio de inquilino",
+      "admin": "Espacio de administración"
+    },
+    "tenant": {
+      "heading": "Espacio del Portal de Inquilino",
+      "intro": "Esta ruta está reservada para funciones de mantenimiento orientadas a inquilinos.",
+      "next1": "Agregar encabezado de inquilino autenticado y protección de sesión.",
+      "next2": "Implementar pantallas de listado/creación de solicitudes usando APIs del portal.",
+      "next3": "Agregar intención de carga de adjuntos + UI de hilo de mensajes."
+    },
+    "admin": {
+      "heading": "Espacio del Portal de Administración",
+      "intro": "Esta ruta está reservada para operaciones de administración y gestión de solicitudes.",
+      "next1": "Agregar protección de acceso admin usando /api/portal/me y datos de rol.",
+      "next2": "Construir paneles de propiedades/arrendamientos/solicitudes con paginación.",
+      "next3": "Agregar flujos de mutación con trazabilidad y actualizaciones de estado."
     }
   },
   "skipToMain": "Saltar al contenido principal",

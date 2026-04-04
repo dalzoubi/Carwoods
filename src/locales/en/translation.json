@@ -613,8 +613,14 @@
     "tokenLabel": "Bearer access token",
     "actions": {
       "checkHealth": "Check health",
-      "checkMe": "Check /portal/me"
+      "checkMe": "Check /portal/me",
+      "openTenant": "Open tenant workspace",
+      "openAdmin": "Open admin workspace"
     },
+    "entraHeading": "Entra SPA environment checks",
+    "entraClientId": "VITE_ENTRA_CLIENT_ID",
+    "entraAuthority": "VITE_ENTRA_AUTHORITY",
+    "entraScope": "VITE_ENTRA_API_SCOPE",
     "status": {
       "idle": "Idle",
       "loading": "Checking",
@@ -628,6 +634,28 @@
       "httpStatus": "HTTP {{status}}",
       "tokenRequired": "Paste a bearer token before running this check.",
       "unknown": "Unexpected error"
+    }
+  },
+  "portalWorkspace": {
+    "nextHeading": "Next implementation steps",
+    "actions": {
+      "backToSetup": "Back to setup",
+      "tenant": "Tenant workspace",
+      "admin": "Admin workspace"
+    },
+    "tenant": {
+      "heading": "Tenant Portal Workspace",
+      "intro": "This route is reserved for tenant-focused maintenance features.",
+      "next1": "Add authenticated tenant header and session guard.",
+      "next2": "Implement requests list/create screens using portal APIs.",
+      "next3": "Add attachment upload intent + message thread UI."
+    },
+    "admin": {
+      "heading": "Admin Portal Workspace",
+      "intro": "This route is reserved for admin operations and request management.",
+      "next1": "Add admin access guard using /api/portal/me and role data.",
+      "next2": "Build properties/leases/request dashboards with paging.",
+      "next3": "Add audit-friendly mutation flows and status updates."
     }
   },
   "skipToMain": "Skip to main content",

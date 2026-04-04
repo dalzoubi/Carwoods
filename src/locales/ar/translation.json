@@ -613,8 +613,14 @@
     "tokenLabel": "رمز وصول Bearer",
     "actions": {
       "checkHealth": "فحص الصحة",
-      "checkMe": "فحص /portal/me"
+      "checkMe": "فحص /portal/me",
+      "openTenant": "فتح مساحة المستأجر",
+      "openAdmin": "فتح مساحة الإدارة"
     },
+    "entraHeading": "فحوصات بيئة Entra لتطبيق SPA",
+    "entraClientId": "VITE_ENTRA_CLIENT_ID",
+    "entraAuthority": "VITE_ENTRA_AUTHORITY",
+    "entraScope": "VITE_ENTRA_API_SCOPE",
     "status": {
       "idle": "خامل",
       "loading": "جارٍ الفحص",
@@ -628,6 +634,28 @@
       "httpStatus": "HTTP {{status}}",
       "tokenRequired": "ألصق رمز bearer قبل تشغيل هذا الفحص.",
       "unknown": "خطأ غير متوقع"
+    }
+  },
+  "portalWorkspace": {
+    "nextHeading": "خطوات التنفيذ التالية",
+    "actions": {
+      "backToSetup": "العودة إلى الإعداد",
+      "tenant": "مساحة المستأجر",
+      "admin": "مساحة الإدارة"
+    },
+    "tenant": {
+      "heading": "مساحة بوابة المستأجر",
+      "intro": "هذا المسار مخصص لميزات الصيانة الخاصة بالمستأجر.",
+      "next1": "إضافة رأس مستأجر موثّق وحماية للجلسة.",
+      "next2": "تنفيذ شاشات عرض/إنشاء الطلبات باستخدام واجهات API للبوابة.",
+      "next3": "إضافة نية رفع المرفقات + واجهة سلسلة الرسائل."
+    },
+    "admin": {
+      "heading": "مساحة بوابة الإدارة",
+      "intro": "هذا المسار مخصص لعمليات الإدارة وإدارة الطلبات.",
+      "next1": "إضافة حماية وصول الإدارة باستخدام /api/portal/me وبيانات الدور.",
+      "next2": "بناء لوحات properties/leases/requests مع ترقيم الصفحات.",
+      "next3": "إضافة تدفقات تعديل قابلة للتدقيق وتحديثات للحالة."
     }
   },
   "skipToMain": "الانتقال إلى المحتوى الرئيسي",
