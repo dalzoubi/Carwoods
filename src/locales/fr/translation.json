@@ -686,6 +686,18 @@
       "next3": "Ajouter des flux de mutation traçables et des mises à jour de statut."
     }
   },
+  "socialSignIn": {
+    "prompt": "Se connecter avec",
+    "google": "Continuer avec Google",
+    "googleAriaLabel": "Se connecter avec votre compte Google",
+    "apple": "Continuer avec Apple",
+    "appleAriaLabel": "Se connecter avec votre compte Apple",
+    "microsoft": "Continuer avec Microsoft",
+    "microsoftAriaLabel": "Se connecter avec votre compte Microsoft",
+    "orDivider": "ou",
+    "anyAccount": "Se connecter avec un autre compte",
+    "anyAccountAriaLabel": "Se connecter — choisir un type de compte"
+  },
   "skipToMain": "Aller au contenu principal",
   "languageNames": {
     "en": "English",

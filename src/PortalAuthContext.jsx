@@ -48,7 +48,7 @@ export const PortalAuthProvider = ({ children }) => {
     setMeError('');
   }, []);
 
-  const signIn = useCallback(async () => {
+  const signInWithProvider = useCallback(async (domainHint) => {
     if (!msalInstance) {
       setAuthStatus('unconfigured');
       return;
@@ -56,10 +56,14 @@ export const PortalAuthProvider = ({ children }) => {
     setAuthStatus('authenticating');
     setAuthError('');
     try {
-      const result = await msalInstance.loginPopup({
+      const request = {
         scopes: ENTRA_SCOPES,
         prompt: 'select_account',
-      });
+      };
+      if (domainHint) {
+        request.extraQueryParameters = { domain_hint: domainHint };
+      }
+      const result = await msalInstance.loginPopup(request);
       if (result.account) {
         msalInstance.setActiveAccount(result.account);
         setAccount(result.account);
@@ -71,6 +75,8 @@ export const PortalAuthProvider = ({ children }) => {
       setAuthError(error instanceof Error ? error.message : 'auth_failed');
     }
   }, [syncActiveAccount]);
+
+  const signIn = useCallback(() => signInWithProvider(null), [signInWithProvider]);
 
   const signOut = useCallback(async () => {
     if (!msalInstance) {
@@ -210,6 +216,7 @@ export const PortalAuthProvider = ({ children }) => {
       meData,
       meError,
       signIn,
+      signInWithProvider,
       signOut,
       refreshMe,
     }),
@@ -224,6 +231,7 @@ export const PortalAuthProvider = ({ children }) => {
       meUrl,
       refreshMe,
       signIn,
+      signInWithProvider,
       signOut,
     ]
   );
