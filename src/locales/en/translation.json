@@ -24,7 +24,7 @@
   },
   "landlordLinks": {
     "propertyManagement": "Property Management",
-    "adminPortal": "Admin Portal"
+    "landlordPortal": "Landlord Portal"
   },
   "appearance": {
     "colorTheme": "Color theme",
@@ -617,7 +617,7 @@
       "checkHealth": "Check health",
       "checkMe": "Check /portal/me",
       "openTenant": "Open tenant workspace",
-      "openAdmin": "Open admin workspace",
+      "openAdmin": "Open landlord workspace",
       "signIn": "Sign in with Entra",
       "signOut": "Sign out",
       "refreshSession": "Refresh saved session"
@@ -656,9 +656,10 @@
   "portalWorkspace": {
     "nextHeading": "Next implementation steps",
     "actions": {
+      "backToSite": "Back to main site",
       "backToSetup": "Back to setup",
       "tenant": "Tenant workspace",
-      "admin": "Admin workspace",
+      "admin": "Landlord workspace",
       "retryAuth": "Retry auth check",
       "signIn": "Sign in",
       "signOut": "Sign out"
@@ -678,9 +679,9 @@
       "next3": "Add attachment upload intent + message thread UI."
     },
     "admin": {
-      "heading": "Admin Portal Workspace",
-      "intro": "This route is reserved for admin operations and request management.",
-      "next1": "Add admin access guard using /api/portal/me and role data.",
+      "heading": "Landlord Portal Workspace",
+      "intro": "This route is reserved for landlord operations and request management.",
+      "next1": "Add landlord access guard using /api/portal/me and role data.",
       "next2": "Build properties/leases/request dashboards with paging.",
       "next3": "Add audit-friendly mutation flows and status updates."
     }

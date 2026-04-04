@@ -170,7 +170,7 @@ const ResponsiveNavbar = () => {
 
     const landlordLinks = [
         { to: '/property-management', label: t('landlordLinks.propertyManagement') },
-        { to: '/portal/admin', label: t('landlordLinks.adminPortal') },
+        { to: '/portal/admin', label: t('landlordLinks.landlordPortal') },
     ];
 
     const legalLinks = [

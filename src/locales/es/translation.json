@@ -24,7 +24,7 @@
   },
   "landlordLinks": {
     "propertyManagement": "Administración de Propiedades",
-    "adminPortal": "Portal de Administración"
+    "landlordPortal": "Portal del Propietario"
   },
   "appearance": {
     "colorTheme": "Tema de color",
@@ -617,7 +617,7 @@
       "checkHealth": "Comprobar salud",
       "checkMe": "Comprobar /portal/me",
       "openTenant": "Abrir espacio de inquilino",
-      "openAdmin": "Abrir espacio de administración",
+      "openAdmin": "Abrir espacio de propietario",
       "signIn": "Iniciar sesión con Entra",
       "signOut": "Cerrar sesión",
       "refreshSession": "Actualizar sesión guardada"
@@ -656,9 +656,10 @@
   "portalWorkspace": {
     "nextHeading": "Próximos pasos de implementación",
     "actions": {
+      "backToSite": "Volver al sitio principal",
       "backToSetup": "Volver a configuración",
       "tenant": "Espacio de inquilino",
-      "admin": "Espacio de administración",
+      "admin": "Espacio de propietario",
       "retryAuth": "Reintentar comprobación de autenticación",
       "signIn": "Iniciar sesión",
       "signOut": "Cerrar sesión"
@@ -678,9 +679,9 @@
       "next3": "Agregar intención de carga de adjuntos + UI de hilo de mensajes."
     },
     "admin": {
-      "heading": "Espacio del Portal de Administración",
-      "intro": "Esta ruta está reservada para operaciones de administración y gestión de solicitudes.",
-      "next1": "Agregar protección de acceso admin usando /api/portal/me y datos de rol.",
+      "heading": "Espacio del Portal del Propietario",
+      "intro": "Esta ruta está reservada para operaciones del propietario y gestión de solicitudes.",
+      "next1": "Agregar protección de acceso del propietario usando /api/portal/me y datos de rol.",
       "next2": "Construir paneles de propiedades/arrendamientos/solicitudes con paginación.",
       "next3": "Agregar flujos de mutación con trazabilidad y actualizaciones de estado."
     }
