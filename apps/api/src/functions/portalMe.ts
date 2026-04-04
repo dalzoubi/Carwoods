@@ -76,6 +76,7 @@ async function portalMeHandler(
       subject: claims.sub,
       oid: claims.oid ?? null,
       email: primaryEmailFromClaims(claims) ?? null,
+      role: user?.role ?? null,
       user,
     },
   };

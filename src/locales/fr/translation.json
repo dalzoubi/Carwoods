@@ -660,6 +660,7 @@
     "sessionSaved": "Jeton enregistré",
     "sessionNotSaved": "Aucun jeton enregistré",
     "sessionSubject": "Sujet de session : {{subject}}",
+    "tokenEmailLabel": "E-mail du jeton",
     "tokenDetailsHeading": "Détails du jeton",
     "tokenDetailsUnavailable": "Aucun détail de jeton disponible.",
     "authStatus": {

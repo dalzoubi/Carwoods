@@ -259,8 +259,20 @@ jobs:
             echo "  ✓ $NAME — done"
           }
 
-          apply_migration "001_initial_portal"         "infra/db/migrations/001_initial_portal.sql"
-          apply_migration "002_seed_lookup_and_notification_types" \
-                          "infra/db/migrations/002_seed_lookup_and_notification_types.sql"
+          shopt -s nullglob
+          MIGRATION_FILES=(infra/db/migrations/[0-9][0-9][0-9]_*.sql)
+
+          if [ ${#MIGRATION_FILES[@]} -eq 0 ]; then
+            echo "::error::No migration files found in infra/db/migrations/"
+            exit 1
+          fi
+
+          echo "→ Applying migrations discovered on disk:"
+          printf '  - %s\n' "${MIGRATION_FILES[@]}"
+
+          for FILE in "${MIGRATION_FILES[@]}"; do
+            NAME="$(basename "$FILE" .sql)"
+            apply_migration "$NAME" "$FILE"
+          done
 
           echo "All migrations applied."

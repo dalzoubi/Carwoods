@@ -660,6 +660,7 @@
     "sessionSaved": "تم حفظ الرمز",
     "sessionNotSaved": "لا يوجد رمز محفوظ",
     "sessionSubject": "معرّف الجلسة: {{subject}}",
+    "tokenEmailLabel": "البريد الإلكتروني من الرمز",
     "tokenDetailsHeading": "تفاصيل الرمز",
     "tokenDetailsUnavailable": "لا توجد تفاصيل رمز متاحة.",
     "authStatus": {

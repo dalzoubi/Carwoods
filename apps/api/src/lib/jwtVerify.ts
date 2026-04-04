@@ -37,8 +37,22 @@ function readStringArray(value: unknown): string[] | undefined {
   return values.length > 0 ? values : undefined;
 }
 
+const GUID_USERNAME_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}@/i;
+
+function looksLikeRealEmail(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  if (GUID_USERNAME_RE.test(value)) return undefined;
+  return value;
+}
+
 export function primaryEmailFromClaims(claims: AccessTokenClaims): string | undefined {
-  return claims.email ?? claims.preferred_username ?? claims.upn ?? claims.emails?.[0];
+  return (
+    claims.email ??
+    looksLikeRealEmail(claims.preferred_username) ??
+    claims.upn ??
+    claims.emails?.[0]
+  );
 }
 
 /**

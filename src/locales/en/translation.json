@@ -660,6 +660,7 @@
     "sessionSaved": "Token saved",
     "sessionNotSaved": "No saved token",
     "sessionSubject": "Session subject: {{subject}}",
+    "tokenEmailLabel": "Token email",
     "tokenDetailsHeading": "Token details",
     "tokenDetailsUnavailable": "No token details available.",
     "authStatus": {

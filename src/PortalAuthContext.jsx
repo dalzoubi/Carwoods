@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { EventType, InteractionRequiredAuthError } from '@azure/msal-browser';
 import { VITE_API_BASE_URL_RESOLVED } from './featureFlags';
-import { ENTRA_AUTH_CONFIGURED, ENTRA_SCOPES, msalInstance } from './entraAuth';
+import { ENTRA_AUTH_CONFIGURED, ENTRA_LOGIN_SCOPES, ENTRA_SCOPES, msalInstance } from './entraAuth';
 
 const PortalAuthContext = createContext(null);
 
@@ -57,7 +57,7 @@ export const PortalAuthProvider = ({ children }) => {
     setAuthError('');
     try {
       const request = {
-        scopes: ENTRA_SCOPES,
+        scopes: ENTRA_LOGIN_SCOPES,
         prompt: 'select_account',
       };
       if (domainHint) {
@@ -84,17 +84,15 @@ export const PortalAuthProvider = ({ children }) => {
       return;
     }
     try {
-      await msalInstance.logoutPopup({
-        account: msalInstance.getActiveAccount() ?? undefined,
-      });
+      await msalInstance.clearCache();
     } catch {
-      // Even if logout popup fails, clear local auth state.
-    } finally {
-      setAccount(null);
-      setAuthError('');
-      setAuthStatus('unauthenticated');
-      clearSessionData();
+      // Best-effort cache clear; local state reset below handles the rest.
     }
+    msalInstance.setActiveAccount(null);
+    setAccount(null);
+    setAuthError('');
+    setAuthStatus('unauthenticated');
+    clearSessionData();
   }, [clearSessionData]);
 
   const refreshMe = useCallback(() => {

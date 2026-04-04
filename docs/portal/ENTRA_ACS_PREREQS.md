@@ -9,14 +9,21 @@ Complete these **before** wiring production auth and mail in `apps/api`.
    - **SPA** client for the Vite app (public client): redirect URIs for production (`https://carwoods.com/...`) and localhost dev.
    - **API** application exposing scopes (e.g. `api://.../access_as_user`) validated by Azure Functions.
 3. **Identity providers** enabled per product need: Google, Apple, Microsoft account, local account (email/password), password reset, **email OTP / magic link** user flows as designed.
-4. **Admin users** — group or role claims (e.g. `portal_admin`) issued in tokens or resolved via Microsoft Graph after token validation.
-5. **Secrets** — client IDs are public; **no client secrets in the browser**. API uses tenant metadata / JWKS for validation; use managed identity or Key Vault for any confidential API credentials.
+4. **Email optional claim** (required for social-IdP accounts):
+   - **SPA app registration** → Token configuration → Add optional claim → **ID token** → `email`.
+   - **API app registration** → Token configuration → Add optional claim → **Access token** → `email`.
+   - Accept the prompt to grant `email` API permission when asked.
+   - Without this, CIAM social accounts (Google, Apple, etc.) produce a GUID-based `preferred_username` instead of the real email, and the API cannot match users by email.
+5. **Admin users** — group or role claims (e.g. `portal_admin`) issued in tokens or resolved via Microsoft Graph after token validation.
+6. **Secrets** — client IDs are public; **no client secrets in the browser**. API uses tenant metadata / JWKS for validation; use managed identity or Key Vault for any confidential API credentials.
 
 **Validation checklist**
 
 - [ ] SPA can acquire tokens for the API scope in dev and prod origins.
 - [ ] API rejects expired/invalid tokens with safe error bodies.
 - [ ] Role/group for admin is stable in claims or derivable server-side.
+- [ ] ID token contains `email` claim with the user's real email address (not a GUID username) after social-IdP sign-in.
+- [ ] Access token contains `email` claim so the API can match the user by email.
 
 ## Azure Communication Services (Email)
 

@@ -9,6 +9,16 @@ export const ENTRA_SCOPES = entraScopeRaw
   .map((s) => s.trim())
   .filter(Boolean);
 
+/**
+ * Login requests include `email` so the ID token carries the user's real
+ * email address (critical for CIAM / social-IdP accounts where
+ * preferred_username is a synthetic GUID).  `openid` and `profile` are
+ * added automatically by MSAL but `email` is not.
+ */
+export const ENTRA_LOGIN_SCOPES = [
+  ...new Set([...ENTRA_SCOPES, 'openid', 'profile', 'email']),
+];
+
 export const ENTRA_AUTH_CONFIGURED = Boolean(
   entraClientId && entraAuthority && ENTRA_SCOPES.length > 0
 );

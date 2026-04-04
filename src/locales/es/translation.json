@@ -660,6 +660,7 @@
     "sessionSaved": "Token guardado",
     "sessionNotSaved": "Sin token guardado",
     "sessionSubject": "Sujeto de sesión: {{subject}}",
+    "tokenEmailLabel": "Correo del token",
     "tokenDetailsHeading": "Detalles del token",
     "tokenDetailsUnavailable": "No hay detalles del token disponibles.",
     "authStatus": {

@@ -14,39 +14,7 @@ import { VITE_API_BASE_URL_RESOLVED } from '../featureFlags';
 import { withDarkPath } from '../routePaths';
 import { usePortalAuth } from '../PortalAuthContext';
 import SocialSignInButtons from './SocialSignInButtons';
-
-function firstNonEmpty(values) {
-  for (const v of values) {
-    if (typeof v === 'string') {
-      const s = v.trim();
-      if (s) return s;
-    }
-  }
-  return '';
-}
-
-function normalizeRole(rawRole) {
-  const normalized = String(rawRole ?? '')
-    .trim()
-    .toUpperCase()
-    .replace(/[\s-]+/g, '_');
-  if (!normalized) return '';
-  if (normalized === 'PROPERTY_MANAGER' || normalized === 'OWNER') return 'LANDLORD';
-  return normalized;
-}
-
-function roleFromAccountClaims(account) {
-  const claims = account?.idTokenClaims ?? {};
-  const candidates = [];
-  if (typeof claims.role === 'string') candidates.push(claims.role);
-  if (Array.isArray(claims.roles)) candidates.push(...claims.roles);
-  if (Array.isArray(claims.app_roles)) candidates.push(...claims.app_roles);
-  for (const candidate of candidates) {
-    const normalized = normalizeRole(candidate);
-    if (normalized) return normalized;
-  }
-  return '';
-}
+import { emailFromAccount, firstNonEmpty, normalizeRole, resolveRole } from '../portalUtils';
 
 function endpoint(baseUrl, path) {
   return `${baseUrl.replace(/\/$/, '')}${path}`;
@@ -87,19 +55,16 @@ const PortalSetup = () => {
   const userFirstName = meData?.user?.first_name ?? '';
   const userLastName = meData?.user?.last_name ?? '';
   const profileName = `${userFirstName} ${userLastName}`.trim();
+  const tokenEmail = emailFromAccount(account);
   const displayName = firstNonEmpty([
     profileName,
     account?.name,
     meData?.email,
-    account?.username,
+    tokenEmail,
     meData?.subject,
     t('portalSetup.notConfigured'),
   ]);
-  const effectiveRole = firstNonEmpty([
-    normalizeRole(meData?.user?.role),
-    normalizeRole(meData?.role),
-    roleFromAccountClaims(account),
-  ]);
+  const effectiveRole = resolveRole(meData, account);
   const tokenDetailsJson = useMemo(() => {
     if (!account) return '';
     const tokenDetails = {
@@ -266,6 +231,12 @@ const PortalSetup = () => {
                 <Button type="button" variant="outlined" onClick={refreshMe}>
                   {t('portalSetup.actions.refreshSession')}
                 </Button>
+              </Stack>
+            )}
+            {isAuthenticated && tokenEmail && (
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                <Chip size="small" color="info" label={t('portalSetup.tokenEmailLabel')} />
+                <Typography color="text.secondary">{tokenEmail}</Typography>
               </Stack>
             )}
             <Box

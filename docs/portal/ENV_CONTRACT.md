@@ -49,7 +49,7 @@ Values are **names only**; store secrets in Azure Key Vault or Function App sett
 | `VITE_API_BASE_URL`      | Base URL for portal/public API (no trailing slash). Production example: `https://carwoods-com-api.azurewebsites.net` until a custom domain is used. |
 | `VITE_ENTRA_CLIENT_ID`   | SPA app registration client ID                                   |
 | `VITE_ENTRA_AUTHORITY`   | External ID authority URL                                        |
-| `VITE_ENTRA_API_SCOPE`   | Scope(s) for API token                                           |
+| `VITE_ENTRA_API_SCOPE`   | Scope(s) for API token. The SPA also requests `openid profile email` during login so ID tokens carry the real email for social-IdP users. |
 | `VITE_FEATURE_APPLY_API` | When **not** `false`, and `VITE_API_BASE_URL` is set, `/apply` uses `GET /api/public/apply-properties` first; falls back to the generated file on error or empty API response. |
 | `VITE_FEATURE_APPLY_DUAL_SOURCE` | Dev only: set to `false` to disable console compare of API vs generated tiles. |
 

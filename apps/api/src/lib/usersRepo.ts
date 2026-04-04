@@ -52,10 +52,28 @@ export async function findUserByEmail(
   return r.rows[0] ?? null;
 }
 
+/**
+ * Links a token subject (oid or sub) to an existing user row so future
+ * logins match instantly by subject instead of requiring the email claim.
+ */
+export async function linkSubjectToUser(
+  client: Queryable,
+  userId: string,
+  externalAuthSubject: string
+): Promise<void> {
+  await client.query(
+    `UPDATE users
+        SET external_auth_subject = $1, updated_at = GETUTCDATE()
+      WHERE id = $2 AND (external_auth_subject IS NULL OR external_auth_subject = '')`,
+    [externalAuthSubject, userId]
+  );
+}
+
 export async function findUserByClaims(
   client: Queryable,
   claims: AccessTokenClaims
 ): Promise<UserRow | null> {
+  const preferredSubject = claims.oid ?? claims.sub;
   const subjectCandidates = [claims.oid, claims.sub].filter(
     (value, index, arr): value is string =>
       Boolean(value && value.trim().length > 0 && arr.indexOf(value) === index)
@@ -72,7 +90,12 @@ export async function findUserByClaims(
 
   for (const email of emailCandidates) {
     const byEmail = await findUserByEmail(client, email);
-    if (byEmail) return byEmail;
+    if (byEmail) {
+      if (preferredSubject) {
+        await linkSubjectToUser(client, byEmail.id, preferredSubject);
+      }
+      return byEmail;
+    }
   }
 
   return findUserBySubject(client, claims.sub);

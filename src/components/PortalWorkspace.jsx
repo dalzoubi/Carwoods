@@ -5,39 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { withDarkPath } from '../routePaths';
 import { hasLandlordAccess, usePortalAuth } from '../PortalAuthContext';
 import SocialSignInButtons from './SocialSignInButtons';
-
-function firstNonEmpty(values) {
-  for (const v of values) {
-    if (typeof v === 'string') {
-      const s = v.trim();
-      if (s) return s;
-    }
-  }
-  return '';
-}
-
-function normalizeRole(rawRole) {
-  const normalized = String(rawRole ?? '')
-    .trim()
-    .toUpperCase()
-    .replace(/[\s-]+/g, '_');
-  if (!normalized) return '';
-  if (normalized === 'PROPERTY_MANAGER' || normalized === 'OWNER') return 'LANDLORD';
-  return normalized;
-}
-
-function roleFromAccountClaims(account) {
-  const claims = account?.idTokenClaims ?? {};
-  const candidates = [];
-  if (typeof claims.role === 'string') candidates.push(claims.role);
-  if (Array.isArray(claims.roles)) candidates.push(...claims.roles);
-  if (Array.isArray(claims.app_roles)) candidates.push(...claims.app_roles);
-  for (const candidate of candidates) {
-    const normalized = normalizeRole(candidate);
-    if (normalized) return normalized;
-  }
-  return '';
-}
+import { resolveDisplayName, resolveRole } from '../portalUtils';
 
 function roleKey(role) {
   if (role === 'admin') return 'admin';
@@ -50,22 +18,8 @@ const PortalWorkspace = ({ role = 'tenant' }) => {
   const { t } = useTranslation();
   const { authStatus, isAuthenticated, account, meStatus, meData, meError, refreshMe, signOut } = usePortalAuth();
   const key = roleKey(role);
-  const userFirstName = meData?.user?.first_name ?? '';
-  const userLastName = meData?.user?.last_name ?? '';
-  const profileName = `${userFirstName} ${userLastName}`.trim();
-  const displayName = firstNonEmpty([
-    profileName,
-    account?.name,
-    meData?.email,
-    account?.username,
-    meData?.subject,
-    '-',
-  ]);
-  const userRole = firstNonEmpty([
-    normalizeRole(meData?.user?.role),
-    normalizeRole(meData?.role),
-    roleFromAccountClaims(account),
-  ]);
+  const displayName = resolveDisplayName(meData, account, '-');
+  const userRole = resolveRole(meData, account);
   const isAdminAllowed = userRole === 'ADMIN';
   const isLandlordAllowed = hasLandlordAccess(userRole);
   const showRoleGuard = meStatus === 'ok'

@@ -359,10 +359,10 @@ SELECT name, applied_at FROM dbo.__migrations ORDER BY applied_at;
 **Manual fallback** (Azure Cloud Shell or local `sqlcmd`):
 
 ```bash
-sqlcmd -S <sqlServerFqdn>,1433 -d carwoods_portal -U carwoodsadmin -P '<password>' -C \
-  -i infra/db/migrations/001_initial_portal.sql
-sqlcmd -S <sqlServerFqdn>,1433 -d carwoods_portal -U carwoodsadmin -P '<password>' -C \
-  -i infra/db/migrations/002_seed_lookup_and_notification_types.sql
+for f in infra/db/migrations/[0-9][0-9][0-9]_*.sql; do
+  echo "Applying $f"
+  sqlcmd -S <sqlServerFqdn>,1433 -d carwoods_portal -U carwoodsadmin -P '<password>' -C -i "$f"
+done
 ```
 
 **Adding new migrations:** create `infra/db/migrations/003_….sql` and push to `main`. The workflow will pick it up automatically. Name must start with a unique numeric prefix that sorts after existing migrations.
