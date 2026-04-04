@@ -58,6 +58,22 @@ export function primaryEmailFromClaims(claims: AccessTokenClaims): string | unde
   );
 }
 
+function buildIssuerCandidates(issuer: string): string[] {
+  const trimmed = issuer.trim();
+  if (!trimmed) return [];
+  const withSlash = trimmed.endsWith('/') ? trimmed : `${trimmed}/`;
+  const withoutSlash = withSlash.slice(0, -1);
+  return Array.from(new Set([trimmed, withSlash, withoutSlash])).filter(Boolean);
+}
+
+function buildAudienceCandidates(audience: string): string[] {
+  const trimmed = audience.trim();
+  if (!trimmed) return [];
+  const bare = trimmed.startsWith('api://') ? trimmed.slice('api://'.length) : trimmed;
+  const withApiPrefix = trimmed.startsWith('api://') ? trimmed : `api://${trimmed}`;
+  return Array.from(new Set([trimmed, bare, withApiPrefix])).filter(Boolean);
+}
+
 /**
  * Validates Entra / External ID access tokens for this API (audience + issuer + signature).
  */
@@ -67,10 +83,12 @@ export async function verifyAccessToken(token: string): Promise<AccessTokenClaim
   if (!issuer || !audience) {
     throw new Error('ENTRA_ISSUER and ENTRA_API_AUDIENCE must be set for JWT validation');
   }
+  const issuerCandidates = buildIssuerCandidates(issuer);
+  const audienceCandidates = buildAudienceCandidates(audience);
   const keySet = await getJwks();
   const { payload } = await jwtVerify(token, keySet, {
-    issuer,
-    audience,
+    issuer: issuerCandidates.length === 1 ? issuerCandidates[0] : issuerCandidates,
+    audience: audienceCandidates.length === 1 ? audienceCandidates[0] : audienceCandidates,
   });
   const sub = typeof payload.sub === 'string' ? payload.sub : '';
   if (!sub) {
