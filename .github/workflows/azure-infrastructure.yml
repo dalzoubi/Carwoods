@@ -14,13 +14,6 @@ on:
           - 'false'
           - 'true'
         default: 'false'
-      run_migrations:
-        description: 'Apply DB migrations after deploy'
-        type: choice
-        options:
-          - 'true'
-          - 'false'
-        default: 'true'
       location:
         description: 'Azure region for the resource group (if creating)'
         type: string
@@ -30,7 +23,6 @@ on:
       - main
     paths:
       - 'infra/azure/main.bicep'
-      - 'infra/db/migrations/**'
       - '.github/workflows/azure-infrastructure.yml'
 
 permissions:
@@ -184,95 +176,3 @@ jobs:
           echo "sql_database=$SQL_DB" >> "$GITHUB_OUTPUT"
           echo "deployed=true" >> "$GITHUB_OUTPUT"
 
-  db-migrate:
-    name: Apply DB migrations
-    needs: deploy
-    # Skip on dry-run, or when the caller explicitly opts out
-    if: |
-      needs.deploy.outputs.deployed == 'true' &&
-      (github.event_name != 'workflow_dispatch' || github.event.inputs.run_migrations == 'true')
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install sqlcmd (go-sqlcmd)
-        run: |
-          # Install the go-sqlcmd binary directly — works on Ubuntu 22 and 24.
-          SQLCMD_VERSION=$(curl -sSL \
-            https://api.github.com/repos/microsoft/go-sqlcmd/releases/latest \
-            | jq -r '.tag_name' | sed 's/^v//')
-          curl -sSL \
-            "https://github.com/microsoft/go-sqlcmd/releases/download/v${SQLCMD_VERSION}/sqlcmd-linux-amd64.tar.bz2" \
-            | sudo tar -xj -C /usr/local/bin sqlcmd
-          sqlcmd --version
-
-      - name: Run migrations (idempotent)
-        env:
-          SQL_FQDN: ${{ needs.deploy.outputs.sql_fqdn }}
-          SQL_DATABASE: ${{ needs.deploy.outputs.sql_database }}
-          SQL_ADMIN_PASSWORD: ${{ secrets.AZURE_SQL_ADMIN_PASSWORD }}
-          SQL_ADMIN_USER: ${{ vars.AZURE_SQL_ADMIN_USER }}
-        run: |
-          set -euo pipefail
-
-          HOST="${SQL_FQDN},1433"
-          DB="$SQL_DATABASE"
-          USER="${SQL_ADMIN_USER:-carwoodsadmin}"
-          PASS="$SQL_ADMIN_PASSWORD"
-
-          run_sql() {
-            sqlcmd -S "$HOST" -d "$DB" -U "$USER" -P "$PASS" \
-              -C -l 30 -t 120 "$@"
-          }
-
-          echo "→ Ensuring __migrations tracking table exists"
-          run_sql -Q "
-            IF NOT EXISTS (
-              SELECT 1 FROM sys.tables
-              WHERE name = '__migrations' AND schema_id = SCHEMA_ID('dbo')
-            )
-            CREATE TABLE dbo.__migrations (
-              name        NVARCHAR(200) NOT NULL PRIMARY KEY,
-              applied_at  DATETIMEOFFSET NOT NULL DEFAULT SYSDATETIMEOFFSET()
-            );"
-
-          apply_migration() {
-            local NAME="$1"
-            local FILE="$2"
-
-            # Check if already applied
-            APPLIED=$(run_sql -h -1 -Q "
-              SET NOCOUNT ON;
-              SELECT COUNT(*) FROM dbo.__migrations WHERE name = '${NAME}';" \
-              | tr -d '[:space:]')
-
-            if [ "$APPLIED" = "1" ]; then
-              echo "  ✓ $NAME — already applied, skipping"
-              return
-            fi
-
-            echo "  → Applying $NAME …"
-            run_sql -i "$FILE"
-            run_sql -Q "
-              INSERT INTO dbo.__migrations (name) VALUES ('${NAME}');"
-            echo "  ✓ $NAME — done"
-          }
-
-          shopt -s nullglob
-          MIGRATION_FILES=(infra/db/migrations/[0-9][0-9][0-9]_*.sql)
-
-          if [ ${#MIGRATION_FILES[@]} -eq 0 ]; then
-            echo "::error::No migration files found in infra/db/migrations/"
-            exit 1
-          fi
-
-          echo "→ Applying migrations discovered on disk:"
-          printf '  - %s\n' "${MIGRATION_FILES[@]}"
-
-          for FILE in "${MIGRATION_FILES[@]}"; do
-            NAME="$(basename "$FILE" .sql)"
-            apply_migration "$NAME" "$FILE"
-          done
-
-          echo "All migrations applied."

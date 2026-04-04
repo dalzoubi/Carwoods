@@ -1,0 +1,146 @@
+name: Azure SQL migrations
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'infra/db/migrations/**'
+      - '.github/workflows/azure-sql-migrations.yml'
+  workflow_run:
+    workflows:
+      - Azure infrastructure
+    types:
+      - completed
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AZURE_RESOURCE_GROUP: carwoods.com
+
+jobs:
+  migrate:
+    name: Apply DB migrations
+    if: |
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: azure-sql-migrations-carwoods-com
+      cancel-in-progress: false
+
+    steps:
+      - name: Enforce resource group name
+        run: |
+          if [ "${{ env.AZURE_RESOURCE_GROUP }}" != "carwoods.com" ]; then
+            echo "::error::Workflow must target resource group carwoods.com"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - name: Check required repository variables and secrets
+        env:
+          SQL_SERVER_NAME: ${{ vars.AZURE_SQL_SERVER_NAME }}
+          SQL_ADMIN_PASSWORD: ${{ secrets.AZURE_SQL_ADMIN_PASSWORD }}
+        run: |
+          if [ -z "$SQL_SERVER_NAME" ]; then
+            echo "::error::Set GitHub repository Variable AZURE_SQL_SERVER_NAME (globally unique Azure SQL logical server name, 1–63 chars, lowercase letters, numbers, hyphens — see infra/azure/README.md)."
+            exit 1
+          fi
+          if [ -z "$SQL_ADMIN_PASSWORD" ]; then
+            echo "::error::Set GitHub repository Secret AZURE_SQL_ADMIN_PASSWORD (Azure SQL admin password; min 8 chars, must include uppercase, lowercase, digit, special — see infra/azure/README.md)."
+            exit 1
+          fi
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install sqlcmd (go-sqlcmd)
+        run: |
+          SQLCMD_VERSION=$(curl -sSL \
+            https://api.github.com/repos/microsoft/go-sqlcmd/releases/latest \
+            | jq -r '.tag_name' | sed 's/^v//')
+          curl -sSL \
+            "https://github.com/microsoft/go-sqlcmd/releases/download/v${SQLCMD_VERSION}/sqlcmd-linux-amd64.tar.bz2" \
+            | sudo tar -xj -C /usr/local/bin sqlcmd
+          sqlcmd --version
+
+      - name: Run migrations (idempotent)
+        env:
+          SQL_FQDN: ${{ vars.AZURE_SQL_SERVER_NAME }}.database.windows.net
+          SQL_DATABASE: ${{ vars.AZURE_SQL_DATABASE_NAME }}
+          SQL_ADMIN_PASSWORD: ${{ secrets.AZURE_SQL_ADMIN_PASSWORD }}
+          SQL_ADMIN_USER: ${{ vars.AZURE_SQL_ADMIN_USER }}
+        run: |
+          set -euo pipefail
+
+          HOST="${SQL_FQDN},1433"
+          DB="${SQL_DATABASE:-carwoods_portal}"
+          USER="${SQL_ADMIN_USER:-carwoodsadmin}"
+          PASS="$SQL_ADMIN_PASSWORD"
+
+          run_sql() {
+            sqlcmd -S "$HOST" -d "$DB" -U "$USER" -P "$PASS" \
+              -C -b -l 30 -t 120 "$@"
+          }
+
+          echo "→ Ensuring __migrations tracking table exists"
+          run_sql -Q "
+            IF NOT EXISTS (
+              SELECT 1 FROM sys.tables
+              WHERE name = '__migrations' AND schema_id = SCHEMA_ID('dbo')
+            )
+            CREATE TABLE dbo.__migrations (
+              name        NVARCHAR(200) NOT NULL PRIMARY KEY,
+              applied_at  DATETIMEOFFSET NOT NULL DEFAULT SYSDATETIMEOFFSET()
+            );"
+
+          apply_migration() {
+            local NAME="$1"
+            local FILE="$2"
+
+            APPLIED=$(run_sql -h -1 -Q "
+              SET NOCOUNT ON;
+              SELECT COUNT(*) FROM dbo.__migrations WHERE name = '${NAME}';" \
+              | tr -d '[:space:]')
+
+            if [ "$APPLIED" = "1" ]; then
+              echo "  ✓ $NAME — already applied, skipping"
+              return
+            fi
+
+            echo "  → Applying $NAME …"
+            if ! run_sql -i "$FILE"; then
+              echo "::error::Migration failed: $NAME"
+              exit 1
+            fi
+            run_sql -Q "
+              INSERT INTO dbo.__migrations (name) VALUES ('${NAME}');"
+            echo "  ✓ $NAME — done"
+          }
+
+          shopt -s nullglob
+          MIGRATION_FILES=(infra/db/migrations/[0-9][0-9][0-9]_*.sql)
+
+          if [ ${#MIGRATION_FILES[@]} -eq 0 ]; then
+            echo "::error::No migration files found in infra/db/migrations/"
+            exit 1
+          fi
+
+          echo "→ Applying migrations discovered on disk:"
+          printf '  - %s\n' "${MIGRATION_FILES[@]}"
+
+          for FILE in "${MIGRATION_FILES[@]}"; do
+            NAME="$(basename "$FILE" .sql)"
+            apply_migration "$NAME" "$FILE"
+          done
+
+          echo "All migrations applied."

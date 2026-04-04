@@ -8,7 +8,7 @@ This folder defines **Infrastructure as Code** for the tenant portal backend. Al
 | Resource group | `carwoods.com` (exact name; enforced in CI)                                                      |
 | Region         | `eastus2` (East US 2)                                                                            |
 | Template       | [`main.bicep`](./main.bicep)                                                                     |
-| CI workflow    | [`.github/workflows/azure-infrastructure.yml`](../../.github/workflows/azure-infrastructure.yml) |
+| CI workflows   | [`.github/workflows/azure-infrastructure.yml`](../../.github/workflows/azure-infrastructure.yml), [`.github/workflows/azure-sql-migrations.yml`](../../.github/workflows/azure-sql-migrations.yml) |
 
 
 ---
@@ -170,7 +170,8 @@ Open the **Variables** tab → **New repository variable**.
 | `AZURE_STORAGE_ACCOUNT_NAME` | **Globally unique**, **3–24** chars, **lowercase letters and numbers only** (no hyphens).                                                                                               | `carwoodssitea7b2`  |
 | `AZURE_SQL_SERVER_NAME`      | **Globally unique** DNS name for the Azure SQL logical server. **1–63** chars, **lowercase** letters, numbers, hyphens; cannot start or end with a hyphen.                              | `carwoods-api-sql`  |
 | `AZURE_LOCATION`             | **Recommended.** Set to `eastus2` so push-triggered runs use the same region as your resource group. If unset, the workflow defaults to `eastus2`. | `eastus2`           |
-| `AZURE_SQL_ADMIN_USER`       | **Optional.** Admin login for the SQL server used by the `db-migrate` job. If unset, defaults to `carwoodsadmin` (the Bicep param default). Only needed if you deployed with a custom `sqlAdminUser`. | `carwoodsadmin`     |
+| `AZURE_SQL_ADMIN_USER`       | **Optional.** Admin login used by the SQL migrations workflow. If unset, defaults to `carwoodsadmin` (the Bicep param default). Only needed if you deployed with a custom `sqlAdminUser`. | `carwoodsadmin`     |
+| `AZURE_SQL_DATABASE_NAME`    | **Optional.** Database name used by the SQL migrations workflow. If unset, defaults to `carwoods_portal` (the Bicep param default). | `carwoods_portal`   |
 
 
 **Check name availability (CLI, after `az login`):**
@@ -194,10 +195,11 @@ az sql server list --query "[].name" -o tsv
 
 **Automatic runs:** On **push** to `main`, the workflow also runs when `infra/azure/main.bicep` or `.github/workflows/azure-infrastructure.yml` changes. To avoid accidental deploys, remove or comment out the `push:` block in the YAML.
 
-**Success:** The workflow runs two jobs:
+**Success:** The infrastructure workflow runs one job:
 
 1. **Deploy Bicep to carwoods.com** — provisions/updates Azure resources and prints JSON outputs (`functionAppHost`, `sqlServerFqdn`, etc.).
-2. **Apply DB migrations** — installs `go-sqlcmd`, creates a `__migrations` tracking table if absent, then applies each migration file in `infra/db/migrations/` in order. Already-applied migrations are skipped (idempotent). Skipped automatically on dry-run runs. Can be disabled via the `run_migrations` input.
+
+SQL migrations now run in a dedicated workflow: **Azure SQL migrations** (`.github/workflows/azure-sql-migrations.yml`).
 
 **Failure — common causes:**
 
@@ -348,7 +350,14 @@ In Vercel / `.env` for production builds:
 
 ### G5. Database migrations
 
-Migrations run **automatically** as part of the **Azure infrastructure** workflow (the `db-migrate` job that runs after Bicep deploy). They are idempotent — re-running the workflow will skip any already-applied migration.
+Migrations run in a dedicated workflow: **Azure SQL migrations** (`.github/workflows/azure-sql-migrations.yml`).
+
+That workflow runs:
+- automatically after a successful `main` run of **Azure infrastructure** (`workflow_run` trigger),
+- on pushes to `main` that change `infra/db/migrations/**`,
+- and manually via **Run workflow** when you want a one-off migration run.
+
+Migrations are idempotent — re-running the workflow skips already-applied files.
 
 Migration state is tracked in `dbo.__migrations` in `carwoods_portal`. To view:
 
@@ -365,7 +374,7 @@ for f in infra/db/migrations/[0-9][0-9][0-9]_*.sql; do
 done
 ```
 
-**Adding new migrations:** create `infra/db/migrations/003_….sql` and push to `main`. The workflow will pick it up automatically. Name must start with a unique numeric prefix that sorts after existing migrations.
+**Adding new migrations:** create `infra/db/migrations/003_….sql` and push to `main`. The SQL workflow will pick it up automatically. Name must start with a unique numeric prefix that sorts after existing migrations.
 
 ### G6. Later: more Azure resources
 
@@ -387,6 +396,7 @@ done
 | Variable | `AZURE_SQL_SERVER_NAME`                   |
 | Variable | `AZURE_LOCATION` (recommended: `eastus2`) |
 | Variable | `AZURE_SQL_ADMIN_USER` (optional: defaults to `carwoodsadmin`) |
+| Variable | `AZURE_SQL_DATABASE_NAME` (optional: defaults to `carwoods_portal`) |
 
 
 ---
