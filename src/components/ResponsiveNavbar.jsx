@@ -25,7 +25,7 @@ import RestartAlt from '@mui/icons-material/RestartAlt';
 import Print from '@mui/icons-material/Print';
 import Language from '@mui/icons-material/Language';
 import { NavLink } from '../styles';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useThemeMode } from '../ThemeModeContext';
 import { useLanguage } from '../LanguageContext';
 import { FEATURE_DARK_THEME } from '../featureFlags';
@@ -36,6 +36,7 @@ import carwoodsLogo from '../assets/carwoods-logo.png';
 const DRAWER_PAPER_ID = 'main-navigation-drawer';
 
 const LOGO_HEIGHT_PX = 32;
+const MOBILE_LOGO_HEIGHT_PX = 30;
 
 const headerNavLinkStyle = {
     padding: '0.3rem 0.55rem',
@@ -205,6 +206,35 @@ const ResponsiveNavbar = () => {
                 ml: { xs: 0, md: 'auto' },
             }}
         >
+            {!isMobile ? (
+                <IconButton
+                    component="span"
+                    disableRipple
+                    id="legal-menu-button"
+                    onClick={handleLegalOpen}
+                    aria-haspopup="true"
+                    aria-expanded={Boolean(legalAnchor)}
+                    aria-controls={legalAnchor ? 'legal-menu' : undefined}
+                    aria-label={t('nav.legal')}
+                    sx={{
+                        color: 'inherit',
+                        padding: '0.2rem 0.45rem',
+                        fontWeight: 500,
+                        fontSize: '0.78rem',
+                        borderRadius: '4px',
+                        '&:hover': {
+                            backgroundColor: 'var(--nav-chrome-hover-bg)',
+                        },
+                        '&.Mui-focusVisible': {
+                            outline: '2px solid var(--nav-chrome-focus-ring)',
+                            outlineOffset: 2,
+                        },
+                    }}
+                >
+                    <span style={{ marginInlineEnd: '0.15rem' }}>{t('nav.legal')}</span>
+                    <KeyboardArrowDown sx={{ fontSize: '0.9rem' }} />
+                </IconButton>
+            ) : null}
             {showPrintButton ? (
                 <IconButton
                     color="inherit"
@@ -413,7 +443,7 @@ const ResponsiveNavbar = () => {
                 <Toolbar
                     variant="dense"
                     sx={{
-                        minHeight: 48,
+                        minHeight: { xs: 44, sm: 48 },
                         px: { xs: 1, sm: 1.5 },
                         flexWrap: 'wrap',
                         rowGap: 0.25,
@@ -422,33 +452,45 @@ const ResponsiveNavbar = () => {
                 >
                     {isMobile ? (
                         <>
-                            <IconButton
-                                edge="start"
-                                color="inherit"
-                                type="button"
-                                size="small"
-                                aria-label={t('nav.openMenu')}
-                                aria-haspopup="dialog"
-                                aria-expanded={drawerOpen}
-                                aria-controls={drawerOpen ? DRAWER_PAPER_ID : undefined}
-                                onClick={handleDrawerToggle}
-                            >
-                                <MenuIcon fontSize="small" />
-                            </IconButton>
                             <Box
                                 sx={{
-                                    flex: '1 1 auto',
+                                    position: 'relative',
+                                    width: '100%',
                                     display: 'flex',
-                                    justifyContent: 'center',
                                     alignItems: 'center',
-                                    minWidth: 0,
                                 }}
                             >
-                                <NavLink to={withDarkPath(pathname, '/')}>
-                                    <img src={carwoodsLogo} alt={t('common.carwoodsAlt')} style={{ height: `${LOGO_HEIGHT_PX}px`, display: 'block' }} />
-                                </NavLink>
+                                <IconButton
+                                    edge="start"
+                                    color="inherit"
+                                    type="button"
+                                    size="small"
+                                    aria-label={t('nav.openMenu')}
+                                    aria-haspopup="dialog"
+                                    aria-expanded={drawerOpen}
+                                    aria-controls={drawerOpen ? DRAWER_PAPER_ID : undefined}
+                                    onClick={handleDrawerToggle}
+                                >
+                                    <MenuIcon fontSize="small" />
+                                </IconButton>
+                                <Box
+                                    sx={{
+                                        position: 'absolute',
+                                        left: '50%',
+                                        transform: 'translateX(-50%)',
+                                        minWidth: 0,
+                                        lineHeight: 0,
+                                    }}
+                                >
+                                    <RouterLink
+                                        to={withDarkPath(pathname, '/')}
+                                        style={{ display: 'inline-block', lineHeight: 0 }}
+                                    >
+                                        <img src={carwoodsLogo} alt={t('common.carwoodsAlt')} style={{ height: `${MOBILE_LOGO_HEIGHT_PX}px`, display: 'block' }} />
+                                    </RouterLink>
+                                </Box>
+                                <Box sx={{ marginInlineStart: 'auto' }}>{headerToolbarActions}</Box>
                             </Box>
-                            {headerToolbarActions}
                             <Drawer
                                 anchor={muiTheme.direction === 'rtl' ? 'right' : 'left'}
                                 open={drawerOpen}
@@ -463,9 +505,12 @@ const ResponsiveNavbar = () => {
                         </>
                     ) : (
                         <>
-                            <NavLink to={withDarkPath(pathname, '/')} style={{ flexShrink: 0 }}>
+                            <RouterLink
+                                to={withDarkPath(pathname, '/')}
+                                style={{ flexShrink: 0, display: 'inline-block', lineHeight: 0 }}
+                            >
                                 <img src={carwoodsLogo} alt={t('common.carwoodsAlt')} style={{ height: `${LOGO_HEIGHT_PX}px`, display: 'block' }} />
-                            </NavLink>
+                            </RouterLink>
                             <nav
                                 aria-label={t('nav.mainNavigation')}
                                 style={{
@@ -611,74 +656,7 @@ const ResponsiveNavbar = () => {
                                     ))}
                                 </Menu>
 
-                                <IconButton
-                                    component="span"
-                                    disableRipple
-                                    id="legal-menu-button"
-                                    onClick={handleLegalOpen}
-                                    aria-haspopup="true"
-                                    aria-expanded={Boolean(legalAnchor)}
-                                    aria-controls={legalAnchor ? 'legal-menu' : undefined}
-                                    aria-label={t('nav.legal')}
-                                    sx={{
-                                        color: 'inherit',
-                                        padding: '0.3rem 0.55rem',
-                                        fontWeight: 'bold',
-                                        fontSize: '0.9rem',
-                                        borderRadius: '4px',
-                                        '&:hover': {
-                                            backgroundColor: 'var(--nav-chrome-hover-bg)',
-                                        },
-                                    }}
-                                >
-                                    <span style={{ marginInlineEnd: '0.2rem' }}>{t('nav.legal')}</span>
-                                    <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
-                                </IconButton>
-                                <Menu
-                                    id="legal-menu"
-                                    anchorEl={legalAnchor}
-                                    open={Boolean(legalAnchor)}
-                                    onClose={handleLegalClose}
-                                    MenuListProps={{
-                                        'aria-labelledby': 'legal-menu-button',
-                                    }}
-                                    slotProps={{
-                                        paper: {
-                                            sx: { backgroundImage: 'none' },
-                                        },
-                                    }}
-                                    anchorOrigin={menuAnchorOrigin}
-                                    transformOrigin={menuTransformOrigin}
-                                >
-                                    {legalLinks.map(({ to, label }) => (
-                                        <MenuItem
-                                            key={to}
-                                            component={NavLink}
-                                            to={withDarkPath(pathname, to)}
-                                            className={({ isActive }) => (isActive ? 'active' : '')}
-                                            onClick={handleLegalClose}
-                                            sx={{
-                                                color: 'text.secondary',
-                                                '&:hover': {
-                                                    backgroundColor: 'var(--menu-item-hover-bg)',
-                                                    color: 'var(--menu-item-hover-fg)',
-                                                },
-                                                '&.active': {
-                                                    backgroundColor: 'var(--menu-item-active-bg)',
-                                                    color: 'var(--menu-item-active-fg)',
-                                                },
-                                            }}
-                                        >
-                                            {label}
-                                        </MenuItem>
-                                    ))}
-                                </Menu>
-
-                                <NavLink
-                                    to={withDarkPath(pathname, '/contact-us')}
-                                    className={({ isActive }) => (isActive ? 'active' : '')}
-                                    style={headerNavLinkStyle}
-                                >
+                                <NavLink to={withDarkPath(pathname, '/contact-us')} className={({ isActive }) => (isActive ? 'active' : '')} style={headerNavLinkStyle}>
                                     {t('nav.contactUs')}
                                 </NavLink>
                             </nav>
@@ -765,6 +743,45 @@ const ResponsiveNavbar = () => {
                     )}
                 </Menu>
             ) : null}
+            <Menu
+                id="legal-menu"
+                anchorEl={legalAnchor}
+                open={Boolean(legalAnchor)}
+                onClose={handleLegalClose}
+                MenuListProps={{
+                    'aria-labelledby': 'legal-menu-button',
+                }}
+                slotProps={{
+                    paper: {
+                        sx: { backgroundImage: 'none' },
+                    },
+                }}
+                anchorOrigin={menuAnchorOrigin}
+                transformOrigin={menuTransformOrigin}
+            >
+                {legalLinks.map(({ to, label }) => (
+                    <MenuItem
+                        key={to}
+                        component={NavLink}
+                        to={withDarkPath(pathname, to)}
+                        className={({ isActive }) => (isActive ? 'active' : '')}
+                        onClick={handleLegalClose}
+                        sx={{
+                            color: 'text.secondary',
+                            '&:hover': {
+                                backgroundColor: 'var(--menu-item-hover-bg)',
+                                color: 'var(--menu-item-hover-fg)',
+                            },
+                            '&.active': {
+                                backgroundColor: 'var(--menu-item-active-bg)',
+                                color: 'var(--menu-item-active-fg)',
+                            },
+                        }}
+                    >
+                        {label}
+                    </MenuItem>
+                ))}
+            </Menu>
             <Menu
                 id="language-menu"
                 anchorEl={languageAnchor}
