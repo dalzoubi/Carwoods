@@ -129,7 +129,6 @@ export const PortalAuthProvider = ({ children }) => {
     callbackId = msalInstance.addEventCallback((event) => {
       if (
         event.eventType === EventType.LOGIN_SUCCESS ||
-        event.eventType === EventType.ACQUIRE_TOKEN_SUCCESS ||
         event.eventType === EventType.LOGOUT_SUCCESS
       ) {
         syncActiveAccount();
