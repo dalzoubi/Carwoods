@@ -686,6 +686,18 @@
       "next3": "إضافة تدفقات تعديل قابلة للتدقيق وتحديثات للحالة."
     }
   },
+  "socialSignIn": {
+    "prompt": "تسجيل الدخول باستخدام",
+    "google": "المتابعة مع Google",
+    "googleAriaLabel": "تسجيل الدخول بحساب Google",
+    "apple": "المتابعة مع Apple",
+    "appleAriaLabel": "تسجيل الدخول بحساب Apple",
+    "microsoft": "المتابعة مع Microsoft",
+    "microsoftAriaLabel": "تسجيل الدخول بحساب Microsoft",
+    "orDivider": "أو",
+    "anyAccount": "تسجيل الدخول بأي حساب",
+    "anyAccountAriaLabel": "تسجيل الدخول — اختر نوع الحساب"
+  },
   "skipToMain": "الانتقال إلى المحتوى الرئيسي",
   "languageNames": {
     "en": "English",

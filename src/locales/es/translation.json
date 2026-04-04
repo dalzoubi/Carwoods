@@ -686,6 +686,18 @@
       "next3": "Agregar flujos de mutación con trazabilidad y actualizaciones de estado."
     }
   },
+  "socialSignIn": {
+    "prompt": "Iniciar sesión con",
+    "google": "Continuar con Google",
+    "googleAriaLabel": "Iniciar sesión con tu cuenta de Google",
+    "apple": "Continuar con Apple",
+    "appleAriaLabel": "Iniciar sesión con tu cuenta de Apple",
+    "microsoft": "Continuar con Microsoft",
+    "microsoftAriaLabel": "Iniciar sesión con tu cuenta de Microsoft",
+    "orDivider": "o",
+    "anyAccount": "Iniciar sesión con otra cuenta",
+    "anyAccountAriaLabel": "Iniciar sesión — elegir tipo de cuenta"
+  },
   "skipToMain": "Saltar al contenido principal",
   "languageNames": {
     "en": "English",

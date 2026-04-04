@@ -686,6 +686,18 @@
       "next3": "Add audit-friendly mutation flows and status updates."
     }
   },
+  "socialSignIn": {
+    "prompt": "Sign in with",
+    "google": "Continue with Google",
+    "googleAriaLabel": "Sign in with your Google account",
+    "apple": "Continue with Apple",
+    "appleAriaLabel": "Sign in with your Apple account",
+    "microsoft": "Continue with Microsoft",
+    "microsoftAriaLabel": "Sign in with your Microsoft account",
+    "orDivider": "or",
+    "anyAccount": "Sign in with any account",
+    "anyAccountAriaLabel": "Sign in — choose your account type"
+  },
   "skipToMain": "Skip to main content",
   "languageNames": {
     "en": "English",

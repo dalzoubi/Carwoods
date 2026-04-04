@@ -4,6 +4,7 @@ import { Alert, Box, Button, Chip, Stack, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { withDarkPath } from '../routePaths';
 import { usePortalAuth } from '../PortalAuthContext';
+import SocialSignInButtons from './SocialSignInButtons';
 
 function roleKey(role) {
   return role === 'admin' ? 'admin' : 'tenant';
@@ -12,7 +13,7 @@ function roleKey(role) {
 const PortalWorkspace = ({ role = 'tenant' }) => {
   const { pathname } = useLocation();
   const { t } = useTranslation();
-  const { authStatus, isAuthenticated, meStatus, meData, meError, refreshMe, signIn, signOut } = usePortalAuth();
+  const { authStatus, isAuthenticated, meStatus, meData, meError, refreshMe, signOut } = usePortalAuth();
   const key = roleKey(role);
   const userRole = meData?.user?.role ?? '';
   const isAdminRoute = key === 'admin';
@@ -65,9 +66,7 @@ const PortalWorkspace = ({ role = 'tenant' }) => {
           <Alert severity="error">{t('portalWorkspace.authForbidden')}</Alert>
         )}
         {!isAuthenticated && authStatus !== 'unconfigured' && (
-          <Button type="button" variant="contained" onClick={signIn}>
-            {t('portalWorkspace.actions.signIn')}
-          </Button>
+          <SocialSignInButtons />
         )}
         {isAuthenticated && meStatus === 'ok' && (
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>

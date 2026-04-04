@@ -13,6 +13,7 @@ import {
 import { VITE_API_BASE_URL_RESOLVED } from '../featureFlags';
 import { withDarkPath } from '../routePaths';
 import { usePortalAuth } from '../PortalAuthContext';
+import SocialSignInButtons from './SocialSignInButtons';
 
 function endpoint(baseUrl, path) {
   return `${baseUrl.replace(/\/$/, '')}${path}`;
@@ -44,7 +45,6 @@ const PortalSetup = () => {
     meStatus,
     meData,
     meError,
-    signIn,
     signOut,
     refreshMe,
   } = usePortalAuth();
@@ -189,17 +189,18 @@ const PortalSetup = () => {
                     : t('portalSetup.sessionNotSaved')}
               </Typography>
             </Stack>
-            <Stack direction="row" spacing={1.25} sx={{ flexWrap: 'wrap' }}>
-              <Button type="button" variant="contained" onClick={signIn} disabled={authStatus === 'initializing' || authStatus === 'authenticating'}>
-                {t('portalSetup.actions.signIn')}
-              </Button>
-              <Button type="button" variant="outlined" onClick={signOut} disabled={!isAuthenticated}>
-                {t('portalSetup.actions.signOut')}
-              </Button>
-              <Button type="button" variant="outlined" onClick={refreshMe} disabled={!isAuthenticated}>
-                {t('portalSetup.actions.refreshSession')}
-              </Button>
-            </Stack>
+            {!isAuthenticated ? (
+              <SocialSignInButtons compact />
+            ) : (
+              <Stack direction="row" spacing={1.25} sx={{ flexWrap: 'wrap' }}>
+                <Button type="button" variant="outlined" onClick={signOut}>
+                  {t('portalSetup.actions.signOut')}
+                </Button>
+                <Button type="button" variant="outlined" onClick={refreshMe}>
+                  {t('portalSetup.actions.refreshSession')}
+                </Button>
+              </Stack>
+            )}
           </Stack>
         </Box>
 
