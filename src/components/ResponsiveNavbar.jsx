@@ -36,7 +36,6 @@ import carwoodsLogo from '../assets/carwoods-logo.png';
 const DRAWER_PAPER_ID = 'main-navigation-drawer';
 
 const LOGO_HEIGHT_PX = 32;
-const MOBILE_LOGO_HEIGHT_PX = 30;
 
 const headerNavLinkStyle = {
     padding: '0.3rem 0.55rem',
@@ -443,7 +442,7 @@ const ResponsiveNavbar = () => {
                 <Toolbar
                     variant="dense"
                     sx={{
-                        minHeight: { xs: 44, sm: 48 },
+                        minHeight: 48,
                         px: { xs: 1, sm: 1.5 },
                         flexWrap: 'wrap',
                         rowGap: 0.25,
@@ -486,7 +485,7 @@ const ResponsiveNavbar = () => {
                                         to={withDarkPath(pathname, '/')}
                                         style={{ display: 'inline-block', lineHeight: 0 }}
                                     >
-                                        <img src={carwoodsLogo} alt={t('common.carwoodsAlt')} style={{ height: `${MOBILE_LOGO_HEIGHT_PX}px`, display: 'block' }} />
+                                        <img src={carwoodsLogo} alt={t('common.carwoodsAlt')} style={{ height: `${LOGO_HEIGHT_PX}px`, display: 'block' }} />
                                     </RouterLink>
                                 </Box>
                                 <Box sx={{ marginInlineStart: 'auto' }}>{headerToolbarActions}</Box>
