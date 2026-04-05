@@ -7,6 +7,10 @@ const DEFAULT_ORIGINS = [
   'https://carwoods-*-dennis-alzoubis-projects.vercel.app/'
 ];
 
+function normalizeOriginValue(value: string): string {
+  return value.trim().replace(/\/+$/, '');
+}
+
 /**
  * True if `origin` equals `pattern`, or `pattern` contains `*` segments matched left-to-right
  * (e.g. `https://carwoods-*.vercel.app` for Vercel preview hosts). Avoid a lone `*` pattern.
@@ -40,7 +44,8 @@ function originMatchesPattern(origin: string, pattern: string): boolean {
 }
 
 function isOriginAllowed(origin: string, allowed: string[]): boolean {
-  return allowed.some((entry) => originMatchesPattern(origin, entry));
+  const normalizedOrigin = normalizeOriginValue(origin);
+  return allowed.some((entry) => originMatchesPattern(normalizedOrigin, normalizeOriginValue(entry)));
 }
 
 function resolveAllowOrigin(origin: string, allowed: string[]): string {
@@ -60,9 +65,10 @@ function resolveAllowOrigin(origin: string, allowed: string[]): string {
  */
 export function corsHeadersForRequest(request: HttpRequest): Record<string, string> {
   const raw = process.env.CORS_ALLOWED_ORIGINS?.trim();
-  const allowed = raw
+  const custom = raw
     ? raw.split(',').map((s) => s.trim()).filter(Boolean)
-    : DEFAULT_ORIGINS;
+    : [];
+  const allowed = Array.from(new Set([...DEFAULT_ORIGINS, ...custom]));
 
   const origin = request.headers.get('origin') ?? '';
   const allowOrigin = resolveAllowOrigin(origin, allowed);
