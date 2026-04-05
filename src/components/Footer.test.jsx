@@ -26,15 +26,4 @@ describe('Footer', () => {
     expect(link).toHaveAttribute('target', '_blank');
   });
 
-  it('renders Privacy Policy link', () => {
-    renderWithRouter(<Footer />);
-    const link = screen.getByRole('link', { name: /privacy policy/i });
-    expect(link).toHaveAttribute('href', '/privacy');
-  });
-
-  it('renders Accessibility link', () => {
-    renderWithRouter(<Footer />);
-    const link = screen.getByRole('link', { name: /accessibility/i });
-    expect(link).toHaveAttribute('href', '/accessibility');
-  });
 });

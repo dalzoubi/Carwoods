@@ -168,10 +168,7 @@
     "trecNotice": "Avis de protection du consommateur de la Commission immobilière du Texas",
     "trecNoticeAriaLabel": "Avis de protection du consommateur de la Commission immobilière du Texas (s'ouvre dans un nouvel onglet)",
     "trecBrokerage": "Informations de la Commission immobilière du Texas sur les services de courtage",
-    "trecBrokerageAriaLabel": "Informations de la Commission immobilière du Texas sur les services de courtage (s'ouvre dans un nouvel onglet)",
-    "privacyPolicy": "Politique de confidentialité",
-    "termsOfService": "Conditions d'utilisation",
-    "accessibility": "Accessibilité"
+    "trecBrokerageAriaLabel": "Informations de la Commission immobilière du Texas sur les services de courtage (s'ouvre dans un nouvel onglet)"
   },
   "applyFlowSubnav": {
     "label": "Navigation du processus de candidature",
