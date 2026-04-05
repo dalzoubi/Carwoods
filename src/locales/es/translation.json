@@ -17,7 +17,9 @@
     "mainNavigation": "Navegación principal",
     "siteMenu": "Menú del sitio",
     "tenantMenu": "Menú de inquilino",
-    "landlordMenu": "Menú de propietario"
+    "landlordMenu": "Menú de propietario",
+    "legalMenu": "Menú legal",
+    "print": "Imprimir esta página"
   },
   "tenantLinks": {
     "apply": "Solicitar",

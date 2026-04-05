@@ -390,7 +390,7 @@ const ResponsiveNavbar = () => {
                     color="inherit"
                     type="button"
                     size="small"
-                    aria-label={t('nav.print', 'Print this page')}
+                    aria-label={t('nav.print')}
                     onClick={() => window.print()}
                     sx={toolbarChromeIconButtonSx}
                 >
