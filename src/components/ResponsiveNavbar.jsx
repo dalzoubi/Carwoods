@@ -397,8 +397,8 @@ const ResponsiveNavbar = () => {
                     <Print aria-hidden />
                 </IconButton>
             ) : null}
-            {showAppearanceMenu ? (
-                <Tooltip title={t('nav.appearance')} arrow disableHoverListener={isMobile}>
+            {!isMobile && showAppearanceMenu ? (
+                <Tooltip title={t('nav.appearance')} arrow>
                     <IconButton
                         color="inherit"
                         type="button"
@@ -416,23 +416,25 @@ const ResponsiveNavbar = () => {
                     </IconButton>
                 </Tooltip>
             ) : null}
-            <Tooltip title={t('nav.language')} arrow disableHoverListener={isMobile}>
-                <IconButton
-                    color="inherit"
-                    type="button"
-                    size="small"
-                    id="language-menu-button-toolbar"
-                    data-language-trigger="toolbar"
-                    aria-label={t('nav.selectLanguage')}
-                    aria-haspopup="true"
-                    aria-expanded={Boolean(languageAnchor)}
-                    aria-controls={languageAnchor ? 'language-menu' : undefined}
-                    onClick={handleLanguageOpen}
-                    sx={toolbarChromeIconButtonSx}
-                >
-                    <Language aria-hidden />
-                </IconButton>
-            </Tooltip>
+            {!isMobile ? (
+                <Tooltip title={t('nav.language')} arrow>
+                    <IconButton
+                        color="inherit"
+                        type="button"
+                        size="small"
+                        id="language-menu-button-toolbar"
+                        data-language-trigger="toolbar"
+                        aria-label={t('nav.selectLanguage')}
+                        aria-haspopup="true"
+                        aria-expanded={Boolean(languageAnchor)}
+                        aria-controls={languageAnchor ? 'language-menu' : undefined}
+                        onClick={handleLanguageOpen}
+                        sx={toolbarChromeIconButtonSx}
+                    >
+                        <Language aria-hidden />
+                    </IconButton>
+                </Tooltip>
+            ) : null}
             <Button
                 type="button"
                 size={isMobile ? 'small' : 'medium'}
