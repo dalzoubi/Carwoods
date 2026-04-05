@@ -64,7 +64,10 @@ export async function linkSubjectToUser(
   await client.query(
     `UPDATE users
         SET external_auth_subject = $1, updated_at = GETUTCDATE()
-      WHERE id = $2 AND (external_auth_subject IS NULL OR external_auth_subject = '')`,
+      WHERE id = $2
+        AND (external_auth_subject IS NULL
+             OR external_auth_subject = ''
+             OR external_auth_subject LIKE 'seed:%')`,
     [externalAuthSubject, userId]
   );
 }

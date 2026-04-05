@@ -62,14 +62,8 @@ async function portalMeHandler(
   if (hasDatabaseUrl()) {
     try {
       const pool = getPool();
-      const c = await pool.connect();
-      try {
-        user = await findUserByClaims(c, claims);
-      } finally {
-        c.release();
-      }
+      user = await findUserByClaims(pool, claims);
     } catch (error) {
-      // Keep /portal/me available even when DB is temporarily unavailable.
       context.warn?.(
         `portalMe DB lookup failed: ${error instanceof Error ? error.message : 'unknown_error'}`
       );

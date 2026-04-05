@@ -69,37 +69,32 @@ export async function requireLandlordOrAdmin(
   }
 
   const pool = getPool();
-  const client = await pool.connect();
-  try {
-    const user = await findUserByClaims(client, claims);
-    if (!user) {
-      return {
-        ok: false,
-        response: {
-          status: 403,
-          headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-          jsonBody: { error: 'forbidden' },
-        },
-      };
-    }
-    const role = String(user.role ?? '').toUpperCase();
-    const status = String(user.status ?? '').toUpperCase();
-    const isActive = status === 'ACTIVE' || status === 'INVITED';
-    const isAllowedRole = role === 'ADMIN' || role === 'LANDLORD';
-    if (!isActive || !isAllowedRole) {
-      return {
-        ok: false,
-        response: {
-          status: 403,
-          headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-          jsonBody: { error: 'forbidden' },
-        },
-      };
-    }
-    return { ok: true, ctx: { user, role: role as 'ADMIN' | 'LANDLORD', headers } };
-  } finally {
-    client.release();
+  const user = await findUserByClaims(pool, claims);
+  if (!user) {
+    return {
+      ok: false,
+      response: {
+        status: 403,
+        headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
+        jsonBody: { error: 'forbidden' },
+      },
+    };
   }
+  const role = String(user.role ?? '').toUpperCase();
+  const status = String(user.status ?? '').toUpperCase();
+  const isActive = status === 'ACTIVE' || status === 'INVITED';
+  const isAllowedRole = role === 'ADMIN' || role === 'LANDLORD';
+  if (!isActive || !isAllowedRole) {
+    return {
+      ok: false,
+      response: {
+        status: 403,
+        headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
+        jsonBody: { error: 'forbidden' },
+      },
+    };
+  }
+  return { ok: true, ctx: { user, role: role as 'ADMIN' | 'LANDLORD', headers } };
 }
 
 export function jsonResponse(
