@@ -1,9 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { Link, useLocation } from 'react-router-dom';
 import { Alert, Box, Button, Stack, TextField, Typography } from '@mui/material';
-import { withDarkPath } from '../routePaths';
 import { usePortalAuth } from '../PortalAuthContext';
 import { emailFromAccount, isGuestRole, resolveRole } from '../portalUtils';
 
@@ -13,7 +11,6 @@ function endpoint(baseUrl, path) {
 
 const PortalProfile = () => {
   const { t } = useTranslation();
-  const { pathname } = useLocation();
   const {
     baseUrl,
     isAuthenticated,
@@ -33,6 +30,23 @@ const PortalProfile = () => {
   });
   const [saveStatus, setSaveStatus] = useState('idle');
   const [saveError, setSaveError] = useState('');
+  const initialForm = useMemo(
+    () => ({
+      email: meData?.user?.email ?? meData?.email ?? emailFromAccount(account) ?? '',
+      firstName: meData?.user?.first_name ?? '',
+      lastName: meData?.user?.last_name ?? '',
+      phone: meData?.user?.phone ?? '',
+    }),
+    [account, meData]
+  );
+  const hasChanges = useMemo(
+    () =>
+      form.email !== initialForm.email
+      || form.firstName !== initialForm.firstName
+      || form.lastName !== initialForm.lastName
+      || form.phone !== initialForm.phone,
+    [form, initialForm]
+  );
 
   const profileEndpoint = useMemo(
     () => (baseUrl ? endpoint(baseUrl, '/api/portal/profile') : ''),
@@ -40,13 +54,8 @@ const PortalProfile = () => {
   );
 
   useEffect(() => {
-    setForm({
-      email: meData?.user?.email ?? meData?.email ?? emailFromAccount(account) ?? '',
-      firstName: meData?.user?.first_name ?? '',
-      lastName: meData?.user?.last_name ?? '',
-      phone: meData?.user?.phone ?? '',
-    });
-  }, [account, meData]);
+    setForm(initialForm);
+  }, [initialForm]);
 
   const onChange = (field) => (event) => {
     const value = event.target.value;
@@ -57,6 +66,11 @@ const PortalProfile = () => {
 
   const onSubmit = async (event) => {
     event.preventDefault();
+    if (!hasChanges) {
+      setSaveStatus('idle');
+      setSaveError('');
+      return;
+    }
     setSaveStatus('saving');
     setSaveError('');
     try {
@@ -120,15 +134,6 @@ const PortalProfile = () => {
         </Typography>
         <Typography color="text.secondary">{t('portalProfile.intro')}</Typography>
 
-        <Stack direction="row" spacing={1.25} sx={{ flexWrap: 'wrap' }}>
-          <Button component={Link} to={withDarkPath(pathname, '/portal/workspace')} type="button" variant="text">
-            {t('portalHeader.nav.workspace')}
-          </Button>
-          <Button component={Link} to={withDarkPath(pathname, '/portal')} type="button" variant="outlined">
-            {t('portalHeader.nav.setup')}
-          </Button>
-        </Stack>
-
         {!isAuthenticated && <Alert severity="warning">{t('portalProfile.errors.signInRequired')}</Alert>}
         {isAuthenticated && meStatus === 'loading' && <Alert severity="info">{t('portalProfile.loading')}</Alert>}
         {isAuthenticated && isGuest && <Alert severity="warning">{t('portalProfile.guestBlocked')}</Alert>}
@@ -181,7 +186,7 @@ const PortalProfile = () => {
               <Button
                 type="submit"
                 variant="contained"
-                disabled={!isAuthenticated || isGuest || !baseUrl || saveStatus === 'saving'}
+                disabled={!isAuthenticated || isGuest || !baseUrl || saveStatus === 'saving' || !hasChanges}
               >
                 {saveStatus === 'saving' ? t('portalProfile.actions.saving') : t('portalProfile.actions.save')}
               </Button>

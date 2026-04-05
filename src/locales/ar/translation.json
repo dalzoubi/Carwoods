@@ -690,6 +690,7 @@
     "actions": {
       "backToSite": "العودة إلى الموقع الرئيسي",
       "backToSetup": "العودة إلى الإعداد",
+      "requests": "فتح الطلبات",
       "tenant": "مساحة المستأجر",
       "landlord": "مساحة المالك",
       "admin": "مساحة الإدارة",
@@ -750,12 +751,82 @@
       "unknown": "تعذر تحديث الملف الشخصي."
     }
   },
+  "portalRequests": {
+    "title": "Carwoods - طلبات البوابة",
+    "metaDescription": "إنشاء وإدارة طلبات الصيانة والرسائل والمرفقات.",
+    "heading": "طلبات الصيانة",
+    "intro": "استخدم هذه المساحة لإنشاء الطلبات وتحديثها والحفاظ على التواصل في سلسلة واحدة.",
+    "loading": "جارٍ تحميل بيانات الطلبات…",
+    "exportSuccess": "تم تنزيل تصدير CSV.",
+    "labels": {
+      "requestId": "معرف الطلب",
+      "status": "الحالة"
+    },
+    "actions": {
+      "reload": "إعادة تحميل الطلبات",
+      "create": "إنشاء طلب",
+      "saveChanges": "حفظ التحديثات",
+      "sendMessage": "إرسال رسالة",
+      "chooseFile": "اختيار ملف",
+      "attachFile": "إرفاق ملف",
+      "suggestReply": "اقتراح رد",
+      "exportCsv": "تصدير CSV",
+      "saving": "جارٍ الحفظ…"
+    },
+    "errors": {
+      "apiUnavailable": "قم بتعيين VITE_API_BASE_URL لتفعيل تدفق الطلبات.",
+      "signInRequired": "سجل الدخول قبل استخدام الطلبات.",
+      "guestBlocked": "حسابات الضيوف لا يمكنها استخدام هذه الميزات.",
+      "loadFailed": "تعذر تحميل بيانات الطلبات.",
+      "saveFailed": "تعذر حفظ التغييرات.",
+      "uploadIntentMissingPath": "نية الرفع لم تُرجع مسار تخزين."
+    },
+    "list": {
+      "heading": "قائمة الطلبات",
+      "empty": "لا توجد طلبات لهذا الحساب.",
+      "untitled": "طلب بدون عنوان"
+    },
+    "create": {
+      "heading": "إنشاء طلب",
+      "propertyId": "معرف العقار",
+      "leaseId": "معرف عقد الإيجار",
+      "categoryCode": "رمز الفئة",
+      "priorityCode": "رمز الأولوية",
+      "titleLabel": "عنوان الطلب",
+      "descriptionLabel": "وصف الطلب",
+      "saved": "تم إنشاء الطلب."
+    },
+    "management": {
+      "heading": "تحديثات الإدارة",
+      "statusCode": "رمز الحالة",
+      "statusCodePlaceholder": "OPEN, IN_PROGRESS, CLOSED",
+      "vendorId": "معرف المورّد المعيّن",
+      "internalNotes": "ملاحظات داخلية",
+      "saved": "تم تحديث الطلب."
+    },
+    "suggest": {
+      "heading": "اقتراح رد بالذكاء الاصطناعي"
+    },
+    "messages": {
+      "heading": "سلسلة الرسائل",
+      "empty": "لا توجد رسائل بعد.",
+      "bodyLabel": "الرسالة",
+      "internalToggle": "رسالة داخلية (للمالك/الإدارة فقط)",
+      "internalTag": "داخلي"
+    },
+    "attachments": {
+      "heading": "المرفقات",
+      "empty": "لا توجد مرفقات بعد.",
+      "saved": "تم حفظ بيانات المرفق."
+    }
+  },
   "portalHeader": {
     "title": "بوابة الصيانة",
     "notSignedIn": "لم يتم تسجيل الدخول",
     "nav": {
       "setup": "الإعداد",
       "workspace": "المساحة",
+      "requests": "الطلبات",
       "profile": "الملف الشخصي"
     },
     "status": {
@@ -767,6 +838,12 @@
       "landlord": "مالك",
       "tenant": "مستأجر",
       "unknown": "ضيف"
+    },
+    "confirmSignOut": {
+      "title": "تسجيل الخروج؟",
+      "body": "هل أنت متأكد أنك تريد تسجيل الخروج؟",
+      "cancel": "إلغاء",
+      "confirm": "تسجيل الخروج"
     },
     "actions": {
       "signIn": "تسجيل الدخول",

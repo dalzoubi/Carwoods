@@ -690,6 +690,7 @@
     "actions": {
       "backToSite": "Back to main site",
       "backToSetup": "Back to setup",
+      "requests": "Open requests",
       "tenant": "Tenant workspace",
       "landlord": "Landlord workspace",
       "admin": "Admin workspace",
@@ -750,12 +751,82 @@
       "unknown": "Unable to update profile."
     }
   },
+  "portalRequests": {
+    "title": "Carwoods - Portal Requests",
+    "metaDescription": "Create and manage maintenance requests, messages, and attachments.",
+    "heading": "Maintenance Requests",
+    "intro": "Use this workspace to create requests, manage request updates, and keep tenant and management communication in one thread.",
+    "loading": "Loading request data…",
+    "exportSuccess": "CSV export downloaded.",
+    "labels": {
+      "requestId": "Request ID",
+      "status": "Status"
+    },
+    "actions": {
+      "reload": "Reload requests",
+      "create": "Create request",
+      "saveChanges": "Save updates",
+      "sendMessage": "Send message",
+      "chooseFile": "Choose file",
+      "attachFile": "Attach file",
+      "suggestReply": "Suggest reply",
+      "exportCsv": "Export CSV",
+      "saving": "Saving…"
+    },
+    "errors": {
+      "apiUnavailable": "Set VITE_API_BASE_URL to enable request flows.",
+      "signInRequired": "Sign in before using requests.",
+      "guestBlocked": "Guest accounts cannot use maintenance request flows.",
+      "loadFailed": "Unable to load request data.",
+      "saveFailed": "Unable to save changes.",
+      "uploadIntentMissingPath": "Upload intent did not return a storage path."
+    },
+    "list": {
+      "heading": "Request list",
+      "empty": "No requests found for this account.",
+      "untitled": "Untitled request"
+    },
+    "create": {
+      "heading": "Create request",
+      "propertyId": "Property ID",
+      "leaseId": "Lease ID",
+      "categoryCode": "Category code",
+      "priorityCode": "Priority code",
+      "titleLabel": "Request title",
+      "descriptionLabel": "Request description",
+      "saved": "Request created."
+    },
+    "management": {
+      "heading": "Management updates",
+      "statusCode": "Status code",
+      "statusCodePlaceholder": "OPEN, IN_PROGRESS, CLOSED",
+      "vendorId": "Assigned vendor ID",
+      "internalNotes": "Internal notes",
+      "saved": "Request updated."
+    },
+    "suggest": {
+      "heading": "AI suggest reply"
+    },
+    "messages": {
+      "heading": "Message thread",
+      "empty": "No messages yet.",
+      "bodyLabel": "Message",
+      "internalToggle": "Internal message (landlord/admin only)",
+      "internalTag": "Internal"
+    },
+    "attachments": {
+      "heading": "Attachments",
+      "empty": "No attachments yet.",
+      "saved": "Attachment metadata saved."
+    }
+  },
   "portalHeader": {
     "title": "Maintenance Portal",
     "notSignedIn": "Not signed in",
     "nav": {
       "setup": "Setup",
       "workspace": "Workspace",
+      "requests": "Requests",
       "profile": "Profile"
     },
     "status": {
@@ -767,6 +838,12 @@
       "landlord": "Landlord",
       "tenant": "Tenant",
       "unknown": "Guest"
+    },
+    "confirmSignOut": {
+      "title": "Sign out?",
+      "body": "Are you sure you want to sign out?",
+      "cancel": "Cancel",
+      "confirm": "Sign out"
     },
     "actions": {
       "signIn": "Sign in",

@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { Link, useLocation } from 'react-router-dom';
 import {
   Alert,
   Box,
@@ -11,9 +10,9 @@ import {
   Typography,
 } from '@mui/material';
 import { VITE_API_BASE_URL_RESOLVED } from '../featureFlags';
-import { withDarkPath } from '../routePaths';
 import { usePortalAuth } from '../PortalAuthContext';
 import { emailFromAccount, firstNonEmpty, normalizeRole, resolveRole } from '../portalUtils';
+import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
 
 function endpoint(baseUrl, path) {
   return `${baseUrl.replace(/\/$/, '')}${path}`;
@@ -34,9 +33,9 @@ function authStatusColor(status) {
 }
 
 const PortalSetup = () => {
-  const { pathname } = useLocation();
   const { t } = useTranslation();
   const [health, setHealth] = useState({ state: 'idle', detail: '' });
+  const [signOutConfirmOpen, setSignOutConfirmOpen] = useState(false);
   const {
     authStatus,
     authError,
@@ -83,6 +82,16 @@ const PortalSetup = () => {
   const baseUrl = useMemo(() => VITE_API_BASE_URL_RESOLVED || '', []);
   const healthUrl = baseUrl ? endpoint(baseUrl, '/api/health') : '';
   const meUrl = baseUrl ? endpoint(baseUrl, '/api/portal/me') : '';
+  const onSignOutRequest = () => {
+    setSignOutConfirmOpen(true);
+  };
+  const onSignOutCancel = () => {
+    setSignOutConfirmOpen(false);
+  };
+  const onSignOutConfirm = () => {
+    setSignOutConfirmOpen(false);
+    signOut();
+  };
 
   const fetchHealth = async () => {
     if (!baseUrl) return;
@@ -124,15 +133,6 @@ const PortalSetup = () => {
           {t('portalSetup.heading')}
         </Typography>
         <Typography color="text.secondary">{t('portalSetup.intro')}</Typography>
-
-        <Stack direction="row" spacing={1.25} sx={{ flexWrap: 'wrap' }}>
-          <Button component={Link} to={withDarkPath(pathname, '/')} type="button" variant="text">
-            {t('portalWorkspace.actions.backToSite')}
-          </Button>
-          <Button component={Link} to={withDarkPath(pathname, '/portal/workspace')} type="button" variant="outlined">
-            {t('portalSetup.actions.openWorkspace')}
-          </Button>
-        </Stack>
 
         {!baseUrl && (
           <Alert severity="warning">{t('portalSetup.apiBaseMissing')}</Alert>
@@ -216,7 +216,7 @@ const PortalSetup = () => {
             </Stack>
             {!isAuthenticated ? null : (
               <Stack direction="row" spacing={1.25} sx={{ flexWrap: 'wrap' }}>
-                <Button type="button" variant="outlined" onClick={signOut}>
+                <Button type="button" variant="outlined" onClick={onSignOutRequest}>
                   {t('portalSetup.actions.signOut')}
                 </Button>
                 <Button type="button" variant="outlined" onClick={refreshMe}>
@@ -338,6 +338,11 @@ const PortalSetup = () => {
           </Stack>
         </Box>
       </Stack>
+      <PortalSignOutConfirmDialog
+        open={signOutConfirmOpen}
+        onClose={onSignOutCancel}
+        onConfirm={onSignOutConfirm}
+      />
     </Box>
   );
 };

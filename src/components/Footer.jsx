@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
 import styled from 'styled-components';
 import { useTranslation } from 'react-i18next';
 
@@ -41,10 +40,6 @@ const FooterLink = styled.a`
     ${linkStyles}
 `;
 
-const FooterInternalLink = styled(RouterLink)`
-    ${linkStyles}
-`;
-
 const FooterSeparator = styled.span`
     color: var(--footer-separator-on-primary);
     margin: 0 2px;
@@ -63,10 +58,6 @@ const Footer = () => {
             <FooterLink href="https://members.har.com/mhf/terms/dispBrokerInfo.cfm?sitetype=aws&cid=735771" target="_blank" rel="noopener noreferrer" aria-label={t('footer.trecBrokerageAriaLabel')}>
                 {t('footer.trecBrokerage')}
             </FooterLink>
-            <FooterSeparator aria-hidden="true">|</FooterSeparator>
-            <FooterInternalLink to="/privacy">{t('nav.privacy')}</FooterInternalLink>
-            <FooterSeparator aria-hidden="true">|</FooterSeparator>
-            <FooterInternalLink to="/accessibility">{t('nav.accessibility')}</FooterInternalLink>
         </FooterContainer>
     );
 };

@@ -17,7 +17,8 @@ import ResponsiveNavbar from './components/ResponsiveNavbar';
 import PortalSetup from './components/PortalSetup';
 import PortalWorkspace from './components/PortalWorkspace';
 import PortalProfile from './components/PortalProfile';
-import { isDarkPreviewRoute, stripDarkPreviewPrefix } from './routePaths';
+import PortalRequests from './components/PortalRequests';
+import { isDarkPreviewRoute } from './routePaths';
 
 /**
  * After route changes, scroll like “Back to top” links: smooth `scrollIntoView` on `#page-top`
@@ -65,6 +66,7 @@ function PageRoutes() {
             <Route path="/portal" element={<PortalSetup />} />
             <Route path="/portal/workspace" element={<PortalWorkspace />} />
             <Route path="/portal/profile" element={<PortalProfile />} />
+            <Route path="/portal/requests" element={<PortalRequests />} />
             <Route path="/portal/tenant" element={<Navigate to="/portal/workspace" replace />} />
             <Route path="/portal/landlord" element={<Navigate to="/portal/workspace" replace />} />
             <Route path="/portal/admin" element={<Navigate to="/portal/workspace" replace />} />
@@ -84,8 +86,6 @@ const AppRoutes = () => {
 
 const App = () => {
     const { t } = useTranslation();
-    const location = useLocation();
-    const strippedPath = stripDarkPreviewPrefix(location.pathname);
     return (
         <AppShell>
             <ScrollToTopOnRouteChange />

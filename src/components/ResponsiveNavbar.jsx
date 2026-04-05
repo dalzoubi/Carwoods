@@ -40,6 +40,7 @@ import { isPrintablePageRoute, stripDarkPreviewPrefix, withDarkPath } from '../r
 import { isGuestRole, normalizeRole, resolveDisplayName, resolveRole } from '../portalUtils';
 import { useTranslation } from 'react-i18next';
 import carwoodsLogo from '../assets/carwoods-logo.png';
+import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
 
 const DRAWER_PAPER_ID = 'main-navigation-drawer';
 
@@ -158,15 +159,6 @@ const logoLinkSx = {
     },
 };
 
-function roleLabel(role, t) {
-    const normalized = normalizeRole(role);
-    if (normalized === 'ADMIN') return t('portalHeader.roles.admin');
-    if (normalized === 'LANDLORD') return t('portalHeader.roles.landlord');
-    if (normalized === 'TENANT') return t('portalHeader.roles.tenant');
-    if (normalized) return normalized;
-    return t('portalHeader.roles.unknown');
-}
-
 const ResponsiveNavbar = () => {
     const appBarRef = useRef(null);
     const navigate = useNavigate();
@@ -178,6 +170,7 @@ const ResponsiveNavbar = () => {
     const [appearanceAnchor, setAppearanceAnchor] = useState(null);
     const [languageAnchor, setLanguageAnchor] = useState(null);
     const [accountAnchor, setAccountAnchor] = useState(null);
+    const [signOutConfirmOpen, setSignOutConfirmOpen] = useState(false);
     const [appearanceMenuLabelledBy, setAppearanceMenuLabelledBy] = useState(undefined);
     const [languageMenuLabelledBy, setLanguageMenuLabelledBy] = useState(undefined);
     const muiTheme = useTheme();
@@ -206,7 +199,6 @@ const ResponsiveNavbar = () => {
     const accountPortalLinks = [
         { to: '/portal', label: t('portalHeader.nav.setup') },
         { to: '/portal/workspace', label: t('portalHeader.nav.workspace') },
-        ...(isAuthenticated && !isGuestAccount ? [{ to: '/portal/profile', label: t('portalHeader.nav.profile') }] : []),
     ];
 
     const menuHorizontalOrigin = muiTheme.direction === 'rtl' ? 'right' : 'left';
@@ -324,6 +316,16 @@ const ResponsiveNavbar = () => {
             return;
         }
         handleAccountOpen(e);
+    };
+    const handleSignOutConfirmOpen = () => {
+        setSignOutConfirmOpen(true);
+    };
+    const handleSignOutConfirmClose = () => {
+        setSignOutConfirmOpen(false);
+    };
+    const handleSignOutConfirm = () => {
+        setSignOutConfirmOpen(false);
+        signOut();
     };
 
     const canAccessTenantPortal = isAuthenticated && (normalizedPortalRole === 'TENANT' || normalizedPortalRole === 'LANDLORD' || normalizedPortalRole === 'ADMIN');
@@ -1069,12 +1071,16 @@ const ResponsiveNavbar = () => {
                 }}
             >
                 <>
-                    <MenuItem sx={{ pointerEvents: 'none', opacity: 1 }}>
-                        <ListItemText
-                            primary={roleLabel(portalRole, t)}
-                            secondary={`${t('portalHeader.status.signedIn')} - ${portalAccountName}`}
-                            secondaryTypographyProps={{ noWrap: true }}
-                        />
+                    <MenuItem
+                        onClick={() => {
+                            if (!isGuestAccount) {
+                                navigate(withDarkPath(pathname, '/portal/profile'));
+                            }
+                            handleAccountClose();
+                        }}
+                        disabled={isGuestAccount}
+                    >
+                        <ListItemText primary={t('portalHeader.nav.profile')} />
                     </MenuItem>
                     <Divider />
                     {accountPortalLinks.map(({ to, label }) => (
@@ -1090,7 +1096,7 @@ const ResponsiveNavbar = () => {
                     ))}
                     <MenuItem
                         onClick={() => {
-                            signOut();
+                            handleSignOutConfirmOpen();
                             handleAccountClose();
                         }}
                     >
@@ -1098,6 +1104,11 @@ const ResponsiveNavbar = () => {
                     </MenuItem>
                 </>
             </Menu>
+            <PortalSignOutConfirmDialog
+                open={signOutConfirmOpen}
+                onClose={handleSignOutConfirmClose}
+                onConfirm={handleSignOutConfirm}
+            />
         </>
     );
 };

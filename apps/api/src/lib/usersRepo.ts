@@ -216,13 +216,20 @@ export async function updateUserProfile(
             last_name = $4,
             phone = $5,
             updated_at = GETUTCDATE()
-      WHERE id = $1
       OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
              INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
-             INSERTED.role, INSERTED.status`,
+             INSERTED.role, INSERTED.status
+      WHERE id = $1
+        AND (
+          LOWER(email) <> $2
+          OR ISNULL(first_name, '') <> ISNULL($3, '')
+          OR ISNULL(last_name, '') <> ISNULL($4, '')
+          OR ISNULL(phone, '') <> ISNULL($5, '')
+        )`,
     [userId, normalizedEmail, firstName, lastName, phone]
   );
-  return r.rows[0] ?? null;
+  if (r.rows[0]) return r.rows[0];
+  return findUserById(client, userId);
 }
 
 /**

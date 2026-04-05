@@ -690,6 +690,7 @@
     "actions": {
       "backToSite": "Retour au site principal",
       "backToSetup": "Retour à la configuration",
+      "requests": "Ouvrir les demandes",
       "tenant": "Espace locataire",
       "landlord": "Espace propriétaire",
       "admin": "Espace admin",
@@ -750,12 +751,82 @@
       "unknown": "Impossible de mettre a jour le profil."
     }
   },
+  "portalRequests": {
+    "title": "Carwoods - Demandes du portail",
+    "metaDescription": "Creer et gerer les demandes de maintenance, messages et pieces jointes.",
+    "heading": "Demandes de maintenance",
+    "intro": "Utilisez cet espace pour creer des demandes, appliquer des mises a jour et centraliser la communication.",
+    "loading": "Chargement des donnees de demandes…",
+    "exportSuccess": "Export CSV telecharge.",
+    "labels": {
+      "requestId": "ID de demande",
+      "status": "Statut"
+    },
+    "actions": {
+      "reload": "Recharger les demandes",
+      "create": "Creer la demande",
+      "saveChanges": "Enregistrer les modifications",
+      "sendMessage": "Envoyer le message",
+      "chooseFile": "Choisir un fichier",
+      "attachFile": "Joindre le fichier",
+      "suggestReply": "Suggérer une reponse",
+      "exportCsv": "Exporter CSV",
+      "saving": "Enregistrement…"
+    },
+    "errors": {
+      "apiUnavailable": "Definissez VITE_API_BASE_URL pour activer le flux des demandes.",
+      "signInRequired": "Connectez-vous avant d'utiliser les demandes.",
+      "guestBlocked": "Les comptes invites ne peuvent pas utiliser ces fonctions.",
+      "loadFailed": "Impossible de charger les demandes.",
+      "saveFailed": "Impossible d'enregistrer les modifications.",
+      "uploadIntentMissingPath": "L'intention d'upload n'a pas retourne de chemin de stockage."
+    },
+    "list": {
+      "heading": "Liste des demandes",
+      "empty": "Aucune demande trouvee pour ce compte.",
+      "untitled": "Demande sans titre"
+    },
+    "create": {
+      "heading": "Creer une demande",
+      "propertyId": "ID propriete",
+      "leaseId": "ID bail",
+      "categoryCode": "Code categorie",
+      "priorityCode": "Code priorite",
+      "titleLabel": "Titre de la demande",
+      "descriptionLabel": "Description de la demande",
+      "saved": "Demande creee."
+    },
+    "management": {
+      "heading": "Mises a jour de gestion",
+      "statusCode": "Code statut",
+      "statusCodePlaceholder": "OPEN, IN_PROGRESS, CLOSED",
+      "vendorId": "ID fournisseur assigne",
+      "internalNotes": "Notes internes",
+      "saved": "Demande mise a jour."
+    },
+    "suggest": {
+      "heading": "Suggestion IA de reponse"
+    },
+    "messages": {
+      "heading": "Fil de messages",
+      "empty": "Aucun message pour le moment.",
+      "bodyLabel": "Message",
+      "internalToggle": "Message interne (proprietaire/admin uniquement)",
+      "internalTag": "Interne"
+    },
+    "attachments": {
+      "heading": "Pieces jointes",
+      "empty": "Aucune piece jointe pour le moment.",
+      "saved": "Metadonnees de piece jointe enregistrees."
+    }
+  },
   "portalHeader": {
     "title": "Portail de Maintenance",
     "notSignedIn": "Non connecté",
     "nav": {
       "setup": "Configuration",
       "workspace": "Espace",
+      "requests": "Demandes",
       "profile": "Profil"
     },
     "status": {
@@ -767,6 +838,12 @@
       "landlord": "Propriétaire",
       "tenant": "Locataire",
       "unknown": "Invité"
+    },
+    "confirmSignOut": {
+      "title": "Se déconnecter ?",
+      "body": "Êtes-vous sûr de vouloir vous déconnecter ?",
+      "cancel": "Annuler",
+      "confirm": "Se déconnecter"
     },
     "actions": {
       "signIn": "Se connecter",

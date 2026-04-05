@@ -690,6 +690,7 @@
     "actions": {
       "backToSite": "Volver al sitio principal",
       "backToSetup": "Volver a configuración",
+      "requests": "Abrir solicitudes",
       "tenant": "Espacio de inquilino",
       "landlord": "Espacio de propietario",
       "admin": "Espacio de administrador",
@@ -750,12 +751,82 @@
       "unknown": "No se pudo actualizar el perfil."
     }
   },
+  "portalRequests": {
+    "title": "Carwoods - Solicitudes del portal",
+    "metaDescription": "Crear y administrar solicitudes de mantenimiento, mensajes y archivos adjuntos.",
+    "heading": "Solicitudes de mantenimiento",
+    "intro": "Usa este espacio para crear solicitudes, aplicar actualizaciones y mantener la comunicación en un solo hilo.",
+    "loading": "Cargando datos de solicitudes…",
+    "exportSuccess": "Exportación CSV descargada.",
+    "labels": {
+      "requestId": "ID de solicitud",
+      "status": "Estado"
+    },
+    "actions": {
+      "reload": "Recargar solicitudes",
+      "create": "Crear solicitud",
+      "saveChanges": "Guardar cambios",
+      "sendMessage": "Enviar mensaje",
+      "chooseFile": "Elegir archivo",
+      "attachFile": "Adjuntar archivo",
+      "suggestReply": "Sugerir respuesta",
+      "exportCsv": "Exportar CSV",
+      "saving": "Guardando…"
+    },
+    "errors": {
+      "apiUnavailable": "Configura VITE_API_BASE_URL para habilitar el flujo de solicitudes.",
+      "signInRequired": "Inicia sesión antes de usar solicitudes.",
+      "guestBlocked": "Las cuentas invitadas no pueden usar estas funciones.",
+      "loadFailed": "No se pudieron cargar las solicitudes.",
+      "saveFailed": "No se pudieron guardar los cambios.",
+      "uploadIntentMissingPath": "La intención de carga no devolvió una ruta de almacenamiento."
+    },
+    "list": {
+      "heading": "Lista de solicitudes",
+      "empty": "No hay solicitudes para esta cuenta.",
+      "untitled": "Solicitud sin título"
+    },
+    "create": {
+      "heading": "Crear solicitud",
+      "propertyId": "ID de propiedad",
+      "leaseId": "ID de contrato",
+      "categoryCode": "Código de categoría",
+      "priorityCode": "Código de prioridad",
+      "titleLabel": "Título de solicitud",
+      "descriptionLabel": "Descripción de solicitud",
+      "saved": "Solicitud creada."
+    },
+    "management": {
+      "heading": "Actualizaciones de gestión",
+      "statusCode": "Código de estado",
+      "statusCodePlaceholder": "OPEN, IN_PROGRESS, CLOSED",
+      "vendorId": "ID de proveedor asignado",
+      "internalNotes": "Notas internas",
+      "saved": "Solicitud actualizada."
+    },
+    "suggest": {
+      "heading": "Sugerir respuesta con IA"
+    },
+    "messages": {
+      "heading": "Hilo de mensajes",
+      "empty": "Aún no hay mensajes.",
+      "bodyLabel": "Mensaje",
+      "internalToggle": "Mensaje interno (solo propietario/administrador)",
+      "internalTag": "Interno"
+    },
+    "attachments": {
+      "heading": "Archivos adjuntos",
+      "empty": "Aún no hay adjuntos.",
+      "saved": "Metadatos del adjunto guardados."
+    }
+  },
   "portalHeader": {
     "title": "Portal de Mantenimiento",
     "notSignedIn": "Sin sesión iniciada",
     "nav": {
       "setup": "Configuración",
       "workspace": "Espacio",
+      "requests": "Solicitudes",
       "profile": "Perfil"
     },
     "status": {
@@ -767,6 +838,12 @@
       "landlord": "Propietario",
       "tenant": "Inquilino",
       "unknown": "Invitado"
+    },
+    "confirmSignOut": {
+      "title": "¿Cerrar sesión?",
+      "body": "¿Seguro que deseas cerrar sesión?",
+      "cancel": "Cancelar",
+      "confirm": "Cerrar sesión"
     },
     "actions": {
       "signIn": "Iniciar sesión",
