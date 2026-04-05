@@ -67,7 +67,6 @@ const PortalProfile = () => {
     refreshMe,
   } = usePortalAuth();
   const role = resolveRole(meData, account);
-  const isGuest = isGuestRole(role);
   const [form, setForm] = useState({
     email: '',
     firstName: '',
@@ -182,6 +181,8 @@ const PortalProfile = () => {
   };
 
   const isLoading = isAuthenticated && meStatus === 'loading';
+  const roleResolved = isAuthenticated && meStatus !== 'loading';
+  const isGuest = roleResolved && isGuestRole(role);
   const formDisabled = !isAuthenticated || isGuest || !baseUrl || saveStatus === 'saving';
 
   return (

@@ -198,13 +198,14 @@ const ResponsiveNavbar = () => {
         storedLanguageOverride,
         resetLanguagePreference,
     } = useLanguage();
-    const { isAuthenticated, account, meData, signIn, signOut } = usePortalAuth();
+    const { isAuthenticated, account, meData, meStatus, signIn, signOut } = usePortalAuth();
     const { t } = useTranslation();
     const portalRole = resolveRole(meData, account);
     const portalAccountName = resolveDisplayName(meData, account, t('portalHeader.notSignedIn'));
     const normalizedPortalRole = normalizeRole(portalRole);
     const currentPortalRoleLabel = portalRoleLabel(portalRole, t);
-    const isGuestAccount = isGuestRole(normalizedPortalRole);
+    const roleResolved = isAuthenticated && meStatus !== 'loading';
+    const isGuestAccount = roleResolved && isGuestRole(normalizedPortalRole);
     const accountPortalLinks = [
         { to: '/portal', label: t('portalHeader.nav.setup') },
         { to: '/portal/workspace', label: t('portalHeader.nav.workspace') },
