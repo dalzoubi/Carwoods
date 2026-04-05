@@ -17,6 +17,7 @@ import {
     Divider,
     Typography,
     Box,
+    Tooltip,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown';
@@ -27,6 +28,8 @@ import RestartAlt from '@mui/icons-material/RestartAlt';
 import Print from '@mui/icons-material/Print';
 import Language from '@mui/icons-material/Language';
 import Gavel from '@mui/icons-material/Gavel';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+import Login from '@mui/icons-material/Login';
 import { NavLink } from '../styles';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useThemeMode } from '../ThemeModeContext';
@@ -41,6 +44,7 @@ import carwoodsLogo from '../assets/carwoods-logo.png';
 const DRAWER_PAPER_ID = 'main-navigation-drawer';
 
 const LOGO_HEIGHT_PX = 32;
+const MOBILE_LOGO_HEIGHT_PX = 28;
 
 const headerNavLinkStyle = {
     padding: '0.3rem 0.55rem',
@@ -51,7 +55,104 @@ const headerNavLinkStyle = {
 const toolbarChromeIconButtonSx = {
     flexShrink: 0,
     color: 'inherit',
+    borderRadius: '4px',
+    transition: 'background-color 0.3s, color 0.3s',
+    '&:hover': {
+        backgroundColor: 'var(--nav-chrome-hover-bg)',
+        color: 'var(--nav-chrome-active-text)',
+    },
     '&.Mui-focusVisible': {
+        outline: '2px solid var(--nav-chrome-focus-ring)',
+        outlineOffset: 2,
+    },
+};
+
+const headerActionButtonSx = {
+    textTransform: 'none',
+    fontWeight: 700,
+    fontSize: '0.9rem',
+    px: '0.55rem',
+    py: '0.3rem',
+    borderRadius: '4px',
+    color: 'inherit',
+    backgroundColor: 'transparent',
+    transition: 'background-color 0.3s, color 0.3s',
+    boxShadow: 'none',
+    '&:hover': {
+        backgroundColor: 'var(--nav-chrome-hover-bg)',
+        color: 'var(--nav-chrome-active-text)',
+        boxShadow: 'none',
+    },
+    '&.Mui-focusVisible': {
+        outline: '2px solid var(--palette-primary-light)',
+        outlineOffset: 3,
+    },
+};
+
+const signInCtaButtonSx = {
+    textTransform: 'none',
+    fontWeight: 700,
+    fontSize: '0.85rem',
+    px: 1.25,
+    py: 0.45,
+    borderRadius: 'var(--shape-border-radius)',
+    backgroundColor: 'var(--cta-button-bg)',
+    color: 'var(--cta-button-text)',
+    border: '1px solid transparent',
+    boxShadow: 'none',
+    transition: 'background-color 0.2s, color 0.2s, transform 0.2s',
+    '&:hover': {
+        backgroundColor: 'var(--cta-button-bg-hover)',
+        color: 'var(--cta-button-text)',
+        boxShadow: 'none',
+        transform: 'translateY(-1px)',
+    },
+    '&:active': {
+        transform: 'translateY(0)',
+    },
+    '&.Mui-focusVisible': {
+        outline: '2px solid var(--palette-primary-light)',
+        outlineOffset: 3,
+    },
+};
+
+const signedInAccountButtonSx = {
+    textTransform: 'none',
+    fontWeight: 700,
+    fontSize: '0.85rem',
+    px: 1.1,
+    py: 0.35,
+    borderRadius: '999px',
+    color: 'var(--nav-chrome-active-text)',
+    backgroundColor: 'var(--nav-chrome-hover-bg)',
+    border: '1px solid var(--nav-chrome-focus-ring)',
+    boxShadow: 'none',
+    transition: 'background-color 0.2s, border-color 0.2s, transform 0.2s',
+    '&:hover': {
+        backgroundColor: 'var(--nav-chrome-active-bg)',
+        borderColor: 'var(--nav-chrome-active-text)',
+        boxShadow: 'none',
+        transform: 'translateY(-1px)',
+    },
+    '&:active': {
+        transform: 'translateY(0)',
+    },
+    '&.Mui-focusVisible': {
+        outline: '2px solid var(--nav-chrome-focus-ring)',
+        outlineOffset: 2,
+    },
+};
+
+const logoLinkSx = {
+    display: 'inline-block',
+    lineHeight: 0,
+    borderRadius: '4px',
+    padding: '0.3rem 0.55rem',
+    transition: 'background-color 0.3s, color 0.3s',
+    '&:hover': {
+        backgroundColor: 'var(--nav-chrome-hover-bg)',
+    },
+    '&:focus-visible': {
         outline: '2px solid var(--nav-chrome-focus-ring)',
         outlineOffset: 2,
     },
@@ -221,16 +322,19 @@ const ResponsiveNavbar = () => {
         handleAccountOpen(e);
     };
 
+    const canAccessTenantPortal = isAuthenticated && (normalizedPortalRole === 'TENANT' || normalizedPortalRole === 'ADMIN');
+    const canAccessLandlordPortal = isAuthenticated && (normalizedPortalRole === 'LANDLORD' || normalizedPortalRole === 'ADMIN');
+
     const tenantLinks = [
         { to: '/apply', label: t('tenantLinks.apply') },
         { to: '/tenant-selection-criteria', label: t('tenantLinks.selectionCriteria') },
         { to: '/application-required-documents', label: t('tenantLinks.requiredDocuments') },
-        { to: '/portal/tenant', label: t('tenantLinks.tenantPortal') },
+        ...(canAccessTenantPortal ? [{ to: '/portal/tenant', label: t('tenantLinks.tenantPortal') }] : []),
     ];
 
     const landlordLinks = [
         { to: '/property-management', label: t('landlordLinks.propertyManagement') },
-        { to: '/portal/admin', label: t('landlordLinks.landlordPortal') },
+        ...(canAccessLandlordPortal ? [{ to: '/portal/admin', label: t('landlordLinks.landlordPortal') }] : []),
     ];
 
     const legalLinks = [
@@ -240,6 +344,13 @@ const ResponsiveNavbar = () => {
     ];
 
     const showToolbarActions = showPrintButton || showAppearanceMenu || true; // language always shown
+    const isCompactAccountIcon = isMobile && isAuthenticated;
+    const accountButtonLabel = isAuthenticated
+        ? (isCompactAccountIcon ? '' : portalAccountName)
+        : t('portalHeader.actions.signIn');
+    const accountButtonIcon = isAuthenticated
+        ? <AccountCircle fontSize="small" aria-hidden />
+        : <Login fontSize="small" aria-hidden />;
     const headerToolbarActions = showToolbarActions ? (
         <Box
             sx={{
@@ -253,34 +364,68 @@ const ResponsiveNavbar = () => {
             <Button
                 type="button"
                 size={isMobile ? 'small' : 'medium'}
-                variant="contained"
-                color="inherit"
+                variant={isAuthenticated ? 'text' : 'contained'}
                 id="portal-account-menu-button"
                 aria-haspopup={isAuthenticated ? 'true' : undefined}
                 aria-expanded={isAuthenticated ? Boolean(accountAnchor) : undefined}
                 aria-controls={isAuthenticated && accountAnchor ? 'portal-account-menu' : undefined}
+                aria-label={
+                    isAuthenticated
+                        ? `${t('portalHeader.status.signedIn')} - ${portalAccountName}`
+                        : t('portalHeader.actions.signIn')
+                }
                 onClick={handleAccountButtonClick}
-                sx={{ textTransform: 'none', fontWeight: 700, fontSize: isMobile ? '0.75rem' : '0.8rem', px: isMobile ? 1 : 1.25 }}
+                startIcon={!isAuthenticated ? accountButtonIcon : undefined}
+                endIcon={isAuthenticated && !isCompactAccountIcon ? accountButtonIcon : undefined}
+                sx={{
+                    ...(isAuthenticated
+                        ? (isCompactAccountIcon ? headerActionButtonSx : signedInAccountButtonSx)
+                        : signInCtaButtonSx),
+                    fontSize: isMobile
+                        ? '0.75rem'
+                        : (isAuthenticated
+                            ? (isCompactAccountIcon ? headerActionButtonSx.fontSize : signedInAccountButtonSx.fontSize)
+                            : signInCtaButtonSx.fontSize),
+                    px: isMobile
+                        ? (isCompactAccountIcon ? 0.5 : (isAuthenticated ? 1 : 1.1))
+                        : (isAuthenticated
+                            ? (isCompactAccountIcon ? headerActionButtonSx.px : signedInAccountButtonSx.px)
+                            : signInCtaButtonSx.px),
+                    minWidth: 0,
+                    width: isCompactAccountIcon ? 32 : 'auto',
+                    height: isCompactAccountIcon ? 32 : 'auto',
+                    maxWidth: isMobile ? 128 : 'none',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'ellipsis',
+                    '& .MuiButton-startIcon': {
+                        margin: 0,
+                    },
+                    '& .MuiButton-endIcon': {
+                        margin: isCompactAccountIcon ? 0 : undefined,
+                        marginInlineStart: isCompactAccountIcon ? 0 : 0.75,
+                    },
+                }}
             >
-                {isAuthenticated
-                    ? `${portalAccountName} (${roleLabel(portalRole, t)})`
-                    : t('portalHeader.actions.signIn')}
+                {isCompactAccountIcon ? accountButtonIcon : accountButtonLabel}
             </Button>
             {!isMobile ? (
-                <IconButton
-                    color="inherit"
-                    type="button"
-                    size="small"
-                    id="legal-menu-button"
-                    onClick={handleLegalOpen}
-                    aria-haspopup="true"
-                    aria-expanded={Boolean(legalAnchor)}
-                    aria-controls={legalAnchor ? 'legal-menu' : undefined}
-                    aria-label={t('nav.legal')}
-                    sx={toolbarChromeIconButtonSx}
-                >
-                    <Gavel aria-hidden />
-                </IconButton>
+                <Tooltip title={t('nav.legal')} arrow>
+                    <IconButton
+                        color="inherit"
+                        type="button"
+                        size="small"
+                        id="legal-menu-button"
+                        onClick={handleLegalOpen}
+                        aria-haspopup="true"
+                        aria-expanded={Boolean(legalAnchor)}
+                        aria-controls={legalAnchor ? 'legal-menu' : undefined}
+                        aria-label={t('nav.legalMenu')}
+                        sx={toolbarChromeIconButtonSx}
+                    >
+                        <Gavel aria-hidden />
+                    </IconButton>
+                </Tooltip>
             ) : null}
             {showPrintButton ? (
                 <IconButton
@@ -295,37 +440,41 @@ const ResponsiveNavbar = () => {
                 </IconButton>
             ) : null}
             {showAppearanceMenu ? (
+                <Tooltip title={t('nav.appearance')} arrow disableHoverListener={isMobile}>
+                    <IconButton
+                        color="inherit"
+                        type="button"
+                        size="small"
+                        id="appearance-menu-button-toolbar"
+                        data-appearance-trigger="toolbar"
+                        aria-label={t('nav.appearance')}
+                        aria-haspopup="true"
+                        aria-expanded={Boolean(appearanceAnchor)}
+                        aria-controls={appearanceAnchor ? 'appearance-menu' : undefined}
+                        onClick={handleAppearanceOpen}
+                        sx={toolbarChromeIconButtonSx}
+                    >
+                        <SettingsBrightness aria-hidden />
+                    </IconButton>
+                </Tooltip>
+            ) : null}
+            <Tooltip title={t('nav.language')} arrow disableHoverListener={isMobile}>
                 <IconButton
                     color="inherit"
                     type="button"
                     size="small"
-                    id="appearance-menu-button-toolbar"
-                    data-appearance-trigger="toolbar"
-                    aria-label={t('nav.appearance')}
+                    id="language-menu-button-toolbar"
+                    data-language-trigger="toolbar"
+                    aria-label={t('nav.selectLanguage')}
                     aria-haspopup="true"
-                    aria-expanded={Boolean(appearanceAnchor)}
-                    aria-controls={appearanceAnchor ? 'appearance-menu' : undefined}
-                    onClick={handleAppearanceOpen}
+                    aria-expanded={Boolean(languageAnchor)}
+                    aria-controls={languageAnchor ? 'language-menu' : undefined}
+                    onClick={handleLanguageOpen}
                     sx={toolbarChromeIconButtonSx}
                 >
-                    <SettingsBrightness aria-hidden />
+                    <Language aria-hidden />
                 </IconButton>
-            ) : null}
-            <IconButton
-                color="inherit"
-                type="button"
-                size="small"
-                id="language-menu-button-toolbar"
-                data-language-trigger="toolbar"
-                aria-label={t('nav.selectLanguage')}
-                aria-haspopup="true"
-                aria-expanded={Boolean(languageAnchor)}
-                aria-controls={languageAnchor ? 'language-menu' : undefined}
-                onClick={handleLanguageOpen}
-                sx={toolbarChromeIconButtonSx}
-            >
-                <Language aria-hidden />
-            </IconButton>
+            </Tooltip>
         </Box>
     ) : null;
 
@@ -500,42 +649,45 @@ const ResponsiveNavbar = () => {
                         <>
                             <Box
                                 sx={{
-                                    position: 'relative',
                                     width: '100%',
-                                    display: 'flex',
+                                    display: 'grid',
+                                    gridTemplateColumns: '1fr auto 1fr',
                                     alignItems: 'center',
+                                    columnGap: 0.5,
                                 }}
                             >
-                                <IconButton
-                                    edge="start"
-                                    color="inherit"
-                                    type="button"
-                                    size="small"
-                                    aria-label={t('nav.openMenu')}
-                                    aria-haspopup="dialog"
-                                    aria-expanded={drawerOpen}
-                                    aria-controls={drawerOpen ? DRAWER_PAPER_ID : undefined}
-                                    onClick={handleDrawerToggle}
-                                >
-                                    <MenuIcon fontSize="small" />
-                                </IconButton>
+                                <Box sx={{ justifySelf: 'start' }}>
+                                    <IconButton
+                                        edge="start"
+                                        color="inherit"
+                                        type="button"
+                                        size="small"
+                                        aria-label={t('nav.openMenu')}
+                                        aria-haspopup="dialog"
+                                        aria-expanded={drawerOpen}
+                                        aria-controls={drawerOpen ? DRAWER_PAPER_ID : undefined}
+                                        onClick={handleDrawerToggle}
+                                    >
+                                        <MenuIcon fontSize="small" />
+                                    </IconButton>
+                                </Box>
                                 <Box
                                     sx={{
-                                        position: 'absolute',
-                                        left: '50%',
-                                        transform: 'translateX(-50%)',
                                         minWidth: 0,
                                         lineHeight: 0,
+                                        justifySelf: 'center',
                                     }}
                                 >
-                                    <RouterLink
+                                    <Box
+                                        component={RouterLink}
                                         to={withDarkPath(pathname, '/')}
-                                        style={{ display: 'inline-block', lineHeight: 0 }}
+                                        sx={logoLinkSx}
+                                        aria-label={t('nav.home')}
                                     >
-                                        <img src={carwoodsLogo} alt={t('common.carwoodsAlt')} style={{ height: `${LOGO_HEIGHT_PX}px`, display: 'block' }} />
-                                    </RouterLink>
+                                        <img src={carwoodsLogo} alt={t('common.carwoodsAlt')} style={{ height: `${MOBILE_LOGO_HEIGHT_PX}px`, display: 'block' }} />
+                                    </Box>
                                 </Box>
-                                <Box sx={{ marginInlineStart: 'auto' }}>{headerToolbarActions}</Box>
+                                <Box sx={{ justifySelf: 'end', minWidth: 0, overflow: 'hidden' }}>{headerToolbarActions}</Box>
                             </Box>
                             <Drawer
                                 anchor={muiTheme.direction === 'rtl' ? 'right' : 'left'}
@@ -551,12 +703,14 @@ const ResponsiveNavbar = () => {
                         </>
                     ) : (
                         <>
-                            <RouterLink
+                            <Box
+                                component={RouterLink}
                                 to={withDarkPath(pathname, '/')}
-                                style={{ flexShrink: 0, display: 'inline-block', lineHeight: 0 }}
+                                sx={{ ...logoLinkSx, flexShrink: 0 }}
+                                aria-label={t('nav.home')}
                             >
                                 <img src={carwoodsLogo} alt={t('common.carwoodsAlt')} style={{ height: `${LOGO_HEIGHT_PX}px`, display: 'block' }} />
-                            </RouterLink>
+                            </Box>
                             <nav
                                 aria-label={t('nav.mainNavigation')}
                                 style={{
