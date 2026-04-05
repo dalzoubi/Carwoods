@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Box, Button, Stack, TextField, Typography } from '@mui/material';
 import { usePortalAuth } from '../PortalAuthContext';
 import { emailFromAccount, isGuestRole, resolveRole } from '../portalUtils';
+import StatusAlertSlot from './StatusAlertSlot';
 
 function endpoint(baseUrl, path) {
   return `${baseUrl.replace(/\/$/, '')}${path}`;
@@ -181,6 +182,14 @@ const PortalProfile = () => {
     }
   };
 
+  const profileStateMessage = isAuthenticated
+    ? meStatus === 'loading'
+      ? { severity: 'info', text: t('portalProfile.loading') }
+      : isGuest
+        ? { severity: 'warning', text: t('portalProfile.guestBlocked') }
+        : null
+    : null;
+
   return (
     <Box sx={{ py: 4 }}>
       <Helmet>
@@ -195,8 +204,7 @@ const PortalProfile = () => {
         <Typography color="text.secondary">{t('portalProfile.intro')}</Typography>
 
         {!isAuthenticated && <Alert severity="warning">{t('portalProfile.errors.signInRequired')}</Alert>}
-        {isAuthenticated && meStatus === 'loading' && <Alert severity="info">{t('portalProfile.loading')}</Alert>}
-        {isAuthenticated && isGuest && <Alert severity="warning">{t('portalProfile.guestBlocked')}</Alert>}
+        <StatusAlertSlot message={profileStateMessage} />
         {!baseUrl && <Alert severity="warning">{t('portalProfile.errors.apiUnavailable')}</Alert>}
         {saveStatus === 'error' && <Alert severity="error">{saveError || t('portalProfile.errors.unknown')}</Alert>}
         {saveStatus === 'success' && <Alert severity="success">{t('portalProfile.saved')}</Alert>}

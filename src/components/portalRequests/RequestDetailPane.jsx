@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Alert,
   Box,
   Button,
   Checkbox,
@@ -10,6 +9,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import StatusAlertSlot from '../StatusAlertSlot';
 
 const RequestDetailPane = ({
   requestDetail,
@@ -37,6 +37,22 @@ const RequestDetailPane = ({
   attachmentError,
 }) => {
   const { t } = useTranslation();
+  const managementStatusMessage = managementUpdateStatus === 'error'
+    ? { severity: 'error', text: managementUpdateError || t('portalRequests.errors.saveFailed') }
+    : managementUpdateStatus === 'success'
+      ? { severity: 'success', text: t('portalRequests.management.saved') }
+      : null;
+  const suggestionStatusMessage = suggestionStatus === 'error'
+    ? { severity: 'error', text: suggestionError || t('portalRequests.errors.loadFailed') }
+    : null;
+  const messageStatusMessage = messageStatus === 'error'
+    ? { severity: 'error', text: messageError || t('portalRequests.errors.saveFailed') }
+    : null;
+  const attachmentStatusMessage = attachmentStatus === 'error'
+    ? { severity: 'error', text: attachmentError || t('portalRequests.errors.saveFailed') }
+    : attachmentStatus === 'success'
+      ? { severity: 'success', text: t('portalRequests.attachments.saved') }
+      : null;
 
   if (!requestDetail) return null;
 
@@ -86,12 +102,7 @@ const RequestDetailPane = ({
               minRows={3}
               disabled={managementUpdateStatus === 'saving'}
             />
-            {managementUpdateStatus === 'error' && (
-              <Alert severity="error">{managementUpdateError || t('portalRequests.errors.saveFailed')}</Alert>
-            )}
-            {managementUpdateStatus === 'success' && (
-              <Alert severity="success">{t('portalRequests.management.saved')}</Alert>
-            )}
+            <StatusAlertSlot message={managementStatusMessage} />
             <Stack direction="row" justifyContent="flex-end">
               <Button type="submit" variant="contained" disabled={managementUpdateStatus === 'saving'}>
                 {managementUpdateStatus === 'saving'
@@ -114,9 +125,7 @@ const RequestDetailPane = ({
                 {t('portalRequests.actions.suggestReply')}
               </Button>
             </Stack>
-            {suggestionStatus === 'error' && (
-              <Alert severity="error">{suggestionError || t('portalRequests.errors.loadFailed')}</Alert>
-            )}
+            <StatusAlertSlot message={suggestionStatusMessage} />
             {suggestionStatus === 'ok' && suggestionText && (
               <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1.5 }}>
                 <Typography>{suggestionText}</Typography>
@@ -175,9 +184,7 @@ const RequestDetailPane = ({
               label={t('portalRequests.messages.internalToggle')}
             />
           )}
-          {messageStatus === 'error' && (
-            <Alert severity="error">{messageError || t('portalRequests.errors.saveFailed')}</Alert>
-          )}
+          <StatusAlertSlot message={messageStatusMessage} />
           <Stack direction="row" justifyContent="flex-end">
             <Button type="submit" variant="contained" disabled={messageStatus === 'saving'}>
               {messageStatus === 'saving'
@@ -218,12 +225,7 @@ const RequestDetailPane = ({
               {attachmentFile.name} ({attachmentFile.size} bytes)
             </Typography>
           )}
-          {attachmentStatus === 'error' && (
-            <Alert severity="error">{attachmentError || t('portalRequests.errors.saveFailed')}</Alert>
-          )}
-          {attachmentStatus === 'success' && (
-            <Alert severity="success">{t('portalRequests.attachments.saved')}</Alert>
-          )}
+          <StatusAlertSlot message={attachmentStatusMessage} />
           <Stack direction="row" justifyContent="flex-end">
             <Button type="submit" variant="contained" disabled={!attachmentFile || attachmentStatus === 'saving'}>
               {attachmentStatus === 'saving'

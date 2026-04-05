@@ -1,6 +1,7 @@
 import React from 'react';
-import { Alert, Box, Button, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Stack, TextField, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import StatusAlertSlot from '../StatusAlertSlot';
 
 const TenantRequestForm = ({
   tenantForm,
@@ -11,6 +12,11 @@ const TenantRequestForm = ({
   disabled,
 }) => {
   const { t } = useTranslation();
+  const createStatusMessage = tenantCreateStatus === 'error'
+    ? { severity: 'error', text: tenantCreateError || t('portalRequests.errors.saveFailed') }
+    : tenantCreateStatus === 'success'
+      ? { severity: 'success', text: t('portalRequests.create.saved') }
+      : null;
 
   return (
     <Box
@@ -72,12 +78,7 @@ const TenantRequestForm = ({
           minRows={3}
           disabled={disabled}
         />
-        {tenantCreateStatus === 'error' && (
-          <Alert severity="error">{tenantCreateError || t('portalRequests.errors.saveFailed')}</Alert>
-        )}
-        {tenantCreateStatus === 'success' && (
-          <Alert severity="success">{t('portalRequests.create.saved')}</Alert>
-        )}
+        <StatusAlertSlot message={createStatusMessage} />
         <Stack direction="row" justifyContent="flex-end">
           <Button type="submit" variant="contained" disabled={disabled}>
             {tenantCreateStatus === 'saving'

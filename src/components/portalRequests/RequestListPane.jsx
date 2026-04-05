@@ -1,6 +1,7 @@
 import React from 'react';
-import { Alert, Box, Button, List, ListItemButton, ListItemText, Stack, Typography } from '@mui/material';
+import { Box, Button, List, ListItemButton, ListItemText, Stack, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import StatusAlertSlot from '../StatusAlertSlot';
 
 const RequestListPane = ({
   requests,
@@ -12,6 +13,13 @@ const RequestListPane = ({
   reloadDisabled,
 }) => {
   const { t } = useTranslation();
+  const listStatusMessage = requestsStatus === 'loading'
+    ? { severity: 'info', text: t('portalRequests.loading') }
+    : requestsStatus === 'error'
+      ? { severity: 'error', text: requestsError || t('portalRequests.errors.loadFailed') }
+      : requestsStatus === 'ok' && requests.length === 0
+        ? { severity: 'info', text: t('portalRequests.list.empty') }
+        : null;
 
   return (
     <Stack spacing={2}>
@@ -23,13 +31,7 @@ const RequestListPane = ({
           {t('portalRequests.actions.reload')}
         </Button>
       </Stack>
-      {requestsStatus === 'loading' && <Alert severity="info">{t('portalRequests.loading')}</Alert>}
-      {requestsStatus === 'error' && (
-        <Alert severity="error">{requestsError || t('portalRequests.errors.loadFailed')}</Alert>
-      )}
-      {requestsStatus === 'ok' && requests.length === 0 && (
-        <Alert severity="info">{t('portalRequests.list.empty')}</Alert>
-      )}
+      <StatusAlertSlot message={listStatusMessage} />
 
       {requests.length > 0 && (
         <Box sx={{ minWidth: { md: 320 }, border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>

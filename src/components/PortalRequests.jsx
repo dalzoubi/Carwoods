@@ -9,6 +9,7 @@ import TenantRequestForm from './portalRequests/TenantRequestForm';
 import RequestListPane from './portalRequests/RequestListPane';
 import RequestDetailPane from './portalRequests/RequestDetailPane';
 import { usePortalRequests } from './portalRequests/usePortalRequests';
+import StatusAlertSlot from './StatusAlertSlot';
 
 const PortalRequests = () => {
   const { t } = useTranslation();
@@ -74,6 +75,14 @@ const PortalRequests = () => {
     t,
   });
 
+  const portalStateMessage = isAuthenticated
+    ? meStatus === 'loading'
+      ? { severity: 'info', text: t('portalRequests.loading') }
+      : isGuest
+        ? { severity: 'warning', text: t('portalRequests.errors.guestBlocked') }
+        : null
+    : null;
+
   return (
     <Box sx={{ py: 4 }}>
       <Helmet>
@@ -97,8 +106,7 @@ const PortalRequests = () => {
 
         {!baseUrl && <Alert severity="warning">{t('portalRequests.errors.apiUnavailable')}</Alert>}
         {!isAuthenticated && <Alert severity="warning">{t('portalRequests.errors.signInRequired')}</Alert>}
-        {isAuthenticated && meStatus === 'loading' && <Alert severity="info">{t('portalRequests.loading')}</Alert>}
-        {isAuthenticated && isGuest && <Alert severity="warning">{t('portalRequests.errors.guestBlocked')}</Alert>}
+        <StatusAlertSlot message={portalStateMessage} />
         {exportStatus === 'error' && <Alert severity="error">{exportError || t('portalRequests.errors.loadFailed')}</Alert>}
         {exportStatus === 'ok' && <Alert severity="success">{t('portalRequests.exportSuccess')}</Alert>}
 

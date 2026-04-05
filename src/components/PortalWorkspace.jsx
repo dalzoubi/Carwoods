@@ -3,6 +3,7 @@ import { Alert, Box, Stack, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { hasLandlordAccess, usePortalAuth } from '../PortalAuthContext';
 import { resolveRole } from '../portalUtils';
+import StatusAlertSlot from './StatusAlertSlot';
 
 function roleKeyForUser(role) {
   if (role === 'admin') return 'admin';
@@ -32,6 +33,16 @@ const PortalWorkspace = () => {
   const normalizedRole = normalizeRoleForWorkspace(userRole);
   const key = roleKeyForUser(normalizedRole);
   const widgetKeys = visibleWidgetKeys(userRole);
+  const meStatusMessage = isAuthenticated
+    ? meStatus === 'loading'
+      ? { severity: 'info', text: t('portalWorkspace.authLoading') }
+      : meStatus === 'error'
+        ? {
+            severity: 'error',
+            text: `${t('portalWorkspace.authError')}${meError ? ` (${meError})` : ''}`,
+          }
+        : null
+    : null;
 
   return (
     <Box sx={{ py: 4 }}>
@@ -42,14 +53,7 @@ const PortalWorkspace = () => {
         {authStatus !== 'unconfigured' && !isAuthenticated && (
           <Alert severity="warning">{t('portalWorkspace.authRequired')}</Alert>
         )}
-        {isAuthenticated && meStatus === 'loading' && (
-          <Alert severity="info">{t('portalWorkspace.authLoading')}</Alert>
-        )}
-        {isAuthenticated && meStatus === 'error' && (
-          <Alert severity="error">
-            {t('portalWorkspace.authError')} {meError ? `(${meError})` : ''}
-          </Alert>
-        )}
+        <StatusAlertSlot message={meStatusMessage} />
 
         <Box
           sx={{
