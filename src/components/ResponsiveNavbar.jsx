@@ -361,54 +361,6 @@ const ResponsiveNavbar = () => {
                 ml: { xs: 0, md: 'auto' },
             }}
         >
-            <Button
-                type="button"
-                size={isMobile ? 'small' : 'medium'}
-                variant={isAuthenticated ? 'text' : 'contained'}
-                id="portal-account-menu-button"
-                aria-haspopup={isAuthenticated ? 'true' : undefined}
-                aria-expanded={isAuthenticated ? Boolean(accountAnchor) : undefined}
-                aria-controls={isAuthenticated && accountAnchor ? 'portal-account-menu' : undefined}
-                aria-label={
-                    isAuthenticated
-                        ? `${t('portalHeader.status.signedIn')} - ${portalAccountName}`
-                        : t('portalHeader.actions.signIn')
-                }
-                onClick={handleAccountButtonClick}
-                startIcon={!isAuthenticated ? accountButtonIcon : undefined}
-                endIcon={isAuthenticated && !isCompactAccountIcon ? accountButtonIcon : undefined}
-                sx={{
-                    ...(isAuthenticated
-                        ? (isCompactAccountIcon ? headerActionButtonSx : signedInAccountButtonSx)
-                        : signInCtaButtonSx),
-                    fontSize: isMobile
-                        ? '0.75rem'
-                        : (isAuthenticated
-                            ? (isCompactAccountIcon ? headerActionButtonSx.fontSize : signedInAccountButtonSx.fontSize)
-                            : signInCtaButtonSx.fontSize),
-                    px: isMobile
-                        ? (isCompactAccountIcon ? 0.5 : (isAuthenticated ? 1 : 1.1))
-                        : (isAuthenticated
-                            ? (isCompactAccountIcon ? headerActionButtonSx.px : signedInAccountButtonSx.px)
-                            : signInCtaButtonSx.px),
-                    minWidth: 0,
-                    width: isCompactAccountIcon ? 32 : 'auto',
-                    height: isCompactAccountIcon ? 32 : 'auto',
-                    maxWidth: isMobile ? 128 : 'none',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                    textOverflow: 'ellipsis',
-                    '& .MuiButton-startIcon': {
-                        margin: 0,
-                    },
-                    '& .MuiButton-endIcon': {
-                        margin: isCompactAccountIcon ? 0 : undefined,
-                        marginInlineStart: isCompactAccountIcon ? 0 : 0.75,
-                    },
-                }}
-            >
-                {isCompactAccountIcon ? accountButtonIcon : accountButtonLabel}
-            </Button>
             {!isMobile ? (
                 <Tooltip title={t('nav.legal')} arrow>
                     <IconButton
@@ -475,6 +427,54 @@ const ResponsiveNavbar = () => {
                     <Language aria-hidden />
                 </IconButton>
             </Tooltip>
+            <Button
+                type="button"
+                size={isMobile ? 'small' : 'medium'}
+                variant={isAuthenticated ? 'text' : 'contained'}
+                id="portal-account-menu-button"
+                aria-haspopup={isAuthenticated ? 'true' : undefined}
+                aria-expanded={isAuthenticated ? Boolean(accountAnchor) : undefined}
+                aria-controls={isAuthenticated && accountAnchor ? 'portal-account-menu' : undefined}
+                aria-label={
+                    isAuthenticated
+                        ? `${t('portalHeader.status.signedIn')} - ${portalAccountName}`
+                        : t('portalHeader.actions.signIn')
+                }
+                onClick={handleAccountButtonClick}
+                startIcon={!isAuthenticated ? accountButtonIcon : undefined}
+                endIcon={isAuthenticated && !isCompactAccountIcon ? accountButtonIcon : undefined}
+                sx={{
+                    ...(isAuthenticated
+                        ? (isCompactAccountIcon ? headerActionButtonSx : signedInAccountButtonSx)
+                        : signInCtaButtonSx),
+                    fontSize: isMobile
+                        ? '0.75rem'
+                        : (isAuthenticated
+                            ? (isCompactAccountIcon ? headerActionButtonSx.fontSize : signedInAccountButtonSx.fontSize)
+                            : signInCtaButtonSx.fontSize),
+                    px: isMobile
+                        ? (isCompactAccountIcon ? 0.5 : (isAuthenticated ? 1 : 1.1))
+                        : (isAuthenticated
+                            ? (isCompactAccountIcon ? headerActionButtonSx.px : signedInAccountButtonSx.px)
+                            : signInCtaButtonSx.px),
+                    minWidth: 0,
+                    width: isCompactAccountIcon ? 32 : 'auto',
+                    height: isCompactAccountIcon ? 32 : 'auto',
+                    maxWidth: isMobile ? 128 : 'none',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'ellipsis',
+                    '& .MuiButton-startIcon': {
+                        margin: 0,
+                    },
+                    '& .MuiButton-endIcon': {
+                        margin: isCompactAccountIcon ? 0 : undefined,
+                        marginInlineStart: isCompactAccountIcon ? 0 : 0.75,
+                    },
+                }}
+            >
+                {isCompactAccountIcon ? accountButtonIcon : accountButtonLabel}
+            </Button>
         </Box>
     ) : null;
 
