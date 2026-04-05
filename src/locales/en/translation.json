@@ -170,10 +170,7 @@
     "trecNotice": "Texas Real Estate Commission Consumer Protection Notice",
     "trecNoticeAriaLabel": "Texas Real Estate Commission Consumer Protection Notice (opens in new tab)",
     "trecBrokerage": "Texas Real Estate Commission Information About Brokerage Services",
-    "trecBrokerageAriaLabel": "Texas Real Estate Commission Information About Brokerage Services (opens in new tab)",
-    "privacyPolicy": "Privacy Policy",
-    "termsOfService": "Terms of Service",
-    "accessibility": "Accessibility"
+    "trecBrokerageAriaLabel": "Texas Real Estate Commission Information About Brokerage Services (opens in new tab)"
   },
   "applyFlowSubnav": {
     "label": "Apply process navigation",
