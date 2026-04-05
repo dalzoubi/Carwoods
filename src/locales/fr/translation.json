@@ -741,7 +741,7 @@
       "admin": "Admin",
       "landlord": "Propriétaire",
       "tenant": "Locataire",
-      "unknown": "Rôle inconnu"
+      "unknown": "Invité"
     },
     "actions": {
       "signIn": "Se connecter",

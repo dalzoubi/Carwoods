@@ -741,7 +741,7 @@
       "admin": "مسؤول",
       "landlord": "مالك",
       "tenant": "مستأجر",
-      "unknown": "دور غير معروف"
+      "unknown": "ضيف"
     },
     "actions": {
       "signIn": "تسجيل الدخول",
