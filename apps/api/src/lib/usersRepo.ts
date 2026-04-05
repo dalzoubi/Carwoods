@@ -3,7 +3,7 @@ import { primaryEmailFromClaims, type AccessTokenClaims } from './jwtVerify.js';
 
 export type UserRow = {
   id: string;
-  external_auth_subject: string;
+  external_auth_oid: string;
   email: string;
   first_name: string | null;
   last_name: string | null;
@@ -28,12 +28,12 @@ function normalizeEmail(email: string): string {
 
 export async function findUserBySubject(
   client: Queryable,
-  externalAuthSubject: string
+  externalAuthOid: string
 ): Promise<UserRow | null> {
   const r = await client.query<UserRow>(
-    `SELECT id, external_auth_subject, email, first_name, last_name, phone, role, status
-     FROM users WHERE external_auth_subject = $1`,
-    [externalAuthSubject]
+    `SELECT id, external_auth_oid, email, first_name, last_name, phone, role, status
+     FROM users WHERE external_auth_oid = $1`,
+    [externalAuthOid]
   );
   return r.rows[0] ?? null;
 }
@@ -44,7 +44,7 @@ export async function findUserByEmail(
 ): Promise<UserRow | null> {
   const normalized = normalizeEmail(email);
   const r = await client.query<UserRow>(
-    `SELECT id, external_auth_subject, email, first_name, last_name, phone, role, status
+    `SELECT id, external_auth_oid, email, first_name, last_name, phone, role, status
      FROM users
      WHERE LOWER(email) = $1`,
     [normalized]
@@ -59,16 +59,16 @@ export async function findUserByEmail(
 export async function linkSubjectToUser(
   client: Queryable,
   userId: string,
-  externalAuthSubject: string
+  externalAuthOid: string
 ): Promise<void> {
   await client.query(
     `UPDATE users
-        SET external_auth_subject = $1, updated_at = GETUTCDATE()
+        SET external_auth_oid = $1, updated_at = GETUTCDATE()
       WHERE id = $2
-        AND (external_auth_subject IS NULL
-             OR external_auth_subject = ''
-             OR external_auth_subject LIKE 'seed:%')`,
-    [externalAuthSubject, userId]
+        AND (external_auth_oid IS NULL
+             OR external_auth_oid = ''
+             OR external_auth_oid LIKE 'seed:%')`,
+    [externalAuthOid, userId]
   );
 }
 
@@ -120,8 +120,8 @@ export async function ensureManagementUser(
 
   const r = await client.query<UserRow>(
     `MERGE users AS target
-     USING (SELECT $1 AS external_auth_subject) AS src
-       ON target.external_auth_subject = src.external_auth_subject
+     USING (SELECT $1 AS external_auth_oid) AS src
+       ON target.external_auth_oid = src.external_auth_oid
      WHEN MATCHED THEN
        UPDATE SET
          email       = $2,
@@ -131,9 +131,9 @@ export async function ensureManagementUser(
          last_name   = COALESCE($4, target.last_name),
          updated_at  = GETUTCDATE()
      WHEN NOT MATCHED THEN
-       INSERT (id, external_auth_subject, email, first_name, last_name, role, status)
+       INSERT (id, external_auth_oid, email, first_name, last_name, role, status)
        VALUES (NEWID(), $1, $2, $3, $4, $5, 'ACTIVE')
-     OUTPUT INSERTED.id, INSERTED.external_auth_subject, INSERTED.email,
+     OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
             INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
             INSERTED.role, INSERTED.status;`,
     [sub, email, firstName, lastName, role]

@@ -46,7 +46,7 @@ Use this as the authoritative product + technical brief. **Do not expose storage
 
 ## Security & RBAC
 
-- Validate **Entra bearer tokens** on every portal/landlord/admin API; map `oid`/`sub` → `users.external_auth_subject`.
+- Validate **Entra bearer tokens** on every portal/landlord/admin API; map `oid`/`sub` → `users.external_auth_oid`.
 - **RBAC + row-level** rules: tenant sees only own lease/property context and non-internal messages; landlord sees landlord scope; admin sees all.
 - Rate-limit sensitive endpoints; audit all mutations; structured logs + correlation IDs.
 
