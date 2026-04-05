@@ -13,16 +13,20 @@ import {
   entraAuthConfigured,
 } from '../lib/jwtVerify.js';
 import { findUserByClaims } from '../lib/usersRepo.js';
+import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 
 async function portalMeHandler(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
+  logInfo(context, 'portal.me.start', { method: request.method });
   const headers = corsHeadersForRequest(request);
   if (request.method === 'OPTIONS') {
+    logInfo(context, 'portal.me.options');
     return { status: 204, headers };
   }
   if (request.method !== 'GET') {
+    logWarn(context, 'portal.me.method_not_allowed', { method: request.method });
     return {
       status: 405,
       headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
@@ -32,6 +36,7 @@ async function portalMeHandler(
 
   const token = getBearerToken(request.headers.get('authorization'));
   if (!token) {
+    logWarn(context, 'portal.me.unauthorized', { reason: 'missing_bearer_token' });
     return {
       status: 401,
       headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
@@ -40,6 +45,7 @@ async function portalMeHandler(
   }
 
   if (!entraAuthConfigured()) {
+    logWarn(context, 'portal.me.unavailable', { reason: 'entra_unconfigured' });
     return {
       status: 503,
       headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
@@ -51,6 +57,7 @@ async function portalMeHandler(
   try {
     claims = await verifyAccessToken(token);
   } catch {
+    logWarn(context, 'portal.me.unauthorized', { reason: 'invalid_token' });
     return {
       status: 401,
       headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
@@ -66,6 +73,9 @@ async function portalMeHandler(
       const pool = getPool();
       user = await findUserByClaims(pool, claims, { emailHint, logger: context });
     } catch (error) {
+      logError(context, 'portal.me.user_lookup.error', {
+        message: error instanceof Error ? error.message : 'unknown_error',
+      });
       context.warn?.(
         `portalMe DB lookup failed: ${error instanceof Error ? error.message : 'unknown_error'}`
       );
@@ -74,6 +84,12 @@ async function portalMeHandler(
   }
 
   const tokenRole = claims.role ?? claims.roles?.[0] ?? claims.app_roles?.[0] ?? null;
+  logInfo(context, 'portal.me.success', {
+    subject: claims.sub,
+    oid: claims.oid ?? null,
+    resolvedRole: user?.role ?? tokenRole,
+    hasUserRecord: Boolean(user),
+  });
 
   return {
     status: 200,

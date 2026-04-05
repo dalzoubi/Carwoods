@@ -97,12 +97,17 @@ const ResponsiveNavbar = () => {
     } = useLanguage();
     const { isAuthenticated, account, meData, signIn, signOut } = usePortalAuth();
     const { t } = useTranslation();
-    const strippedPath = stripDarkPreviewPrefix(pathname);
-    const isPortalShell = strippedPath.startsWith('/portal');
     const portalRole = resolveRole(meData, account);
     const portalAccountName = resolveDisplayName(meData, account, t('portalHeader.notSignedIn'));
     const normalizedPortalRole = normalizeRole(portalRole);
-    const roleHomePath = normalizedPortalRole === 'ADMIN' ? '/portal/admin' : normalizedPortalRole === 'LANDLORD' ? '/portal/landlord' : '/portal/tenant';
+    const accountPortalLinks = normalizedPortalRole === 'ADMIN'
+        ? [
+            { to: '/portal', label: t('portalHeader.nav.setup') },
+            { to: '/portal/admin', label: t('portalHeader.nav.admin') },
+        ]
+        : normalizedPortalRole === 'LANDLORD'
+            ? [{ to: '/portal/landlord', label: t('portalHeader.nav.landlord') }]
+            : [{ to: '/portal/tenant', label: t('portalHeader.nav.tenant') }];
 
     const menuHorizontalOrigin = muiTheme.direction === 'rtl' ? 'right' : 'left';
     const menuAnchorOrigin = { vertical: 'bottom', horizontal: menuHorizontalOrigin };
@@ -918,14 +923,17 @@ const ResponsiveNavbar = () => {
                         />
                     </MenuItem>
                     <Divider />
-                    <MenuItem
-                        onClick={() => {
-                            navigate(withDarkPath(pathname, roleHomePath));
-                            handleAccountClose();
-                        }}
-                    >
-                        {roleLabel(portalRole, t)}
-                    </MenuItem>
+                    {accountPortalLinks.map(({ to, label }) => (
+                        <MenuItem
+                            key={to}
+                            onClick={() => {
+                                navigate(withDarkPath(pathname, to));
+                                handleAccountClose();
+                            }}
+                        >
+                            {label}
+                        </MenuItem>
+                    ))}
                     <MenuItem
                         onClick={() => {
                             signOut();

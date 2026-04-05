@@ -7,6 +7,7 @@ import {
 import { writeAudit } from '../lib/auditRepo.js';
 import { requireLandlordOrAdmin, jsonResponse } from '../lib/managementRequest.js';
 import { getPool } from '../lib/db.js';
+import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 import {
   getLeaseById,
   insertLease,
@@ -34,9 +35,10 @@ const LEASE_STATUSES = new Set(['ACTIVE', 'ENDED', 'UPCOMING', 'TERMINATED']);
 
 async function landlordLeasesCollection(
   request: HttpRequest,
-  _context: InvocationContext
+  context: InvocationContext
 ): Promise<HttpResponseInit> {
-  const gate = await requireLandlordOrAdmin(request);
+  logInfo(context, 'leases.collection.start', { method: request.method });
+  const gate = await requireLandlordOrAdmin(request, context);
   if (!gate.ok) return gate.response;
   const { ctx } = gate;
   const pool = getPool();
@@ -46,6 +48,11 @@ async function landlordLeasesCollection(
     const rows = propertyId
       ? await listLeasesForProperty(pool, propertyId)
       : await listLeasesLandlord(pool);
+    logInfo(context, 'leases.collection.list.success', {
+      userId: ctx.user.id,
+      propertyId: propertyId ?? null,
+      count: rows.length,
+    });
     return jsonResponse(200, ctx.headers, { leases: rows });
   }
 
@@ -54,6 +61,7 @@ async function landlordLeasesCollection(
     try {
       body = await request.json();
     } catch {
+      logWarn(context, 'leases.collection.create.invalid_json', { userId: ctx.user.id });
       return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
     }
     const b = asRecord(body);
@@ -61,11 +69,16 @@ async function landlordLeasesCollection(
     const start_date = str(b.start_date);
     const status = str(b.status);
     if (!property_id || !start_date || !status || !LEASE_STATUSES.has(status)) {
+      logWarn(context, 'leases.collection.create.validation_failed', { userId: ctx.user.id });
       return jsonResponse(400, ctx.headers, { error: 'missing_or_invalid_fields' });
     }
 
     const prop = await getPropertyById(pool, property_id);
     if (!prop) {
+      logWarn(context, 'leases.collection.create.property_not_found', {
+        userId: ctx.user.id,
+        propertyId: property_id,
+      });
       return jsonResponse(400, ctx.headers, { error: 'property_not_found' });
     }
 
@@ -90,34 +103,46 @@ async function landlordLeasesCollection(
         after: row,
       });
       await client.query('COMMIT');
+      logInfo(context, 'leases.collection.create.success', { userId: ctx.user.id, leaseId: row.id });
       return jsonResponse(201, ctx.headers, { lease: row });
     } catch (e) {
       await client.query('ROLLBACK');
+      logError(context, 'leases.collection.create.error', {
+        userId: ctx.user.id,
+        message: e instanceof Error ? e.message : 'unknown_error',
+      });
       throw e;
     } finally {
       client.release();
     }
   }
 
+  logWarn(context, 'leases.collection.method_not_allowed', { method: request.method });
   return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
 }
 
 async function landlordLeasesItem(
   request: HttpRequest,
-  _context: InvocationContext
+  context: InvocationContext
 ): Promise<HttpResponseInit> {
-  const gate = await requireLandlordOrAdmin(request);
+  logInfo(context, 'leases.item.start', { method: request.method, leaseId: request.params.id });
+  const gate = await requireLandlordOrAdmin(request, context);
   if (!gate.ok) return gate.response;
   const { ctx } = gate;
   const id = request.params.id;
   if (!id) {
+    logWarn(context, 'leases.item.missing_id', { userId: ctx.user.id });
     return jsonResponse(400, ctx.headers, { error: 'missing_id' });
   }
   const pool = getPool();
 
   if (request.method === 'GET') {
     const row = await getLeaseById(pool, id);
-    if (!row) return jsonResponse(404, ctx.headers, { error: 'not_found' });
+    if (!row) {
+      logWarn(context, 'leases.item.get.not_found', { userId: ctx.user.id, leaseId: id });
+      return jsonResponse(404, ctx.headers, { error: 'not_found' });
+    }
+    logInfo(context, 'leases.item.get.success', { userId: ctx.user.id, leaseId: id });
     return jsonResponse(200, ctx.headers, { lease: row });
   }
 
@@ -126,11 +151,17 @@ async function landlordLeasesItem(
     try {
       body = await request.json();
     } catch {
+      logWarn(context, 'leases.item.patch.invalid_json', { userId: ctx.user.id, leaseId: id });
       return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
     }
     const b = asRecord(body);
     const status = str(b.status);
     if (status && !LEASE_STATUSES.has(status)) {
+      logWarn(context, 'leases.item.patch.invalid_status', {
+        userId: ctx.user.id,
+        leaseId: id,
+        status,
+      });
       return jsonResponse(400, ctx.headers, { error: 'invalid_status' });
     }
 
@@ -152,6 +183,7 @@ async function landlordLeasesItem(
       );
       if (!row) {
         await client.query('ROLLBACK');
+        logWarn(context, 'leases.item.patch.not_found', { userId: ctx.user.id, leaseId: id });
         return jsonResponse(404, ctx.headers, { error: 'not_found' });
       }
       await writeAudit(client, {
@@ -163,9 +195,15 @@ async function landlordLeasesItem(
         after: row,
       });
       await client.query('COMMIT');
+      logInfo(context, 'leases.item.patch.success', { userId: ctx.user.id, leaseId: id });
       return jsonResponse(200, ctx.headers, { lease: row });
     } catch (e) {
       await client.query('ROLLBACK');
+      logError(context, 'leases.item.patch.error', {
+        userId: ctx.user.id,
+        leaseId: id,
+        message: e instanceof Error ? e.message : 'unknown_error',
+      });
       throw e;
     } finally {
       client.release();
@@ -179,11 +217,16 @@ async function landlordLeasesItem(
       const before = await getLeaseById(client, id);
       if (!before) {
         await client.query('ROLLBACK');
+        logWarn(context, 'leases.item.delete.not_found', { userId: ctx.user.id, leaseId: id });
         return jsonResponse(404, ctx.headers, { error: 'not_found' });
       }
       const ok = await softDeleteLease(client, id, ctx.user.id);
       if (!ok) {
         await client.query('ROLLBACK');
+        logWarn(context, 'leases.item.delete.not_found_after_soft_delete', {
+          userId: ctx.user.id,
+          leaseId: id,
+        });
         return jsonResponse(404, ctx.headers, { error: 'not_found' });
       }
       await writeAudit(client, {
@@ -195,15 +238,26 @@ async function landlordLeasesItem(
         after: { deleted: true },
       });
       await client.query('COMMIT');
+      logInfo(context, 'leases.item.delete.success', { userId: ctx.user.id, leaseId: id });
       return jsonResponse(204, ctx.headers, null);
     } catch (e) {
       await client.query('ROLLBACK');
+      logError(context, 'leases.item.delete.error', {
+        userId: ctx.user.id,
+        leaseId: id,
+        message: e instanceof Error ? e.message : 'unknown_error',
+      });
       throw e;
     } finally {
       client.release();
     }
   }
 
+  logWarn(context, 'leases.item.method_not_allowed', {
+    method: request.method,
+    userId: ctx.user.id,
+    leaseId: id,
+  });
   return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
 }
 

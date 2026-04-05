@@ -16,7 +16,6 @@ import Footer from './components/Footer';
 import ResponsiveNavbar from './components/ResponsiveNavbar';
 import PortalSetup from './components/PortalSetup';
 import PortalWorkspace from './components/PortalWorkspace';
-import PortalHeader from './components/PortalHeader';
 import { isDarkPreviewRoute, stripDarkPreviewPrefix } from './routePaths';
 
 /**
@@ -84,7 +83,6 @@ const App = () => {
     const { t } = useTranslation();
     const location = useLocation();
     const strippedPath = stripDarkPreviewPrefix(location.pathname);
-    const isPortalShell = strippedPath.startsWith('/portal');
     return (
         <AppShell>
             <ScrollToTopOnRouteChange />
@@ -92,7 +90,6 @@ const App = () => {
                 {t('skipToMain')}
             </a>
             <ResponsiveNavbar />
-            {isPortalShell && <PortalHeader />}
             <Container id="main-content">
                 <AppRoutes />
             </Container>

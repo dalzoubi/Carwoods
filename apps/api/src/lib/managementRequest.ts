@@ -1,8 +1,9 @@
-import type { HttpRequest, HttpResponseInit } from '@azure/functions';
+import type { HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { getPool, hasDatabaseUrl } from './db.js';
 import { corsHeadersForRequest } from './corsHeaders.js';
 import { getBearerToken, verifyAccessToken, entraAuthConfigured } from './jwtVerify.js';
 import { findUserByClaims, type UserRow } from './usersRepo.js';
+import { logInfo, logWarn } from './serverLogger.js';
 
 export type ManagementContext = {
   user: UserRow;
@@ -15,13 +16,17 @@ export type ManagementContext = {
  * Otherwise DB-backed management user resolved from JWT email.
  */
 export async function requireLandlordOrAdmin(
-  request: HttpRequest
+  request: HttpRequest,
+  context?: InvocationContext
 ): Promise<{ ok: true; ctx: ManagementContext } | { ok: false; response: HttpResponseInit }> {
   const headers = corsHeadersForRequest(request);
+  logInfo(context, 'management.auth.start', { method: request.method });
   if (request.method === 'OPTIONS') {
+    logInfo(context, 'management.auth.options');
     return { ok: false, response: { status: 204, headers } };
   }
   if (!hasDatabaseUrl()) {
+    logWarn(context, 'management.auth.failed', { reason: 'database_unconfigured' });
     return {
       ok: false,
       response: {
@@ -32,6 +37,7 @@ export async function requireLandlordOrAdmin(
     };
   }
   if (!entraAuthConfigured()) {
+    logWarn(context, 'management.auth.failed', { reason: 'entra_unconfigured' });
     return {
       ok: false,
       response: {
@@ -44,6 +50,7 @@ export async function requireLandlordOrAdmin(
 
   const token = getBearerToken(request.headers.get('authorization'));
   if (!token) {
+    logWarn(context, 'management.auth.failed', { reason: 'missing_bearer_token' });
     return {
       ok: false,
       response: {
@@ -58,6 +65,7 @@ export async function requireLandlordOrAdmin(
   try {
     claims = await verifyAccessToken(token);
   } catch {
+    logWarn(context, 'management.auth.failed', { reason: 'invalid_token' });
     return {
       ok: false,
       response: {
@@ -72,6 +80,11 @@ export async function requireLandlordOrAdmin(
   const pool = getPool();
   const user = await findUserByClaims(pool, claims, { emailHint });
   if (!user) {
+    logWarn(context, 'management.auth.failed', {
+      reason: 'user_not_found',
+      subject: claims.sub,
+      oid: claims.oid ?? null,
+    });
     return {
       ok: false,
       response: {
@@ -86,6 +99,12 @@ export async function requireLandlordOrAdmin(
   const isActive = status === 'ACTIVE' || status === 'INVITED';
   const isAllowedRole = role === 'ADMIN' || role === 'LANDLORD';
   if (!isActive || !isAllowedRole) {
+    logWarn(context, 'management.auth.failed', {
+      reason: 'forbidden_role_or_status',
+      role,
+      status,
+      userId: user.id,
+    });
     return {
       ok: false,
       response: {
@@ -95,6 +114,7 @@ export async function requireLandlordOrAdmin(
       },
     };
   }
+  logInfo(context, 'management.auth.success', { userId: user.id, role });
   return { ok: true, ctx: { user, role: role as 'ADMIN' | 'LANDLORD', headers } };
 }
 
