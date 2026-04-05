@@ -4,7 +4,7 @@
  *
  *   pool.query(sql, params?)          → QueryResult<T>
  *   pool.connect()                    → PoolClient
- *   client.query(sql, params?)        → QueryResult<T>
+ *   client.query(sql, params?)        → QueryResult<T> (autocommit unless BEGIN is active)
  *   client.query('BEGIN'/'COMMIT'/'ROLLBACK')
  *   client.release()
  *
@@ -128,7 +128,7 @@ function buildRequest(
 }
 
 // ---------------------------------------------------------------------------
-// PoolClient wraps a Transaction for BEGIN/COMMIT/ROLLBACK support
+// PoolClient supports pg-like autocommit queries and explicit transactions.
 // ---------------------------------------------------------------------------
 
 export class PoolClient {
@@ -162,9 +162,9 @@ export class PoolClient {
       return { rows: [], rowCount: 0 };
     }
 
-    if (!this._tx) throw new Error('PoolClient: call BEGIN before executing queries.');
-
-    const req = new mssql.Request(this._tx);
+    // Match pg behavior: client.query() works without BEGIN (autocommit).
+    // If BEGIN was issued, route all queries through the transaction instead.
+    const req = this._tx ? new mssql.Request(this._tx) : this._pool.request();
     const { sql: converted } = buildRequest(req, sql, values);
     const result = await req.query<T>(converted);
     return {
