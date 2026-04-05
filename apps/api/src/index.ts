@@ -7,3 +7,7 @@ import './functions/portalMe.js';
 import './functions/landlordProperties.js';
 import './functions/landlordLeases.js';
 import './functions/landlordLeaseTenants.js';
+import './functions/portalRequests.js';
+import './functions/portalProfile.js';
+import './functions/landlordRequests.js';
+import './functions/internalJobs.js';

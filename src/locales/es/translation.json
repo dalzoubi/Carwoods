@@ -726,12 +726,37 @@
       "next3": "Agregar herramientas de auditoría para acciones privilegiadas."
     }
   },
+  "portalProfile": {
+    "title": "Carwoods - Perfil del Portal",
+    "metaDescription": "Actualiza los detalles de tu perfil del portal.",
+    "heading": "Perfil",
+    "intro": "Actualiza el correo, nombre y teléfono usados para comunicaciones del portal.",
+    "loading": "Cargando tu perfil…",
+    "saved": "Perfil actualizado correctamente.",
+    "guestBlocked": "Las cuentas de invitado no pueden editar el perfil.",
+    "fields": {
+      "email": "Correo electrónico",
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "phone": "Número de teléfono"
+    },
+    "actions": {
+      "save": "Guardar perfil",
+      "saving": "Guardando…"
+    },
+    "errors": {
+      "signInRequired": "Inicia sesión antes de editar tu perfil.",
+      "apiUnavailable": "Configura VITE_API_BASE_URL para habilitar actualizaciones del perfil.",
+      "unknown": "No se pudo actualizar el perfil."
+    }
+  },
   "portalHeader": {
     "title": "Portal de Mantenimiento",
     "notSignedIn": "Sin sesión iniciada",
     "nav": {
       "setup": "Configuración",
-      "workspace": "Espacio"
+      "workspace": "Espacio",
+      "profile": "Perfil"
     },
     "status": {
       "signedIn": "Sesión iniciada",

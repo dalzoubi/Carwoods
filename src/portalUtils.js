@@ -84,3 +84,8 @@ export function resolveDisplayName(meData, account, fallback) {
     fallback ?? '',
   ]);
 }
+
+export function isGuestRole(role) {
+  const normalized = normalizeRole(role);
+  return normalized !== 'TENANT' && normalized !== 'LANDLORD' && normalized !== 'ADMIN';
+}

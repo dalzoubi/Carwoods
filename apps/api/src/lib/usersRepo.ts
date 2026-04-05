@@ -32,6 +32,12 @@ function normalizeNamePart(value: string | null | undefined): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function normalizePhone(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 function deriveNamesFromClaims(claims: AccessTokenClaims): { firstName: string | null; lastName: string | null } {
   const firstName = normalizeNamePart(claims.given_name);
   const lastName = normalizeNamePart(claims.family_name);
@@ -187,6 +193,36 @@ export async function findUserByClaims(
   }
 
   return findUserBySubject(client, claims.sub);
+}
+
+export async function updateUserProfile(
+  client: Queryable,
+  userId: string,
+  profile: {
+    email: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    phone?: string | null;
+  }
+): Promise<UserRow | null> {
+  const normalizedEmail = normalizeEmail(profile.email);
+  const firstName = normalizeNamePart(profile.firstName);
+  const lastName = normalizeNamePart(profile.lastName);
+  const phone = normalizePhone(profile.phone);
+  const r = await client.query<UserRow>(
+    `UPDATE users
+        SET email = $2,
+            first_name = $3,
+            last_name = $4,
+            phone = $5,
+            updated_at = GETUTCDATE()
+      WHERE id = $1
+      OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
+             INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
+             INSERTED.role, INSERTED.status`,
+    [userId, normalizedEmail, firstName, lastName, phone]
+  );
+  return r.rows[0] ?? null;
 }
 
 /**

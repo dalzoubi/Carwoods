@@ -37,7 +37,7 @@ import { useLanguage } from '../LanguageContext';
 import { usePortalAuth } from '../PortalAuthContext';
 import { FEATURE_DARK_THEME } from '../featureFlags';
 import { isPrintablePageRoute, stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
-import { normalizeRole, resolveDisplayName, resolveRole } from '../portalUtils';
+import { isGuestRole, normalizeRole, resolveDisplayName, resolveRole } from '../portalUtils';
 import { useTranslation } from 'react-i18next';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
@@ -202,9 +202,11 @@ const ResponsiveNavbar = () => {
     const portalRole = resolveRole(meData, account);
     const portalAccountName = resolveDisplayName(meData, account, t('portalHeader.notSignedIn'));
     const normalizedPortalRole = normalizeRole(portalRole);
+    const isGuestAccount = isGuestRole(normalizedPortalRole);
     const accountPortalLinks = [
         { to: '/portal', label: t('portalHeader.nav.setup') },
         { to: '/portal/workspace', label: t('portalHeader.nav.workspace') },
+        ...(isAuthenticated && !isGuestAccount ? [{ to: '/portal/profile', label: t('portalHeader.nav.profile') }] : []),
     ];
 
     const menuHorizontalOrigin = muiTheme.direction === 'rtl' ? 'right' : 'left';

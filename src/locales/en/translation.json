@@ -726,12 +726,37 @@
       "next3": "Add audit review tools for privileged actions."
     }
   },
+  "portalProfile": {
+    "title": "Carwoods - Portal Profile",
+    "metaDescription": "Update your portal profile details.",
+    "heading": "Profile",
+    "intro": "Update your account email, name, and phone number used for portal communications.",
+    "loading": "Loading your profile…",
+    "saved": "Profile updated successfully.",
+    "guestBlocked": "Guest accounts cannot edit profile details.",
+    "fields": {
+      "email": "Email",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phone": "Phone number"
+    },
+    "actions": {
+      "save": "Save profile",
+      "saving": "Saving…"
+    },
+    "errors": {
+      "signInRequired": "Sign in before editing your profile.",
+      "apiUnavailable": "Set VITE_API_BASE_URL to enable profile updates.",
+      "unknown": "Unable to update profile."
+    }
+  },
   "portalHeader": {
     "title": "Maintenance Portal",
     "notSignedIn": "Not signed in",
     "nav": {
       "setup": "Setup",
-      "workspace": "Workspace"
+      "workspace": "Workspace",
+      "profile": "Profile"
     },
     "status": {
       "signedIn": "Signed in",

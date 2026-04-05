@@ -726,12 +726,37 @@
       "next3": "Ajouter des outils d'audit pour les actions privilégiées."
     }
   },
+  "portalProfile": {
+    "title": "Carwoods - Profil du Portail",
+    "metaDescription": "Mettez a jour les details de votre profil portail.",
+    "heading": "Profil",
+    "intro": "Mettez a jour l'e-mail, le prenom, le nom et le telephone utilises pour le portail.",
+    "loading": "Chargement de votre profil…",
+    "saved": "Profil mis a jour avec succes.",
+    "guestBlocked": "Les comptes invites ne peuvent pas modifier le profil.",
+    "fields": {
+      "email": "E-mail",
+      "firstName": "Prenom",
+      "lastName": "Nom",
+      "phone": "Numero de telephone"
+    },
+    "actions": {
+      "save": "Enregistrer le profil",
+      "saving": "Enregistrement…"
+    },
+    "errors": {
+      "signInRequired": "Connectez-vous avant de modifier votre profil.",
+      "apiUnavailable": "Configurez VITE_API_BASE_URL pour activer la mise a jour du profil.",
+      "unknown": "Impossible de mettre a jour le profil."
+    }
+  },
   "portalHeader": {
     "title": "Portail de Maintenance",
     "notSignedIn": "Non connecté",
     "nav": {
       "setup": "Configuration",
-      "workspace": "Espace"
+      "workspace": "Espace",
+      "profile": "Profil"
     },
     "status": {
       "signedIn": "Connecté",

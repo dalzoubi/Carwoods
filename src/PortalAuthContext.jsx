@@ -142,6 +142,43 @@ export const PortalAuthProvider = ({ children }) => {
     setRefreshTick((x) => x + 1);
   }, []);
 
+  const getAccessToken = useCallback(async () => {
+    if (!msalInstance || !account) {
+      throw new Error('auth_unavailable');
+    }
+    let tokenResponse;
+    try {
+      tokenResponse = await msalInstance.acquireTokenSilent({
+        account,
+        scopes: ENTRA_SCOPES,
+      });
+    } catch (error) {
+      if (error instanceof InteractionRequiredAuthError) {
+        tokenResponse = await msalInstance.acquireTokenPopup({
+          account,
+          scopes: ENTRA_SCOPES,
+        });
+      } else {
+        throw error;
+      }
+    }
+
+    persistIdTokenClaims(tokenResponse.account, tokenResponse.idTokenClaims);
+    setAccount((prev) => {
+      const sourceAccount = tokenResponse.account ?? prev;
+      const nextAccount = hydrateAccountClaims(sourceAccount);
+      if (!nextAccount) return prev;
+      if (
+        prev?.homeAccountId === nextAccount.homeAccountId &&
+        prev?.idTokenClaims
+      ) {
+        return prev;
+      }
+      return nextAccount;
+    });
+    return tokenResponse.accessToken;
+  }, [account]);
+
   useEffect(() => {
     if (!ENTRA_AUTH_CONFIGURED || !msalInstance) {
       setAuthStatus('unconfigured');
@@ -196,42 +233,13 @@ export const PortalAuthProvider = ({ children }) => {
       setMeStatus('loading');
       setMeError('');
       try {
-        let tokenResponse;
-        try {
-          tokenResponse = await msalInstance.acquireTokenSilent({
-            account,
-            scopes: ENTRA_SCOPES,
-          });
-        } catch (error) {
-          if (error instanceof InteractionRequiredAuthError) {
-            tokenResponse = await msalInstance.acquireTokenPopup({
-              account,
-              scopes: ENTRA_SCOPES,
-            });
-          } else {
-            throw error;
-          }
-        }
-
-        persistIdTokenClaims(tokenResponse.account, tokenResponse.idTokenClaims);
-        setAccount((prev) => {
-          const sourceAccount = tokenResponse.account ?? prev;
-          const nextAccount = hydrateAccountClaims(sourceAccount);
-          if (!nextAccount) return prev;
-          if (
-            prev?.homeAccountId === nextAccount.homeAccountId &&
-            prev?.idTokenClaims
-          ) {
-            return prev;
-          }
-          return nextAccount;
-        });
+        const accessToken = await getAccessToken();
 
         const meHeaders = {
           Accept: 'application/json',
-          Authorization: `Bearer ${tokenResponse.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         };
-        const hint = emailFromAccount(hydrateAccountClaims(tokenResponse.account ?? account));
+        const hint = emailFromAccount(account);
         if (hint) {
           meHeaders['X-Email-Hint'] = hint;
         }
@@ -271,7 +279,7 @@ export const PortalAuthProvider = ({ children }) => {
 
     run();
     return () => controller.abort();
-  }, [account, authStatus, baseUrl, clearSessionData, meUrl, refreshTick]);
+  }, [account, authStatus, baseUrl, clearSessionData, getAccessToken, meUrl, refreshTick]);
 
   const value = useMemo(
     () => ({
@@ -288,6 +296,7 @@ export const PortalAuthProvider = ({ children }) => {
       signInWithProvider,
       signOut,
       refreshMe,
+      getAccessToken,
     }),
     [
       account,
@@ -299,6 +308,7 @@ export const PortalAuthProvider = ({ children }) => {
       meStatus,
       meUrl,
       refreshMe,
+      getAccessToken,
       signIn,
       signInWithProvider,
       signOut,
