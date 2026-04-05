@@ -748,6 +748,11 @@
     "errors": {
       "signInRequired": "Inicia sesión antes de editar tu perfil.",
       "apiUnavailable": "Configura VITE_API_BASE_URL para habilitar actualizaciones del perfil.",
+      "validation": "Corrige los campos resaltados.",
+      "firstNameRequired": "El nombre es obligatorio.",
+      "lastNameRequired": "El apellido es obligatorio.",
+      "emailInvalid": "Ingresa un correo electrónico válido.",
+      "phoneInvalid": "Ingresa un número de teléfono válido.",
       "unknown": "No se pudo actualizar el perfil."
     }
   },

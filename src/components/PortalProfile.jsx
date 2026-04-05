@@ -9,6 +9,52 @@ function endpoint(baseUrl, path) {
   return `${baseUrl.replace(/\/$/, '')}${path}`;
 }
 
+function looksLikeEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function looksLikePhone(value) {
+  if (!value) return true;
+  if (!/^[+]?[\d\s().-]+$/.test(value)) return false;
+  const digits = value.replace(/\D/g, '');
+  return digits.length >= 10 && digits.length <= 15;
+}
+
+function validateProfileForm(form, t) {
+  const errors = {};
+
+  if (!form.firstName.trim()) {
+    errors.firstName = t('portalProfile.errors.firstNameRequired');
+  }
+  if (!form.lastName.trim()) {
+    errors.lastName = t('portalProfile.errors.lastNameRequired');
+  }
+  if (!looksLikeEmail(form.email.trim())) {
+    errors.email = t('portalProfile.errors.emailInvalid');
+  }
+  if (!looksLikePhone(form.phone.trim())) {
+    errors.phone = t('portalProfile.errors.phoneInvalid');
+  }
+
+  return errors;
+}
+
+function validateProfileField(field, value, t) {
+  if (field === 'firstName') {
+    return value.trim() ? '' : t('portalProfile.errors.firstNameRequired');
+  }
+  if (field === 'lastName') {
+    return value.trim() ? '' : t('portalProfile.errors.lastNameRequired');
+  }
+  if (field === 'email') {
+    return looksLikeEmail(value.trim()) ? '' : t('portalProfile.errors.emailInvalid');
+  }
+  if (field === 'phone') {
+    return looksLikePhone(value.trim()) ? '' : t('portalProfile.errors.phoneInvalid');
+  }
+  return '';
+}
+
 const PortalProfile = () => {
   const { t } = useTranslation();
   const {
@@ -30,6 +76,7 @@ const PortalProfile = () => {
   });
   const [saveStatus, setSaveStatus] = useState('idle');
   const [saveError, setSaveError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const initialForm = useMemo(
     () => ({
       email: meData?.user?.email ?? meData?.email ?? emailFromAccount(account) ?? '',
@@ -55,17 +102,30 @@ const PortalProfile = () => {
 
   useEffect(() => {
     setForm(initialForm);
+    setFieldErrors({});
   }, [initialForm]);
 
   const onChange = (field) => (event) => {
     const value = event.target.value;
     setForm((prev) => ({ ...prev, [field]: value }));
+    setFieldErrors((prev) => ({ ...prev, [field]: '' }));
     setSaveStatus('idle');
     setSaveError('');
+  };
+  const onBlur = (field) => (event) => {
+    const message = validateProfileField(field, event.target.value, t);
+    setFieldErrors((prev) => ({ ...prev, [field]: message }));
   };
 
   const onSubmit = async (event) => {
     event.preventDefault();
+    const validationErrors = validateProfileForm(form, t);
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors);
+      setSaveStatus('error');
+      setSaveError(t('portalProfile.errors.validation'));
+      return;
+    }
     if (!hasChanges) {
       setSaveStatus('idle');
       setSaveError('');
@@ -154,32 +214,48 @@ const PortalProfile = () => {
         >
           <Stack spacing={2}>
             <TextField
-              label={t('portalProfile.fields.email')}
-              value={form.email}
-              onChange={onChange('email')}
-              autoComplete="email"
-              required
-              disabled={!isAuthenticated || isGuest || !baseUrl || saveStatus === 'saving'}
-            />
-            <TextField
               label={t('portalProfile.fields.firstName')}
               value={form.firstName}
               onChange={onChange('firstName')}
+              onBlur={onBlur('firstName')}
               autoComplete="given-name"
+              required
+              error={Boolean(fieldErrors.firstName)}
+              helperText={fieldErrors.firstName || ' '}
               disabled={!isAuthenticated || isGuest || !baseUrl || saveStatus === 'saving'}
             />
             <TextField
               label={t('portalProfile.fields.lastName')}
               value={form.lastName}
               onChange={onChange('lastName')}
+              onBlur={onBlur('lastName')}
               autoComplete="family-name"
+              required
+              error={Boolean(fieldErrors.lastName)}
+              helperText={fieldErrors.lastName || ' '}
+              disabled={!isAuthenticated || isGuest || !baseUrl || saveStatus === 'saving'}
+            />
+            <TextField
+              label={t('portalProfile.fields.email')}
+              value={form.email}
+              onChange={onChange('email')}
+              onBlur={onBlur('email')}
+              autoComplete="email"
+              type="email"
+              required
+              error={Boolean(fieldErrors.email)}
+              helperText={fieldErrors.email || ' '}
               disabled={!isAuthenticated || isGuest || !baseUrl || saveStatus === 'saving'}
             />
             <TextField
               label={t('portalProfile.fields.phone')}
               value={form.phone}
               onChange={onChange('phone')}
+              onBlur={onBlur('phone')}
               autoComplete="tel"
+              type="tel"
+              error={Boolean(fieldErrors.phone)}
+              helperText={fieldErrors.phone || ' '}
               disabled={!isAuthenticated || isGuest || !baseUrl || saveStatus === 'saving'}
             />
             <Stack direction="row" justifyContent="flex-end">

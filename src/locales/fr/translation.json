@@ -748,6 +748,11 @@
     "errors": {
       "signInRequired": "Connectez-vous avant de modifier votre profil.",
       "apiUnavailable": "Configurez VITE_API_BASE_URL pour activer la mise a jour du profil.",
+      "validation": "Corrigez les champs en surbrillance.",
+      "firstNameRequired": "Le prenom est obligatoire.",
+      "lastNameRequired": "Le nom est obligatoire.",
+      "emailInvalid": "Saisissez une adresse e-mail valide.",
+      "phoneInvalid": "Saisissez un numero de telephone valide.",
       "unknown": "Impossible de mettre a jour le profil."
     }
   },

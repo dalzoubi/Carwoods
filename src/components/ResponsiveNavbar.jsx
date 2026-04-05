@@ -159,6 +159,14 @@ const logoLinkSx = {
     },
 };
 
+function portalRoleLabel(role, t) {
+    const normalized = normalizeRole(role);
+    if (normalized === 'ADMIN') return t('portalHeader.roles.admin');
+    if (normalized === 'LANDLORD') return t('portalHeader.roles.landlord');
+    if (normalized === 'TENANT') return t('portalHeader.roles.tenant');
+    return t('portalHeader.roles.unknown');
+}
+
 const ResponsiveNavbar = () => {
     const appBarRef = useRef(null);
     const navigate = useNavigate();
@@ -195,6 +203,7 @@ const ResponsiveNavbar = () => {
     const portalRole = resolveRole(meData, account);
     const portalAccountName = resolveDisplayName(meData, account, t('portalHeader.notSignedIn'));
     const normalizedPortalRole = normalizeRole(portalRole);
+    const currentPortalRoleLabel = portalRoleLabel(portalRole, t);
     const isGuestAccount = isGuestRole(normalizedPortalRole);
     const accountPortalLinks = [
         { to: '/portal', label: t('portalHeader.nav.setup') },
@@ -1082,7 +1091,7 @@ const ResponsiveNavbar = () => {
                         }}
                         disabled={isGuestAccount}
                     >
-                        <ListItemText primary={t('portalHeader.nav.profile')} />
+                        <ListItemText primary={`${t('portalHeader.nav.profile')} (${currentPortalRoleLabel})`} />
                     </MenuItem>
                     <Divider />
                     {accountPortalLinks.map(({ to, label }) => (

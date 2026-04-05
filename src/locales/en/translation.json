@@ -748,6 +748,11 @@
     "errors": {
       "signInRequired": "Sign in before editing your profile.",
       "apiUnavailable": "Set VITE_API_BASE_URL to enable profile updates.",
+      "validation": "Please fix the highlighted fields.",
+      "firstNameRequired": "First name is required.",
+      "lastNameRequired": "Last name is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "phoneInvalid": "Enter a valid phone number.",
       "unknown": "Unable to update profile."
     }
   },
