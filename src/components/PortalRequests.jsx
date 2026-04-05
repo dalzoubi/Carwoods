@@ -23,7 +23,8 @@ const PortalRequests = () => {
   } = usePortalAuth();
 
   const role = normalizedRole(resolveRole(meData, account));
-  const isGuest = isGuestRole(role);
+  const roleResolved = isAuthenticated && meStatus !== 'loading';
+  const isGuest = roleResolved && isGuestRole(role);
   const isManagement = hasLandlordAccess(role);
 
   const {

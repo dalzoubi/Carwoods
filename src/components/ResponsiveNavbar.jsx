@@ -338,19 +338,14 @@ const ResponsiveNavbar = () => {
         signOut();
     };
 
-    const canAccessTenantPortal = isAuthenticated && (normalizedPortalRole === 'TENANT' || normalizedPortalRole === 'LANDLORD' || normalizedPortalRole === 'ADMIN');
-    const canAccessLandlordPortal = isAuthenticated && (normalizedPortalRole === 'LANDLORD' || normalizedPortalRole === 'ADMIN');
-
     const tenantLinks = [
         { to: '/apply', label: t('tenantLinks.apply') },
         { to: '/tenant-selection-criteria', label: t('tenantLinks.selectionCriteria') },
         { to: '/application-required-documents', label: t('tenantLinks.requiredDocuments') },
-        ...(canAccessTenantPortal ? [{ to: '/portal/workspace', label: t('tenantLinks.tenantPortal') }] : []),
     ];
 
     const landlordLinks = [
         { to: '/property-management', label: t('landlordLinks.propertyManagement') },
-        ...(canAccessLandlordPortal ? [{ to: '/portal/workspace', label: t('landlordLinks.landlordPortal') }] : []),
     ];
 
     const legalLinks = [

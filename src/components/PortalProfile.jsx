@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { Alert, Box, Button, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Skeleton, Stack, TextField, Typography } from '@mui/material';
 import { usePortalAuth } from '../PortalAuthContext';
 import { emailFromAccount, isGuestRole, resolveRole } from '../portalUtils';
-import StatusAlertSlot from './StatusAlertSlot';
 
 function endpoint(baseUrl, path) {
   return `${baseUrl.replace(/\/$/, '')}${path}`;
@@ -182,13 +181,8 @@ const PortalProfile = () => {
     }
   };
 
-  const profileStateMessage = isAuthenticated
-    ? meStatus === 'loading'
-      ? { severity: 'info', text: t('portalProfile.loading') }
-      : isGuest
-        ? { severity: 'warning', text: t('portalProfile.guestBlocked') }
-        : null
-    : null;
+  const isLoading = isAuthenticated && meStatus === 'loading';
+  const formDisabled = !isAuthenticated || isGuest || !baseUrl || saveStatus === 'saving';
 
   return (
     <Box sx={{ py: 4 }}>
@@ -204,7 +198,6 @@ const PortalProfile = () => {
         <Typography color="text.secondary">{t('portalProfile.intro')}</Typography>
 
         {!isAuthenticated && <Alert severity="warning">{t('portalProfile.errors.signInRequired')}</Alert>}
-        <StatusAlertSlot message={profileStateMessage} />
         {!baseUrl && <Alert severity="warning">{t('portalProfile.errors.apiUnavailable')}</Alert>}
         {saveStatus === 'error' && <Alert severity="error">{saveError || t('portalProfile.errors.unknown')}</Alert>}
         {saveStatus === 'success' && <Alert severity="success">{t('portalProfile.saved')}</Alert>}
@@ -221,60 +214,77 @@ const PortalProfile = () => {
           }}
         >
           <Stack spacing={2}>
-            <TextField
-              label={t('portalProfile.fields.firstName')}
-              value={form.firstName}
-              onChange={onChange('firstName')}
-              onBlur={onBlur('firstName')}
-              autoComplete="given-name"
-              required
-              error={Boolean(fieldErrors.firstName)}
-              helperText={fieldErrors.firstName || ' '}
-              disabled={!isAuthenticated || isGuest || !baseUrl || saveStatus === 'saving'}
-            />
-            <TextField
-              label={t('portalProfile.fields.lastName')}
-              value={form.lastName}
-              onChange={onChange('lastName')}
-              onBlur={onBlur('lastName')}
-              autoComplete="family-name"
-              required
-              error={Boolean(fieldErrors.lastName)}
-              helperText={fieldErrors.lastName || ' '}
-              disabled={!isAuthenticated || isGuest || !baseUrl || saveStatus === 'saving'}
-            />
-            <TextField
-              label={t('portalProfile.fields.email')}
-              value={form.email}
-              onChange={onChange('email')}
-              onBlur={onBlur('email')}
-              autoComplete="email"
-              type="email"
-              required
-              error={Boolean(fieldErrors.email)}
-              helperText={fieldErrors.email || ' '}
-              disabled={!isAuthenticated || isGuest || !baseUrl || saveStatus === 'saving'}
-            />
-            <TextField
-              label={t('portalProfile.fields.phone')}
-              value={form.phone}
-              onChange={onChange('phone')}
-              onBlur={onBlur('phone')}
-              autoComplete="tel"
-              type="tel"
-              error={Boolean(fieldErrors.phone)}
-              helperText={fieldErrors.phone || ' '}
-              disabled={!isAuthenticated || isGuest || !baseUrl || saveStatus === 'saving'}
-            />
-            <Stack direction="row" justifyContent="flex-end">
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={!isAuthenticated || isGuest || !baseUrl || saveStatus === 'saving' || !hasChanges}
-              >
-                {saveStatus === 'saving' ? t('portalProfile.actions.saving') : t('portalProfile.actions.save')}
-              </Button>
-            </Stack>
+            {isGuest && (
+              <Alert severity="warning" sx={{ mb: 0.5 }}>{t('portalProfile.guestBlocked')}</Alert>
+            )}
+            {isLoading ? (
+              <>
+                <Skeleton variant="rounded" height={56} />
+                <Skeleton variant="rounded" height={56} />
+                <Skeleton variant="rounded" height={56} />
+                <Skeleton variant="rounded" height={56} />
+                <Stack direction="row" justifyContent="flex-end">
+                  <Skeleton variant="rounded" width={80} height={36} />
+                </Stack>
+              </>
+            ) : (
+              <>
+                <TextField
+                  label={t('portalProfile.fields.firstName')}
+                  value={form.firstName}
+                  onChange={onChange('firstName')}
+                  onBlur={onBlur('firstName')}
+                  autoComplete="given-name"
+                  required
+                  error={Boolean(fieldErrors.firstName)}
+                  helperText={fieldErrors.firstName || ' '}
+                  disabled={formDisabled}
+                />
+                <TextField
+                  label={t('portalProfile.fields.lastName')}
+                  value={form.lastName}
+                  onChange={onChange('lastName')}
+                  onBlur={onBlur('lastName')}
+                  autoComplete="family-name"
+                  required
+                  error={Boolean(fieldErrors.lastName)}
+                  helperText={fieldErrors.lastName || ' '}
+                  disabled={formDisabled}
+                />
+                <TextField
+                  label={t('portalProfile.fields.email')}
+                  value={form.email}
+                  onChange={onChange('email')}
+                  onBlur={onBlur('email')}
+                  autoComplete="email"
+                  type="email"
+                  required
+                  error={Boolean(fieldErrors.email)}
+                  helperText={fieldErrors.email || ' '}
+                  disabled={formDisabled}
+                />
+                <TextField
+                  label={t('portalProfile.fields.phone')}
+                  value={form.phone}
+                  onChange={onChange('phone')}
+                  onBlur={onBlur('phone')}
+                  autoComplete="tel"
+                  type="tel"
+                  error={Boolean(fieldErrors.phone)}
+                  helperText={fieldErrors.phone || ' '}
+                  disabled={formDisabled}
+                />
+                <Stack direction="row" justifyContent="flex-end">
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={formDisabled || !hasChanges}
+                  >
+                    {saveStatus === 'saving' ? t('portalProfile.actions.saving') : t('portalProfile.actions.save')}
+                  </Button>
+                </Stack>
+              </>
+            )}
           </Stack>
         </Box>
       </Stack>
