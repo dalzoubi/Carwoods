@@ -647,9 +647,6 @@
       "checkHealth": "Vérifier la santé",
       "checkMe": "Vérifier /portal/me",
       "openWorkspace": "Ouvrir l'espace portail",
-      "openTenant": "Ouvrir l'espace locataire",
-      "openLandlord": "Ouvrir l'espace propriétaire",
-      "openAdmin": "Ouvrir l'espace admin",
       "signIn": "Se connecter avec Entra",
       "signOut": "Se déconnecter",
       "refreshSession": "Actualiser la session enregistrée"
@@ -734,10 +731,7 @@
     "notSignedIn": "Non connecté",
     "nav": {
       "setup": "Configuration",
-      "workspace": "Espace",
-      "tenant": "Locataire",
-      "landlord": "Propriétaire",
-      "admin": "Admin"
+      "workspace": "Espace"
     },
     "status": {
       "signedIn": "Connecté",

@@ -647,9 +647,6 @@
       "checkHealth": "فحص الصحة",
       "checkMe": "فحص /portal/me",
       "openWorkspace": "فتح مساحة البوابة",
-      "openTenant": "فتح مساحة المستأجر",
-      "openLandlord": "فتح مساحة المالك",
-      "openAdmin": "فتح مساحة الإدارة",
       "signIn": "تسجيل الدخول عبر Entra",
       "signOut": "تسجيل الخروج",
       "refreshSession": "تحديث الجلسة المحفوظة"
@@ -734,10 +731,7 @@
     "notSignedIn": "لم يتم تسجيل الدخول",
     "nav": {
       "setup": "الإعداد",
-      "workspace": "المساحة",
-      "tenant": "المستأجر",
-      "landlord": "المالك",
-      "admin": "الإدارة"
+      "workspace": "المساحة"
     },
     "status": {
       "signedIn": "تم تسجيل الدخول",

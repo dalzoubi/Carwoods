@@ -647,9 +647,6 @@
       "checkHealth": "Comprobar salud",
       "checkMe": "Comprobar /portal/me",
       "openWorkspace": "Abrir espacio del portal",
-      "openTenant": "Abrir espacio de inquilino",
-      "openLandlord": "Abrir espacio de propietario",
-      "openAdmin": "Abrir espacio de administrador",
       "signIn": "Iniciar sesión con Entra",
       "signOut": "Cerrar sesión",
       "refreshSession": "Actualizar sesión guardada"
@@ -734,10 +731,7 @@
     "notSignedIn": "Sin sesión iniciada",
     "nav": {
       "setup": "Configuración",
-      "workspace": "Espacio",
-      "tenant": "Inquilino",
-      "landlord": "Propietario",
-      "admin": "Administrador"
+      "workspace": "Espacio"
     },
     "status": {
       "signedIn": "Sesión iniciada",
