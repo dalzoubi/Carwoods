@@ -1,10 +1,8 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Alert, Box, Button, Chip, Stack, Typography } from '@mui/material';
+import { Alert, Box, Stack, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { withDarkPath } from '../routePaths';
 import { hasLandlordAccess, usePortalAuth } from '../PortalAuthContext';
-import { resolveDisplayName, resolveRole } from '../portalUtils';
+import { resolveRole } from '../portalUtils';
 
 function roleKey(role) {
   if (role === 'admin') return 'admin';
@@ -13,11 +11,9 @@ function roleKey(role) {
 }
 
 const PortalWorkspace = ({ role = 'tenant' }) => {
-  const { pathname } = useLocation();
   const { t } = useTranslation();
-  const { authStatus, isAuthenticated, account, meStatus, meData, meError, refreshMe, signOut } = usePortalAuth();
+  const { authStatus, isAuthenticated, account, meStatus, meData, meError } = usePortalAuth();
   const key = roleKey(role);
-  const displayName = resolveDisplayName(meData, account, '-');
   const userRole = resolveRole(meData, account);
   const isAdminAllowed = userRole === 'ADMIN';
   const isLandlordAllowed = hasLandlordAccess(userRole);
@@ -27,24 +23,6 @@ const PortalWorkspace = ({ role = 'tenant' }) => {
   return (
     <Box sx={{ py: 4 }}>
       <Stack spacing={2.5}>
-        <Stack direction="row" spacing={1.25} sx={{ flexWrap: 'wrap' }}>
-          <Button component={Link} to={withDarkPath(pathname, '/')} type="button" variant="text">
-            {t('portalWorkspace.actions.backToSite')}
-          </Button>
-          <Button component={Link} to={withDarkPath(pathname, '/portal')} type="button" variant="outlined">
-            {t('portalWorkspace.actions.backToSetup')}
-          </Button>
-          <Button component={Link} to={withDarkPath(pathname, '/portal/tenant')} type="button" variant={key === 'tenant' ? 'contained' : 'outlined'}>
-            {t('portalWorkspace.actions.tenant')}
-          </Button>
-          <Button component={Link} to={withDarkPath(pathname, '/portal/landlord')} type="button" variant={key === 'landlord' ? 'contained' : 'outlined'}>
-            {t('portalWorkspace.actions.landlord')}
-          </Button>
-          <Button component={Link} to={withDarkPath(pathname, '/portal/admin')} type="button" variant={key === 'admin' ? 'contained' : 'outlined'}>
-            {t('portalWorkspace.actions.admin')}
-          </Button>
-        </Stack>
-
         {authStatus === 'unconfigured' && (
           <Alert severity="warning">{t('portalWorkspace.authUnconfigured')}</Alert>
         )}
@@ -55,33 +33,12 @@ const PortalWorkspace = ({ role = 'tenant' }) => {
           <Alert severity="info">{t('portalWorkspace.authLoading')}</Alert>
         )}
         {isAuthenticated && meStatus === 'error' && (
-          <Stack spacing={1}>
-            <Alert severity="error">
-              {t('portalWorkspace.authError')} {meError ? `(${meError})` : ''}
-            </Alert>
-            <Stack direction="row" spacing={1.25}>
-              <Button type="button" variant="outlined" onClick={refreshMe}>
-                {t('portalWorkspace.actions.retryAuth')}
-              </Button>
-              <Button type="button" variant="outlined" onClick={signOut}>
-                {t('portalWorkspace.actions.signOut')}
-              </Button>
-            </Stack>
-          </Stack>
+          <Alert severity="error">
+            {t('portalWorkspace.authError')} {meError ? `(${meError})` : ''}
+          </Alert>
         )}
         {showRoleGuard && (
           <Alert severity="error">{t('portalWorkspace.authForbidden')}</Alert>
-        )}
-        {isAuthenticated && meStatus === 'ok' && (
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-            <Chip size="small" color="success" label={t('portalWorkspace.authenticated')} />
-            <Typography color="text.secondary">
-              {t('portalWorkspace.accountSummary', {
-                subject: displayName,
-                role: userRole || '-',
-              })}
-            </Typography>
-          </Stack>
         )}
 
         <Box
