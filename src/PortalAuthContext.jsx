@@ -237,9 +237,18 @@ export const PortalAuthProvider = ({ children }) => {
         });
 
         if (!res.ok) {
+          let errorCode = '';
+          try {
+            const payload = await res.json();
+            if (payload && typeof payload.error === 'string') {
+              errorCode = payload.error;
+            }
+          } catch {
+            // Best-effort parse; keep HTTP status if body is not JSON.
+          }
           setMeStatus('error');
           setMeData(null);
-          setMeError(`HTTP ${res.status}`);
+          setMeError(errorCode ? `HTTP ${res.status} (${errorCode})` : `HTTP ${res.status}`);
           return;
         }
         const payload = await res.json();
