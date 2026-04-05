@@ -49,7 +49,7 @@ SELECT TOP 1
   @roleCheckDefinition = cc.definition
 FROM sys.check_constraints cc
 WHERE cc.parent_object_id = OBJECT_ID('dbo.users')
-  AND cc.definition LIKE '%[role]%';
+  AND cc.definition LIKE '%\[role\]%' ESCAPE '\';
 
 IF @roleConstraintName IS NULL
 BEGIN
@@ -60,11 +60,15 @@ END
 ELSE IF @roleCheckDefinition NOT LIKE '%''LANDLORD''%'
         OR @roleCheckDefinition LIKE '%''VENDOR''%'
 BEGIN
+  DECLARE @dropRoleConstraintSql NVARCHAR(MAX);
+
   UPDATE dbo.users
   SET role = 'LANDLORD'
   WHERE role = 'VENDOR';
 
-  EXEC(N'ALTER TABLE dbo.users DROP CONSTRAINT ' + QUOTENAME(@roleConstraintName) + ';');
+  SET @dropRoleConstraintSql =
+    N'ALTER TABLE dbo.users DROP CONSTRAINT ' + QUOTENAME(@roleConstraintName);
+  EXEC sp_executesql @dropRoleConstraintSql;
 
   ALTER TABLE dbo.users
   ADD CONSTRAINT ck_users_role
