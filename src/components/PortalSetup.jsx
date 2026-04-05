@@ -129,14 +129,8 @@ const PortalSetup = () => {
           <Button component={Link} to={withDarkPath(pathname, '/')} type="button" variant="text">
             {t('portalWorkspace.actions.backToSite')}
           </Button>
-          <Button component={Link} to={withDarkPath(pathname, '/portal/tenant')} type="button" variant="outlined">
-            {t('portalSetup.actions.openTenant')}
-          </Button>
-          <Button component={Link} to={withDarkPath(pathname, '/portal/landlord')} type="button" variant="outlined">
-            {t('portalSetup.actions.openLandlord')}
-          </Button>
-          <Button component={Link} to={withDarkPath(pathname, '/portal/admin')} type="button" variant="outlined">
-            {t('portalSetup.actions.openAdmin')}
+          <Button component={Link} to={withDarkPath(pathname, '/portal/workspace')} type="button" variant="outlined">
+            {t('portalSetup.actions.openWorkspace')}
           </Button>
         </Stack>
 

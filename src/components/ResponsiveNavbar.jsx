@@ -202,14 +202,10 @@ const ResponsiveNavbar = () => {
     const portalRole = resolveRole(meData, account);
     const portalAccountName = resolveDisplayName(meData, account, t('portalHeader.notSignedIn'));
     const normalizedPortalRole = normalizeRole(portalRole);
-    const accountPortalLinks = normalizedPortalRole === 'ADMIN'
-        ? [
-            { to: '/portal', label: t('portalHeader.nav.setup') },
-            { to: '/portal/admin', label: t('portalHeader.nav.admin') },
-        ]
-        : normalizedPortalRole === 'LANDLORD'
-            ? [{ to: '/portal/landlord', label: t('portalHeader.nav.landlord') }]
-            : [{ to: '/portal/tenant', label: t('portalHeader.nav.tenant') }];
+    const accountPortalLinks = [
+        { to: '/portal', label: t('portalHeader.nav.setup') },
+        { to: '/portal/workspace', label: t('portalHeader.nav.workspace') },
+    ];
 
     const menuHorizontalOrigin = muiTheme.direction === 'rtl' ? 'right' : 'left';
     const menuAnchorOrigin = { vertical: 'bottom', horizontal: menuHorizontalOrigin };
@@ -328,19 +324,19 @@ const ResponsiveNavbar = () => {
         handleAccountOpen(e);
     };
 
-    const canAccessTenantPortal = isAuthenticated && (normalizedPortalRole === 'TENANT' || normalizedPortalRole === 'ADMIN');
+    const canAccessTenantPortal = isAuthenticated && (normalizedPortalRole === 'TENANT' || normalizedPortalRole === 'LANDLORD' || normalizedPortalRole === 'ADMIN');
     const canAccessLandlordPortal = isAuthenticated && (normalizedPortalRole === 'LANDLORD' || normalizedPortalRole === 'ADMIN');
 
     const tenantLinks = [
         { to: '/apply', label: t('tenantLinks.apply') },
         { to: '/tenant-selection-criteria', label: t('tenantLinks.selectionCriteria') },
         { to: '/application-required-documents', label: t('tenantLinks.requiredDocuments') },
-        ...(canAccessTenantPortal ? [{ to: '/portal/tenant', label: t('tenantLinks.tenantPortal') }] : []),
+        ...(canAccessTenantPortal ? [{ to: '/portal/workspace', label: t('tenantLinks.tenantPortal') }] : []),
     ];
 
     const landlordLinks = [
         { to: '/property-management', label: t('landlordLinks.propertyManagement') },
-        ...(canAccessLandlordPortal ? [{ to: '/portal/admin', label: t('landlordLinks.landlordPortal') }] : []),
+        ...(canAccessLandlordPortal ? [{ to: '/portal/workspace', label: t('landlordLinks.landlordPortal') }] : []),
     ];
 
     const legalLinks = [

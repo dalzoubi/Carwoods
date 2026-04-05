@@ -25,11 +25,11 @@
     "apply": "Solicitar",
     "selectionCriteria": "Criterios de Selección",
     "requiredDocuments": "Documentos Requeridos",
-    "tenantPortal": "Portal de Inquilino"
+    "tenantPortal": "Espacio del Portal"
   },
   "landlordLinks": {
     "propertyManagement": "Administración de Propiedades",
-    "landlordPortal": "Portal del Propietario"
+    "landlordPortal": "Espacio del Portal"
   },
   "appearance": {
     "colorTheme": "Tema de color",
@@ -636,7 +636,7 @@
     "title": "Carwoods - Configuración del Portal",
     "metaDescription": "Comprobaciones de configuración del portal de mantenimiento para conectividad API y acceso autenticado.",
     "heading": "Configuración del Portal de Mantenimiento",
-    "intro": "Use estas comprobaciones para validar la conectividad API antes de crear las pantallas del portal de inquilino, propietario y administrador.",
+    "intro": "Use estas comprobaciones para validar la conectividad API antes de crear widgets del portal según el rol.",
     "apiBaseMissing": "Configure VITE_API_BASE_URL en su archivo .env raíz para habilitar las comprobaciones de API del portal.",
     "apiBaseHeading": "URL base de la API del portal",
     "healthHeading": "Comprobación del endpoint de salud",
@@ -646,6 +646,7 @@
     "actions": {
       "checkHealth": "Comprobar salud",
       "checkMe": "Comprobar /portal/me",
+      "openWorkspace": "Abrir espacio del portal",
       "openTenant": "Abrir espacio de inquilino",
       "openLandlord": "Abrir espacio de propietario",
       "openAdmin": "Abrir espacio de administrador",
@@ -733,6 +734,7 @@
     "notSignedIn": "Sin sesión iniciada",
     "nav": {
       "setup": "Configuración",
+      "workspace": "Espacio",
       "tenant": "Inquilino",
       "landlord": "Propietario",
       "admin": "Administrador"

@@ -25,11 +25,11 @@
     "apply": "Apply",
     "selectionCriteria": "Selection Criteria",
     "requiredDocuments": "Required Documents",
-    "tenantPortal": "Tenant Portal"
+    "tenantPortal": "Portal Workspace"
   },
   "landlordLinks": {
     "propertyManagement": "Property Management",
-    "landlordPortal": "Landlord Portal"
+    "landlordPortal": "Portal Workspace"
   },
   "appearance": {
     "colorTheme": "Color theme",
@@ -636,7 +636,7 @@
     "title": "Carwoods - Portal Setup",
     "metaDescription": "Maintenance portal setup checks for API connectivity and authenticated access.",
     "heading": "Maintenance Portal Setup",
-    "intro": "Use these checks to validate API connectivity before building tenant, landlord, and admin portal screens.",
+    "intro": "Use these checks to validate API connectivity before building role-based portal widgets.",
     "apiBaseMissing": "Set VITE_API_BASE_URL in your root .env file to enable portal API checks.",
     "apiBaseHeading": "Portal API base URL",
     "healthHeading": "Health endpoint check",
@@ -646,6 +646,7 @@
     "actions": {
       "checkHealth": "Check health",
       "checkMe": "Check /portal/me",
+      "openWorkspace": "Open portal workspace",
       "openTenant": "Open tenant workspace",
       "openLandlord": "Open landlord workspace",
       "openAdmin": "Open admin workspace",
@@ -733,6 +734,7 @@
     "notSignedIn": "Not signed in",
     "nav": {
       "setup": "Setup",
+      "workspace": "Workspace",
       "tenant": "Tenant",
       "landlord": "Landlord",
       "admin": "Admin"

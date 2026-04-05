@@ -4,21 +4,34 @@ import { useTranslation } from 'react-i18next';
 import { hasLandlordAccess, usePortalAuth } from '../PortalAuthContext';
 import { resolveRole } from '../portalUtils';
 
-function roleKey(role) {
+function roleKeyForUser(role) {
   if (role === 'admin') return 'admin';
   if (role === 'landlord') return 'landlord';
   return 'tenant';
 }
 
-const PortalWorkspace = ({ role = 'tenant' }) => {
+function normalizeRoleForWorkspace(role) {
+  const normalized = String(role ?? '').trim().toUpperCase();
+  if (normalized === 'ADMIN') return 'admin';
+  if (normalized === 'LANDLORD') return 'landlord';
+  return 'tenant';
+}
+
+function visibleWidgetKeys(role) {
+  const keys = ['tenant'];
+  const normalized = String(role ?? '').trim().toUpperCase();
+  if (hasLandlordAccess(normalized)) keys.push('landlord');
+  if (normalized === 'ADMIN') keys.push('admin');
+  return keys;
+}
+
+const PortalWorkspace = () => {
   const { t } = useTranslation();
   const { authStatus, isAuthenticated, account, meStatus, meData, meError } = usePortalAuth();
-  const key = roleKey(role);
   const userRole = resolveRole(meData, account);
-  const isAdminAllowed = userRole === 'ADMIN';
-  const isLandlordAllowed = hasLandlordAccess(userRole);
-  const showRoleGuard = meStatus === 'ok'
-    && ((key === 'admin' && !isAdminAllowed) || (key === 'landlord' && !isLandlordAllowed));
+  const normalizedRole = normalizeRoleForWorkspace(userRole);
+  const key = roleKeyForUser(normalizedRole);
+  const widgetKeys = visibleWidgetKeys(userRole);
 
   return (
     <Box sx={{ py: 4 }}>
@@ -37,9 +50,6 @@ const PortalWorkspace = ({ role = 'tenant' }) => {
             {t('portalWorkspace.authError')} {meError ? `(${meError})` : ''}
           </Alert>
         )}
-        {showRoleGuard && (
-          <Alert severity="error">{t('portalWorkspace.authForbidden')}</Alert>
-        )}
 
         <Box
           sx={{
@@ -55,14 +65,38 @@ const PortalWorkspace = ({ role = 'tenant' }) => {
               {t(`portalWorkspace.${key}.heading`)}
             </Typography>
             <Typography color="text.secondary">{t(`portalWorkspace.${key}.intro`)}</Typography>
-            <Typography sx={{ fontWeight: 600 }}>{t('portalWorkspace.nextHeading')}</Typography>
-            <ul style={{ margin: 0 }}>
-              <li>{t(`portalWorkspace.${key}.next1`)}</li>
-              <li>{t(`portalWorkspace.${key}.next2`)}</li>
-              <li>{t(`portalWorkspace.${key}.next3`)}</li>
-            </ul>
           </Stack>
         </Box>
+
+        {isAuthenticated && meStatus === 'ok' && (
+          <Stack spacing={2}>
+            {widgetKeys.map((widgetKey) => (
+              <Box
+                key={widgetKey}
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  p: 2.5,
+                  backgroundColor: 'background.paper',
+                }}
+              >
+                <Stack spacing={1.25}>
+                  <Typography variant="h2" sx={{ fontSize: '1.3rem' }}>
+                    {t(`portalWorkspace.${widgetKey}.heading`)}
+                  </Typography>
+                  <Typography color="text.secondary">{t(`portalWorkspace.${widgetKey}.intro`)}</Typography>
+                  <Typography sx={{ fontWeight: 600 }}>{t('portalWorkspace.nextHeading')}</Typography>
+                  <ul style={{ margin: 0 }}>
+                    <li>{t(`portalWorkspace.${widgetKey}.next1`)}</li>
+                    <li>{t(`portalWorkspace.${widgetKey}.next2`)}</li>
+                    <li>{t(`portalWorkspace.${widgetKey}.next3`)}</li>
+                  </ul>
+                </Stack>
+              </Box>
+            ))}
+          </Stack>
+        )}
       </Stack>
     </Box>
   );

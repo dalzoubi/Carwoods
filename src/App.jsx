@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useMemo } from 'react';
 import { Analytics } from '@vercel/analytics/react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Navigate, Routes, Route, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell, Container, Content, scrollToHashAnchor } from './styles';
 import Home from './components/Home';
@@ -62,9 +62,10 @@ function PageRoutes() {
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/accessibility" element={<Accessibility />} />
             <Route path="/portal" element={<PortalSetup />} />
-            <Route path="/portal/tenant" element={<PortalWorkspace role="tenant" />} />
-            <Route path="/portal/landlord" element={<PortalWorkspace role="landlord" />} />
-            <Route path="/portal/admin" element={<PortalWorkspace role="admin" />} />
+            <Route path="/portal/workspace" element={<PortalWorkspace />} />
+            <Route path="/portal/tenant" element={<Navigate to="/portal/workspace" replace />} />
+            <Route path="/portal/landlord" element={<Navigate to="/portal/workspace" replace />} />
+            <Route path="/portal/admin" element={<Navigate to="/portal/workspace" replace />} />
         </Routes>
     );
 }

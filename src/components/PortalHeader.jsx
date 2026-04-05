@@ -15,9 +15,7 @@ const PortalHeader = () => {
   const { t } = useTranslation();
   const strippedPath = stripDarkPreviewPrefix(pathname);
   const isSetup = strippedPath === '/portal';
-  const isTenant = strippedPath === '/portal/tenant';
-  const isLandlord = strippedPath === '/portal/landlord';
-  const isAdmin = strippedPath === '/portal/admin';
+  const isWorkspace = strippedPath === '/portal/workspace';
 
   return (
     <AppBar
@@ -52,14 +50,8 @@ const PortalHeader = () => {
           <Button component={Link} to={withDarkPath(pathname, '/portal')} variant={isSetup ? 'contained' : 'text'} type="button">
             {t('portalHeader.nav.setup')}
           </Button>
-          <Button component={Link} to={withDarkPath(pathname, '/portal/tenant')} variant={isTenant ? 'contained' : 'text'} type="button">
-            {t('portalHeader.nav.tenant')}
-          </Button>
-          <Button component={Link} to={withDarkPath(pathname, '/portal/landlord')} variant={isLandlord ? 'contained' : 'text'} type="button">
-            {t('portalHeader.nav.landlord')}
-          </Button>
-          <Button component={Link} to={withDarkPath(pathname, '/portal/admin')} variant={isAdmin ? 'contained' : 'text'} type="button">
-            {t('portalHeader.nav.admin')}
+          <Button component={Link} to={withDarkPath(pathname, '/portal/workspace')} variant={isWorkspace ? 'contained' : 'text'} type="button">
+            {t('portalHeader.nav.workspace')}
           </Button>
         </Stack>
       </Toolbar>

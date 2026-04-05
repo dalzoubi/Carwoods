@@ -25,11 +25,11 @@
     "apply": "Postuler",
     "selectionCriteria": "Critères de sélection",
     "requiredDocuments": "Documents requis",
-    "tenantPortal": "Portail locataire"
+    "tenantPortal": "Espace portail"
   },
   "landlordLinks": {
     "propertyManagement": "Gestion immobilière",
-    "landlordPortal": "Portail propriétaire"
+    "landlordPortal": "Espace portail"
   },
   "appearance": {
     "colorTheme": "Thème de couleur",
@@ -636,7 +636,7 @@
     "title": "Carwoods - Configuration du Portail",
     "metaDescription": "Vérifications de configuration du portail de maintenance pour la connectivité API et l'accès authentifié.",
     "heading": "Configuration du Portail de Maintenance",
-    "intro": "Utilisez ces vérifications pour valider la connectivité API avant de créer les écrans des portails locataire, propriétaire et admin.",
+    "intro": "Utilisez ces vérifications pour valider la connectivité API avant de créer des widgets de portail selon le role.",
     "apiBaseMissing": "Définissez VITE_API_BASE_URL dans votre fichier .env à la racine pour activer les vérifications API du portail.",
     "apiBaseHeading": "URL de base de l'API du portail",
     "healthHeading": "Vérification de l'endpoint de santé",
@@ -646,6 +646,7 @@
     "actions": {
       "checkHealth": "Vérifier la santé",
       "checkMe": "Vérifier /portal/me",
+      "openWorkspace": "Ouvrir l'espace portail",
       "openTenant": "Ouvrir l'espace locataire",
       "openLandlord": "Ouvrir l'espace propriétaire",
       "openAdmin": "Ouvrir l'espace admin",
@@ -733,6 +734,7 @@
     "notSignedIn": "Non connecté",
     "nav": {
       "setup": "Configuration",
+      "workspace": "Espace",
       "tenant": "Locataire",
       "landlord": "Propriétaire",
       "admin": "Admin"

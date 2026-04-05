@@ -25,11 +25,11 @@
     "apply": "تقديم الطلب",
     "selectionCriteria": "معايير الاختيار",
     "requiredDocuments": "المستندات المطلوبة",
-    "tenantPortal": "بوابة المستأجر"
+    "tenantPortal": "مساحة البوابة"
   },
   "landlordLinks": {
     "propertyManagement": "إدارة الممتلكات",
-    "landlordPortal": "بوابة المالك"
+    "landlordPortal": "مساحة البوابة"
   },
   "appearance": {
     "colorTheme": "نظام الألوان",
@@ -636,7 +636,7 @@
     "title": "كارووودز - إعداد البوابة",
     "metaDescription": "فحوصات إعداد بوابة الصيانة للتحقق من اتصال API والوصول الموثق.",
     "heading": "إعداد بوابة الصيانة",
-    "intro": "استخدم هذه الفحوصات للتحقق من اتصال API قبل بناء شاشات بوابة المستأجر والمالك والإدارة.",
+    "intro": "استخدم هذه الفحوصات للتحقق من اتصال API قبل بناء عناصر واجهة البوابة حسب الدور.",
     "apiBaseMissing": "عيّن VITE_API_BASE_URL في ملف .env الجذر لتفعيل فحوصات API الخاصة بالبوابة.",
     "apiBaseHeading": "عنوان API الأساسي للبوابة",
     "healthHeading": "فحص نقطة الصحة",
@@ -646,6 +646,7 @@
     "actions": {
       "checkHealth": "فحص الصحة",
       "checkMe": "فحص /portal/me",
+      "openWorkspace": "فتح مساحة البوابة",
       "openTenant": "فتح مساحة المستأجر",
       "openLandlord": "فتح مساحة المالك",
       "openAdmin": "فتح مساحة الإدارة",
@@ -733,6 +734,7 @@
     "notSignedIn": "لم يتم تسجيل الدخول",
     "nav": {
       "setup": "الإعداد",
+      "workspace": "المساحة",
       "tenant": "المستأجر",
       "landlord": "المالك",
       "admin": "الإدارة"
