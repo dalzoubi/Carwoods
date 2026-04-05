@@ -27,6 +27,8 @@
   "scripts": {
     "predev": "node scripts/generatePublicIcons.mjs",
     "dev": "vite",
+    "dev:portal": "vite --mode portal",
+    "dev:portal:local": "powershell -NoProfile -ExecutionPolicy Bypass -File \"scripts/start-local-portal.ps1\"",
     "prestart": "node scripts/generatePublicIcons.mjs",
     "start": "vite",
     "predeploy": "npm run build",

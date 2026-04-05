@@ -32,6 +32,7 @@ packages/domain/dist
 packages/config/dist
 .env
 !.env.example
+.env.portal.local
 packages/config/node_modules/
 apps/api/node_modules/
 packages/domain/node_modules/

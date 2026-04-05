@@ -26,6 +26,7 @@ import SettingsBrightness from '@mui/icons-material/SettingsBrightness';
 import RestartAlt from '@mui/icons-material/RestartAlt';
 import Print from '@mui/icons-material/Print';
 import Language from '@mui/icons-material/Language';
+import Gavel from '@mui/icons-material/Gavel';
 import { NavLink } from '../styles';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useThemeMode } from '../ThemeModeContext';
@@ -262,36 +263,23 @@ const ResponsiveNavbar = () => {
                 sx={{ textTransform: 'none', fontWeight: 700, fontSize: isMobile ? '0.75rem' : '0.8rem', px: isMobile ? 1 : 1.25 }}
             >
                 {isAuthenticated
-                    ? (isMobile ? t('nav.account') : `${t('nav.account')} (${roleLabel(portalRole, t)})`)
+                    ? `${portalAccountName} (${roleLabel(portalRole, t)})`
                     : t('portalHeader.actions.signIn')}
             </Button>
             {!isMobile ? (
                 <IconButton
-                    component="span"
-                    disableRipple
+                    color="inherit"
+                    type="button"
+                    size="small"
                     id="legal-menu-button"
                     onClick={handleLegalOpen}
                     aria-haspopup="true"
                     aria-expanded={Boolean(legalAnchor)}
                     aria-controls={legalAnchor ? 'legal-menu' : undefined}
                     aria-label={t('nav.legal')}
-                    sx={{
-                        color: 'inherit',
-                        padding: '0.2rem 0.45rem',
-                        fontWeight: 500,
-                        fontSize: '0.78rem',
-                        borderRadius: '4px',
-                        '&:hover': {
-                            backgroundColor: 'var(--nav-chrome-hover-bg)',
-                        },
-                        '&.Mui-focusVisible': {
-                            outline: '2px solid var(--nav-chrome-focus-ring)',
-                            outlineOffset: 2,
-                        },
-                    }}
+                    sx={toolbarChromeIconButtonSx}
                 >
-                    <span style={{ marginInlineEnd: '0.15rem' }}>{t('nav.legal')}</span>
-                    <KeyboardArrowDown sx={{ fontSize: '0.9rem' }} />
+                    <Gavel aria-hidden />
                 </IconButton>
             ) : null}
             {showPrintButton ? (
