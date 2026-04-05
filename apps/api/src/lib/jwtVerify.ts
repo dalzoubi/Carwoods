@@ -4,6 +4,7 @@ import { getOpenIdMetadata } from './openIdMetadata.js';
 export type AccessTokenClaims = {
   sub: string;
   oid?: string;
+  name?: string;
   role?: string;
   roles?: string[];
   app_roles?: string[];
@@ -97,6 +98,7 @@ export async function verifyAccessToken(token: string): Promise<AccessTokenClaim
   return {
     sub,
     oid: readString(payload.oid),
+    name: readString(payload.name),
     role: readString(payload.role),
     roles: readStringArray(payload.roles),
     app_roles: readStringArray(payload.app_roles),

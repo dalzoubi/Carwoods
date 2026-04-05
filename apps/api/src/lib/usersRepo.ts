@@ -26,6 +26,37 @@ function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
+function normalizeNamePart(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function deriveNamesFromClaims(claims: AccessTokenClaims): { firstName: string | null; lastName: string | null } {
+  const firstName = normalizeNamePart(claims.given_name);
+  const lastName = normalizeNamePart(claims.family_name);
+  if (firstName || lastName) {
+    return { firstName, lastName };
+  }
+
+  const displayName = normalizeNamePart(claims.name);
+  if (!displayName) {
+    return { firstName: null, lastName: null };
+  }
+
+  const parts = displayName.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return { firstName: null, lastName: null };
+  }
+  if (parts.length === 1) {
+    return { firstName: parts[0], lastName: null };
+  }
+  return {
+    firstName: parts[0],
+    lastName: parts.slice(1).join(' '),
+  };
+}
+
 export async function findUserBySubject(
   client: Queryable,
   externalAuthOid: string
@@ -52,6 +83,18 @@ export async function findUserByEmail(
   return r.rows[0] ?? null;
 }
 
+export async function findUserById(
+  client: Queryable,
+  id: string
+): Promise<UserRow | null> {
+  const r = await client.query<UserRow>(
+    `SELECT id, external_auth_oid, email, first_name, last_name, phone, role, status
+     FROM users WHERE id = $1`,
+    [id]
+  );
+  return r.rows[0] ?? null;
+}
+
 /**
  * Links a token subject (oid or sub) to an existing user row so future
  * logins match instantly by subject instead of requiring the email claim.
@@ -72,6 +115,26 @@ export async function linkSubjectToUser(
   );
 }
 
+export async function syncUserProfileFromClaims(
+  client: Queryable,
+  userId: string,
+  claims: AccessTokenClaims
+): Promise<void> {
+  const { firstName, lastName } = deriveNamesFromClaims(claims);
+  if (!firstName && !lastName) {
+    return;
+  }
+
+  await client.query(
+    `UPDATE users
+        SET first_name = COALESCE(NULLIF($2, ''), first_name),
+            last_name = COALESCE(NULLIF($3, ''), last_name),
+            updated_at = GETUTCDATE()
+      WHERE id = $1`,
+    [userId, firstName, lastName]
+  );
+}
+
 export async function findUserByClaims(
   client: Queryable,
   claims: AccessTokenClaims
@@ -83,7 +146,10 @@ export async function findUserByClaims(
   );
   for (const subject of subjectCandidates) {
     const bySubject = await findUserBySubject(client, subject);
-    if (bySubject) return bySubject;
+    if (bySubject) {
+      await syncUserProfileFromClaims(client, bySubject.id, claims);
+      return findUserBySubject(client, subject);
+    }
   }
 
   const emailCandidates = [
@@ -97,7 +163,8 @@ export async function findUserByClaims(
       if (preferredSubject) {
         await linkSubjectToUser(client, byEmail.id, preferredSubject);
       }
-      return byEmail;
+      await syncUserProfileFromClaims(client, byEmail.id, claims);
+      return findUserById(client, byEmail.id);
     }
   }
 
