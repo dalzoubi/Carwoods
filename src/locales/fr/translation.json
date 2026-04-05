@@ -17,7 +17,9 @@
     "mainNavigation": "Navigation principale",
     "siteMenu": "Menu du site",
     "tenantMenu": "Menu locataire",
-    "landlordMenu": "Menu propriétaire"
+    "landlordMenu": "Menu propriétaire",
+    "legalMenu": "Menu des mentions légales",
+    "print": "Imprimer cette page"
   },
   "tenantLinks": {
     "apply": "Postuler",

@@ -17,7 +17,9 @@
     "mainNavigation": "Main navigation",
     "siteMenu": "Site menu",
     "tenantMenu": "Tenant menu",
-    "landlordMenu": "Landlord menu"
+    "landlordMenu": "Landlord menu",
+    "legalMenu": "Legal menu",
+    "print": "Print this page"
   },
   "tenantLinks": {
     "apply": "Apply",

@@ -17,7 +17,9 @@
     "mainNavigation": "التنقل الرئيسي",
     "siteMenu": "قائمة الموقع",
     "tenantMenu": "قائمة المستأجر",
-    "landlordMenu": "قائمة المالك"
+    "landlordMenu": "قائمة المالك",
+    "legalMenu": "القائمة القانونية",
+    "print": "طباعة هذه الصفحة"
   },
   "tenantLinks": {
     "apply": "تقديم الطلب",

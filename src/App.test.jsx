@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import App from './App';
 import { ThemeModeProvider } from './ThemeModeContext';
 import { LanguageProvider } from './LanguageContext';
+import { PortalAuthProvider } from './PortalAuthContext';
 import { WithAppTheme } from './testUtils';
 
 const renderWithProviders = (ui) => render(
@@ -50,7 +51,9 @@ describe('App', () => {
       <MemoryRouter initialEntries={['/dark/apply']}>
         <LanguageProvider>
           <ThemeModeProvider>
-            <App />
+            <PortalAuthProvider>
+              <App />
+            </PortalAuthProvider>
           </ThemeModeProvider>
         </LanguageProvider>
       </MemoryRouter>

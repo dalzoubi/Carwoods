@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeModeProvider } from '../ThemeModeContext';
 import { LanguageProvider } from '../LanguageContext';
+import { PortalAuthProvider } from '../PortalAuthContext';
 import { WithAppTheme } from '../testUtils';
 import ResponsiveNavbar from './ResponsiveNavbar';
 import i18n from '../i18n';
@@ -16,7 +17,9 @@ const renderNavAt = (path) =>
     <MemoryRouter initialEntries={[path]}>
       <LanguageProvider>
         <ThemeModeProvider>
-          <ResponsiveNavbar />
+          <PortalAuthProvider>
+            <ResponsiveNavbar />
+          </PortalAuthProvider>
         </ThemeModeProvider>
       </LanguageProvider>
     </MemoryRouter>
@@ -39,7 +42,8 @@ describe('ResponsiveNavbar', () => {
 
   it('renders Home and Contact Us links', () => {
     renderWithProviders(<ResponsiveNavbar />);
-    expect(screen.getByRole('link', { name: /^home$/i })).toBeInTheDocument();
+    // Logo link and nav text link both have aria-label/text "Home"; confirm at least one exists.
+    expect(screen.getAllByRole('link', { name: /^home$/i }).length).toBeGreaterThan(0);
     expect(screen.getByRole('link', { name: /contact us/i })).toBeInTheDocument();
   });
 

@@ -1,8 +1,14 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Apply from './Apply';
 import { RENTAL_APPLY_PROPERTIES } from '../data/rentalPropertyApplyTiles.generated';
+
+// Ensure tiles come from the generated file regardless of VITE_API_BASE_URL in .env.
+vi.mock('../featureFlags', async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, FEATURE_APPLY_FROM_API: false, FEATURE_APPLY_DUAL_SOURCE_COMPARE_DEV: false };
+});
 
 function mapsSearchUrl(addressLine, cityStateZip) {
   const query = [addressLine, cityStateZip].filter(Boolean).join(', ');
