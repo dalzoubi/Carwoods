@@ -207,6 +207,7 @@ const ResponsiveNavbar = () => {
 
     const showAppearanceMenu = darkThemeFeatureEnabled || isDarkPreviewPath;
     const showPrintButton = isPrintablePageRoute(pathname);
+    const normalizedPathname = stripDarkPreviewPrefix(pathname);
     const stableMenuProps = {
         disableScrollLock: true,
         disableAutoFocusItem: true,
@@ -348,6 +349,7 @@ const ResponsiveNavbar = () => {
         { to: '/terms-of-service', label: t('nav.terms') },
         { to: '/accessibility', label: t('nav.accessibility') },
     ];
+    const isRouteActive = (to) => normalizedPathname === to;
 
     const showToolbarActions = showPrintButton || showAppearanceMenu || true; // language always shown
     const isCompactAccountIcon = isMobile && isAuthenticated;
@@ -512,9 +514,9 @@ const ResponsiveNavbar = () => {
             <nav aria-label={t('nav.home')}>
                 <List disablePadding>
                     <ListItemButton
-                        component={NavLink}
+                        component={RouterLink}
                         to={withDarkPath(pathname, '/')}
-                        className={({ isActive }) => (isActive ? 'active' : '')}
+                        selected={isRouteActive('/')}
                         onClick={handleDrawerToggle}
                         sx={listItemButtonSx}
                     >
@@ -527,9 +529,9 @@ const ResponsiveNavbar = () => {
                     {tenantLinks.map(({ to, label }) => (
                         <ListItemButton
                             key={to}
-                            component={NavLink}
+                            component={RouterLink}
                             to={withDarkPath(pathname, to)}
-                            className={({ isActive }) => (isActive ? 'active' : '')}
+                            selected={isRouteActive(to)}
                             onClick={handleDrawerToggle}
                             sx={{
                                 pl: 3,
@@ -546,9 +548,9 @@ const ResponsiveNavbar = () => {
                     {landlordLinks.map(({ to, label }) => (
                         <ListItemButton
                             key={to}
-                            component={NavLink}
+                            component={RouterLink}
                             to={withDarkPath(pathname, to)}
-                            className={({ isActive }) => (isActive ? 'active' : '')}
+                            selected={isRouteActive(to)}
                             onClick={handleDrawerToggle}
                             sx={{
                                 pl: 3,
@@ -560,9 +562,9 @@ const ResponsiveNavbar = () => {
                     ))}
 
                     <ListItemButton
-                        component={NavLink}
+                        component={RouterLink}
                         to={withDarkPath(pathname, '/contact-us')}
-                        className={({ isActive }) => (isActive ? 'active' : '')}
+                        selected={isRouteActive('/contact-us')}
                         onClick={handleDrawerToggle}
                         sx={listItemButtonSx}
                     >
@@ -612,9 +614,9 @@ const ResponsiveNavbar = () => {
                     {legalLinks.map(({ to, label }) => (
                         <ListItemButton
                             key={to}
-                            component={NavLink}
+                            component={RouterLink}
                             to={withDarkPath(pathname, to)}
-                            className={({ isActive }) => (isActive ? 'active' : '')}
+                            selected={isRouteActive(to)}
                             onClick={handleDrawerToggle}
                             sx={{
                                 pl: 3,
@@ -781,9 +783,9 @@ const ResponsiveNavbar = () => {
                                     {tenantLinks.map(({ to, label }) => (
                                         <MenuItem
                                             key={to}
-                                            component={NavLink}
+                                            component={RouterLink}
                                             to={withDarkPath(pathname, to)}
-                                            className={({ isActive }) => (isActive ? 'active' : '')}
+                                            selected={isRouteActive(to)}
                                             onClick={handleTenantClose}
                                             sx={{
                                                 color: 'text.secondary',
@@ -791,7 +793,7 @@ const ResponsiveNavbar = () => {
                                                     backgroundColor: 'var(--menu-item-hover-bg)',
                                                     color: 'var(--menu-item-hover-fg)',
                                                 },
-                                                '&.active': {
+                                                '&.Mui-selected': {
                                                     backgroundColor: 'var(--menu-item-active-bg)',
                                                     color: 'var(--menu-item-active-fg)',
                                                 },
@@ -845,9 +847,9 @@ const ResponsiveNavbar = () => {
                                     {landlordLinks.map(({ to, label }) => (
                                         <MenuItem
                                             key={to}
-                                            component={NavLink}
+                                            component={RouterLink}
                                             to={withDarkPath(pathname, to)}
-                                            className={({ isActive }) => (isActive ? 'active' : '')}
+                                            selected={isRouteActive(to)}
                                             onClick={handleLandlordClose}
                                             sx={{
                                                 color: 'text.secondary',
@@ -855,7 +857,7 @@ const ResponsiveNavbar = () => {
                                                     backgroundColor: 'var(--menu-item-hover-bg)',
                                                     color: 'var(--menu-item-hover-fg)',
                                                 },
-                                                '&.active': {
+                                                '&.Mui-selected': {
                                                     backgroundColor: 'var(--menu-item-active-bg)',
                                                     color: 'var(--menu-item-active-fg)',
                                                 },
@@ -974,9 +976,9 @@ const ResponsiveNavbar = () => {
                 {legalLinks.map(({ to, label }) => (
                     <MenuItem
                         key={to}
-                        component={NavLink}
+                        component={RouterLink}
                         to={withDarkPath(pathname, to)}
-                        className={({ isActive }) => (isActive ? 'active' : '')}
+                        selected={isRouteActive(to)}
                         onClick={handleLegalClose}
                         sx={{
                             color: 'text.secondary',
@@ -984,7 +986,7 @@ const ResponsiveNavbar = () => {
                                 backgroundColor: 'var(--menu-item-hover-bg)',
                                 color: 'var(--menu-item-hover-fg)',
                             },
-                            '&.active': {
+                            '&.Mui-selected': {
                                 backgroundColor: 'var(--menu-item-active-bg)',
                                 color: 'var(--menu-item-active-fg)',
                             },
