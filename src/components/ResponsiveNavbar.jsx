@@ -217,6 +217,12 @@ const ResponsiveNavbar = () => {
 
     const showAppearanceMenu = darkThemeFeatureEnabled || isDarkPreviewPath;
     const showPrintButton = isPrintablePageRoute(pathname);
+    const stableMenuProps = {
+        disableScrollLock: true,
+        disableAutoFocusItem: true,
+        disableAutoFocus: true,
+        disableRestoreFocus: true,
+    };
 
     useLayoutEffect(() => {
         const el = appBarRef.current;
@@ -754,6 +760,7 @@ const ResponsiveNavbar = () => {
                                     <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
                                 </IconButton>
                                 <Menu
+                                    {...stableMenuProps}
                                     id="tenant-menu"
                                     anchorEl={tenantAnchor}
                                     open={Boolean(tenantAnchor)}
@@ -817,6 +824,7 @@ const ResponsiveNavbar = () => {
                                     <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
                                 </IconButton>
                                 <Menu
+                                    {...stableMenuProps}
                                     id="landlord-menu"
                                     anchorEl={landlordAnchor}
                                     open={Boolean(landlordAnchor)}
@@ -867,6 +875,7 @@ const ResponsiveNavbar = () => {
             </AppBar>
             {showAppearanceMenu ? (
                 <Menu
+                    {...stableMenuProps}
                     id="appearance-menu"
                     anchorEl={appearanceAnchor}
                     open={Boolean(appearanceAnchor)}
@@ -944,6 +953,7 @@ const ResponsiveNavbar = () => {
                 </Menu>
             ) : null}
             <Menu
+                {...stableMenuProps}
                 id="legal-menu"
                 anchorEl={legalAnchor}
                 open={Boolean(legalAnchor)}
@@ -983,6 +993,7 @@ const ResponsiveNavbar = () => {
                 ))}
             </Menu>
             <Menu
+                {...stableMenuProps}
                 id="language-menu"
                 anchorEl={languageAnchor}
                 open={Boolean(languageAnchor)}
@@ -1041,6 +1052,7 @@ const ResponsiveNavbar = () => {
                 </Typography>
             </Menu>
             <Menu
+                {...stableMenuProps}
                 id="portal-account-menu"
                 anchorEl={accountAnchor}
                 open={isAuthenticated && Boolean(accountAnchor)}
