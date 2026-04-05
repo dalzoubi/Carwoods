@@ -91,12 +91,12 @@ const App = () => {
             <a href="#main-content" className="sr-only sr-only-focusable">
                 {t('skipToMain')}
             </a>
-            {!isPortalShell && <ResponsiveNavbar />}
+            <ResponsiveNavbar />
             {isPortalShell && <PortalHeader />}
             <Container id="main-content">
                 <AppRoutes />
             </Container>
-            {!isPortalShell && <Footer />}
+            <Footer />
             <Analytics />
         </AppShell>
     );

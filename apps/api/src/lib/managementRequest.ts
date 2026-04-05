@@ -68,8 +68,9 @@ export async function requireLandlordOrAdmin(
     };
   }
 
+  const emailHint = request.headers.get('x-email-hint')?.trim() || undefined;
   const pool = getPool();
-  const user = await findUserByClaims(pool, claims);
+  const user = await findUserByClaims(pool, claims, { emailHint });
   if (!user) {
     return {
       ok: false,

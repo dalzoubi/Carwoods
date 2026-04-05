@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { EventType, InteractionRequiredAuthError } from '@azure/msal-browser';
 import { VITE_API_BASE_URL_RESOLVED } from './featureFlags';
 import { ENTRA_AUTH_CONFIGURED, ENTRA_LOGIN_SCOPES, ENTRA_SCOPES, msalInstance } from './entraAuth';
+import { emailFromAccount } from './portalUtils';
 
 const PortalAuthContext = createContext(null);
 const ID_TOKEN_CLAIMS_STORAGE_KEY = 'portal.idTokenClaimsByHomeAccountId';
@@ -226,12 +227,18 @@ export const PortalAuthProvider = ({ children }) => {
           return nextAccount;
         });
 
+        const meHeaders = {
+          Accept: 'application/json',
+          Authorization: `Bearer ${tokenResponse.accessToken}`,
+        };
+        const hint = emailFromAccount(hydrateAccountClaims(tokenResponse.account ?? account));
+        if (hint) {
+          meHeaders['X-Email-Hint'] = hint;
+        }
+
         const res = await fetch(meUrl, {
           method: 'GET',
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${tokenResponse.accessToken}`,
-          },
+          headers: meHeaders,
           credentials: 'omit',
           signal: controller.signal,
         });

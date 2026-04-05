@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Button, Divider, Stack, Typography } from '@mui/material';
+import { Button, Stack } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -88,10 +88,6 @@ const SocialSignInButtons = ({ disabled = false, compact = false }) => {
 
   return (
     <Stack spacing={1.25} sx={{ width: '100%', maxWidth: compact ? 320 : 400 }}>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.25 }}>
-        {t('socialSignIn.prompt')}
-      </Typography>
-
       <Button
         type="button"
         variant="outlined"
@@ -130,14 +126,6 @@ const SocialSignInButtons = ({ disabled = false, compact = false }) => {
       >
         {t('socialSignIn.microsoft')}
       </Button>
-
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, my: 0.5 }}>
-        <Divider sx={{ flex: 1 }} />
-        <Typography variant="caption" color="text.secondary">
-          {t('socialSignIn.orDivider')}
-        </Typography>
-        <Divider sx={{ flex: 1 }} />
-      </Box>
 
       <Button
         type="button"

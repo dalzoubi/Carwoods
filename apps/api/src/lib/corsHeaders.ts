@@ -76,7 +76,7 @@ export function corsHeadersForRequest(request: HttpRequest): Record<string, stri
   const headers: Record<string, string> = {
     Vary: 'Origin',
     'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Accept, Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, Accept, Authorization, X-Email-Hint',
   };
 
   if (allowOrigin) {

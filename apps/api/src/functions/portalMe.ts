@@ -58,11 +58,13 @@ async function portalMeHandler(
     };
   }
 
+  const emailHint = request.headers.get('x-email-hint')?.trim() || undefined;
+
   let user: Awaited<ReturnType<typeof findUserByClaims>> = null;
   if (hasDatabaseUrl()) {
     try {
       const pool = getPool();
-      user = await findUserByClaims(pool, claims);
+      user = await findUserByClaims(pool, claims, { emailHint, logger: context });
     } catch (error) {
       context.warn?.(
         `portalMe DB lookup failed: ${error instanceof Error ? error.message : 'unknown_error'}`

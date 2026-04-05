@@ -4,7 +4,6 @@ import { Alert, Box, Button, Chip, Stack, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { withDarkPath } from '../routePaths';
 import { hasLandlordAccess, usePortalAuth } from '../PortalAuthContext';
-import SocialSignInButtons from './SocialSignInButtons';
 import { resolveDisplayName, resolveRole } from '../portalUtils';
 
 function roleKey(role) {
@@ -72,9 +71,6 @@ const PortalWorkspace = ({ role = 'tenant' }) => {
         )}
         {showRoleGuard && (
           <Alert severity="error">{t('portalWorkspace.authForbidden')}</Alert>
-        )}
-        {!isAuthenticated && authStatus !== 'unconfigured' && (
-          <SocialSignInButtons />
         )}
         {isAuthenticated && meStatus === 'ok' && (
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>

@@ -3,6 +3,8 @@ import {
     AppBar,
     Toolbar,
     IconButton,
+    Button,
+    Chip,
     Drawer,
     List,
     ListItemButton,
@@ -28,8 +30,10 @@ import { NavLink } from '../styles';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useThemeMode } from '../ThemeModeContext';
 import { useLanguage } from '../LanguageContext';
+import { usePortalAuth } from '../PortalAuthContext';
 import { FEATURE_DARK_THEME } from '../featureFlags';
 import { isPrintablePageRoute, stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
+import { normalizeRole, resolveDisplayName, resolveRole } from '../portalUtils';
 import { useTranslation } from 'react-i18next';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
@@ -52,6 +56,15 @@ const toolbarChromeIconButtonSx = {
     },
 };
 
+function roleLabel(role, t) {
+    const normalized = normalizeRole(role);
+    if (normalized === 'ADMIN') return t('portalHeader.roles.admin');
+    if (normalized === 'LANDLORD') return t('portalHeader.roles.landlord');
+    if (normalized === 'TENANT') return t('portalHeader.roles.tenant');
+    if (normalized) return normalized;
+    return t('portalHeader.roles.unknown');
+}
+
 const ResponsiveNavbar = () => {
     const appBarRef = useRef(null);
     const navigate = useNavigate();
@@ -62,6 +75,7 @@ const ResponsiveNavbar = () => {
     const [legalAnchor, setLegalAnchor] = useState(null);
     const [appearanceAnchor, setAppearanceAnchor] = useState(null);
     const [languageAnchor, setLanguageAnchor] = useState(null);
+    const [accountAnchor, setAccountAnchor] = useState(null);
     const [appearanceMenuLabelledBy, setAppearanceMenuLabelledBy] = useState(undefined);
     const [languageMenuLabelledBy, setLanguageMenuLabelledBy] = useState(undefined);
     const muiTheme = useTheme();
@@ -81,7 +95,14 @@ const ResponsiveNavbar = () => {
         storedLanguageOverride,
         resetLanguagePreference,
     } = useLanguage();
+    const { isAuthenticated, account, meData, signIn, signOut } = usePortalAuth();
     const { t } = useTranslation();
+    const strippedPath = stripDarkPreviewPrefix(pathname);
+    const isPortalShell = strippedPath.startsWith('/portal');
+    const portalRole = resolveRole(meData, account);
+    const portalAccountName = resolveDisplayName(meData, account, t('portalHeader.notSignedIn'));
+    const normalizedPortalRole = normalizeRole(portalRole);
+    const roleHomePath = normalizedPortalRole === 'ADMIN' ? '/portal/admin' : normalizedPortalRole === 'LANDLORD' ? '/portal/landlord' : '/portal/tenant';
 
     const menuHorizontalOrigin = muiTheme.direction === 'rtl' ? 'right' : 'left';
     const menuAnchorOrigin = { vertical: 'bottom', horizontal: menuHorizontalOrigin };
@@ -175,6 +196,24 @@ const ResponsiveNavbar = () => {
         setLanguageAnchor(null);
         setLanguageMenuLabelledBy(undefined);
     };
+    const handleAccountOpen = (e) => {
+        setTenantAnchor(null);
+        setLandlordAnchor(null);
+        setLegalAnchor(null);
+        setAppearanceAnchor(null);
+        setLanguageAnchor(null);
+        setAccountAnchor(e.currentTarget);
+    };
+    const handleAccountClose = () => {
+        setAccountAnchor(null);
+    };
+    const handleAccountButtonClick = (e) => {
+        if (!isAuthenticated) {
+            signIn();
+            return;
+        }
+        handleAccountOpen(e);
+    };
 
     const tenantLinks = [
         { to: '/apply', label: t('tenantLinks.apply') },
@@ -205,6 +244,22 @@ const ResponsiveNavbar = () => {
                 ml: { xs: 0, md: 'auto' },
             }}
         >
+            <Button
+                type="button"
+                size={isMobile ? 'small' : 'medium'}
+                variant="contained"
+                color="inherit"
+                id="portal-account-menu-button"
+                aria-haspopup={isAuthenticated ? 'true' : undefined}
+                aria-expanded={isAuthenticated ? Boolean(accountAnchor) : undefined}
+                aria-controls={isAuthenticated && accountAnchor ? 'portal-account-menu' : undefined}
+                onClick={handleAccountButtonClick}
+                sx={{ textTransform: 'none', fontWeight: 700, fontSize: isMobile ? '0.75rem' : '0.8rem', px: isMobile ? 1 : 1.25 }}
+            >
+                {isAuthenticated
+                    ? (isMobile ? t('nav.account') : `${t('nav.account')} (${roleLabel(portalRole, t)})`)
+                    : t('portalHeader.actions.signIn')}
+            </Button>
             {!isMobile ? (
                 <IconButton
                     component="span"
@@ -363,7 +418,6 @@ const ResponsiveNavbar = () => {
                     >
                         <ListItemText primary={t('nav.contactUs')} style={{ color: muiTheme.palette.drawer.text }} />
                     </ListItemButton>
-
                     {showAppearanceMenu ? (
                         <ListItemButton
                             onClick={handleAppearanceOpen}
@@ -838,6 +892,49 @@ const ResponsiveNavbar = () => {
                 <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', color: 'text.secondary', maxWidth: 260 }}>
                     {t('languagePreference.browserLanguageHint')}
                 </Typography>
+            </Menu>
+            <Menu
+                id="portal-account-menu"
+                anchorEl={accountAnchor}
+                open={isAuthenticated && Boolean(accountAnchor)}
+                onClose={handleAccountClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                slotProps={{
+                    paper: {
+                        sx: { backgroundImage: 'none', minWidth: 230 },
+                    },
+                    list: {
+                        ...(isAuthenticated ? { 'aria-labelledby': 'portal-account-menu-button' } : {}),
+                    },
+                }}
+            >
+                <>
+                    <MenuItem sx={{ pointerEvents: 'none', opacity: 1 }}>
+                        <ListItemText
+                            primary={roleLabel(portalRole, t)}
+                            secondary={`${t('portalHeader.status.signedIn')} - ${portalAccountName}`}
+                            secondaryTypographyProps={{ noWrap: true }}
+                        />
+                    </MenuItem>
+                    <Divider />
+                    <MenuItem
+                        onClick={() => {
+                            navigate(withDarkPath(pathname, roleHomePath));
+                            handleAccountClose();
+                        }}
+                    >
+                        {roleLabel(portalRole, t)}
+                    </MenuItem>
+                    <MenuItem
+                        onClick={() => {
+                            signOut();
+                            handleAccountClose();
+                        }}
+                    >
+                        {t('portalHeader.actions.signOut')}
+                    </MenuItem>
+                </>
             </Menu>
         </>
     );

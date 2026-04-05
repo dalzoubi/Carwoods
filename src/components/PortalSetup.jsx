@@ -13,7 +13,6 @@ import {
 import { VITE_API_BASE_URL_RESOLVED } from '../featureFlags';
 import { withDarkPath } from '../routePaths';
 import { usePortalAuth } from '../PortalAuthContext';
-import SocialSignInButtons from './SocialSignInButtons';
 import { emailFromAccount, firstNonEmpty, normalizeRole, resolveRole } from '../portalUtils';
 
 function endpoint(baseUrl, path) {
@@ -221,9 +220,7 @@ const PortalSetup = () => {
                     : t('portalSetup.sessionNotSaved')}
               </Typography>
             </Stack>
-            {!isAuthenticated ? (
-              <SocialSignInButtons compact />
-            ) : (
+            {!isAuthenticated ? null : (
               <Stack direction="row" spacing={1.25} sx={{ flexWrap: 'wrap' }}>
                 <Button type="button" variant="outlined" onClick={signOut}>
                   {t('portalSetup.actions.signOut')}

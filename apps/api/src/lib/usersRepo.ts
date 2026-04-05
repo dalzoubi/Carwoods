@@ -137,9 +137,12 @@ export async function syncUserProfileFromClaims(
 
 export async function findUserByClaims(
   client: Queryable,
-  claims: AccessTokenClaims
+  claims: AccessTokenClaims,
+  options?: { emailHint?: string; logger?: { warn?: (...args: unknown[]) => void } }
 ): Promise<UserRow | null> {
   const preferredSubject = claims.oid ?? claims.sub;
+  const log = options?.logger;
+
   const subjectCandidates = [claims.oid, claims.sub].filter(
     (value, index, arr): value is string =>
       Boolean(value && value.trim().length > 0 && arr.indexOf(value) === index)
@@ -155,13 +158,28 @@ export async function findUserByClaims(
   const emailCandidates = [
     primaryEmailFromClaims(claims),
     ...(claims.emails ?? []),
-  ].filter((value, index, arr): value is string => Boolean(value && arr.indexOf(value) === index));
+    options?.emailHint,
+  ].filter(
+    (value, index, arr): value is string =>
+      Boolean(value && value.trim().length > 0 && arr.indexOf(value) === index)
+  );
+
+  if (emailCandidates.length === 0) {
+    log?.warn?.(
+      'findUserByClaims: no email candidates from token or hint; subject lookup only',
+      { sub: claims.sub, oid: claims.oid }
+    );
+  }
 
   for (const email of emailCandidates) {
     const byEmail = await findUserByEmail(client, email);
     if (byEmail) {
       if (preferredSubject) {
         await linkSubjectToUser(client, byEmail.id, preferredSubject);
+        log?.warn?.(
+          'findUserByClaims: linked subject to pre-seeded user via email fallback',
+          { userId: byEmail.id, email, subject: preferredSubject }
+        );
       }
       await syncUserProfileFromClaims(client, byEmail.id, claims);
       return findUserById(client, byEmail.id);
