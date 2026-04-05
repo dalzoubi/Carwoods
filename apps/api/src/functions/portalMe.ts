@@ -16,7 +16,7 @@ import { findUserByClaims } from '../lib/usersRepo.js';
 
 async function portalMeHandler(
   request: HttpRequest,
-  _context: InvocationContext
+  context: InvocationContext
 ): Promise<HttpResponseInit> {
   const headers = corsHeadersForRequest(request);
   if (request.method === 'OPTIONS') {
@@ -60,12 +60,20 @@ async function portalMeHandler(
 
   let user: Awaited<ReturnType<typeof findUserByClaims>> = null;
   if (hasDatabaseUrl()) {
-    const pool = getPool();
-    const c = await pool.connect();
     try {
-      user = await findUserByClaims(c, claims);
-    } finally {
-      c.release();
+      const pool = getPool();
+      const c = await pool.connect();
+      try {
+        user = await findUserByClaims(c, claims);
+      } finally {
+        c.release();
+      }
+    } catch (error) {
+      // Keep /portal/me available even when DB is temporarily unavailable.
+      context.warn?.(
+        `portalMe DB lookup failed: ${error instanceof Error ? error.message : 'unknown_error'}`
+      );
+      user = null;
     }
   }
 
