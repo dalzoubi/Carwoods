@@ -207,9 +207,16 @@ const ResponsiveNavbar = () => {
     const roleResolved = isAuthenticated && meStatus !== 'loading';
     const isGuestAccount = roleResolved && isGuestRole(normalizedPortalRole);
     const accountPortalLinks = [
-        { to: '/portal', label: t('portalHeader.nav.setup') },
+        ...(normalizedPortalRole === 'ADMIN'
+            ? [{ to: '/portal', label: t('portalHeader.nav.setup') }]
+            : []),
         { to: '/portal/workspace', label: t('portalHeader.nav.workspace') },
+        { to: '/portal/requests', label: t('portalHeader.nav.requests') },
+        ...(normalizedPortalRole === 'ADMIN'
+            ? [{ to: '/portal/admin', label: t('portalHeader.nav.adminLandlords') }]
+            : []),
     ];
+    const visibleAccountPortalLinks = isGuestAccount ? [] : accountPortalLinks;
 
     const menuHorizontalOrigin = muiTheme.direction === 'rtl' ? 'right' : 'left';
     const menuAnchorOrigin = { vertical: 'bottom', horizontal: menuHorizontalOrigin };
@@ -1090,7 +1097,7 @@ const ResponsiveNavbar = () => {
                         <ListItemText primary={`${t('portalHeader.nav.profile')} (${currentPortalRoleLabel})`} />
                     </MenuItem>
                     <Divider />
-                    {accountPortalLinks.map(({ to, label }) => (
+                    {visibleAccountPortalLinks.map(({ to, label }) => (
                         <MenuItem
                             key={to}
                             onClick={() => {

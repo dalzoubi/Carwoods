@@ -21,15 +21,19 @@ export function usePortalRequests({
   const [attachments, setAttachments] = useState([]);
 
   const [tenantForm, setTenantForm] = useState({
-    property_id: '',
-    lease_id: '',
-    category_code: 'GENERAL',
-    priority_code: 'MEDIUM',
+    category_code: '',
+    priority_code: '',
     title: '',
     description: '',
   });
   const [tenantCreateStatus, setTenantCreateStatus] = useState('idle');
   const [tenantCreateError, setTenantCreateError] = useState('');
+  const [lookupStatus, setLookupStatus] = useState('idle');
+  const [lookupError, setLookupError] = useState('');
+  const [lookupContact, setLookupContact] = useState(null);
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [priorityOptions, setPriorityOptions] = useState([]);
+  const [tenantDefaults, setTenantDefaults] = useState(null);
 
   const [managementForm, setManagementForm] = useState({
     status_code: '',
@@ -160,6 +164,100 @@ export function usePortalRequests({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseUrl, isAuthenticated, isGuest, meStatus, listUrl]);
 
+  useEffect(() => {
+    if (!baseUrl || !isAuthenticated || isGuest || isManagement || meStatus !== 'ok') {
+      setLookupStatus('idle');
+      setLookupError('');
+      setLookupContact(null);
+      setCategoryOptions([]);
+      setPriorityOptions([]);
+      setTenantDefaults(null);
+      return;
+    }
+
+    let cancelled = false;
+    const loadLookups = async () => {
+      setLookupStatus('loading');
+      setLookupError('');
+      try {
+        const headers = await headersBuilder();
+        const res = await fetch(endpoint(baseUrl, '/api/portal/request-lookups'), {
+          method: 'GET',
+          headers,
+          credentials: 'omit',
+        });
+        if (!res.ok) throw new Error(await parseErrorResponse(res));
+        const payload = await res.json();
+        if (cancelled) return;
+        const categories = Array.isArray(payload?.categories) ? payload.categories : [];
+        const priorities = Array.isArray(payload?.priorities) ? payload.priorities : [];
+        const landlordContact = payload?.landlord_contact
+          && typeof payload.landlord_contact === 'object'
+          && typeof payload.landlord_contact.email === 'string'
+          ? payload.landlord_contact
+          : null;
+        const defaults = payload?.tenant_defaults
+          && typeof payload.tenant_defaults === 'object'
+          && typeof payload.tenant_defaults.property_id === 'string'
+          && typeof payload.tenant_defaults.lease_id === 'string'
+          ? payload.tenant_defaults
+          : null;
+        if (!defaults) {
+          const landlordName = [
+            String(landlordContact?.first_name ?? '').trim(),
+            String(landlordContact?.last_name ?? '').trim(),
+          ].filter(Boolean).join(' ');
+          setLookupStatus('error');
+          setLookupError(t('portalRequests.errors.noTenantLeaseAccess'));
+          setLookupContact(
+            landlordContact?.email
+              ? {
+                  name: landlordName || t('portalRequests.errors.landlordFallbackName'),
+                  email: landlordContact.email,
+                }
+              : null
+          );
+          setCategoryOptions([]);
+          setPriorityOptions([]);
+          setTenantDefaults(null);
+          return;
+        }
+        setLookupContact(null);
+        setCategoryOptions(categories);
+        setPriorityOptions(priorities);
+        setTenantDefaults(defaults);
+        setLookupStatus('ok');
+      } catch (error) {
+        if (cancelled) return;
+        setLookupStatus('error');
+        setLookupContact(null);
+        setLookupError(error instanceof Error ? error.message : t('portalRequests.errors.loadFailed'));
+      }
+    };
+
+    loadLookups();
+    return () => {
+      cancelled = true;
+    };
+  }, [baseUrl, headersBuilder, isAuthenticated, isGuest, isManagement, meStatus, t]);
+
+  useEffect(() => {
+    if (lookupStatus !== 'ok') return;
+    const firstCategoryCode = categoryOptions[0]?.code ?? '';
+    const firstPriorityCode = priorityOptions[0]?.code ?? '';
+    setTenantForm((prev) => ({
+      ...prev,
+      category_code:
+        prev.category_code && categoryOptions.some((option) => option.code === prev.category_code)
+          ? prev.category_code
+          : firstCategoryCode,
+      priority_code:
+        prev.priority_code && priorityOptions.some((option) => option.code === prev.priority_code)
+          ? prev.priority_code
+          : firstPriorityCode,
+    }));
+  }, [categoryOptions, lookupStatus, priorityOptions]);
+
   const onTenantField = (field) => (event) => {
     const value = event.target.value;
     setTenantForm((prev) => ({ ...prev, [field]: value }));
@@ -169,7 +267,7 @@ export function usePortalRequests({
 
   const onCreateRequest = async (event) => {
     event.preventDefault();
-    if (!baseUrl) return;
+    if (!baseUrl || !tenantDefaults) return;
     setTenantCreateStatus('saving');
     setTenantCreateError('');
     try {
@@ -179,6 +277,8 @@ export function usePortalRequests({
         headers,
         credentials: 'omit',
         body: JSON.stringify({
+          property_id: tenantDefaults.property_id,
+          lease_id: tenantDefaults.lease_id,
           ...tenantForm,
           emergency_disclaimer_acknowledged: true,
         }),
@@ -291,7 +391,10 @@ export function usePortalRequests({
       if (!storagePath) throw new Error(t('portalRequests.errors.uploadIntentMissingPath'));
 
       const finalizeRes = await fetch(
-        endpoint(baseUrl, `/api/portal/requests/${encodeURIComponent(selectedRequestId)}/attachments`),
+        endpoint(
+          baseUrl,
+          `/api/portal/requests/${encodeURIComponent(selectedRequestId)}/attachments/finalize`
+        ),
         {
           method: 'POST',
           headers,
@@ -376,6 +479,12 @@ export function usePortalRequests({
     threadMessages,
     attachments,
     tenantForm,
+    tenantDefaults,
+    lookupStatus,
+    lookupError,
+    lookupContact,
+    categoryOptions,
+    priorityOptions,
     tenantCreateStatus,
     tenantCreateError,
     managementForm,

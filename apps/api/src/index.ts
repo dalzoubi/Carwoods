@@ -11,3 +11,4 @@ import './functions/portalRequests.js';
 import './functions/portalProfile.js';
 import './functions/landlordRequests.js';
 import './functions/internalJobs.js';
+import './functions/adminLandlordInvites.js';

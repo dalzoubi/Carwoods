@@ -37,6 +37,12 @@ const PortalRequests = () => {
     threadMessages,
     attachments,
     tenantForm,
+    tenantDefaults,
+    lookupStatus,
+    lookupError,
+    lookupContact,
+    categoryOptions,
+    priorityOptions,
     tenantCreateStatus,
     tenantCreateError,
     managementForm,
@@ -114,6 +120,12 @@ const PortalRequests = () => {
         {!isManagement && (
           <TenantRequestForm
             tenantForm={tenantForm}
+            tenantDefaults={tenantDefaults}
+            lookupsStatus={lookupStatus}
+            lookupsError={lookupError}
+            lookupContact={lookupContact}
+            categoryOptions={categoryOptions}
+            priorityOptions={priorityOptions}
             onTenantField={onTenantField}
             onCreateRequest={onCreateRequest}
             tenantCreateStatus={tenantCreateStatus}

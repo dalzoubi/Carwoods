@@ -27,7 +27,8 @@ Endpoints (local default port **7071**):
 | GET, OPTIONS | `/api/portal/requests/{id}` | Tenant/management request detail (tenant view strips internal notes) |
 | GET, POST, OPTIONS | `/api/portal/requests/{id}/messages` | Thread messages (`is_internal` only for landlord/admin) |
 | POST, OPTIONS | `/api/portal/requests/{id}/uploads/intent` | Server-side file validation + short-lived upload intent |
-| POST, GET, OPTIONS | `/api/portal/requests/{id}/attachments` | Persist/list request attachment metadata |
+| GET, OPTIONS | `/api/portal/requests/{id}/attachments` | List request attachment metadata |
+| POST, OPTIONS | `/api/portal/requests/{id}/attachments/finalize` | Persist request attachment metadata |
 | GET, POST, OPTIONS | `/api/landlord/properties` | Landlord or Admin Bearer JWT + onboarded `users` row (email match) |
 | GET, PATCH, DELETE, OPTIONS | `/api/landlord/properties/{id}` | Landlord or Admin (onboarded email role) |
 | GET, POST, OPTIONS | `/api/landlord/leases` | Landlord or Admin (onboarded email role; `GET ?property_id=` filters) |
@@ -37,6 +38,8 @@ Endpoints (local default port **7071**):
 | GET, PATCH, OPTIONS | `/api/landlord/requests/{id}` | Landlord/admin request detail + status/vendor/internal notes updates |
 | POST, OPTIONS | `/api/landlord/requests/{id}/suggest-reply` | Backend-only reply suggestion + `ai_suggestion_log` metadata |
 | GET, OPTIONS | `/api/landlord/exports/requests.csv` | Landlord/admin CSV export |
+| GET, POST, OPTIONS | `/api/portal/admin/landlords` | Admin-only landlord onboarding + listing (active by default) |
+| PATCH, OPTIONS | `/api/portal/admin/landlords/{id}` | Admin-only landlord deactivate/reactivate |
 | POST, OPTIONS | `/api/internal/jobs/process-notifications` | Notification outbox processor with retries/idempotency status |
 | POST, OPTIONS | `/api/internal/jobs/revoke-expired-leases` | Lease access revocation job (ended + non-month-to-month) |
 

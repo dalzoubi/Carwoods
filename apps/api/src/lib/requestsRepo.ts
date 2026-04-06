@@ -51,6 +51,24 @@ export type RequestAttachmentRow = {
   created_at: Date;
 };
 
+export type RequestLookupOption = {
+  code: string;
+  name: string;
+};
+
+export type TenantRequestDefaults = {
+  property_id: string;
+  lease_id: string;
+  property_address: string | null;
+  lease_end_date: string | null;
+};
+
+export type TenantLandlordContact = {
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+};
+
 export async function findStatusIdByCode(client: Queryable, code: string): Promise<string | null> {
   const r = await client.query<{ id: string }>(
     `SELECT id
@@ -59,6 +77,30 @@ export async function findStatusIdByCode(client: Queryable, code: string): Promi
     [code]
   );
   return r.rows[0]?.id ?? null;
+}
+
+export async function listActiveServiceCategories(
+  client: Queryable
+): Promise<RequestLookupOption[]> {
+  const r = await client.query<RequestLookupOption>(
+    `SELECT code, name
+     FROM service_categories
+     WHERE active = 1
+     ORDER BY sort_order ASC, name ASC`
+  );
+  return r.rows;
+}
+
+export async function listActiveRequestPriorities(
+  client: Queryable
+): Promise<RequestLookupOption[]> {
+  const r = await client.query<RequestLookupOption>(
+    `SELECT code, name
+     FROM request_priorities
+     WHERE active = 1
+     ORDER BY sort_order ASC, name ASC`
+  );
+  return r.rows;
 }
 
 export async function tenantCanSubmitForLease(
@@ -77,6 +119,76 @@ export async function tenantCanSubmitForLease(
     [leaseId, tenantUserId]
   );
   return r.rows.length > 0;
+}
+
+export async function findTenantRequestDefaults(
+  client: Queryable,
+  tenantUserId: string
+): Promise<TenantRequestDefaults | null> {
+  const r = await client.query<TenantRequestDefaults>(
+    `SELECT TOP 1
+        l.property_id,
+        lt.lease_id,
+        CONCAT(p.street, ', ', p.city, ', ', p.state, ' ', p.zip) AS property_address,
+        CONVERT(NVARCHAR(10), l.end_date, 23) AS lease_end_date
+     FROM lease_tenants lt
+     JOIN leases l ON l.id = lt.lease_id
+     LEFT JOIN properties p ON p.id = l.property_id
+     WHERE lt.user_id = $1
+       AND l.deleted_at IS NULL
+       AND (lt.access_end_at IS NULL OR lt.access_end_at > SYSDATETIMEOFFSET())
+     ORDER BY
+       CASE WHEN lt.access_end_at IS NULL THEN 0 ELSE 1 END,
+       lt.access_start_at DESC,
+       lt.created_at DESC`,
+    [tenantUserId]
+  );
+  return r.rows[0] ?? null;
+}
+
+export async function findTenantLandlordContact(
+  client: Queryable,
+  tenantUserId: string
+): Promise<TenantLandlordContact | null> {
+  const linked = await client.query<TenantLandlordContact>(
+    `SELECT TOP 1 u.first_name, u.last_name, u.email
+     FROM lease_tenants lt
+     JOIN leases l ON l.id = lt.lease_id
+     LEFT JOIN properties p ON p.id = l.property_id
+     JOIN users u
+       ON u.id = COALESCE(l.updated_by, l.created_by, p.updated_by, p.created_by)
+     WHERE lt.user_id = $1
+       AND u.email IS NOT NULL
+       AND LTRIM(RTRIM(u.email)) <> ''
+       AND u.role IN ('LANDLORD', 'ADMIN')
+     ORDER BY
+       CASE
+         WHEN lt.access_end_at IS NULL OR lt.access_end_at > SYSDATETIMEOFFSET() THEN 0
+         ELSE 1
+       END,
+       lt.access_start_at DESC,
+       lt.created_at DESC`,
+    [tenantUserId]
+  );
+  if (linked.rows[0]) return linked.rows[0];
+
+  // Fallback: if the tenant has no lease linkage yet, provide a general
+  // active management contact so the UI can still show actionable guidance.
+  const fallback = await client.query<TenantLandlordContact>(
+    `SELECT TOP 1 first_name, last_name, email
+     FROM users
+     WHERE role IN ('LANDLORD', 'ADMIN')
+       AND status IN ('ACTIVE', 'INVITED')
+       AND email IS NOT NULL
+       AND LTRIM(RTRIM(email)) <> ''
+     ORDER BY
+       CASE WHEN role = 'LANDLORD' THEN 0 ELSE 1 END,
+       CASE WHEN status = 'ACTIVE' THEN 0 ELSE 1 END,
+       last_name ASC,
+       first_name ASC,
+       email ASC`
+  );
+  return fallback.rows[0] ?? null;
 }
 
 export async function listRequestsForTenant(

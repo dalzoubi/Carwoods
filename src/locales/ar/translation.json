@@ -782,6 +782,10 @@
       "apiUnavailable": "قم بتعيين VITE_API_BASE_URL لتفعيل تدفق الطلبات.",
       "signInRequired": "سجل الدخول قبل استخدام الطلبات.",
       "guestBlocked": "حسابات الضيوف لا يمكنها استخدام هذه الميزات.",
+      "noTenantLeaseAccess": "لم يتم العثور على عقد إيجار نشط لحسابك.",
+      "noTenantLeaseAccessWithContactPrefix": "لم يتم العثور على عقد إيجار نشط لحسابك. يرجى التواصل مع {{name}} على",
+      "noTenantLeaseAccessWithContact": "لم يتم العثور على عقد إيجار نشط لحسابك. يرجى التواصل مع {{name}} على {{email}}.",
+      "landlordFallbackName": "المالك",
       "loadFailed": "تعذر تحميل بيانات الطلبات.",
       "saveFailed": "تعذر حفظ التغييرات.",
       "uploadIntentMissingPath": "نية الرفع لم تُرجع مسار تخزين."
@@ -795,8 +799,12 @@
       "heading": "إنشاء طلب",
       "propertyId": "معرف العقار",
       "leaseId": "معرف عقد الإيجار",
-      "categoryCode": "رمز الفئة",
-      "priorityCode": "رمز الأولوية",
+      "propertyStreet": "العنوان الكامل للعقار",
+      "leaseEndDate": "تاريخ انتهاء عقد الإيجار",
+      "leaseEndDateNotSet": "غير محدد",
+      "notAvailable": "غير متوفر",
+      "categoryCode": "الفئة",
+      "priorityCode": "الأولوية",
       "titleLabel": "عنوان الطلب",
       "descriptionLabel": "وصف الطلب",
       "saved": "تم إنشاء الطلب."
@@ -825,6 +833,48 @@
       "saved": "تم حفظ بيانات المرفق."
     }
   },
+  "portalAdminLandlords": {
+    "title": "Carwoods - إعداد الملاك (إدارة)",
+    "metaDescription": "مساحة الإدارة لإعداد الملاك وإدارة حالة النشط/غير النشط.",
+    "heading": "إعداد الملاك",
+    "intro": "أنشئ وأدر سجلات الملاك في البوابة. يتم عرض الملاك النشطين افتراضيًا.",
+    "form": {
+      "heading": "إضافة مالك",
+      "email": "بريد المالك الإلكتروني",
+      "firstName": "الاسم الأول",
+      "lastName": "اسم العائلة",
+      "saveLandlord": "حفظ المالك",
+      "sending": "جارٍ الحفظ…"
+    },
+    "messages": {
+      "landlordSaved": "تم حفظ المالك بنجاح.",
+      "deactivated": "تم تعطيل المالك.",
+      "reactivated": "تمت إعادة تفعيل المالك."
+    },
+    "list": {
+      "heading": "الملاك",
+      "refreshLandlordList": "تحديث قائمة الملاك",
+      "showInactive": "إظهار غير النشطين",
+      "loading": "جارٍ تحميل الملاك…",
+      "empty": "لم يتم العثور على ملاك.",
+      "name": "الاسم",
+      "status": "حالة المستخدم"
+    },
+    "actions": {
+      "deactivate": "تعطيل",
+      "reactivate": "إعادة التفعيل"
+    },
+    "errors": {
+      "apiUnavailable": "قم بتعيين VITE_API_BASE_URL لتفعيل وحدة الإدارة.",
+      "signInRequired": "سجل الدخول قبل استخدام هذه الوحدة.",
+      "adminOnly": "هذه الوحدة متاحة لحسابات الإدارة فقط.",
+      "validation": "يرجى تصحيح الحقول المظللة.",
+      "emailRequired": "البريد الإلكتروني مطلوب.",
+      "emailInvalid": "أدخل عنوان بريد إلكتروني صالحًا.",
+      "firstNameRequired": "الاسم الأول مطلوب.",
+      "lastNameRequired": "اسم العائلة مطلوب."
+    }
+  },
   "portalHeader": {
     "title": "بوابة الصيانة",
     "notSignedIn": "لم يتم تسجيل الدخول",
@@ -832,7 +882,8 @@
       "setup": "الإعداد",
       "workspace": "المساحة",
       "requests": "الطلبات",
-      "profile": "الملف الشخصي"
+      "profile": "الملف الشخصي",
+      "adminLandlords": "الإدارة: الملاك"
     },
     "status": {
       "signedIn": "تم تسجيل الدخول",

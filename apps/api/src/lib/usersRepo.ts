@@ -12,6 +12,11 @@ export type UserRow = {
   status: string;
 };
 
+export type UpsertLandlordResult = {
+  user: UserRow;
+  created: boolean;
+};
+
 export const UserRole = {
   ADMIN: 'ADMIN',
   LANDLORD: 'LANDLORD',
@@ -24,6 +29,10 @@ type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResul
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
+}
+
+function placeholderExternalAuthOidForLandlordEmail(email: string): string {
+  return `seed:landlord:${normalizeEmail(email)}`;
 }
 
 function normalizeNamePart(value: string | null | undefined): string | null {
@@ -85,6 +94,111 @@ export async function findUserByEmail(
      FROM users
      WHERE LOWER(email) = $1`,
     [normalized]
+  );
+  return r.rows[0] ?? null;
+}
+
+export async function upsertLandlordUserByEmail(
+  client: PoolClient,
+  params: {
+    email: string;
+    firstName?: string | null;
+    lastName?: string | null;
+  }
+): Promise<UpsertLandlordResult> {
+  const normalizedEmail = normalizeEmail(params.email);
+  const firstName = normalizeNamePart(params.firstName);
+  const lastName = normalizeNamePart(params.lastName);
+  const existing = await findUserByEmail(client, normalizedEmail);
+
+  if (existing) {
+    const role = String(existing.role ?? '').toUpperCase();
+    if (role === UserRole.ADMIN) {
+      throw new Error('email_belongs_to_admin');
+    }
+    if (role !== UserRole.LANDLORD) {
+      throw new Error('email_already_used_by_non_landlord');
+    }
+
+    const updated = await client.query<UserRow>(
+      `UPDATE users
+          SET status = 'ACTIVE',
+              first_name = COALESCE(NULLIF($2, ''), first_name),
+              last_name = COALESCE(NULLIF($3, ''), last_name),
+              external_auth_oid = CASE
+                WHEN external_auth_oid IS NULL
+                  OR external_auth_oid = ''
+                  OR external_auth_oid LIKE 'seed:%'
+                THEN $4
+                ELSE external_auth_oid
+              END,
+              updated_at = GETUTCDATE()
+        OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
+               INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
+               INSERTED.role, INSERTED.status
+        WHERE id = $1`,
+      [existing.id, firstName, lastName, placeholderExternalAuthOidForLandlordEmail(normalizedEmail)]
+    );
+    return {
+      user: updated.rows[0] ?? existing,
+      created: false,
+    };
+  }
+
+  const inserted = await client.query<UserRow>(
+    `INSERT INTO users (id, external_auth_oid, email, first_name, last_name, role, status)
+     OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
+            INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
+            INSERTED.role, INSERTED.status
+     VALUES (NEWID(), $1, $2, $3, $4, 'LANDLORD', 'ACTIVE')`,
+    [placeholderExternalAuthOidForLandlordEmail(normalizedEmail), normalizedEmail, firstName, lastName]
+  );
+
+  return {
+    user: inserted.rows[0]!,
+    created: true,
+  };
+}
+
+export async function listLandlords(
+  client: Queryable,
+  options?: { includeInactive?: boolean }
+): Promise<UserRow[]> {
+  if (options?.includeInactive) {
+    const r = await client.query<UserRow>(
+      `SELECT id, external_auth_oid, email, first_name, last_name, phone, role, status
+       FROM users
+       WHERE role = 'LANDLORD'
+       ORDER BY status DESC, last_name ASC, first_name ASC, email ASC`
+    );
+    return r.rows;
+  }
+  const r = await client.query<UserRow>(
+    `SELECT id, external_auth_oid, email, first_name, last_name, phone, role, status
+     FROM users
+     WHERE role = 'LANDLORD'
+       AND status = 'ACTIVE'
+     ORDER BY last_name ASC, first_name ASC, email ASC`
+  );
+  return r.rows;
+}
+
+export async function setLandlordActiveStatus(
+  client: Queryable,
+  id: string,
+  active: boolean
+): Promise<UserRow | null> {
+  const nextStatus = active ? 'ACTIVE' : 'DISABLED';
+  const r = await client.query<UserRow>(
+    `UPDATE users
+        SET status = $2,
+            updated_at = GETUTCDATE()
+      OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
+             INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
+             INSERTED.role, INSERTED.status
+      WHERE id = $1
+        AND role = 'LANDLORD'`,
+    [id, nextStatus]
   );
   return r.rows[0] ?? null;
 }

@@ -83,12 +83,44 @@ async function portalMeHandler(
     }
   }
 
-  const tokenRole = claims.role ?? claims.roles?.[0] ?? claims.app_roles?.[0] ?? null;
+  if (!user) {
+    logWarn(context, 'portal.me.forbidden', {
+      reason: 'user_not_found',
+      subject: claims.sub,
+      oid: claims.oid ?? null,
+    });
+    return {
+      status: 403,
+      headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
+      jsonBody: { error: 'forbidden' },
+    };
+  }
+
+  const role = String(user.role ?? '').trim().toUpperCase();
+  const status = String(user.status ?? '').trim().toUpperCase();
+  const isAllowedRole = role === 'TENANT' || role === 'LANDLORD' || role === 'ADMIN';
+  const isActive = status === 'ACTIVE' || status === 'INVITED';
+  if (!isAllowedRole || !isActive) {
+    logWarn(context, 'portal.me.forbidden', {
+      reason: 'forbidden_role_or_status',
+      role,
+      status,
+      userId: user.id,
+      subject: claims.sub,
+      oid: claims.oid ?? null,
+    });
+    return {
+      status: 403,
+      headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
+      jsonBody: { error: 'forbidden' },
+    };
+  }
+
   logInfo(context, 'portal.me.success', {
     subject: claims.sub,
     oid: claims.oid ?? null,
-    resolvedRole: user?.role ?? tokenRole,
-    hasUserRecord: Boolean(user),
+    resolvedRole: user.role,
+    userId: user.id,
   });
 
   return {
@@ -98,7 +130,7 @@ async function portalMeHandler(
       subject: claims.sub,
       oid: claims.oid ?? null,
       email: primaryEmailFromClaims(claims) ?? null,
-      role: user?.role ?? tokenRole,
+      role: user.role,
       user,
     },
   };

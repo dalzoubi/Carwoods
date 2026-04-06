@@ -4,55 +4,34 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Box, Button, Skeleton, Stack, TextField, Typography } from '@mui/material';
 import { usePortalAuth } from '../PortalAuthContext';
 import { emailFromAccount, isGuestRole, resolveRole } from '../portalUtils';
+import { validatePersonBasics, validatePersonField } from '../portalPersonValidation';
 
 function endpoint(baseUrl, path) {
   return `${baseUrl.replace(/\/$/, '')}${path}`;
 }
 
-function looksLikeEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
-function looksLikePhone(value) {
-  if (!value) return true;
-  if (!/^[+]?[\d\s().-]+$/.test(value)) return false;
-  const digits = value.replace(/\D/g, '');
-  return digits.length >= 10 && digits.length <= 15;
-}
-
 function validateProfileForm(form, t) {
-  const errors = {};
-
-  if (!form.firstName.trim()) {
-    errors.firstName = t('portalProfile.errors.firstNameRequired');
-  }
-  if (!form.lastName.trim()) {
-    errors.lastName = t('portalProfile.errors.lastNameRequired');
-  }
-  if (!looksLikeEmail(form.email.trim())) {
-    errors.email = t('portalProfile.errors.emailInvalid');
-  }
-  if (!looksLikePhone(form.phone.trim())) {
-    errors.phone = t('portalProfile.errors.phoneInvalid');
-  }
-
-  return errors;
+  return validatePersonBasics(form, t, {
+    keys: {
+      firstNameRequired: 'portalProfile.errors.firstNameRequired',
+      lastNameRequired: 'portalProfile.errors.lastNameRequired',
+      emailRequired: 'portalProfile.errors.emailInvalid',
+      emailInvalid: 'portalProfile.errors.emailInvalid',
+      phoneInvalid: 'portalProfile.errors.phoneInvalid',
+    },
+  });
 }
 
 function validateProfileField(field, value, t) {
-  if (field === 'firstName') {
-    return value.trim() ? '' : t('portalProfile.errors.firstNameRequired');
-  }
-  if (field === 'lastName') {
-    return value.trim() ? '' : t('portalProfile.errors.lastNameRequired');
-  }
-  if (field === 'email') {
-    return looksLikeEmail(value.trim()) ? '' : t('portalProfile.errors.emailInvalid');
-  }
-  if (field === 'phone') {
-    return looksLikePhone(value.trim()) ? '' : t('portalProfile.errors.phoneInvalid');
-  }
-  return '';
+  return validatePersonField(field, value, t, {
+    keys: {
+      firstNameRequired: 'portalProfile.errors.firstNameRequired',
+      lastNameRequired: 'portalProfile.errors.lastNameRequired',
+      emailRequired: 'portalProfile.errors.emailInvalid',
+      emailInvalid: 'portalProfile.errors.emailInvalid',
+      phoneInvalid: 'portalProfile.errors.phoneInvalid',
+    },
+  });
 }
 
 const PortalProfile = () => {

@@ -782,6 +782,10 @@
       "apiUnavailable": "Configura VITE_API_BASE_URL para habilitar el flujo de solicitudes.",
       "signInRequired": "Inicia sesión antes de usar solicitudes.",
       "guestBlocked": "Las cuentas invitadas no pueden usar estas funciones.",
+      "noTenantLeaseAccess": "No se encontro un contrato de arrendamiento activo para su cuenta.",
+      "noTenantLeaseAccessWithContactPrefix": "No se encontro un contrato de arrendamiento activo para su cuenta. Ponte en contacto con {{name}} en",
+      "noTenantLeaseAccessWithContact": "No se encontro un contrato de arrendamiento activo para su cuenta. Ponte en contacto con {{name}} en {{email}}.",
+      "landlordFallbackName": "tu propietario",
       "loadFailed": "No se pudieron cargar las solicitudes.",
       "saveFailed": "No se pudieron guardar los cambios.",
       "uploadIntentMissingPath": "La intención de carga no devolvió una ruta de almacenamiento."
@@ -795,8 +799,12 @@
       "heading": "Crear solicitud",
       "propertyId": "ID de propiedad",
       "leaseId": "ID de contrato",
-      "categoryCode": "Código de categoría",
-      "priorityCode": "Código de prioridad",
+      "propertyStreet": "Dirección completa de la propiedad",
+      "leaseEndDate": "Fecha de finalización del contrato",
+      "leaseEndDateNotSet": "No establecido",
+      "notAvailable": "No disponible",
+      "categoryCode": "Categoría",
+      "priorityCode": "Prioridad",
       "titleLabel": "Título de solicitud",
       "descriptionLabel": "Descripción de solicitud",
       "saved": "Solicitud creada."
@@ -825,6 +833,48 @@
       "saved": "Metadatos del adjunto guardados."
     }
   },
+  "portalAdminLandlords": {
+    "title": "Carwoods - Alta de propietarios (admin)",
+    "metaDescription": "Espacio admin para dar de alta propietarios y administrar estado activo/inactivo.",
+    "heading": "Alta de propietarios",
+    "intro": "Crea y administra registros de propietarios del portal. Por defecto se muestran propietarios activos.",
+    "form": {
+      "heading": "Agregar propietario",
+      "email": "Correo del propietario",
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "saveLandlord": "Guardar propietario",
+      "sending": "Guardando…"
+    },
+    "messages": {
+      "landlordSaved": "Propietario guardado correctamente.",
+      "deactivated": "Propietario desactivado.",
+      "reactivated": "Propietario reactivado."
+    },
+    "list": {
+      "heading": "Propietarios",
+      "refreshLandlordList": "Actualizar lista de propietarios",
+      "showInactive": "Mostrar inactivos",
+      "loading": "Cargando propietarios…",
+      "empty": "No se encontraron propietarios.",
+      "name": "Nombre",
+      "status": "Estado del usuario"
+    },
+    "actions": {
+      "deactivate": "Desactivar",
+      "reactivate": "Reactivar"
+    },
+    "errors": {
+      "apiUnavailable": "Configura VITE_API_BASE_URL para habilitar el alta admin.",
+      "signInRequired": "Inicia sesión antes de usar este módulo.",
+      "adminOnly": "Solo cuentas admin pueden usar este módulo.",
+      "validation": "Corrige los campos resaltados.",
+      "emailRequired": "El correo es obligatorio.",
+      "emailInvalid": "Ingresa un correo electrónico válido.",
+      "firstNameRequired": "El nombre es obligatorio.",
+      "lastNameRequired": "El apellido es obligatorio."
+    }
+  },
   "portalHeader": {
     "title": "Portal de Mantenimiento",
     "notSignedIn": "Sin sesión iniciada",
@@ -832,7 +882,8 @@
       "setup": "Configuración",
       "workspace": "Espacio",
       "requests": "Solicitudes",
-      "profile": "Perfil"
+      "profile": "Perfil",
+      "adminLandlords": "Admin: Propietarios"
     },
     "status": {
       "signedIn": "Sesión iniciada",

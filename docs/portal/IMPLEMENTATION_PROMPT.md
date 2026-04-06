@@ -49,6 +49,7 @@ Use this as the authoritative product + technical brief. **Do not expose storage
 - Validate **Entra bearer tokens** on every portal/landlord/admin API; map `oid`/`sub` → `users.external_auth_oid`.
 - **RBAC + row-level** rules: tenant sees only own lease/property context and non-internal messages; landlord sees landlord scope; admin sees all.
 - Rate-limit sensitive endpoints; audit all mutations; structured logs + correlation IDs.
+- For any form fields that collect contact info, always enforce **email and phone validation** on both client and API (do not rely on HTML input type alone).
 
 ## Phasing
 

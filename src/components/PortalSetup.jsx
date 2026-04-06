@@ -6,12 +6,17 @@ import {
   Box,
   Button,
   Chip,
+  IconButton,
   Stack,
+  Tooltip,
   Typography,
 } from '@mui/material';
+import Refresh from '@mui/icons-material/Refresh';
+import HealthAndSafety from '@mui/icons-material/HealthAndSafety';
+import ManageSearch from '@mui/icons-material/ManageSearch';
 import { VITE_API_BASE_URL_RESOLVED } from '../featureFlags';
 import { usePortalAuth } from '../PortalAuthContext';
-import { emailFromAccount, firstNonEmpty, normalizeRole, resolveRole } from '../portalUtils';
+import { emailFromAccount, firstNonEmpty, resolveRole } from '../portalUtils';
 import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
 
 function endpoint(baseUrl, path) {
@@ -195,9 +200,24 @@ const PortalSetup = () => {
           }}
         >
           <Stack spacing={1.5}>
-            <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
-              {t('portalSetup.sessionHeading')}
-            </Typography>
+            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
+                {t('portalSetup.sessionHeading')}
+              </Typography>
+              <Tooltip title={t('portalSetup.actions.refreshSession')}>
+                <span>
+                  <IconButton
+                    type="button"
+                    size="small"
+                    aria-label={t('portalSetup.actions.refreshSession')}
+                    onClick={refreshMe}
+                    disabled={!isAuthenticated}
+                  >
+                    <Refresh fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Stack>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
               <Chip
                 size="small"
@@ -218,9 +238,6 @@ const PortalSetup = () => {
               <Stack direction="row" spacing={1.25} sx={{ flexWrap: 'wrap' }}>
                 <Button type="button" variant="outlined" onClick={onSignOutRequest}>
                   {t('portalSetup.actions.signOut')}
-                </Button>
-                <Button type="button" variant="outlined" onClick={refreshMe}>
-                  {t('portalSetup.actions.refreshSession')}
                 </Button>
               </Stack>
             )}
@@ -280,9 +297,24 @@ const PortalSetup = () => {
           }}
         >
           <Stack spacing={1.5}>
-            <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
-              {t('portalSetup.healthHeading')}
-            </Typography>
+            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
+                {t('portalSetup.healthHeading')}
+              </Typography>
+              <Tooltip title={t('portalSetup.actions.checkHealth')}>
+                <span>
+                  <IconButton
+                    type="button"
+                    size="small"
+                    aria-label={t('portalSetup.actions.checkHealth')}
+                    onClick={fetchHealth}
+                    disabled={!baseUrl || health.state === 'loading'}
+                  >
+                    <HealthAndSafety fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Stack>
             <Typography color="text.secondary">{healthUrl || t('portalSetup.notConfigured')}</Typography>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
               <Chip
@@ -292,9 +324,6 @@ const PortalSetup = () => {
               />
               {health.detail && <Typography>{health.detail}</Typography>}
             </Stack>
-            <Button type="button" variant="outlined" onClick={fetchHealth} disabled={!baseUrl || health.state === 'loading'}>
-              {t('portalSetup.actions.checkHealth')}
-            </Button>
           </Stack>
         </Box>
 
@@ -308,9 +337,24 @@ const PortalSetup = () => {
           }}
         >
           <Stack spacing={1.5}>
-            <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
-              {t('portalSetup.meHeading')}
-            </Typography>
+            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
+                {t('portalSetup.meHeading')}
+              </Typography>
+              <Tooltip title={t('portalSetup.actions.checkMe')}>
+                <span>
+                  <IconButton
+                    type="button"
+                    size="small"
+                    aria-label={t('portalSetup.actions.checkMe')}
+                    onClick={refreshMe}
+                    disabled={!isAuthenticated || meStatus === 'loading'}
+                  >
+                    <ManageSearch fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Stack>
             <Typography color="text.secondary">{meUrl || t('portalSetup.notConfigured')}</Typography>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
               <Chip
@@ -332,9 +376,6 @@ const PortalSetup = () => {
               )}
               {meStatus === 'error' && <Typography>{meError || t('portalSetup.errors.unknown')}</Typography>}
             </Stack>
-            <Button type="button" variant="contained" onClick={refreshMe} disabled={!isAuthenticated || meStatus === 'loading'}>
-              {t('portalSetup.actions.checkMe')}
-            </Button>
           </Stack>
         </Box>
       </Stack>

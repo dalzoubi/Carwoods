@@ -18,6 +18,7 @@ import PortalSetup from './components/PortalSetup';
 import PortalWorkspace from './components/PortalWorkspace';
 import PortalProfile from './components/PortalProfile';
 import PortalRequests from './components/PortalRequests';
+import PortalAdminLandlords from './components/PortalAdminLandlords';
 import { isDarkPreviewRoute } from './routePaths';
 
 /**
@@ -67,9 +68,9 @@ function PageRoutes() {
             <Route path="/portal/workspace" element={<PortalWorkspace />} />
             <Route path="/portal/profile" element={<PortalProfile />} />
             <Route path="/portal/requests" element={<PortalRequests />} />
+            <Route path="/portal/admin" element={<PortalAdminLandlords />} />
             <Route path="/portal/tenant" element={<Navigate to="/portal/workspace" replace />} />
             <Route path="/portal/landlord" element={<Navigate to="/portal/workspace" replace />} />
-            <Route path="/portal/admin" element={<Navigate to="/portal/workspace" replace />} />
         </Routes>
     );
 }

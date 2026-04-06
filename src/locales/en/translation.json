@@ -782,6 +782,10 @@
       "apiUnavailable": "Set VITE_API_BASE_URL to enable request flows.",
       "signInRequired": "Sign in before using requests.",
       "guestBlocked": "Guest accounts cannot use maintenance request flows.",
+      "noTenantLeaseAccess": "No active tenant lease was found for your account.",
+      "noTenantLeaseAccessWithContactPrefix": "No active tenant lease was found for your account. Please contact your property manager {{name}} at",
+      "noTenantLeaseAccessWithContact": "No active tenant lease was found for your account. Please contact {{name}} at {{email}}.",
+      "landlordFallbackName": "your property manager",
       "loadFailed": "Unable to load request data.",
       "saveFailed": "Unable to save changes.",
       "uploadIntentMissingPath": "Upload intent did not return a storage path."
@@ -795,8 +799,12 @@
       "heading": "Create request",
       "propertyId": "Property ID",
       "leaseId": "Lease ID",
-      "categoryCode": "Category code",
-      "priorityCode": "Priority code",
+      "propertyStreet": "Property full address",
+      "leaseEndDate": "Lease end date",
+      "leaseEndDateNotSet": "Not set",
+      "notAvailable": "Not available",
+      "categoryCode": "Category",
+      "priorityCode": "Priority",
       "titleLabel": "Request title",
       "descriptionLabel": "Request description",
       "saved": "Request created."
@@ -825,6 +833,48 @@
       "saved": "Attachment metadata saved."
     }
   },
+  "portalAdminLandlords": {
+    "title": "Carwoods - Admin Landlord Onboarding",
+    "metaDescription": "Admin workspace for onboarding landlords and managing active/inactive status.",
+    "heading": "Landlord Onboarding",
+    "intro": "Create and manage landlord portal records. Active landlords are shown by default.",
+    "form": {
+      "heading": "Add landlord",
+      "email": "Landlord email",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "saveLandlord": "Save landlord",
+      "sending": "Saving…"
+    },
+    "messages": {
+      "landlordSaved": "Landlord saved successfully.",
+      "deactivated": "Landlord deactivated.",
+      "reactivated": "Landlord reactivated."
+    },
+    "list": {
+      "heading": "Landlords",
+      "refreshLandlordList": "Refresh landlord list",
+      "showInactive": "Show inactive",
+      "loading": "Loading landlords…",
+      "empty": "No landlords found.",
+      "name": "Name",
+      "status": "User status"
+    },
+    "actions": {
+      "deactivate": "Deactivate",
+      "reactivate": "Reactivate"
+    },
+    "errors": {
+      "apiUnavailable": "Set VITE_API_BASE_URL to enable admin onboarding.",
+      "signInRequired": "Sign in before using admin onboarding.",
+      "adminOnly": "Only admin accounts can use this module.",
+      "validation": "Please fix the highlighted fields.",
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "firstNameRequired": "First name is required.",
+      "lastNameRequired": "Last name is required."
+    }
+  },
   "portalHeader": {
     "title": "Maintenance Portal",
     "notSignedIn": "Not signed in",
@@ -832,7 +882,8 @@
       "setup": "Setup",
       "workspace": "Workspace",
       "requests": "Requests",
-      "profile": "Profile"
+      "profile": "Profile",
+      "adminLandlords": "Admin: Landlords"
     },
     "status": {
       "signedIn": "Signed in",

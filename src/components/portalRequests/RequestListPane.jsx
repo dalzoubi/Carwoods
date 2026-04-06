@@ -1,5 +1,15 @@
 import React from 'react';
-import { Box, Button, List, ListItemButton, ListItemText, Stack, Typography } from '@mui/material';
+import {
+  Box,
+  IconButton,
+  List,
+  ListItemButton,
+  ListItemText,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import Refresh from '@mui/icons-material/Refresh';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
 
@@ -27,9 +37,19 @@ const RequestListPane = ({
         <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
           {t('portalRequests.list.heading')}
         </Typography>
-        <Button type="button" variant="outlined" onClick={onReload} disabled={reloadDisabled}>
-          {t('portalRequests.actions.reload')}
-        </Button>
+        <Tooltip title={t('portalRequests.actions.reload')}>
+          <span>
+            <IconButton
+              type="button"
+              size="small"
+              onClick={onReload}
+              disabled={reloadDisabled}
+              aria-label={t('portalRequests.actions.reload')}
+            >
+              <Refresh fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
       </Stack>
       <StatusAlertSlot message={listStatusMessage} />
 

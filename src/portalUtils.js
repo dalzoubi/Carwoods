@@ -57,15 +57,23 @@ export function emailFromAccount(account) {
   return '';
 }
 
+function isActivePortalStatus(status) {
+  const normalized = String(status ?? '').trim().toUpperCase();
+  return normalized === 'ACTIVE' || normalized === 'INVITED';
+}
+
 /**
- * Resolves the effective role from the API response then token claims.
+ * Resolves the effective role only from an active portal user row.
  */
 export function resolveRole(meData, account) {
-  return firstNonEmpty([
+  void account;
+  const apiRole = firstNonEmpty([
     normalizeRole(meData?.user?.role),
     normalizeRole(meData?.role),
-    roleFromAccountClaims(account),
   ]);
+  if (!apiRole) return '';
+  if (!isActivePortalStatus(meData?.user?.status)) return '';
+  return apiRole;
 }
 
 /**

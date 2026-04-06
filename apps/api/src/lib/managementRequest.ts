@@ -123,6 +123,24 @@ export async function requireLandlordOrAdmin(
   return { ok: true, ctx: { user, role: role as 'ADMIN' | 'LANDLORD', headers } };
 }
 
+/**
+ * Same base checks as management auth, but restricts to ACTIVE/INVITED ADMIN users.
+ */
+export async function requireAdmin(
+  request: HttpRequest,
+  context?: InvocationContext
+): Promise<{ ok: true; ctx: ManagementContext } | { ok: false; response: HttpResponseInit }> {
+  const gate = await requireLandlordOrAdmin(request, context);
+  if (!gate.ok) return gate;
+  if (gate.ctx.role !== 'ADMIN') {
+    return {
+      ok: false,
+      response: jsonResponse(403, gate.ctx.headers, { error: 'forbidden' }),
+    };
+  }
+  return gate;
+}
+
 export function jsonResponse(
   status: number,
   headers: Record<string, string>,

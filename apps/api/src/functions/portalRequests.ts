@@ -9,10 +9,14 @@ import { jsonResponse, requirePortalUser } from '../lib/managementRequest.js';
 import {
   countRequestAttachmentMedia,
   findStatusIdByCode,
+  findTenantLandlordContact,
+  findTenantRequestDefaults,
   getRequestById,
   insertMaintenanceRequest,
   insertRequestAttachment,
   insertRequestMessage,
+  listActiveRequestPriorities,
+  listActiveServiceCategories,
   listRequestAttachments,
   listRequestMessages,
   listRequestsForTenant,
@@ -33,7 +37,7 @@ import {
 } from '../lib/requestAccessPolicy.js';
 import { enqueueNotification } from '../lib/notificationRepo.js';
 import { writeAudit } from '../lib/auditRepo.js';
-import { logError, logInfo } from '../lib/serverLogger.js';
+import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
   if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>;
@@ -46,6 +50,10 @@ function str(v: unknown): string | undefined {
 
 function bool(v: unknown): boolean | undefined {
   return typeof v === 'boolean' ? v : undefined;
+}
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 async function resolveLookupIdByCode(
@@ -165,6 +173,42 @@ async function portalRequestsCollection(
   }
 }
 
+async function portalRequestLookups(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requirePortalUser(request, context);
+  if (!gate.ok) return gate.response;
+  const { user, headers } = gate.ctx;
+  const role = String(user.role ?? '').toUpperCase() as PortalRole;
+  if (request.method !== 'GET') {
+    return jsonResponse(405, headers, { error: 'method_not_allowed' });
+  }
+  if (!canCreateMaintenanceRequest(role)) {
+    return jsonResponse(403, headers, { error: 'forbidden' });
+  }
+
+  const pool = getPool();
+  const [categories, priorities] = await Promise.all([
+    listActiveServiceCategories(pool),
+    listActiveRequestPriorities(pool),
+  ]);
+  let tenantDefaults: Awaited<ReturnType<typeof findTenantRequestDefaults>> = null;
+  let landlordContact: Awaited<ReturnType<typeof findTenantLandlordContact>> = null;
+  if (role === 'TENANT') {
+    [tenantDefaults, landlordContact] = await Promise.all([
+      findTenantRequestDefaults(pool, user.id),
+      findTenantLandlordContact(pool, user.id),
+    ]);
+  }
+  return jsonResponse(200, headers, {
+    categories,
+    priorities,
+    tenant_defaults: tenantDefaults,
+    landlord_contact: landlordContact,
+  });
+}
+
 async function portalRequestItem(
   request: HttpRequest,
   context: InvocationContext
@@ -174,6 +218,7 @@ async function portalRequestItem(
   const { user, headers } = gate.ctx;
   const requestId = request.params.id;
   if (!requestId) return jsonResponse(400, headers, { error: 'missing_id' });
+  if (!isUuid(requestId)) return jsonResponse(404, headers, { error: 'not_found' });
 
   const pool = getPool();
   const role = String(user.role ?? '').toUpperCase() as PortalRole;
@@ -205,6 +250,7 @@ async function portalRequestMessages(
   const role = String(user.role ?? '').toUpperCase() as PortalRole;
   const requestId = request.params.id;
   if (!requestId) return jsonResponse(400, headers, { error: 'missing_id' });
+  if (!isUuid(requestId)) return jsonResponse(404, headers, { error: 'not_found' });
 
   const pool = getPool();
   if (!canViewInternalMessages(role)) {
@@ -287,6 +333,7 @@ async function portalRequestUploadIntent(
 
   const requestId = request.params.id;
   if (!requestId) return jsonResponse(400, headers, { error: 'missing_id' });
+  if (!isUuid(requestId)) return jsonResponse(404, headers, { error: 'not_found' });
 
   const pool = getPool();
   const role = String(user.role ?? '').toUpperCase() as PortalRole;
@@ -350,15 +397,37 @@ async function portalRequestAttachmentFinalize(
   const gate = await requirePortalUser(request, context);
   if (!gate.ok) return gate.response;
   const { user, headers } = gate.ctx;
-  if (request.method !== 'POST') return jsonResponse(405, headers, { error: 'method_not_allowed' });
+  logInfo(context, 'portal.requests.attachments.finalize.start', {
+    userId: user.id,
+    method: request.method,
+  });
+  if (request.method !== 'POST') {
+    logWarn(context, 'portal.requests.attachments.finalize.method_not_allowed', {
+      userId: user.id,
+      method: request.method,
+    });
+    return jsonResponse(405, headers, { error: 'method_not_allowed' });
+  }
 
   const requestId = request.params.id;
-  if (!requestId) return jsonResponse(400, headers, { error: 'missing_id' });
+  if (!requestId) {
+    logWarn(context, 'portal.requests.attachments.finalize.missing_id', { userId: user.id });
+    return jsonResponse(400, headers, { error: 'missing_id' });
+  }
+  if (!isUuid(requestId)) {
+    return jsonResponse(404, headers, { error: 'not_found' });
+  }
   const pool = getPool();
   const role = String(user.role ?? '').toUpperCase() as PortalRole;
   if (!canViewInternalMessages(role)) {
     const allowed = await tenantCanAccessRequest(pool, requestId, user.id);
-    if (!allowed) return jsonResponse(404, headers, { error: 'not_found' });
+    if (!allowed) {
+      logWarn(context, 'portal.requests.attachments.finalize.not_found', {
+        userId: user.id,
+        requestId,
+      });
+      return jsonResponse(404, headers, { error: 'not_found' });
+    }
   }
 
   let body: unknown;
@@ -373,19 +442,52 @@ async function portalRequestAttachmentFinalize(
   const contentType = str(b.content_type);
   const fileSizeBytes = Number(b.file_size_bytes ?? 0);
   if (!storagePath || !filename || !contentType || !Number.isFinite(fileSizeBytes) || fileSizeBytes <= 0) {
+    logWarn(context, 'portal.requests.attachments.finalize.validation_failed', {
+      userId: user.id,
+      requestId,
+      reason: 'missing_or_invalid_file_fields',
+    });
     return jsonResponse(400, headers, { error: 'missing_or_invalid_file_fields' });
   }
   const mediaType = detectMediaType(contentType);
-  if (!mediaType) return jsonResponse(400, headers, { error: 'unsupported_mime_type' });
+  if (!mediaType) {
+    logWarn(context, 'portal.requests.attachments.finalize.validation_failed', {
+      userId: user.id,
+      requestId,
+      reason: 'unsupported_mime_type',
+      contentType,
+    });
+    return jsonResponse(400, headers, { error: 'unsupported_mime_type' });
+  }
   const maxBytes = maxBytesForMediaType(mediaType);
   if (fileSizeBytes > maxBytes) {
+    logWarn(context, 'portal.requests.attachments.finalize.validation_failed', {
+      userId: user.id,
+      requestId,
+      reason: 'file_too_large',
+      fileSizeBytes,
+      maxBytes,
+      mediaType,
+    });
     return jsonResponse(400, headers, { error: 'file_too_large', max_bytes: maxBytes });
   }
   const counts = await countRequestAttachmentMedia(pool, requestId);
   if (mediaType === 'PHOTO' && counts.photos >= MAX_REQUEST_PHOTOS) {
+    logWarn(context, 'portal.requests.attachments.finalize.validation_failed', {
+      userId: user.id,
+      requestId,
+      reason: 'photo_limit_exceeded',
+      max: MAX_REQUEST_PHOTOS,
+    });
     return jsonResponse(400, headers, { error: 'photo_limit_exceeded', max: MAX_REQUEST_PHOTOS });
   }
   if (mediaType === 'VIDEO' && counts.videos >= MAX_REQUEST_VIDEOS) {
+    logWarn(context, 'portal.requests.attachments.finalize.validation_failed', {
+      userId: user.id,
+      requestId,
+      reason: 'video_limit_exceeded',
+      max: MAX_REQUEST_VIDEOS,
+    });
     return jsonResponse(400, headers, { error: 'video_limit_exceeded', max: MAX_REQUEST_VIDEOS });
   }
 
@@ -418,6 +520,13 @@ async function portalRequestAttachmentFinalize(
       idempotencyKey: `request-attachment:${created.id}`,
     });
     await client.query('COMMIT');
+    logInfo(context, 'portal.requests.attachments.finalize.success', {
+      userId: user.id,
+      requestId,
+      attachmentId: created.id,
+      mediaType,
+      fileSizeBytes,
+    });
     return jsonResponse(201, headers, { attachment: created });
   } catch (error) {
     await client.query('ROLLBACK');
@@ -434,22 +543,49 @@ async function portalRequestAttachmentFinalize(
 
 async function portalRequestAttachmentsList(
   request: HttpRequest,
-  _context: InvocationContext
+  context: InvocationContext
 ): Promise<HttpResponseInit> {
-  const gate = await requirePortalUser(request);
+  const gate = await requirePortalUser(request, context);
   if (!gate.ok) return gate.response;
   const { user, headers } = gate.ctx;
-  if (request.method !== 'GET') return jsonResponse(405, headers, { error: 'method_not_allowed' });
+  logInfo(context, 'portal.requests.attachments.list.start', {
+    userId: user.id,
+    method: request.method,
+  });
+  if (request.method !== 'GET') {
+    logWarn(context, 'portal.requests.attachments.list.method_not_allowed', {
+      userId: user.id,
+      method: request.method,
+    });
+    return jsonResponse(405, headers, { error: 'method_not_allowed' });
+  }
 
   const requestId = request.params.id;
-  if (!requestId) return jsonResponse(400, headers, { error: 'missing_id' });
+  if (!requestId) {
+    logWarn(context, 'portal.requests.attachments.list.missing_id', { userId: user.id });
+    return jsonResponse(400, headers, { error: 'missing_id' });
+  }
+  if (!isUuid(requestId)) {
+    return jsonResponse(404, headers, { error: 'not_found' });
+  }
   const pool = getPool();
   const role = String(user.role ?? '').toUpperCase() as PortalRole;
   if (!canViewInternalMessages(role)) {
     const allowed = await tenantCanAccessRequest(pool, requestId, user.id);
-    if (!allowed) return jsonResponse(404, headers, { error: 'not_found' });
+    if (!allowed) {
+      logWarn(context, 'portal.requests.attachments.list.not_found', {
+        userId: user.id,
+        requestId,
+      });
+      return jsonResponse(404, headers, { error: 'not_found' });
+    }
   }
   const attachments = await listRequestAttachments(pool, requestId);
+  logInfo(context, 'portal.requests.attachments.list.success', {
+    userId: user.id,
+    requestId,
+    count: attachments.length,
+  });
   return jsonResponse(200, headers, { attachments });
 }
 
@@ -465,6 +601,13 @@ app.http('portalRequestItem', {
   authLevel: 'anonymous',
   route: 'portal/requests/{id}',
   handler: portalRequestItem,
+});
+
+app.http('portalRequestLookups', {
+  methods: ['GET', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'portal/request-lookups',
+  handler: portalRequestLookups,
 });
 
 app.http('portalRequestMessages', {
@@ -484,7 +627,7 @@ app.http('portalRequestUploadIntent', {
 app.http('portalRequestAttachmentFinalize', {
   methods: ['POST', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'portal/requests/{id}/attachments',
+  route: 'portal/requests/{id}/attachments/finalize',
   handler: portalRequestAttachmentFinalize,
 });
 

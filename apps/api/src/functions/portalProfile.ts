@@ -7,6 +7,7 @@ import {
 import { getPool } from '../lib/db.js';
 import { jsonResponse, requirePortalUser } from '../lib/managementRequest.js';
 import { updateUserProfile } from '../lib/usersRepo.js';
+import { isValidEmail, isValidPhone } from '../lib/contactValidation.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
   if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>;
@@ -15,10 +16,6 @@ function asRecord(v: unknown): Record<string, unknown> {
 
 function str(v: unknown): string | undefined {
   return typeof v === 'string' ? v.trim() : undefined;
-}
-
-function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 async function portalProfileHandler(
@@ -51,7 +48,7 @@ async function portalProfileHandler(
   if (!email) {
     return jsonResponse(400, headers, { error: 'missing_email' });
   }
-  if (email.length > 320 || !isValidEmail(email)) {
+  if (!isValidEmail(email)) {
     return jsonResponse(400, headers, { error: 'invalid_email' });
   }
   if (firstName && firstName.length > 100) {
@@ -62,6 +59,9 @@ async function portalProfileHandler(
   }
   if (phone && phone.length > 50) {
     return jsonResponse(400, headers, { error: 'phone_too_long' });
+  }
+  if (phone && !isValidPhone(phone)) {
+    return jsonResponse(400, headers, { error: 'invalid_phone' });
   }
 
   const pool = getPool();
