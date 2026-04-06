@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Box, useMediaQuery, useTheme } from '@mui/material';
 import { keyframes } from '@emotion/react';
 import { useLocation } from 'react-router-dom';
-import PortalSidebar, { SIDEBAR_COLLAPSED_WIDTH, SIDEBAR_WIDTH } from './PortalSidebar';
+import PortalSidebar from './PortalSidebar';
 import PortalTopBar from './PortalTopBar';
 
 const portalPageIn = keyframes({
@@ -16,11 +16,6 @@ const PortalLayout = ({ children }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { pathname } = useLocation();
-  const widthTransition = theme.transitions.create('width', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.enteringScreen,
-  });
-  const sidebarWidth = isMobile ? SIDEBAR_WIDTH : (desktopSidebarCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH);
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: 'background.default' }}>
@@ -39,8 +34,7 @@ const PortalLayout = ({ children }) => {
           display: 'flex',
           flexDirection: 'column',
           minHeight: '100vh',
-          width: isMobile ? '100%' : `calc(100% - ${sidebarWidth}px)`,
-          transition: widthTransition,
+          minWidth: 0,
         }}
       >
         <PortalTopBar

@@ -308,7 +308,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false }) => {
         open={open}
         onClose={onClose}
         ModalProps={{ keepMounted: true }}
-        sx={{ '& .MuiDrawer-paper': drawerPaperSx }}
+        PaperProps={{ sx: drawerPaperSx }}
       >
         {drawerContent}
       </Drawer>
@@ -323,8 +323,9 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false }) => {
         width: collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH,
         flexShrink: 0,
         transition: widthTransition,
-        '& .MuiDrawer-paper': drawerPaperSx,
+        overflow: 'hidden',
       }}
+      PaperProps={{ sx: drawerPaperSx }}
     >
       {drawerContent}
     </Drawer>
