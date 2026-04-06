@@ -12,6 +12,7 @@ const authState = {
     user: {
       first_name: 'Test',
       last_name: 'User',
+      status: 'ACTIVE',
     },
   },
   signIn: vi.fn(),
@@ -65,5 +66,32 @@ describe('ResponsiveNavbar sign-out confirmation', () => {
     fireEvent.click(within(confirmDialog).getByRole('button', { name: /^sign out$/i }));
 
     expect(authState.signOut).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps account menu focused on profile and sign-out actions', () => {
+    render(
+      <WithAppTheme>
+        <ResponsiveNavbar />
+      </WithAppTheme>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /signed in/i }));
+    expect(screen.getByRole('menuitem', { name: /profile/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /^sign out$/i })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: /workspace/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: /requests/i })).not.toBeInTheDocument();
+  });
+
+  it('shows role-aware portal links in the dedicated portal menu', () => {
+    render(
+      <WithAppTheme>
+        <ResponsiveNavbar />
+      </WithAppTheme>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /portal menu/i }));
+    expect(screen.getByRole('menuitem', { name: /portal home/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /requests/i })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: /admin: landlords/i })).not.toBeInTheDocument();
   });
 });

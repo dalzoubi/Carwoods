@@ -18,6 +18,8 @@
     "siteMenu": "Menu du site",
     "tenantMenu": "Menu locataire",
     "landlordMenu": "Menu propriétaire",
+    "portal": "Portail",
+    "portalMenu": "Menu portail",
     "legalMenu": "Menu des mentions légales",
     "print": "Imprimer cette page"
   },
@@ -635,8 +637,14 @@
   "portalSetup": {
     "title": "Carwoods - Configuration du Portail",
     "metaDescription": "Vérifications de configuration du portail de maintenance pour la connectivité API et l'accès authentifié.",
-    "heading": "Configuration du Portail de Maintenance",
-    "intro": "Utilisez ces vérifications pour valider la connectivité API avant de créer des widgets de portail selon le role.",
+    "heading": "Accueil du portail",
+    "intro": "Ouvrez vos outils portail depuis ici, puis utilisez les vérifications système quand vous devez diagnostiquer la configuration ou l'authentification.",
+    "portalActionsHeading": "Actions du portail",
+    "portalActionsIntro": "Les actions disponibles sont affichées selon votre rôle après connexion.",
+    "portalActionsUnavailable": "Connectez-vous pour accéder aux demandes et aux outils de compte.",
+    "guestBlocked": "Les comptes invités peuvent voir les informations de session, mais ne peuvent pas accéder aux outils du portail.",
+    "systemChecksHeading": "Vérifications système",
+    "systemChecksIntro": "Utilisez ces diagnostics pour valider la connectivité API et l'accès authentifié au portail.",
     "apiBaseMissing": "Définissez VITE_API_BASE_URL dans votre fichier .env à la racine pour activer les vérifications API du portail.",
     "apiBaseHeading": "URL de base de l'API du portail",
     "healthHeading": "Vérification de l'endpoint de santé",
@@ -646,6 +654,7 @@
     "actions": {
       "checkHealth": "Vérifier la santé",
       "checkMe": "Vérifier /portal/me",
+      "open": "Ouvrir",
       "openWorkspace": "Ouvrir l'espace portail",
       "signIn": "Se connecter avec Entra",
       "signOut": "Se déconnecter",
@@ -684,6 +693,12 @@
       "tokenRequired": "Collez un jeton bearer avant d'exécuter cette vérification.",
       "unknown": "Erreur inattendue"
     }
+  },
+  "portalStatus": {
+    "title": "Carwoods - Statut du portail",
+    "metaDescription": "Vérifications de dépannage du portail pour la connectivité API et l'état de l'authentification.",
+    "heading": "Statut du portail",
+    "intro": "Page de diagnostic pour valider les sessions et la connectivité du portail."
   },
   "portalWorkspace": {
     "nextHeading": "Prochaines étapes d'implémentation",
@@ -879,8 +894,7 @@
     "title": "Portail de Maintenance",
     "notSignedIn": "Non connecté",
     "nav": {
-      "setup": "Configuration",
-      "workspace": "Espace",
+      "home": "Accueil du portail",
       "requests": "Demandes",
       "profile": "Profil",
       "adminLandlords": "Admin : Propriétaires"

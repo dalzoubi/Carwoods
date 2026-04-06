@@ -174,6 +174,7 @@ const ResponsiveNavbar = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [tenantAnchor, setTenantAnchor] = useState(null);
     const [landlordAnchor, setLandlordAnchor] = useState(null);
+    const [portalAnchor, setPortalAnchor] = useState(null);
     const [legalAnchor, setLegalAnchor] = useState(null);
     const [appearanceAnchor, setAppearanceAnchor] = useState(null);
     const [languageAnchor, setLanguageAnchor] = useState(null);
@@ -206,17 +207,17 @@ const ResponsiveNavbar = () => {
     const currentPortalRoleLabel = portalRoleLabel(portalRole, t);
     const roleResolved = isAuthenticated && meStatus !== 'loading';
     const isGuestAccount = roleResolved && isGuestRole(normalizedPortalRole);
-    const accountPortalLinks = [
-        ...(normalizedPortalRole === 'ADMIN'
-            ? [{ to: '/portal', label: t('portalHeader.nav.setup') }]
+    const portalLinks = [
+        { to: '/portal', label: t('portalHeader.nav.home') },
+        ...(isAuthenticated && !isGuestAccount
+            ? [
+                { to: '/portal/requests', label: t('portalHeader.nav.requests') },
+            ]
             : []),
-        { to: '/portal/workspace', label: t('portalHeader.nav.workspace') },
-        { to: '/portal/requests', label: t('portalHeader.nav.requests') },
         ...(normalizedPortalRole === 'ADMIN'
             ? [{ to: '/portal/admin', label: t('portalHeader.nav.adminLandlords') }]
             : []),
     ];
-    const visibleAccountPortalLinks = isGuestAccount ? [] : accountPortalLinks;
 
     const menuHorizontalOrigin = muiTheme.direction === 'rtl' ? 'right' : 'left';
     const menuAnchorOrigin = { vertical: 'bottom', horizontal: menuHorizontalOrigin };
@@ -259,6 +260,7 @@ const ResponsiveNavbar = () => {
 
     const handleTenantOpen = (e) => {
         setLandlordAnchor(null);
+        setPortalAnchor(null);
         setLegalAnchor(null);
         setAppearanceAnchor(null);
         setLanguageAnchor(null);
@@ -269,6 +271,7 @@ const ResponsiveNavbar = () => {
     };
     const handleLandlordOpen = (e) => {
         setTenantAnchor(null);
+        setPortalAnchor(null);
         setLegalAnchor(null);
         setAppearanceAnchor(null);
         setLanguageAnchor(null);
@@ -277,9 +280,21 @@ const ResponsiveNavbar = () => {
     const handleLandlordClose = () => {
         setLandlordAnchor(null);
     };
+    const handlePortalOpen = (e) => {
+        setTenantAnchor(null);
+        setLandlordAnchor(null);
+        setLegalAnchor(null);
+        setAppearanceAnchor(null);
+        setLanguageAnchor(null);
+        setPortalAnchor(e.currentTarget);
+    };
+    const handlePortalClose = () => {
+        setPortalAnchor(null);
+    };
     const handleLegalOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setPortalAnchor(null);
         setAppearanceAnchor(null);
         setLanguageAnchor(null);
         setLegalAnchor(e.currentTarget);
@@ -290,6 +305,7 @@ const ResponsiveNavbar = () => {
     const handleAppearanceOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setPortalAnchor(null);
         setLegalAnchor(null);
         setLanguageAnchor(null);
         setAppearanceAnchor(e.currentTarget);
@@ -305,6 +321,7 @@ const ResponsiveNavbar = () => {
     const handleLanguageOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setPortalAnchor(null);
         setLegalAnchor(null);
         setAppearanceAnchor(null);
         setLanguageAnchor(e.currentTarget);
@@ -320,6 +337,7 @@ const ResponsiveNavbar = () => {
     const handleAccountOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setPortalAnchor(null);
         setLegalAnchor(null);
         setAppearanceAnchor(null);
         setLanguageAnchor(null);
@@ -582,6 +600,24 @@ const ResponsiveNavbar = () => {
                     >
                         <ListItemText primary={t('nav.contactUs')} style={{ color: muiTheme.palette.drawer.text }} />
                     </ListItemButton>
+                    <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
+                        {t('nav.portal')}
+                    </ListSubheader>
+                    {portalLinks.map(({ to, label }) => (
+                        <ListItemButton
+                            key={to}
+                            component={RouterLink}
+                            to={withDarkPath(pathname, to)}
+                            selected={isRouteActive(to)}
+                            onClick={handleDrawerToggle}
+                            sx={{
+                                pl: 3,
+                                ...listItemButtonSx,
+                            }}
+                        >
+                            <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
+                        </ListItemButton>
+                    ))}
                     {showAppearanceMenu ? (
                         <ListItemButton
                             onClick={handleAppearanceOpen}
@@ -879,6 +915,69 @@ const ResponsiveNavbar = () => {
                                         </MenuItem>
                                     ))}
                                 </Menu>
+                                <IconButton
+                                    component="span"
+                                    disableRipple
+                                    id="portal-menu-button"
+                                    onClick={handlePortalOpen}
+                                    aria-haspopup="true"
+                                    aria-expanded={Boolean(portalAnchor)}
+                                    aria-controls={portalAnchor ? 'portal-menu' : undefined}
+                                    aria-label={t('nav.portalMenu')}
+                                    sx={{
+                                        color: 'inherit',
+                                        padding: '0.3rem 0.55rem',
+                                        fontWeight: 'bold',
+                                        fontSize: '0.9rem',
+                                        borderRadius: '4px',
+                                        '&:hover': {
+                                            backgroundColor: 'var(--nav-chrome-hover-bg)',
+                                        },
+                                    }}
+                                >
+                                    <span style={{ marginInlineEnd: '0.2rem' }}>{t('nav.portal')}</span>
+                                    <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
+                                </IconButton>
+                                <Menu
+                                    {...stableMenuProps}
+                                    id="portal-menu"
+                                    anchorEl={portalAnchor}
+                                    open={Boolean(portalAnchor)}
+                                    onClose={handlePortalClose}
+                                    MenuListProps={{
+                                        'aria-labelledby': 'portal-menu-button',
+                                    }}
+                                    slotProps={{
+                                        paper: {
+                                            sx: { backgroundImage: 'none' },
+                                        },
+                                    }}
+                                    anchorOrigin={menuAnchorOrigin}
+                                    transformOrigin={menuTransformOrigin}
+                                >
+                                    {portalLinks.map(({ to, label }) => (
+                                        <MenuItem
+                                            key={to}
+                                            component={RouterLink}
+                                            to={withDarkPath(pathname, to)}
+                                            selected={isRouteActive(to)}
+                                            onClick={handlePortalClose}
+                                            sx={{
+                                                color: 'text.secondary',
+                                                '&:hover': {
+                                                    backgroundColor: 'var(--menu-item-hover-bg)',
+                                                    color: 'var(--menu-item-hover-fg)',
+                                                },
+                                                '&.Mui-selected': {
+                                                    backgroundColor: 'var(--menu-item-active-bg)',
+                                                    color: 'var(--menu-item-active-fg)',
+                                                },
+                                            }}
+                                        >
+                                            {label}
+                                        </MenuItem>
+                                    ))}
+                                </Menu>
 
                                 <NavLink to={withDarkPath(pathname, '/contact-us')} className={({ isActive }) => (isActive ? 'active' : '')} style={headerNavLinkStyle}>
                                     {t('nav.contactUs')}
@@ -1097,17 +1196,6 @@ const ResponsiveNavbar = () => {
                         <ListItemText primary={`${t('portalHeader.nav.profile')} (${currentPortalRoleLabel})`} />
                     </MenuItem>
                     <Divider />
-                    {visibleAccountPortalLinks.map(({ to, label }) => (
-                        <MenuItem
-                            key={to}
-                            onClick={() => {
-                                navigate(withDarkPath(pathname, to));
-                                handleAccountClose();
-                            }}
-                        >
-                            {label}
-                        </MenuItem>
-                    ))}
                     <MenuItem
                         onClick={() => {
                             handleSignOutConfirmOpen();

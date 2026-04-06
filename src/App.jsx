@@ -15,7 +15,7 @@ import TermsOfService from './components/TermsOfService';
 import Footer from './components/Footer';
 import ResponsiveNavbar from './components/ResponsiveNavbar';
 import PortalSetup from './components/PortalSetup';
-import PortalWorkspace from './components/PortalWorkspace';
+import PortalStatus from './components/PortalStatus';
 import PortalProfile from './components/PortalProfile';
 import PortalRequests from './components/PortalRequests';
 import PortalAdminLandlords from './components/PortalAdminLandlords';
@@ -65,12 +65,12 @@ function PageRoutes() {
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/accessibility" element={<Accessibility />} />
             <Route path="/portal" element={<PortalSetup />} />
-            <Route path="/portal/workspace" element={<PortalWorkspace />} />
+            <Route path="/portal/status" element={<PortalStatus />} />
             <Route path="/portal/profile" element={<PortalProfile />} />
             <Route path="/portal/requests" element={<PortalRequests />} />
             <Route path="/portal/admin" element={<PortalAdminLandlords />} />
-            <Route path="/portal/tenant" element={<Navigate to="/portal/workspace" replace />} />
-            <Route path="/portal/landlord" element={<Navigate to="/portal/workspace" replace />} />
+            <Route path="/portal/tenant" element={<Navigate to="/portal" replace />} />
+            <Route path="/portal/landlord" element={<Navigate to="/portal" replace />} />
         </Routes>
     );
 }

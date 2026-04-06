@@ -61,6 +61,14 @@ describe('ResponsiveNavbar', () => {
     expect(screen.getByRole('menuitem', { name: /property management/i })).toBeInTheDocument();
   });
 
+  it('renders a dedicated portal menu and keeps unauthenticated links limited', () => {
+    renderWithProviders(<ResponsiveNavbar />);
+    fireEvent.click(screen.getByRole('button', { name: /portal menu/i }));
+    expect(screen.getByRole('menuitem', { name: /portal home/i })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: /workspace/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: /requests/i })).not.toBeInTheDocument();
+  });
+
   it('has accessible menu button on mobile', () => {
     window.matchMedia = vi.fn().mockImplementation((query) => ({
       matches: query.includes('max-width'),

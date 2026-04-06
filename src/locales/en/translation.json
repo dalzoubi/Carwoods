@@ -18,6 +18,8 @@
     "siteMenu": "Site menu",
     "tenantMenu": "Tenant menu",
     "landlordMenu": "Landlord menu",
+    "portal": "Portal",
+    "portalMenu": "Portal menu",
     "legalMenu": "Legal menu",
     "print": "Print this page"
   },
@@ -635,8 +637,14 @@
   "portalSetup": {
     "title": "Carwoods - Portal Setup",
     "metaDescription": "Maintenance portal setup checks for API connectivity and authenticated access.",
-    "heading": "Maintenance Portal Setup",
-    "intro": "Use these checks to validate API connectivity before building role-based portal widgets.",
+    "heading": "Portal Home",
+    "intro": "Open your portal tools from here, then use system checks when you need to troubleshoot setup or authentication.",
+    "portalActionsHeading": "Portal actions",
+    "portalActionsIntro": "Available actions are shown based on your role after sign-in.",
+    "portalActionsUnavailable": "Sign in to access requests and account tools.",
+    "guestBlocked": "Guest accounts can view session information but cannot access portal tools.",
+    "systemChecksHeading": "System checks",
+    "systemChecksIntro": "Use these diagnostics to validate API connectivity and authenticated portal access.",
     "apiBaseMissing": "Set VITE_API_BASE_URL in your root .env file to enable portal API checks.",
     "apiBaseHeading": "Portal API base URL",
     "healthHeading": "Health endpoint check",
@@ -646,6 +654,7 @@
     "actions": {
       "checkHealth": "Check health",
       "checkMe": "Check /portal/me",
+      "open": "Open",
       "openWorkspace": "Open portal workspace",
       "signIn": "Sign in with Entra",
       "signOut": "Sign out",
@@ -684,6 +693,12 @@
       "tokenRequired": "Paste a bearer token before running this check.",
       "unknown": "Unexpected error"
     }
+  },
+  "portalStatus": {
+    "title": "Carwoods - Portal Status",
+    "metaDescription": "Portal troubleshooting checks for API connectivity and authentication health.",
+    "heading": "Portal Status",
+    "intro": "Troubleshooting page for portal diagnostics and session validation."
   },
   "portalWorkspace": {
     "nextHeading": "Next implementation steps",
@@ -879,8 +894,7 @@
     "title": "Maintenance Portal",
     "notSignedIn": "Not signed in",
     "nav": {
-      "setup": "Setup",
-      "workspace": "Workspace",
+      "home": "Portal Home",
       "requests": "Requests",
       "profile": "Profile",
       "adminLandlords": "Admin: Landlords"

@@ -18,6 +18,8 @@
     "siteMenu": "Menú del sitio",
     "tenantMenu": "Menú de inquilino",
     "landlordMenu": "Menú de propietario",
+    "portal": "Portal",
+    "portalMenu": "Menú del portal",
     "legalMenu": "Menú legal",
     "print": "Imprimir esta página"
   },
@@ -635,8 +637,14 @@
   "portalSetup": {
     "title": "Carwoods - Configuración del Portal",
     "metaDescription": "Comprobaciones de configuración del portal de mantenimiento para conectividad API y acceso autenticado.",
-    "heading": "Configuración del Portal de Mantenimiento",
-    "intro": "Use estas comprobaciones para validar la conectividad API antes de crear widgets del portal según el rol.",
+    "heading": "Inicio del portal",
+    "intro": "Abre tus herramientas del portal desde aquí y usa las comprobaciones del sistema cuando necesites revisar la configuración o la autenticación.",
+    "portalActionsHeading": "Acciones del portal",
+    "portalActionsIntro": "Las acciones disponibles se muestran según tu rol después de iniciar sesión.",
+    "portalActionsUnavailable": "Inicia sesión para acceder a solicitudes y herramientas de cuenta.",
+    "guestBlocked": "Las cuentas invitadas pueden ver información de sesión, pero no pueden acceder a herramientas del portal.",
+    "systemChecksHeading": "Comprobaciones del sistema",
+    "systemChecksIntro": "Usa estos diagnósticos para validar la conectividad API y el acceso autenticado al portal.",
     "apiBaseMissing": "Configure VITE_API_BASE_URL en su archivo .env raíz para habilitar las comprobaciones de API del portal.",
     "apiBaseHeading": "URL base de la API del portal",
     "healthHeading": "Comprobación del endpoint de salud",
@@ -646,6 +654,7 @@
     "actions": {
       "checkHealth": "Comprobar salud",
       "checkMe": "Comprobar /portal/me",
+      "open": "Abrir",
       "openWorkspace": "Abrir espacio del portal",
       "signIn": "Iniciar sesión con Entra",
       "signOut": "Cerrar sesión",
@@ -684,6 +693,12 @@
       "tokenRequired": "Pegue un token bearer antes de ejecutar esta comprobación.",
       "unknown": "Error inesperado"
     }
+  },
+  "portalStatus": {
+    "title": "Carwoods - Estado del portal",
+    "metaDescription": "Comprobaciones de solución de problemas del portal para conectividad API y salud de autenticación.",
+    "heading": "Estado del portal",
+    "intro": "Página de diagnóstico para validar sesiones y conectividad del portal."
   },
   "portalWorkspace": {
     "nextHeading": "Próximos pasos de implementación",
@@ -879,8 +894,7 @@
     "title": "Portal de Mantenimiento",
     "notSignedIn": "Sin sesión iniciada",
     "nav": {
-      "setup": "Configuración",
-      "workspace": "Espacio",
+      "home": "Inicio del portal",
       "requests": "Solicitudes",
       "profile": "Perfil",
       "adminLandlords": "Admin: Propietarios"

@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { WithAppTheme } from '../testUtils';
 import i18n from '../i18n';
-import PortalSetup from './PortalSetup';
+import PortalStatus from './PortalStatus';
 
 const authState = {
   authStatus: 'authenticated',
@@ -37,7 +37,7 @@ describe('PortalSetup sign-out confirmation', () => {
   it('requires in-app confirmation before signing out', () => {
     render(
       <WithAppTheme>
-        <PortalSetup />
+        <PortalStatus />
       </WithAppTheme>
     );
 
