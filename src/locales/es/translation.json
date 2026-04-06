@@ -846,6 +846,18 @@
       "heading": "Archivos adjuntos",
       "empty": "Aún no hay adjuntos.",
       "saved": "Metadatos del adjunto guardados."
+    },
+    "audit": {
+      "tabsLabel": "Pestañas de vista de solicitud",
+      "detailsTab": "Detalles",
+      "auditTab": "Auditoría",
+      "heading": "Registro de auditoría",
+      "loading": "Cargando eventos de auditoría…",
+      "empty": "No hay eventos de auditoría para esta solicitud.",
+      "actor": "Actor",
+      "when": "Cuándo",
+      "before": "Antes",
+      "after": "Después"
     }
   },
   "portalAdminLandlords": {

@@ -95,11 +95,10 @@ function formToRecord(form) {
 
 function validate(form, t, opts = {}) {
   const isAdmin = Boolean(opts.isAdmin);
-  const isEditing = Boolean(opts.isEditing);
   const errors = {};
   if (!form.addressLine.trim()) errors.addressLine = t('portalAdminProperties.errors.addressRequired');
   if (!form.cityStateZip.trim()) errors.cityStateZip = t('portalAdminProperties.errors.cityStateZipRequired');
-  if (isAdmin && !isEditing && !String(form.landlordUserId ?? '').trim()) {
+  if (isAdmin && !String(form.landlordUserId ?? '').trim()) {
     errors.landlordUserId = t('portalAdminProperties.errors.landlordRequired');
   }
   return errors;
@@ -410,7 +409,7 @@ const PortalAdminProperties = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    const errors = validate(form, t, { isAdmin, isEditing: Boolean(editingId) });
+    const errors = validate(form, t, { isAdmin });
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       return;
@@ -546,8 +545,8 @@ const PortalAdminProperties = () => {
                     label={t('portalAdminProperties.form.landlord')}
                     value={form.landlordUserId}
                     onChange={onChange('landlordUserId')}
-                    required={!editingId}
-                    disabled={Boolean(editingId) || landlordsStatus === 'loading' || landlords.length === 0}
+                    required
+                    disabled={landlordsStatus === 'loading' || landlords.length === 0}
                     fullWidth
                     error={Boolean(fieldErrors.landlordUserId)}
                     helperText={

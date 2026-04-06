@@ -1,4 +1,18 @@
 import type { PoolClient } from './db.js';
+import type { QueryResult } from './db.js';
+
+type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
+
+export type AuditLogRow = {
+  id: string;
+  actor_user_id: string;
+  entity_type: string;
+  entity_id: string;
+  action: string;
+  before_json: string | null;
+  after_json: string | null;
+  created_at: Date;
+};
 
 export async function writeAudit(
   client: PoolClient,
@@ -23,4 +37,21 @@ export async function writeAudit(
       JSON.stringify(params.after ?? null),
     ]
   );
+}
+
+export async function listAuditForEntity(
+  client: Queryable,
+  entityId: string,
+  limit = 100
+): Promise<AuditLogRow[]> {
+  const safeLimit = Number.isFinite(limit) ? Math.max(1, Math.min(Math.floor(limit), 500)) : 100;
+  const r = await client.query<AuditLogRow>(
+    `SELECT TOP (${safeLimit})
+        id, actor_user_id, entity_type, entity_id, action, before_json, after_json, created_at
+     FROM audit_log
+     WHERE entity_id = $1
+     ORDER BY created_at DESC`,
+    [entityId]
+  );
+  return r.rows;
 }

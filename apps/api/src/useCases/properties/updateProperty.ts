@@ -14,8 +14,9 @@ import {
 } from '../../lib/propertiesRepo.js';
 import { harColumnsForPatch } from '../../lib/propertyHarSync.js';
 import { writeAudit } from '../../lib/auditRepo.js';
+import { findUserById } from '../../lib/usersRepo.js';
 import { forbidden, notFound, unprocessable, validationError } from '../../domain/errors.js';
-import { hasLandlordAccess } from '../../domain/constants.js';
+import { hasLandlordAccess, Role } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
 
 export type UpdatePropertyInput = {
@@ -34,6 +35,8 @@ export type UpdatePropertyInput = {
   har_listing_id_present?: boolean;
   metadata_present?: boolean;
   name_present?: boolean;
+  landlord_user_id?: string;
+  landlord_user_id_present?: boolean;
 };
 
 export type UpdatePropertyOutput = {
@@ -90,6 +93,25 @@ export async function updateProperty(
     har_sync_error: har.har_sync_error,
     har_last_synced_at: har.har_last_synced_at,
   };
+
+  if (input.landlord_user_id_present) {
+    const isAdmin = input.actorRole.trim().toUpperCase() === Role.ADMIN;
+    if (!isAdmin) throw forbidden();
+    const landlordUserId = String(input.landlord_user_id ?? '').trim();
+    if (!landlordUserId) {
+      throw validationError('landlord_user_id is required when reassigning property landlord');
+    }
+    const landlord = await findUserById(db, landlordUserId);
+    const isActiveLandlord = Boolean(
+      landlord
+      && String(landlord.role ?? '').trim().toUpperCase() === Role.LANDLORD
+      && String(landlord.status ?? '').trim().toUpperCase() === 'ACTIVE'
+    );
+    if (!isActiveLandlord) {
+      throw validationError('landlord_user_id must reference an active landlord');
+    }
+    patch.created_by = landlordUserId;
+  }
 
   const client = await db.connect();
   try {

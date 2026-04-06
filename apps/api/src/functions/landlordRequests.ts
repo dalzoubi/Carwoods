@@ -13,6 +13,7 @@ import { getRequest } from '../useCases/requests/getRequest.js';
 import { updateRequestStatus } from '../useCases/requests/updateRequestStatus.js';
 import { suggestRequestReply } from '../useCases/requests/suggestRequestReply.js';
 import { exportRequestsCsv } from '../useCases/requests/exportRequestsCsv.js';
+import { listRequestAudit } from '../useCases/requests/listRequestAudit.js';
 
 // ---------------------------------------------------------------------------
 // Parsing helpers
@@ -147,6 +148,35 @@ async function landlordSuggestReply(
   }
 }
 
+async function landlordRequestAudit(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireLandlordOrAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  const requestId = request.params.id;
+  if (!requestId) return jsonResponse(400, ctx.headers, { error: 'missing_id' });
+  if (request.method !== 'GET') return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+
+  try {
+    const result = await listRequestAudit(getPool(), {
+      requestId,
+      actorRole: ctx.role,
+    });
+    return jsonResponse(200, ctx.headers, { audits: result.audits });
+  } catch (e) {
+    const mapped = mapDomainError(e, ctx.headers);
+    if (mapped) return mapped;
+    logError(context, 'landlord.requests.audit.error', {
+      requestId,
+      userId: ctx.user.id,
+      message: e instanceof Error ? e.message : 'unknown_error',
+    });
+    throw e;
+  }
+}
+
 async function landlordExportRequestsCsv(
   request: HttpRequest,
   context: InvocationContext
@@ -204,6 +234,13 @@ app.http('landlordRequestsSuggestReply', {
   authLevel: 'anonymous',
   route: 'landlord/requests/{id}/suggest-reply',
   handler: landlordSuggestReply,
+});
+
+app.http('landlordRequestAudit', {
+  methods: ['GET', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'landlord/requests/{id}/audit',
+  handler: landlordRequestAudit,
 });
 
 app.http('landlordRequestsCsvExport', {

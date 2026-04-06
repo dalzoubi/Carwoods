@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   Box,
   Button,
   Checkbox,
   FormControlLabel,
+  Tab,
+  Tabs,
   Stack,
   TextField,
   Typography,
@@ -14,6 +17,7 @@ import StatusAlertSlot from '../StatusAlertSlot';
 const RequestDetailPane = ({
   requestDetail,
   isManagement,
+  isAdmin,
   managementForm,
   onManagementField,
   onUpdateRequest,
@@ -35,8 +39,12 @@ const RequestDetailPane = ({
   attachmentFile,
   attachmentStatus,
   attachmentError,
+  auditEvents,
+  auditStatus,
+  auditError,
 }) => {
   const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState('details');
   const managementStatusMessage = managementUpdateStatus === 'error'
     ? { severity: 'error', text: managementUpdateError || t('portalRequests.errors.saveFailed') }
     : managementUpdateStatus === 'success'
@@ -53,11 +61,94 @@ const RequestDetailPane = ({
     : attachmentStatus === 'success'
       ? { severity: 'success', text: t('portalRequests.attachments.saved') }
       : null;
+  const parsedAudits = useMemo(
+    () => (Array.isArray(auditEvents) ? auditEvents : []).map((event) => {
+      const parseJsonSafe = (raw) => {
+        if (typeof raw !== 'string' || !raw.trim()) return null;
+        try {
+          return JSON.parse(raw);
+        } catch {
+          return raw;
+        }
+      };
+      return {
+        ...event,
+        beforeParsed: parseJsonSafe(event.before_json),
+        afterParsed: parseJsonSafe(event.after_json),
+      };
+    }),
+    [auditEvents]
+  );
 
+  useEffect(() => {
+    if (!requestDetail) return;
+    setActiveTab('details');
+  }, [requestDetail]);
   if (!requestDetail) return null;
 
   return (
     <Stack spacing={2} sx={{ flex: 1 }}>
+      {isAdmin && (
+        <Tabs
+          value={activeTab}
+          onChange={(_, value) => setActiveTab(value)}
+          aria-label={t('portalRequests.audit.tabsLabel')}
+        >
+          <Tab value="details" label={t('portalRequests.audit.detailsTab')} />
+          <Tab value="audit" label={t('portalRequests.audit.auditTab')} />
+        </Tabs>
+      )}
+
+      {isAdmin && activeTab === 'audit' ? (
+        <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 2 }}>
+          <Stack spacing={1.5}>
+            <Typography variant="h3" sx={{ fontSize: '1.1rem' }}>
+              {t('portalRequests.audit.heading')}
+            </Typography>
+            {auditStatus === 'loading' && (
+              <Typography color="text.secondary">{t('portalRequests.audit.loading')}</Typography>
+            )}
+            {auditStatus === 'error' && (
+              <Alert severity="error">{auditError || t('portalRequests.errors.loadFailed')}</Alert>
+            )}
+            {auditStatus !== 'loading' && parsedAudits.length === 0 && (
+              <Typography color="text.secondary">{t('portalRequests.audit.empty')}</Typography>
+            )}
+            {parsedAudits.map((event) => (
+              <Box key={event.id} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1.5 }}>
+                <Stack spacing={0.75}>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    {event.action} - {event.entity_type}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {t('portalRequests.audit.actor')}: {event.actor_user_id}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {t('portalRequests.audit.when')}: {event.created_at}
+                  </Typography>
+                  <Box>
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                      {t('portalRequests.audit.before')}
+                    </Typography>
+                    <Box component="pre" sx={{ m: 0, mt: 0.5, p: 1, overflowX: 'auto', bgcolor: 'action.hover', borderRadius: 0.75 }}>
+                      {JSON.stringify(event.beforeParsed, null, 2)}
+                    </Box>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                      {t('portalRequests.audit.after')}
+                    </Typography>
+                    <Box component="pre" sx={{ m: 0, mt: 0.5, p: 1, overflowX: 'auto', bgcolor: 'action.hover', borderRadius: 0.75 }}>
+                      {JSON.stringify(event.afterParsed, null, 2)}
+                    </Box>
+                  </Box>
+                </Stack>
+              </Box>
+            ))}
+          </Stack>
+        </Box>
+      ) : (
+        <>
       <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 2 }}>
         <Stack spacing={1}>
           <Typography sx={{ fontWeight: 700 }}>{requestDetail.title}</Typography>
@@ -235,6 +326,8 @@ const RequestDetailPane = ({
           </Stack>
         </Stack>
       </Box>
+        </>
+      )}
     </Stack>
   );
 };

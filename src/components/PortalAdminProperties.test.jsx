@@ -295,6 +295,60 @@ describe('PortalAdminProperties', () => {
     });
   });
 
+  it('allows admin to change landlord on edit', async () => {
+    mockAuthState.meData = {
+      role: 'ADMIN',
+      user: { first_name: 'Portal', last_name: 'Admin', role: 'ADMIN', status: 'ACTIVE' },
+    };
+    portalApiClient.fetchLandlords.mockResolvedValue({
+      landlords: [
+        { id: 'landlord-1', first_name: 'Lana', last_name: 'Lord', email: 'lana@example.com' },
+        { id: 'landlord-2', first_name: 'Ravi', last_name: 'Ray', email: 'ravi@example.com' },
+      ],
+    });
+    propertiesApiClient.listPropertiesApi.mockResolvedValue([
+      makeApiRow({
+        id: 'db-edit-landlord-1',
+        street: '14 Reassign St',
+        landlord_user_id: 'landlord-1',
+        landlord_name: 'Lana Lord',
+        metadata: {
+          apply: {
+            addressLine: '14 Reassign St',
+            cityStateZip: 'Houston, TX 77003',
+            monthlyRentLabel: '$1,900/mo',
+            photoUrl: '',
+            harListingUrl: '',
+            applyUrl: '',
+            detailLines: [],
+          },
+        },
+      }),
+    ]);
+
+    render(<WithAppTheme><PortalAdminProperties /></WithAppTheme>);
+    await waitFor(() => expect(portalApiClient.fetchLandlords).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByText('14 Reassign St')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: /edit/i }));
+    fireEvent.mouseDown(screen.getByLabelText(/landlord/i));
+    fireEvent.click(screen.getByRole('option', { name: /ravi ray/i }));
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+    await waitFor(() => {
+      expect(propertiesApiClient.updatePropertyApi).toHaveBeenCalledWith(
+        'https://api.carwoods.com',
+        'mock-token',
+        'db-edit-landlord-1',
+        expect.objectContaining({
+          addressLine: '14 Reassign St',
+          cityStateZip: 'Houston, TX 77003',
+          landlordUserId: 'landlord-2',
+        })
+      );
+    });
+  });
+
   it('submit button is enabled for LANDLORD role', async () => {
     render(
       <WithAppTheme>

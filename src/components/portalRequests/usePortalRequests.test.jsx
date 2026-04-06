@@ -18,6 +18,7 @@ function baseParams(overrides = {}) {
     isAuthenticated: true,
     isGuest: false,
     isManagement: false,
+    isAdmin: false,
     meStatus: 'ok',
     account: { idTokenClaims: { email: 'tenant@example.com' } },
     getAccessToken: vi.fn().mockResolvedValue('token-123'),
@@ -134,6 +135,49 @@ describe('usePortalRequests', () => {
     expect(result.current.suggestionStatus).toBe('error');
     expect(result.current.suggestionError).toContain('HTTP 500');
     expect(result.current.suggestionError).toContain('upstream_failed');
+  });
+
+  it('loads request audit events for admin users', async () => {
+    global.fetch
+      .mockResolvedValueOnce(
+        jsonResponse({
+          requests: [{ id: 'req-a1', title: 'Audit me', current_status_id: 'OPEN' }],
+        })
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          request: {
+            id: 'req-a1',
+            title: 'Audit me',
+            description: 'Test request',
+            current_status_id: 'OPEN',
+          },
+        })
+      )
+      .mockResolvedValueOnce(jsonResponse({ messages: [] }))
+      .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(
+        jsonResponse({
+          audits: [{ id: 'aud-1', action: 'UPDATE', entity_id: 'req-a1' }],
+        })
+      );
+
+    const params = baseParams({
+      isManagement: true,
+      isAdmin: true,
+      account: { idTokenClaims: { email: 'admin@example.com' } },
+    });
+    const { result } = renderHook(() => usePortalRequests(params));
+
+    await waitFor(() => {
+      expect(result.current.requestsStatus).toBe('ok');
+    });
+    await waitFor(() => {
+      expect(result.current.auditStatus).toBe('ok');
+    });
+
+    expect(result.current.auditEvents).toHaveLength(1);
+    expect(result.current.auditEvents[0].id).toBe('aud-1');
   });
 
   it('surfaces upload intent contract error when storage_path is missing', async () => {

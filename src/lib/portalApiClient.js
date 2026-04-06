@@ -162,6 +162,31 @@ export async function fetchRequestDetail(baseUrl, accessToken, params) {
   };
 }
 
+/**
+ * GET request audit events (admin-only).
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ requestId: string, emailHint?: string }} params
+ * @returns {Promise<object>}
+ */
+export async function fetchRequestAudit(baseUrl, accessToken, params) {
+  const { requestId, emailHint } = params;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/requests/${encodeURIComponent(requestId)}/audit`),
+    {
+      method: 'GET',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
 // ---------------------------------------------------------------------------
 // POST /api/portal/requests  (create maintenance request)
 // ---------------------------------------------------------------------------

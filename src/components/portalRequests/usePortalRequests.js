@@ -11,6 +11,7 @@ import {
   patchResource,
   fetchSuggestReply,
   fetchExportCsv,
+  fetchRequestAudit,
 } from '../../lib/portalApiClient';
 
 function extractErrorMessage(error, t, fallbackKey) {
@@ -26,6 +27,7 @@ export function usePortalRequests({
   isAuthenticated,
   isGuest,
   isManagement,
+  isAdmin,
   meStatus,
   account,
   getAccessToken,
@@ -77,6 +79,31 @@ export function usePortalRequests({
 
   const [exportStatus, setExportStatus] = useState('idle');
   const [exportError, setExportError] = useState('');
+  const [auditEvents, setAuditEvents] = useState([]);
+  const [auditStatus, setAuditStatus] = useState('idle');
+  const [auditError, setAuditError] = useState('');
+
+  const loadAuditForRequest = async (requestId) => {
+    if (!requestId || !baseUrl || !isAdmin) {
+      setAuditEvents([]);
+      setAuditStatus('idle');
+      setAuditError('');
+      return;
+    }
+    setAuditStatus('loading');
+    setAuditError('');
+    try {
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      const payload = await fetchRequestAudit(baseUrl, token, { requestId, emailHint });
+      setAuditEvents(Array.isArray(payload?.audits) ? payload.audits : []);
+      setAuditStatus('ok');
+    } catch (error) {
+      handleApiForbidden(error);
+      setAuditStatus('error');
+      setAuditError(extractErrorMessage(error, t, 'portalRequests.errors.loadFailed'));
+    }
+  };
 
   const listPath = useMemo(() => {
     if (!baseUrl) return '';
@@ -128,10 +155,14 @@ export function usePortalRequests({
       setSelectedRequestId(nextSelected);
       if (nextSelected) {
         await loadRequestDetails(nextSelected);
+        await loadAuditForRequest(nextSelected);
       } else {
         setRequestDetail(null);
         setThreadMessages([]);
         setAttachments([]);
+        setAuditEvents([]);
+        setAuditStatus('idle');
+        setAuditError('');
       }
     } catch (error) {
       handleApiForbidden(error);
@@ -442,7 +473,11 @@ export function usePortalRequests({
     suggestionText,
     exportStatus,
     exportError,
+    auditEvents,
+    auditStatus,
+    auditError,
     loadRequestDetails,
+    loadAuditForRequest,
     loadRequests,
     onTenantField,
     onCreateRequest,

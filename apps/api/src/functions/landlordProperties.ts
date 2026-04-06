@@ -169,6 +169,8 @@ async function landlordPropertiesItem(
         apply_visible: bool(b.apply_visible),
         har_listing_id: b.har_listing_id as string | null | undefined,
         har_listing_id_present: b.har_listing_id !== undefined,
+        landlord_user_id: str(b.landlord_user_id),
+        landlord_user_id_present: b.landlord_user_id !== undefined,
         metadata: b.metadata,
         metadata_present: b.metadata !== undefined,
       });

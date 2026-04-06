@@ -846,6 +846,18 @@
       "heading": "Pieces jointes",
       "empty": "Aucune piece jointe pour le moment.",
       "saved": "Metadonnees de piece jointe enregistrees."
+    },
+    "audit": {
+      "tabsLabel": "Onglets de vue de demande",
+      "detailsTab": "Details",
+      "auditTab": "Audit",
+      "heading": "Journal d'audit",
+      "loading": "Chargement des evenements d'audit…",
+      "empty": "Aucun evenement d'audit pour cette demande.",
+      "actor": "Acteur",
+      "when": "Quand",
+      "before": "Avant",
+      "after": "Apres"
     }
   },
   "portalAdminLandlords": {

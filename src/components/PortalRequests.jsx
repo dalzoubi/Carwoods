@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Box, Button, Chip, Paper, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { usePortalAuth } from '../PortalAuthContext';
 import { hasLandlordAccess } from '../domain/roleUtils.js';
+import { Role } from '../domain/constants.js';
 import { isGuestRole, normalizeRole, resolveRole } from '../portalUtils';
 import TenantRequestForm from './portalRequests/TenantRequestForm';
 import RequestListPane from './portalRequests/RequestListPane';
@@ -29,6 +30,7 @@ const PortalRequests = () => {
   const roleResolved = isAuthenticated && meStatus !== 'loading';
   const isGuest = roleResolved && isGuestRole(role);
   const isManagement = hasLandlordAccess(role);
+  const isAdmin = role === Role.ADMIN;
 
   const {
     requestsStatus,
@@ -63,7 +65,11 @@ const PortalRequests = () => {
     suggestionText,
     exportStatus,
     exportError,
+    auditEvents,
+    auditStatus,
+    auditError,
     loadRequestDetails,
+    loadAuditForRequest,
     loadRequests,
     onTenantField,
     onCreateRequest,
@@ -79,6 +85,7 @@ const PortalRequests = () => {
     isAuthenticated,
     isGuest,
     isManagement,
+    isAdmin,
     meStatus,
     account,
     getAccessToken,
@@ -170,6 +177,7 @@ const PortalRequests = () => {
               onSelectRequest={async (id) => {
                 setSelectedRequestId(id);
                 await loadRequestDetails(id);
+                await loadAuditForRequest(id);
               }}
               onReload={() => loadRequests({ keepSelection: true })}
               reloadDisabled={!isAuthenticated || !baseUrl || isGuest || requestsStatus === 'loading'}
@@ -191,6 +199,7 @@ const PortalRequests = () => {
               <RequestDetailPane
                 requestDetail={requestDetail}
                 isManagement={isManagement}
+                isAdmin={isAdmin}
                 managementForm={managementForm}
                 onManagementField={onManagementField}
                 onUpdateRequest={onUpdateRequest}
@@ -212,6 +221,9 @@ const PortalRequests = () => {
                 attachmentFile={attachmentFile}
                 attachmentStatus={attachmentStatus}
                 attachmentError={attachmentError}
+                auditEvents={auditEvents}
+                auditStatus={auditStatus}
+                auditError={auditError}
               />
             ) : (
               <Box sx={{ py: 6, textAlign: 'center' }}>

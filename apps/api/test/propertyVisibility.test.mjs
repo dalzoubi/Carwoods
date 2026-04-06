@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import { listProperties } from '../dist/src/useCases/properties/listProperties.js';
 import { getProperty } from '../dist/src/useCases/properties/getProperty.js';
+import { updateProperty } from '../dist/src/useCases/properties/updateProperty.js';
 import { createLease } from '../dist/src/useCases/leases/createLease.js';
 import { DomainError } from '../dist/src/domain/errors.js';
 
@@ -97,4 +98,55 @@ test('lease creation checks property visibility for landlord', async () => {
 
   assert.match(capture.sql, /\(\$2 = 'ADMIN' OR created_by = \$3\)/);
   assert.deepEqual(capture.values, ['property-id', 'LANDLORD', 'landlord-user-id']);
+});
+
+test('landlord cannot reassign property landlord on update', async () => {
+  const db = {
+    async query(sql, values) {
+      // current property lookup for actor visibility
+      if (/FROM properties/.test(sql)) {
+        return {
+          rows: [{
+            id: 'property-id',
+            name: null,
+            street: '123 Main St',
+            city: 'Houston',
+            state: 'TX',
+            zip: '77001',
+            har_listing_id: null,
+            listing_source: 'MANUAL',
+            apply_visible: true,
+            metadata: {},
+            har_sync_status: null,
+            har_sync_error: null,
+            har_last_synced_at: null,
+            created_at: new Date('2026-01-01T00:00:00Z'),
+            updated_at: new Date('2026-01-01T00:00:00Z'),
+            deleted_at: null,
+            created_by: 'landlord-user-id',
+          }],
+          rowCount: 1,
+        };
+      }
+      return { rows: [], rowCount: 0, sql, values };
+    },
+    async connect() {
+      throw new Error('connect should not be called when forbidden');
+    },
+  };
+
+  await assert.rejects(
+    updateProperty(db, {
+      propertyId: 'property-id',
+      actorUserId: 'landlord-user-id',
+      actorRole: 'LANDLORD',
+      landlord_user_id: 'other-landlord-id',
+      landlord_user_id_present: true,
+    }),
+    (error) => {
+      assert.ok(error instanceof DomainError);
+      assert.equal(error.code, 'FORBIDDEN');
+      return true;
+    }
+  );
 });

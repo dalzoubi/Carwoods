@@ -18,6 +18,7 @@ export type PropertyRowFull = {
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
+  created_by?: string;
   landlord_user_id?: string | null;
   landlord_first_name?: string | null;
   landlord_last_name?: string | null;
@@ -55,7 +56,7 @@ export async function listPropertiesLandlord(
   const r = await client.query<PropertyRowFull>(
     `SELECT p.id, p.name, p.street, p.city, p.state, p.zip, p.har_listing_id, p.listing_source, p.apply_visible,
             p.metadata, p.har_sync_status, p.har_sync_error, p.har_last_synced_at,
-            p.created_at, p.updated_at, p.deleted_at,
+            p.created_at, p.updated_at, p.deleted_at, p.created_by,
             landlord.id AS landlord_user_id,
             landlord.first_name AS landlord_first_name,
             landlord.last_name AS landlord_last_name,
@@ -78,7 +79,7 @@ export async function listPropertiesForActor(
   const r = await client.query<PropertyRowFull>(
     `SELECT p.id, p.name, p.street, p.city, p.state, p.zip, p.har_listing_id, p.listing_source, p.apply_visible,
             p.metadata, p.har_sync_status, p.har_sync_error, p.har_last_synced_at,
-            p.created_at, p.updated_at, p.deleted_at,
+            p.created_at, p.updated_at, p.deleted_at, p.created_by,
             landlord.id AS landlord_user_id,
             landlord.first_name AS landlord_first_name,
             landlord.last_name AS landlord_last_name,
@@ -102,7 +103,7 @@ export async function getPropertyById(
   const r = await client.query<PropertyRowFull>(
     `SELECT id, name, street, city, state, zip, har_listing_id, listing_source, apply_visible,
             metadata, har_sync_status, har_sync_error, har_last_synced_at,
-            created_at, updated_at, deleted_at
+            created_at, updated_at, deleted_at, created_by
      FROM properties WHERE id = $1 AND deleted_at IS NULL`,
     [id]
   );
@@ -118,7 +119,7 @@ export async function getPropertyByIdForActor(
   const r = await client.query<PropertyRowFull>(
     `SELECT id, name, street, city, state, zip, har_listing_id, listing_source, apply_visible,
             metadata, har_sync_status, har_sync_error, har_last_synced_at,
-            created_at, updated_at, deleted_at
+            created_at, updated_at, deleted_at, created_by
      FROM properties
      WHERE id = $1
        AND deleted_at IS NULL
@@ -158,7 +159,7 @@ export async function insertProperty(
      OUTPUT INSERTED.id, INSERTED.name, INSERTED.street, INSERTED.city, INSERTED.state,
             INSERTED.zip, INSERTED.har_listing_id, INSERTED.listing_source, INSERTED.apply_visible,
             INSERTED.metadata, INSERTED.har_sync_status, INSERTED.har_sync_error,
-            INSERTED.har_last_synced_at, INSERTED.created_at, INSERTED.updated_at, INSERTED.deleted_at
+            INSERTED.har_last_synced_at, INSERTED.created_at, INSERTED.updated_at, INSERTED.deleted_at, INSERTED.created_by
      VALUES (
        NEWID(), $1, $2, $3, $4, $5, $6, $7, $8, $9,
        $10, $11, $12, $13, $13
@@ -195,6 +196,7 @@ export type PropertyPatch = {
   har_sync_status?: string | null;
   har_sync_error?: string | null;
   har_last_synced_at?: Date | null;
+  created_by?: string;
 };
 
 export async function updateProperty(
@@ -218,6 +220,7 @@ export async function updateProperty(
   const har_sync_status = patch.har_sync_status !== undefined ? patch.har_sync_status : current.har_sync_status;
   const har_sync_error = patch.har_sync_error !== undefined ? patch.har_sync_error : current.har_sync_error;
   const har_last_synced_at = patch.har_last_synced_at !== undefined ? patch.har_last_synced_at : current.har_last_synced_at;
+  const created_by = patch.created_by ?? current.created_by;
 
   const r = await client.query<PropertyRowFull>(
     `UPDATE properties SET
@@ -234,11 +237,12 @@ export async function updateProperty(
        har_sync_error     = $12,
        har_last_synced_at = $13,
        updated_by         = $14,
+       created_by         = $15,
        updated_at         = GETUTCDATE()
      OUTPUT INSERTED.id, INSERTED.name, INSERTED.street, INSERTED.city, INSERTED.state,
             INSERTED.zip, INSERTED.har_listing_id, INSERTED.listing_source, INSERTED.apply_visible,
             INSERTED.metadata, INSERTED.har_sync_status, INSERTED.har_sync_error,
-            INSERTED.har_last_synced_at, INSERTED.created_at, INSERTED.updated_at, INSERTED.deleted_at
+            INSERTED.har_last_synced_at, INSERTED.created_at, INSERTED.updated_at, INSERTED.deleted_at, INSERTED.created_by
      WHERE id = $1 AND deleted_at IS NULL`,
     [
       id,
@@ -255,6 +259,7 @@ export async function updateProperty(
       har_sync_error,
       har_last_synced_at,
       updatedBy,
+      created_by,
     ]
   );
   return r.rows[0] ?? null;

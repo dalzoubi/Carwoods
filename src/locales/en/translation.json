@@ -846,6 +846,18 @@
       "heading": "Attachments",
       "empty": "No attachments yet.",
       "saved": "Attachment metadata saved."
+    },
+    "audit": {
+      "tabsLabel": "Request view tabs",
+      "detailsTab": "Details",
+      "auditTab": "Audit",
+      "heading": "Audit log",
+      "loading": "Loading audit events…",
+      "empty": "No audit events for this request.",
+      "actor": "Actor",
+      "when": "When",
+      "before": "Before",
+      "after": "After"
     }
   },
   "portalAdminLandlords": {
