@@ -291,6 +291,11 @@ const PortalAdminProperties = () => {
         setHarMessage(t('portalAdminProperties.harSearch.notFound'));
         return;
       }
+      if (error && typeof error === 'object' && error.code === 'har_access_denied') {
+        setHarStatus('error');
+        setHarMessage(t('portalAdminProperties.harSearch.accessDenied'));
+        return;
+      }
       setHarStatus('error');
       setHarMessage(t('portalAdminProperties.harSearch.fetchError'));
     }

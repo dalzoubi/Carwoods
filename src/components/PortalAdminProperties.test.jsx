@@ -326,4 +326,29 @@ describe('PortalAdminProperties', () => {
       expect(screen.getByText(/could not find a numeric listing id/i)).toBeInTheDocument();
     });
   });
+
+  it('shows access-denied message when HAR returns 403', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 503,
+      json: async () => ({ error: 'har_access_denied', message: 'HAR 8469293: HTTP 403 Forbidden' }),
+    });
+
+    render(
+      <WithAppTheme>
+        <PortalAdminProperties />
+      </WithAppTheme>
+    );
+
+    fireEvent.change(screen.getByLabelText(/har listing id or url/i), {
+      target: { value: '8469293' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /search har/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/har\.com blocked the request/i)).toBeInTheDocument();
+    });
+
+    delete global.fetch;
+  });
 });

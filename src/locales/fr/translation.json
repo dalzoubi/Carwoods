@@ -905,6 +905,7 @@
       "notFound": "Aucune donnée trouvée pour cet ID. Vérifiez l'ID et réessayez.",
       "noApiConfigured": "L'API n'est pas configurée. Définissez VITE_API_BASE_URL dans votre .env pour activer la recherche HAR.",
       "fetchError": "Impossible d'accéder à HAR. L'annonce est peut-être indisponible, ou saisissez les détails manuellement.",
+      "accessDenied": "HAR.com a bloqué la requête (HTTP 403). Réessayez dans quelques minutes, ou saisissez les détails de l'annonce manuellement.",
       "unexpectedResponse": "Le serveur a répondu correctement mais sans données d'annonce. Réessayez ou saisissez les détails manuellement. Si le problème continue, vérifiez que le site et l'API sont à jour.",
       "found": "Annonce trouvée — détails remplis ci-dessous."
     },

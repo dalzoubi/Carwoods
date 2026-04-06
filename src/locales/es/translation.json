@@ -905,6 +905,7 @@
       "notFound": "No se encontraron datos para ese ID. Verifica el ID e inténtalo de nuevo.",
       "noApiConfigured": "La API no está configurada. Define VITE_API_BASE_URL en tu .env para habilitar la búsqueda en HAR.",
       "fetchError": "No se pudo acceder a HAR. El listado puede no estar disponible, o intenta ingresar los detalles manualmente.",
+      "accessDenied": "HAR.com bloqueó la solicitud (HTTP 403). Inténtalo de nuevo en unos minutos, o ingresa los detalles del listado manualmente.",
       "unexpectedResponse": "El servidor respondió correctamente pero sin datos del anuncio. Vuelve a intentarlo o ingresa los datos manualmente. Si persiste, comprueba que la web y la API estén en la misma versión.",
       "found": "Listado encontrado — detalles completados abajo."
     },

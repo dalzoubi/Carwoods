@@ -31,6 +31,9 @@ async function landlordHarPreviewHandler(
   } catch (e) {
     const message = e instanceof Error ? e.message : 'fetch_failed';
     logWarn(context, 'har_preview.failed', { userId: ctx.user.id, id, message });
+    if (message.includes('HTTP 403')) {
+      return jsonResponse(503, ctx.headers, { error: 'har_access_denied', message });
+    }
     if (
       message.includes('HTTP 4') ||
       message.includes('not found') ||
