@@ -31,6 +31,8 @@ describe('PortalLoginLanding', () => {
   beforeEach(async () => {
     authState.lockoutReason = null;
     authState.authStatus = 'unauthenticated';
+    authState.isAuthenticated = false;
+    authState.meStatus = 'idle';
     await i18n.changeLanguage('en');
   });
 
@@ -70,6 +72,21 @@ describe('PortalLoginLanding', () => {
 
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
     expect(screen.getByText(/signing in/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /sign in/i })).not.toBeInTheDocument();
+  });
+
+  it('shows a spinner while authenticated but /me is still loading (prevents flash of portal content)', () => {
+    authState.authStatus = 'authenticated';
+    authState.isAuthenticated = true;
+    authState.meStatus = 'loading';
+
+    render(
+      <WithAppTheme>
+        <PortalLoginLanding />
+      </WithAppTheme>
+    );
+
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /sign in/i })).not.toBeInTheDocument();
   });
 

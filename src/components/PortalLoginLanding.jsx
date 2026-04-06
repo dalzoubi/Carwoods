@@ -30,9 +30,13 @@ const featureItems = [
 const PortalLoginLanding = () => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
-  const { authStatus, signIn, lockoutReason } = usePortalAuth();
+  const { authStatus, isAuthenticated, meStatus, signIn, lockoutReason } = usePortalAuth();
   const isUnconfigured = authStatus === 'unconfigured';
-  const isLoading = authStatus === 'initializing' || authStatus === 'authenticating';
+  // Show spinner during MSAL init/auth AND while /me is in-flight after sign-in.
+  const isLoading =
+    authStatus === 'initializing' ||
+    authStatus === 'authenticating' ||
+    (isAuthenticated && meStatus === 'loading');
   const isAccountDisabled = lockoutReason === 'account_disabled';
   const isNoPortalAccess = lockoutReason === 'no_portal_access';
   const isLockedOut = isAccountDisabled || isNoPortalAccess;
