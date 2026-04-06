@@ -891,7 +891,7 @@
     }
   },
   "portalHeader": {
-    "title": "Portail de Maintenance",
+    "title": "Portail Immobilier",
     "notSignedIn": "Non connecté",
     "nav": {
       "home": "Accueil du portail",
@@ -919,6 +919,64 @@
       "signIn": "Se connecter",
       "signOut": "Se déconnecter"
     }
+  },
+  "portalLayout": {
+    "sidebar": {
+      "dashboard": "Tableau de bord",
+      "requests": "Demandes",
+      "profile": "Profil",
+      "adminLandlords": "Propriétaires",
+      "status": "État du système",
+      "collapse": "Réduire la barre latérale",
+      "expand": "Développer la barre latérale",
+      "signOut": "Se déconnecter",
+      "backToSite": "Retour au site"
+    },
+    "topBar": {
+      "openMenu": "Ouvrir la navigation",
+      "accountMenu": "Menu du compte"
+    }
+  },
+  "portalDashboard": {
+    "title": "Carwoods - Tableau de bord",
+    "metaDescription": "Votre tableau de bord de gestion immobilière.",
+    "welcomeBack": "Bienvenue, {{name}}",
+    "welcomeGeneric": "Bienvenue sur votre portail",
+    "roleLabel": "Rôle : {{role}}",
+    "stats": {
+      "open": "Ouvertes",
+      "inProgress": "En cours",
+      "resolved": "Résolues"
+    },
+    "quickActions": {
+      "heading": "Actions rapides",
+      "newRequest": "Nouvelle demande",
+      "viewRequests": "Voir toutes les demandes",
+      "viewProfile": "Modifier le profil",
+      "exportCsv": "Exporter CSV",
+      "manageLandlords": "Gérer les propriétaires"
+    },
+    "recentRequests": {
+      "heading": "Demandes récentes",
+      "empty": "Pas encore de demandes. Créez votre première demande de maintenance pour commencer.",
+      "emptyManagement": "Aucune demande trouvée.",
+      "viewAll": "Voir toutes les demandes",
+      "noTitle": "Demande sans titre"
+    }
+  },
+  "portalLogin": {
+    "title": "Carwoods - Portail Immobilier",
+    "metaDescription": "Connectez-vous au portail immobilier Carwoods.",
+    "heading": "Portail Immobilier",
+    "subtitle": "Gérez les demandes de maintenance, paiements, candidatures et communiquez avec votre équipe de gestion.",
+    "features": {
+      "requests": "Soumettez et suivez les demandes de maintenance",
+      "messaging": "Communiquez directement avec votre gestionnaire",
+      "profile": "Gérez votre compte et vos coordonnées"
+    },
+    "signInPrompt": "Connectez-vous pour commencer",
+    "backToSite": "Retour à carwoods.com",
+    "configWarning": "L'authentification du portail n'est pas encore configurée."
   },
   "socialSignIn": {
     "prompt": "Se connecter avec",

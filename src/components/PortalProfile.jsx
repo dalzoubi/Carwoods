@@ -1,7 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { Alert, Box, Button, Skeleton, Stack, TextField, Typography } from '@mui/material';
+import {
+  Alert,
+  Avatar,
+  Box,
+  Button,
+  Paper,
+  Skeleton,
+  Snackbar,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { usePortalAuth } from '../PortalAuthContext';
 import { emailFromAccount, isGuestRole, resolveRole } from '../portalUtils';
 import { validatePersonBasics, validatePersonField } from '../portalPersonValidation';
@@ -22,7 +33,7 @@ function validateProfileForm(form, t) {
   });
 }
 
-function validateProfileField(field, value, t) {
+function validateProfileFieldSingle(field, value, t) {
   return validatePersonField(field, value, t, {
     keys: {
       firstNameRequired: 'portalProfile.errors.firstNameRequired',
@@ -32,6 +43,14 @@ function validateProfileField(field, value, t) {
       phoneInvalid: 'portalProfile.errors.phoneInvalid',
     },
   });
+}
+
+function userInitials(firstName, lastName) {
+  const f = (firstName || '').trim().charAt(0).toUpperCase();
+  const l = (lastName || '').trim().charAt(0).toUpperCase();
+  if (f && l) return `${f}${l}`;
+  if (f) return f;
+  return '?';
 }
 
 const PortalProfile = () => {
@@ -55,6 +74,8 @@ const PortalProfile = () => {
   const [saveStatus, setSaveStatus] = useState('idle');
   const [saveError, setSaveError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [snackOpen, setSnackOpen] = useState(false);
+
   const initialForm = useMemo(
     () => ({
       email: meData?.user?.email ?? meData?.email ?? emailFromAccount(account) ?? '',
@@ -91,7 +112,7 @@ const PortalProfile = () => {
     setSaveError('');
   };
   const onBlur = (field) => (event) => {
-    const message = validateProfileField(field, event.target.value, t);
+    const message = validateProfileFieldSingle(field, event.target.value, t);
     setFieldErrors((prev) => ({ ...prev, [field]: message }));
   };
 
@@ -152,6 +173,7 @@ const PortalProfile = () => {
         throw new Error(detail);
       }
       setSaveStatus('success');
+      setSnackOpen(true);
       refreshMe();
     } catch (error) {
       setSaveStatus('error');
@@ -163,74 +185,80 @@ const PortalProfile = () => {
   const roleResolved = isAuthenticated && meStatus !== 'loading';
   const isGuest = roleResolved && isGuestRole(role);
   const formDisabled = !isAuthenticated || isGuest || !baseUrl || saveStatus === 'saving';
+  const initials = userInitials(form.firstName, form.lastName);
 
   return (
-    <Box sx={{ py: 4 }}>
+    <Box>
       <Helmet>
         <title>{t('portalProfile.title')}</title>
         <meta name="description" content={t('portalProfile.metaDescription')} />
       </Helmet>
 
-      <Stack spacing={2}>
-        <Typography variant="h1" sx={{ fontSize: '2rem' }}>
-          {t('portalProfile.heading')}
-        </Typography>
-        <Typography color="text.secondary">{t('portalProfile.intro')}</Typography>
+      <Stack spacing={3}>
+        {/* Header with avatar */}
+        <Stack direction="row" spacing={2} alignItems="center">
+          <Avatar sx={{ width: 56, height: 56, bgcolor: 'primary.main', fontSize: '1.25rem' }}>
+            {isLoading ? '' : initials}
+          </Avatar>
+          <Box>
+            <Typography variant="h5" component="h2" fontWeight={700}>
+              {t('portalProfile.heading')}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {t('portalProfile.intro')}
+            </Typography>
+          </Box>
+        </Stack>
 
         {!isAuthenticated && <Alert severity="warning">{t('portalProfile.errors.signInRequired')}</Alert>}
         {!baseUrl && <Alert severity="warning">{t('portalProfile.errors.apiUnavailable')}</Alert>}
         {saveStatus === 'error' && <Alert severity="error">{saveError || t('portalProfile.errors.unknown')}</Alert>}
-        {saveStatus === 'success' && <Alert severity="success">{t('portalProfile.saved')}</Alert>}
 
-        <Box
+        <Paper
+          variant="outlined"
           component="form"
           onSubmit={onSubmit}
-          sx={{
-            border: '1px solid',
-            borderColor: 'divider',
-            borderRadius: 2,
-            p: 2.5,
-            backgroundColor: 'background.paper',
-          }}
+          sx={{ p: 3, borderRadius: 2 }}
         >
-          <Stack spacing={2}>
+          <Stack spacing={2.5}>
             {isGuest && (
-              <Alert severity="warning" sx={{ mb: 0.5 }}>{t('portalProfile.guestBlocked')}</Alert>
+              <Alert severity="warning">{t('portalProfile.guestBlocked')}</Alert>
             )}
             {isLoading ? (
-              <>
+              <Stack spacing={2}>
                 <Skeleton variant="rounded" height={56} />
                 <Skeleton variant="rounded" height={56} />
                 <Skeleton variant="rounded" height={56} />
                 <Skeleton variant="rounded" height={56} />
-                <Stack direction="row" justifyContent="flex-end">
-                  <Skeleton variant="rounded" width={80} height={36} />
-                </Stack>
-              </>
+              </Stack>
             ) : (
               <>
-                <TextField
-                  label={t('portalProfile.fields.firstName')}
-                  value={form.firstName}
-                  onChange={onChange('firstName')}
-                  onBlur={onBlur('firstName')}
-                  autoComplete="given-name"
-                  required
-                  error={Boolean(fieldErrors.firstName)}
-                  helperText={fieldErrors.firstName || ' '}
-                  disabled={formDisabled}
-                />
-                <TextField
-                  label={t('portalProfile.fields.lastName')}
-                  value={form.lastName}
-                  onChange={onChange('lastName')}
-                  onBlur={onBlur('lastName')}
-                  autoComplete="family-name"
-                  required
-                  error={Boolean(fieldErrors.lastName)}
-                  helperText={fieldErrors.lastName || ' '}
-                  disabled={formDisabled}
-                />
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                  <TextField
+                    label={t('portalProfile.fields.firstName')}
+                    value={form.firstName}
+                    onChange={onChange('firstName')}
+                    onBlur={onBlur('firstName')}
+                    autoComplete="given-name"
+                    required
+                    error={Boolean(fieldErrors.firstName)}
+                    helperText={fieldErrors.firstName || ' '}
+                    disabled={formDisabled}
+                    fullWidth
+                  />
+                  <TextField
+                    label={t('portalProfile.fields.lastName')}
+                    value={form.lastName}
+                    onChange={onChange('lastName')}
+                    onBlur={onBlur('lastName')}
+                    autoComplete="family-name"
+                    required
+                    error={Boolean(fieldErrors.lastName)}
+                    helperText={fieldErrors.lastName || ' '}
+                    disabled={formDisabled}
+                    fullWidth
+                  />
+                </Stack>
                 <TextField
                   label={t('portalProfile.fields.email')}
                   value={form.email}
@@ -259,6 +287,7 @@ const PortalProfile = () => {
                     type="submit"
                     variant="contained"
                     disabled={formDisabled || !hasChanges}
+                    sx={{ textTransform: 'none' }}
                   >
                     {saveStatus === 'saving' ? t('portalProfile.actions.saving') : t('portalProfile.actions.save')}
                   </Button>
@@ -266,11 +295,18 @@ const PortalProfile = () => {
               </>
             )}
           </Stack>
-        </Box>
+        </Paper>
       </Stack>
+
+      <Snackbar
+        open={snackOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackOpen(false)}
+        message={t('portalProfile.saved')}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
     </Box>
   );
 };
 
 export default PortalProfile;
-

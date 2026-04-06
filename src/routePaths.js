@@ -40,6 +40,15 @@ export function isPrintablePageRoute(pathname) {
     return PRINTABLE_PAGE_PATHS.has(stripDarkPreviewPrefix(pathname));
 }
 
+/**
+ * True when the current location is a portal route (with or without /dark prefix).
+ * @param {string} pathname
+ */
+export function isPortalRoute(pathname) {
+    const normalized = stripDarkPreviewPrefix(pathname);
+    return normalized === '/portal' || normalized.startsWith('/portal/');
+}
+
 export function withDarkPath(pathname, to) {
     if (!isDarkPreviewRoute(pathname)) return to;
     if (typeof to === 'string') {

@@ -207,18 +207,7 @@ const ResponsiveNavbar = () => {
     const currentPortalRoleLabel = portalRoleLabel(portalRole, t);
     const roleResolved = isAuthenticated && meStatus !== 'loading';
     const isGuestAccount = roleResolved && isGuestRole(normalizedPortalRole);
-    const shouldShowPortalMenu = isAuthenticated && !isGuestAccount;
-    const portalLinks = [
-        { to: '/portal', label: t('portalHeader.nav.home') },
-        ...(shouldShowPortalMenu
-            ? [
-                { to: '/portal/requests', label: t('portalHeader.nav.requests') },
-            ]
-            : []),
-        ...(normalizedPortalRole === 'ADMIN'
-            ? [{ to: '/portal/admin', label: t('portalHeader.nav.adminLandlords') }]
-            : []),
-    ];
+    const portalLinkTo = '/portal';
 
     const menuHorizontalOrigin = muiTheme.direction === 'rtl' ? 'right' : 'left';
     const menuAnchorOrigin = { vertical: 'bottom', horizontal: menuHorizontalOrigin };
@@ -545,7 +534,7 @@ const ResponsiveNavbar = () => {
     };
 
     const drawerContent = (
-        <div style={{ backgroundColor: muiTheme.palette.drawer.background, height: '100%' }}>
+        <div style={{ backgroundColor: muiTheme.palette.drawer.background, minHeight: '100%' }}>
             <nav aria-label={t('nav.home')}>
                 <List disablePadding>
                     <ListItemButton
@@ -605,28 +594,15 @@ const ResponsiveNavbar = () => {
                     >
                         <ListItemText primary={t('nav.contactUs')} style={{ color: muiTheme.palette.drawer.text }} />
                     </ListItemButton>
-                    {shouldShowPortalMenu ? (
-                        <>
-                            <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
-                                {t('nav.portal')}
-                            </ListSubheader>
-                            {portalLinks.map(({ to, label }) => (
-                                <ListItemButton
-                                    key={to}
-                                    component={RouterLink}
-                                    to={withDarkPath(pathname, to)}
-                                    selected={isRouteActive(to)}
-                                    onClick={handleDrawerToggle}
-                                    sx={{
-                                        pl: 3,
-                                        ...listItemButtonSx,
-                                    }}
-                                >
-                                    <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
-                                </ListItemButton>
-                            ))}
-                        </>
-                    ) : null}
+                    <ListItemButton
+                        component={RouterLink}
+                        to={withDarkPath(pathname, portalLinkTo)}
+                        selected={isRouteActive(portalLinkTo)}
+                        onClick={handleDrawerToggle}
+                        sx={listItemButtonSx}
+                    >
+                        <ListItemText primary={t('nav.portal')} style={{ color: muiTheme.palette.drawer.text }} />
+                    </ListItemButton>
                     {showAppearanceMenu ? (
                         <ListItemButton
                             onClick={handleAppearanceOpen}
@@ -763,6 +739,11 @@ const ResponsiveNavbar = () => {
                                 PaperProps={{
                                     id: DRAWER_PAPER_ID,
                                     'aria-label': t('nav.siteMenu'),
+                                    sx: {
+                                        backgroundColor: muiTheme.palette.drawer.background,
+                                        color: muiTheme.palette.drawer.text,
+                                        backgroundImage: 'none',
+                                    },
                                 }}
                             >
                                 {drawerContent}
@@ -924,73 +905,9 @@ const ResponsiveNavbar = () => {
                                         </MenuItem>
                                     ))}
                                 </Menu>
-                                {shouldShowPortalMenu ? (
-                                    <>
-                                        <IconButton
-                                            component="span"
-                                            disableRipple
-                                            id="portal-menu-button"
-                                            onClick={handlePortalOpen}
-                                            aria-haspopup="true"
-                                            aria-expanded={Boolean(portalAnchor)}
-                                            aria-controls={portalAnchor ? 'portal-menu' : undefined}
-                                            aria-label={t('nav.portalMenu')}
-                                            sx={{
-                                                color: 'inherit',
-                                                padding: '0.3rem 0.55rem',
-                                                fontWeight: 'bold',
-                                                fontSize: '0.9rem',
-                                                borderRadius: '4px',
-                                                '&:hover': {
-                                                    backgroundColor: 'var(--nav-chrome-hover-bg)',
-                                                },
-                                            }}
-                                        >
-                                            <span style={{ marginInlineEnd: '0.2rem' }}>{t('nav.portal')}</span>
-                                            <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
-                                        </IconButton>
-                                        <Menu
-                                            {...stableMenuProps}
-                                            id="portal-menu"
-                                            anchorEl={portalAnchor}
-                                            open={Boolean(portalAnchor)}
-                                            onClose={handlePortalClose}
-                                            MenuListProps={{
-                                                'aria-labelledby': 'portal-menu-button',
-                                            }}
-                                            slotProps={{
-                                                paper: {
-                                                    sx: { backgroundImage: 'none' },
-                                                },
-                                            }}
-                                            anchorOrigin={menuAnchorOrigin}
-                                            transformOrigin={menuTransformOrigin}
-                                        >
-                                            {portalLinks.map(({ to, label }) => (
-                                                <MenuItem
-                                                    key={to}
-                                                    component={RouterLink}
-                                                    to={withDarkPath(pathname, to)}
-                                                    selected={isRouteActive(to)}
-                                                    onClick={handlePortalClose}
-                                                    sx={{
-                                                        color: 'text.secondary',
-                                                        '&:hover': {
-                                                            backgroundColor: 'var(--menu-item-hover-bg)',
-                                                            color: 'var(--menu-item-hover-fg)',
-                                                        },
-                                                        '&.Mui-selected': {
-                                                            backgroundColor: 'var(--menu-item-active-bg)',
-                                                            color: 'var(--menu-item-active-fg)',
-                                                        },
-                                                    }}
-                                                >
-                                                    {label}
-                                                </MenuItem>
-                                            ))}
-                                        </Menu>
-                                    </>
-                                ) : null}
+                                <NavLink to={withDarkPath(pathname, portalLinkTo)} className={({ isActive }) => (isActive ? 'active' : '')} style={headerNavLinkStyle}>
+                                    {t('nav.portal')}
+                                </NavLink>
 
                                 <NavLink to={withDarkPath(pathname, '/contact-us')} className={({ isActive }) => (isActive ? 'active' : '')} style={headerNavLinkStyle}>
                                     {t('nav.contactUs')}

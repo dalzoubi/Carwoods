@@ -891,7 +891,7 @@
     }
   },
   "portalHeader": {
-    "title": "Maintenance Portal",
+    "title": "Property Portal",
     "notSignedIn": "Not signed in",
     "nav": {
       "home": "Portal Home",
@@ -919,6 +919,64 @@
       "signIn": "Sign in",
       "signOut": "Sign out"
     }
+  },
+  "portalLayout": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "requests": "Requests",
+      "profile": "Profile",
+      "adminLandlords": "Landlords",
+      "status": "System Status",
+      "collapse": "Collapse sidebar",
+      "expand": "Expand sidebar",
+      "signOut": "Sign out",
+      "backToSite": "Back to site"
+    },
+    "topBar": {
+      "openMenu": "Open navigation",
+      "accountMenu": "Account menu"
+    }
+  },
+  "portalDashboard": {
+    "title": "Carwoods - Dashboard",
+    "metaDescription": "Your property management dashboard.",
+    "welcomeBack": "Welcome back, {{name}}",
+    "welcomeGeneric": "Welcome to your portal",
+    "roleLabel": "Role: {{role}}",
+    "stats": {
+      "open": "Open",
+      "inProgress": "In Progress",
+      "resolved": "Resolved"
+    },
+    "quickActions": {
+      "heading": "Quick Actions",
+      "newRequest": "New Request",
+      "viewRequests": "View All Requests",
+      "viewProfile": "Edit Profile",
+      "exportCsv": "Export CSV",
+      "manageLandlords": "Manage Landlords"
+    },
+    "recentRequests": {
+      "heading": "Recent Requests",
+      "empty": "No requests yet. Create your first maintenance request to get started.",
+      "emptyManagement": "No requests found.",
+      "viewAll": "View all requests",
+      "noTitle": "Untitled request"
+    }
+  },
+  "portalLogin": {
+    "title": "Carwoods - Property Portal",
+    "metaDescription": "Sign in to the Carwoods property portal.",
+    "heading": "Property Portal",
+    "subtitle": "Manage maintenance requests, payments, applications, and communicate with your property management team.",
+    "features": {
+      "requests": "Submit and track maintenance requests",
+      "messaging": "Communicate directly with your property manager",
+      "profile": "Manage your account and contact details"
+    },
+    "signInPrompt": "Sign in to get started",
+    "backToSite": "Back to carwoods.com",
+    "configWarning": "Portal authentication is not configured yet."
   },
   "socialSignIn": {
     "prompt": "Sign in with",

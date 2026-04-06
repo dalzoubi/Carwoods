@@ -82,29 +82,14 @@ describe('ResponsiveNavbar sign-out confirmation', () => {
     expect(screen.queryByRole('menuitem', { name: /requests/i })).not.toBeInTheDocument();
   });
 
-  it('shows role-aware portal links in the dedicated portal menu', () => {
+  it('renders Portal as a simple link (portal has its own sidebar)', () => {
     render(
       <WithAppTheme>
         <ResponsiveNavbar />
       </WithAppTheme>
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /portal menu/i }));
-    expect(screen.getByRole('menuitem', { name: /portal home/i })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: /requests/i })).toBeInTheDocument();
-    expect(screen.queryByRole('menuitem', { name: /admin: landlords/i })).not.toBeInTheDocument();
-  });
-
-  it('hides portal menu for guest accounts', () => {
-    const previousRole = authState.meData.role;
-    authState.meData.role = 'GUEST';
-    render(
-      <WithAppTheme>
-        <ResponsiveNavbar />
-      </WithAppTheme>
-    );
-
+    expect(screen.getByRole('link', { name: /^portal$/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /portal menu/i })).not.toBeInTheDocument();
-    authState.meData.role = previousRole;
   });
 });

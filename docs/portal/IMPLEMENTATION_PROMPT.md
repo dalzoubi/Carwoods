@@ -59,6 +59,42 @@ Use this as the authoritative product + technical brief. **Do not expose storage
 
 See [PHASE_GATES.md](./PHASE_GATES.md) for exit criteria.
 
+## Portal UX
+
+The portal is a **dedicated application shell**, not a marketing page. All `/portal/*` routes render inside `PortalLayout` (sidebar + top bar), never inside the marketing site's `ResponsiveNavbar` / `Footer`.
+
+### Layout shell
+
+- **`PortalAuthGate`** wraps the portal — unauthenticated users see a branded login landing (`PortalLoginLanding`) with social sign-in buttons; authenticated users get the full sidebar layout.
+- **`PortalLayout`** renders `PortalSidebar` (permanent on desktop, temporary drawer on mobile, 260 px) + `PortalTopBar` (sticky, compact, shows page title + user avatar).
+- **`PortalSidebar`** contains: Carwoods logo, role-gated nav links with icons, user footer (avatar + name + role chip + sign-out), and a "Back to site" link.
+- **`PortalTopBar`** contains: hamburger toggle (mobile), page title (mapped from route), user avatar + role chip.
+
+### Page patterns
+
+| Pattern | Components | When to use |
+|---------|-----------|-------------|
+| **Dashboard** | `PortalDashboard` | Portal home — welcome, stat cards, quick actions, recent items |
+| **List + detail split pane** | `PortalRequests` | Any list/detail view — side-by-side on desktop, stacked on mobile |
+| **Form card** | `PortalProfile`, `PortalAdminLandlords` | Data entry — `Paper variant="outlined"` with `Snackbar` success |
+| **Login landing** | `PortalLoginLanding` | Unauthenticated entry — centered card with branding + sign-in |
+
+### MUI component preferences
+
+- **Surfaces**: `Paper variant="outlined"` for cards and panels (not raw `Box` with border).
+- **Status**: `Chip` with semantic `color` (`warning`, `info`, `success`).
+- **Feedback**: `Snackbar` for success toasts, `Alert` for inline errors.
+- **User identity**: `Avatar` with initials, `Chip` for role badges.
+- **Empty states**: always descriptive text, never blank.
+
+### Quality bar
+
+- Every portal page must work in light + dark mode.
+- Every portal page must work in RTL (Arabic).
+- No hard-coded colors — use MUI theme tokens.
+- Login landing must be functional even when the API is unreachable (graceful degradation).
+- New pages must add sidebar nav item + i18n keys in all four locales.
+
 ## Internationalization (marketing + shared chrome)
 
 Existing site rules still apply where shared: **no hard-coded English** in user-visible JSX; use `useTranslation()` and four locale files for any strings that remain in the marketing shell or shared components.

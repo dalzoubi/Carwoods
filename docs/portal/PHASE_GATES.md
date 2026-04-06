@@ -14,7 +14,7 @@
 - [x] **`/apply`** supports feature-flag switch between generated file and API.
 - [x] **HAR blocking sync:** create/update with `har_listing_id` persists normalized `metadata` or returns explicit error.
 
-## Phase 2 — Requests + messaging + uploads + mail
+## Phase 2 — Requests + messaging + uploads + mail + portal UX
 
 **Exit:**
 
@@ -22,6 +22,12 @@
 - [x] Upload intent + metadata persistence; attachment reads limited to authorized users.
 - [x] Thread messages; tenants cannot read `is_internal`; audit on mutations.
 - [x] Notifications for configured events with idempotency + retry logging.
+- [x] **Portal layout shell** with sidebar navigation, top bar, and dedicated auth gate.
+- [x] **Dashboard** with welcome card, stat summary, quick actions, and recent requests.
+- [x] **Login landing** with branding, social sign-in buttons, and graceful degradation.
+- [x] **Requests split pane** (list + detail side-by-side on desktop).
+- [x] **Profile polish** with avatar, card layout, and snackbar feedback.
+- [x] Marketing navbar simplified to a single "Portal" link (portal has its own sidebar).
 
 ## Phase 3 — AI + exports + hardening
 

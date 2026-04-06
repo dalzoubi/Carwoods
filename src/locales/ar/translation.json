@@ -891,7 +891,7 @@
     }
   },
   "portalHeader": {
-    "title": "بوابة الصيانة",
+    "title": "بوابة العقارات",
     "notSignedIn": "لم يتم تسجيل الدخول",
     "nav": {
       "home": "الرئيسية للبوابة",
@@ -919,6 +919,64 @@
       "signIn": "تسجيل الدخول",
       "signOut": "تسجيل الخروج"
     }
+  },
+  "portalLayout": {
+    "sidebar": {
+      "dashboard": "لوحة التحكم",
+      "requests": "الطلبات",
+      "profile": "الملف الشخصي",
+      "adminLandlords": "الملاك",
+      "status": "حالة النظام",
+      "collapse": "طي الشريط الجانبي",
+      "expand": "توسيع الشريط الجانبي",
+      "signOut": "تسجيل الخروج",
+      "backToSite": "العودة إلى الموقع"
+    },
+    "topBar": {
+      "openMenu": "فتح التنقل",
+      "accountMenu": "قائمة الحساب"
+    }
+  },
+  "portalDashboard": {
+    "title": "Carwoods - لوحة التحكم",
+    "metaDescription": "لوحة التحكم لإدارة العقارات الخاصة بك.",
+    "welcomeBack": "مرحبًا بعودتك، {{name}}",
+    "welcomeGeneric": "مرحبًا بك في بوابتك",
+    "roleLabel": "الدور: {{role}}",
+    "stats": {
+      "open": "مفتوحة",
+      "inProgress": "قيد التنفيذ",
+      "resolved": "تم الحل"
+    },
+    "quickActions": {
+      "heading": "إجراءات سريعة",
+      "newRequest": "طلب جديد",
+      "viewRequests": "عرض جميع الطلبات",
+      "viewProfile": "تعديل الملف الشخصي",
+      "exportCsv": "تصدير CSV",
+      "manageLandlords": "إدارة الملاك"
+    },
+    "recentRequests": {
+      "heading": "الطلبات الأخيرة",
+      "empty": "لا توجد طلبات بعد. أنشئ أول طلب صيانة للبدء.",
+      "emptyManagement": "لم يتم العثور على طلبات.",
+      "viewAll": "عرض جميع الطلبات",
+      "noTitle": "طلب بدون عنوان"
+    }
+  },
+  "portalLogin": {
+    "title": "Carwoods - بوابة العقارات",
+    "metaDescription": "سجل الدخول إلى بوابة العقارات في Carwoods.",
+    "heading": "بوابة العقارات",
+    "subtitle": "أدر طلبات الصيانة والمدفوعات والطلبات وتواصل مع فريق إدارة العقارات.",
+    "features": {
+      "requests": "أرسل وتابع طلبات الصيانة",
+      "messaging": "تواصل مباشرة مع مدير العقار",
+      "profile": "أدر حسابك وبيانات الاتصال"
+    },
+    "signInPrompt": "سجل الدخول للبدء",
+    "backToSite": "العودة إلى carwoods.com",
+    "configWarning": "لم يتم تكوين مصادقة البوابة بعد."
   },
   "socialSignIn": {
     "prompt": "تسجيل الدخول باستخدام",

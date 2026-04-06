@@ -61,9 +61,9 @@ describe('ResponsiveNavbar', () => {
     expect(screen.getByRole('menuitem', { name: /property management/i })).toBeInTheDocument();
   });
 
-  it('hides portal menu when unauthenticated', () => {
+  it('renders Portal as a simple navigation link', () => {
     renderWithProviders(<ResponsiveNavbar />);
-    expect(screen.queryByRole('button', { name: /portal menu/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^portal$/i })).toBeInTheDocument();
   });
 
   it('has accessible menu button on mobile', () => {

@@ -14,17 +14,15 @@ import Accessibility from './components/Accessibility';
 import TermsOfService from './components/TermsOfService';
 import Footer from './components/Footer';
 import ResponsiveNavbar from './components/ResponsiveNavbar';
-import PortalHome from './components/PortalHome';
+import PortalDashboard from './components/PortalDashboard';
 import PortalStatus from './components/PortalStatus';
 import PortalProfile from './components/PortalProfile';
 import PortalRequests from './components/PortalRequests';
 import PortalAdminLandlords from './components/PortalAdminLandlords';
-import { isDarkPreviewRoute } from './routePaths';
+import PortalLayout from './components/PortalLayout';
+import PortalAuthGate from './components/PortalAuthGate';
+import { isDarkPreviewRoute, isPortalRoute } from './routePaths';
 
-/**
- * After route changes, scroll like “Back to top” links: smooth `scrollIntoView` on `#page-top`
- * without mutating the URL hash. Skips when the URL already targets another in-page section.
- */
 function ScrollToTopOnRouteChange() {
     const { pathname, hash } = useLocation();
     useLayoutEffect(() => {
@@ -37,7 +35,7 @@ function ScrollToTopOnRouteChange() {
     return null;
 }
 
-function PageRoutes() {
+function useDarkStrippedLocation() {
     const location = useLocation();
     const matchPathname = useMemo(() => {
         const p = location.pathname;
@@ -48,11 +46,14 @@ function PageRoutes() {
         return p;
     }, [location.pathname]);
 
-    const routesLocation = useMemo(
+    return useMemo(
         () => ({ ...location, pathname: matchPathname }),
         [location, matchPathname]
     );
+}
 
+function MarketingRoutes() {
+    const routesLocation = useDarkStrippedLocation();
     return (
         <Routes location={routesLocation}>
             <Route path="/" element={<Home />} />
@@ -64,7 +65,16 @@ function PageRoutes() {
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/accessibility" element={<Accessibility />} />
-            <Route path="/portal" element={<PortalHome />} />
+            <Route path="/portal" element={<Navigate to="/portal" replace />} />
+        </Routes>
+    );
+}
+
+function PortalRoutes() {
+    const routesLocation = useDarkStrippedLocation();
+    return (
+        <Routes location={routesLocation}>
+            <Route path="/portal" element={<PortalDashboard />} />
             <Route path="/portal/status" element={<PortalStatus />} />
             <Route path="/portal/profile" element={<PortalProfile />} />
             <Route path="/portal/requests" element={<PortalRequests />} />
@@ -75,18 +85,9 @@ function PageRoutes() {
     );
 }
 
-const AppRoutes = () => {
-    const location = useLocation();
-    return (
-        <Content key={location.pathname}>
-            <span id="page-top" />
-            <PageRoutes />
-        </Content>
-    );
-};
-
-const App = () => {
+function MarketingApp() {
     const { t } = useTranslation();
+    const location = useLocation();
     return (
         <AppShell>
             <ScrollToTopOnRouteChange />
@@ -95,12 +96,35 @@ const App = () => {
             </a>
             <ResponsiveNavbar />
             <Container id="main-content">
-                <AppRoutes />
+                <Content key={location.pathname}>
+                    <span id="page-top" />
+                    <MarketingRoutes />
+                </Content>
             </Container>
             <Footer />
             <Analytics />
         </AppShell>
     );
+}
+
+function PortalApp() {
+    return (
+        <>
+            <ScrollToTopOnRouteChange />
+            <PortalAuthGate>
+                <PortalLayout>
+                    <PortalRoutes />
+                </PortalLayout>
+            </PortalAuthGate>
+            <Analytics />
+        </>
+    );
+}
+
+const App = () => {
+    const location = useLocation();
+    const isPortal = isPortalRoute(location.pathname);
+    return isPortal ? <PortalApp /> : <MarketingApp />;
 };
 
 export default App;

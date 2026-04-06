@@ -1,7 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { Alert, Box, Button, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Chip, Paper, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { hasLandlordAccess, usePortalAuth } from '../PortalAuthContext';
 import { isGuestRole, resolveRole } from '../portalUtils';
 import { normalizedRole } from './portalRequests/api';
@@ -13,6 +13,8 @@ import StatusAlertSlot from './StatusAlertSlot';
 
 const PortalRequests = () => {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const {
     baseUrl,
     isAuthenticated,
@@ -90,26 +92,31 @@ const PortalRequests = () => {
         : null
     : null;
 
+  const hasDetail = selectedRequestId && requestDetail;
+
   return (
-    <Box sx={{ py: 4 }}>
+    <Box>
       <Helmet>
         <title>{t('portalRequests.title')}</title>
         <meta name="description" content={t('portalRequests.metaDescription')} />
       </Helmet>
 
       <Stack spacing={2}>
-        <Typography variant="h1" sx={{ fontSize: '2rem' }}>
-          {t('portalRequests.heading')}
-        </Typography>
-        <Typography color="text.secondary">{t('portalRequests.intro')}</Typography>
-
-        {isManagement && (
-          <Stack direction="row" spacing={1.25} sx={{ flexWrap: 'wrap' }}>
-            <Button type="button" variant="outlined" onClick={onExportCsv}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ flexWrap: 'wrap', gap: 1 }}>
+          <Box>
+            <Typography variant="h5" component="h2" fontWeight={700}>
+              {t('portalRequests.heading')}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {t('portalRequests.intro')}
+            </Typography>
+          </Box>
+          {isManagement && (
+            <Button type="button" variant="outlined" size="small" onClick={onExportCsv} sx={{ textTransform: 'none' }}>
               {t('portalRequests.actions.exportCsv')}
             </Button>
-          </Stack>
-        )}
+          )}
+        </Stack>
 
         {!baseUrl && <Alert severity="warning">{t('portalRequests.errors.apiUnavailable')}</Alert>}
         {!isAuthenticated && <Alert severity="warning">{t('portalRequests.errors.signInRequired')}</Alert>}
@@ -134,16 +141,25 @@ const PortalRequests = () => {
           />
         )}
 
-        <Box
-          sx={{
-            border: '1px solid',
-            borderColor: 'divider',
-            borderRadius: 2,
-            p: 2.5,
-            backgroundColor: 'background.paper',
-          }}
+        {/* Split pane: list + detail side by side on desktop */}
+        <Stack
+          direction={isDesktop ? 'row' : 'column'}
+          spacing={2}
+          sx={{ alignItems: 'flex-start' }}
         >
-          <Stack spacing={2}>
+          {/* List pane */}
+          <Paper
+            variant="outlined"
+            sx={{
+              width: isDesktop ? 340 : '100%',
+              minWidth: isDesktop ? 340 : undefined,
+              flexShrink: 0,
+              p: 2,
+              borderRadius: 2,
+              maxHeight: isDesktop ? 'calc(100vh - 200px)' : undefined,
+              overflow: 'auto',
+            }}
+          >
             <RequestListPane
               requests={requests}
               requestsStatus={requestsStatus}
@@ -156,7 +172,20 @@ const PortalRequests = () => {
               onReload={() => loadRequests({ keepSelection: true })}
               reloadDisabled={!isAuthenticated || !baseUrl || isGuest || requestsStatus === 'loading'}
             />
-            {requests.length > 0 && (
+          </Paper>
+
+          {/* Detail pane */}
+          <Paper
+            variant="outlined"
+            sx={{
+              flex: 1,
+              p: 2,
+              borderRadius: 2,
+              minWidth: 0,
+              width: isDesktop ? undefined : '100%',
+            }}
+          >
+            {hasDetail ? (
               <RequestDetailPane
                 requestDetail={requestDetail}
                 isManagement={isManagement}
@@ -182,13 +211,20 @@ const PortalRequests = () => {
                 attachmentStatus={attachmentStatus}
                 attachmentError={attachmentError}
               />
+            ) : (
+              <Box sx={{ py: 6, textAlign: 'center' }}>
+                <Typography color="text.secondary" variant="body2">
+                  {requests.length > 0
+                    ? t('portalRequests.list.empty').replace('No requests found', 'Select a request to view details')
+                    : t('portalRequests.list.empty')}
+                </Typography>
+              </Box>
             )}
-          </Stack>
-        </Box>
+          </Paper>
+        </Stack>
       </Stack>
     </Box>
   );
 };
 
 export default PortalRequests;
-

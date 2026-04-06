@@ -174,6 +174,53 @@ The site supports **English, Spanish, French, and Arabic** via `i18next` + `reac
 - The `<html dir="rtl">` attribute is set by `LanguageContext`; CSS `[dir="rtl"]` selectors in `index.css` handle any overrides that MUI cannot reach.
 - Arabic uses a separate font stack (`'Segoe UI', Tahoma, 'Noto Sans Arabic', Arial`) applied via `[dir="rtl"] body` in `index.css` — do not override the font-family inline for Arabic text.
 
+---
+
+## Portal UX standards (read before any portal UI changes)
+
+The tenant portal (`/portal/*`) has its own dedicated layout separate from the marketing site. These rules ensure consistency.
+
+### Architecture (do not bypass)
+
+1. **Two-shell strategy**: `App.jsx` detects portal routes via `isPortalRoute()` and renders `PortalApp` (sidebar + top bar) instead of the marketing shell (`ResponsiveNavbar` + `Footer`). **Do not** render portal pages inside the marketing shell.
+2. **`PortalLayout`** (`src/components/PortalLayout.jsx`): flex container with `PortalSidebar` (permanent on `md+`, temporary drawer on mobile) and a main content area with `PortalTopBar`.
+3. **`PortalAuthGate`** (`src/components/PortalAuthGate.jsx`): wraps the layout; shows `PortalLoginLanding` for unauthenticated users, a spinner during MSAL initialization, and the layout + routes when authenticated.
+4. **`PortalSidebar`** (`src/components/PortalSidebar.jsx`): logo, role-gated nav links, user footer with avatar + role chip + sign out. Width is `SIDEBAR_WIDTH` (260 px).
+5. **`PortalTopBar`** (`src/components/PortalTopBar.jsx`): compact sticky AppBar with page title, hamburger on mobile, user avatar + role chip.
+
+### When adding portal pages
+
+- Register the route in the `PortalRoutes` component in `App.jsx`.
+- Add a nav item in `PortalSidebar.jsx` with an MUI icon, i18n label, and role gating.
+- Add page-title mapping in `PortalTopBar.jsx` `usePageTitle`.
+- Add i18n keys to **all four** locale files.
+- Use `Paper variant="outlined"` for content cards, not raw `Box` with border.
+- Use `variant="h5"` or `variant="h6"` for page headings (the top bar already shows the page title as `h1`).
+
+### Portal component patterns
+
+- **Dashboard** (`PortalDashboard`): welcome card, stat cards with `StatCard`, quick action buttons, recent-items list.
+- **List + detail** (`PortalRequests`): responsive split pane — side-by-side on `md+`, stacked on mobile. Use `Paper variant="outlined"` for each pane.
+- **Forms** (`PortalProfile`, `PortalAdminLandlords`): `Paper variant="outlined"` card, `Snackbar` for success feedback, inline `Alert` for errors.
+- **Login landing** (`PortalLoginLanding`): centered `Paper` card with logo, value proposition, social sign-in buttons, and generic sign-in fallback.
+- **Status chips**: use MUI `Chip` with semantic `color` (`warning` for open, `info` for in-progress, `success` for resolved).
+- **Empty states**: always show descriptive text, never a blank area.
+
+### Do not
+
+- Hard-code hex colors in portal components — use MUI theme tokens.
+- Use the marketing `Container`, `Content`, `AppShell`, or `Footer` inside portal routes.
+- Add portal-specific nav items to `ResponsiveNavbar` — the marketing navbar only has a single "Portal" link.
+- Render `PortalSignOutConfirmDialog` outside `PortalSidebar` or the marketing navbar account menu.
+
+### Test requirements for portal components
+
+- Wrap portal components in `PortalAuthProvider` and `LanguageProvider` (or use `WithAppTheme`).
+- Mock `usePortalAuth` for unauthenticated / authenticated / admin scenarios.
+- Verify both mobile and desktop breakpoints for layout components.
+
+---
+
 ### Test requirements for i18n changes
 
 - **Reset i18n language between tests**: call `await i18n.changeLanguage('en')` in `beforeEach` for any test file that switches languages. Failure to reset causes cross-test language bleed.

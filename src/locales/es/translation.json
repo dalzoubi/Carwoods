@@ -891,7 +891,7 @@
     }
   },
   "portalHeader": {
-    "title": "Portal de Mantenimiento",
+    "title": "Portal de Propiedades",
     "notSignedIn": "Sin sesión iniciada",
     "nav": {
       "home": "Inicio del portal",
@@ -919,6 +919,64 @@
       "signIn": "Iniciar sesión",
       "signOut": "Cerrar sesión"
     }
+  },
+  "portalLayout": {
+    "sidebar": {
+      "dashboard": "Panel",
+      "requests": "Solicitudes",
+      "profile": "Perfil",
+      "adminLandlords": "Propietarios",
+      "status": "Estado del sistema",
+      "collapse": "Contraer barra lateral",
+      "expand": "Expandir barra lateral",
+      "signOut": "Cerrar sesión",
+      "backToSite": "Volver al sitio"
+    },
+    "topBar": {
+      "openMenu": "Abrir navegación",
+      "accountMenu": "Menú de cuenta"
+    }
+  },
+  "portalDashboard": {
+    "title": "Carwoods - Panel",
+    "metaDescription": "Tu panel de gestión de propiedades.",
+    "welcomeBack": "Bienvenido de nuevo, {{name}}",
+    "welcomeGeneric": "Bienvenido a tu portal",
+    "roleLabel": "Rol: {{role}}",
+    "stats": {
+      "open": "Abiertas",
+      "inProgress": "En progreso",
+      "resolved": "Resueltas"
+    },
+    "quickActions": {
+      "heading": "Acciones rápidas",
+      "newRequest": "Nueva solicitud",
+      "viewRequests": "Ver todas las solicitudes",
+      "viewProfile": "Editar perfil",
+      "exportCsv": "Exportar CSV",
+      "manageLandlords": "Gestionar propietarios"
+    },
+    "recentRequests": {
+      "heading": "Solicitudes recientes",
+      "empty": "Sin solicitudes aún. Crea tu primera solicitud de mantenimiento para comenzar.",
+      "emptyManagement": "No se encontraron solicitudes.",
+      "viewAll": "Ver todas las solicitudes",
+      "noTitle": "Solicitud sin título"
+    }
+  },
+  "portalLogin": {
+    "title": "Carwoods - Portal de Propiedades",
+    "metaDescription": "Inicia sesión en el portal de propiedades de Carwoods.",
+    "heading": "Portal de Propiedades",
+    "subtitle": "Gestiona solicitudes de mantenimiento, pagos, aplicaciones y comunícate con tu equipo de administración.",
+    "features": {
+      "requests": "Envía y sigue solicitudes de mantenimiento",
+      "messaging": "Comunícate directamente con tu administrador",
+      "profile": "Gestiona tu cuenta y datos de contacto"
+    },
+    "signInPrompt": "Inicia sesión para comenzar",
+    "backToSite": "Volver a carwoods.com",
+    "configWarning": "La autenticación del portal aún no está configurada."
   },
   "socialSignIn": {
     "prompt": "Iniciar sesión con",
