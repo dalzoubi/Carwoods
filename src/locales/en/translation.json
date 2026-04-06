@@ -897,12 +897,14 @@
     "intro": "Onboard properties by searching HAR or entering details manually. Toggle 'Show on Apply page' to control which appear on the public listing.",
     "harSearch": {
       "heading": "Look up a HAR listing",
-      "harIdLabel": "HAR listing ID",
-      "harIdHelperText": "Numeric ID from the end of a HAR.com homedetail URL",
+      "harIdLabel": "HAR listing ID or URL",
+      "harIdHelperText": "Paste the full HAR.com homedetail URL or just the numeric ID at the end",
       "searchButton": "Search HAR",
       "searching": "Searching…",
+      "invalidInput": "Could not find a numeric listing ID in the value you entered. Paste the full HAR.com URL (e.g. https://www.har.com/homedetail/…/8469293) or just the numeric ID.",
       "notFound": "No listing data found for that ID. Check the ID and try again.",
-      "fetchError": "Could not reach HAR. Check the ID and try again, or enter details manually.",
+      "noApiConfigured": "API is not configured. Set VITE_API_BASE_URL in your .env to enable HAR search.",
+      "fetchError": "Could not reach HAR. The listing may be unavailable, or try entering details manually.",
       "found": "Listing found — details populated below."
     },
     "form": {

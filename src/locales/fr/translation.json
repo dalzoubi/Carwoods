@@ -897,12 +897,14 @@
     "intro": "Enregistrez des propriétés en recherchant sur HAR ou en saisissant les détails manuellement. Activez 'Afficher sur la page de candidature' pour contrôler celles qui apparaissent dans la liste publique.",
     "harSearch": {
       "heading": "Rechercher sur HAR",
-      "harIdLabel": "ID de l'annonce HAR",
-      "harIdHelperText": "ID numérique à la fin de l'URL homedetail sur HAR.com",
+      "harIdLabel": "ID ou URL de l'annonce HAR",
+      "harIdHelperText": "Collez l'URL complète homedetail de HAR.com ou seulement l'ID numérique à la fin",
       "searchButton": "Rechercher sur HAR",
       "searching": "Recherche en cours…",
+      "invalidInput": "Aucun ID numérique trouvé dans la valeur saisie. Collez l'URL complète de HAR.com (ex. https://www.har.com/homedetail/…/8469293) ou seulement l'ID numérique.",
       "notFound": "Aucune donnée trouvée pour cet ID. Vérifiez l'ID et réessayez.",
-      "fetchError": "Impossible d'accéder à HAR. Vérifiez l'ID et réessayez, ou saisissez les détails manuellement.",
+      "noApiConfigured": "L'API n'est pas configurée. Définissez VITE_API_BASE_URL dans votre .env pour activer la recherche HAR.",
+      "fetchError": "Impossible d'accéder à HAR. L'annonce est peut-être indisponible, ou saisissez les détails manuellement.",
       "found": "Annonce trouvée — détails remplis ci-dessous."
     },
     "form": {

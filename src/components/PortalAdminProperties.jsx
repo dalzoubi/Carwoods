@@ -42,125 +42,22 @@ import {
   updateProperty,
 } from '../portalPropertiesStorage';
 
-const HAR_UA = 'Mozilla/5.0 (compatible; CarwoodsSite/1.0; +https://carwoods.com)';
-
-function buildHarFetchUrl(harId) {
-  return `https://www.har.com/homedetail/${encodeURIComponent(harId.trim())}`;
-}
-
-function findProductNode(graph) {
-  if (!Array.isArray(graph)) return null;
-  return graph.find(
-    (n) =>
-      Array.isArray(n['@type']) &&
-      n['@type'].includes('Product') &&
-      n['@type'].includes('SingleFamilyResidence')
-  );
-}
-
-function extractProductFromHtml(html) {
-  const re = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/gi;
-  let m;
-  while ((m = re.exec(html)) !== null) {
-    try {
-      const json = JSON.parse(m[1]);
-      const product = findProductNode(json['@graph']);
-      if (product) return product;
-    } catch {
-      /* skip */
-    }
+/**
+ * Extract the numeric HAR listing ID from either a full homedetail URL or a bare
+ * numeric string.  e.g.:
+ *   "https://www.har.com/homedetail/6314-bonnie-chase-ln-katy-tx-77449/8469293" → "8469293"
+ *   "8469293" → "8469293"
+ * Returns null when the input looks like a URL but contains no trailing numeric segment.
+ */
+function parseHarInput(raw) {
+  const trimmed = raw.trim();
+  if (/^https?:\/\//i.test(trimmed)) {
+    const m = trimmed.match(/\/(\d+)\/?(?:[?#].*)?$/);
+    return m ? m[1] : null;
   }
-  return null;
+  return trimmed || null;
 }
 
-function findAdditional(product, name) {
-  const list = product?.offers?.itemOffered?.additionalProperty;
-  if (!Array.isArray(list)) return null;
-  return list.find((x) => x?.name === name)?.value ?? null;
-}
-
-function formatUsdMonthly(n) {
-  if (typeof n !== 'number' || Number.isNaN(n)) return '';
-  return `$${n.toLocaleString('en-US')}/mo`;
-}
-
-function formatBaths(total) {
-  if (typeof total !== 'number' || Number.isNaN(total)) return null;
-  const full = Math.floor(total);
-  const frac = total - full;
-  const halfCount = Math.round(frac * 2);
-  if (halfCount === 0) return `${full} Full Bath(s)`;
-  if (full === 0) return `${halfCount} Half Bath(s)`;
-  return `${full} Full & ${halfCount} Half Bath(s)`;
-}
-
-function firstImageUrl(product) {
-  const img = product?.image;
-  if (typeof img === 'string') return img;
-  if (Array.isArray(img) && img.length) return img[0];
-  return '';
-}
-
-function extractApplyLink(html) {
-  const m = html.match(/https:\/\/apply\.link\/[A-Za-z0-9_-]+/);
-  return m ? m[0] : '';
-}
-
-function lotSqftFromSpeech(html) {
-  const match = html.match(/lot size is ([\d,]+) Square feet/i);
-  if (!match) return null;
-  return Number.parseInt(match[1].replace(/,/g, ''), 10);
-}
-
-function parseHarProduct(harId, product, harListingUrl, html) {
-  const addr = product.address ?? {};
-  const street = addr.streetAddress ?? '';
-  const city = addr.addressLocality ?? '';
-  const region = addr.addressRegion ?? '';
-  const zip = addr.postalCode ?? '';
-  const cityStateZip = [city, region].filter(Boolean).join(', ') + (zip ? ` ${zip}` : '');
-
-  const beds = product.numberOfBedrooms;
-  const baths = product.numberOfBathroomsTotal;
-  const livingSqft = product.floorSize?.value;
-
-  const detailLines = [];
-  if (typeof beds === 'number') detailLines.push(`${beds} Bedroom(s)`);
-  const bathLine = formatBaths(baths);
-  if (bathLine) detailLines.push(bathLine);
-  if (typeof livingSqft === 'number' && !Number.isNaN(livingSqft)) {
-    detailLines.push(`${livingSqft.toLocaleString('en-US')} Sqft`);
-  }
-
-  // Lot size
-  const rawLot = findAdditional(product, 'Lot Size');
-  if (rawLot) {
-    const acresMatch = String(rawLot).match(/([\d.]+)\s*Acres?/i);
-    if (acresMatch) {
-      const acres = Number.parseFloat(acresMatch[1]);
-      if (!Number.isNaN(acres)) {
-        detailLines.push(`${Math.round(acres * 43560).toLocaleString('en-US')} Lot Sqft`);
-      }
-    }
-  } else {
-    const speechSqft = lotSqftFromSpeech(html);
-    if (speechSqft != null) detailLines.push(`${speechSqft.toLocaleString('en-US')} Lot Sqft`);
-  }
-
-  const ptype = findAdditional(product, 'Property Type');
-  if (ptype) detailLines.push(String(ptype));
-
-  return {
-    harId: String(harId),
-    addressLine: street || (product.name ?? '').split(',')[0]?.trim() || '',
-    cityStateZip: cityStateZip.trim(),
-    monthlyRentLabel: formatUsdMonthly(product.offers?.price),
-    photoUrl: firstImageUrl(product),
-    harListingUrl,
-    applyUrl: extractApplyLink(html),
-    detailLines,
-  };
-}
 
 const EMPTY_FORM = {
   harId: '',
@@ -292,7 +189,7 @@ const PropertyCard = ({ property, onEdit, onDelete, t }) => {
 
 const PortalAdminProperties = () => {
   const { t } = useTranslation();
-  const { isAuthenticated, account, meData, meStatus } = usePortalAuth();
+  const { isAuthenticated, account, meData, meStatus, baseUrl, getAccessToken } = usePortalAuth();
 
   const role = normalizeRole(resolveRole(meData, account));
   const canManage = isAuthenticated && (role === 'ADMIN' || role === 'LANDLORD');
@@ -358,40 +255,57 @@ const PortalAdminProperties = () => {
   };
 
   const handleHarSearch = async () => {
-    const id = harSearchId.trim();
-    if (!id) return;
+    const id = parseHarInput(harSearchId);
+    if (!id) {
+      setHarStatus('not_found');
+      setHarMessage(t('portalAdminProperties.harSearch.invalidInput'));
+      return;
+    }
+    if (!baseUrl) {
+      setHarStatus('error');
+      setHarMessage(t('portalAdminProperties.harSearch.noApiConfigured'));
+      return;
+    }
     setHarStatus('searching');
     setHarMessage('');
     try {
-      const url = buildHarFetchUrl(id);
-      const res = await fetch(url, {
-        headers: { 'User-Agent': HAR_UA, Accept: 'text/html' },
-        redirect: 'follow',
+      const accessToken = await getAccessToken();
+      const previewUrl = `${baseUrl.replace(/\/$/, '')}/api/landlord/har-preview?id=${encodeURIComponent(id)}`;
+      const res = await fetch(previewUrl, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        credentials: 'omit',
       });
+      if (res.status === 404) {
+        setHarStatus('not_found');
+        setHarMessage(t('portalAdminProperties.harSearch.notFound'));
+        return;
+      }
       if (!res.ok) {
+        setHarStatus('error');
+        setHarMessage(t('portalAdminProperties.harSearch.fetchError'));
+        return;
+      }
+      const payload = await res.json();
+      const tile = payload?.listing;
+      if (!tile) {
         setHarStatus('not_found');
         setHarMessage(t('portalAdminProperties.harSearch.notFound'));
         return;
       }
-      const html = await res.text();
-      const product = extractProductFromHtml(html);
-      if (!product) {
-        setHarStatus('not_found');
-        setHarMessage(t('portalAdminProperties.harSearch.notFound'));
-        return;
-      }
-      const parsed = parseHarProduct(id, product, res.url, html);
       setForm((prev) => ({
         ...prev,
-        harId: parsed.harId,
-        addressLine: parsed.addressLine || prev.addressLine,
-        cityStateZip: parsed.cityStateZip || prev.cityStateZip,
-        monthlyRentLabel: parsed.monthlyRentLabel || prev.monthlyRentLabel,
-        photoUrl: parsed.photoUrl || prev.photoUrl,
-        harListingUrl: parsed.harListingUrl || prev.harListingUrl,
-        applyUrl: parsed.applyUrl || prev.applyUrl,
-        detailLinesText: parsed.detailLines.length
-          ? parsed.detailLines.join('\n')
+        harId: id,
+        addressLine: tile.addressLine || prev.addressLine,
+        cityStateZip: tile.cityStateZip || prev.cityStateZip,
+        monthlyRentLabel: tile.monthlyRentLabel || prev.monthlyRentLabel,
+        photoUrl: tile.photoUrl || prev.photoUrl,
+        harListingUrl: tile.harListingUrl || prev.harListingUrl,
+        applyUrl: tile.applyUrl || prev.applyUrl,
+        detailLinesText: Array.isArray(tile.detailLines) && tile.detailLines.length
+          ? tile.detailLines.join('\n')
           : prev.detailLinesText,
       }));
       setHarStatus('found');
@@ -479,6 +393,7 @@ const PortalAdminProperties = () => {
                 setHarMessage('');
               }}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void handleHarSearch(); } }}
+              placeholder="8469293 or https://www.har.com/homedetail/…/8469293"
               size="small"
               sx={{ minWidth: 220, flexShrink: 0 }}
               slotProps={{
