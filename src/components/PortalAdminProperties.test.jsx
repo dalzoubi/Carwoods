@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { WithAppTheme } from '../testUtils';
 import i18n from '../i18n';
 import PortalAdminProperties from './PortalAdminProperties';
-import * as storage from '../portalPropertiesStorage';
+import * as propertiesApiClient from '../lib/propertiesApiClient';
 
 vi.mock('../PortalAuthContext', () => ({
   usePortalAuth: () => ({
@@ -20,45 +20,80 @@ vi.mock('../PortalAuthContext', () => ({
   PortalAuthProvider: ({ children }) => children,
 }));
 
-vi.mock('../portalPropertiesStorage', async (importOriginal) => {
+vi.mock('../lib/propertiesApiClient', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    loadProperties: vi.fn(() => []),
-    addProperty: vi.fn((data) => ({ id: 'portal-test-1', ...data, createdAt: '', updatedAt: '' })),
-    updateProperty: vi.fn(),
-    deleteProperty: vi.fn(),
-    loadPublicProperties: vi.fn(() => []),
+    listPropertiesApi: vi.fn().mockResolvedValue([]),
+    createPropertyApi: vi.fn().mockResolvedValue({ id: 'db-test-1' }),
+    updatePropertyApi: vi.fn().mockResolvedValue({ id: 'db-test-1' }),
+    deletePropertyApi: vi.fn().mockResolvedValue(undefined),
   };
 });
+
+/** Helper: a minimal API row (PropertyRowFull shape) */
+function makeApiRow(overrides = {}) {
+  return {
+    id: 'db-row-1',
+    name: null,
+    street: '6314 Bonnie Chase Ln',
+    city: 'Katy',
+    state: 'TX',
+    zip: '77449',
+    har_listing_id: '8469293',
+    listing_source: 'MANUAL',
+    apply_visible: true,
+    metadata: {
+      apply: {
+        addressLine: '6314 Bonnie Chase Ln',
+        cityStateZip: 'Katy, TX 77449',
+        monthlyRentLabel: '$2,100/mo',
+        photoUrl: '',
+        harListingUrl: '',
+        applyUrl: '',
+        detailLines: ['3 Bedroom(s)'],
+      },
+    },
+    har_sync_status: null,
+    har_sync_error: null,
+    har_last_synced_at: null,
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z',
+    deleted_at: null,
+    ...overrides,
+  };
+}
 
 describe('PortalAdminProperties', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
-    // Re-establish mock return values after clearAllMocks
-    storage.loadProperties.mockReturnValue([]);
-    storage.loadPublicProperties.mockReturnValue([]);
+    propertiesApiClient.listPropertiesApi.mockResolvedValue([]);
+    propertiesApiClient.createPropertyApi.mockResolvedValue({ id: 'db-test-1' });
+    propertiesApiClient.updatePropertyApi.mockResolvedValue({ id: 'db-test-1' });
+    propertiesApiClient.deletePropertyApi.mockResolvedValue(undefined);
     await i18n.changeLanguage('en');
   });
 
-  it('renders page heading', () => {
+  it('renders page heading', async () => {
     render(
       <WithAppTheme>
         <PortalAdminProperties />
       </WithAppTheme>
     );
-    // Multiple "Properties" headings exist (main h2 + grid section h6)
     const headings = screen.getAllByRole('heading', { name: /properties/i });
     expect(headings.length).toBeGreaterThan(0);
+    await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
   });
 
-  it('shows empty state when no properties', () => {
+  it('shows empty state when no properties', async () => {
     render(
       <WithAppTheme>
         <PortalAdminProperties />
       </WithAppTheme>
     );
-    expect(screen.getByText(/no properties yet/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/no properties yet/i)).toBeInTheDocument();
+    });
   });
 
   it('shows validation error when address is missing', async () => {
@@ -67,11 +102,11 @@ describe('PortalAdminProperties', () => {
         <PortalAdminProperties />
       </WithAppTheme>
     );
-    // Fill cityStateZip but not addressLine
+    await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
+
     fireEvent.change(screen.getByLabelText(/city, state, zip/i), {
       target: { value: 'Houston, TX 77001' },
     });
-    // Submit the form directly
     const form = container.querySelector('form');
     fireEvent.submit(form);
     await waitFor(() => {
@@ -79,50 +114,25 @@ describe('PortalAdminProperties', () => {
     });
   });
 
-  it('calls addProperty and resets form on valid submit', async () => {
-    render(
-      <WithAppTheme>
-        <PortalAdminProperties />
-      </WithAppTheme>
-    );
+  it('calls createPropertyApi and resets form on valid submit', async () => {
+    render(<WithAppTheme><PortalAdminProperties /></WithAppTheme>);
+    await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
 
-    fireEvent.change(screen.getByLabelText(/street address/i), {
-      target: { value: '123 Main St' },
-    });
-    fireEvent.change(screen.getByLabelText(/city, state, zip/i), {
-      target: { value: 'Houston, TX 77001' },
-    });
-
-    const submitBtn = screen.getByRole('button', { name: /add property/i });
-    fireEvent.click(submitBtn);
+    fireEvent.change(screen.getByLabelText(/street address/i), { target: { value: '123 Main St' } });
+    fireEvent.change(screen.getByLabelText(/city, state, zip/i), { target: { value: 'Houston, TX 77001' } });
+    fireEvent.click(screen.getByRole('button', { name: /add property/i }));
 
     await waitFor(() => {
-      expect(storage.addProperty).toHaveBeenCalledWith(
-        expect.objectContaining({
-          addressLine: '123 Main St',
-          cityStateZip: 'Houston, TX 77001',
-        })
+      expect(propertiesApiClient.createPropertyApi).toHaveBeenCalledWith(
+        'https://api.carwoods.com',
+        'mock-token',
+        expect.objectContaining({ addressLine: '123 Main St', cityStateZip: 'Houston, TX 77001' })
       );
     });
   });
 
-  it('shows existing properties in the grid', () => {
-    storage.loadProperties.mockReturnValue([
-      {
-        id: 'portal-1',
-        harId: '8469293',
-        addressLine: '6314 Bonnie Chase Ln',
-        cityStateZip: 'Katy, TX 77449',
-        monthlyRentLabel: '$2,100/mo',
-        photoUrl: '',
-        harListingUrl: '',
-        applyUrl: '',
-        detailLines: ['3 Bedroom(s)'],
-        showOnApplyPage: true,
-        createdAt: '',
-        updatedAt: '',
-      },
-    ]);
+  it('shows existing properties in the grid from API', async () => {
+    propertiesApiClient.listPropertiesApi.mockResolvedValue([makeApiRow()]);
 
     render(
       <WithAppTheme>
@@ -130,27 +140,31 @@ describe('PortalAdminProperties', () => {
       </WithAppTheme>
     );
 
-    expect(screen.getByText('6314 Bonnie Chase Ln')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('6314 Bonnie Chase Ln')).toBeInTheDocument();
+    });
     expect(screen.getByText('Katy, TX 77449')).toBeInTheDocument();
     expect(screen.getByText('$2,100/mo')).toBeInTheDocument();
   });
 
-  it('opens delete confirmation dialog and calls deleteProperty on confirm', async () => {
-    storage.loadProperties.mockReturnValue([
-      {
-        id: 'portal-del-1',
-        harId: '',
-        addressLine: '999 Delete Me Dr',
-        cityStateZip: 'Houston, TX 77001',
-        monthlyRentLabel: '',
-        photoUrl: '',
-        harListingUrl: '',
-        applyUrl: '',
-        detailLines: [],
-        showOnApplyPage: false,
-        createdAt: '',
-        updatedAt: '',
-      },
+  it('opens delete confirmation dialog and calls deletePropertyApi on confirm', async () => {
+    propertiesApiClient.listPropertiesApi.mockResolvedValue([
+      makeApiRow({
+        id: 'db-del-1',
+        street: '999 Delete Me Dr',
+        metadata: {
+          apply: {
+            addressLine: '999 Delete Me Dr',
+            cityStateZip: 'Houston, TX 77001',
+            monthlyRentLabel: '',
+            photoUrl: '',
+            harListingUrl: '',
+            applyUrl: '',
+            detailLines: [],
+          },
+        },
+        apply_visible: false,
+      }),
     ]);
 
     render(
@@ -158,6 +172,10 @@ describe('PortalAdminProperties', () => {
         <PortalAdminProperties />
       </WithAppTheme>
     );
+
+    await waitFor(() => {
+      expect(screen.getByText('999 Delete Me Dr')).toBeInTheDocument();
+    });
 
     const deleteBtn = screen.getByRole('button', { name: /delete/i });
     fireEvent.click(deleteBtn);
@@ -167,33 +185,37 @@ describe('PortalAdminProperties', () => {
     });
 
     const dialog = screen.getByRole('dialog');
-    // The confirm button has text "Delete" (from deleteConfirmAction key)
     const confirmBtn = Array.from(dialog.querySelectorAll('button')).find(
       (b) => /^delete$/i.test(b.textContent?.trim())
     );
     fireEvent.click(confirmBtn);
 
     await waitFor(() => {
-      expect(storage.deleteProperty).toHaveBeenCalledWith('portal-del-1');
+      expect(propertiesApiClient.deletePropertyApi).toHaveBeenCalledWith(
+        'https://api.carwoods.com',
+        'mock-token',
+        'db-del-1'
+      );
     });
   });
 
   it('populates form fields for editing when edit button is clicked', async () => {
-    storage.loadProperties.mockReturnValue([
-      {
-        id: 'portal-edit-1',
-        harId: '',
-        addressLine: '42 Edit Ave',
-        cityStateZip: 'Houston, TX 77002',
-        monthlyRentLabel: '$1,800/mo',
-        photoUrl: '',
-        harListingUrl: '',
-        applyUrl: '',
-        detailLines: ['2 Bedroom(s)'],
-        showOnApplyPage: true,
-        createdAt: '',
-        updatedAt: '',
-      },
+    propertiesApiClient.listPropertiesApi.mockResolvedValue([
+      makeApiRow({
+        id: 'db-edit-1',
+        street: '42 Edit Ave',
+        metadata: {
+          apply: {
+            addressLine: '42 Edit Ave',
+            cityStateZip: 'Houston, TX 77002',
+            monthlyRentLabel: '$1,800/mo',
+            photoUrl: '',
+            harListingUrl: '',
+            applyUrl: '',
+            detailLines: ['2 Bedroom(s)'],
+          },
+        },
+      }),
     ]);
 
     render(
@@ -201,6 +223,10 @@ describe('PortalAdminProperties', () => {
         <PortalAdminProperties />
       </WithAppTheme>
     );
+
+    await waitFor(() => {
+      expect(screen.getByText('42 Edit Ave')).toBeInTheDocument();
+    });
 
     const editBtn = screen.getByRole('button', { name: /edit/i });
     fireEvent.click(editBtn);
@@ -211,19 +237,30 @@ describe('PortalAdminProperties', () => {
     });
   });
 
-  it('shows landlord-or-admin-only error when role is guest', () => {
-    // When meStatus is loading or role is not landlord/admin, canManage is false
-    // We test this indirectly — the submit button should be disabled when canManage=false
-    // (Since we mock LANDLORD in the module-level mock, this test just verifies
-    // the button is enabled, as a sanity check that our auth mock works correctly.)
+  it('submit button is enabled for LANDLORD role', async () => {
     render(
       <WithAppTheme>
         <PortalAdminProperties />
       </WithAppTheme>
     );
+    await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
     const submitBtn = screen.getByRole('button', { name: /add property/i });
-    // With LANDLORD role, button is enabled (not disabled)
     expect(submitBtn).not.toBeDisabled();
+  });
+
+  it('shows an error alert when listPropertiesApi fails', async () => {
+    propertiesApiClient.listPropertiesApi.mockRejectedValue({ status: 401, code: 'unauthorized', message: 'HTTP 401 (unauthorized)' });
+
+    render(
+      <WithAppTheme>
+        <PortalAdminProperties />
+      </WithAppTheme>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+    expect(screen.getByText(/could not load properties/i)).toBeInTheDocument();
   });
 
   it('accepts a full HAR URL and calls the API proxy', async () => {
@@ -249,6 +286,8 @@ describe('PortalAdminProperties', () => {
         <PortalAdminProperties />
       </WithAppTheme>
     );
+
+    await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
 
     const input = screen.getByLabelText(/har listing id or url/i);
     fireEvent.change(input, {
@@ -299,6 +338,8 @@ describe('PortalAdminProperties', () => {
       </WithAppTheme>
     );
 
+    await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
+
     fireEvent.change(screen.getByLabelText(/har listing id or url/i), {
       target: { value: '8469293' },
     });
@@ -317,6 +358,7 @@ describe('PortalAdminProperties', () => {
         <PortalAdminProperties />
       </WithAppTheme>
     );
+    await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
 
     const input = screen.getByLabelText(/har listing id or url/i);
     fireEvent.change(input, { target: { value: 'https://example.com/not-a-har-url' } });
@@ -339,6 +381,8 @@ describe('PortalAdminProperties', () => {
         <PortalAdminProperties />
       </WithAppTheme>
     );
+
+    await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
 
     fireEvent.change(screen.getByLabelText(/har listing id or url/i), {
       target: { value: '8469293' },
