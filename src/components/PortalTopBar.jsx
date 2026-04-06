@@ -3,6 +3,7 @@ import {
   AppBar,
   Avatar,
   Box,
+  CircularProgress,
   Divider,
   IconButton,
   Menu,
@@ -58,8 +59,9 @@ const PortalTopBar = ({ onMenuClick, isMobile, isSidebarCollapsed = false, onSid
   const theme = useTheme();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { isAuthenticated, meData } = usePortalAuth();
+  const { isAuthenticated, meData, meStatus } = usePortalAuth();
   const initials = userInitials(meData);
+  const meLoading = isAuthenticated && meStatus === 'loading';
   const pageTitle = usePageTitle(t);
 
   const {
@@ -171,22 +173,37 @@ const PortalTopBar = ({ onMenuClick, isMobile, isSidebarCollapsed = false, onSid
           </Tooltip>
 
           {isAuthenticated && (
-            <Tooltip title={t('portalLayout.sidebar.profile')} arrow>
-              <IconButton
-                component={RouterLink}
-                to={withDarkPath(pathname, '/portal/profile')}
-                type="button"
-                size="small"
-                aria-label={t('portalLayout.sidebar.profile')}
-                sx={{ marginInlineStart: 0.5 }}
+            meLoading ? (
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginInlineStart: 0.5,
+                }}
               >
-                <Avatar
-                  sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.8rem' }}
+                <CircularProgress size={20} />
+              </Box>
+            ) : (
+              <Tooltip title={t('portalLayout.sidebar.profile')} arrow>
+                <IconButton
+                  component={RouterLink}
+                  to={withDarkPath(pathname, '/portal/profile')}
+                  type="button"
+                  size="small"
+                  aria-label={t('portalLayout.sidebar.profile')}
+                  sx={{ marginInlineStart: 0.5 }}
                 >
-                  {initials}
-                </Avatar>
-              </IconButton>
-            </Tooltip>
+                  <Avatar
+                    sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.8rem' }}
+                  >
+                    {initials}
+                  </Avatar>
+                </IconButton>
+              </Tooltip>
+            )
           )}
         </Box>
       </Toolbar>

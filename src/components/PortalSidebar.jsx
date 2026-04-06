@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   Chip,
+  CircularProgress,
   Divider,
   Drawer,
   IconButton,
@@ -11,6 +12,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Skeleton,
   Stack,
   Tooltip,
   Typography,
@@ -174,35 +176,50 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false }) => {
 
       {isAuthenticated && (
         <Box sx={{ p: collapsed && !isMobile ? 1.5 : 2 }}>
-          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5, justifyContent: collapsed && !isMobile ? 'center' : 'flex-start' }}>
-            <Tooltip title={t('portalLayout.sidebar.profile')} arrow>
-              <IconButton
-                component={RouterLink}
-                to={withDarkPath(pathname, '/portal/profile')}
-                type="button"
-                size="small"
-                aria-label={t('portalLayout.sidebar.profile')}
-              >
-                <Avatar sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: '0.875rem' }}>
-                  {initials}
-                </Avatar>
-              </IconButton>
-            </Tooltip>
-            {(!collapsed || isMobile) && (
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography variant="body2" noWrap fontWeight={600}>
-                  {displayName}
-                </Typography>
-                <Chip
-                  label={roleLabel}
-                  size="small"
-                  color="primary"
-                  variant="outlined"
-                  sx={{ height: 20, fontSize: '0.7rem' }}
-                />
+          {meStatus === 'loading' ? (
+            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5, justifyContent: collapsed && !isMobile ? 'center' : 'flex-start' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, flexShrink: 0 }}>
+                <CircularProgress size={24} />
               </Box>
-            )}
-          </Stack>
+              {(!collapsed || isMobile) && (
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Skeleton variant="text" width="70%" height={20} />
+                  <Skeleton variant="rounded" width={60} height={20} sx={{ mt: 0.5 }} />
+                </Box>
+              )}
+            </Stack>
+          ) : (
+            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5, justifyContent: collapsed && !isMobile ? 'center' : 'flex-start' }}>
+              <Tooltip title={t('portalLayout.sidebar.profile')} arrow>
+                <IconButton
+                  component={RouterLink}
+                  to={withDarkPath(pathname, '/portal/profile')}
+                  type="button"
+                  size="small"
+                  aria-label={t('portalLayout.sidebar.profile')}
+                >
+                  <Avatar sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: '0.875rem' }}>
+                    {initials}
+                  </Avatar>
+                </IconButton>
+              </Tooltip>
+              {(!collapsed || isMobile) && (
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography variant="body2" noWrap fontWeight={600}>
+                    {displayName}
+                  </Typography>
+                  <Chip
+                    label={roleLabel}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                    sx={{ height: 20, fontSize: '0.7rem' }}
+                  />
+                </Box>
+              )}
+            </Stack>
+          )}
+          
           {collapsed && !isMobile ? (
             <Tooltip title={t('portalLayout.sidebar.signOut')} arrow>
               <IconButton
