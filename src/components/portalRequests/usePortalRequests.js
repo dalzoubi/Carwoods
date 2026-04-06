@@ -1,6 +1,25 @@
 import { useEffect, useMemo, useState } from 'react';
 import { emailFromAccount } from '../../portalUtils';
-import { endpoint, parseErrorResponse } from './api';
+import {
+  fetchRequestDetail,
+  fetchRequests,
+  fetchRequestLookups,
+  createRequest,
+  postMessage,
+  requestUploadIntent,
+  finalizeUpload,
+  patchResource,
+  fetchSuggestReply,
+  fetchExportCsv,
+} from '../../lib/portalApiClient';
+
+function extractErrorMessage(error, t, fallbackKey) {
+  if (error && typeof error === 'object' && typeof error.message === 'string') {
+    return error.message;
+  }
+  if (error instanceof Error) return error.message;
+  return t(fallbackKey);
+}
 
 export function usePortalRequests({
   baseUrl,
@@ -58,30 +77,15 @@ export function usePortalRequests({
   const [exportStatus, setExportStatus] = useState('idle');
   const [exportError, setExportError] = useState('');
 
-  const headersBuilder = useMemo(
-    () => async () => {
-      const token = await getAccessToken();
-      const hint = emailFromAccount(account);
-      const headers = {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      };
-      if (hint) headers['X-Email-Hint'] = hint;
-      return headers;
-    },
-    [account, getAccessToken]
-  );
-
-  const listUrl = useMemo(() => {
+  const listPath = useMemo(() => {
     if (!baseUrl) return '';
-    if (isManagement) return endpoint(baseUrl, '/api/landlord/requests');
-    return endpoint(baseUrl, '/api/portal/requests');
+    return isManagement ? '/api/landlord/requests' : '/api/portal/requests';
   }, [baseUrl, isManagement]);
 
   const loadRequestDetails = async (requestId) => {
     if (!requestId || !baseUrl) return;
-    const headers = await headersBuilder();
+    const token = await getAccessToken();
+    const emailHint = emailFromAccount(account);
 
     const detailPath = isManagement
       ? `/api/landlord/requests/${encodeURIComponent(requestId)}`
@@ -89,30 +93,11 @@ export function usePortalRequests({
     const messagesPath = `/api/portal/requests/${encodeURIComponent(requestId)}/messages`;
     const attachmentsPath = `/api/portal/requests/${encodeURIComponent(requestId)}/attachments`;
 
-    const detailRes = await fetch(endpoint(baseUrl, detailPath), {
-      method: 'GET',
-      headers,
-      credentials: 'omit',
-    });
-    if (!detailRes.ok) throw new Error(await parseErrorResponse(detailRes));
-    const detailPayload = await detailRes.json();
-    const detail = detailPayload?.request ?? null;
-
-    const messagesRes = await fetch(endpoint(baseUrl, messagesPath), {
-      method: 'GET',
-      headers,
-      credentials: 'omit',
-    });
-    if (!messagesRes.ok) throw new Error(await parseErrorResponse(messagesRes));
-    const messagesPayload = await messagesRes.json();
-
-    const attachmentsRes = await fetch(endpoint(baseUrl, attachmentsPath), {
-      method: 'GET',
-      headers,
-      credentials: 'omit',
-    });
-    if (!attachmentsRes.ok) throw new Error(await parseErrorResponse(attachmentsRes));
-    const attachmentsPayload = await attachmentsRes.json();
+    const { detail, messagesPayload, attachmentsPayload } = await fetchRequestDetail(
+      baseUrl,
+      token,
+      { detailPath, messagesPath, attachmentsPath, emailHint }
+    );
 
     setRequestDetail(detail);
     setThreadMessages(Array.isArray(messagesPayload?.messages) ? messagesPayload.messages : []);
@@ -125,18 +110,13 @@ export function usePortalRequests({
 
   const loadRequests = async (opts = { keepSelection: true }) => {
     if (!baseUrl || !isAuthenticated || isGuest || meStatus !== 'ok') return;
-    if (!listUrl) return;
+    if (!listPath) return;
     setRequestsStatus('loading');
     setRequestsError('');
     try {
-      const headers = await headersBuilder();
-      const res = await fetch(listUrl, {
-        method: 'GET',
-        headers,
-        credentials: 'omit',
-      });
-      if (!res.ok) throw new Error(await parseErrorResponse(res));
-      const payload = await res.json();
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      const payload = await fetchRequests(baseUrl, token, { path: listPath, emailHint });
       const nextRequests = Array.isArray(payload?.requests) ? payload.requests : [];
       setRequests(nextRequests);
       setRequestsStatus('ok');
@@ -154,7 +134,7 @@ export function usePortalRequests({
       }
     } catch (error) {
       setRequestsStatus('error');
-      setRequestsError(error instanceof Error ? error.message : t('portalRequests.errors.loadFailed'));
+      setRequestsError(extractErrorMessage(error, t, 'portalRequests.errors.loadFailed'));
     }
   };
 
@@ -162,7 +142,7 @@ export function usePortalRequests({
     if (!baseUrl || !isAuthenticated || isGuest || meStatus !== 'ok') return;
     loadRequests({ keepSelection: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseUrl, isAuthenticated, isGuest, meStatus, listUrl]);
+  }, [baseUrl, isAuthenticated, isGuest, meStatus, listPath]);
 
   useEffect(() => {
     if (!baseUrl || !isAuthenticated || isGuest || isManagement || meStatus !== 'ok') {
@@ -180,14 +160,9 @@ export function usePortalRequests({
       setLookupStatus('loading');
       setLookupError('');
       try {
-        const headers = await headersBuilder();
-        const res = await fetch(endpoint(baseUrl, '/api/portal/request-lookups'), {
-          method: 'GET',
-          headers,
-          credentials: 'omit',
-        });
-        if (!res.ok) throw new Error(await parseErrorResponse(res));
-        const payload = await res.json();
+        const token = await getAccessToken();
+        const emailHint = emailFromAccount(account);
+        const payload = await fetchRequestLookups(baseUrl, token, { emailHint });
         if (cancelled) return;
         const categories = Array.isArray(payload?.categories) ? payload.categories : [];
         const priorities = Array.isArray(payload?.priorities) ? payload.priorities : [];
@@ -231,7 +206,7 @@ export function usePortalRequests({
         if (cancelled) return;
         setLookupStatus('error');
         setLookupContact(null);
-        setLookupError(error instanceof Error ? error.message : t('portalRequests.errors.loadFailed'));
+        setLookupError(extractErrorMessage(error, t, 'portalRequests.errors.loadFailed'));
       }
     };
 
@@ -239,7 +214,7 @@ export function usePortalRequests({
     return () => {
       cancelled = true;
     };
-  }, [baseUrl, headersBuilder, isAuthenticated, isGuest, isManagement, meStatus, t]);
+  }, [baseUrl, account, getAccessToken, isAuthenticated, isGuest, isManagement, meStatus, t]);
 
   useEffect(() => {
     if (lookupStatus !== 'ok') return;
@@ -271,25 +246,21 @@ export function usePortalRequests({
     setTenantCreateStatus('saving');
     setTenantCreateError('');
     try {
-      const headers = await headersBuilder();
-      const res = await fetch(endpoint(baseUrl, '/api/portal/requests'), {
-        method: 'POST',
-        headers,
-        credentials: 'omit',
-        body: JSON.stringify({
-          property_id: tenantDefaults.property_id,
-          lease_id: tenantDefaults.lease_id,
-          ...tenantForm,
-          emergency_disclaimer_acknowledged: true,
-        }),
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      await createRequest(baseUrl, token, {
+        emailHint,
+        property_id: tenantDefaults.property_id,
+        lease_id: tenantDefaults.lease_id,
+        ...tenantForm,
+        emergency_disclaimer_acknowledged: true,
       });
-      if (!res.ok) throw new Error(await parseErrorResponse(res));
       setTenantCreateStatus('success');
       setTenantForm((prev) => ({ ...prev, title: '', description: '' }));
       await loadRequests({ keepSelection: false });
     } catch (error) {
       setTenantCreateStatus('error');
-      setTenantCreateError(error instanceof Error ? error.message : t('portalRequests.errors.saveFailed'));
+      setTenantCreateError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
     }
   };
 
@@ -306,26 +277,23 @@ export function usePortalRequests({
     setManagementUpdateStatus('saving');
     setManagementUpdateError('');
     try {
-      const headers = await headersBuilder();
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
       const body = {};
       if (managementForm.status_code.trim()) body.status_code = managementForm.status_code.trim();
       body.assigned_vendor_id = managementForm.assigned_vendor_id.trim() || null;
       body.internal_notes = managementForm.internal_notes.trim() || null;
-      const res = await fetch(
-        endpoint(baseUrl, `/api/landlord/requests/${encodeURIComponent(selectedRequestId)}`),
-        {
-          method: 'PATCH',
-          headers,
-          credentials: 'omit',
-          body: JSON.stringify(body),
-        }
+      await patchResource(
+        baseUrl,
+        token,
+        `/api/landlord/requests/${encodeURIComponent(selectedRequestId)}`,
+        { emailHint, ...body }
       );
-      if (!res.ok) throw new Error(await parseErrorResponse(res));
       setManagementUpdateStatus('success');
       await loadRequests({ keepSelection: true });
     } catch (error) {
       setManagementUpdateStatus('error');
-      setManagementUpdateError(error instanceof Error ? error.message : t('portalRequests.errors.saveFailed'));
+      setManagementUpdateError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
     }
   };
 
@@ -335,26 +303,19 @@ export function usePortalRequests({
     setMessageStatus('saving');
     setMessageError('');
     try {
-      const headers = await headersBuilder();
-      const res = await fetch(
-        endpoint(baseUrl, `/api/portal/requests/${encodeURIComponent(selectedRequestId)}/messages`),
-        {
-          method: 'POST',
-          headers,
-          credentials: 'omit',
-          body: JSON.stringify({
-            body: messageForm.body.trim(),
-            is_internal: isManagement ? Boolean(messageForm.is_internal) : false,
-          }),
-        }
-      );
-      if (!res.ok) throw new Error(await parseErrorResponse(res));
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      await postMessage(baseUrl, token, selectedRequestId, {
+        emailHint,
+        body: messageForm.body.trim(),
+        is_internal: isManagement ? Boolean(messageForm.is_internal) : false,
+      });
       setMessageStatus('success');
       setMessageForm({ body: '', is_internal: false });
       await loadRequestDetails(selectedRequestId);
     } catch (error) {
       setMessageStatus('error');
-      setMessageError(error instanceof Error ? error.message : t('portalRequests.errors.saveFailed'));
+      setMessageError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
     }
   };
 
@@ -371,49 +332,31 @@ export function usePortalRequests({
     setAttachmentStatus('saving');
     setAttachmentError('');
     try {
-      const headers = await headersBuilder();
-      const intentRes = await fetch(
-        endpoint(baseUrl, `/api/portal/requests/${encodeURIComponent(selectedRequestId)}/uploads/intent`),
-        {
-          method: 'POST',
-          headers,
-          credentials: 'omit',
-          body: JSON.stringify({
-            filename: attachmentFile.name,
-            content_type: attachmentFile.type || 'application/octet-stream',
-            file_size_bytes: attachmentFile.size,
-          }),
-        }
-      );
-      if (!intentRes.ok) throw new Error(await parseErrorResponse(intentRes));
-      const intentPayload = await intentRes.json();
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      const filePayload = {
+        emailHint,
+        filename: attachmentFile.name,
+        content_type: attachmentFile.type || 'application/octet-stream',
+        file_size_bytes: attachmentFile.size,
+      };
+      const intentPayload = await requestUploadIntent(baseUrl, token, selectedRequestId, filePayload);
       const storagePath = intentPayload?.upload?.storage_path;
       if (!storagePath) throw new Error(t('portalRequests.errors.uploadIntentMissingPath'));
 
-      const finalizeRes = await fetch(
-        endpoint(
-          baseUrl,
-          `/api/portal/requests/${encodeURIComponent(selectedRequestId)}/attachments/finalize`
-        ),
-        {
-          method: 'POST',
-          headers,
-          credentials: 'omit',
-          body: JSON.stringify({
-            storage_path: storagePath,
-            filename: attachmentFile.name,
-            content_type: attachmentFile.type || 'application/octet-stream',
-            file_size_bytes: attachmentFile.size,
-          }),
-        }
-      );
-      if (!finalizeRes.ok) throw new Error(await parseErrorResponse(finalizeRes));
+      await finalizeUpload(baseUrl, token, selectedRequestId, {
+        emailHint,
+        storage_path: storagePath,
+        filename: attachmentFile.name,
+        content_type: attachmentFile.type || 'application/octet-stream',
+        file_size_bytes: attachmentFile.size,
+      });
       setAttachmentStatus('success');
       setAttachmentFile(null);
       await loadRequestDetails(selectedRequestId);
     } catch (error) {
       setAttachmentStatus('error');
-      setAttachmentError(error instanceof Error ? error.message : t('portalRequests.errors.saveFailed'));
+      setAttachmentError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
     }
   };
 
@@ -423,18 +366,14 @@ export function usePortalRequests({
     setSuggestionError('');
     setSuggestionText('');
     try {
-      const headers = await headersBuilder();
-      const res = await fetch(
-        endpoint(baseUrl, `/api/landlord/requests/${encodeURIComponent(selectedRequestId)}/suggest-reply`),
-        { method: 'POST', headers, credentials: 'omit' }
-      );
-      if (!res.ok) throw new Error(await parseErrorResponse(res));
-      const payload = await res.json();
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      const payload = await fetchSuggestReply(baseUrl, token, selectedRequestId, { emailHint });
       setSuggestionStatus('ok');
       setSuggestionText(typeof payload?.suggestion === 'string' ? payload.suggestion : '');
     } catch (error) {
       setSuggestionStatus('error');
-      setSuggestionError(error instanceof Error ? error.message : t('portalRequests.errors.loadFailed'));
+      setSuggestionError(extractErrorMessage(error, t, 'portalRequests.errors.loadFailed'));
     }
   };
 
@@ -444,16 +383,8 @@ export function usePortalRequests({
     setExportError('');
     try {
       const token = await getAccessToken();
-      const hint = emailFromAccount(account);
-      const headers = { Accept: 'text/csv', Authorization: `Bearer ${token}` };
-      if (hint) headers['X-Email-Hint'] = hint;
-      const res = await fetch(endpoint(baseUrl, '/api/landlord/exports/requests.csv'), {
-        method: 'GET',
-        headers,
-        credentials: 'omit',
-      });
-      if (!res.ok) throw new Error(await parseErrorResponse(res));
-      const blob = await res.blob();
+      const emailHint = emailFromAccount(account);
+      const blob = await fetchExportCsv(baseUrl, token, { emailHint });
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
       anchor.href = url;
@@ -465,7 +396,7 @@ export function usePortalRequests({
       setExportStatus('ok');
     } catch (error) {
       setExportStatus('error');
-      setExportError(error instanceof Error ? error.message : t('portalRequests.errors.loadFailed'));
+      setExportError(extractErrorMessage(error, t, 'portalRequests.errors.loadFailed'));
     }
   };
 

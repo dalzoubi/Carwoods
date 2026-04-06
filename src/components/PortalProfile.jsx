@@ -16,10 +16,7 @@ import {
 import { usePortalAuth } from '../PortalAuthContext';
 import { emailFromAccount, isGuestRole, resolveRole } from '../portalUtils';
 import { validatePersonBasics, validatePersonField } from '../portalPersonValidation';
-
-function endpoint(baseUrl, path) {
-  return `${baseUrl.replace(/\/$/, '')}${path}`;
-}
+import { patchProfile } from '../lib/portalApiClient';
 
 function validateProfileForm(form, t) {
   return validatePersonBasics(form, t, {
@@ -94,11 +91,6 @@ const PortalProfile = () => {
     [form, initialForm]
   );
 
-  const profileEndpoint = useMemo(
-    () => (baseUrl ? endpoint(baseUrl, '/api/portal/profile') : ''),
-    [baseUrl]
-  );
-
   useEffect(() => {
     setForm(initialForm);
     setFieldErrors({});
@@ -136,48 +128,30 @@ const PortalProfile = () => {
       if (!isAuthenticated) {
         throw new Error(t('portalProfile.errors.signInRequired'));
       }
-      if (!profileEndpoint) {
+      if (!baseUrl) {
         throw new Error(t('portalProfile.errors.apiUnavailable'));
       }
       const token = await getAccessToken();
-      const hint = emailFromAccount(account);
-      const headers = {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      };
-      if (hint) {
-        headers['X-Email-Hint'] = hint;
-      }
-      const res = await fetch(profileEndpoint, {
-        method: 'PATCH',
-        headers,
-        credentials: 'omit',
-        body: JSON.stringify({
-          email: form.email,
-          first_name: form.firstName,
-          last_name: form.lastName,
-          phone: form.phone,
-        }),
+      const emailHint = emailFromAccount(account);
+      await patchProfile(baseUrl, token, {
+        emailHint,
+        email: form.email,
+        first_name: form.firstName,
+        last_name: form.lastName,
+        phone: form.phone,
       });
-      if (!res.ok) {
-        let detail = `HTTP ${res.status}`;
-        try {
-          const payload = await res.json();
-          if (typeof payload?.error === 'string') {
-            detail = `${detail} (${payload.error})`;
-          }
-        } catch {
-          // Best-effort JSON parse.
-        }
-        throw new Error(detail);
-      }
       setSaveStatus('success');
       setSnackOpen(true);
       refreshMe();
     } catch (error) {
       setSaveStatus('error');
-      setSaveError(error instanceof Error ? error.message : t('portalProfile.errors.unknown'));
+      const msg =
+        error && typeof error === 'object' && typeof error.message === 'string'
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : t('portalProfile.errors.unknown');
+      setSaveError(msg);
     }
   };
 

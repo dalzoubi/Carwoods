@@ -21,10 +21,10 @@ import ArrowForward from '@mui/icons-material/ArrowForward';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
 import { hasLandlordAccess } from '../domain/roleUtils.js';
-import { isGuestRole, normalizeRole, resolveRole } from '../portalUtils';
+import { isGuestRole, normalizeRole, resolveRole, emailFromAccount } from '../portalUtils';
 import { Role } from '../domain/constants.js';
-import { emailFromAccount } from '../portalUtils';
 import { withDarkPath } from '../routePaths';
+import { fetchRequests } from '../lib/portalApiClient';
 
 function statusColor(statusId) {
   const s = String(statusId ?? '').toUpperCase();
@@ -97,14 +97,9 @@ const PortalDashboard = () => {
     setReqStatus('loading');
     try {
       const token = await getAccessToken();
-      const hint = emailFromAccount(account);
+      const emailHint = emailFromAccount(account);
       const path = isManagement ? '/api/landlord/requests' : '/api/portal/requests';
-      const url = `${baseUrl.replace(/\/$/, '')}${path}`;
-      const headers = { Accept: 'application/json', Authorization: `Bearer ${token}` };
-      if (hint) headers['X-Email-Hint'] = hint;
-      const res = await fetch(url, { method: 'GET', headers, credentials: 'omit' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      const data = await fetchRequests(baseUrl, token, { path, emailHint });
       setRequests(Array.isArray(data) ? data : data?.requests ?? []);
       setReqStatus('ok');
     } catch {
