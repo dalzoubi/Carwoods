@@ -41,23 +41,7 @@ import {
   loadProperties,
   updateProperty,
 } from '../portalPropertiesStorage';
-
-/**
- * Extract the numeric HAR listing ID from either a full homedetail URL or a bare
- * numeric string.  e.g.:
- *   "https://www.har.com/homedetail/6314-bonnie-chase-ln-katy-tx-77449/8469293" → "8469293"
- *   "8469293" → "8469293"
- * Returns null when the input looks like a URL but contains no trailing numeric segment.
- */
-function parseHarInput(raw) {
-  const trimmed = raw.trim();
-  if (/^https?:\/\//i.test(trimmed)) {
-    const m = trimmed.match(/\/(\d+)\/?(?:[?#].*)?$/);
-    return m ? m[1] : null;
-  }
-  return trimmed || null;
-}
-
+import { listingFromHarPreviewPayload, parseHarInput } from '../portalHarPreviewParse';
 
 const EMPTY_FORM = {
   harId: '',
@@ -288,11 +272,18 @@ const PortalAdminProperties = () => {
         setHarMessage(t('portalAdminProperties.harSearch.fetchError'));
         return;
       }
-      const payload = await res.json();
-      const tile = payload?.listing;
+      let payload = await res.json();
+      if (typeof payload === 'string') {
+        try {
+          payload = JSON.parse(payload);
+        } catch {
+          payload = null;
+        }
+      }
+      const tile = listingFromHarPreviewPayload(payload);
       if (!tile) {
-        setHarStatus('not_found');
-        setHarMessage(t('portalAdminProperties.harSearch.notFound'));
+        setHarStatus('error');
+        setHarMessage(t('portalAdminProperties.harSearch.unexpectedResponse'));
         return;
       }
       setForm((prev) => ({

@@ -274,6 +274,44 @@ describe('PortalAdminProperties', () => {
     delete global.fetch;
   });
 
+  it('accepts wrapped HAR preview JSON (body.listing)', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        body: {
+          listing: {
+            id: 'har-8469293',
+            addressLine: 'Wrapped St',
+            cityStateZip: 'Katy, TX',
+            monthlyRentLabel: '$1/mo',
+            photoUrl: '',
+            harListingUrl: 'https://www.har.com/homedetail/x/8469293',
+            applyUrl: 'https://apply.link/x',
+            detailLines: [],
+          },
+        },
+      }),
+    });
+
+    render(
+      <WithAppTheme>
+        <PortalAdminProperties />
+      </WithAppTheme>
+    );
+
+    fireEvent.change(screen.getByLabelText(/har listing id or url/i), {
+      target: { value: '8469293' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /search har/i }));
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Wrapped St')).toBeInTheDocument();
+    });
+
+    delete global.fetch;
+  });
+
   it('shows invalid-input error when a non-HAR URL is entered', async () => {
     render(
       <WithAppTheme>

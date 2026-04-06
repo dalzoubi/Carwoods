@@ -905,6 +905,7 @@
       "notFound": "No listing data found for that ID. Check the ID and try again.",
       "noApiConfigured": "API is not configured. Set VITE_API_BASE_URL in your .env to enable HAR search.",
       "fetchError": "Could not reach HAR. The listing may be unavailable, or try entering details manually.",
+      "unexpectedResponse": "The server returned an OK response but no listing payload. Try again, or enter details manually. If this keeps happening, check that the site and API versions match.",
       "found": "Listing found — details populated below."
     },
     "form": {
