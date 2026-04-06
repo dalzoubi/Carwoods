@@ -18,10 +18,7 @@ import { VITE_API_BASE_URL_RESOLVED } from '../featureFlags';
 import { usePortalAuth } from '../PortalAuthContext';
 import { emailFromAccount, firstNonEmpty, resolveRole } from '../portalUtils';
 import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
-
-function endpoint(baseUrl, path) {
-  return `${baseUrl.replace(/\/$/, '')}${path}`;
-}
+import { fetchHealth as apiFetchHealth } from '../lib/portalApiClient';
 
 function statusColor(status) {
   if (status === 'ok') return 'success';
@@ -85,34 +82,26 @@ const PortalStatus = () => {
   }, [account]);
 
   const baseUrl = useMemo(() => VITE_API_BASE_URL_RESOLVED || '', []);
-  const healthUrl = baseUrl ? endpoint(baseUrl, '/api/health') : '';
-  const meUrl = baseUrl ? endpoint(baseUrl, '/api/portal/me') : '';
+  const healthUrl = baseUrl ? `${baseUrl.replace(/\/$/, '')}/api/health` : '';
+  const meUrl = baseUrl ? `${baseUrl.replace(/\/$/, '')}/api/portal/me` : '';
 
   const fetchHealth = async () => {
     if (!baseUrl) return;
     setHealth({ state: 'loading', detail: '' });
     try {
-      const res = await fetch(healthUrl, {
-        headers: { Accept: 'application/json' },
-        credentials: 'omit',
-      });
-      if (!res.ok) {
-        setHealth({
-          state: 'error',
-          detail: t('portalSetup.errors.httpStatus', { status: res.status }),
-        });
-        return;
-      }
-      const payload = await res.json();
+      const payload = await apiFetchHealth(baseUrl);
       setHealth({
         state: 'ok',
         detail: payload?.status ? String(payload.status) : t('portalSetup.labels.ok'),
       });
     } catch (error) {
-      setHealth({
-        state: 'error',
-        detail: error instanceof Error ? error.message : t('portalSetup.errors.unknown'),
-      });
+      const detail =
+        error && typeof error === 'object' && typeof error.status === 'number'
+          ? t('portalSetup.errors.httpStatus', { status: error.status })
+          : error instanceof Error
+            ? error.message
+            : t('portalSetup.errors.unknown');
+      setHealth({ state: 'error', detail });
     }
   };
 

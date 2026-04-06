@@ -43,6 +43,7 @@ import {
   updateProperty,
 } from '../portalPropertiesStorage';
 import { listingFromHarPreviewPayload, parseHarInput } from '../portalHarPreviewParse';
+import { fetchHarPreview } from '../lib/portalApiClient';
 
 const EMPTY_FORM = {
   harId: '',
@@ -255,25 +256,7 @@ const PortalAdminProperties = () => {
     setHarMessage('');
     try {
       const accessToken = await getAccessToken();
-      const previewUrl = `${baseUrl.replace(/\/$/, '')}/api/landlord/har-preview?id=${encodeURIComponent(id)}`;
-      const res = await fetch(previewUrl, {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        credentials: 'omit',
-      });
-      if (res.status === 404) {
-        setHarStatus('not_found');
-        setHarMessage(t('portalAdminProperties.harSearch.notFound'));
-        return;
-      }
-      if (!res.ok) {
-        setHarStatus('error');
-        setHarMessage(t('portalAdminProperties.harSearch.fetchError'));
-        return;
-      }
-      let payload = await res.json();
+      let payload = await fetchHarPreview(baseUrl, accessToken, id);
       if (typeof payload === 'string') {
         try {
           payload = JSON.parse(payload);
@@ -302,7 +285,12 @@ const PortalAdminProperties = () => {
       }));
       setHarStatus('found');
       setHarMessage(t('portalAdminProperties.harSearch.found'));
-    } catch {
+    } catch (error) {
+      if (error && typeof error === 'object' && error.status === 404) {
+        setHarStatus('not_found');
+        setHarMessage(t('portalAdminProperties.harSearch.notFound'));
+        return;
+      }
       setHarStatus('error');
       setHarMessage(t('portalAdminProperties.harSearch.fetchError'));
     }

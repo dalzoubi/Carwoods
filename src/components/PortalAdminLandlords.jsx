@@ -18,7 +18,8 @@ import { usePortalAuth } from '../PortalAuthContext';
 import { Role } from '../domain/constants.js';
 import { validatePersonBasics, validatePersonField } from '../portalPersonValidation';
 import { resolveRole } from '../portalUtils';
-import { endpoint, normalizedRole, parseErrorResponse } from './portalRequests/api';
+import { normalizedRole } from './portalRequests/api';
+import { fetchLandlords, createLandlord, patchResource } from '../lib/portalApiClient';
 
 function displayName(landlord) {
   const first = String(landlord.first_name ?? '').trim();
@@ -54,34 +55,20 @@ const PortalAdminLandlords = () => {
     setLandlordsState((prev) => ({ ...prev, status: 'loading', detail: '' }));
     try {
       const accessToken = await getAccessToken();
-      const url = showInactive
-        ? endpoint(baseUrl, '/api/portal/admin/landlords?include_inactive=true')
-        : endpoint(baseUrl, '/api/portal/admin/landlords');
-      const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        credentials: 'omit',
-      });
-      if (!res.ok) {
-        const detail = await parseErrorResponse(res);
-        setLandlordsState({ status: 'error', detail, landlords: [] });
-        return;
-      }
-      const payload = await res.json();
+      const payload = await fetchLandlords(baseUrl, accessToken, { includeInactive: showInactive });
       setLandlordsState({
         status: 'ok',
         detail: '',
         landlords: Array.isArray(payload?.landlords) ? payload.landlords : [],
       });
     } catch (error) {
-      setLandlordsState({
-        status: 'error',
-        detail: error instanceof Error ? error.message : 'request_failed',
-        landlords: [],
-      });
+      const detail =
+        error && typeof error === 'object' && typeof error.message === 'string'
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'request_failed';
+      setLandlordsState({ status: 'error', detail, landlords: [] });
     }
   }, [baseUrl, canUseModule, getAccessToken, showInactive]);
 
@@ -108,20 +95,12 @@ const PortalAdminLandlords = () => {
     setSubmitState({ status: 'saving', detail: '' });
     try {
       const accessToken = await getAccessToken();
-      const res = await fetch(endpoint(baseUrl, `/api/portal/admin/landlords/${landlordId}`), {
-        method: 'PATCH',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ active }),
-      });
-      if (!res.ok) {
-        const detail = await parseErrorResponse(res);
-        setSubmitState({ status: 'error', detail });
-        return;
-      }
+      await patchResource(
+        baseUrl,
+        accessToken,
+        `/api/portal/admin/landlords/${landlordId}`,
+        { active }
+      );
       setSubmitState({
         status: 'ok',
         detail: active
@@ -130,10 +109,13 @@ const PortalAdminLandlords = () => {
       });
       void loadLandlords();
     } catch (error) {
-      setSubmitState({
-        status: 'error',
-        detail: error instanceof Error ? error.message : 'request_failed',
-      });
+      const detail =
+        error && typeof error === 'object' && typeof error.message === 'string'
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'request_failed';
+      setSubmitState({ status: 'error', detail });
     }
   };
 
@@ -173,24 +155,11 @@ const PortalAdminLandlords = () => {
     setSubmitState({ status: 'saving', detail: '' });
     try {
       const accessToken = await getAccessToken();
-      const res = await fetch(endpoint(baseUrl, '/api/portal/admin/landlords'), {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          email,
-          first_name: form.firstName.trim(),
-          last_name: form.lastName.trim(),
-        }),
+      await createLandlord(baseUrl, accessToken, {
+        email,
+        first_name: form.firstName.trim(),
+        last_name: form.lastName.trim(),
       });
-      if (!res.ok) {
-        const detail = await parseErrorResponse(res);
-        setSubmitState({ status: 'error', detail });
-        return;
-      }
       setSubmitState({
         status: 'ok',
         detail: t('portalAdminLandlords.messages.landlordSaved'),
@@ -199,10 +168,13 @@ const PortalAdminLandlords = () => {
       setForm({ email: '', firstName: '', lastName: '' });
       void loadLandlords();
     } catch (error) {
-      setSubmitState({
-        status: 'error',
-        detail: error instanceof Error ? error.message : 'request_failed',
-      });
+      const detail =
+        error && typeof error === 'object' && typeof error.message === 'string'
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'request_failed';
+      setSubmitState({ status: 'error', detail });
     }
   };
 

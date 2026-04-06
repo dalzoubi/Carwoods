@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { emailFromAccount } from '../portalUtils';
+import { fetchMe } from '../lib/portalApiClient';
 
 /**
  * Fetches /api/portal/me whenever the account is authenticated and a baseUrl
@@ -25,9 +26,7 @@ export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, ref
   }, []);
 
   useEffect(() => {
-    const meUrl = baseUrl ? `${baseUrl.replace(/\/$/, '')}/api/portal/me` : '';
-
-    if (!baseUrl || !meUrl || authStatus !== 'authenticated' || !account) {
+    if (!baseUrl || authStatus !== 'authenticated' || !account) {
       clearMe();
       return;
     }
@@ -38,46 +37,21 @@ export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, ref
       setMeError('');
       try {
         const accessToken = await getAccessToken();
-
-        const meHeaders = {
-          Accept: 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        };
         const hint = emailFromAccount(account);
-        if (hint) {
-          meHeaders['X-Email-Hint'] = hint;
-        }
-
-        const res = await fetch(meUrl, {
-          method: 'GET',
-          headers: meHeaders,
-          credentials: 'omit',
-          signal: controller.signal,
-        });
-
-        if (!res.ok) {
-          let errorCode = '';
-          try {
-            const payload = await res.json();
-            if (payload && typeof payload.error === 'string') {
-              errorCode = payload.error;
-            }
-          } catch {
-            // Best-effort parse; keep HTTP status if body is not JSON.
-          }
-          setMeStatus('error');
-          setMeData(null);
-          setMeError(errorCode ? `HTTP ${res.status} (${errorCode})` : `HTTP ${res.status}`);
-          return;
-        }
-        const payload = await res.json();
+        const payload = await fetchMe(baseUrl, accessToken, hint, controller.signal);
         setMeStatus('ok');
         setMeData(payload ?? null);
       } catch (error) {
         if (controller.signal.aborted) return;
         setMeStatus('error');
         setMeData(null);
-        setMeError(error instanceof Error ? error.message : 'request_failed');
+        setMeError(
+          error && typeof error === 'object' && 'message' in error
+            ? error.message
+            : error instanceof Error
+              ? error.message
+              : 'request_failed'
+        );
       }
     };
 
