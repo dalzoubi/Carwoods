@@ -16,6 +16,7 @@ vi.mock('../PortalAuthContext', () => ({
     meStatus: 'ok',
     baseUrl: 'https://api.carwoods.com',
     getAccessToken: vi.fn().mockResolvedValue('mock-token'),
+    handleApiForbidden: vi.fn(),
   }),
   PortalAuthProvider: ({ children }) => children,
 }));

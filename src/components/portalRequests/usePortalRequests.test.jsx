@@ -21,6 +21,7 @@ function baseParams(overrides = {}) {
     meStatus: 'ok',
     account: { idTokenClaims: { email: 'tenant@example.com' } },
     getAccessToken: vi.fn().mockResolvedValue('token-123'),
+    handleApiForbidden: vi.fn(),
     t: (key) => key,
     ...overrides,
   };

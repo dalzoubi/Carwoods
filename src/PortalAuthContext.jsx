@@ -39,6 +39,7 @@ const DEV_AUTH_VALUE = PORTAL_DEV_AUTH
       signOut: () => Promise.resolve(),
       refreshMe: () => {},
       getAccessToken: () => Promise.resolve('dev-token'),
+      handleApiForbidden: () => {},
     }
   : null;
 
@@ -145,6 +146,25 @@ function RealPortalAuthProvider({ children }) {
   const refreshMe = useCallback(() => {
     setRefreshTick((x) => x + 1);
   }, []);
+
+  /**
+   * Call this whenever a portal API call throws a 403 error.  If the error
+   * status is 403 the user's account has been disabled (or access has been
+   * revoked) and we immediately sign them out and show the lockout screen,
+   * rather than leaving them in a broken state with unexplained error messages.
+   *
+   * A non-403 error is silently ignored so callers can always call this
+   * unconditionally in their catch blocks before re-throwing or setting local
+   * error state.
+   */
+  const handleApiForbidden = useCallback(
+    (error) => {
+      if (error && typeof error === 'object' && error.status === 403) {
+        void signOutDueToDisabledAccount('account_disabled');
+      }
+    },
+    [signOutDueToDisabledAccount]
+  );
 
   const getAccessToken = useCallback(async () => {
     if (!msalInstance || !account) {
@@ -273,6 +293,7 @@ function RealPortalAuthProvider({ children }) {
       signOut,
       refreshMe,
       getAccessToken,
+      handleApiForbidden,
     }),
     [
       account,
@@ -288,6 +309,7 @@ function RealPortalAuthProvider({ children }) {
       meUrl,
       refreshMe,
       getAccessToken,
+      handleApiForbidden,
       signIn,
       signInWithProvider,
       signOut,

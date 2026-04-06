@@ -175,7 +175,7 @@ const PropertyCard = ({ property, onEdit, onDelete, t }) => {
 
 const PortalAdminProperties = () => {
   const { t } = useTranslation();
-  const { isAuthenticated, account, meData, meStatus, baseUrl, getAccessToken } = usePortalAuth();
+  const { isAuthenticated, account, meData, meStatus, baseUrl, getAccessToken, handleApiForbidden } = usePortalAuth();
 
   const role = normalizeRole(resolveRole(meData, account));
   const canManage = isAuthenticated && (role === Role.ADMIN || role === Role.LANDLORD);
@@ -286,6 +286,7 @@ const PortalAdminProperties = () => {
       setHarStatus('found');
       setHarMessage(t('portalAdminProperties.harSearch.found'));
     } catch (error) {
+      handleApiForbidden(error);
       if (error && typeof error === 'object' && error.status === 404) {
         setHarStatus('not_found');
         setHarMessage(t('portalAdminProperties.harSearch.notFound'));

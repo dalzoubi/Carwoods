@@ -29,6 +29,7 @@ export function usePortalRequests({
   meStatus,
   account,
   getAccessToken,
+  handleApiForbidden,
   t,
 }) {
   const [requestsStatus, setRequestsStatus] = useState('idle');
@@ -133,6 +134,7 @@ export function usePortalRequests({
         setAttachments([]);
       }
     } catch (error) {
+      handleApiForbidden(error);
       setRequestsStatus('error');
       setRequestsError(extractErrorMessage(error, t, 'portalRequests.errors.loadFailed'));
     }
@@ -204,6 +206,7 @@ export function usePortalRequests({
         setLookupStatus('ok');
       } catch (error) {
         if (cancelled) return;
+        handleApiForbidden(error);
         setLookupStatus('error');
         setLookupContact(null);
         setLookupError(extractErrorMessage(error, t, 'portalRequests.errors.loadFailed'));
@@ -214,7 +217,7 @@ export function usePortalRequests({
     return () => {
       cancelled = true;
     };
-  }, [baseUrl, account, getAccessToken, isAuthenticated, isGuest, isManagement, meStatus, t]);
+  }, [baseUrl, account, getAccessToken, handleApiForbidden, isAuthenticated, isGuest, isManagement, meStatus, t]);
 
   useEffect(() => {
     if (lookupStatus !== 'ok') return;
@@ -259,6 +262,7 @@ export function usePortalRequests({
       setTenantForm((prev) => ({ ...prev, title: '', description: '' }));
       await loadRequests({ keepSelection: false });
     } catch (error) {
+      handleApiForbidden(error);
       setTenantCreateStatus('error');
       setTenantCreateError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
     }
@@ -292,6 +296,7 @@ export function usePortalRequests({
       setManagementUpdateStatus('success');
       await loadRequests({ keepSelection: true });
     } catch (error) {
+      handleApiForbidden(error);
       setManagementUpdateStatus('error');
       setManagementUpdateError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
     }
@@ -314,6 +319,7 @@ export function usePortalRequests({
       setMessageForm({ body: '', is_internal: false });
       await loadRequestDetails(selectedRequestId);
     } catch (error) {
+      handleApiForbidden(error);
       setMessageStatus('error');
       setMessageError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
     }
@@ -355,6 +361,7 @@ export function usePortalRequests({
       setAttachmentFile(null);
       await loadRequestDetails(selectedRequestId);
     } catch (error) {
+      handleApiForbidden(error);
       setAttachmentStatus('error');
       setAttachmentError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
     }
@@ -372,6 +379,7 @@ export function usePortalRequests({
       setSuggestionStatus('ok');
       setSuggestionText(typeof payload?.suggestion === 'string' ? payload.suggestion : '');
     } catch (error) {
+      handleApiForbidden(error);
       setSuggestionStatus('error');
       setSuggestionError(extractErrorMessage(error, t, 'portalRequests.errors.loadFailed'));
     }
@@ -395,6 +403,7 @@ export function usePortalRequests({
       URL.revokeObjectURL(url);
       setExportStatus('ok');
     } catch (error) {
+      handleApiForbidden(error);
       setExportStatus('error');
       setExportError(extractErrorMessage(error, t, 'portalRequests.errors.loadFailed'));
     }
