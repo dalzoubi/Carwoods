@@ -1041,7 +1041,8 @@
     },
     "signInPrompt": "Sign in to get started",
     "backToSite": "Back to carwoods.com",
-    "configWarning": "Portal authentication is not configured yet."
+    "configWarning": "Portal authentication is not configured yet.",
+    "accountDisabled": "Your account has been disabled. Please contact your property manager for assistance."
   },
   "socialSignIn": {
     "prompt": "Sign in with",

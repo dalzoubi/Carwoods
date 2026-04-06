@@ -1041,7 +1041,8 @@
     },
     "signInPrompt": "Connectez-vous pour commencer",
     "backToSite": "Retour à carwoods.com",
-    "configWarning": "L'authentification du portail n'est pas encore configurée."
+    "configWarning": "L'authentification du portail n'est pas encore configurée.",
+    "accountDisabled": "Votre compte a été désactivé. Veuillez contacter votre gestionnaire immobilier pour obtenir de l'aide."
   },
   "socialSignIn": {
     "prompt": "Se connecter avec",

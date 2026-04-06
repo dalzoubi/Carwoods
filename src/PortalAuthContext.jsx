@@ -14,6 +14,9 @@ const PortalAuthContext = createContext(null);
 
 const PORTAL_DEV_AUTH = import.meta.env.VITE_PORTAL_DEV_AUTH === 'true';
 
+/** How often (ms) to re-poll /me while a user is authenticated. */
+export const ME_POLL_INTERVAL_MS = 5 * 60 * 1000;
+
 const DEV_AUTH_VALUE = PORTAL_DEV_AUTH
   ? {
       baseUrl: '',
@@ -28,6 +31,8 @@ const DEV_AUTH_VALUE = PORTAL_DEV_AUTH
         user: { first_name: 'Dev', last_name: 'Landlord', role: Role.LANDLORD, status: 'ACTIVE' },
       },
       meError: '',
+      meErrorStatus: null,
+      lockoutReason: null,
       signIn: () => Promise.resolve(true),
       signInWithProvider: () => Promise.resolve(true),
       signOut: () => Promise.resolve(),
@@ -43,6 +48,7 @@ function RealPortalAuthProvider({ children }) {
   const [authError, setAuthError] = useState('');
   const [account, setAccount] = useState(null);
   const [refreshTick, setRefreshTick] = useState(0);
+  const [lockoutReason, setLockoutReason] = useState(null);
 
   const baseUrl = VITE_API_BASE_URL_RESOLVED || '';
   const meUrl = baseUrl ? `${baseUrl.replace(/\/$/, '')}/api/portal/me` : '';
@@ -73,6 +79,7 @@ function RealPortalAuthProvider({ children }) {
     }
     setAuthStatus('authenticating');
     setAuthError('');
+    setLockoutReason(null);
     try {
       const request = {
         scopes: ENTRA_LOGIN_SCOPES,
@@ -114,6 +121,24 @@ function RealPortalAuthProvider({ children }) {
     setAccount(null);
     setAuthError('');
     setAuthStatus('unauthenticated');
+  }, []);
+
+  const signOutDueToDisabledAccount = useCallback(async () => {
+    if (!msalInstance) {
+      setAuthStatus('unconfigured');
+      return;
+    }
+    try {
+      await msalInstance.clearCache();
+    } catch {
+      // Best-effort; local state reset below handles the rest.
+    }
+    msalInstance.setActiveAccount(null);
+    writeStoredClaimsByHomeAccountId({});
+    setAccount(null);
+    setAuthError('');
+    setAuthStatus('unauthenticated');
+    setLockoutReason('account_disabled');
   }, []);
 
   const refreshMe = useCallback(() => {
@@ -199,13 +224,30 @@ function RealPortalAuthProvider({ children }) {
     };
   }, [syncActiveAccount]);
 
-  const { meStatus, meData, meError } = useMeProfile({
+  const { meStatus, meData, meError, meErrorStatus } = useMeProfile({
     account,
     authStatus,
     baseUrl,
     getAccessToken,
     refreshTick,
   });
+
+  // Auto-lockout: sign out immediately when /me returns 403 (account disabled).
+  useEffect(() => {
+    if (meStatus === 'error' && meErrorStatus === 403) {
+      signOutDueToDisabledAccount();
+    }
+  }, [meStatus, meErrorStatus, signOutDueToDisabledAccount]);
+
+  // Periodic /me polling while authenticated so a disabled account is detected
+  // within ME_POLL_INTERVAL_MS even without navigation or page reload.
+  useEffect(() => {
+    if (authStatus !== 'authenticated' || !account || !baseUrl) return;
+    const id = setInterval(() => {
+      setRefreshTick((x) => x + 1);
+    }, ME_POLL_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [authStatus, account, baseUrl]);
 
   const value = useMemo(
     () => ({
@@ -218,6 +260,8 @@ function RealPortalAuthProvider({ children }) {
       meStatus,
       meData,
       meError,
+      meErrorStatus,
+      lockoutReason,
       signIn,
       signInWithProvider,
       signOut,
@@ -229,8 +273,10 @@ function RealPortalAuthProvider({ children }) {
       authError,
       authStatus,
       baseUrl,
+      lockoutReason,
       meData,
       meError,
+      meErrorStatus,
       meStatus,
       meUrl,
       refreshMe,

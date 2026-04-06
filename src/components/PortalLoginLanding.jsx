@@ -29,8 +29,9 @@ const featureItems = [
 const PortalLoginLanding = () => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
-  const { authStatus, signIn } = usePortalAuth();
+  const { authStatus, signIn, lockoutReason } = usePortalAuth();
   const isUnconfigured = authStatus === 'unconfigured';
+  const isAccountDisabled = lockoutReason === 'account_disabled';
 
   return (
     <Box
@@ -94,6 +95,12 @@ const PortalLoginLanding = () => {
           </Stack>
 
           <Divider flexItem />
+
+          {isAccountDisabled && (
+            <Alert severity="error" sx={{ width: '100%' }}>
+              {t('portalLogin.accountDisabled')}
+            </Alert>
+          )}
 
           {isUnconfigured && (
             <Alert severity="warning" sx={{ width: '100%' }}>
