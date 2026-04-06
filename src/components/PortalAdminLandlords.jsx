@@ -17,8 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { Role } from '../domain/constants.js';
 import { validatePersonBasics, validatePersonField } from '../portalPersonValidation';
-import { resolveRole } from '../portalUtils';
-import { normalizedRole } from './portalRequests/api';
+import { resolveRole, normalizeRole } from '../portalUtils';
 import { fetchLandlords, createLandlord, patchResource } from '../lib/portalApiClient';
 
 function displayName(landlord) {
@@ -37,7 +36,7 @@ const PortalAdminLandlords = () => {
     meStatus,
     getAccessToken,
   } = usePortalAuth();
-  const role = normalizedRole(resolveRole(meData, account));
+  const role = normalizeRole(resolveRole(meData, account));
   const isAdmin = role === Role.ADMIN;
   const canUseModule = isAuthenticated && isAdmin && Boolean(baseUrl);
 

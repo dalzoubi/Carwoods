@@ -4,8 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Box, Button, Chip, Paper, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { usePortalAuth } from '../PortalAuthContext';
 import { hasLandlordAccess } from '../domain/roleUtils.js';
-import { isGuestRole, resolveRole } from '../portalUtils';
-import { normalizedRole } from './portalRequests/api';
+import { isGuestRole, normalizeRole, resolveRole } from '../portalUtils';
 import TenantRequestForm from './portalRequests/TenantRequestForm';
 import RequestListPane from './portalRequests/RequestListPane';
 import RequestDetailPane from './portalRequests/RequestDetailPane';
@@ -25,7 +24,7 @@ const PortalRequests = () => {
     getAccessToken,
   } = usePortalAuth();
 
-  const role = normalizedRole(resolveRole(meData, account));
+  const role = normalizeRole(resolveRole(meData, account));
   const roleResolved = isAuthenticated && meStatus !== 'loading';
   const isGuest = roleResolved && isGuestRole(role);
   const isManagement = hasLandlordAccess(role);
