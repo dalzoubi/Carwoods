@@ -3,16 +3,8 @@ import styled from 'styled-components';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useTranslation } from 'react-i18next';
 import theme from '../theme';
-import {
-  FEATURE_APPLY_DUAL_SOURCE_COMPARE_DEV,
-  FEATURE_APPLY_FROM_API,
-  VITE_API_BASE_URL_RESOLVED,
-} from '../featureFlags';
-import {
-  fetchPublicApplyProperties,
-  logDualSourceApplyMismatch,
-} from '../publicApplyProperties';
-import { RENTAL_APPLY_PROPERTIES } from '../data/rentalPropertyApplyTiles.generated';
+import { VITE_API_BASE_URL_RESOLVED } from '../featureFlags';
+import { fetchPublicApplyProperties } from '../publicApplyProperties';
 import { loadPublicProperties } from '../portalPropertiesStorage';
 
 /** Opens in the browser; mobile OS typically offers the Maps app. */
@@ -275,30 +267,20 @@ function mergePortalProperties(baseTiles) {
 
 const RentalPropertyApplyTiles = () => {
   const { t } = useTranslation();
-  const [tiles, setTiles] = useState(() => {
-    if (FEATURE_APPLY_FROM_API) return null;
-    return mergePortalProperties(RENTAL_APPLY_PROPERTIES);
-  });
+  const [tiles, setTiles] = useState(null);
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    if (!FEATURE_APPLY_FROM_API) {
-      return undefined;
-    }
     let cancelled = false;
     (async () => {
       try {
         const apiTiles = await fetchPublicApplyProperties(VITE_API_BASE_URL_RESOLVED);
         if (cancelled) return;
-        if (FEATURE_APPLY_DUAL_SOURCE_COMPARE_DEV && RENTAL_APPLY_PROPERTIES.length > 0) {
-          logDualSourceApplyMismatch(apiTiles, RENTAL_APPLY_PROPERTIES);
-        }
-        const base = apiTiles.length > 0 ? apiTiles : RENTAL_APPLY_PROPERTIES;
-        setTiles(mergePortalProperties(base));
+        setTiles(mergePortalProperties(apiTiles));
       } catch {
         if (cancelled) return;
         setLoadError(true);
-        setTiles(mergePortalProperties(RENTAL_APPLY_PROPERTIES));
+        setTiles(mergePortalProperties([]));
       }
     })();
     return () => {
@@ -306,7 +288,7 @@ const RentalPropertyApplyTiles = () => {
     };
   }, []);
 
-  if (FEATURE_APPLY_FROM_API && tiles === null) {
+  if (tiles === null) {
     return (
       <ListingsLoading role="status" aria-live="polite">
         <CircularProgress size={36} aria-hidden />
@@ -315,16 +297,11 @@ const RentalPropertyApplyTiles = () => {
     );
   }
 
-  if (!tiles || tiles.length === 0) {
-    if (FEATURE_APPLY_FROM_API) {
-      if (loadError && RENTAL_APPLY_PROPERTIES.length === 0) {
-        return (
-          <ListingsAlert role="alert">{t('apply.listingsUnavailable')}</ListingsAlert>
-        );
-      }
-      return <ListingsStatus role="status">{t('apply.listingsEmpty')}</ListingsStatus>;
+  if (tiles.length === 0) {
+    if (loadError) {
+      return <ListingsAlert role="alert">{t('apply.listingsUnavailable')}</ListingsAlert>;
     }
-    return null;
+    return <ListingsStatus role="status">{t('apply.listingsEmpty')}</ListingsStatus>;
   }
 
   return <TileList tiles={tiles} t={t} />;
