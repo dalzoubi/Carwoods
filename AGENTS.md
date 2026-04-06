@@ -163,7 +163,7 @@ The site supports **English, Spanish, French, and Arabic** via `i18next` + `reac
 - Add keys to **all four locale files** simultaneously. Leaving a key absent in any locale causes i18next to fall back to English silently — which is acceptable, but deliberate omissions should be noted.
 - Use `useTranslation()` hook: `const { t } = useTranslation();` then `t('namespace.key')`.
 - For split sentences with an inline link (e.g. "See our **Apply** page"), break the string into `prefix`, `linkText`, and `suffix` keys rather than embedding HTML in the JSON. See `contact.para1Prefix` / `contact.applyLinkText` / `contact.para1Suffix` as the established pattern.
-- **Do not translate proper nouns** that must stay in English regardless of language: HAR.com, RentSpree, RFTA, W-2, 1099, SSN, VA, SSDI, SSA/SSI, Section 8, TCDRS, TRS, FERS, dog breed names.
+- **Do not translate proper nouns** that must stay in English regardless of language: HAR.com, RFTA, W-2, 1099, SSN, VA, SSDI, SSA/SSI, Section 8, TCDRS, TRS, FERS, dog breed names.
 - **`buildChipLabel`** in `ApplicantWizard.jsx` and the wizard `QUESTIONS` array contain hard-coded English strings — translate these via `useTranslation` when modifying the wizard.
 
 ### RTL layout rules

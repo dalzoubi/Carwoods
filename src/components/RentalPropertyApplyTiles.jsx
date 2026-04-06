@@ -254,7 +254,7 @@ function TileList({ tiles, t }) {
               <ApplyBlock>
                 {hasApplyUrl && (
                   <TextLink href={p.applyUrl} target="_blank" rel="noopener noreferrer">
-                    {t('apply.applyRentSpree')}
+                    {t('apply.applyNow')}
                   </TextLink>
                 )}
                 <TextLink

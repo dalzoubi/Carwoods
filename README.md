@@ -74,7 +74,7 @@ This repo is configured for AI coding agents (Cursor, Copilot, Codex, etc.). Bef
 
 ### i18n / translations
 
-> Follow AGENTS.md "Internationalisation". Add keys to all four locale files simultaneously. Use prefix/linkText/suffix pattern for sentences with inline links. Do not translate proper nouns (HAR.com, RentSpree, Section 8, etc.). Use logical CSS properties for RTL. Reset `i18n.changeLanguage('en')` in test `beforeEach`.
+> Follow AGENTS.md "Internationalisation". Add keys to all four locale files simultaneously. Use prefix/linkText/suffix pattern for sentences with inline links. Do not translate proper nouns (HAR.com, Section 8, etc.). Use logical CSS properties for RTL. Reset `i18n.changeLanguage('en')` in test `beforeEach`.
 
 ### Accessibility
 

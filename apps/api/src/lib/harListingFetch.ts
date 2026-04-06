@@ -12,7 +12,7 @@ export type HarApplyTile = {
   monthlyRentLabel: string;
   photoUrl: string;
   harListingUrl: string;
-  /** Empty string when RentSpree is not enabled for this listing. */
+  /** Empty string when no application URL is available for this listing. */
   applyUrl: string;
   detailLines: string[];
 };

@@ -173,7 +173,7 @@ async function fetchListing(listingId) {
   const applyUrl = extractApplyLink(html) ?? '';
   if (!applyUrl) {
     console.warn(
-      `[fetchHarRentalApplyTiles] HAR ${listingId}: no apply.link URL found (RentSpree may be off for this listing) — listing included without apply link.`
+      `[fetchHarRentalApplyTiles] HAR ${listingId}: no apply.link URL found (application link may be unavailable for this listing) — listing included without apply link.`
     );
   }
   return buildTilesFromProduct(listingId, product, harListingUrl, applyUrl, html);

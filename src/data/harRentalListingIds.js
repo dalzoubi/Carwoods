@@ -5,7 +5,7 @@
  * The fetch script requests `https://www.har.com/homedetail/{id}` (301 → canonical URL).
  *
  * Listing photos, rent, beds/baths, sqft, lot, property type, canonical HAR URL,
- * and RentSpree `apply.link` are filled in at build time by
+ * and application `apply.link` URLs are filled in at build time by
  * `node scripts/fetchHarRentalApplyTiles.mjs` (runs automatically before `vite build`).
  *
  * To add a listing: append its HAR listing id here, then run `npm run build` or

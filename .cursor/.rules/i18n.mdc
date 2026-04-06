@@ -17,7 +17,7 @@ Read AGENTS.md "Internationalisation" section for full architecture before editi
 - Add keys to **all four** locale files (en, es, fr, ar) simultaneously.
 - Use `useTranslation()` hook — never hard-code English in JSX.
 - For sentences with inline links: use prefix/linkText/suffix key pattern (see `contact.para1Prefix` / `contact.applyLinkText` / `contact.para1Suffix`).
-- Do not translate proper nouns: HAR.com, RentSpree, RFTA, W-2, 1099, SSN, VA, SSDI, SSA/SSI, Section 8, TCDRS, TRS, FERS, dog breed names.
+- Do not translate proper nouns: HAR.com, RFTA, W-2, 1099, SSN, VA, SSDI, SSA/SSI, Section 8, TCDRS, TRS, FERS, dog breed names.
 
 ## Provider architecture
 

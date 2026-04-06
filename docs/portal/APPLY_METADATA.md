@@ -1,6 +1,6 @@
 # `properties.metadata` — public `/apply` tile shape
 
-For **`apply_visible = true`** listings, the API exposes rows via `GET /api/public/apply-properties` only when **`metadata.apply`** is present and **`metadata.apply.applyUrl`** is non-empty (RentSpree / apply link).
+For **`apply_visible = true`** listings, the API exposes rows via `GET /api/public/apply-properties` only when **`metadata.apply`** is present and **`metadata.apply.applyUrl`** is non-empty (application URL / apply link).
 
 ## JSON shape (`metadata.apply`)
 
