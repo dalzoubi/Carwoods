@@ -202,19 +202,35 @@ function TileList({ tiles, t }) {
   return (
     <TileGrid>
       {tiles.map((p) => {
+        const hasApplyUrl = Boolean(p.applyUrl);
         const applyLabel = t('apply.applyPhotoAria', { addressLine: p.addressLine });
         const detailsLabel = t('apply.fullListingDetailsAria', { addressLine: p.addressLine });
+        const photoBlock = (
+          <>
+            <Photo src={p.photoUrl} alt="" loading="lazy" decoding="async" />
+            <RentBadge>{p.monthlyRentLabel}</RentBadge>
+          </>
+        );
         return (
           <TileCard key={p.id}>
-            <PhotoLink
-              href={p.applyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={applyLabel}
-            >
-              <Photo src={p.photoUrl} alt="" loading="lazy" decoding="async" />
-              <RentBadge>{p.monthlyRentLabel}</RentBadge>
-            </PhotoLink>
+            {hasApplyUrl ? (
+              <PhotoLink
+                href={p.applyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={applyLabel}
+              >
+                {photoBlock}
+              </PhotoLink>
+            ) : (
+              <PhotoLink
+                as="div"
+                role="img"
+                aria-label={p.addressLine}
+              >
+                {photoBlock}
+              </PhotoLink>
+            )}
             <TileBody>
               <AddressBlock>
                 <AddressMapLink
@@ -236,9 +252,11 @@ function TileList({ tiles, t }) {
                 ))}
               </DetailList>
               <ApplyBlock>
-                <TextLink href={p.applyUrl} target="_blank" rel="noopener noreferrer">
-                  {t('apply.applyRentSpree')}
-                </TextLink>
+                {hasApplyUrl && (
+                  <TextLink href={p.applyUrl} target="_blank" rel="noopener noreferrer">
+                    {t('apply.applyRentSpree')}
+                  </TextLink>
+                )}
                 <TextLink
                   href={p.harListingUrl}
                   target="_blank"

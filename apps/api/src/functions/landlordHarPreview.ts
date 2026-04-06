@@ -34,7 +34,6 @@ async function landlordHarPreviewHandler(
     if (
       message.includes('HTTP 4') ||
       message.includes('not found') ||
-      message.includes('no apply.link') ||
       message.includes('could not parse')
     ) {
       return jsonResponse(404, ctx.headers, { error: 'listing_not_found', message });

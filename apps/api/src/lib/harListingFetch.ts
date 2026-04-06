@@ -12,6 +12,7 @@ export type HarApplyTile = {
   monthlyRentLabel: string;
   photoUrl: string;
   harListingUrl: string;
+  /** Empty string when RentSpree is not enabled for this listing. */
   applyUrl: string;
   detailLines: string[];
 };
@@ -190,11 +191,6 @@ export async function fetchHarListingTile(listingId: string): Promise<HarApplyTi
   if (!product) {
     throw new Error(`HAR ${id}: could not parse listing JSON-LD`);
   }
-  const applyUrl = extractApplyLink(html);
-  if (!applyUrl) {
-    throw new Error(
-      `HAR ${id}: no apply.link URL found (RentSpree may be off for this listing)`
-    );
-  }
+  const applyUrl = extractApplyLink(html) ?? '';
   return buildTilesFromProduct(id, product, harListingUrl, applyUrl, html);
 }
