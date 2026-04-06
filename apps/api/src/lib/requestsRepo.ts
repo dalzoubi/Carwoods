@@ -1,4 +1,5 @@
 import type { PoolClient, QueryResult } from './db.js';
+import { Role } from '../domain/constants.js';
 
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
 
@@ -160,7 +161,7 @@ export async function findTenantLandlordContact(
      WHERE lt.user_id = $1
        AND u.email IS NOT NULL
        AND LTRIM(RTRIM(u.email)) <> ''
-       AND u.role IN ('LANDLORD', 'ADMIN')
+       AND u.role IN ('${Role.LANDLORD}', '${Role.ADMIN}')
      ORDER BY
        CASE
          WHEN lt.access_end_at IS NULL OR lt.access_end_at > SYSDATETIMEOFFSET() THEN 0
@@ -177,12 +178,12 @@ export async function findTenantLandlordContact(
   const fallback = await client.query<TenantLandlordContact>(
     `SELECT TOP 1 first_name, last_name, email
      FROM users
-     WHERE role IN ('LANDLORD', 'ADMIN')
+     WHERE role IN ('${Role.LANDLORD}', '${Role.ADMIN}')
        AND status IN ('ACTIVE', 'INVITED')
        AND email IS NOT NULL
        AND LTRIM(RTRIM(email)) <> ''
      ORDER BY
-       CASE WHEN role = 'LANDLORD' THEN 0 ELSE 1 END,
+       CASE WHEN role = '${Role.LANDLORD}' THEN 0 ELSE 1 END,
        CASE WHEN status = 'ACTIVE' THEN 0 ELSE 1 END,
        last_name ASC,
        first_name ASC,

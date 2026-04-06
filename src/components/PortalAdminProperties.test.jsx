@@ -18,7 +18,6 @@ vi.mock('../PortalAuthContext', () => ({
     getAccessToken: vi.fn().mockResolvedValue('mock-token'),
   }),
   PortalAuthProvider: ({ children }) => children,
-  hasLandlordAccess: () => true,
 }));
 
 vi.mock('../portalPropertiesStorage', async (importOriginal) => {

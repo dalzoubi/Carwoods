@@ -1,12 +1,14 @@
+import { Role } from '../../domain/constants.js';
+
 export function endpoint(baseUrl, path) {
   return `${baseUrl.replace(/\/$/, '')}${path}`;
 }
 
 export function normalizedRole(rawRole) {
   const value = String(rawRole ?? '').trim().toUpperCase();
-  if (value === 'ADMIN') return 'ADMIN';
-  if (value === 'LANDLORD') return 'LANDLORD';
-  if (value === 'TENANT') return 'TENANT';
+  if (value === Role.ADMIN) return Role.ADMIN;
+  if (value === Role.LANDLORD) return Role.LANDLORD;
+  if (value === Role.TENANT) return Role.TENANT;
   return 'GUEST';
 }
 

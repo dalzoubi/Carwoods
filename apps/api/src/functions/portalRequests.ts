@@ -38,6 +38,7 @@ import {
 import { enqueueNotification } from '../lib/notificationRepo.js';
 import { writeAudit } from '../lib/auditRepo.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
+import { Role, RequestStatus } from '../domain/constants.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
   if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>;
@@ -122,7 +123,7 @@ async function portalRequestsCollection(
 
   const categoryId = await resolveLookupIdByCode(pool, 'service_categories', categoryCode);
   const priorityId = await resolveLookupIdByCode(pool, 'request_priorities', priorityCode);
-  const openStatusId = await findStatusIdByCode(pool, 'OPEN');
+  const openStatusId = await findStatusIdByCode(pool, RequestStatus.OPEN);
   if (!categoryId || !priorityId || !openStatusId) {
     return jsonResponse(400, headers, { error: 'invalid_lookup_codes' });
   }
@@ -195,7 +196,7 @@ async function portalRequestLookups(
   ]);
   let tenantDefaults: Awaited<ReturnType<typeof findTenantRequestDefaults>> = null;
   let landlordContact: Awaited<ReturnType<typeof findTenantLandlordContact>> = null;
-  if (role === 'TENANT') {
+  if (role === Role.TENANT) {
     [tenantDefaults, landlordContact] = await Promise.all([
       findTenantRequestDefaults(pool, user.id),
       findTenantLandlordContact(pool, user.id),

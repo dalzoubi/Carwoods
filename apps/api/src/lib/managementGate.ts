@@ -1,3 +1,5 @@
+import { Role } from '../domain/constants.js';
+
 /**
  * Comma-separated Entra object IDs (`oid` claim) allowed to call ADMIN APIs.
  */
@@ -48,8 +50,8 @@ export function resolveManagementRole(
   oid: string | undefined,
   sub: string
 ): ManagementRole | null {
-  if (isAdminOid(oid, sub)) return 'ADMIN';
-  if (isLandlordOid(oid, sub)) return 'LANDLORD';
+  if (isAdminOid(oid, sub)) return Role.ADMIN;
+  if (isLandlordOid(oid, sub)) return Role.LANDLORD;
   return null;
 }
 

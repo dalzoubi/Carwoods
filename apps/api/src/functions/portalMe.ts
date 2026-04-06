@@ -14,6 +14,7 @@ import {
 } from '../lib/jwtVerify.js';
 import { findUserByClaims } from '../lib/usersRepo.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
+import { Role } from '../domain/constants.js';
 
 async function portalMeHandler(
   request: HttpRequest,
@@ -98,7 +99,7 @@ async function portalMeHandler(
 
   const role = String(user.role ?? '').trim().toUpperCase();
   const status = String(user.status ?? '').trim().toUpperCase();
-  const isAllowedRole = role === 'TENANT' || role === 'LANDLORD' || role === 'ADMIN';
+  const isAllowedRole = role === Role.TENANT || role === Role.LANDLORD || role === Role.ADMIN;
   const isActive = status === 'ACTIVE' || status === 'INVITED';
   if (!isAllowedRole || !isActive) {
     logWarn(context, 'portal.me.forbidden', {

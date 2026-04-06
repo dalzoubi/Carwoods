@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Role } from '../domain/constants.js';
 import {
   Avatar,
   Box,
@@ -38,9 +39,9 @@ export const SIDEBAR_COLLAPSED_WIDTH = 84;
 
 function portalRoleLabel(role, t) {
   const n = normalizeRole(role);
-  if (n === 'ADMIN') return t('portalHeader.roles.admin');
-  if (n === 'LANDLORD') return t('portalHeader.roles.landlord');
-  if (n === 'TENANT') return t('portalHeader.roles.tenant');
+  if (n === Role.ADMIN) return t('portalHeader.roles.admin');
+  if (n === Role.LANDLORD) return t('portalHeader.roles.landlord');
+  if (n === Role.TENANT) return t('portalHeader.roles.tenant');
   return t('portalHeader.roles.unknown');
 }
 
@@ -78,12 +79,12 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false }) => {
           { key: 'profile', to: '/portal/profile', label: t('portalLayout.sidebar.profile'), icon: <Person /> },
         ]
       : []),
-    ...(roleResolved && (normalized === 'LANDLORD' || normalized === 'ADMIN')
+    ...(roleResolved && (normalized === Role.LANDLORD || normalized === Role.ADMIN)
       ? [
           { key: 'properties', to: '/portal/properties', label: t('portalLayout.sidebar.properties'), icon: <HomeWork /> },
         ]
       : []),
-    ...(normalized === 'ADMIN'
+    ...(normalized === Role.ADMIN
       ? [
           { key: 'admin', to: '/portal/admin', label: t('portalLayout.sidebar.adminLandlords'), icon: <SupervisorAccount /> },
           { key: 'status', to: '/portal/status', label: t('portalLayout.sidebar.status'), icon: <MonitorHeart /> },
