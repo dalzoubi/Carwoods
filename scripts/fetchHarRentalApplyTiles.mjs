@@ -170,10 +170,10 @@ async function fetchListing(listingId) {
   if (!product) {
     throw new Error(`HAR ${listingId}: could not parse listing JSON-LD`);
   }
-  const applyUrl = extractApplyLink(html);
+  const applyUrl = extractApplyLink(html) ?? '';
   if (!applyUrl) {
-    throw new Error(
-      `HAR ${listingId}: no apply.link URL found (RentSpree may be off for this listing)`
+    console.warn(
+      `[fetchHarRentalApplyTiles] HAR ${listingId}: no apply.link URL found (RentSpree may be off for this listing) — listing included without apply link.`
     );
   }
   return buildTilesFromProduct(listingId, product, harListingUrl, applyUrl, html);
