@@ -931,6 +931,7 @@
     "grid": {
       "heading": "Vos propriétés",
       "empty": "Aucune propriété encore. Utilisez le formulaire ci-dessus pour en ajouter une.",
+      "loading": "Chargement des propriétés…",
       "editButton": "Modifier",
       "deleteButton": "Supprimer",
       "deleteConfirmTitle": "Supprimer la propriété ?",
@@ -950,7 +951,11 @@
       "signInRequired": "Connectez-vous avant de gérer les propriétés.",
       "landlordOrAdminOnly": "Seuls les comptes propriétaire ou admin peuvent gérer les propriétés.",
       "addressRequired": "L'adresse est obligatoire.",
-      "cityStateZipRequired": "Ville / état / code postal est obligatoire."
+      "cityStateZipRequired": "Ville / état / code postal est obligatoire.",
+      "loadFailed": "Impossible de charger les propriétés : {{error}}",
+      "saveFailed": "Impossible d'enregistrer la propriété : {{error}}",
+      "deleteFailed": "Impossible de supprimer la propriété : {{error}}",
+      "noApiConfigured": "L'API n'est pas configurée. Définissez VITE_API_BASE_URL dans votre .env pour activer la gestion des propriétés."
     }
   },
   "portalHeader": {

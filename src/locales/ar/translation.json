@@ -931,6 +931,7 @@
     "grid": {
       "heading": "عقاراتك",
       "empty": "لا توجد عقارات بعد. استخدم النموذج أعلاه لإضافة عقار.",
+      "loading": "جارٍ تحميل العقارات…",
       "editButton": "تعديل",
       "deleteButton": "حذف",
       "deleteConfirmTitle": "حذف العقار؟",
@@ -950,7 +951,11 @@
       "signInRequired": "سجّل الدخول قبل إدارة العقارات.",
       "landlordOrAdminOnly": "فقط حسابات الملاك أو المسؤولين يمكنها إدارة العقارات.",
       "addressRequired": "عنوان الشارع مطلوب.",
-      "cityStateZipRequired": "المدينة / الولاية / الرمز البريدي مطلوب."
+      "cityStateZipRequired": "المدينة / الولاية / الرمز البريدي مطلوب.",
+      "loadFailed": "تعذّر تحميل العقارات: {{error}}",
+      "saveFailed": "تعذّر حفظ العقار: {{error}}",
+      "deleteFailed": "تعذّر حذف العقار: {{error}}",
+      "noApiConfigured": "واجهة API غير مهيّأة. حدّد VITE_API_BASE_URL في ملف .env لتفعيل إدارة العقارات."
     }
   },
   "portalHeader": {

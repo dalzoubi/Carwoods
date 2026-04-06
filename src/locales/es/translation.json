@@ -931,6 +931,7 @@
     "grid": {
       "heading": "Tus propiedades",
       "empty": "Sin propiedades aún. Usa el formulario de arriba para agregar una.",
+      "loading": "Cargando propiedades…",
       "editButton": "Editar",
       "deleteButton": "Eliminar",
       "deleteConfirmTitle": "¿Eliminar propiedad?",
@@ -950,7 +951,11 @@
       "signInRequired": "Inicia sesión antes de gestionar propiedades.",
       "landlordOrAdminOnly": "Solo cuentas de propietario o administrador pueden gestionar propiedades.",
       "addressRequired": "La dirección es obligatoria.",
-      "cityStateZipRequired": "Ciudad / estado / código postal es obligatorio."
+      "cityStateZipRequired": "Ciudad / estado / código postal es obligatorio.",
+      "loadFailed": "No se pudieron cargar las propiedades: {{error}}",
+      "saveFailed": "No se pudo guardar la propiedad: {{error}}",
+      "deleteFailed": "No se pudo eliminar la propiedad: {{error}}",
+      "noApiConfigured": "La API no está configurada. Define VITE_API_BASE_URL en tu .env para habilitar la gestión de propiedades."
     }
   },
   "portalHeader": {

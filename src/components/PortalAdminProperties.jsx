@@ -37,11 +37,12 @@ import { usePortalAuth } from '../PortalAuthContext';
 import { normalizeRole, resolveRole } from '../portalUtils';
 import { Role } from '../domain/constants.js';
 import {
-  addProperty,
-  deleteProperty,
-  loadProperties,
-  updateProperty,
-} from '../portalPropertiesStorage';
+  listPropertiesApi,
+  createPropertyApi,
+  updatePropertyApi,
+  deletePropertyApi,
+  apiPropertyToDisplay,
+} from '../lib/propertiesApiClient';
 import { listingFromHarPreviewPayload, parseHarInput } from '../portalHarPreviewParse';
 import { fetchHarPreview } from '../lib/portalApiClient';
 
@@ -181,6 +182,9 @@ const PortalAdminProperties = () => {
   const canManage = isAuthenticated && (role === Role.ADMIN || role === Role.LANDLORD);
 
   const [properties, setProperties] = useState([]);
+  const [listLoading, setListLoading] = useState(false);
+  const [listError, setListError] = useState('');
+
   const [form, setForm] = useState(EMPTY_FORM);
   const [fieldErrors, setFieldErrors] = useState({});
   const [editingId, setEditingId] = useState(null);
@@ -189,18 +193,43 @@ const PortalAdminProperties = () => {
   const [harStatus, setHarStatus] = useState('idle'); // idle | searching | found | not_found | error
   const [harMessage, setHarMessage] = useState('');
 
-  const [submitStatus, setSubmitStatus] = useState('idle');
+  const [submitStatus, setSubmitStatus] = useState('idle'); // idle | saving | error
+  const [submitError, setSubmitError] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteStatus, setDeleteStatus] = useState('idle'); // idle | deleting | error
   const fileInputRef = useRef(null);
 
-  const refresh = useCallback(() => {
-    setProperties(loadProperties());
-  }, []);
+  const getAccessTokenRef = useRef(getAccessToken);
+  useEffect(() => { getAccessTokenRef.current = getAccessToken; });
+
+  const tRef = useRef(t);
+  useEffect(() => { tRef.current = t; });
+
+  const refresh = useCallback(async (signal) => {
+    if (!isAuthenticated || !baseUrl) return;
+    setListLoading(true);
+    setListError('');
+    try {
+      const token = await getAccessTokenRef.current();
+      if (signal?.aborted) return;
+      const rows = await listPropertiesApi(baseUrl, token);
+      if (signal?.aborted) return;
+      setProperties(rows.map(apiPropertyToDisplay));
+    } catch (err) {
+      if (signal?.aborted) return;
+      const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
+      setListError(tRef.current('portalAdminProperties.errors.loadFailed', { error: msg }));
+    } finally {
+      if (!signal?.aborted) setListLoading(false);
+    }
+  }, [isAuthenticated, baseUrl]);
 
   useEffect(() => {
-    refresh();
+    const controller = new AbortController();
+    void refresh(controller.signal);
+    return () => controller.abort();
   }, [refresh]);
 
   const showSnack = (message, severity = 'success') => {
@@ -215,6 +244,7 @@ const PortalAdminProperties = () => {
     setHarStatus('idle');
     setHarMessage('');
     setSubmitStatus('idle');
+    setSubmitError('');
   };
 
   const handleEdit = (property) => {
@@ -225,19 +255,30 @@ const PortalAdminProperties = () => {
     setHarMessage('');
     setFieldErrors({});
     setSubmitStatus('idle');
+    setSubmitError('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDeleteClick = (property) => {
     setDeleteTarget(property);
+    setDeleteStatus('idle');
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
-    deleteProperty(deleteTarget.id);
-    refresh();
-    setDeleteTarget(null);
-    showSnack(t('portalAdminProperties.messages.deleted'), 'info');
+    setDeleteStatus('deleting');
+    try {
+      const token = await getAccessToken();
+      await deletePropertyApi(baseUrl, token, deleteTarget.id);
+      setDeleteTarget(null);
+      setDeleteStatus('idle');
+      showSnack(t('portalAdminProperties.messages.deleted'), 'info');
+      void refresh();
+    } catch (err) {
+      const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
+      setDeleteStatus('error');
+      showSnack(t('portalAdminProperties.errors.deleteFailed', { error: msg }), 'error');
+    }
   };
 
   const handleHarSearch = async () => {
@@ -318,25 +359,36 @@ const PortalAdminProperties = () => {
     setFieldErrors((prev) => ({ ...prev, [field]: '' }));
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     const errors = validate(form, t);
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       return;
     }
-    setSubmitStatus('saving');
-    const record = formToRecord(form);
-    if (editingId) {
-      updateProperty(editingId, record);
-      showSnack(t('portalAdminProperties.messages.updated'));
-    } else {
-      addProperty(record);
-      showSnack(t('portalAdminProperties.messages.added'));
+    if (!baseUrl) {
+      setSubmitError(t('portalAdminProperties.errors.noApiConfigured'));
+      return;
     }
-    refresh();
-    resetForm();
-    setSubmitStatus('idle');
+    setSubmitStatus('saving');
+    setSubmitError('');
+    const record = formToRecord(form);
+    try {
+      const token = await getAccessToken();
+      if (editingId) {
+        await updatePropertyApi(baseUrl, token, editingId, record);
+        showSnack(t('portalAdminProperties.messages.updated'));
+      } else {
+        await createPropertyApi(baseUrl, token, record);
+        showSnack(t('portalAdminProperties.messages.added'));
+      }
+      resetForm();
+      void refresh();
+    } catch (err) {
+      const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
+      setSubmitStatus('error');
+      setSubmitError(t('portalAdminProperties.errors.saveFailed', { error: msg }));
+    }
   };
 
   return (
@@ -362,6 +414,7 @@ const PortalAdminProperties = () => {
         {isAuthenticated && meStatus !== 'loading' && !canManage && (
           <Alert severity="error">{t('portalAdminProperties.errors.landlordOrAdminOnly')}</Alert>
         )}
+        {listError && <Alert severity="error">{listError}</Alert>}
 
         {/* HAR Search Panel */}
         <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
@@ -419,7 +472,7 @@ const PortalAdminProperties = () => {
         <Paper
           component="form"
           variant="outlined"
-          onSubmit={onSubmit}
+          onSubmit={(e) => void onSubmit(e)}
           sx={{ p: 3, borderRadius: 2 }}
         >
           <Stack spacing={2}>
@@ -580,16 +633,20 @@ const PortalAdminProperties = () => {
               label={t('portalAdminProperties.form.showOnApplyPage')}
             />
 
+            {submitError && <Alert severity="error">{submitError}</Alert>}
+
             <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
               <Button
                 type="submit"
                 variant="contained"
                 disabled={!canManage || submitStatus === 'saving'}
-                startIcon={editingId ? null : <Add />}
+                startIcon={submitStatus === 'saving' ? <CircularProgress size={16} /> : editingId ? null : <Add />}
               >
-                {editingId
-                  ? t('portalAdminProperties.form.saveChanges')
-                  : t('portalAdminProperties.form.addProperty')}
+                {submitStatus === 'saving'
+                  ? t('portalAdminProperties.form.saving')
+                  : editingId
+                    ? t('portalAdminProperties.form.saveChanges')
+                    : t('portalAdminProperties.form.addProperty')}
               </Button>
               {editingId && (
                 <Button
@@ -610,7 +667,14 @@ const PortalAdminProperties = () => {
             {t('portalAdminProperties.grid.heading')}
           </Typography>
 
-          {properties.length === 0 ? (
+          {listLoading ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <CircularProgress size={20} />
+              <Typography variant="body2" color="text.secondary">
+                {t('portalAdminProperties.grid.loading')}
+              </Typography>
+            </Box>
+          ) : properties.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
               {t('portalAdminProperties.grid.empty')}
             </Typography>
@@ -634,7 +698,7 @@ const PortalAdminProperties = () => {
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
+        onClose={() => { if (deleteStatus !== 'deleting') setDeleteTarget(null); }}
         slotProps={{ paper: { sx: { backgroundImage: 'none' } } }}
       >
         <DialogTitle>{t('portalAdminProperties.grid.deleteConfirmTitle')}</DialogTitle>
@@ -649,6 +713,7 @@ const PortalAdminProperties = () => {
           <Button
             type="button"
             onClick={() => setDeleteTarget(null)}
+            disabled={deleteStatus === 'deleting'}
           >
             {t('portalAdminProperties.grid.deleteCancel')}
           </Button>
@@ -656,7 +721,9 @@ const PortalAdminProperties = () => {
             type="button"
             color="error"
             variant="contained"
-            onClick={handleDeleteConfirm}
+            disabled={deleteStatus === 'deleting'}
+            startIcon={deleteStatus === 'deleting' ? <CircularProgress size={16} /> : null}
+            onClick={() => void handleDeleteConfirm()}
           >
             {t('portalAdminProperties.grid.deleteConfirmAction')}
           </Button>

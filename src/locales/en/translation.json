@@ -931,6 +931,7 @@
     "grid": {
       "heading": "Your properties",
       "empty": "No properties yet. Use the form above to add one.",
+      "loading": "Loading properties…",
       "editButton": "Edit",
       "deleteButton": "Delete",
       "deleteConfirmTitle": "Delete property?",
@@ -950,7 +951,11 @@
       "signInRequired": "Sign in before managing properties.",
       "landlordOrAdminOnly": "Only landlord or admin accounts can manage properties.",
       "addressRequired": "Street address is required.",
-      "cityStateZipRequired": "City / state / zip is required."
+      "cityStateZipRequired": "City / state / zip is required.",
+      "loadFailed": "Could not load properties: {{error}}",
+      "saveFailed": "Could not save property: {{error}}",
+      "deleteFailed": "Could not delete property: {{error}}",
+      "noApiConfigured": "API is not configured. Set VITE_API_BASE_URL in your .env to enable property management."
     }
   },
   "portalHeader": {
