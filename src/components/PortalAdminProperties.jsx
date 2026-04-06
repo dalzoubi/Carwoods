@@ -18,6 +18,7 @@ import {
   Grid,
   IconButton,
   InputAdornment,
+  MenuItem,
   Paper,
   Snackbar,
   Stack,
@@ -44,7 +45,7 @@ import {
   apiPropertyToDisplay,
 } from '../lib/propertiesApiClient';
 import { listingFromHarPreviewPayload, parseHarInput } from '../portalHarPreviewParse';
-import { fetchHarPreview } from '../lib/portalApiClient';
+import { fetchHarPreview, fetchLandlords } from '../lib/portalApiClient';
 
 const EMPTY_FORM = {
   harId: '',
@@ -56,6 +57,7 @@ const EMPTY_FORM = {
   applyUrl: '',
   detailLinesText: '',
   showOnApplyPage: true,
+  landlordUserId: '',
 };
 
 function propertyToForm(p) {
@@ -69,6 +71,7 @@ function propertyToForm(p) {
     applyUrl: p.applyUrl ?? '',
     detailLinesText: (p.detailLines ?? []).join('\n'),
     showOnApplyPage: Boolean(p.showOnApplyPage),
+    landlordUserId: p.landlordUserId ?? '',
   };
 }
 
@@ -86,13 +89,19 @@ function formToRecord(form) {
       .map((s) => s.trim())
       .filter(Boolean),
     showOnApplyPage: form.showOnApplyPage,
+    landlordUserId: form.landlordUserId,
   };
 }
 
-function validate(form, t) {
+function validate(form, t, opts = {}) {
+  const isAdmin = Boolean(opts.isAdmin);
+  const isEditing = Boolean(opts.isEditing);
   const errors = {};
   if (!form.addressLine.trim()) errors.addressLine = t('portalAdminProperties.errors.addressRequired');
   if (!form.cityStateZip.trim()) errors.cityStateZip = t('portalAdminProperties.errors.cityStateZipRequired');
+  if (isAdmin && !isEditing && !String(form.landlordUserId ?? '').trim()) {
+    errors.landlordUserId = t('portalAdminProperties.errors.landlordRequired');
+  }
   return errors;
 }
 
@@ -138,6 +147,11 @@ const PropertyCard = ({ property, onEdit, onDelete, t }) => {
               {t('portalAdminProperties.grid.harId')}: {property.harId}
             </Typography>
           )}
+          {property.landlordName && (
+            <Typography variant="caption" color="text.secondary">
+              {t('portalAdminProperties.grid.landlord')}: {property.landlordName}
+            </Typography>
+          )}
         </Stack>
         <Chip
           label={t('portalAdminProperties.grid.showOnApply')}
@@ -179,6 +193,7 @@ const PortalAdminProperties = () => {
   const { isAuthenticated, account, meData, meStatus, baseUrl, getAccessToken, handleApiForbidden } = usePortalAuth();
 
   const role = normalizeRole(resolveRole(meData, account));
+  const isAdmin = role === Role.ADMIN;
   const canManage = isAuthenticated && (role === Role.ADMIN || role === Role.LANDLORD);
 
   const [properties, setProperties] = useState([]);
@@ -196,6 +211,8 @@ const PortalAdminProperties = () => {
   const [submitStatus, setSubmitStatus] = useState('idle'); // idle | saving | error
   const [submitError, setSubmitError] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [landlords, setLandlords] = useState([]);
+  const [landlordsStatus, setLandlordsStatus] = useState('idle'); // idle | loading | ok | error
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteStatus, setDeleteStatus] = useState('idle'); // idle | deleting | error
@@ -232,12 +249,44 @@ const PortalAdminProperties = () => {
     return () => controller.abort();
   }, [refresh]);
 
+  useEffect(() => {
+    let cancelled = false;
+    if (!isAuthenticated || !baseUrl || !isAdmin) {
+      setLandlords([]);
+      setLandlordsStatus('idle');
+      return () => {
+        cancelled = true;
+      };
+    }
+    setLandlordsStatus('loading');
+    (async () => {
+      try {
+        const token = await getAccessToken();
+        const payload = await fetchLandlords(baseUrl, token);
+        if (cancelled) return;
+        const rows = Array.isArray(payload?.landlords) ? payload.landlords : [];
+        setLandlords(rows);
+        setLandlordsStatus('ok');
+      } catch {
+        if (cancelled) return;
+        setLandlords([]);
+        setLandlordsStatus('error');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, baseUrl, isAdmin, getAccessToken]);
+
   const showSnack = (message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
   };
 
   const resetForm = () => {
-    setForm(EMPTY_FORM);
+    setForm({
+      ...EMPTY_FORM,
+      landlordUserId: isAdmin ? '' : EMPTY_FORM.landlordUserId,
+    });
     setFieldErrors({});
     setEditingId(null);
     setHarSearchId('');
@@ -361,7 +410,7 @@ const PortalAdminProperties = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    const errors = validate(form, t);
+    const errors = validate(form, t, { isAdmin, isEditing: Boolean(editingId) });
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       return;
@@ -490,6 +539,40 @@ const PortalAdminProperties = () => {
             </Typography>
 
             <Grid container spacing={2}>
+              {isAdmin && (
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    select
+                    label={t('portalAdminProperties.form.landlord')}
+                    value={form.landlordUserId}
+                    onChange={onChange('landlordUserId')}
+                    required={!editingId}
+                    disabled={Boolean(editingId) || landlordsStatus === 'loading' || landlords.length === 0}
+                    fullWidth
+                    error={Boolean(fieldErrors.landlordUserId)}
+                    helperText={
+                      fieldErrors.landlordUserId
+                        || (landlordsStatus === 'loading'
+                          ? t('portalAdminProperties.form.landlordLoading')
+                          : landlords.length === 0
+                            ? t('portalAdminProperties.form.landlordEmpty')
+                            : ' ')
+                    }
+                  >
+                    <MenuItem value="">{t('portalAdminProperties.form.landlordSelect')}</MenuItem>
+                    {landlords.map((landlord) => {
+                      const first = String(landlord.first_name ?? '').trim();
+                      const last = String(landlord.last_name ?? '').trim();
+                      const name = `${first} ${last}`.trim() || String(landlord.email ?? '').trim();
+                      return (
+                        <MenuItem key={landlord.id} value={landlord.id}>
+                          {name}
+                        </MenuItem>
+                      );
+                    })}
+                  </TextField>
+                </Grid>
+              )}
               <Grid item xs={12} sm={6}>
                 <TextField
                   label={t('portalAdminProperties.form.addressLine')}

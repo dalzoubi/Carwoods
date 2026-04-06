@@ -25,7 +25,7 @@ test('landlord property list query is scoped to creator', async () => {
     actorRole: 'LANDLORD',
   });
 
-  assert.match(capture.sql, /\(\$1 = 'ADMIN' OR created_by = \$2\)/);
+  assert.match(capture.sql, /\(\$1 = 'ADMIN' OR p\.created_by = \$2\)/);
   assert.deepEqual(capture.values, ['LANDLORD', 'landlord-user-id']);
 });
 
@@ -38,7 +38,7 @@ test('admin property list query keeps unrestricted branch', async () => {
     actorRole: 'ADMIN',
   });
 
-  assert.match(capture.sql, /\(\$1 = 'ADMIN' OR created_by = \$2\)/);
+  assert.match(capture.sql, /\(\$1 = 'ADMIN' OR p\.created_by = \$2\)/);
   assert.deepEqual(capture.values, ['ADMIN', 'admin-user-id']);
 });
 

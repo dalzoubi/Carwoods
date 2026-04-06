@@ -243,6 +243,7 @@ export function formDataToApiBody(data) {
     state,
     zip,
     har_listing_id: data.harId?.trim() || null,
+    landlord_user_id: data.landlordUserId?.trim() || undefined,
     apply_visible: Boolean(data.showOnApplyPage),
     metadata: {
       apply: {
@@ -324,6 +325,14 @@ export function apiPropertyToDisplay(row) {
     applyUrl: typeof apply.applyUrl === 'string' ? apply.applyUrl : '',
     detailLines: Array.isArray(apply.detailLines) ? apply.detailLines : [],
     showOnApplyPage: Boolean(row.apply_visible),
+    landlordName:
+      (typeof row.landlord_name === 'string' && row.landlord_name.trim()) ||
+      [row.landlord_first_name, row.landlord_last_name]
+        .map((part) => (typeof part === 'string' ? part.trim() : ''))
+        .filter(Boolean)
+        .join(' ') ||
+      '',
+    landlordUserId: typeof row.landlord_user_id === 'string' ? row.landlord_user_id : '',
     createdAt: row.created_at ?? '',
     updatedAt: row.updated_at ?? '',
   };

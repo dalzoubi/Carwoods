@@ -4,20 +4,23 @@ import { WithAppTheme } from '../testUtils';
 import i18n from '../i18n';
 import PortalAdminProperties from './PortalAdminProperties';
 import * as propertiesApiClient from '../lib/propertiesApiClient';
+import * as portalApiClient from '../lib/portalApiClient';
+
+const mockAuthState = {
+  isAuthenticated: true,
+  account: { name: 'Test Landlord' },
+  meData: {
+    role: 'LANDLORD',
+    user: { first_name: 'Test', last_name: 'Landlord', role: 'LANDLORD', status: 'ACTIVE' },
+  },
+  meStatus: 'ok',
+  baseUrl: 'https://api.carwoods.com',
+  getAccessToken: vi.fn().mockResolvedValue('mock-token'),
+  handleApiForbidden: vi.fn(),
+};
 
 vi.mock('../PortalAuthContext', () => ({
-  usePortalAuth: () => ({
-    isAuthenticated: true,
-    account: { name: 'Test Landlord' },
-    meData: {
-      role: 'LANDLORD',
-      user: { first_name: 'Test', last_name: 'Landlord', role: 'LANDLORD', status: 'ACTIVE' },
-    },
-    meStatus: 'ok',
-    baseUrl: 'https://api.carwoods.com',
-    getAccessToken: vi.fn().mockResolvedValue('mock-token'),
-    handleApiForbidden: vi.fn(),
-  }),
+  usePortalAuth: () => mockAuthState,
   PortalAuthProvider: ({ children }) => children,
 }));
 
@@ -29,6 +32,14 @@ vi.mock('../lib/propertiesApiClient', async (importOriginal) => {
     createPropertyApi: vi.fn().mockResolvedValue({ id: 'db-test-1' }),
     updatePropertyApi: vi.fn().mockResolvedValue({ id: 'db-test-1' }),
     deletePropertyApi: vi.fn().mockResolvedValue(undefined),
+  };
+});
+
+vi.mock('../lib/portalApiClient', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    fetchLandlords: vi.fn().mockResolvedValue({ landlords: [] }),
   };
 });
 
@@ -58,6 +69,7 @@ function makeApiRow(overrides = {}) {
     har_sync_status: null,
     har_sync_error: null,
     har_last_synced_at: null,
+    landlord_name: 'Lana Lord',
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
     deleted_at: null,
@@ -68,10 +80,17 @@ function makeApiRow(overrides = {}) {
 describe('PortalAdminProperties', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
+    mockAuthState.meData = {
+      role: 'LANDLORD',
+      user: { first_name: 'Test', last_name: 'Landlord', role: 'LANDLORD', status: 'ACTIVE' },
+    };
+    mockAuthState.getAccessToken = vi.fn().mockResolvedValue('mock-token');
+    mockAuthState.handleApiForbidden = vi.fn();
     propertiesApiClient.listPropertiesApi.mockResolvedValue([]);
     propertiesApiClient.createPropertyApi.mockResolvedValue({ id: 'db-test-1' });
     propertiesApiClient.updatePropertyApi.mockResolvedValue({ id: 'db-test-1' });
     propertiesApiClient.deletePropertyApi.mockResolvedValue(undefined);
+    portalApiClient.fetchLandlords.mockResolvedValue({ landlords: [] });
     await i18n.changeLanguage('en');
   });
 
@@ -146,6 +165,44 @@ describe('PortalAdminProperties', () => {
     });
     expect(screen.getByText('Katy, TX 77449')).toBeInTheDocument();
     expect(screen.getByText('$2,100/mo')).toBeInTheDocument();
+    expect(screen.getByText(/Landlord:\s+Lana Lord/i)).toBeInTheDocument();
+  });
+
+  it('requires landlord selection for admin property create', async () => {
+    mockAuthState.meData = {
+      role: 'ADMIN',
+      user: { first_name: 'Portal', last_name: 'Admin', role: 'ADMIN', status: 'ACTIVE' },
+    };
+    portalApiClient.fetchLandlords.mockResolvedValue({
+      landlords: [{ id: 'landlord-1', first_name: 'Lana', last_name: 'Lord', email: 'lana@example.com' }],
+    });
+
+    render(<WithAppTheme><PortalAdminProperties /></WithAppTheme>);
+    await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
+    await waitFor(() => expect(portalApiClient.fetchLandlords).toHaveBeenCalled());
+
+    fireEvent.change(screen.getByLabelText(/street address/i), { target: { value: '124 Main St' } });
+    fireEvent.change(screen.getByLabelText(/city, state, zip/i), { target: { value: 'Houston, TX 77002' } });
+    fireEvent.click(screen.getByRole('button', { name: /add property/i }));
+    await waitFor(() => {
+      expect(propertiesApiClient.createPropertyApi).not.toHaveBeenCalled();
+    });
+
+    fireEvent.mouseDown(screen.getByLabelText(/landlord/i));
+    fireEvent.click(screen.getByRole('option', { name: /lana lord/i }));
+    fireEvent.click(screen.getByRole('button', { name: /add property/i }));
+
+    await waitFor(() => {
+      expect(propertiesApiClient.createPropertyApi).toHaveBeenCalledWith(
+        'https://api.carwoods.com',
+        'mock-token',
+        expect.objectContaining({
+          addressLine: '124 Main St',
+          cityStateZip: 'Houston, TX 77002',
+          landlordUserId: 'landlord-1',
+        })
+      );
+    });
   });
 
   it('opens delete confirmation dialog and calls deletePropertyApi on confirm', async () => {

@@ -911,6 +911,10 @@
     },
     "form": {
       "heading": "Property details",
+      "landlord": "Landlord",
+      "landlordSelect": "Select landlord",
+      "landlordLoading": "Loading landlords…",
+      "landlordEmpty": "No active landlords available. Add one in the Landlords page.",
       "addressLine": "Street address",
       "cityStateZip": "City, state, zip",
       "monthlyRent": "Monthly rent (e.g. $2,500/mo)",
@@ -939,6 +943,7 @@
       "deleteConfirmAction": "Delete",
       "deleteCancel": "Cancel",
       "showOnApply": "Apply page",
+      "landlord": "Landlord",
       "harId": "HAR ID",
       "noPhoto": "No photo"
     },
@@ -952,6 +957,7 @@
       "landlordOrAdminOnly": "Only landlord or admin accounts can manage properties.",
       "addressRequired": "Street address is required.",
       "cityStateZipRequired": "City / state / zip is required.",
+      "landlordRequired": "Please select a landlord.",
       "loadFailed": "Could not load properties: {{error}}",
       "saveFailed": "Could not save property: {{error}}",
       "deleteFailed": "Could not delete property: {{error}}",

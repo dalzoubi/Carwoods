@@ -911,6 +911,10 @@
     },
     "form": {
       "heading": "Detalles de la propiedad",
+      "landlord": "Propietario",
+      "landlordSelect": "Seleccionar propietario",
+      "landlordLoading": "Cargando propietarios…",
+      "landlordEmpty": "No hay propietarios activos disponibles. Agrega uno en la página de Propietarios.",
       "addressLine": "Dirección",
       "cityStateZip": "Ciudad, estado, código postal",
       "monthlyRent": "Renta mensual (ej. $2,500/mo)",
@@ -939,6 +943,7 @@
       "deleteConfirmAction": "Eliminar",
       "deleteCancel": "Cancelar",
       "showOnApply": "Página de solicitudes",
+      "landlord": "Propietario",
       "harId": "ID HAR",
       "noPhoto": "Sin foto"
     },
@@ -952,6 +957,7 @@
       "landlordOrAdminOnly": "Solo cuentas de propietario o administrador pueden gestionar propiedades.",
       "addressRequired": "La dirección es obligatoria.",
       "cityStateZipRequired": "Ciudad / estado / código postal es obligatorio.",
+      "landlordRequired": "Seleccione un propietario.",
       "loadFailed": "No se pudieron cargar las propiedades: {{error}}",
       "saveFailed": "No se pudo guardar la propiedad: {{error}}",
       "deleteFailed": "No se pudo eliminar la propiedad: {{error}}",

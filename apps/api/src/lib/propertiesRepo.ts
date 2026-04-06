@@ -18,6 +18,11 @@ export type PropertyRowFull = {
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
+  landlord_user_id?: string | null;
+  landlord_first_name?: string | null;
+  landlord_last_name?: string | null;
+  landlord_email?: string | null;
+  landlord_name?: string | null;
 };
 
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
@@ -48,12 +53,19 @@ export async function listPropertiesLandlord(
   client: Queryable
 ): Promise<PropertyRowFull[]> {
   const r = await client.query<PropertyRowFull>(
-    `SELECT id, name, street, city, state, zip, har_listing_id, listing_source, apply_visible,
-            metadata, har_sync_status, har_sync_error, har_last_synced_at,
-            created_at, updated_at, deleted_at
-     FROM properties
-     WHERE deleted_at IS NULL
-     ORDER BY created_at DESC`
+    `SELECT p.id, p.name, p.street, p.city, p.state, p.zip, p.har_listing_id, p.listing_source, p.apply_visible,
+            p.metadata, p.har_sync_status, p.har_sync_error, p.har_last_synced_at,
+            p.created_at, p.updated_at, p.deleted_at,
+            landlord.id AS landlord_user_id,
+            landlord.first_name AS landlord_first_name,
+            landlord.last_name AS landlord_last_name,
+            landlord.email AS landlord_email,
+            NULLIF(LTRIM(RTRIM(CONCAT(COALESCE(landlord.first_name, ''), ' ', COALESCE(landlord.last_name, '')))), '') AS landlord_name
+     FROM properties p
+     LEFT JOIN users landlord
+       ON landlord.id = p.created_by
+     WHERE p.deleted_at IS NULL
+     ORDER BY p.created_at DESC`
   );
   return r.rows;
 }
@@ -64,13 +76,20 @@ export async function listPropertiesForActor(
   actorUserId: string
 ): Promise<PropertyRowFull[]> {
   const r = await client.query<PropertyRowFull>(
-    `SELECT id, name, street, city, state, zip, har_listing_id, listing_source, apply_visible,
-            metadata, har_sync_status, har_sync_error, har_last_synced_at,
-            created_at, updated_at, deleted_at
-     FROM properties
-     WHERE deleted_at IS NULL
-       AND ($1 = 'ADMIN' OR created_by = $2)
-     ORDER BY created_at DESC`,
+    `SELECT p.id, p.name, p.street, p.city, p.state, p.zip, p.har_listing_id, p.listing_source, p.apply_visible,
+            p.metadata, p.har_sync_status, p.har_sync_error, p.har_last_synced_at,
+            p.created_at, p.updated_at, p.deleted_at,
+            landlord.id AS landlord_user_id,
+            landlord.first_name AS landlord_first_name,
+            landlord.last_name AS landlord_last_name,
+            landlord.email AS landlord_email,
+            NULLIF(LTRIM(RTRIM(CONCAT(COALESCE(landlord.first_name, ''), ' ', COALESCE(landlord.last_name, '')))), '') AS landlord_name
+     FROM properties p
+     LEFT JOIN users landlord
+       ON landlord.id = p.created_by
+     WHERE p.deleted_at IS NULL
+       AND ($1 = 'ADMIN' OR p.created_by = $2)
+     ORDER BY p.created_at DESC`,
     [actorRole.trim().toUpperCase(), actorUserId]
   );
   return r.rows;

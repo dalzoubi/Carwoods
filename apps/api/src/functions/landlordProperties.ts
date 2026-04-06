@@ -83,6 +83,7 @@ async function landlordPropertiesCollection(
         zip: str(b.zip),
         apply_visible: bool(b.apply_visible),
         har_listing_id: b.har_listing_id as string | null | undefined,
+        landlord_user_id: str(b.landlord_user_id) ?? undefined,
         metadata: b.metadata,
       });
       logInfo(context, 'properties.collection.create.success', {

@@ -9,9 +9,10 @@
 import { insertProperty, type PropertyRowFull, type PropertyInsert } from '../../lib/propertiesRepo.js';
 import { harColumnsForCreate } from '../../lib/propertyHarSync.js';
 import { writeAudit } from '../../lib/auditRepo.js';
+import { findUserById } from '../../lib/usersRepo.js';
 import { validateCreateProperty } from '../../domain/propertyValidation.js';
 import { forbidden, unprocessable, validationError } from '../../domain/errors.js';
-import { hasLandlordAccess } from '../../domain/constants.js';
+import { hasLandlordAccess, Role } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
 
 export type CreatePropertyInput = {
@@ -24,6 +25,7 @@ export type CreatePropertyInput = {
   zip: string | undefined;
   apply_visible?: boolean;
   har_listing_id?: string | null;
+  landlord_user_id?: string;
   metadata?: unknown;
 };
 
@@ -44,6 +46,24 @@ export async function createProperty(
     zip: input.zip,
   });
   if (!fieldValidation.valid) throw validationError(fieldValidation.message);
+
+  let ownerUserId = input.actorUserId;
+  if (input.actorRole.trim().toUpperCase() === Role.ADMIN) {
+    const landlordUserId = String(input.landlord_user_id ?? '').trim();
+    if (!landlordUserId) {
+      throw validationError('landlord_user_id is required for admin property creation');
+    }
+    const landlord = await findUserById(db, landlordUserId);
+    const isActiveLandlord = Boolean(
+      landlord &&
+      String(landlord.role ?? '').trim().toUpperCase() === Role.LANDLORD &&
+      String(landlord.status ?? '').trim().toUpperCase() === 'ACTIVE'
+    );
+    if (!isActiveLandlord) {
+      throw validationError('landlord_user_id must reference an active landlord');
+    }
+    ownerUserId = landlordUserId;
+  }
 
   let har: Awaited<ReturnType<typeof harColumnsForCreate>>;
   try {
@@ -68,7 +88,7 @@ export async function createProperty(
     har_sync_status: har.har_sync_status,
     har_sync_error: har.har_sync_error,
     har_last_synced_at: har.har_last_synced_at,
-    created_by: input.actorUserId,
+    created_by: ownerUserId,
   };
 
   const client = await db.connect();

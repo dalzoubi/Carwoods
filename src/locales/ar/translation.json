@@ -911,6 +911,10 @@
     },
     "form": {
       "heading": "تفاصيل العقار",
+      "landlord": "المالك",
+      "landlordSelect": "اختر المالك",
+      "landlordLoading": "جارٍ تحميل الملاك…",
+      "landlordEmpty": "لا يوجد ملاك نشطون متاحون. أضف مالكًا من صفحة الملاك.",
       "addressLine": "عنوان الشارع",
       "cityStateZip": "المدينة، الولاية، الرمز البريدي",
       "monthlyRent": "الإيجار الشهري (مثال: $2,500/mo)",
@@ -939,6 +943,7 @@
       "deleteConfirmAction": "حذف",
       "deleteCancel": "إلغاء",
       "showOnApply": "صفحة التقديم",
+      "landlord": "المالك",
       "harId": "معرّف HAR",
       "noPhoto": "لا توجد صورة"
     },
@@ -952,6 +957,7 @@
       "landlordOrAdminOnly": "فقط حسابات الملاك أو المسؤولين يمكنها إدارة العقارات.",
       "addressRequired": "عنوان الشارع مطلوب.",
       "cityStateZipRequired": "المدينة / الولاية / الرمز البريدي مطلوب.",
+      "landlordRequired": "يرجى اختيار مالك.",
       "loadFailed": "تعذّر تحميل العقارات: {{error}}",
       "saveFailed": "تعذّر حفظ العقار: {{error}}",
       "deleteFailed": "تعذّر حذف العقار: {{error}}",
