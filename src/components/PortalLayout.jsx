@@ -17,6 +17,7 @@ const PortalLayout = ({ children }) => {
         onClose={() => setMobileOpen(false)}
         isMobile={isMobile}
         collapsed={desktopSidebarCollapsed}
+        onSidebarToggle={() => setDesktopSidebarCollapsed((prev) => !prev)}
       />
 
       <Box
@@ -33,8 +34,6 @@ const PortalLayout = ({ children }) => {
         <PortalTopBar
           onMenuClick={() => setMobileOpen(true)}
           isMobile={isMobile}
-          isSidebarCollapsed={desktopSidebarCollapsed}
-          onSidebarToggle={() => setDesktopSidebarCollapsed((prev) => !prev)}
         />
 
         <Box

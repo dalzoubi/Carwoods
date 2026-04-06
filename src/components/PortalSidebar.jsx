@@ -26,8 +26,11 @@ import MonitorHeart from '@mui/icons-material/MonitorHeart';
 import HomeWork from '@mui/icons-material/HomeWork';
 import Logout from '@mui/icons-material/Logout';
 import ArrowBack from '@mui/icons-material/ArrowBack';
+import ChevronLeft from '@mui/icons-material/ChevronLeft';
+import ChevronRight from '@mui/icons-material/ChevronRight';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '@mui/material/styles';
 import { usePortalAuth } from '../PortalAuthContext';
 import { isGuestRole, normalizeRole, resolveDisplayName, resolveRole } from '../portalUtils';
 import { stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
@@ -55,8 +58,9 @@ function userInitials(meData) {
   return '?';
 }
 
-const PortalSidebar = ({ open, onClose, isMobile, collapsed = false }) => {
+const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarToggle }) => {
   const { t } = useTranslation();
+  const theme = useTheme();
   const { pathname } = useLocation();
   const { isAuthenticated, account, meData, meStatus, signOut } = usePortalAuth();
   const [signOutOpen, setSignOutOpen] = useState(false);
@@ -73,10 +77,9 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false }) => {
 
   const navItems = [
     { key: 'dashboard', to: '/portal', label: t('portalLayout.sidebar.dashboard'), icon: <Dashboard />, exact: true },
-    ...(roleResolved && !isGuest
+    ...(normalized === Role.ADMIN
       ? [
-          { key: 'requests', to: '/portal/requests', label: t('portalLayout.sidebar.requests'), icon: <Build /> },
-          { key: 'profile', to: '/portal/profile', label: t('portalLayout.sidebar.profile'), icon: <Person /> },
+          { key: 'admin', to: '/portal/admin', label: t('portalLayout.sidebar.adminLandlords'), icon: <SupervisorAccount /> },
         ]
       : []),
     ...(roleResolved && (normalized === Role.LANDLORD || normalized === Role.ADMIN)
@@ -84,10 +87,19 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false }) => {
           { key: 'properties', to: '/portal/properties', label: t('portalLayout.sidebar.properties'), icon: <HomeWork /> },
         ]
       : []),
+    ...(roleResolved && !isGuest
+      ? [
+          { key: 'requests', to: '/portal/requests', label: t('portalLayout.sidebar.requests'), icon: <Build /> },
+        ]
+      : []),
     ...(normalized === Role.ADMIN
       ? [
-          { key: 'admin', to: '/portal/admin', label: t('portalLayout.sidebar.adminLandlords'), icon: <SupervisorAccount /> },
           { key: 'status', to: '/portal/status', label: t('portalLayout.sidebar.status'), icon: <MonitorHeart /> },
+        ]
+      : []),
+    ...(roleResolved && !isGuest
+      ? [
+          { key: 'profile', to: '/portal/profile', label: t('portalLayout.sidebar.profile'), icon: <Person /> },
         ]
       : []),
   ];
@@ -105,19 +117,36 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false }) => {
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <Box
         sx={{
-          p: collapsed && !isMobile ? 1.5 : 2,
+          minHeight: 56,
+          boxSizing: 'border-box',
+          position: 'relative',
+          px: collapsed && !isMobile ? 1.5 : 2,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',
-          gap: 1.5,
+          justifyContent: collapsed && !isMobile ? 'center' : 'space-between',
+          gap: collapsed && !isMobile ? 0 : 1.5,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
+        <Box
+          component={RouterLink}
+          to={withDarkPath(pathname, '/portal')}
+          onClick={handleNavClick}
+          aria-label={t('portalLayout.sidebar.dashboard')}
+          sx={{
+            textDecoration: 'none',
+            color: 'inherit',
+            minWidth: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            flexShrink: 1,
+          }}
+        >
           <Box
             component="img"
             src={carwoodsLogo}
             alt={t('common.carwoodsAlt')}
-            sx={{ height: 28, filter: (theme) => theme.palette.mode === 'dark' ? 'brightness(1.8)' : 'none' }}
+            sx={{ height: 28, filter: (theme) => theme.palette.mode === 'light' ? 'invert(1)' : 'none' }}
           />
           {(!collapsed || isMobile) && (
             <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700 }}>
@@ -125,6 +154,24 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false }) => {
             </Typography>
           )}
         </Box>
+        {!isMobile && (
+          <Tooltip title={collapsed ? t('portalLayout.sidebar.expand') : t('portalLayout.sidebar.collapse')} arrow>
+            <IconButton
+              type="button"
+              aria-label={collapsed ? t('portalLayout.sidebar.expand') : t('portalLayout.sidebar.collapse')}
+              onClick={onSidebarToggle}
+              size="small"
+              sx={{
+                flexShrink: 0,
+                ...(collapsed && !isMobile ? { position: 'absolute', insetInlineEnd: -6 } : {}),
+              }}
+            >
+              {collapsed
+                ? (theme.direction === 'rtl' ? <ChevronLeft /> : <ChevronRight />)
+                : (theme.direction === 'rtl' ? <ChevronRight /> : <ChevronLeft />)}
+            </IconButton>
+          </Tooltip>
+        )}
       </Box>
       <Divider />
 
@@ -133,9 +180,8 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false }) => {
           const isActive = item.exact
             ? normalizedPath === item.to
             : normalizedPath.startsWith(item.to);
-          return (
+          const listItemButton = (
             <ListItemButton
-              key={item.key}
               component={RouterLink}
               to={withDarkPath(pathname, item.to)}
               selected={isActive}
@@ -169,6 +215,18 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false }) => {
                 />
               )}
             </ListItemButton>
+          );
+          if (collapsed && !isMobile) {
+            return (
+              <Tooltip key={item.key} title={item.label} placement="right" arrow>
+                {listItemButton}
+              </Tooltip>
+            );
+          }
+          return (
+            <React.Fragment key={item.key}>
+              {listItemButton}
+            </React.Fragment>
           );
         })}
       </List>

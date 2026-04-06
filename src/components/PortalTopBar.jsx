@@ -18,8 +18,6 @@ import LightMode from '@mui/icons-material/LightMode';
 import DarkMode from '@mui/icons-material/DarkMode';
 import RestartAlt from '@mui/icons-material/RestartAlt';
 import LanguageIcon from '@mui/icons-material/Language';
-import ChevronLeft from '@mui/icons-material/ChevronLeft';
-import ChevronRight from '@mui/icons-material/ChevronRight';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -27,7 +25,6 @@ import { isDarkPreviewRoute, stripDarkPreviewPrefix, withDarkPath } from '../rou
 import { useThemeMode } from '../ThemeModeContext';
 import { useLanguage } from '../LanguageContext';
 import { FEATURE_DARK_THEME } from '../featureFlags';
-import { useTheme } from '@mui/material/styles';
 
 function usePageTitle(t) {
   const { pathname } = useLocation();
@@ -54,9 +51,8 @@ function userInitials(meData) {
   return '?';
 }
 
-const PortalTopBar = ({ onMenuClick, isMobile, isSidebarCollapsed = false, onSidebarToggle }) => {
+const PortalTopBar = ({ onMenuClick, isMobile }) => {
   const { t } = useTranslation();
-  const theme = useTheme();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { isAuthenticated, meData, meStatus } = usePortalAuth();
@@ -120,21 +116,6 @@ const PortalTopBar = ({ onMenuClick, isMobile, isSidebarCollapsed = false, onSid
             <MenuIcon />
           </IconButton>
         )}
-        {!isMobile && (
-          <Tooltip title={isSidebarCollapsed ? t('portalLayout.sidebar.expand') : t('portalLayout.sidebar.collapse')} arrow>
-            <IconButton
-              type="button"
-              aria-label={isSidebarCollapsed ? t('portalLayout.sidebar.expand') : t('portalLayout.sidebar.collapse')}
-              onClick={onSidebarToggle}
-              sx={{ marginInlineEnd: 1 }}
-            >
-              {isSidebarCollapsed
-                ? (theme.direction === 'rtl' ? <ChevronLeft /> : <ChevronRight />)
-                : (theme.direction === 'rtl' ? <ChevronRight /> : <ChevronLeft />)}
-            </IconButton>
-          </Tooltip>
-        )}
-
         <Typography variant="h6" noWrap component="h1" sx={{ flexGrow: 1, fontSize: '1.125rem', fontWeight: 600 }}>
           {pageTitle}
         </Typography>

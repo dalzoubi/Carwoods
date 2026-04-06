@@ -76,7 +76,7 @@ const PortalLoginLanding = () => {
             alt={t('common.carwoodsAlt')}
             sx={{
               height: 40,
-              filter: (theme) => theme.palette.mode === 'dark' ? 'brightness(1.8)' : 'none',
+              filter: (theme) => theme.palette.mode === 'light' ? 'invert(1)' : 'none',
             }}
           />
 
