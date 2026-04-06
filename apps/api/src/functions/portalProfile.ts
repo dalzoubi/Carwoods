@@ -7,7 +7,7 @@ import {
 import { getPool } from '../lib/db.js';
 import { jsonResponse, requirePortalUser } from '../lib/managementRequest.js';
 import { updateUserProfile } from '../lib/usersRepo.js';
-import { isValidEmail, isValidPhone } from '../lib/contactValidation.js';
+import { validateProfileUpdate } from '../domain/userValidation.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
   if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>;
@@ -45,28 +45,14 @@ async function portalProfileHandler(
   const lastName = str(payload.last_name);
   const phone = str(payload.phone);
 
-  if (!email) {
-    return jsonResponse(400, headers, { error: 'missing_email' });
-  }
-  if (!isValidEmail(email)) {
-    return jsonResponse(400, headers, { error: 'invalid_email' });
-  }
-  if (firstName && firstName.length > 100) {
-    return jsonResponse(400, headers, { error: 'first_name_too_long' });
-  }
-  if (lastName && lastName.length > 100) {
-    return jsonResponse(400, headers, { error: 'last_name_too_long' });
-  }
-  if (phone && phone.length > 50) {
-    return jsonResponse(400, headers, { error: 'phone_too_long' });
-  }
-  if (phone && !isValidPhone(phone)) {
-    return jsonResponse(400, headers, { error: 'invalid_phone' });
+  const validation = validateProfileUpdate({ email, firstName, lastName, phone });
+  if (!validation.valid) {
+    return jsonResponse(400, headers, { error: validation.message });
   }
 
   const pool = getPool();
   const updated = await updateUserProfile(pool, user.id, {
-    email,
+    email: email!,
     firstName: firstName ?? null,
     lastName: lastName ?? null,
     phone: phone ?? null,
