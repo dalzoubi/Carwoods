@@ -28,7 +28,12 @@ import {
   MAX_REQUEST_PHOTOS,
   MAX_REQUEST_VIDEOS,
   maxBytesForMediaType,
-} from '../lib/requestValidation.js';
+  validateCreateRequest,
+  validateMessageBody,
+  validateRequestId,
+  validateUploadFile,
+  validateFinalizeUpload,
+} from '../domain/requestValidation.js';
 import {
   canCreateMaintenanceRequest,
   canPostInternalMessages,
@@ -53,9 +58,6 @@ function bool(v: unknown): boolean | undefined {
   return typeof v === 'boolean' ? v : undefined;
 }
 
-function isUuid(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
 
 async function resolveLookupIdByCode(
   sql: ReturnType<typeof getPool>,
@@ -109,20 +111,18 @@ async function portalRequestsCollection(
   const description = str(b.description);
   const emergencyAcknowledged = bool(b.emergency_disclaimer_acknowledged) ?? false;
 
-  if (!leaseId || !propertyId || !categoryCode || !priorityCode || !title || !description) {
-    return jsonResponse(400, headers, { error: 'missing_required_fields' });
-  }
-  if (title.length > 500 || description.length > 5000) {
-    return jsonResponse(400, headers, { error: 'field_too_long' });
+  const createValidation = validateCreateRequest({ leaseId, propertyId, categoryCode, priorityCode, title, description });
+  if (!createValidation.valid) {
+    return jsonResponse(400, headers, { error: createValidation.message });
   }
 
-  const canSubmit = await tenantCanSubmitForLease(pool, leaseId, user.id);
+  const canSubmit = await tenantCanSubmitForLease(pool, leaseId!, user.id);
   if (!canSubmit) {
     return jsonResponse(403, headers, { error: 'forbidden_lease_access' });
   }
 
-  const categoryId = await resolveLookupIdByCode(pool, 'service_categories', categoryCode);
-  const priorityId = await resolveLookupIdByCode(pool, 'request_priorities', priorityCode);
+  const categoryId = await resolveLookupIdByCode(pool, 'service_categories', categoryCode!);
+  const priorityId = await resolveLookupIdByCode(pool, 'request_priorities', priorityCode!);
   const openStatusId = await findStatusIdByCode(pool, RequestStatus.OPEN);
   if (!categoryId || !priorityId || !openStatusId) {
     return jsonResponse(400, headers, { error: 'invalid_lookup_codes' });
@@ -132,14 +132,14 @@ async function portalRequestsCollection(
   try {
     await client.query('BEGIN');
     const created = await insertMaintenanceRequest(client, {
-      propertyId,
-      leaseId,
+      propertyId: propertyId!,
+      leaseId: leaseId!,
       submittedByUserId: user.id,
       categoryId,
       priorityId,
       currentStatusId: openStatusId,
-      title,
-      description,
+      title: title!,
+      description: description!,
       emergencyAcknowledged,
     });
     await writeAudit(client, {
@@ -218,13 +218,15 @@ async function portalRequestItem(
   if (!gate.ok) return gate.response;
   const { user, headers } = gate.ctx;
   const requestId = request.params.id;
-  if (!requestId) return jsonResponse(400, headers, { error: 'missing_id' });
-  if (!isUuid(requestId)) return jsonResponse(404, headers, { error: 'not_found' });
+  const idValidation = validateRequestId(requestId);
+  if (!idValidation.valid) {
+    return jsonResponse(idValidation.message === 'missing_id' ? 400 : 404, headers, { error: idValidation.message });
+  }
 
   const pool = getPool();
   const role = String(user.role ?? '').toUpperCase() as PortalRole;
   if (!canViewInternalMessages(role)) {
-    const allowed = await tenantCanAccessRequest(pool, requestId, user.id);
+    const allowed = await tenantCanAccessRequest(pool, requestId!, user.id);
     if (!allowed) return jsonResponse(404, headers, { error: 'not_found' });
   }
 
@@ -250,17 +252,19 @@ async function portalRequestMessages(
   const { user, headers } = gate.ctx;
   const role = String(user.role ?? '').toUpperCase() as PortalRole;
   const requestId = request.params.id;
-  if (!requestId) return jsonResponse(400, headers, { error: 'missing_id' });
-  if (!isUuid(requestId)) return jsonResponse(404, headers, { error: 'not_found' });
+  const msgIdValidation = validateRequestId(requestId);
+  if (!msgIdValidation.valid) {
+    return jsonResponse(msgIdValidation.message === 'missing_id' ? 400 : 404, headers, { error: msgIdValidation.message });
+  }
 
   const pool = getPool();
   if (!canViewInternalMessages(role)) {
-    const allowed = await tenantCanAccessRequest(pool, requestId, user.id);
+    const allowed = await tenantCanAccessRequest(pool, requestId!, user.id);
     if (!allowed) return jsonResponse(404, headers, { error: 'not_found' });
   }
 
   if (request.method === 'GET') {
-    const messages = await listRequestMessages(pool, requestId, canViewInternalMessages(role));
+    const messages = await listRequestMessages(pool, requestId!, canViewInternalMessages(role));
     return jsonResponse(200, headers, { messages });
   }
 
@@ -278,16 +282,18 @@ async function portalRequestMessages(
   const messageBody = str(b.body);
   const isInternalRequested = bool(b.is_internal) ?? false;
   const isInternal = canPostInternalMessages(role) ? isInternalRequested : false;
-  if (!messageBody) return jsonResponse(400, headers, { error: 'missing_body' });
-  if (messageBody.length > 5000) return jsonResponse(400, headers, { error: 'body_too_long' });
+  const msgBodyValidation = validateMessageBody(messageBody);
+  if (!msgBodyValidation.valid) {
+    return jsonResponse(400, headers, { error: msgBodyValidation.message });
+  }
 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     const created = await insertRequestMessage(client, {
-      requestId,
+      requestId: requestId!,
       senderUserId: user.id,
-      body: messageBody,
+      body: messageBody!,
       isInternal,
       source: 'PORTAL',
     });
@@ -333,13 +339,15 @@ async function portalRequestUploadIntent(
   if (request.method !== 'POST') return jsonResponse(405, headers, { error: 'method_not_allowed' });
 
   const requestId = request.params.id;
-  if (!requestId) return jsonResponse(400, headers, { error: 'missing_id' });
-  if (!isUuid(requestId)) return jsonResponse(404, headers, { error: 'not_found' });
+  const intentIdValidation = validateRequestId(requestId);
+  if (!intentIdValidation.valid) {
+    return jsonResponse(intentIdValidation.message === 'missing_id' ? 400 : 404, headers, { error: intentIdValidation.message });
+  }
 
   const pool = getPool();
   const role = String(user.role ?? '').toUpperCase() as PortalRole;
   if (!canViewInternalMessages(role)) {
-    const allowed = await tenantCanAccessRequest(pool, requestId, user.id);
+    const allowed = await tenantCanAccessRequest(pool, requestId!, user.id);
     if (!allowed) return jsonResponse(404, headers, { error: 'not_found' });
   }
 
@@ -353,18 +361,17 @@ async function portalRequestUploadIntent(
   const filename = str(b.filename);
   const contentType = str(b.content_type);
   const fileSizeBytes = Number(b.file_size_bytes ?? 0);
-  if (!filename || !contentType || !Number.isFinite(fileSizeBytes) || fileSizeBytes <= 0) {
-    return jsonResponse(400, headers, { error: 'missing_or_invalid_file_fields' });
+  const uploadValidation = validateUploadFile({ filename, contentType, fileSizeBytes });
+  if (!uploadValidation.valid) {
+    if (uploadValidation.message === 'file_too_large') {
+      const maxBytes = maxBytesForMediaType(detectMediaType(contentType!)!);
+      return jsonResponse(400, headers, { error: 'file_too_large', max_bytes: maxBytes });
+    }
+    return jsonResponse(400, headers, { error: uploadValidation.message });
   }
 
-  const mediaType = detectMediaType(contentType);
-  if (!mediaType) return jsonResponse(400, headers, { error: 'unsupported_mime_type' });
-  const maxBytes = maxBytesForMediaType(mediaType);
-  if (fileSizeBytes > maxBytes) {
-    return jsonResponse(400, headers, { error: 'file_too_large', max_bytes: maxBytes });
-  }
-
-  const counts = await countRequestAttachmentMedia(pool, requestId);
+  const mediaType = detectMediaType(contentType!)!;
+  const counts = await countRequestAttachmentMedia(pool, requestId!);
   if (mediaType === 'PHOTO' && counts.photos >= MAX_REQUEST_PHOTOS) {
     return jsonResponse(400, headers, { error: 'photo_limit_exceeded', max: MAX_REQUEST_PHOTOS });
   }
@@ -372,11 +379,11 @@ async function portalRequestUploadIntent(
     return jsonResponse(400, headers, { error: 'video_limit_exceeded', max: MAX_REQUEST_VIDEOS });
   }
 
-  const safeFileName = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const uploadKey = `${requestId}/${Date.now()}-${safeFileName}`;
+  const safeFileName = filename!.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const uploadKey = `${requestId!}/${Date.now()}-${safeFileName}`;
   const uploadUrl = `https://example.invalid/uploads/${encodeURIComponent(uploadKey)}`;
   logInfo(context, 'portal.requests.upload_intent.created', {
-    requestId,
+    requestId: requestId!,
     userId: user.id,
     mediaType,
     bytes: fileSizeBytes,
@@ -411,21 +418,21 @@ async function portalRequestAttachmentFinalize(
   }
 
   const requestId = request.params.id;
-  if (!requestId) {
-    logWarn(context, 'portal.requests.attachments.finalize.missing_id', { userId: user.id });
-    return jsonResponse(400, headers, { error: 'missing_id' });
-  }
-  if (!isUuid(requestId)) {
-    return jsonResponse(404, headers, { error: 'not_found' });
+  const finalizeIdValidation = validateRequestId(requestId);
+  if (!finalizeIdValidation.valid) {
+    if (finalizeIdValidation.message === 'missing_id') {
+      logWarn(context, 'portal.requests.attachments.finalize.missing_id', { userId: user.id });
+    }
+    return jsonResponse(finalizeIdValidation.message === 'missing_id' ? 400 : 404, headers, { error: finalizeIdValidation.message });
   }
   const pool = getPool();
   const role = String(user.role ?? '').toUpperCase() as PortalRole;
   if (!canViewInternalMessages(role)) {
-    const allowed = await tenantCanAccessRequest(pool, requestId, user.id);
+    const allowed = await tenantCanAccessRequest(pool, requestId!, user.id);
     if (!allowed) {
       logWarn(context, 'portal.requests.attachments.finalize.not_found', {
         userId: user.id,
-        requestId,
+        requestId: requestId!,
       });
       return jsonResponse(404, headers, { error: 'not_found' });
     }
@@ -442,41 +449,34 @@ async function portalRequestAttachmentFinalize(
   const filename = str(b.filename);
   const contentType = str(b.content_type);
   const fileSizeBytes = Number(b.file_size_bytes ?? 0);
-  if (!storagePath || !filename || !contentType || !Number.isFinite(fileSizeBytes) || fileSizeBytes <= 0) {
+  const finalizeValidation = validateFinalizeUpload({ storagePath, filename, contentType, fileSizeBytes });
+  if (!finalizeValidation.valid) {
+    const mediaType = contentType ? detectMediaType(contentType) : null;
+    if (finalizeValidation.message === 'file_too_large' && mediaType) {
+      const maxBytes = maxBytesForMediaType(mediaType);
+      logWarn(context, 'portal.requests.attachments.finalize.validation_failed', {
+        userId: user.id,
+        requestId: requestId!,
+        reason: 'file_too_large',
+        fileSizeBytes,
+        maxBytes,
+        mediaType,
+      });
+      return jsonResponse(400, headers, { error: 'file_too_large', max_bytes: maxBytes });
+    }
     logWarn(context, 'portal.requests.attachments.finalize.validation_failed', {
       userId: user.id,
-      requestId,
-      reason: 'missing_or_invalid_file_fields',
+      requestId: requestId!,
+      reason: finalizeValidation.message,
     });
-    return jsonResponse(400, headers, { error: 'missing_or_invalid_file_fields' });
+    return jsonResponse(400, headers, { error: finalizeValidation.message });
   }
-  const mediaType = detectMediaType(contentType);
-  if (!mediaType) {
-    logWarn(context, 'portal.requests.attachments.finalize.validation_failed', {
-      userId: user.id,
-      requestId,
-      reason: 'unsupported_mime_type',
-      contentType,
-    });
-    return jsonResponse(400, headers, { error: 'unsupported_mime_type' });
-  }
-  const maxBytes = maxBytesForMediaType(mediaType);
-  if (fileSizeBytes > maxBytes) {
-    logWarn(context, 'portal.requests.attachments.finalize.validation_failed', {
-      userId: user.id,
-      requestId,
-      reason: 'file_too_large',
-      fileSizeBytes,
-      maxBytes,
-      mediaType,
-    });
-    return jsonResponse(400, headers, { error: 'file_too_large', max_bytes: maxBytes });
-  }
-  const counts = await countRequestAttachmentMedia(pool, requestId);
+  const mediaType = detectMediaType(contentType!)!;
+  const counts = await countRequestAttachmentMedia(pool, requestId!);
   if (mediaType === 'PHOTO' && counts.photos >= MAX_REQUEST_PHOTOS) {
     logWarn(context, 'portal.requests.attachments.finalize.validation_failed', {
       userId: user.id,
-      requestId,
+      requestId: requestId!,
       reason: 'photo_limit_exceeded',
       max: MAX_REQUEST_PHOTOS,
     });
@@ -485,7 +485,7 @@ async function portalRequestAttachmentFinalize(
   if (mediaType === 'VIDEO' && counts.videos >= MAX_REQUEST_VIDEOS) {
     logWarn(context, 'portal.requests.attachments.finalize.validation_failed', {
       userId: user.id,
-      requestId,
+      requestId: requestId!,
       reason: 'video_limit_exceeded',
       max: MAX_REQUEST_VIDEOS,
     });
@@ -496,11 +496,11 @@ async function portalRequestAttachmentFinalize(
   try {
     await client.query('BEGIN');
     const created = await insertRequestAttachment(client, {
-      requestId,
+      requestId: requestId!,
       uploadedByUserId: user.id,
-      storagePath,
-      originalFilename: filename,
-      contentType,
+      storagePath: storagePath!,
+      originalFilename: filename!,
+      contentType: contentType!,
       fileSizeBytes,
       mediaType,
     });
@@ -562,29 +562,29 @@ async function portalRequestAttachmentsList(
   }
 
   const requestId = request.params.id;
-  if (!requestId) {
-    logWarn(context, 'portal.requests.attachments.list.missing_id', { userId: user.id });
-    return jsonResponse(400, headers, { error: 'missing_id' });
-  }
-  if (!isUuid(requestId)) {
-    return jsonResponse(404, headers, { error: 'not_found' });
+  const listIdValidation = validateRequestId(requestId);
+  if (!listIdValidation.valid) {
+    if (listIdValidation.message === 'missing_id') {
+      logWarn(context, 'portal.requests.attachments.list.missing_id', { userId: user.id });
+    }
+    return jsonResponse(listIdValidation.message === 'missing_id' ? 400 : 404, headers, { error: listIdValidation.message });
   }
   const pool = getPool();
   const role = String(user.role ?? '').toUpperCase() as PortalRole;
   if (!canViewInternalMessages(role)) {
-    const allowed = await tenantCanAccessRequest(pool, requestId, user.id);
+    const allowed = await tenantCanAccessRequest(pool, requestId!, user.id);
     if (!allowed) {
       logWarn(context, 'portal.requests.attachments.list.not_found', {
         userId: user.id,
-        requestId,
+        requestId: requestId!,
       });
       return jsonResponse(404, headers, { error: 'not_found' });
     }
   }
-  const attachments = await listRequestAttachments(pool, requestId);
+  const attachments = await listRequestAttachments(pool, requestId!);
   logInfo(context, 'portal.requests.attachments.list.success', {
     userId: user.id,
-    requestId,
+    requestId: requestId!,
     count: attachments.length,
   });
   return jsonResponse(200, headers, { attachments });

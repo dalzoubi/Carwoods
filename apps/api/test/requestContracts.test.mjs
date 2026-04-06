@@ -8,7 +8,7 @@ import {
 import {
   detectMediaType,
   maxBytesForMediaType,
-} from '../dist/src/lib/requestValidation.js';
+} from '../dist/src/domain/requestValidation.js';
 
 test('tenant role can create request but cannot use internal messages', () => {
   assert.equal(canCreateMaintenanceRequest('TENANT'), true);

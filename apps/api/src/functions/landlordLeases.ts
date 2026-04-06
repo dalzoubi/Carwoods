@@ -17,6 +17,7 @@ import {
   updateLease,
 } from '../lib/leasesRepo.js';
 import { getPropertyById } from '../lib/propertiesRepo.js';
+import { validateCreateLease, validateLeaseStatus } from '../domain/leaseValidation.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
   if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>;
@@ -30,8 +31,6 @@ function str(v: unknown): string | undefined {
 function bool(v: unknown): boolean | undefined {
   return typeof v === 'boolean' ? v : undefined;
 }
-
-const LEASE_STATUSES = new Set(['ACTIVE', 'ENDED', 'UPCOMING', 'TERMINATED']);
 
 async function landlordLeasesCollection(
   request: HttpRequest,
@@ -68,12 +67,13 @@ async function landlordLeasesCollection(
     const property_id = str(b.property_id);
     const start_date = str(b.start_date);
     const status = str(b.status);
-    if (!property_id || !start_date || !status || !LEASE_STATUSES.has(status)) {
+    const leaseValidation = validateCreateLease({ property_id, start_date, status });
+    if (!leaseValidation.valid) {
       logWarn(context, 'leases.collection.create.validation_failed', { userId: ctx.user.id });
-      return jsonResponse(400, ctx.headers, { error: 'missing_or_invalid_fields' });
+      return jsonResponse(400, ctx.headers, { error: leaseValidation.message });
     }
 
-    const prop = await getPropertyById(pool, property_id);
+    const prop = await getPropertyById(pool, property_id!);
     if (!prop) {
       logWarn(context, 'leases.collection.create.property_not_found', {
         userId: ctx.user.id,
@@ -86,11 +86,11 @@ async function landlordLeasesCollection(
     try {
       await client.query('BEGIN');
       const row = await insertLease(client, {
-        property_id,
-        start_date,
+        property_id: property_id!,
+        start_date: start_date!,
         end_date: str(b.end_date) ?? null,
         month_to_month: bool(b.month_to_month) ?? false,
-        status,
+        status: status!,
         notes: str(b.notes) ?? null,
         created_by: ctx.user.id,
       });
@@ -156,13 +156,14 @@ async function landlordLeasesItem(
     }
     const b = asRecord(body);
     const status = str(b.status);
-    if (status && !LEASE_STATUSES.has(status)) {
+    const statusValidation = validateLeaseStatus(status);
+    if (!statusValidation.valid) {
       logWarn(context, 'leases.item.patch.invalid_status', {
         userId: ctx.user.id,
         leaseId: id,
         status,
       });
-      return jsonResponse(400, ctx.headers, { error: 'invalid_status' });
+      return jsonResponse(400, ctx.headers, { error: statusValidation.message });
     }
 
     const client = await pool.connect();

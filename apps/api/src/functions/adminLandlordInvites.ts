@@ -13,7 +13,7 @@ import {
   upsertLandlordUserByEmail,
 } from '../lib/usersRepo.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
-import { isValidEmail } from '../lib/contactValidation.js';
+import { validateLandlordInvite } from '../domain/userValidation.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
   if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>;
@@ -72,40 +72,13 @@ async function adminLandlordsCollectionHandler(
   const email = asOptionalString(b.email)?.toLowerCase() ?? '';
   const firstName = asOptionalString(b.first_name);
   const lastName = asOptionalString(b.last_name);
-  if (!isValidEmail(email)) {
+  const inviteValidation = validateLandlordInvite({ email, firstName, lastName });
+  if (!inviteValidation.valid) {
     logWarn(context, 'admin.landlords.create.validation_failed', {
       actorUserId: ctx.user.id,
-      reason: 'invalid_email',
+      reason: inviteValidation.message,
     });
-    return jsonResponse(400, ctx.headers, { error: 'invalid_email' });
-  }
-  if (!firstName) {
-    logWarn(context, 'admin.landlords.create.validation_failed', {
-      actorUserId: ctx.user.id,
-      reason: 'missing_first_name',
-    });
-    return jsonResponse(400, ctx.headers, { error: 'missing_first_name' });
-  }
-  if (!lastName) {
-    logWarn(context, 'admin.landlords.create.validation_failed', {
-      actorUserId: ctx.user.id,
-      reason: 'missing_last_name',
-    });
-    return jsonResponse(400, ctx.headers, { error: 'missing_last_name' });
-  }
-  if (firstName.length > 100) {
-    logWarn(context, 'admin.landlords.create.validation_failed', {
-      actorUserId: ctx.user.id,
-      reason: 'first_name_too_long',
-    });
-    return jsonResponse(400, ctx.headers, { error: 'first_name_too_long' });
-  }
-  if (lastName.length > 100) {
-    logWarn(context, 'admin.landlords.create.validation_failed', {
-      actorUserId: ctx.user.id,
-      reason: 'last_name_too_long',
-    });
-    return jsonResponse(400, ctx.headers, { error: 'last_name_too_long' });
+    return jsonResponse(400, ctx.headers, { error: inviteValidation.message });
   }
 
   const client = await pool.connect();

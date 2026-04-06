@@ -16,6 +16,7 @@ import {
   updateProperty,
 } from '../lib/propertiesRepo.js';
 import { harColumnsForCreate, harColumnsForPatch } from '../lib/propertyHarSync.js';
+import { validateCreateProperty } from '../domain/propertyValidation.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
   if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>;
@@ -62,9 +63,10 @@ async function landlordPropertiesCollection(
     const city = str(b.city);
     const state = str(b.state);
     const zip = str(b.zip);
-    if (!street || !city || !state || !zip) {
+    const propertyValidation = validateCreateProperty({ street, city, state, zip });
+    if (!propertyValidation.valid) {
       logWarn(context, 'properties.collection.create.validation_failed', { userId: ctx.user.id });
-      return jsonResponse(400, ctx.headers, { error: 'missing_required_fields' });
+      return jsonResponse(400, ctx.headers, { error: propertyValidation.message });
     }
 
     const client = await pool.connect();
@@ -87,10 +89,10 @@ async function landlordPropertiesCollection(
       await client.query('BEGIN');
       const row = await insertProperty(client, {
         name: str(b.name) ?? null,
-        street,
-        city,
-        state,
-        zip,
+        street: street!,
+        city: city!,
+        state: state!,
+        zip: zip!,
         har_listing_id: har.har_listing_id,
         listing_source: har.listing_source,
         apply_visible: bool(b.apply_visible) ?? false,
