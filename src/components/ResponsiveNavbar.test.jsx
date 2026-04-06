@@ -61,12 +61,9 @@ describe('ResponsiveNavbar', () => {
     expect(screen.getByRole('menuitem', { name: /property management/i })).toBeInTheDocument();
   });
 
-  it('renders a dedicated portal menu and keeps unauthenticated links limited', () => {
+  it('hides portal menu when unauthenticated', () => {
     renderWithProviders(<ResponsiveNavbar />);
-    fireEvent.click(screen.getByRole('button', { name: /portal menu/i }));
-    expect(screen.getByRole('menuitem', { name: /portal home/i })).toBeInTheDocument();
-    expect(screen.queryByRole('menuitem', { name: /workspace/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('menuitem', { name: /requests/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /portal menu/i })).not.toBeInTheDocument();
   });
 
   it('has accessible menu button on mobile', () => {

@@ -94,4 +94,17 @@ describe('ResponsiveNavbar sign-out confirmation', () => {
     expect(screen.getByRole('menuitem', { name: /requests/i })).toBeInTheDocument();
     expect(screen.queryByRole('menuitem', { name: /admin: landlords/i })).not.toBeInTheDocument();
   });
+
+  it('hides portal menu for guest accounts', () => {
+    const previousRole = authState.meData.role;
+    authState.meData.role = 'GUEST';
+    render(
+      <WithAppTheme>
+        <ResponsiveNavbar />
+      </WithAppTheme>
+    );
+
+    expect(screen.queryByRole('button', { name: /portal menu/i })).not.toBeInTheDocument();
+    authState.meData.role = previousRole;
+  });
 });

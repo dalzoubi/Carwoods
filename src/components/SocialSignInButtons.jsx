@@ -2,7 +2,9 @@ import React from 'react';
 import { Button, Stack } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
+import { withDarkPath } from '../routePaths';
 
 /**
  * Inline SVG logos for Google, Apple, and Microsoft.
@@ -63,11 +65,14 @@ function MicrosoftLogo() {
 const SocialSignInButtons = ({ disabled = false, compact = false }) => {
   const { t } = useTranslation();
   const theme = useTheme();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const isDark = theme.palette.mode === 'dark';
   const { signInWithProvider, authStatus } = usePortalAuth();
 
   const isLoading = authStatus === 'initializing' || authStatus === 'authenticating';
   const isDisabled = disabled || isLoading;
+  const redirectToPortalHome = () => navigate(withDarkPath(pathname, '/portal'));
 
   const buttonSx = {
     justifyContent: 'flex-start',
@@ -94,7 +99,10 @@ const SocialSignInButtons = ({ disabled = false, compact = false }) => {
         fullWidth
         sx={buttonSx}
         startIcon={<GoogleLogo />}
-        onClick={() => signInWithProvider('google.com')}
+        onClick={async () => {
+          const didSignIn = await signInWithProvider('google.com');
+          if (didSignIn) redirectToPortalHome();
+        }}
         disabled={isDisabled}
         aria-label={t('socialSignIn.googleAriaLabel')}
       >
@@ -107,7 +115,10 @@ const SocialSignInButtons = ({ disabled = false, compact = false }) => {
         fullWidth
         sx={buttonSx}
         startIcon={<AppleLogo isDark={isDark} />}
-        onClick={() => signInWithProvider('apple.com')}
+        onClick={async () => {
+          const didSignIn = await signInWithProvider('apple.com');
+          if (didSignIn) redirectToPortalHome();
+        }}
         disabled={isDisabled}
         aria-label={t('socialSignIn.appleAriaLabel')}
       >
@@ -120,7 +131,10 @@ const SocialSignInButtons = ({ disabled = false, compact = false }) => {
         fullWidth
         sx={buttonSx}
         startIcon={<MicrosoftLogo />}
-        onClick={() => signInWithProvider('microsoft.com')}
+        onClick={async () => {
+          const didSignIn = await signInWithProvider('microsoft.com');
+          if (didSignIn) redirectToPortalHome();
+        }}
         disabled={isDisabled}
         aria-label={t('socialSignIn.microsoftAriaLabel')}
       >
@@ -131,7 +145,10 @@ const SocialSignInButtons = ({ disabled = false, compact = false }) => {
         type="button"
         variant="contained"
         fullWidth
-        onClick={() => signInWithProvider(null)}
+        onClick={async () => {
+          const didSignIn = await signInWithProvider(null);
+          if (didSignIn) redirectToPortalHome();
+        }}
         disabled={isDisabled}
         aria-label={t('socialSignIn.anyAccountAriaLabel')}
       >

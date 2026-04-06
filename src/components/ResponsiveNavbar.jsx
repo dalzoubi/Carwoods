@@ -207,9 +207,10 @@ const ResponsiveNavbar = () => {
     const currentPortalRoleLabel = portalRoleLabel(portalRole, t);
     const roleResolved = isAuthenticated && meStatus !== 'loading';
     const isGuestAccount = roleResolved && isGuestRole(normalizedPortalRole);
+    const shouldShowPortalMenu = isAuthenticated && !isGuestAccount;
     const portalLinks = [
         { to: '/portal', label: t('portalHeader.nav.home') },
-        ...(isAuthenticated && !isGuestAccount
+        ...(shouldShowPortalMenu
             ? [
                 { to: '/portal/requests', label: t('portalHeader.nav.requests') },
             ]
@@ -348,7 +349,11 @@ const ResponsiveNavbar = () => {
     };
     const handleAccountButtonClick = (e) => {
         if (!isAuthenticated) {
-            signIn();
+            signIn().then((didSignIn) => {
+                if (didSignIn) {
+                    navigate(withDarkPath(pathname, '/portal'));
+                }
+            });
             return;
         }
         handleAccountOpen(e);
@@ -600,24 +605,28 @@ const ResponsiveNavbar = () => {
                     >
                         <ListItemText primary={t('nav.contactUs')} style={{ color: muiTheme.palette.drawer.text }} />
                     </ListItemButton>
-                    <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
-                        {t('nav.portal')}
-                    </ListSubheader>
-                    {portalLinks.map(({ to, label }) => (
-                        <ListItemButton
-                            key={to}
-                            component={RouterLink}
-                            to={withDarkPath(pathname, to)}
-                            selected={isRouteActive(to)}
-                            onClick={handleDrawerToggle}
-                            sx={{
-                                pl: 3,
-                                ...listItemButtonSx,
-                            }}
-                        >
-                            <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
-                        </ListItemButton>
-                    ))}
+                    {shouldShowPortalMenu ? (
+                        <>
+                            <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
+                                {t('nav.portal')}
+                            </ListSubheader>
+                            {portalLinks.map(({ to, label }) => (
+                                <ListItemButton
+                                    key={to}
+                                    component={RouterLink}
+                                    to={withDarkPath(pathname, to)}
+                                    selected={isRouteActive(to)}
+                                    onClick={handleDrawerToggle}
+                                    sx={{
+                                        pl: 3,
+                                        ...listItemButtonSx,
+                                    }}
+                                >
+                                    <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
+                                </ListItemButton>
+                            ))}
+                        </>
+                    ) : null}
                     {showAppearanceMenu ? (
                         <ListItemButton
                             onClick={handleAppearanceOpen}
@@ -915,69 +924,73 @@ const ResponsiveNavbar = () => {
                                         </MenuItem>
                                     ))}
                                 </Menu>
-                                <IconButton
-                                    component="span"
-                                    disableRipple
-                                    id="portal-menu-button"
-                                    onClick={handlePortalOpen}
-                                    aria-haspopup="true"
-                                    aria-expanded={Boolean(portalAnchor)}
-                                    aria-controls={portalAnchor ? 'portal-menu' : undefined}
-                                    aria-label={t('nav.portalMenu')}
-                                    sx={{
-                                        color: 'inherit',
-                                        padding: '0.3rem 0.55rem',
-                                        fontWeight: 'bold',
-                                        fontSize: '0.9rem',
-                                        borderRadius: '4px',
-                                        '&:hover': {
-                                            backgroundColor: 'var(--nav-chrome-hover-bg)',
-                                        },
-                                    }}
-                                >
-                                    <span style={{ marginInlineEnd: '0.2rem' }}>{t('nav.portal')}</span>
-                                    <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
-                                </IconButton>
-                                <Menu
-                                    {...stableMenuProps}
-                                    id="portal-menu"
-                                    anchorEl={portalAnchor}
-                                    open={Boolean(portalAnchor)}
-                                    onClose={handlePortalClose}
-                                    MenuListProps={{
-                                        'aria-labelledby': 'portal-menu-button',
-                                    }}
-                                    slotProps={{
-                                        paper: {
-                                            sx: { backgroundImage: 'none' },
-                                        },
-                                    }}
-                                    anchorOrigin={menuAnchorOrigin}
-                                    transformOrigin={menuTransformOrigin}
-                                >
-                                    {portalLinks.map(({ to, label }) => (
-                                        <MenuItem
-                                            key={to}
-                                            component={RouterLink}
-                                            to={withDarkPath(pathname, to)}
-                                            selected={isRouteActive(to)}
-                                            onClick={handlePortalClose}
+                                {shouldShowPortalMenu ? (
+                                    <>
+                                        <IconButton
+                                            component="span"
+                                            disableRipple
+                                            id="portal-menu-button"
+                                            onClick={handlePortalOpen}
+                                            aria-haspopup="true"
+                                            aria-expanded={Boolean(portalAnchor)}
+                                            aria-controls={portalAnchor ? 'portal-menu' : undefined}
+                                            aria-label={t('nav.portalMenu')}
                                             sx={{
-                                                color: 'text.secondary',
+                                                color: 'inherit',
+                                                padding: '0.3rem 0.55rem',
+                                                fontWeight: 'bold',
+                                                fontSize: '0.9rem',
+                                                borderRadius: '4px',
                                                 '&:hover': {
-                                                    backgroundColor: 'var(--menu-item-hover-bg)',
-                                                    color: 'var(--menu-item-hover-fg)',
-                                                },
-                                                '&.Mui-selected': {
-                                                    backgroundColor: 'var(--menu-item-active-bg)',
-                                                    color: 'var(--menu-item-active-fg)',
+                                                    backgroundColor: 'var(--nav-chrome-hover-bg)',
                                                 },
                                             }}
                                         >
-                                            {label}
-                                        </MenuItem>
-                                    ))}
-                                </Menu>
+                                            <span style={{ marginInlineEnd: '0.2rem' }}>{t('nav.portal')}</span>
+                                            <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
+                                        </IconButton>
+                                        <Menu
+                                            {...stableMenuProps}
+                                            id="portal-menu"
+                                            anchorEl={portalAnchor}
+                                            open={Boolean(portalAnchor)}
+                                            onClose={handlePortalClose}
+                                            MenuListProps={{
+                                                'aria-labelledby': 'portal-menu-button',
+                                            }}
+                                            slotProps={{
+                                                paper: {
+                                                    sx: { backgroundImage: 'none' },
+                                                },
+                                            }}
+                                            anchorOrigin={menuAnchorOrigin}
+                                            transformOrigin={menuTransformOrigin}
+                                        >
+                                            {portalLinks.map(({ to, label }) => (
+                                                <MenuItem
+                                                    key={to}
+                                                    component={RouterLink}
+                                                    to={withDarkPath(pathname, to)}
+                                                    selected={isRouteActive(to)}
+                                                    onClick={handlePortalClose}
+                                                    sx={{
+                                                        color: 'text.secondary',
+                                                        '&:hover': {
+                                                            backgroundColor: 'var(--menu-item-hover-bg)',
+                                                            color: 'var(--menu-item-hover-fg)',
+                                                        },
+                                                        '&.Mui-selected': {
+                                                            backgroundColor: 'var(--menu-item-active-bg)',
+                                                            color: 'var(--menu-item-active-fg)',
+                                                        },
+                                                    }}
+                                                >
+                                                    {label}
+                                                </MenuItem>
+                                            ))}
+                                        </Menu>
+                                    </>
+                                ) : null}
 
                                 <NavLink to={withDarkPath(pathname, '/contact-us')} className={({ isActive }) => (isActive ? 'active' : '')} style={headerNavLinkStyle}>
                                     {t('nav.contactUs')}

@@ -8,14 +8,15 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
 import { isGuestRole, normalizeRole, resolveRole } from '../portalUtils';
 import { withDarkPath } from '../routePaths';
 
-const PortalSetup = () => {
+const PortalHome = () => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const {
     account,
     isAuthenticated,
@@ -67,7 +68,16 @@ const PortalSetup = () => {
               <Stack spacing={1.25}>
                 <Alert severity="info">{t('portalSetup.portalActionsUnavailable')}</Alert>
                 <Box>
-                  <Button type="button" variant="contained" onClick={signIn}>
+                  <Button
+                    type="button"
+                    variant="contained"
+                    onClick={async () => {
+                      const didSignIn = await signIn();
+                      if (didSignIn) {
+                        navigate(withDarkPath(pathname, '/portal'));
+                      }
+                    }}
+                  >
                     {t('portalSetup.actions.signIn')}
                   </Button>
                 </Box>
@@ -116,4 +126,4 @@ const PortalSetup = () => {
   );
 };
 
-export default PortalSetup;
+export default PortalHome;

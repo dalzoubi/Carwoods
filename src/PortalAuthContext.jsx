@@ -92,7 +92,7 @@ export const PortalAuthProvider = ({ children }) => {
   const signInWithProvider = useCallback(async (domainHint) => {
     if (!msalInstance) {
       setAuthStatus('unconfigured');
-      return;
+      return false;
     }
     setAuthStatus('authenticating');
     setAuthError('');
@@ -112,9 +112,11 @@ export const PortalAuthProvider = ({ children }) => {
       }
       syncActiveAccount();
       setRefreshTick((x) => x + 1);
+      return true;
     } catch (error) {
       setAuthStatus('error');
       setAuthError(error instanceof Error ? error.message : 'auth_failed');
+      return false;
     }
   }, [syncActiveAccount]);
 

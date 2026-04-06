@@ -591,7 +591,7 @@
         "options": {
           "none": { "label": "Pas d'animaux", "desc": "" },
           "pets": { "label": "Oui — animal(aux)", "desc": "Chats, chiens ou autres animaux domestiques" },
-          "service": { "label": "Oui — animal d'assistance", "desc": "Entraîné pour effectuer des tâches liées à un handicap" },
+          "service": { "label": "Oui — animal d'assistance", "desc": "Dressé pour effectuer des tâches liées à un handicap" },
           "esa": { "label": "Oui — ESA ou animal de soutien", "desc": "Animal de soutien émotionnel ou autre animal d'assistance" }
         }
       },
@@ -656,14 +656,14 @@
       "checkMe": "Vérifier /portal/me",
       "open": "Ouvrir",
       "openWorkspace": "Ouvrir l'espace portail",
-      "signIn": "Se connecter avec Entra",
+      "signIn": "Se connecter",
       "signOut": "Se déconnecter",
       "refreshSession": "Actualiser la session enregistrée"
     },
-    "entraHeading": "Vérifications d'environnement SPA Entra",
-    "entraClientId": "VITE_ENTRA_CLIENT_ID",
-    "entraAuthority": "VITE_ENTRA_AUTHORITY",
-    "entraScope": "VITE_ENTRA_API_SCOPE",
+    "entraHeading": "Vérifications de l'environnement d'authentification",
+    "entraClientId": "ID client",
+    "entraAuthority": "URL d'autorité",
+    "entraScope": "Portée API",
     "sessionHeading": "Jeton de session du portail",
     "sessionSaved": "Jeton enregistré",
     "sessionNotSaved": "Aucun jeton enregistré",
@@ -672,7 +672,7 @@
     "tokenDetailsHeading": "Détails du jeton",
     "tokenDetailsUnavailable": "Aucun détail de jeton disponible.",
     "authStatus": {
-      "unconfigured": "Entra non configuré",
+      "unconfigured": "Authentification non configurée",
       "initializing": "Initialisation de l'authentification",
       "unauthenticated": "Déconnecté",
       "authenticating": "Connexion en cours",
@@ -714,7 +714,7 @@
       "signOut": "Se déconnecter"
     },
     "authRequired": "Connectez-vous depuis la configuration du portail avant d'utiliser cet espace.",
-    "authUnconfigured": "Configurez les variables d'environnement Entra avant d'utiliser les espaces du portail.",
+    "authUnconfigured": "Configurez les variables d'environnement d'authentification avant d'utiliser les espaces du portail.",
     "authLoading": "Vérification de la session portail enregistrée…",
     "authError": "Impossible de valider la session portail enregistrée.",
     "authForbidden": "Votre session actuelle n'est pas autorisée pour cet espace.",

@@ -14,7 +14,7 @@ import Accessibility from './components/Accessibility';
 import TermsOfService from './components/TermsOfService';
 import Footer from './components/Footer';
 import ResponsiveNavbar from './components/ResponsiveNavbar';
-import PortalSetup from './components/PortalSetup';
+import PortalHome from './components/PortalHome';
 import PortalStatus from './components/PortalStatus';
 import PortalProfile from './components/PortalProfile';
 import PortalRequests from './components/PortalRequests';
@@ -64,7 +64,7 @@ function PageRoutes() {
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/accessibility" element={<Accessibility />} />
-            <Route path="/portal" element={<PortalSetup />} />
+            <Route path="/portal" element={<PortalHome />} />
             <Route path="/portal/status" element={<PortalStatus />} />
             <Route path="/portal/profile" element={<PortalProfile />} />
             <Route path="/portal/requests" element={<PortalRequests />} />
