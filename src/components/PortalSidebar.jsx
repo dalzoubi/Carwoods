@@ -17,6 +17,7 @@ import {
   Stack,
   Tooltip,
   Typography,
+  useTheme,
 } from '@mui/material';
 import Dashboard from '@mui/icons-material/Dashboard';
 import Build from '@mui/icons-material/Build';
@@ -58,6 +59,7 @@ function userInitials(meData) {
 const PortalSidebar = ({ open, onClose, isMobile, collapsed = false }) => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
+  const muiTheme = useTheme();
   const { isAuthenticated, account, meData, meStatus, signOut } = usePortalAuth();
   const [signOutOpen, setSignOutOpen] = useState(false);
 
@@ -284,16 +286,18 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false }) => {
     </Box>
   );
 
+  const widthTransition = muiTheme.transitions.create('width', {
+    easing: muiTheme.transitions.easing.sharp,
+    duration: muiTheme.transitions.duration.enteringScreen,
+  });
+
   const drawerPaperSx = {
     width: isMobile ? SIDEBAR_WIDTH : (collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH),
     boxSizing: 'border-box',
     borderInlineEnd: '1px solid',
     borderColor: 'divider',
     backgroundImage: 'none',
-    transition: (theme) => theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
+    transition: widthTransition,
     overflowX: 'hidden',
   };
 
@@ -318,10 +322,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false }) => {
       sx={{
         width: collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH,
         flexShrink: 0,
-        transition: (theme) => theme.transitions.create('width', {
-          easing: theme.transitions.easing.sharp,
-          duration: theme.transitions.duration.enteringScreen,
-        }),
+        transition: widthTransition,
         '& .MuiDrawer-paper': drawerPaperSx,
       }}
     >

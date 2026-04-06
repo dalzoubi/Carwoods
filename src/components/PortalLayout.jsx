@@ -16,6 +16,10 @@ const PortalLayout = ({ children }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { pathname } = useLocation();
+  const widthTransition = theme.transitions.create('width', {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.enteringScreen,
+  });
   const sidebarWidth = isMobile ? SIDEBAR_WIDTH : (desktopSidebarCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH);
 
   return (
@@ -36,10 +40,7 @@ const PortalLayout = ({ children }) => {
           flexDirection: 'column',
           minHeight: '100vh',
           width: isMobile ? '100%' : `calc(100% - ${sidebarWidth}px)`,
-          transition: (theme) => theme.transitions.create('width', {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-          }),
+          transition: widthTransition,
         }}
       >
         <PortalTopBar
