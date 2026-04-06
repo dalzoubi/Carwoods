@@ -22,6 +22,7 @@ const PortalRequests = () => {
     meData,
     meStatus,
     getAccessToken,
+    handleApiForbidden,
   } = usePortalAuth();
 
   const role = normalizeRole(resolveRole(meData, account));
@@ -81,6 +82,7 @@ const PortalRequests = () => {
     meStatus,
     account,
     getAccessToken,
+    handleApiForbidden,
     t,
   });
 

@@ -35,6 +35,7 @@ const PortalAdminLandlords = () => {
     meData,
     meStatus,
     getAccessToken,
+    handleApiForbidden,
   } = usePortalAuth();
   const role = normalizeRole(resolveRole(meData, account));
   const isAdmin = role === Role.ADMIN;
@@ -61,6 +62,7 @@ const PortalAdminLandlords = () => {
         landlords: Array.isArray(payload?.landlords) ? payload.landlords : [],
       });
     } catch (error) {
+      handleApiForbidden(error);
       const detail =
         error && typeof error === 'object' && typeof error.message === 'string'
           ? error.message
@@ -69,7 +71,7 @@ const PortalAdminLandlords = () => {
             : 'request_failed';
       setLandlordsState({ status: 'error', detail, landlords: [] });
     }
-  }, [baseUrl, canUseModule, getAccessToken, showInactive]);
+  }, [baseUrl, canUseModule, getAccessToken, handleApiForbidden, showInactive]);
 
   useEffect(() => {
     void loadLandlords();
@@ -108,6 +110,7 @@ const PortalAdminLandlords = () => {
       });
       void loadLandlords();
     } catch (error) {
+      handleApiForbidden(error);
       const detail =
         error && typeof error === 'object' && typeof error.message === 'string'
           ? error.message
@@ -167,6 +170,7 @@ const PortalAdminLandlords = () => {
       setForm({ email: '', firstName: '', lastName: '' });
       void loadLandlords();
     } catch (error) {
+      handleApiForbidden(error);
       const detail =
         error && typeof error === 'object' && typeof error.message === 'string'
           ? error.message

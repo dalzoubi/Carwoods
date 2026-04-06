@@ -17,6 +17,7 @@ import {
   Stack,
   Tooltip,
   Typography,
+  useTheme,
 } from '@mui/material';
 import Dashboard from '@mui/icons-material/Dashboard';
 import Build from '@mui/icons-material/Build';
@@ -62,6 +63,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
   const { t } = useTranslation();
   const theme = useTheme();
   const { pathname } = useLocation();
+  const muiTheme = useTheme();
   const { isAuthenticated, account, meData, meStatus, signOut } = usePortalAuth();
   const [signOutOpen, setSignOutOpen] = useState(false);
 
@@ -342,12 +344,19 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
     </Box>
   );
 
+  const widthTransition = muiTheme.transitions.create('width', {
+    easing: muiTheme.transitions.easing.sharp,
+    duration: muiTheme.transitions.duration.enteringScreen,
+  });
+
   const drawerPaperSx = {
     width: isMobile ? SIDEBAR_WIDTH : (collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH),
     boxSizing: 'border-box',
     borderInlineEnd: '1px solid',
     borderColor: 'divider',
     backgroundImage: 'none',
+    transition: widthTransition,
+    overflowX: 'hidden',
   };
 
   if (isMobile) {
@@ -357,7 +366,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
         open={open}
         onClose={onClose}
         ModalProps={{ keepMounted: true }}
-        sx={{ '& .MuiDrawer-paper': drawerPaperSx }}
+        PaperProps={{ sx: drawerPaperSx }}
       >
         {drawerContent}
       </Drawer>
@@ -371,8 +380,10 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
       sx={{
         width: collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH,
         flexShrink: 0,
-        '& .MuiDrawer-paper': drawerPaperSx,
+        transition: widthTransition,
+        overflow: 'hidden',
       }}
+      PaperProps={{ sx: drawerPaperSx }}
     >
       {drawerContent}
     </Drawer>

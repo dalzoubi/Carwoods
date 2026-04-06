@@ -59,6 +59,7 @@ const PortalProfile = () => {
     meData,
     meStatus,
     getAccessToken,
+    handleApiForbidden,
     refreshMe,
   } = usePortalAuth();
   const role = resolveRole(meData, account);
@@ -144,6 +145,7 @@ const PortalProfile = () => {
       setSnackOpen(true);
       refreshMe();
     } catch (error) {
+      handleApiForbidden(error);
       setSaveStatus('error');
       const msg =
         error && typeof error === 'object' && typeof error.message === 'string'
