@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { Box, useMediaQuery, useTheme } from '@mui/material';
+import { keyframes } from '@emotion/react';
 import { useLocation } from 'react-router-dom';
 import PortalSidebar, { SIDEBAR_COLLAPSED_WIDTH, SIDEBAR_WIDTH } from './PortalSidebar';
 import PortalTopBar from './PortalTopBar';
+
+const portalPageIn = keyframes({
+  from: { opacity: 0, transform: 'translateY(8px)' },
+  to: { opacity: 1, transform: 'translateY(0)' },
+});
 
 const PortalLayout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -52,11 +58,7 @@ const PortalLayout = ({ children }) => {
             width: '100%',
             boxSizing: 'border-box',
             mx: 'auto',
-            '@keyframes portalPageIn': {
-              from: { opacity: 0, transform: 'translateY(8px)' },
-              to: { opacity: 1, transform: 'translateY(0)' },
-            },
-            animation: 'portalPageIn 0.22s ease-out',
+            animation: `${portalPageIn} 0.22s ease-out`,
           }}
         >
           {children}
