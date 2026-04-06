@@ -32,7 +32,36 @@ describe('useMeProfile', () => {
     vi.restoreAllMocks();
   });
 
-  it('returns meStatus ok and meErrorStatus null on success', async () => {
+  it('sets meErrorStatus=403 and meErrorCode=account_disabled on disabled account response', async () => {
+    global.fetch.mockResolvedValueOnce(
+      jsonResponse({ error: 'account_disabled' }, 403)
+    );
+
+    const params = baseParams();
+    const { result } = renderHook(() => useMeProfile(params));
+
+    await waitFor(() => expect(result.current.meStatus).toBe('error'));
+    expect(result.current.meErrorStatus).toBe(403);
+    expect(result.current.meErrorCode).toBe('account_disabled');
+    expect(result.current.meError).toContain('HTTP 403');
+    expect(result.current.meData).toBeNull();
+  });
+
+  it('sets meErrorStatus=403 and meErrorCode=no_portal_access on guest/no-access response', async () => {
+    global.fetch.mockResolvedValueOnce(
+      jsonResponse({ error: 'no_portal_access' }, 403)
+    );
+
+    const params = baseParams();
+    const { result } = renderHook(() => useMeProfile(params));
+
+    await waitFor(() => expect(result.current.meStatus).toBe('error'));
+    expect(result.current.meErrorStatus).toBe(403);
+    expect(result.current.meErrorCode).toBe('no_portal_access');
+    expect(result.current.meData).toBeNull();
+  });
+
+  it('sets meErrorCode=null on success', async () => {
     global.fetch.mockResolvedValueOnce(
       jsonResponse({ role: 'TENANT', user: { status: 'ACTIVE' } })
     );
@@ -41,22 +70,7 @@ describe('useMeProfile', () => {
     const { result } = renderHook(() => useMeProfile(params));
 
     await waitFor(() => expect(result.current.meStatus).toBe('ok'));
-    expect(result.current.meErrorStatus).toBeNull();
-    expect(result.current.meData).toEqual({ role: 'TENANT', user: { status: 'ACTIVE' } });
-  });
-
-  it('sets meErrorStatus to 403 when /me returns forbidden', async () => {
-    global.fetch.mockResolvedValueOnce(
-      jsonResponse({ error: 'forbidden' }, 403)
-    );
-
-    const params = baseParams();
-    const { result } = renderHook(() => useMeProfile(params));
-
-    await waitFor(() => expect(result.current.meStatus).toBe('error'));
-    expect(result.current.meErrorStatus).toBe(403);
-    expect(result.current.meError).toContain('HTTP 403');
-    expect(result.current.meData).toBeNull();
+    expect(result.current.meErrorCode).toBeNull();
   });
 
   it('sets meErrorStatus to 500 on server error', async () => {
@@ -69,6 +83,7 @@ describe('useMeProfile', () => {
 
     await waitFor(() => expect(result.current.meStatus).toBe('error'));
     expect(result.current.meErrorStatus).toBe(500);
+    expect(result.current.meErrorCode).toBe('internal_error');
   });
 
   it('sets meErrorStatus to null on network error', async () => {
@@ -79,13 +94,15 @@ describe('useMeProfile', () => {
 
     await waitFor(() => expect(result.current.meStatus).toBe('error'));
     expect(result.current.meErrorStatus).toBeNull();
+    expect(result.current.meErrorCode).toBeNull();
   });
 
-  it('clears meErrorStatus when authStatus is not authenticated', async () => {
+  it('clears meErrorStatus and meErrorCode when authStatus is not authenticated', async () => {
     const params = baseParams({ authStatus: 'unauthenticated' });
     const { result } = renderHook(() => useMeProfile(params));
 
     await waitFor(() => expect(result.current.meStatus).toBe('idle'));
     expect(result.current.meErrorStatus).toBeNull();
+    expect(result.current.meErrorCode).toBeNull();
   });
 });

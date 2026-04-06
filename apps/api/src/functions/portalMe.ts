@@ -93,7 +93,7 @@ async function portalMeHandler(
     return {
       status: 403,
       headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-      jsonBody: { error: 'forbidden' },
+      jsonBody: { error: 'no_portal_access' },
     };
   }
 
@@ -102,8 +102,9 @@ async function portalMeHandler(
   const isAllowedRole = role === Role.TENANT || role === Role.LANDLORD || role === Role.ADMIN;
   const isActive = status === 'ACTIVE' || status === 'INVITED';
   if (!isAllowedRole || !isActive) {
+    const isDisabled = status === 'DISABLED';
     logWarn(context, 'portal.me.forbidden', {
-      reason: 'forbidden_role_or_status',
+      reason: isDisabled ? 'account_disabled' : 'forbidden_role_or_status',
       role,
       status,
       userId: user.id,
@@ -113,7 +114,7 @@ async function portalMeHandler(
     return {
       status: 403,
       headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-      jsonBody: { error: 'forbidden' },
+      jsonBody: { error: isDisabled ? 'account_disabled' : 'no_portal_access' },
     };
   }
 

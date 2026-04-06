@@ -34,18 +34,18 @@ describe('PortalLoginLanding', () => {
     await i18n.changeLanguage('en');
   });
 
-  it('does not show the account-disabled banner by default', () => {
+  it('shows the sign-in button and no alerts by default', () => {
     render(
       <WithAppTheme>
         <PortalLoginLanding />
       </WithAppTheme>
     );
-    expect(
-      screen.queryByText(/your account has been disabled/i)
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/your account has been disabled/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/does not have access/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });
 
-  it('shows the account-disabled error alert when lockoutReason is account_disabled', () => {
+  it('shows the account-disabled error alert and hides sign-in button', () => {
     authState.lockoutReason = 'account_disabled';
 
     render(
@@ -54,9 +54,21 @@ describe('PortalLoginLanding', () => {
       </WithAppTheme>
     );
 
-    expect(
-      screen.getByText(/your account has been disabled/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/your account has been disabled/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /sign in/i })).not.toBeInTheDocument();
+  });
+
+  it('shows the no-portal-access warning alert and hides sign-in button', () => {
+    authState.lockoutReason = 'no_portal_access';
+
+    render(
+      <WithAppTheme>
+        <PortalLoginLanding />
+      </WithAppTheme>
+    );
+
+    expect(screen.getByText(/does not have access to this portal/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /sign in/i })).not.toBeInTheDocument();
   });
 
   it('shows configWarning when authStatus is unconfigured', () => {
@@ -71,9 +83,11 @@ describe('PortalLoginLanding', () => {
     expect(
       screen.getByText(/portal authentication is not configured yet/i)
     ).toBeInTheDocument();
+    // Sign-in button hidden when unconfigured (existing behaviour)
+    expect(screen.queryByRole('button', { name: /sign in/i })).not.toBeInTheDocument();
   });
 
-  it('can show both account-disabled and unconfigured alerts simultaneously', () => {
+  it('shows account-disabled alert even when authStatus is unconfigured', () => {
     authState.lockoutReason = 'account_disabled';
     authState.authStatus = 'unconfigured';
 
@@ -83,9 +97,7 @@ describe('PortalLoginLanding', () => {
       </WithAppTheme>
     );
 
-    expect(
-      screen.getByText(/your account has been disabled/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/your account has been disabled/i)).toBeInTheDocument();
     expect(
       screen.getByText(/portal authentication is not configured yet/i)
     ).toBeInTheDocument();

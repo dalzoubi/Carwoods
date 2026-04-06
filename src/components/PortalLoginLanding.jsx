@@ -32,6 +32,8 @@ const PortalLoginLanding = () => {
   const { authStatus, signIn, lockoutReason } = usePortalAuth();
   const isUnconfigured = authStatus === 'unconfigured';
   const isAccountDisabled = lockoutReason === 'account_disabled';
+  const isNoPortalAccess = lockoutReason === 'no_portal_access';
+  const isLockedOut = isAccountDisabled || isNoPortalAccess;
 
   return (
     <Box
@@ -102,13 +104,19 @@ const PortalLoginLanding = () => {
             </Alert>
           )}
 
+          {isNoPortalAccess && (
+            <Alert severity="warning" sx={{ width: '100%' }}>
+              {t('portalLogin.noPortalAccess')}
+            </Alert>
+          )}
+
           {isUnconfigured && (
             <Alert severity="warning" sx={{ width: '100%' }}>
               {t('portalLogin.configWarning')}
             </Alert>
           )}
 
-          {!isUnconfigured && (
+          {!isUnconfigured && !isLockedOut && (
             <Button
               type="button"
               variant="contained"

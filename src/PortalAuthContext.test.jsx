@@ -18,6 +18,7 @@ const { mockMsalInstance, meProfileState } = vi.hoisted(() => {
     meData: { role: 'TENANT', user: { status: 'ACTIVE' } },
     meError: '',
     meErrorStatus: null,
+    meErrorCode: null,
   };
 
   const mockMsalInstance = {
@@ -86,6 +87,7 @@ describe('PortalAuthContext — disabled-account lockout', () => {
     meProfileState.meData = { role: 'TENANT', user: { status: 'ACTIVE' } };
     meProfileState.meError = '';
     meProfileState.meErrorStatus = null;
+    meProfileState.meErrorCode = null;
 
     mockMsalInstance.getActiveAccount.mockReturnValue({
       homeAccountId: 'acc-1',
@@ -111,11 +113,12 @@ describe('PortalAuthContext — disabled-account lockout', () => {
     expect(screen.getByTestId('lockoutReason').textContent).toBe('none');
   });
 
-  it('sets lockoutReason=account_disabled and signs out when /me returns 403', async () => {
+  it('sets lockoutReason=account_disabled when /me returns 403 with account_disabled error code', async () => {
     meProfileState.meStatus = 'error';
     meProfileState.meData = null;
-    meProfileState.meError = 'HTTP 403 (forbidden)';
+    meProfileState.meError = 'HTTP 403 (account_disabled)';
     meProfileState.meErrorStatus = 403;
+    meProfileState.meErrorCode = 'account_disabled';
 
     // When clearCache resolves, MSAL no longer has an active account, so
     // any subsequent syncActiveAccount call correctly sees no account.
@@ -139,11 +142,39 @@ describe('PortalAuthContext — disabled-account lockout', () => {
     expect(mockMsalInstance.clearCache).toHaveBeenCalled();
   });
 
+  it('sets lockoutReason=no_portal_access when /me returns 403 with no_portal_access error code', async () => {
+    meProfileState.meStatus = 'error';
+    meProfileState.meData = null;
+    meProfileState.meError = 'HTTP 403 (no_portal_access)';
+    meProfileState.meErrorStatus = 403;
+    meProfileState.meErrorCode = 'no_portal_access';
+
+    mockMsalInstance.clearCache.mockImplementation(async () => {
+      mockMsalInstance.getActiveAccount.mockReturnValue(null);
+      mockMsalInstance.getAllAccounts.mockReturnValue([]);
+    });
+
+    render(
+      <PortalAuthProvider>
+        <Inspector />
+      </PortalAuthProvider>
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('lockoutReason').textContent).toBe('no_portal_access')
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId('authStatus').textContent).toBe('unauthenticated')
+    );
+    expect(mockMsalInstance.clearCache).toHaveBeenCalled();
+  });
+
   it('does NOT sign out for non-403 /me errors', async () => {
     meProfileState.meStatus = 'error';
     meProfileState.meData = null;
     meProfileState.meError = 'HTTP 500 (internal_error)';
     meProfileState.meErrorStatus = 500;
+    meProfileState.meErrorCode = 'internal_error';
 
     render(
       <PortalAuthProvider>
