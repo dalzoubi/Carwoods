@@ -183,6 +183,9 @@ export async function fetchHarListingTile(listingId: string): Promise<HarApplyTi
     redirect: 'follow',
   });
   if (!res.ok) {
+    if (res.status === 403) {
+      throw new Error(`HAR ${id}: HTTP 403 Forbidden`);
+    }
     throw new Error(`HAR ${id}: HTTP ${res.status}`);
   }
   const html = await res.text();
