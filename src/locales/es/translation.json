@@ -1041,7 +1041,8 @@
     },
     "signInPrompt": "Inicia sesión para comenzar",
     "backToSite": "Volver a carwoods.com",
-    "configWarning": "La autenticación del portal aún no está configurada."
+    "configWarning": "La autenticación del portal aún no está configurada.",
+    "accountDisabled": "Tu cuenta ha sido desactivada. Comunícate con tu administrador de propiedad para obtener ayuda."
   },
   "socialSignIn": {
     "prompt": "Iniciar sesión con",

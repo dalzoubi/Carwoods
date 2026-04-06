@@ -12,17 +12,19 @@ import { fetchMe } from '../lib/portalApiClient';
  * @param {string} params.baseUrl - API base URL (empty string = disabled)
  * @param {() => Promise<string>} params.getAccessToken - Returns a Bearer token
  * @param {number} params.refreshTick - Increment to trigger a re-fetch
- * @returns {{ meStatus: string, meData: object|null, meError: string }}
+ * @returns {{ meStatus: string, meData: object|null, meError: string, meErrorStatus: number|null }}
  */
 export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, refreshTick }) {
   const [meStatus, setMeStatus] = useState('idle');
   const [meData, setMeData] = useState(null);
   const [meError, setMeError] = useState('');
+  const [meErrorStatus, setMeErrorStatus] = useState(null);
 
   const clearMe = useCallback(() => {
     setMeStatus('idle');
     setMeData(null);
     setMeError('');
+    setMeErrorStatus(null);
   }, []);
 
   useEffect(() => {
@@ -35,6 +37,7 @@ export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, ref
     const run = async () => {
       setMeStatus('loading');
       setMeError('');
+      setMeErrorStatus(null);
       try {
         const accessToken = await getAccessToken();
         const hint = emailFromAccount(account);
@@ -52,6 +55,11 @@ export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, ref
               ? error.message
               : 'request_failed'
         );
+        setMeErrorStatus(
+          error && typeof error === 'object' && typeof error.status === 'number'
+            ? error.status
+            : null
+        );
       }
     };
 
@@ -59,5 +67,5 @@ export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, ref
     return () => controller.abort();
   }, [account, authStatus, baseUrl, clearMe, getAccessToken, refreshTick]);
 
-  return { meStatus, meData, meError };
+  return { meStatus, meData, meError, meErrorStatus };
 }
