@@ -45,6 +45,34 @@ describe('PortalLoginLanding', () => {
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });
 
+  it('shows a spinner and no sign-in button while initializing', () => {
+    authState.authStatus = 'initializing';
+
+    render(
+      <WithAppTheme>
+        <PortalLoginLanding />
+      </WithAppTheme>
+    );
+
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    expect(screen.getByText(/initializing auth/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /sign in/i })).not.toBeInTheDocument();
+  });
+
+  it('shows a signing-in spinner and no sign-in button while authenticating', () => {
+    authState.authStatus = 'authenticating';
+
+    render(
+      <WithAppTheme>
+        <PortalLoginLanding />
+      </WithAppTheme>
+    );
+
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    expect(screen.getByText(/signing in/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /sign in/i })).not.toBeInTheDocument();
+  });
+
   it('shows the account-disabled error alert and hides sign-in button', () => {
     authState.lockoutReason = 'account_disabled';
 

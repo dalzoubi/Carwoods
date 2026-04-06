@@ -4,6 +4,7 @@ import {
   Alert,
   Box,
   Button,
+  CircularProgress,
   Divider,
   Paper,
   Stack,
@@ -31,6 +32,7 @@ const PortalLoginLanding = () => {
   const { pathname } = useLocation();
   const { authStatus, signIn, lockoutReason } = usePortalAuth();
   const isUnconfigured = authStatus === 'unconfigured';
+  const isLoading = authStatus === 'initializing' || authStatus === 'authenticating';
   const isAccountDisabled = lockoutReason === 'account_disabled';
   const isNoPortalAccess = lockoutReason === 'no_portal_access';
   const isLockedOut = isAccountDisabled || isNoPortalAccess;
@@ -116,7 +118,18 @@ const PortalLoginLanding = () => {
             </Alert>
           )}
 
-          {!isUnconfigured && !isLockedOut && (
+          {isLoading && (
+            <Stack spacing={1.5} alignItems="center" sx={{ py: 1 }}>
+              <CircularProgress size={28} />
+              <Typography variant="body2" color="text.secondary">
+                {authStatus === 'authenticating'
+                  ? t('portalSetup.authStatus.authenticating')
+                  : t('portalSetup.authStatus.initializing')}
+              </Typography>
+            </Stack>
+          )}
+
+          {!isUnconfigured && !isLockedOut && !isLoading && (
             <Button
               type="button"
               variant="contained"
