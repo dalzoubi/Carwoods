@@ -37,11 +37,21 @@ describe('usePortalRequests', () => {
   });
 
   it('loads requests and request details on initial mount', async () => {
+    // Mock order for non-management (isManagement: false):
+    // Both useEffect hooks fire concurrently. Effect 1 (loadRequests) and
+    // Effect 2 (loadLookups) each call headersBuilder() in the same microtask
+    // batch. FIFO resolution means effect 1 consumes mock 1 (list), then
+    // effect 2 consumes mock 2 (lookups), then effect 1 continues with
+    // mocks 3-5 (detail, messages, attachments).
     global.fetch
       .mockResolvedValueOnce(
         jsonResponse({
           requests: [{ id: 'req-1', title: 'Kitchen leak', current_status_id: 'OPEN' }],
         })
+      )
+      .mockResolvedValueOnce(
+        // Consumed by loadLookups (effect 2 fires concurrently with effect 1)
+        jsonResponse({ categories: [], priorities: [], tenant_defaults: null, landlord_contact: null })
       )
       .mockResolvedValueOnce(
         jsonResponse({
@@ -64,7 +74,12 @@ describe('usePortalRequests', () => {
         })
       );
 
-    const { result } = renderHook(() => usePortalRequests(baseParams()));
+    // Pre-create stable params so getAccessToken and account keep the same
+    // reference across renders. Recreating them on every render would cause
+    // headersBuilder (useMemo on [account, getAccessToken]) to recompute
+    // every render, re-triggering useEffect(loadLookups) infinitely → OOM.
+    const params = baseParams();
+    const { result } = renderHook(() => usePortalRequests(params));
 
     await waitFor(() => {
       expect(result.current.requestsStatus).toBe('ok');
@@ -75,10 +90,11 @@ describe('usePortalRequests', () => {
     expect(result.current.requestDetail?.id).toBe('req-1');
     expect(result.current.threadMessages).toHaveLength(1);
     expect(result.current.attachments).toHaveLength(1);
-    expect(global.fetch).toHaveBeenCalledTimes(4);
+    expect(global.fetch).toHaveBeenCalledTimes(5);
   });
 
   it('handles suggest-reply failure for management users', async () => {
+    // isManagement: true skips the loadLookups effect, so no extra mock needed.
     global.fetch
       .mockResolvedValueOnce(
         jsonResponse({
@@ -99,14 +115,11 @@ describe('usePortalRequests', () => {
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
       .mockResolvedValueOnce(jsonResponse({ error: 'upstream_failed' }, 500));
 
-    const { result } = renderHook(() =>
-      usePortalRequests(
-        baseParams({
-          isManagement: true,
-          account: { idTokenClaims: { email: 'landlord@example.com' } },
-        })
-      )
-    );
+    const params = baseParams({
+      isManagement: true,
+      account: { idTokenClaims: { email: 'landlord@example.com' } },
+    });
+    const { result } = renderHook(() => usePortalRequests(params));
 
     await waitFor(() => {
       expect(result.current.requestsStatus).toBe('ok');
@@ -130,6 +143,10 @@ describe('usePortalRequests', () => {
         })
       )
       .mockResolvedValueOnce(
+        // Consumed by loadLookups (runs concurrently for non-management)
+        jsonResponse({ categories: [], priorities: [], tenant_defaults: null, landlord_contact: null })
+      )
+      .mockResolvedValueOnce(
         jsonResponse({
           request: {
             id: 'req-2',
@@ -143,7 +160,8 @@ describe('usePortalRequests', () => {
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
       .mockResolvedValueOnce(jsonResponse({ upload: { upload_url: 'https://example.invalid/upload' } }));
 
-    const { result } = renderHook(() => usePortalRequests(baseParams()));
+    const params = baseParams();
+    const { result } = renderHook(() => usePortalRequests(params));
 
     await waitFor(() => {
       expect(result.current.requestsStatus).toBe('ok');
@@ -170,6 +188,10 @@ describe('usePortalRequests', () => {
         })
       )
       .mockResolvedValueOnce(
+        // Consumed by loadLookups (runs concurrently for non-management)
+        jsonResponse({ categories: [], priorities: [], tenant_defaults: null, landlord_contact: null })
+      )
+      .mockResolvedValueOnce(
         jsonResponse({
           request: {
             id: 'req-3',
@@ -183,7 +205,8 @@ describe('usePortalRequests', () => {
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
       .mockResolvedValueOnce(jsonResponse({ error: 'unsupported_mime_type' }, 400));
 
-    const { result } = renderHook(() => usePortalRequests(baseParams()));
+    const params = baseParams();
+    const { result } = renderHook(() => usePortalRequests(params));
 
     await waitFor(() => {
       expect(result.current.requestsStatus).toBe('ok');

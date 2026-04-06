@@ -897,12 +897,14 @@
     "intro": "Registra propiedades buscando en HAR o ingresando los detalles manualmente. Activa 'Mostrar en página de solicitudes' para controlar cuáles aparecen en el listado público.",
     "harSearch": {
       "heading": "Buscar en HAR",
-      "harIdLabel": "ID de listado HAR",
-      "harIdHelperText": "ID numérico al final de la URL de homedetail en HAR.com",
+      "harIdLabel": "ID o URL de listado HAR",
+      "harIdHelperText": "Pega la URL completa de homedetail en HAR.com o solo el ID numérico al final",
       "searchButton": "Buscar en HAR",
       "searching": "Buscando…",
+      "invalidInput": "No se encontró un ID numérico en el valor ingresado. Pega la URL completa de HAR.com (p. ej. https://www.har.com/homedetail/…/8469293) o solo el ID numérico.",
       "notFound": "No se encontraron datos para ese ID. Verifica el ID e inténtalo de nuevo.",
-      "fetchError": "No se pudo acceder a HAR. Verifica el ID e inténtalo de nuevo, o ingresa los detalles manualmente.",
+      "noApiConfigured": "La API no está configurada. Define VITE_API_BASE_URL en tu .env para habilitar la búsqueda en HAR.",
+      "fetchError": "No se pudo acceder a HAR. El listado puede no estar disponible, o intenta ingresar los detalles manualmente.",
       "found": "Listado encontrado — detalles completados abajo."
     },
     "form": {

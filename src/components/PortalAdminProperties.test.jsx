@@ -14,6 +14,8 @@ vi.mock('../PortalAuthContext', () => ({
       user: { first_name: 'Test', last_name: 'Landlord', role: 'LANDLORD', status: 'ACTIVE' },
     },
     meStatus: 'ok',
+    baseUrl: 'https://api.carwoods.com',
+    getAccessToken: vi.fn().mockResolvedValue('mock-token'),
   }),
   PortalAuthProvider: ({ children }) => children,
   hasLandlordAccess: () => true,
@@ -223,5 +225,68 @@ describe('PortalAdminProperties', () => {
     const submitBtn = screen.getByRole('button', { name: /add property/i });
     // With LANDLORD role, button is enabled (not disabled)
     expect(submitBtn).not.toBeDisabled();
+  });
+
+  it('accepts a full HAR URL and calls the API proxy', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        listing: {
+          id: 'har-8469293',
+          addressLine: '6314 Bonnie Chase Ln',
+          cityStateZip: 'Katy, TX 77449',
+          monthlyRentLabel: '$2,100/mo',
+          photoUrl: '',
+          harListingUrl: 'https://www.har.com/homedetail/6314-bonnie-chase-ln-katy-tx-77449/8469293',
+          applyUrl: 'https://apply.link/abc123',
+          detailLines: ['3 Bedroom(s)'],
+        },
+      }),
+    });
+
+    render(
+      <WithAppTheme>
+        <PortalAdminProperties />
+      </WithAppTheme>
+    );
+
+    const input = screen.getByLabelText(/har listing id or url/i);
+    fireEvent.change(input, {
+      target: { value: 'https://www.har.com/homedetail/6314-bonnie-chase-ln-katy-tx-77449/8469293' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /search har/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/listing found/i)).toBeInTheDocument();
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('har-preview?id=8469293'),
+      expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer mock-token' }) })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('6314 Bonnie Chase Ln')).toBeInTheDocument();
+    });
+
+    delete global.fetch;
+  });
+
+  it('shows invalid-input error when a non-HAR URL is entered', async () => {
+    render(
+      <WithAppTheme>
+        <PortalAdminProperties />
+      </WithAppTheme>
+    );
+
+    const input = screen.getByLabelText(/har listing id or url/i);
+    fireEvent.change(input, { target: { value: 'https://example.com/not-a-har-url' } });
+    fireEvent.click(screen.getByRole('button', { name: /search har/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/could not find a numeric listing id/i)).toBeInTheDocument();
+    });
   });
 });
