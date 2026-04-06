@@ -74,6 +74,30 @@ function Inspector() {
   );
 }
 
+function ForbiddenTrigger() {
+  const ctx = usePortalAuth();
+  return (
+    <div>
+      <span data-testid="authStatus">{ctx.authStatus}</span>
+      <span data-testid="lockoutReason">{ctx.lockoutReason ?? 'none'}</span>
+      <button
+        type="button"
+        data-testid="trigger403"
+        onClick={() => ctx.handleApiForbidden({ status: 403, code: 'forbidden', message: 'HTTP 403 (forbidden)' })}
+      >
+        trigger 403
+      </button>
+      <button
+        type="button"
+        data-testid="trigger500"
+        onClick={() => ctx.handleApiForbidden({ status: 500, code: 'internal_error', message: 'HTTP 500' })}
+      >
+        trigger 500
+      </button>
+    </div>
+  );
+}
+
 describe('ME_POLL_INTERVAL_MS', () => {
   it('is exported and equals 5 minutes (300 000 ms)', () => {
     expect(typeof ME_POLL_INTERVAL_MS).toBe('number');
@@ -187,6 +211,117 @@ describe('PortalAuthContext — disabled-account lockout', () => {
     );
 
     expect(screen.getByTestId('lockoutReason').textContent).toBe('none');
+    expect(mockMsalInstance.clearCache).not.toHaveBeenCalled();
+  });
+});
+
+describe('PortalAuthContext — handleApiForbidden', () => {
+  beforeEach(async () => {
+    meProfileState.meStatus = 'ok';
+    meProfileState.meData = { role: 'TENANT', user: { status: 'ACTIVE' } };
+    meProfileState.meError = '';
+    meProfileState.meErrorStatus = null;
+    meProfileState.meErrorCode = null;
+
+    mockMsalInstance.getActiveAccount.mockReturnValue({
+      homeAccountId: 'acc-1',
+      username: 'user@example.com',
+    });
+    mockMsalInstance.getAllAccounts.mockReturnValue([
+      { homeAccountId: 'acc-1', username: 'user@example.com' },
+    ]);
+    mockMsalInstance.clearCache.mockClear();
+    await i18n.changeLanguage('en');
+  });
+
+  it('is exposed in the context value', async () => {
+    let capturedHandle;
+    function Capture() {
+      const ctx = usePortalAuth();
+      capturedHandle = ctx.handleApiForbidden;
+      return null;
+    }
+    render(
+      <PortalAuthProvider>
+        <Capture />
+      </PortalAuthProvider>
+    );
+    await waitFor(() => expect(typeof capturedHandle).toBe('function'));
+  });
+
+  it('signs out with account_disabled lockout when called with a 403 error', async () => {
+    mockMsalInstance.clearCache.mockImplementation(async () => {
+      mockMsalInstance.getActiveAccount.mockReturnValue(null);
+      mockMsalInstance.getAllAccounts.mockReturnValue([]);
+    });
+
+    const { getByTestId } = render(
+      <PortalAuthProvider>
+        <ForbiddenTrigger />
+      </PortalAuthProvider>
+    );
+
+    await waitFor(() =>
+      expect(getByTestId('authStatus').textContent).toBe('authenticated')
+    );
+
+    getByTestId('trigger403').click();
+
+    await waitFor(() =>
+      expect(getByTestId('lockoutReason').textContent).toBe('account_disabled')
+    );
+    await waitFor(() =>
+      expect(getByTestId('authStatus').textContent).toBe('unauthenticated')
+    );
+    expect(mockMsalInstance.clearCache).toHaveBeenCalled();
+  });
+
+  it('does NOT sign out when called with a non-403 error', async () => {
+    const { getByTestId } = render(
+      <PortalAuthProvider>
+        <ForbiddenTrigger />
+      </PortalAuthProvider>
+    );
+
+    await waitFor(() =>
+      expect(getByTestId('authStatus').textContent).toBe('authenticated')
+    );
+
+    getByTestId('trigger500').click();
+
+    // Give React time to settle; status should remain authenticated.
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(getByTestId('authStatus').textContent).toBe('authenticated');
+    expect(getByTestId('lockoutReason').textContent).toBe('none');
+    expect(mockMsalInstance.clearCache).not.toHaveBeenCalled();
+  });
+
+  it('does NOT sign out when called with null or a plain Error', async () => {
+    let capturedHandle;
+    function Capture() {
+      const ctx = usePortalAuth();
+      capturedHandle = ctx.handleApiForbidden;
+      return <span data-testid="authStatus">{ctx.authStatus}</span>;
+    }
+    render(
+      <PortalAuthProvider>
+        <Capture />
+      </PortalAuthProvider>
+    );
+
+    await waitFor(() =>
+      expect(capturedHandle).toBeDefined()
+    );
+
+    // These should be no-ops (no throw).
+    capturedHandle(null);
+    capturedHandle(undefined);
+    capturedHandle(new Error('network'));
+    capturedHandle({ status: 401, code: 'unauthorized' });
+
+    await new Promise((r) => setTimeout(r, 50));
+    expect(screen.getByTestId('authStatus').textContent).toBe('authenticated');
     expect(mockMsalInstance.clearCache).not.toHaveBeenCalled();
   });
 });
