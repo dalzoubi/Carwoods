@@ -37,6 +37,7 @@ function usePageTitle(t) {
     '/portal/requests': t('portalLayout.sidebar.requests'),
     '/portal/profile': t('portalLayout.sidebar.profile'),
     '/portal/admin': t('portalLayout.sidebar.adminLandlords'),
+    '/portal/properties': t('portalLayout.sidebar.properties'),
     '/portal/status': t('portalLayout.sidebar.status'),
   };
   return titles[normalized] || t('portalLayout.sidebar.dashboard');

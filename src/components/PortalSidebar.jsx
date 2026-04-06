@@ -20,6 +20,7 @@ import Build from '@mui/icons-material/Build';
 import Person from '@mui/icons-material/Person';
 import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
 import MonitorHeart from '@mui/icons-material/MonitorHeart';
+import HomeWork from '@mui/icons-material/HomeWork';
 import Logout from '@mui/icons-material/Logout';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
@@ -73,6 +74,11 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false }) => {
       ? [
           { key: 'requests', to: '/portal/requests', label: t('portalLayout.sidebar.requests'), icon: <Build /> },
           { key: 'profile', to: '/portal/profile', label: t('portalLayout.sidebar.profile'), icon: <Person /> },
+        ]
+      : []),
+    ...(roleResolved && (normalized === 'LANDLORD' || normalized === 'ADMIN')
+      ? [
+          { key: 'properties', to: '/portal/properties', label: t('portalLayout.sidebar.properties'), icon: <HomeWork /> },
         ]
       : []),
     ...(normalized === 'ADMIN'

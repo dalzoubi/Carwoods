@@ -13,6 +13,7 @@ import {
   logDualSourceApplyMismatch,
 } from '../publicApplyProperties';
 import { RENTAL_APPLY_PROPERTIES } from '../data/rentalPropertyApplyTiles.generated';
+import { loadPublicProperties } from '../portalPropertiesStorage';
 
 /** Opens in the browser; mobile OS typically offers the Maps app. */
 function mapsSearchUrl(addressLine, cityStateZip) {
@@ -263,9 +264,21 @@ function TileList({ tiles, t }) {
   );
 }
 
+function mergePortalProperties(baseTiles) {
+  const portalTiles = loadPublicProperties();
+  if (!portalTiles.length) return baseTiles;
+  // Avoid duplicates: if a portal property has the same harId as a base tile, prefer the portal record.
+  const portalHarIds = new Set(portalTiles.map((p) => p.harId).filter(Boolean));
+  const deduped = baseTiles.filter((t) => !portalHarIds.has(String(t.id).replace(/^har-/, '')));
+  return [...deduped, ...portalTiles];
+}
+
 const RentalPropertyApplyTiles = () => {
   const { t } = useTranslation();
-  const [tiles, setTiles] = useState(() => (FEATURE_APPLY_FROM_API ? null : RENTAL_APPLY_PROPERTIES));
+  const [tiles, setTiles] = useState(() => {
+    if (FEATURE_APPLY_FROM_API) return null;
+    return mergePortalProperties(RENTAL_APPLY_PROPERTIES);
+  });
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
@@ -280,15 +293,12 @@ const RentalPropertyApplyTiles = () => {
         if (FEATURE_APPLY_DUAL_SOURCE_COMPARE_DEV && RENTAL_APPLY_PROPERTIES.length > 0) {
           logDualSourceApplyMismatch(apiTiles, RENTAL_APPLY_PROPERTIES);
         }
-        if (apiTiles.length > 0) {
-          setTiles(apiTiles);
-          return;
-        }
-        setTiles(RENTAL_APPLY_PROPERTIES);
+        const base = apiTiles.length > 0 ? apiTiles : RENTAL_APPLY_PROPERTIES;
+        setTiles(mergePortalProperties(base));
       } catch {
         if (cancelled) return;
         setLoadError(true);
-        setTiles(RENTAL_APPLY_PROPERTIES);
+        setTiles(mergePortalProperties(RENTAL_APPLY_PROPERTIES));
       }
     })();
     return () => {

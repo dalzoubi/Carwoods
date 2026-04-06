@@ -16,6 +16,7 @@ import Build from '@mui/icons-material/Build';
 import Person from '@mui/icons-material/Person';
 import Assignment from '@mui/icons-material/Assignment';
 import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
+import HomeWork from '@mui/icons-material/HomeWork';
 import ArrowForward from '@mui/icons-material/ArrowForward';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { hasLandlordAccess, usePortalAuth } from '../PortalAuthContext';
@@ -195,6 +196,18 @@ const PortalDashboard = () => {
                 >
                   {t('portalDashboard.quickActions.viewProfile')}
                 </Button>
+                {(normalized === 'LANDLORD' || normalized === 'ADMIN') && (
+                  <Button
+                    component={RouterLink}
+                    to={withDarkPath(pathname, '/portal/properties')}
+                    type="button"
+                    variant="outlined"
+                    startIcon={<HomeWork />}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    {t('portalDashboard.quickActions.manageProperties')}
+                  </Button>
+                )}
                 {normalized === 'ADMIN' && (
                   <Button
                     component={RouterLink}

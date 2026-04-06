@@ -50,7 +50,31 @@ function hydrateAccountClaims(account) {
   return { ...account, idTokenClaims: claims };
 }
 
-export const PortalAuthProvider = ({ children }) => {
+const PORTAL_DEV_AUTH = import.meta.env.VITE_PORTAL_DEV_AUTH === 'true';
+
+const DEV_AUTH_VALUE = PORTAL_DEV_AUTH
+  ? {
+      baseUrl: '',
+      meUrl: '',
+      authStatus: 'authenticated',
+      authError: '',
+      account: { name: 'Dev Landlord', username: 'dev@carwoods.com' },
+      isAuthenticated: true,
+      meStatus: 'ok',
+      meData: {
+        role: 'LANDLORD',
+        user: { first_name: 'Dev', last_name: 'Landlord', role: 'LANDLORD', status: 'ACTIVE' },
+      },
+      meError: '',
+      signIn: () => Promise.resolve(true),
+      signInWithProvider: () => Promise.resolve(true),
+      signOut: () => Promise.resolve(),
+      refreshMe: () => {},
+      getAccessToken: () => Promise.resolve('dev-token'),
+    }
+  : null;
+
+function RealPortalAuthProvider({ children }) {
   const [authStatus, setAuthStatus] = useState(
     ENTRA_AUTH_CONFIGURED ? 'initializing' : 'unconfigured'
   );
@@ -318,6 +342,13 @@ export const PortalAuthProvider = ({ children }) => {
   );
 
   return <PortalAuthContext.Provider value={value}>{children}</PortalAuthContext.Provider>;
+}
+
+export const PortalAuthProvider = ({ children }) => {
+  if (DEV_AUTH_VALUE) {
+    return <PortalAuthContext.Provider value={DEV_AUTH_VALUE}>{children}</PortalAuthContext.Provider>;
+  }
+  return <RealPortalAuthProvider>{children}</RealPortalAuthProvider>;
 };
 
 export function usePortalAuth() {

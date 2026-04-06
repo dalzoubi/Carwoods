@@ -890,6 +890,65 @@
       "lastNameRequired": "El apellido es obligatorio."
     }
   },
+  "portalAdminProperties": {
+    "title": "Carwoods - Gestionar Propiedades",
+    "metaDescription": "Registra y gestiona propiedades de alquiler para la página de solicitudes.",
+    "heading": "Propiedades",
+    "intro": "Registra propiedades buscando en HAR o ingresando los detalles manualmente. Activa 'Mostrar en página de solicitudes' para controlar cuáles aparecen en el listado público.",
+    "harSearch": {
+      "heading": "Buscar en HAR",
+      "harIdLabel": "ID de listado HAR",
+      "harIdHelperText": "ID numérico al final de la URL de homedetail en HAR.com",
+      "searchButton": "Buscar en HAR",
+      "searching": "Buscando…",
+      "notFound": "No se encontraron datos para ese ID. Verifica el ID e inténtalo de nuevo.",
+      "fetchError": "No se pudo acceder a HAR. Verifica el ID e inténtalo de nuevo, o ingresa los detalles manualmente.",
+      "found": "Listado encontrado — detalles completados abajo."
+    },
+    "form": {
+      "heading": "Detalles de la propiedad",
+      "addressLine": "Dirección",
+      "cityStateZip": "Ciudad, estado, código postal",
+      "monthlyRent": "Renta mensual (ej. $2,500/mo)",
+      "harListingUrl": "URL del listado HAR",
+      "applyUrl": "URL de solicitud (apply.link de RentSpree)",
+      "detailLines": "Líneas de detalle (una por línea, ej. \"3 Habitaciones\")",
+      "showOnApplyPage": "Mostrar en página de solicitudes",
+      "photo": "Foto de la propiedad",
+      "photoUpload": "Subir foto",
+      "photoUrlLabel": "O ingresa URL de foto",
+      "photoPreview": "Vista previa de foto",
+      "addProperty": "Agregar propiedad",
+      "saveChanges": "Guardar cambios",
+      "saving": "Guardando…",
+      "cancel": "Cancelar",
+      "addAnother": "Agregar otra"
+    },
+    "grid": {
+      "heading": "Tus propiedades",
+      "empty": "Sin propiedades aún. Usa el formulario de arriba para agregar una.",
+      "editButton": "Editar",
+      "deleteButton": "Eliminar",
+      "deleteConfirmTitle": "¿Eliminar propiedad?",
+      "deleteConfirmBody": "Esto eliminará \"{{address}}\" de tu lista. Esta acción no se puede deshacer.",
+      "deleteConfirmAction": "Eliminar",
+      "deleteCancel": "Cancelar",
+      "showOnApply": "Página de solicitudes",
+      "harId": "ID HAR",
+      "noPhoto": "Sin foto"
+    },
+    "messages": {
+      "added": "Propiedad agregada exitosamente.",
+      "updated": "Propiedad actualizada exitosamente.",
+      "deleted": "Propiedad eliminada."
+    },
+    "errors": {
+      "signInRequired": "Inicia sesión antes de gestionar propiedades.",
+      "landlordOrAdminOnly": "Solo cuentas de propietario o administrador pueden gestionar propiedades.",
+      "addressRequired": "La dirección es obligatoria.",
+      "cityStateZipRequired": "Ciudad / estado / código postal es obligatorio."
+    }
+  },
   "portalHeader": {
     "title": "Portal de Propiedades",
     "notSignedIn": "Sin sesión iniciada",
@@ -926,6 +985,7 @@
       "requests": "Solicitudes",
       "profile": "Perfil",
       "adminLandlords": "Propietarios",
+      "properties": "Propiedades",
       "status": "Estado del sistema",
       "collapse": "Contraer barra lateral",
       "expand": "Expandir barra lateral",
@@ -954,7 +1014,8 @@
       "viewRequests": "Ver todas las solicitudes",
       "viewProfile": "Editar perfil",
       "exportCsv": "Exportar CSV",
-      "manageLandlords": "Gestionar propietarios"
+      "manageLandlords": "Gestionar propietarios",
+      "manageProperties": "Gestionar propiedades"
     },
     "recentRequests": {
       "heading": "Solicitudes recientes",
