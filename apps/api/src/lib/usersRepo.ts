@@ -1,5 +1,6 @@
 import type { PoolClient, QueryResult } from './db.js';
 import { primaryEmailFromClaims, type AccessTokenClaims } from './jwtVerify.js';
+import { Role } from '../domain/constants.js';
 
 export type UserRow = {
   id: string;
@@ -17,13 +18,8 @@ export type UpsertLandlordResult = {
   created: boolean;
 };
 
-export const UserRole = {
-  ADMIN: 'ADMIN',
-  LANDLORD: 'LANDLORD',
-  TENANT: 'TENANT',
-} as const;
-
-export type UserRoleType = (typeof UserRole)[keyof typeof UserRole];
+export { Role as UserRole };
+export type UserRoleType = Role;
 
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
 
@@ -113,10 +109,10 @@ export async function upsertLandlordUserByEmail(
 
   if (existing) {
     const role = String(existing.role ?? '').toUpperCase();
-    if (role === UserRole.ADMIN) {
+    if (role === Role.ADMIN) {
       throw new Error('email_belongs_to_admin');
     }
-    if (role !== UserRole.LANDLORD) {
+    if (role !== Role.LANDLORD) {
       throw new Error('email_already_used_by_non_landlord');
     }
 
@@ -150,7 +146,7 @@ export async function upsertLandlordUserByEmail(
      OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
             INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
             INSERTED.role, INSERTED.status
-     VALUES (NEWID(), $1, $2, $3, $4, 'LANDLORD', 'ACTIVE')`,
+     VALUES (NEWID(), $1, $2, $3, $4, '${Role.LANDLORD}', 'ACTIVE')`,
     [placeholderExternalAuthOidForLandlordEmail(normalizedEmail), normalizedEmail, firstName, lastName]
   );
 
@@ -168,7 +164,7 @@ export async function listLandlords(
     const r = await client.query<UserRow>(
       `SELECT id, external_auth_oid, email, first_name, last_name, phone, role, status
        FROM users
-       WHERE role = 'LANDLORD'
+       WHERE role = '${Role.LANDLORD}'
        ORDER BY status DESC, last_name ASC, first_name ASC, email ASC`
     );
     return r.rows;
@@ -176,7 +172,7 @@ export async function listLandlords(
   const r = await client.query<UserRow>(
     `SELECT id, external_auth_oid, email, first_name, last_name, phone, role, status
      FROM users
-     WHERE role = 'LANDLORD'
+     WHERE role = '${Role.LANDLORD}'
        AND status = 'ACTIVE'
      ORDER BY last_name ASC, first_name ASC, email ASC`
   );
@@ -197,7 +193,7 @@ export async function setLandlordActiveStatus(
              INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
              INSERTED.role, INSERTED.status
       WHERE id = $1
-        AND role = 'LANDLORD'`,
+        AND role = '${Role.LANDLORD}'`,
     [id, nextStatus]
   );
   return r.rows[0] ?? null;

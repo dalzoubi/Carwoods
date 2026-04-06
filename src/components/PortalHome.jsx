@@ -11,6 +11,7 @@ import {
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
 import { isGuestRole, normalizeRole, resolveRole } from '../portalUtils';
+import { Role } from '../domain/constants.js';
 import { withDarkPath } from '../routePaths';
 
 const PortalHome = () => {
@@ -32,7 +33,7 @@ const PortalHome = () => {
   const portalActions = [
     { to: '/portal/requests', label: t('portalHeader.nav.requests') },
     { to: '/portal/profile', label: t('portalHeader.nav.profile') },
-    ...(normalizedRole === 'ADMIN'
+    ...(normalizedRole === Role.ADMIN
       ? [{ to: '/portal/admin', label: t('portalHeader.nav.adminLandlords') }]
       : []),
   ];

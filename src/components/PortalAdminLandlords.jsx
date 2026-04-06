@@ -15,6 +15,7 @@ import {
 import Refresh from '@mui/icons-material/Refresh';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
+import { Role } from '../domain/constants.js';
 import { validatePersonBasics, validatePersonField } from '../portalPersonValidation';
 import { resolveRole } from '../portalUtils';
 import { endpoint, normalizedRole, parseErrorResponse } from './portalRequests/api';
@@ -36,7 +37,7 @@ const PortalAdminLandlords = () => {
     getAccessToken,
   } = usePortalAuth();
   const role = normalizedRole(resolveRole(meData, account));
-  const isAdmin = role === 'ADMIN';
+  const isAdmin = role === Role.ADMIN;
   const canUseModule = isAuthenticated && isAdmin && Boolean(baseUrl);
 
   const [form, setForm] = useState({ email: '', firstName: '', lastName: '' });

@@ -41,6 +41,7 @@ import { isGuestRole, normalizeRole, resolveDisplayName, resolveRole } from '../
 import { useTranslation } from 'react-i18next';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
+import { Role } from '../domain/constants.js';
 
 const DRAWER_PAPER_ID = 'main-navigation-drawer';
 
@@ -161,9 +162,9 @@ const logoLinkSx = {
 
 function portalRoleLabel(role, t) {
     const normalized = normalizeRole(role);
-    if (normalized === 'ADMIN') return t('portalHeader.roles.admin');
-    if (normalized === 'LANDLORD') return t('portalHeader.roles.landlord');
-    if (normalized === 'TENANT') return t('portalHeader.roles.tenant');
+    if (normalized === Role.ADMIN) return t('portalHeader.roles.admin');
+    if (normalized === Role.LANDLORD) return t('portalHeader.roles.landlord');
+    if (normalized === Role.TENANT) return t('portalHeader.roles.tenant');
     return t('portalHeader.roles.unknown');
 }
 

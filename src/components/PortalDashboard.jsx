@@ -19,8 +19,10 @@ import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
 import HomeWork from '@mui/icons-material/HomeWork';
 import ArrowForward from '@mui/icons-material/ArrowForward';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
-import { hasLandlordAccess, usePortalAuth } from '../PortalAuthContext';
+import { usePortalAuth } from '../PortalAuthContext';
+import { hasLandlordAccess } from '../domain/roleUtils.js';
 import { isGuestRole, normalizeRole, resolveRole } from '../portalUtils';
+import { Role } from '../domain/constants.js';
 import { emailFromAccount } from '../portalUtils';
 import { withDarkPath } from '../routePaths';
 
@@ -196,7 +198,7 @@ const PortalDashboard = () => {
                 >
                   {t('portalDashboard.quickActions.viewProfile')}
                 </Button>
-                {(normalized === 'LANDLORD' || normalized === 'ADMIN') && (
+                {(normalized === Role.LANDLORD || normalized === Role.ADMIN) && (
                   <Button
                     component={RouterLink}
                     to={withDarkPath(pathname, '/portal/properties')}
@@ -208,7 +210,7 @@ const PortalDashboard = () => {
                     {t('portalDashboard.quickActions.manageProperties')}
                   </Button>
                 )}
-                {normalized === 'ADMIN' && (
+                {normalized === Role.ADMIN && (
                   <Button
                     component={RouterLink}
                     to={withDarkPath(pathname, '/portal/admin')}

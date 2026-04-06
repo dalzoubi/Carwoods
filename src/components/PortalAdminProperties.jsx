@@ -35,6 +35,7 @@ import Home from '@mui/icons-material/Home';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { normalizeRole, resolveRole } from '../portalUtils';
+import { Role } from '../domain/constants.js';
 import {
   addProperty,
   deleteProperty,
@@ -176,7 +177,7 @@ const PortalAdminProperties = () => {
   const { isAuthenticated, account, meData, meStatus, baseUrl, getAccessToken } = usePortalAuth();
 
   const role = normalizeRole(resolveRole(meData, account));
-  const canManage = isAuthenticated && (role === 'ADMIN' || role === 'LANDLORD');
+  const canManage = isAuthenticated && (role === Role.ADMIN || role === Role.LANDLORD);
 
   const [properties, setProperties] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);

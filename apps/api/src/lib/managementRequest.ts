@@ -4,10 +4,11 @@ import { corsHeadersForRequest } from './corsHeaders.js';
 import { getBearerToken, verifyAccessToken, entraAuthConfigured } from './jwtVerify.js';
 import { findUserByClaims, type UserRow } from './usersRepo.js';
 import { logInfo, logWarn } from './serverLogger.js';
+import { Role } from '../domain/constants.js';
 
 export type ManagementContext = {
   user: UserRow;
-  role: 'ADMIN' | 'LANDLORD';
+  role: Role;
   headers: Record<string, string>;
 };
 
@@ -102,7 +103,7 @@ export async function requireLandlordOrAdmin(
   const role = String(user.role ?? '').toUpperCase();
   const status = String(user.status ?? '').toUpperCase();
   const isActive = status === 'ACTIVE' || status === 'INVITED';
-  const isAllowedRole = role === 'ADMIN' || role === 'LANDLORD';
+  const isAllowedRole = role === Role.ADMIN || role === Role.LANDLORD;
   if (!isActive || !isAllowedRole) {
     logWarn(context, 'management.auth.failed', {
       reason: 'forbidden_role_or_status',
@@ -120,7 +121,7 @@ export async function requireLandlordOrAdmin(
     };
   }
   logInfo(context, 'management.auth.success', { userId: user.id, role });
-  return { ok: true, ctx: { user, role: role as 'ADMIN' | 'LANDLORD', headers } };
+  return { ok: true, ctx: { user, role: role as Role, headers } };
 }
 
 /**
@@ -132,7 +133,7 @@ export async function requireAdmin(
 ): Promise<{ ok: true; ctx: ManagementContext } | { ok: false; response: HttpResponseInit }> {
   const gate = await requireLandlordOrAdmin(request, context);
   if (!gate.ok) return gate;
-  if (gate.ctx.role !== 'ADMIN') {
+  if (gate.ctx.role !== Role.ADMIN) {
     return {
       ok: false,
       response: jsonResponse(403, gate.ctx.headers, { error: 'forbidden' }),
@@ -223,7 +224,7 @@ export async function requirePortalUser(
 
   const role = String(user.role ?? '').toUpperCase();
   const status = String(user.status ?? '').toUpperCase();
-  const isAllowedRole = role === 'TENANT' || role === 'LANDLORD' || role === 'ADMIN';
+  const isAllowedRole = role === Role.TENANT || role === Role.LANDLORD || role === Role.ADMIN;
   const isActive = status === 'ACTIVE' || status === 'INVITED';
   if (!isAllowedRole || !isActive) {
     logWarn(context, 'portal.auth.failed', {

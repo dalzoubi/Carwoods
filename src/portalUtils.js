@@ -1,3 +1,5 @@
+import { Role } from './domain/constants.js';
+
 export function firstNonEmpty(values) {
   for (const v of values) {
     if (typeof v === 'string') {
@@ -17,7 +19,7 @@ export function normalizeRole(rawRole) {
   if (
     normalized === 'PROPERTY_MANAGER'
     || normalized === 'OWNER'
-  ) return 'LANDLORD';
+  ) return Role.LANDLORD;
   return normalized;
 }
 
@@ -95,5 +97,5 @@ export function resolveDisplayName(meData, account, fallback) {
 
 export function isGuestRole(role) {
   const normalized = normalizeRole(role);
-  return normalized !== 'TENANT' && normalized !== 'LANDLORD' && normalized !== 'ADMIN';
+  return normalized !== Role.TENANT && normalized !== Role.LANDLORD && normalized !== Role.ADMIN;
 }

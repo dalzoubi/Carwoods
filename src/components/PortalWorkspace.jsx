@@ -1,7 +1,9 @@
 import React from 'react';
 import { Alert, Box, Stack, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { hasLandlordAccess, usePortalAuth } from '../PortalAuthContext';
+import { usePortalAuth } from '../PortalAuthContext';
+import { hasLandlordAccess } from '../domain/roleUtils.js';
+import { Role } from '../domain/constants.js';
 import { resolveRole } from '../portalUtils';
 import StatusAlertSlot from './StatusAlertSlot';
 
@@ -13,8 +15,8 @@ function roleKeyForUser(role) {
 
 function normalizeRoleForWorkspace(role) {
   const normalized = String(role ?? '').trim().toUpperCase();
-  if (normalized === 'ADMIN') return 'admin';
-  if (normalized === 'LANDLORD') return 'landlord';
+  if (normalized === Role.ADMIN) return 'admin';
+  if (normalized === Role.LANDLORD) return 'landlord';
   return 'tenant';
 }
 
@@ -22,7 +24,7 @@ function visibleWidgetKeys(role) {
   const keys = ['tenant'];
   const normalized = String(role ?? '').trim().toUpperCase();
   if (hasLandlordAccess(normalized)) keys.push('landlord');
-  if (normalized === 'ADMIN') keys.push('admin');
+  if (normalized === Role.ADMIN) keys.push('admin');
   return keys;
 }
 

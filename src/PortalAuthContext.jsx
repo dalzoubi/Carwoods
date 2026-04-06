@@ -3,6 +3,7 @@ import { EventType, InteractionRequiredAuthError } from '@azure/msal-browser';
 import { VITE_API_BASE_URL_RESOLVED } from './featureFlags';
 import { ENTRA_AUTH_CONFIGURED, ENTRA_LOGIN_SCOPES, ENTRA_SCOPES, msalInstance } from './entraAuth';
 import { emailFromAccount } from './portalUtils';
+import { Role } from './domain/constants.js';
 
 const PortalAuthContext = createContext(null);
 const ID_TOKEN_CLAIMS_STORAGE_KEY = 'portal.idTokenClaimsByHomeAccountId';
@@ -62,8 +63,8 @@ const DEV_AUTH_VALUE = PORTAL_DEV_AUTH
       isAuthenticated: true,
       meStatus: 'ok',
       meData: {
-        role: 'LANDLORD',
-        user: { first_name: 'Dev', last_name: 'Landlord', role: 'LANDLORD', status: 'ACTIVE' },
+        role: Role.LANDLORD,
+        user: { first_name: 'Dev', last_name: 'Landlord', role: Role.LANDLORD, status: 'ACTIVE' },
       },
       meError: '',
       signIn: () => Promise.resolve(true),
@@ -359,7 +360,3 @@ export function usePortalAuth() {
   return value;
 }
 
-export function hasLandlordAccess(role) {
-  const normalized = String(role ?? '').toUpperCase();
-  return normalized === 'LANDLORD' || normalized === 'ADMIN';
-}
