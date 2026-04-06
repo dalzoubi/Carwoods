@@ -46,6 +46,24 @@ describe('fetchPublicApplyProperties', () => {
       vi.unstubAllGlobals();
     }
   });
+
+  it('orders properties from cheaper to more expensive by monthlyRentLabel', async () => {
+    const expensive = { ...valid, id: 'expensive', monthlyRentLabel: '$2,200/mo' };
+    const medium = { ...valid, id: 'medium', monthlyRentLabel: '$1,500/mo' };
+    const cheap = { ...valid, id: 'cheap', monthlyRentLabel: '$900/mo' };
+    const unknown = { ...valid, id: 'unknown', monthlyRentLabel: 'Call for pricing' };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ properties: [expensive, unknown, cheap, medium] }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    try {
+      const out = await fetchPublicApplyProperties('https://api.example.com');
+      expect(out.map((item) => item.id)).toEqual(['cheap', 'medium', 'expensive', 'unknown']);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });
 
 describe('logDualSourceApplyMismatch', () => {

@@ -2,7 +2,7 @@
  * List all non-deleted properties (management access required).
  */
 
-import { listPropertiesLandlord, type PropertyRowFull } from '../../lib/propertiesRepo.js';
+import { listPropertiesForActor, type PropertyRowFull } from '../../lib/propertiesRepo.js';
 import { forbidden } from '../../domain/errors.js';
 import { hasLandlordAccess } from '../../domain/constants.js';
 import type { Queryable } from '../types.js';
@@ -21,6 +21,6 @@ export async function listProperties(
   input: ListPropertiesInput
 ): Promise<ListPropertiesOutput> {
   if (!hasLandlordAccess(input.actorRole)) throw forbidden();
-  const properties = await listPropertiesLandlord(db);
+  const properties = await listPropertiesForActor(db, input.actorRole, input.actorUserId);
   return { properties };
 }

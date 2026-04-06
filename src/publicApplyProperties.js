@@ -55,6 +55,37 @@ export function normalizeApplyPropertyTile(raw) {
 }
 
 /**
+ * @param {string} monthlyRentLabel
+ * @returns {number}
+ */
+function monthlyRentSortValue(monthlyRentLabel) {
+  if (typeof monthlyRentLabel !== 'string') return Number.POSITIVE_INFINITY;
+  const numericMatches = monthlyRentLabel.match(/\d[\d,]*(?:\.\d{1,2})?/g);
+  if (!numericMatches || numericMatches.length === 0) return Number.POSITIVE_INFINITY;
+  const values = numericMatches
+    .map((value) => Number.parseFloat(value.replace(/,/g, '')))
+    .filter((value) => Number.isFinite(value));
+  if (values.length === 0) return Number.POSITIVE_INFINITY;
+  return Math.min(...values);
+}
+
+/**
+ * @param {ApplyPropertyTile[]} tiles
+ * @returns {ApplyPropertyTile[]}
+ */
+function sortApplyPropertiesByRentAscending(tiles) {
+  return tiles
+    .map((tile, index) => ({ tile, index }))
+    .sort((left, right) => {
+      const priceDelta = monthlyRentSortValue(left.tile.monthlyRentLabel)
+        - monthlyRentSortValue(right.tile.monthlyRentLabel);
+      if (priceDelta !== 0) return priceDelta;
+      return left.index - right.index;
+    })
+    .map(({ tile }) => tile);
+}
+
+/**
  * @param {string} baseUrl
  * @returns {Promise<ApplyPropertyTile[]>}
  */
@@ -73,7 +104,7 @@ export async function fetchPublicApplyProperties(baseUrl) {
   if (!Array.isArray(list)) {
     throw new Error('apply-properties: expected array or { properties: [] }');
   }
-  return list.map(normalizeApplyPropertyTile);
+  return sortApplyPropertiesByRentAscending(list.map(normalizeApplyPropertyTile));
 }
 
 /**

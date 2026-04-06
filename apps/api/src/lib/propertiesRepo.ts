@@ -26,10 +26,15 @@ export async function listPublicApplyProperties(
   client: Queryable
 ): Promise<PublicApplyPropertyTile[]> {
   const r = await client.query<PropertyRowFull>(
-    `SELECT id, street, city, state, zip, har_listing_id, metadata
-     FROM properties
-     WHERE apply_visible = 1 AND deleted_at IS NULL
-     ORDER BY created_at ASC`
+    `SELECT p.id, p.street, p.city, p.state, p.zip, p.har_listing_id, p.metadata
+     FROM properties p
+     LEFT JOIN users landlord
+       ON landlord.id = p.created_by
+      AND landlord.role = 'LANDLORD'
+     WHERE p.apply_visible = 1
+       AND p.deleted_at IS NULL
+       AND (landlord.id IS NULL OR landlord.status = 'ACTIVE')
+     ORDER BY p.created_at ASC`
   );
   const tiles: PublicApplyPropertyTile[] = [];
   for (const row of r.rows) {
@@ -53,6 +58,24 @@ export async function listPropertiesLandlord(
   return r.rows;
 }
 
+export async function listPropertiesForActor(
+  client: Queryable,
+  actorRole: string,
+  actorUserId: string
+): Promise<PropertyRowFull[]> {
+  const r = await client.query<PropertyRowFull>(
+    `SELECT id, name, street, city, state, zip, har_listing_id, listing_source, apply_visible,
+            metadata, har_sync_status, har_sync_error, har_last_synced_at,
+            created_at, updated_at, deleted_at
+     FROM properties
+     WHERE deleted_at IS NULL
+       AND ($1 = 'ADMIN' OR created_by = $2)
+     ORDER BY created_at DESC`,
+    [actorRole.trim().toUpperCase(), actorUserId]
+  );
+  return r.rows;
+}
+
 export async function getPropertyById(
   client: Queryable,
   id: string
@@ -63,6 +86,25 @@ export async function getPropertyById(
             created_at, updated_at, deleted_at
      FROM properties WHERE id = $1 AND deleted_at IS NULL`,
     [id]
+  );
+  return r.rows[0] ?? null;
+}
+
+export async function getPropertyByIdForActor(
+  client: Queryable,
+  id: string,
+  actorRole: string,
+  actorUserId: string
+): Promise<PropertyRowFull | null> {
+  const r = await client.query<PropertyRowFull>(
+    `SELECT id, name, street, city, state, zip, har_listing_id, listing_source, apply_visible,
+            metadata, har_sync_status, har_sync_error, har_last_synced_at,
+            created_at, updated_at, deleted_at
+     FROM properties
+     WHERE id = $1
+       AND deleted_at IS NULL
+       AND ($2 = 'ADMIN' OR created_by = $3)`,
+    [id, actorRole.trim().toUpperCase(), actorUserId]
   );
   return r.rows[0] ?? null;
 }

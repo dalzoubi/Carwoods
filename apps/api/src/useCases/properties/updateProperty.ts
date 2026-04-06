@@ -7,7 +7,7 @@
  */
 
 import {
-  getPropertyById,
+  getPropertyByIdForActor,
   updateProperty as updatePropertyRepo,
   type PropertyRowFull,
   type PropertyPatch,
@@ -48,7 +48,12 @@ export async function updateProperty(
   if (!input.propertyId) throw validationError('missing_id');
 
   const pool = db;
-  const current = await getPropertyById(pool, input.propertyId);
+  const current = await getPropertyByIdForActor(
+    pool,
+    input.propertyId,
+    input.actorRole,
+    input.actorUserId
+  );
   if (!current) throw notFound();
 
   let har: Awaited<ReturnType<typeof harColumnsForPatch>>;
@@ -89,7 +94,16 @@ export async function updateProperty(
   const client = await db.connect();
   try {
     await client.query('BEGIN');
-    const before = await getPropertyById(client, input.propertyId);
+    const before = await getPropertyByIdForActor(
+      client,
+      input.propertyId,
+      input.actorRole,
+      input.actorUserId
+    );
+    if (!before) {
+      await client.query('ROLLBACK');
+      throw notFound();
+    }
     const row = await updatePropertyRepo(
       client as Parameters<typeof updatePropertyRepo>[0],
       input.propertyId,
@@ -105,7 +119,7 @@ export async function updateProperty(
       entityType: 'PROPERTY',
       entityId: row.id,
       action: 'UPDATE',
-      before: before ?? null,
+      before,
       after: row,
     });
     await client.query('COMMIT');

@@ -2,7 +2,7 @@
  * Fetch a single property by ID (management access required).
  */
 
-import { getPropertyById, type PropertyRowFull } from '../../lib/propertiesRepo.js';
+import { getPropertyByIdForActor, type PropertyRowFull } from '../../lib/propertiesRepo.js';
 import { forbidden, notFound, validationError } from '../../domain/errors.js';
 import { hasLandlordAccess } from '../../domain/constants.js';
 import type { Queryable } from '../types.js';
@@ -24,7 +24,7 @@ export async function getProperty(
   if (!hasLandlordAccess(input.actorRole)) throw forbidden();
   if (!input.propertyId) throw validationError('missing_id');
 
-  const property = await getPropertyById(db, input.propertyId);
+  const property = await getPropertyByIdForActor(db, input.propertyId, input.actorRole, input.actorUserId);
   if (!property) throw notFound();
   return { property };
 }

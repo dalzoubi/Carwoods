@@ -6,7 +6,7 @@
  */
 
 import {
-  getPropertyById,
+  getPropertyByIdForActor,
   softDeleteProperty,
 } from '../../lib/propertiesRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
@@ -30,7 +30,12 @@ export async function deleteProperty(
   const client = await db.connect();
   try {
     await client.query('BEGIN');
-    const before = await getPropertyById(client, input.propertyId);
+    const before = await getPropertyByIdForActor(
+      client,
+      input.propertyId,
+      input.actorRole,
+      input.actorUserId
+    );
     if (!before) {
       await client.query('ROLLBACK');
       throw notFound();

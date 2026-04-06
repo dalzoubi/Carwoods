@@ -8,7 +8,7 @@
  */
 
 import { insertLease, type LeaseRowFull } from '../../lib/leasesRepo.js';
-import { getPropertyById } from '../../lib/propertiesRepo.js';
+import { getPropertyByIdForActor } from '../../lib/propertiesRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
 import { validateCreateLease } from '../../domain/leaseValidation.js';
 import { forbidden, notFound, validationError } from '../../domain/errors.js';
@@ -43,7 +43,12 @@ export async function createLease(
   });
   if (!fieldValidation.valid) throw validationError(fieldValidation.message);
 
-  const prop = await getPropertyById(db, input.property_id!);
+  const prop = await getPropertyByIdForActor(
+    db,
+    input.property_id!,
+    input.actorRole,
+    input.actorUserId
+  );
   if (!prop) throw notFound('property_not_found');
 
   const client = await db.connect();
