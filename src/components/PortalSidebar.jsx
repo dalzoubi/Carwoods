@@ -290,6 +290,11 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false }) => {
     borderInlineEnd: '1px solid',
     borderColor: 'divider',
     backgroundImage: 'none',
+    transition: (theme) => theme.transitions.create('width', {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+    overflowX: 'hidden',
   };
 
   if (isMobile) {
@@ -313,6 +318,10 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false }) => {
       sx={{
         width: collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH,
         flexShrink: 0,
+        transition: (theme) => theme.transitions.create('width', {
+          easing: theme.transitions.easing.sharp,
+          duration: theme.transitions.duration.enteringScreen,
+        }),
         '& .MuiDrawer-paper': drawerPaperSx,
       }}
     >
