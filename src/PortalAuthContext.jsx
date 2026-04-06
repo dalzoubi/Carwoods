@@ -32,6 +32,7 @@ const DEV_AUTH_VALUE = PORTAL_DEV_AUTH
       },
       meError: '',
       meErrorStatus: null,
+      meErrorCode: null,
       lockoutReason: null,
       signIn: () => Promise.resolve(true),
       signInWithProvider: () => Promise.resolve(true),
@@ -123,7 +124,7 @@ function RealPortalAuthProvider({ children }) {
     setAuthStatus('unauthenticated');
   }, []);
 
-  const signOutDueToDisabledAccount = useCallback(async () => {
+  const signOutDueToDisabledAccount = useCallback(async (reason = 'account_disabled') => {
     if (!msalInstance) {
       setAuthStatus('unconfigured');
       return;
@@ -138,7 +139,7 @@ function RealPortalAuthProvider({ children }) {
     setAccount(null);
     setAuthError('');
     setAuthStatus('unauthenticated');
-    setLockoutReason('account_disabled');
+    setLockoutReason(reason);
   }, []);
 
   const refreshMe = useCallback(() => {
@@ -224,7 +225,7 @@ function RealPortalAuthProvider({ children }) {
     };
   }, [syncActiveAccount]);
 
-  const { meStatus, meData, meError, meErrorStatus } = useMeProfile({
+  const { meStatus, meData, meError, meErrorStatus, meErrorCode } = useMeProfile({
     account,
     authStatus,
     baseUrl,
@@ -232,12 +233,16 @@ function RealPortalAuthProvider({ children }) {
     refreshTick,
   });
 
-  // Auto-lockout: sign out immediately when /me returns 403 (account disabled).
+  // Auto-lockout: sign out immediately when /me returns 403.
+  // The error code distinguishes a disabled account from a user with no portal
+  // access (not found, wrong role, or guest status).
   useEffect(() => {
     if (meStatus === 'error' && meErrorStatus === 403) {
-      signOutDueToDisabledAccount();
+      const reason =
+        meErrorCode === 'account_disabled' ? 'account_disabled' : 'no_portal_access';
+      signOutDueToDisabledAccount(reason);
     }
-  }, [meStatus, meErrorStatus, signOutDueToDisabledAccount]);
+  }, [meStatus, meErrorStatus, meErrorCode, signOutDueToDisabledAccount]);
 
   // Periodic /me polling while authenticated so a disabled account is detected
   // within ME_POLL_INTERVAL_MS even without navigation or page reload.
@@ -261,6 +266,7 @@ function RealPortalAuthProvider({ children }) {
       meData,
       meError,
       meErrorStatus,
+      meErrorCode,
       lockoutReason,
       signIn,
       signInWithProvider,
@@ -276,6 +282,7 @@ function RealPortalAuthProvider({ children }) {
       lockoutReason,
       meData,
       meError,
+      meErrorCode,
       meErrorStatus,
       meStatus,
       meUrl,
