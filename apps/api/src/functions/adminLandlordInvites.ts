@@ -5,15 +5,12 @@ import {
   type InvocationContext,
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
-import { writeAudit } from '../lib/auditRepo.js';
-import { requireAdmin, jsonResponse } from '../lib/managementRequest.js';
-import {
-  listLandlords,
-  setLandlordActiveStatus,
-  upsertLandlordUserByEmail,
-} from '../lib/usersRepo.js';
+import { requireAdmin, jsonResponse, mapDomainError } from '../lib/managementRequest.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
-import { validateLandlordInvite } from '../domain/userValidation.js';
+
+import { listLandlords } from '../useCases/users/listLandlords.js';
+import { inviteLandlord } from '../useCases/users/inviteLandlord.js';
+import { setLandlordActive } from '../useCases/users/setLandlordActive.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
   if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>;
@@ -33,23 +30,30 @@ async function adminLandlordsCollectionHandler(
   const gate = await requireAdmin(request, context);
   if (!gate.ok) return gate.response;
   const { ctx } = gate;
-  const pool = getPool();
   logInfo(context, 'admin.landlords.collection.start', {
     actorUserId: ctx.user.id,
     method: request.method,
   });
 
   if (request.method === 'GET') {
-    const includeInactive = request.query.get('include_inactive') === 'true';
-    const landlords = await listLandlords(pool, { includeInactive });
-    logInfo(context, 'admin.landlords.collection.list.success', {
-      actorUserId: ctx.user.id,
-      includeInactive,
-      count: landlords.length,
-    });
-    return jsonResponse(200, ctx.headers, {
-      landlords,
-    });
+    try {
+      const includeInactive = request.query.get('include_inactive') === 'true';
+      const result = await listLandlords(getPool(), {
+        actorUserId: ctx.user.id,
+        actorRole: ctx.role,
+        includeInactive,
+      });
+      logInfo(context, 'admin.landlords.collection.list.success', {
+        actorUserId: ctx.user.id,
+        includeInactive,
+        count: result.landlords.length,
+      });
+      return jsonResponse(200, ctx.headers, { landlords: result.landlords });
+    } catch (e) {
+      const mapped = mapDomainError(e, ctx.headers);
+      if (mapped) return mapped;
+      throw e;
+    }
   }
 
   if (request.method !== 'POST') {
@@ -67,72 +71,39 @@ async function adminLandlordsCollectionHandler(
     logWarn(context, 'admin.landlords.invalid_json', { actorUserId: ctx.user.id });
     return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
   }
-
   const b = asRecord(body);
   const email = asOptionalString(b.email)?.toLowerCase() ?? '';
   const firstName = asOptionalString(b.first_name);
   const lastName = asOptionalString(b.last_name);
-  const inviteValidation = validateLandlordInvite({ email, firstName, lastName });
-  if (!inviteValidation.valid) {
-    logWarn(context, 'admin.landlords.create.validation_failed', {
-      actorUserId: ctx.user.id,
-      reason: inviteValidation.message,
-    });
-    return jsonResponse(400, ctx.headers, { error: inviteValidation.message });
-  }
 
-  const client = await pool.connect();
   try {
-    await client.query('BEGIN');
-    const landlord = await upsertLandlordUserByEmail(client, {
+    const result = await inviteLandlord(getPool(), {
+      actorUserId: ctx.user.id,
+      actorRole: ctx.role,
       email,
       firstName,
       lastName,
     });
-
-    await writeAudit(client, {
-      actorUserId: ctx.user.id,
-      entityType: 'LANDLORD',
-      entityId: landlord.user.id,
-      action: landlord.created ? 'CREATE' : 'UPDATE',
-      before: null,
-      after: landlord.user,
-    });
-    await client.query('COMMIT');
-
     logInfo(context, 'admin.landlords.upsert.success', {
       actorUserId: ctx.user.id,
-      landlordUserId: landlord.user.id,
-      created: landlord.created,
+      landlordUserId: result.landlord.id,
+      created: result.landlord_created,
     });
-    return jsonResponse(201, ctx.headers, {
-      landlord: landlord.user,
-      landlord_created: landlord.created,
-    });
-  } catch (error) {
-    await client.query('ROLLBACK');
-    const message = error instanceof Error ? error.message : 'unknown_error';
-    if (message === 'email_belongs_to_admin') {
-      logWarn(context, 'admin.landlords.upsert.conflict', {
+    return jsonResponse(201, ctx.headers, result);
+  } catch (e) {
+    const mapped = mapDomainError(e, ctx.headers);
+    if (mapped) {
+      logWarn(context, 'admin.landlords.upsert.conflict_or_validation', {
         actorUserId: ctx.user.id,
-        reason: 'email_belongs_to_admin',
+        reason: e instanceof Error ? e.message : 'unknown',
       });
-      return jsonResponse(409, ctx.headers, { error: 'email_belongs_to_admin' });
-    }
-    if (message === 'email_already_used_by_non_landlord') {
-      logWarn(context, 'admin.landlords.upsert.conflict', {
-        actorUserId: ctx.user.id,
-        reason: 'email_already_used_by_non_landlord',
-      });
-      return jsonResponse(409, ctx.headers, { error: 'email_already_used' });
+      return mapped;
     }
     logError(context, 'admin.landlords.upsert.error', {
       actorUserId: ctx.user.id,
-      message,
+      message: e instanceof Error ? e.message : 'unknown_error',
     });
-    throw error;
-  } finally {
-    client.release();
+    throw e;
   }
 }
 
@@ -169,7 +140,6 @@ async function adminLandlordsItemHandler(
     logWarn(context, 'admin.landlords.item.invalid_json', { actorUserId: ctx.user.id, landlordId });
     return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
   }
-
   const b = asRecord(body);
   if (typeof b.active !== 'boolean') {
     logWarn(context, 'admin.landlords.item.validation_failed', {
@@ -180,44 +150,31 @@ async function adminLandlordsItemHandler(
     return jsonResponse(400, ctx.headers, { error: 'missing_active' });
   }
 
-  const pool = getPool();
-  const client = await pool.connect();
   try {
-    await client.query('BEGIN');
-    const updated = await setLandlordActiveStatus(client, landlordId, b.active);
-    if (!updated) {
-      await client.query('ROLLBACK');
-      logWarn(context, 'admin.landlords.item.not_found', {
-        actorUserId: ctx.user.id,
-        landlordId,
-      });
-      return jsonResponse(404, ctx.headers, { error: 'not_found' });
-    }
-    await writeAudit(client, {
+    const result = await setLandlordActive(getPool(), {
       actorUserId: ctx.user.id,
-      entityType: 'LANDLORD',
-      entityId: landlordId,
-      action: b.active ? 'REACTIVATE' : 'DEACTIVATE',
-      before: null,
-      after: updated,
+      actorRole: ctx.role,
+      landlordId,
+      active: b.active,
     });
-    await client.query('COMMIT');
     logInfo(context, 'admin.landlords.item.success', {
       actorUserId: ctx.user.id,
       landlordId,
       active: b.active,
     });
-    return jsonResponse(200, ctx.headers, { landlord: updated });
-  } catch (error) {
-    await client.query('ROLLBACK');
+    return jsonResponse(200, ctx.headers, { landlord: result.landlord });
+  } catch (e) {
+    const mapped = mapDomainError(e, ctx.headers);
+    if (mapped) {
+      logWarn(context, 'admin.landlords.item.not_found', { actorUserId: ctx.user.id, landlordId });
+      return mapped;
+    }
     logError(context, 'admin.landlords.item.error', {
       actorUserId: ctx.user.id,
       landlordId,
-      message: error instanceof Error ? error.message : 'unknown_error',
+      message: e instanceof Error ? e.message : 'unknown_error',
     });
-    throw error;
-  } finally {
-    client.release();
+    throw e;
   }
 }
 

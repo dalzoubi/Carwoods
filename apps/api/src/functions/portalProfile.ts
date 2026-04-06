@@ -5,9 +5,9 @@ import {
   type InvocationContext,
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
-import { jsonResponse, requirePortalUser } from '../lib/managementRequest.js';
-import { updateUserProfile } from '../lib/usersRepo.js';
-import { validateProfileUpdate } from '../domain/userValidation.js';
+import { jsonResponse, mapDomainError, requirePortalUser } from '../lib/managementRequest.js';
+
+import { updateProfile } from '../useCases/users/updateProfile.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
   if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>;
@@ -40,27 +40,21 @@ async function portalProfileHandler(
   }
 
   const payload = asRecord(body);
-  const email = str(payload.email);
-  const firstName = str(payload.first_name);
-  const lastName = str(payload.last_name);
-  const phone = str(payload.phone);
 
-  const validation = validateProfileUpdate({ email, firstName, lastName, phone });
-  if (!validation.valid) {
-    return jsonResponse(400, headers, { error: validation.message });
+  try {
+    const result = await updateProfile(getPool(), {
+      actorUserId: user.id,
+      email: str(payload.email),
+      firstName: str(payload.first_name) ?? null,
+      lastName: str(payload.last_name) ?? null,
+      phone: str(payload.phone) ?? null,
+    });
+    return jsonResponse(200, headers, { user: result.user });
+  } catch (e) {
+    const mapped = mapDomainError(e, headers);
+    if (mapped) return mapped;
+    throw e;
   }
-
-  const pool = getPool();
-  const updated = await updateUserProfile(pool, user.id, {
-    email: email!,
-    firstName: firstName ?? null,
-    lastName: lastName ?? null,
-    phone: phone ?? null,
-  });
-  if (!updated) {
-    return jsonResponse(404, headers, { error: 'not_found' });
-  }
-  return jsonResponse(200, headers, { user: updated });
 }
 
 app.http('portalProfile', {
@@ -69,4 +63,3 @@ app.http('portalProfile', {
   route: 'portal/profile',
   handler: portalProfileHandler,
 });
-

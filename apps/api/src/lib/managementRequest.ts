@@ -5,6 +5,7 @@ import { getBearerToken, verifyAccessToken, entraAuthConfigured } from './jwtVer
 import { findUserByClaims, type UserRow } from './usersRepo.js';
 import { logInfo, logWarn } from './serverLogger.js';
 import { Role } from '../domain/constants.js';
+import { isDomainError, type DomainError } from '../domain/errors.js';
 
 export type ManagementContext = {
   user: UserRow;
@@ -155,6 +156,36 @@ export function jsonResponse(
     headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
     jsonBody: body,
   };
+}
+
+/**
+ * Map a DomainError thrown by a use case to an HttpResponseInit.
+ * Returns null if the error is not a DomainError (caller should re-throw).
+ */
+export function mapDomainError(
+  error: unknown,
+  headers: Record<string, string>
+): HttpResponseInit | null {
+  if (!isDomainError(error)) return null;
+  const e = error as DomainError & { max_bytes?: number; max?: number };
+  const extraFields: Record<string, unknown> = {};
+  if (e.max_bytes !== undefined) extraFields.max_bytes = e.max_bytes;
+  if (e.max !== undefined) extraFields.max = e.max;
+
+  switch (e.code) {
+    case 'NOT_FOUND':
+      return jsonResponse(404, headers, { error: e.message, ...extraFields });
+    case 'FORBIDDEN':
+      return jsonResponse(403, headers, { error: e.message, ...extraFields });
+    case 'VALIDATION':
+      return jsonResponse(400, headers, { error: e.message, ...extraFields });
+    case 'CONFLICT':
+      return jsonResponse(409, headers, { error: e.message, ...extraFields });
+    case 'UNPROCESSABLE':
+      return jsonResponse(422, headers, { error: e.message, ...extraFields });
+    default:
+      return jsonResponse(500, headers, { error: 'internal_error' });
+  }
 }
 
 /**

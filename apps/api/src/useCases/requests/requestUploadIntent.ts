@@ -1,0 +1,91 @@
+/**
+ * Generate a pre-signed upload intent for a request attachment.
+ *
+ * Business rules:
+ * - Tenant must own the request (or actor is landlord/admin).
+ * - File type must be supported and within size limits.
+ * - Photo/video counts must not exceed the per-request caps.
+ */
+
+import {
+  countRequestAttachmentMedia,
+  tenantCanAccessRequest,
+} from '../../lib/requestsRepo.js';
+import {
+  detectMediaType,
+  MAX_REQUEST_PHOTOS,
+  MAX_REQUEST_VIDEOS,
+  maxBytesForMediaType,
+  validateUploadFile,
+  validateRequestId,
+  type UploadMediaType,
+} from '../../domain/requestValidation.js';
+import { forbidden, notFound, validationError } from '../../domain/errors.js';
+import { Role, hasLandlordAccess } from '../../domain/constants.js';
+import type { Queryable } from '../types.js';
+
+export type RequestUploadIntentInput = {
+  requestId: string | undefined;
+  actorUserId: string;
+  actorRole: string;
+  filename: string | undefined;
+  contentType: string | undefined;
+  fileSizeBytes: number;
+};
+
+export type RequestUploadIntentOutput = {
+  upload_url: string;
+  storage_path: string;
+  media_type: UploadMediaType;
+  expires_in_seconds: number;
+};
+
+export async function requestUploadIntent(
+  db: Queryable,
+  input: RequestUploadIntentInput
+): Promise<RequestUploadIntentOutput> {
+  const idValidation = validateRequestId(input.requestId);
+  if (!idValidation.valid) {
+    if (idValidation.message === 'missing_id') throw validationError('missing_id');
+    throw notFound();
+  }
+
+  const requestId = input.requestId!;
+  const role = input.actorRole.trim().toUpperCase();
+  const isManagement = hasLandlordAccess(role);
+
+  if (!isManagement) {
+    if (role !== Role.TENANT) throw forbidden();
+    const allowed = await tenantCanAccessRequest(db, requestId, input.actorUserId);
+    if (!allowed) throw notFound();
+  }
+
+  const uploadValidation = validateUploadFile({
+    filename: input.filename,
+    contentType: input.contentType,
+    fileSizeBytes: input.fileSizeBytes,
+  });
+  if (!uploadValidation.valid) {
+    if (uploadValidation.message === 'file_too_large') {
+      const mediaType = detectMediaType(input.contentType!)!;
+      const maxBytes = maxBytesForMediaType(mediaType);
+      throw Object.assign(validationError('file_too_large'), { max_bytes: maxBytes });
+    }
+    throw validationError(uploadValidation.message);
+  }
+
+  const mediaType = detectMediaType(input.contentType!)!;
+  const counts = await countRequestAttachmentMedia(db, requestId);
+  if (mediaType === 'PHOTO' && counts.photos >= MAX_REQUEST_PHOTOS) {
+    throw Object.assign(validationError('photo_limit_exceeded'), { max: MAX_REQUEST_PHOTOS });
+  }
+  if (mediaType === 'VIDEO' && counts.videos >= MAX_REQUEST_VIDEOS) {
+    throw Object.assign(validationError('video_limit_exceeded'), { max: MAX_REQUEST_VIDEOS });
+  }
+
+  const safeFileName = input.filename!.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const storage_path = `${requestId}/${Date.now()}-${safeFileName}`;
+  const upload_url = `https://example.invalid/uploads/${encodeURIComponent(storage_path)}`;
+
+  return { upload_url, storage_path, media_type: mediaType, expires_in_seconds: 300 };
+}
