@@ -31,7 +31,6 @@ import ChevronLeft from '@mui/icons-material/ChevronLeft';
 import ChevronRight from '@mui/icons-material/ChevronRight';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@mui/material/styles';
 import { usePortalAuth } from '../PortalAuthContext';
 import { isGuestRole, normalizeRole, resolveDisplayName, resolveRole } from '../portalUtils';
 import { stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
@@ -63,7 +62,6 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
   const { t } = useTranslation();
   const theme = useTheme();
   const { pathname } = useLocation();
-  const muiTheme = useTheme();
   const { isAuthenticated, account, meData, meStatus, signOut } = usePortalAuth();
   const [signOutOpen, setSignOutOpen] = useState(false);
 
@@ -344,9 +342,9 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
     </Box>
   );
 
-  const widthTransition = muiTheme.transitions.create('width', {
-    easing: muiTheme.transitions.easing.sharp,
-    duration: muiTheme.transitions.duration.enteringScreen,
+  const widthTransition = theme.transitions.create('width', {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.enteringScreen,
   });
 
   const drawerPaperSx = {
