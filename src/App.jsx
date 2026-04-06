@@ -19,6 +19,7 @@ import PortalStatus from './components/PortalStatus';
 import PortalProfile from './components/PortalProfile';
 import PortalRequests from './components/PortalRequests';
 import PortalAdminLandlords from './components/PortalAdminLandlords';
+import PortalAdminProperties from './components/PortalAdminProperties';
 import PortalLayout from './components/PortalLayout';
 import PortalAuthGate from './components/PortalAuthGate';
 import { isDarkPreviewRoute, isPortalRoute } from './routePaths';
@@ -79,6 +80,7 @@ function PortalRoutes() {
             <Route path="/portal/profile" element={<PortalProfile />} />
             <Route path="/portal/requests" element={<PortalRequests />} />
             <Route path="/portal/admin" element={<PortalAdminLandlords />} />
+            <Route path="/portal/properties" element={<PortalAdminProperties />} />
             <Route path="/portal/tenant" element={<Navigate to="/portal" replace />} />
             <Route path="/portal/landlord" element={<Navigate to="/portal" replace />} />
         </Routes>

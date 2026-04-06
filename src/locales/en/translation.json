@@ -890,6 +890,65 @@
       "lastNameRequired": "Last name is required."
     }
   },
+  "portalAdminProperties": {
+    "title": "Carwoods - Manage Properties",
+    "metaDescription": "Onboard and manage rental properties for the apply page.",
+    "heading": "Properties",
+    "intro": "Onboard properties by searching HAR or entering details manually. Toggle 'Show on Apply page' to control which appear on the public listing.",
+    "harSearch": {
+      "heading": "Look up a HAR listing",
+      "harIdLabel": "HAR listing ID",
+      "harIdHelperText": "Numeric ID from the end of a HAR.com homedetail URL",
+      "searchButton": "Search HAR",
+      "searching": "Searching…",
+      "notFound": "No listing data found for that ID. Check the ID and try again.",
+      "fetchError": "Could not reach HAR. Check the ID and try again, or enter details manually.",
+      "found": "Listing found — details populated below."
+    },
+    "form": {
+      "heading": "Property details",
+      "addressLine": "Street address",
+      "cityStateZip": "City, state, zip",
+      "monthlyRent": "Monthly rent (e.g. $2,500/mo)",
+      "harListingUrl": "HAR listing URL",
+      "applyUrl": "Apply URL (RentSpree apply.link)",
+      "detailLines": "Detail lines (one per line, e.g. \"3 Bedroom(s)\")",
+      "showOnApplyPage": "Show on Apply page",
+      "photo": "Property photo",
+      "photoUpload": "Upload photo",
+      "photoUrlLabel": "Or enter photo URL",
+      "photoPreview": "Photo preview",
+      "addProperty": "Add property",
+      "saveChanges": "Save changes",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "addAnother": "Add another"
+    },
+    "grid": {
+      "heading": "Your properties",
+      "empty": "No properties yet. Use the form above to add one.",
+      "editButton": "Edit",
+      "deleteButton": "Delete",
+      "deleteConfirmTitle": "Delete property?",
+      "deleteConfirmBody": "This will remove \"{{address}}\" from your property list. This cannot be undone.",
+      "deleteConfirmAction": "Delete",
+      "deleteCancel": "Cancel",
+      "showOnApply": "Apply page",
+      "harId": "HAR ID",
+      "noPhoto": "No photo"
+    },
+    "messages": {
+      "added": "Property added successfully.",
+      "updated": "Property updated successfully.",
+      "deleted": "Property deleted."
+    },
+    "errors": {
+      "signInRequired": "Sign in before managing properties.",
+      "landlordOrAdminOnly": "Only landlord or admin accounts can manage properties.",
+      "addressRequired": "Street address is required.",
+      "cityStateZipRequired": "City / state / zip is required."
+    }
+  },
   "portalHeader": {
     "title": "Property Portal",
     "notSignedIn": "Not signed in",
@@ -926,6 +985,7 @@
       "requests": "Requests",
       "profile": "Profile",
       "adminLandlords": "Landlords",
+      "properties": "Properties",
       "status": "System Status",
       "collapse": "Collapse sidebar",
       "expand": "Expand sidebar",
@@ -954,7 +1014,8 @@
       "viewRequests": "View All Requests",
       "viewProfile": "Edit Profile",
       "exportCsv": "Export CSV",
-      "manageLandlords": "Manage Landlords"
+      "manageLandlords": "Manage Landlords",
+      "manageProperties": "Manage Properties"
     },
     "recentRequests": {
       "heading": "Recent Requests",

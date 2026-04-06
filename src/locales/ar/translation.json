@@ -890,6 +890,65 @@
       "lastNameRequired": "اسم العائلة مطلوب."
     }
   },
+  "portalAdminProperties": {
+    "title": "Carwoods - إدارة العقارات",
+    "metaDescription": "تسجيل وإدارة العقارات الإيجارية لصفحة التقديم.",
+    "heading": "العقارات",
+    "intro": "سجّل العقارات عن طريق البحث في HAR أو إدخال التفاصيل يدويًا. فعّل 'عرض في صفحة التقديم' للتحكم فيما يظهر في القائمة العامة.",
+    "harSearch": {
+      "heading": "البحث في HAR",
+      "harIdLabel": "معرّف قائمة HAR",
+      "harIdHelperText": "المعرّف الرقمي في نهاية عنوان URL لـ homedetail على HAR.com",
+      "searchButton": "بحث في HAR",
+      "searching": "جارٍ البحث…",
+      "notFound": "لم يتم العثور على بيانات لهذا المعرّف. تحقق من المعرّف وحاول مجددًا.",
+      "fetchError": "تعذّر الوصول إلى HAR. تحقق من المعرّف وحاول مجددًا، أو أدخل التفاصيل يدويًا.",
+      "found": "تم العثور على القائمة — تم ملء التفاصيل أدناه."
+    },
+    "form": {
+      "heading": "تفاصيل العقار",
+      "addressLine": "عنوان الشارع",
+      "cityStateZip": "المدينة، الولاية، الرمز البريدي",
+      "monthlyRent": "الإيجار الشهري (مثال: $2,500/mo)",
+      "harListingUrl": "رابط قائمة HAR",
+      "applyUrl": "رابط التقديم (apply.link من RentSpree)",
+      "detailLines": "سطور التفاصيل (سطر لكل عنصر، مثال: «3 غرف نوم»)",
+      "showOnApplyPage": "عرض في صفحة التقديم",
+      "photo": "صورة العقار",
+      "photoUpload": "رفع صورة",
+      "photoUrlLabel": "أو أدخل رابط الصورة",
+      "photoPreview": "معاينة الصورة",
+      "addProperty": "إضافة عقار",
+      "saveChanges": "حفظ التغييرات",
+      "saving": "جارٍ الحفظ…",
+      "cancel": "إلغاء",
+      "addAnother": "إضافة عقار آخر"
+    },
+    "grid": {
+      "heading": "عقاراتك",
+      "empty": "لا توجد عقارات بعد. استخدم النموذج أعلاه لإضافة عقار.",
+      "editButton": "تعديل",
+      "deleteButton": "حذف",
+      "deleteConfirmTitle": "حذف العقار؟",
+      "deleteConfirmBody": "سيؤدي هذا إلى حذف «{{address}}» من قائمتك. لا يمكن التراجع عن هذا الإجراء.",
+      "deleteConfirmAction": "حذف",
+      "deleteCancel": "إلغاء",
+      "showOnApply": "صفحة التقديم",
+      "harId": "معرّف HAR",
+      "noPhoto": "لا توجد صورة"
+    },
+    "messages": {
+      "added": "تمت إضافة العقار بنجاح.",
+      "updated": "تم تحديث العقار بنجاح.",
+      "deleted": "تم حذف العقار."
+    },
+    "errors": {
+      "signInRequired": "سجّل الدخول قبل إدارة العقارات.",
+      "landlordOrAdminOnly": "فقط حسابات الملاك أو المسؤولين يمكنها إدارة العقارات.",
+      "addressRequired": "عنوان الشارع مطلوب.",
+      "cityStateZipRequired": "المدينة / الولاية / الرمز البريدي مطلوب."
+    }
+  },
   "portalHeader": {
     "title": "بوابة العقارات",
     "notSignedIn": "لم يتم تسجيل الدخول",
@@ -926,6 +985,7 @@
       "requests": "الطلبات",
       "profile": "الملف الشخصي",
       "adminLandlords": "الملاك",
+      "properties": "العقارات",
       "status": "حالة النظام",
       "collapse": "طي الشريط الجانبي",
       "expand": "توسيع الشريط الجانبي",
@@ -954,7 +1014,8 @@
       "viewRequests": "عرض جميع الطلبات",
       "viewProfile": "تعديل الملف الشخصي",
       "exportCsv": "تصدير CSV",
-      "manageLandlords": "إدارة الملاك"
+      "manageLandlords": "إدارة الملاك",
+      "manageProperties": "إدارة العقارات"
     },
     "recentRequests": {
       "heading": "الطلبات الأخيرة",
