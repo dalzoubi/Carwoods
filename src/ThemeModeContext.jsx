@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useLayoutEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import createCache from '@emotion/cache';
@@ -9,32 +9,24 @@ import { buildTheme, applyThemeCssVariables } from './theme';
 import { clearStoredColorScheme, readStoredColorScheme, writeStoredColorScheme } from './themePreferenceStorage';
 import { isDarkPreviewRoute } from './routePaths';
 import { useLanguage } from './LanguageContext';
+import { useSystemDarkPreference } from './hooks/useSystemDarkPreference';
 
 const ThemeModeContext = createContext(null);
 
 const ltrCache = createCache({ key: 'css' });
 const rtlCache = createCache({ key: 'cssrtl', stylisPlugins: [rtlPlugin] });
 
-function getSystemPrefersDark() {
-    if (typeof window === 'undefined') return false;
-    if (typeof window.matchMedia !== 'function') return false;
-    try {
-        return window.matchMedia('(prefers-color-scheme: dark)').matches;
-    } catch {
-        return false;
-    }
-}
-
 /**
  * @param {string | null} storedOverride
  * @param {boolean} isDarkPreviewPath
+ * @param {boolean} systemDark
  * @returns {'light' | 'dark'}
  */
-function resolveEffectiveMode(storedOverride, isDarkPreviewPath) {
+function resolveEffectiveMode(storedOverride, isDarkPreviewPath, systemDark) {
     if (isDarkPreviewPath) return 'dark';
     if (!FEATURE_DARK_THEME) return 'light';
     if (storedOverride === 'light' || storedOverride === 'dark') return storedOverride;
-    return getSystemPrefersDark() ? 'dark' : 'light';
+    return systemDark ? 'dark' : 'light';
 }
 
 export function ThemeModeProvider({ children }) {
@@ -45,25 +37,11 @@ export function ThemeModeProvider({ children }) {
     const [storedOverride, setStoredOverride] = useState(() =>
         FEATURE_DARK_THEME ? readStoredColorScheme() : null
     );
-    const [systemDark, setSystemDark] = useState(() => (FEATURE_DARK_THEME ? getSystemPrefersDark() : false));
-
-    useEffect(() => {
-        if (!FEATURE_DARK_THEME) return undefined;
-        if (typeof window.matchMedia !== 'function') return undefined;
-        let mq;
-        try {
-            mq = window.matchMedia('(prefers-color-scheme: dark)');
-        } catch {
-            return undefined;
-        }
-        const handler = () => setSystemDark(mq.matches);
-        mq.addEventListener('change', handler);
-        return () => mq.removeEventListener('change', handler);
-    }, []);
+    const systemDark = useSystemDarkPreference();
 
     const effectiveMode = useMemo(
-        () => resolveEffectiveMode(storedOverride, isDarkPreviewPath),
-        [storedOverride, systemDark, isDarkPreviewPath]
+        () => resolveEffectiveMode(storedOverride, isDarkPreviewPath, systemDark),
+        [storedOverride, isDarkPreviewPath, systemDark]
     );
 
     const muiTheme = useMemo(() => buildTheme(effectiveMode, isRTL), [effectiveMode, isRTL]);
