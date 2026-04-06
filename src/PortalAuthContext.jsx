@@ -2,54 +2,15 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { EventType, InteractionRequiredAuthError } from '@azure/msal-browser';
 import { VITE_API_BASE_URL_RESOLVED } from './featureFlags';
 import { ENTRA_AUTH_CONFIGURED, ENTRA_LOGIN_SCOPES, ENTRA_SCOPES, msalInstance } from './entraAuth';
-import { emailFromAccount } from './portalUtils';
 import { Role } from './domain/constants.js';
+import {
+  hydrateAccountClaims,
+  persistIdTokenClaims,
+  writeStoredClaimsByHomeAccountId,
+} from './lib/portalClaimsStorage';
+import { useMeProfile } from './hooks/useMeProfile';
 
 const PortalAuthContext = createContext(null);
-const ID_TOKEN_CLAIMS_STORAGE_KEY = 'portal.idTokenClaimsByHomeAccountId';
-
-function endpoint(baseUrl, path) {
-  return `${baseUrl.replace(/\/$/, '')}${path}`;
-}
-
-function readStoredClaimsByHomeAccountId() {
-  if (typeof window === 'undefined') return {};
-  try {
-    const raw = window.localStorage.getItem(ID_TOKEN_CLAIMS_STORAGE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === 'object' ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function writeStoredClaimsByHomeAccountId(map) {
-  if (typeof window === 'undefined') return;
-  try {
-    window.localStorage.setItem(ID_TOKEN_CLAIMS_STORAGE_KEY, JSON.stringify(map));
-  } catch {
-    // Best-effort cache persistence.
-  }
-}
-
-function persistIdTokenClaims(account, idTokenClaims) {
-  const homeAccountId = account?.homeAccountId;
-  if (!homeAccountId || !idTokenClaims || typeof idTokenClaims !== 'object') return;
-  const current = readStoredClaimsByHomeAccountId();
-  current[homeAccountId] = idTokenClaims;
-  writeStoredClaimsByHomeAccountId(current);
-}
-
-function hydrateAccountClaims(account) {
-  if (!account) return null;
-  if (account.idTokenClaims) return account;
-  const homeAccountId = account.homeAccountId;
-  if (!homeAccountId) return account;
-  const claims = readStoredClaimsByHomeAccountId()[homeAccountId];
-  if (!claims || typeof claims !== 'object') return account;
-  return { ...account, idTokenClaims: claims };
-}
 
 const PORTAL_DEV_AUTH = import.meta.env.VITE_PORTAL_DEV_AUTH === 'true';
 
@@ -81,13 +42,10 @@ function RealPortalAuthProvider({ children }) {
   );
   const [authError, setAuthError] = useState('');
   const [account, setAccount] = useState(null);
-  const [meStatus, setMeStatus] = useState('idle');
-  const [meData, setMeData] = useState(null);
-  const [meError, setMeError] = useState('');
   const [refreshTick, setRefreshTick] = useState(0);
 
   const baseUrl = VITE_API_BASE_URL_RESOLVED || '';
-  const meUrl = baseUrl ? endpoint(baseUrl, '/api/portal/me') : '';
+  const meUrl = baseUrl ? `${baseUrl.replace(/\/$/, '')}/api/portal/me` : '';
 
   const syncActiveAccount = useCallback(() => {
     if (!msalInstance) {
@@ -106,12 +64,6 @@ function RealPortalAuthProvider({ children }) {
     setAccount(null);
     setAuthStatus('unauthenticated');
     return null;
-  }, []);
-
-  const clearSessionData = useCallback(() => {
-    setMeStatus('idle');
-    setMeData(null);
-    setMeError('');
   }, []);
 
   const signInWithProvider = useCallback(async (domainHint) => {
@@ -162,8 +114,7 @@ function RealPortalAuthProvider({ children }) {
     setAccount(null);
     setAuthError('');
     setAuthStatus('unauthenticated');
-    clearSessionData();
-  }, [clearSessionData]);
+  }, []);
 
   const refreshMe = useCallback(() => {
     setRefreshTick((x) => x + 1);
@@ -209,7 +160,6 @@ function RealPortalAuthProvider({ children }) {
   useEffect(() => {
     if (!ENTRA_AUTH_CONFIGURED || !msalInstance) {
       setAuthStatus('unconfigured');
-      clearSessionData();
       return;
     }
     let mounted = true;
@@ -247,66 +197,15 @@ function RealPortalAuthProvider({ children }) {
         msalInstance.removeEventCallback(callbackId);
       }
     };
-  }, [clearSessionData, syncActiveAccount]);
+  }, [syncActiveAccount]);
 
-  useEffect(() => {
-    if (!baseUrl || !meUrl || authStatus !== 'authenticated' || !account || !msalInstance) {
-      clearSessionData();
-      return;
-    }
-
-    const controller = new AbortController();
-    const run = async () => {
-      setMeStatus('loading');
-      setMeError('');
-      try {
-        const accessToken = await getAccessToken();
-
-        const meHeaders = {
-          Accept: 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        };
-        const hint = emailFromAccount(account);
-        if (hint) {
-          meHeaders['X-Email-Hint'] = hint;
-        }
-
-        const res = await fetch(meUrl, {
-          method: 'GET',
-          headers: meHeaders,
-          credentials: 'omit',
-          signal: controller.signal,
-        });
-
-        if (!res.ok) {
-          let errorCode = '';
-          try {
-            const payload = await res.json();
-            if (payload && typeof payload.error === 'string') {
-              errorCode = payload.error;
-            }
-          } catch {
-            // Best-effort parse; keep HTTP status if body is not JSON.
-          }
-          setMeStatus('error');
-          setMeData(null);
-          setMeError(errorCode ? `HTTP ${res.status} (${errorCode})` : `HTTP ${res.status}`);
-          return;
-        }
-        const payload = await res.json();
-        setMeStatus('ok');
-        setMeData(payload ?? null);
-      } catch (error) {
-        if (controller.signal.aborted) return;
-        setMeStatus('error');
-        setMeData(null);
-        setMeError(error instanceof Error ? error.message : 'request_failed');
-      }
-    };
-
-    run();
-    return () => controller.abort();
-  }, [account, authStatus, baseUrl, clearSessionData, getAccessToken, meUrl, refreshTick]);
+  const { meStatus, meData, meError } = useMeProfile({
+    account,
+    authStatus,
+    baseUrl,
+    getAccessToken,
+    refreshTick,
+  });
 
   const value = useMemo(
     () => ({
@@ -359,4 +258,3 @@ export function usePortalAuth() {
   }
   return value;
 }
-
