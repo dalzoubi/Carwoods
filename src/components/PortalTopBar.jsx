@@ -3,9 +3,12 @@ import {
   AppBar,
   Avatar,
   Box,
+  Chip,
   CircularProgress,
   Divider,
   IconButton,
+  ListItemIcon,
+  ListItemText,
   Menu,
   MenuItem,
   Toolbar,
@@ -18,13 +21,18 @@ import LightMode from '@mui/icons-material/LightMode';
 import DarkMode from '@mui/icons-material/DarkMode';
 import RestartAlt from '@mui/icons-material/RestartAlt';
 import LanguageIcon from '@mui/icons-material/Language';
-import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
+import Person from '@mui/icons-material/Person';
+import Logout from '@mui/icons-material/Logout';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { isDarkPreviewRoute, stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
 import { useThemeMode } from '../ThemeModeContext';
 import { useLanguage } from '../LanguageContext';
 import { FEATURE_DARK_THEME } from '../featureFlags';
+import { isGuestRole, normalizeRole, resolveDisplayName, resolveRole } from '../portalUtils';
+import { Role } from '../domain/constants.js';
+import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
 
 function usePageTitle(t) {
   const { pathname } = useLocation();
@@ -51,14 +59,28 @@ function userInitials(meData) {
   return '?';
 }
 
+function portalRoleLabel(role, t) {
+  const n = normalizeRole(role);
+  if (n === Role.ADMIN) return t('portalHeader.roles.admin');
+  if (n === Role.LANDLORD) return t('portalHeader.roles.landlord');
+  if (n === Role.TENANT) return t('portalHeader.roles.tenant');
+  return t('portalHeader.roles.unknown');
+}
+
 const PortalTopBar = ({ onMenuClick, isMobile }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { isAuthenticated, meData, meStatus } = usePortalAuth();
+  const { isAuthenticated, account, meData, meStatus, signOut } = usePortalAuth();
   const initials = userInitials(meData);
   const meLoading = isAuthenticated && meStatus === 'loading';
   const pageTitle = usePageTitle(t);
+
+  const role = resolveRole(meData, account);
+  const normalized = normalizeRole(role);
+  const isGuest = isGuestRole(normalized);
+  const displayName = resolveDisplayName(meData, account, t('portalHeader.notSignedIn'));
+  const roleLabel = portalRoleLabel(role, t);
 
   const {
     storedOverride,
@@ -78,18 +100,34 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
 
   const [appearanceAnchor, setAppearanceAnchor] = useState(null);
   const [languageAnchor, setLanguageAnchor] = useState(null);
+  const [accountAnchor, setAccountAnchor] = useState(null);
+  const [signOutOpen, setSignOutOpen] = useState(false);
 
   const handleAppearanceOpen = (e) => {
     setLanguageAnchor(null);
+    setAccountAnchor(null);
     setAppearanceAnchor(e.currentTarget);
   };
   const handleAppearanceClose = () => setAppearanceAnchor(null);
 
   const handleLanguageOpen = (e) => {
     setAppearanceAnchor(null);
+    setAccountAnchor(null);
     setLanguageAnchor(e.currentTarget);
   };
   const handleLanguageClose = () => setLanguageAnchor(null);
+
+  const handleAccountOpen = (e) => {
+    setAppearanceAnchor(null);
+    setLanguageAnchor(null);
+    setAccountAnchor(e.currentTarget);
+  };
+  const handleAccountClose = () => setAccountAnchor(null);
+
+  const handleSignOutConfirm = async () => {
+    setSignOutOpen(false);
+    await signOut();
+  };
 
   return (
     <AppBar
@@ -168,13 +206,16 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
                 <CircularProgress size={20} />
               </Box>
             ) : (
-              <Tooltip title={t('portalLayout.sidebar.profile')} arrow>
+              <Tooltip title={t('portalLayout.topBar.accountMenu')} arrow>
                 <IconButton
-                  component={RouterLink}
-                  to={withDarkPath(pathname, '/portal/profile')}
                   type="button"
                   size="small"
-                  aria-label={t('portalLayout.sidebar.profile')}
+                  id="portal-topbar-account-button"
+                  onClick={handleAccountOpen}
+                  aria-haspopup="true"
+                  aria-expanded={Boolean(accountAnchor)}
+                  aria-controls={accountAnchor ? 'portal-topbar-account-menu' : undefined}
+                  aria-label={t('portalLayout.topBar.accountMenu')}
                   sx={{ marginInlineStart: 0.5 }}
                 >
                   <Avatar
@@ -286,6 +327,64 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
           {t('languagePreference.browserLanguageHint')}
         </Typography>
       </Menu>
+
+      {/* Account menu */}
+      <Menu
+        id="portal-topbar-account-menu"
+        anchorEl={accountAnchor}
+        open={Boolean(accountAnchor)}
+        onClose={handleAccountClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        slotProps={{ paper: { sx: { backgroundImage: 'none', minWidth: 230 } } }}
+        MenuListProps={{ 'aria-labelledby': 'portal-topbar-account-button' }}
+      >
+        <Box sx={{ px: 2, pt: 1.5, pb: 1 }}>
+          <Typography variant="body2" fontWeight={600} noWrap>
+            {displayName}
+          </Typography>
+          <Chip
+            label={roleLabel}
+            size="small"
+            color="primary"
+            variant="outlined"
+            sx={{ height: 20, fontSize: '0.7rem', mt: 0.5 }}
+          />
+        </Box>
+        <Divider />
+        <MenuItem
+          onClick={() => {
+            if (!isGuest) {
+              navigate(withDarkPath(pathname, '/portal/profile'));
+            }
+            handleAccountClose();
+          }}
+          disabled={isGuest}
+        >
+          <ListItemIcon>
+            <Person fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary={`${t('portalHeader.nav.profile')} (${roleLabel})`} />
+        </MenuItem>
+        <Divider />
+        <MenuItem
+          onClick={() => {
+            handleAccountClose();
+            setSignOutOpen(true);
+          }}
+        >
+          <ListItemIcon>
+            <Logout fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary={t('portalHeader.actions.signOut')} />
+        </MenuItem>
+      </Menu>
+
+      <PortalSignOutConfirmDialog
+        open={signOutOpen}
+        onClose={() => setSignOutOpen(false)}
+        onConfirm={handleSignOutConfirm}
+      />
     </AppBar>
   );
 };
