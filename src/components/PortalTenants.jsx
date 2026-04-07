@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import {
   Alert,
@@ -6,7 +6,6 @@ import {
   Button,
   Checkbox,
   Chip,
-  CircularProgress,
   Collapse,
   Dialog,
   DialogActions,
@@ -23,6 +22,8 @@ import {
   Typography,
 } from '@mui/material';
 import Add from '@mui/icons-material/Add';
+import Delete from '@mui/icons-material/Delete';
+import Edit from '@mui/icons-material/Edit';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import Refresh from '@mui/icons-material/Refresh';
@@ -34,10 +35,14 @@ import {
   fetchTenants,
   createTenant,
   patchTenantAccess,
+  deleteTenant,
   addTenantLease,
+  updateLease,
+  deleteLease,
   fetchLandlords,
   fetchLandlordProperties,
 } from '../lib/portalApiClient';
+import PortalConfirmDialog from './PortalConfirmDialog';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -78,16 +83,197 @@ function formatDate(dateStr) {
 }
 
 // ---------------------------------------------------------------------------
+// EditLeaseDialog — edit an existing lease
+// ---------------------------------------------------------------------------
+
+function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
+  const [form, setForm] = useState({
+    property_id: '',
+    start_date: '',
+    end_date: '',
+    month_to_month: false,
+    notes: '',
+  });
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
+  const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
+  const emailHint = meData?.user?.email ?? account?.username ?? '';
+
+  useEffect(() => {
+    if (open && lease) {
+      setForm({
+        property_id: lease.property_id ?? '',
+        start_date: lease.start_date ?? '',
+        end_date: lease.end_date ?? '',
+        month_to_month: Boolean(lease.month_to_month),
+        notes: lease.notes ?? '',
+      });
+      setFieldErrors({});
+      setSubmitState({ status: 'idle', detail: '' });
+    }
+  }, [open, lease]);
+
+  const onChange = (field) => (e) => {
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setFieldErrors((prev) => ({ ...prev, [field]: '' }));
+  };
+
+  const validate = () => {
+    const errors = {};
+    if (!form.start_date) errors.start_date = t('portalTenants.errors.startDateRequired');
+    if (!form.month_to_month && form.end_date && form.end_date <= form.start_date) {
+      errors.end_date = t('portalTenants.errors.endDateBeforeStart');
+    }
+    return errors;
+  };
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    const errors = validate();
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+    setSubmitState({ status: 'saving', detail: '' });
+    try {
+      const accessToken = await getAccessToken();
+      await updateLease(baseUrl, accessToken, lease.id, {
+        emailHint,
+        start_date: form.start_date,
+        end_date: form.month_to_month ? null : (form.end_date || null),
+        month_to_month: form.month_to_month,
+        notes: form.notes || null,
+      });
+      setSubmitState({ status: 'ok', detail: '' });
+      onSaved();
+    } catch (error) {
+      const detail = error?.message ?? 'request_failed';
+      setSubmitState({ status: 'error', detail });
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('portalTenants.editLeaseDialog.title')}</DialogTitle>
+      <Box component="form" onSubmit={onSubmit}>
+        <DialogContent>
+          <Stack spacing={2}>
+            {submitState.status === 'error' && (
+              <Alert severity="error">{submitState.detail}</Alert>
+            )}
+            <Select
+              value={form.property_id}
+              onChange={onChange('property_id')}
+              displayEmpty
+              fullWidth
+              size="small"
+              disabled
+            >
+              <MenuItem value="" disabled>
+                {t('portalTenants.form.selectProperty')}
+              </MenuItem>
+              {properties.map((p) => (
+                <MenuItem key={p.id} value={p.id}>
+                  {propertyLabel(p)}
+                </MenuItem>
+              ))}
+            </Select>
+            <TextField
+              label={t('portalTenants.form.startDate')}
+              type="date"
+              value={form.start_date}
+              onChange={onChange('start_date')}
+              InputLabelProps={{ shrink: true }}
+              required
+              fullWidth
+              error={Boolean(fieldErrors.start_date)}
+              helperText={fieldErrors.start_date || ' '}
+              size="small"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={form.month_to_month}
+                  onChange={onChange('month_to_month')}
+                  size="small"
+                />
+              }
+              label={t('portalTenants.form.monthToMonth')}
+            />
+            {!form.month_to_month && (
+              <TextField
+                label={t('portalTenants.form.endDate')}
+                type="date"
+                value={form.end_date}
+                onChange={onChange('end_date')}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                error={Boolean(fieldErrors.end_date)}
+                helperText={fieldErrors.end_date || ' '}
+                size="small"
+              />
+            )}
+            <TextField
+              label={t('portalTenants.form.notes')}
+              value={form.notes}
+              onChange={onChange('notes')}
+              multiline
+              rows={2}
+              fullWidth
+              size="small"
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button type="button" onClick={onClose} disabled={submitState.status === 'saving'}>
+            {t('portalTenants.actions.cancel')}
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={submitState.status === 'saving'}
+          >
+            {submitState.status === 'saving'
+              ? t('portalTenants.actions.saving')
+              : t('portalTenants.editLeaseDialog.save')}
+          </Button>
+        </DialogActions>
+      </Box>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // LeaseRow — shows one lease in the detail panel
 // ---------------------------------------------------------------------------
 
-function LeaseRow({ lease, t }) {
+function LeaseRow({ lease, properties, onLeaseUpdated, t }) {
   const isActive = lease.is_active;
   const dateRange = lease.month_to_month
     ? `${formatDate(lease.start_date)} — Month-to-month`
     : lease.end_date
       ? `${formatDate(lease.start_date)} – ${formatDate(lease.end_date)}`
       : `${formatDate(lease.start_date)} — no end date`;
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteState, setDeleteState] = useState({ status: 'idle', detail: '' });
+  const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
+  const emailHint = meData?.user?.email ?? account?.username ?? '';
+
+  const handleDeleteConfirm = async () => {
+    setDeleteState({ status: 'saving', detail: '' });
+    try {
+      const accessToken = await getAccessToken();
+      await deleteLease(baseUrl, accessToken, lease.id, { emailHint });
+      setDeleteConfirmOpen(false);
+      setDeleteState({ status: 'idle', detail: '' });
+      onLeaseUpdated();
+    } catch (error) {
+      setDeleteState({ status: 'error', detail: error?.message ?? 'request_failed' });
+    }
+  };
 
   return (
     <Box
@@ -112,14 +298,62 @@ function LeaseRow({ lease, t }) {
               {lease.notes}
             </Typography>
           )}
+          {deleteState.status === 'error' && (
+            <Typography variant="caption" color="error">
+              {deleteState.detail}
+            </Typography>
+          )}
         </Box>
-        <Chip
-          label={isActive ? t('portalTenants.lease.active') : t('portalTenants.lease.ended')}
-          size="small"
-          color={isActive ? 'success' : 'default'}
-          variant={isActive ? 'filled' : 'outlined'}
-        />
+        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', flexShrink: 0 }}>
+          <Chip
+            label={isActive ? t('portalTenants.lease.active') : t('portalTenants.lease.ended')}
+            size="small"
+            color={isActive ? 'success' : 'default'}
+            variant={isActive ? 'filled' : 'outlined'}
+          />
+          <Tooltip title={t('portalTenants.actions.editLease')}>
+            <IconButton
+              type="button"
+              size="small"
+              onClick={() => setEditOpen(true)}
+              aria-label={t('portalTenants.actions.editLease')}
+            >
+              <Edit fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t('portalTenants.actions.deleteLease')}>
+            <IconButton
+              type="button"
+              size="small"
+              color="error"
+              onClick={() => setDeleteConfirmOpen(true)}
+              aria-label={t('portalTenants.actions.deleteLease')}
+            >
+              <Delete fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Stack>
       </Stack>
+
+      <EditLeaseDialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        onSaved={() => { setEditOpen(false); onLeaseUpdated(); }}
+        lease={lease}
+        properties={properties}
+        t={t}
+      />
+
+      <PortalConfirmDialog
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title={t('portalTenants.deleteLeaseConfirm.title')}
+        body={t('portalTenants.deleteLeaseConfirm.body')}
+        confirmLabel={t('portalTenants.deleteLeaseConfirm.confirm')}
+        cancelLabel={t('portalTenants.actions.cancel')}
+        loading={deleteState.status === 'saving'}
+      />
     </Box>
   );
 }
@@ -271,7 +505,7 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose} disabled={submitState.status === 'saving'}>
+          <Button type="button" onClick={onClose} disabled={submitState.status === 'saving'}>
             {t('portalTenants.actions.cancel')}
           </Button>
           <Button
@@ -293,10 +527,12 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
 // TenantRow — one tenant in the list with expandable lease detail
 // ---------------------------------------------------------------------------
 
-function TenantRow({ tenant, properties, onToggleAccess, onLeaseSaved, t }) {
+function TenantRow({ tenant, properties, onToggleAccess, onDeleteTenant, onLeaseSaved, t }) {
   const [expanded, setExpanded] = useState(false);
   const [leasesState, setLeasesState] = useState({ status: 'idle', leases: [] });
   const [addLeaseOpen, setAddLeaseOpen] = useState(false);
+  const [disableConfirmOpen, setDisableConfirmOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
   const emailHint = meData?.user?.email ?? account?.username ?? '';
   const isActive = isActiveStatus(tenant.status);
@@ -338,10 +574,10 @@ function TenantRow({ tenant, properties, onToggleAccess, onLeaseSaved, t }) {
     onLeaseSaved();
   };
 
-  const activeLease = useMemo(
-    () => leasesState.leases.find((l) => l.is_active),
-    [leasesState.leases]
-  );
+  const handleLeaseUpdated = () => {
+    void loadLeases();
+    onLeaseSaved();
+  };
 
   return (
     <Box
@@ -390,7 +626,7 @@ function TenantRow({ tenant, properties, onToggleAccess, onLeaseSaved, t }) {
               size="small"
               color="warning"
               variant="outlined"
-              onClick={() => onToggleAccess(tenant.id, false)}
+              onClick={() => setDisableConfirmOpen(true)}
             >
               {t('portalTenants.actions.disable')}
             </Button>
@@ -404,8 +640,23 @@ function TenantRow({ tenant, properties, onToggleAccess, onLeaseSaved, t }) {
               {t('portalTenants.actions.enable')}
             </Button>
           )}
+          <Tooltip title={t('portalTenants.actions.deleteTenant')}>
+            <IconButton
+              type="button"
+              size="small"
+              color="error"
+              onClick={() => setDeleteConfirmOpen(true)}
+              aria-label={t('portalTenants.actions.deleteTenant')}
+            >
+              <Delete fontSize="small" />
+            </IconButton>
+          </Tooltip>
           <Tooltip title={expanded ? t('portalTenants.actions.collapse') : t('portalTenants.actions.expand')}>
-            <IconButton size="small" onClick={handleExpand} aria-label={expanded ? t('portalTenants.actions.collapse') : t('portalTenants.actions.expand')}>
+            <IconButton
+              size="small"
+              onClick={handleExpand}
+              aria-label={expanded ? t('portalTenants.actions.collapse') : t('portalTenants.actions.expand')}
+            >
               {expanded ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
             </IconButton>
           </Tooltip>
@@ -458,7 +709,13 @@ function TenantRow({ tenant, properties, onToggleAccess, onLeaseSaved, t }) {
               </Typography>
             )}
             {leasesState.leases.map((lease) => (
-              <LeaseRow key={lease.id} lease={lease} t={t} />
+              <LeaseRow
+                key={lease.id}
+                lease={lease}
+                properties={properties}
+                onLeaseUpdated={handleLeaseUpdated}
+                t={t}
+              />
             ))}
           </Stack>
         </Box>
@@ -471,6 +728,30 @@ function TenantRow({ tenant, properties, onToggleAccess, onLeaseSaved, t }) {
         tenantId={tenant.id}
         properties={properties}
         t={t}
+      />
+
+      {/* Disable access confirmation */}
+      <PortalConfirmDialog
+        open={disableConfirmOpen}
+        onClose={() => setDisableConfirmOpen(false)}
+        onConfirm={() => { setDisableConfirmOpen(false); onToggleAccess(tenant.id, false); }}
+        title={t('portalTenants.disableConfirm.title')}
+        body={t('portalTenants.disableConfirm.body', { name: displayName(tenant) })}
+        confirmLabel={t('portalTenants.actions.disable')}
+        cancelLabel={t('portalTenants.actions.cancel')}
+        confirmColor="warning"
+      />
+
+      {/* Delete tenant confirmation */}
+      <PortalConfirmDialog
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={() => { setDeleteConfirmOpen(false); onDeleteTenant(tenant.id); }}
+        title={t('portalTenants.deleteTenantConfirm.title')}
+        body={t('portalTenants.deleteTenantConfirm.body', { name: displayName(tenant) })}
+        confirmLabel={t('portalTenants.deleteTenantConfirm.confirm')}
+        cancelLabel={t('portalTenants.actions.cancel')}
+        confirmColor="error"
       />
     </Box>
   );
@@ -693,7 +974,7 @@ function OnboardTenantDialog({ open, onClose, onSaved, properties, t }) {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose} disabled={submitState.status === 'saving'}>
+          <Button type="button" onClick={onClose} disabled={submitState.status === 'saving'}>
             {t('portalTenants.actions.cancel')}
           </Button>
           <Button
@@ -767,7 +1048,6 @@ const PortalTenants = () => {
       const accessToken = await getAccessToken();
       const payload = await fetchLandlordProperties(baseUrl, accessToken, { emailHint });
       const all = Array.isArray(payload?.properties) ? payload.properties : [];
-      // For admin with a selected landlord: filter by that landlord
       if (isAdmin && selectedLandlordId) {
         setProperties(all.filter((p) => p.landlord_user_id === selectedLandlordId || p.created_by === selectedLandlordId));
       } else {
@@ -820,6 +1100,23 @@ const PortalTenants = () => {
         detail: active
           ? t('portalTenants.messages.tenantEnabled')
           : t('portalTenants.messages.tenantDisabled'),
+      });
+      void loadTenants();
+    } catch (e) {
+      handleApiForbidden(e);
+      setActionState({ status: 'error', detail: e?.message ?? 'request_failed' });
+    }
+  };
+
+  const handleDeleteTenant = async (tenantId) => {
+    if (!canUseModule) return;
+    setActionState({ status: 'saving', detail: '' });
+    try {
+      const accessToken = await getAccessToken();
+      await deleteTenant(baseUrl, accessToken, tenantId, { emailHint });
+      setActionState({
+        status: 'ok',
+        detail: t('portalTenants.messages.tenantDeleted'),
       });
       void loadTenants();
     } catch (e) {
@@ -962,6 +1259,7 @@ const PortalTenants = () => {
                 tenant={tenant}
                 properties={properties}
                 onToggleAccess={handleToggleAccess}
+                onDeleteTenant={handleDeleteTenant}
                 onLeaseSaved={loadTenants}
                 t={t}
               />

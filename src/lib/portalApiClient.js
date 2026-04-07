@@ -628,6 +628,31 @@ export async function patchTenantAccess(baseUrl, accessToken, tenantId, payload)
 }
 
 /**
+ * DELETE /api/landlord/tenants/:id  (remove tenant from landlord's list — disables user)
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} tenantId
+ * @param {{ emailHint?: string }} [params]
+ * @returns {Promise<void>}
+ */
+export async function deleteTenant(baseUrl, accessToken, tenantId, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/tenants/${encodeURIComponent(tenantId)}`),
+    {
+      method: 'DELETE',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+}
+
+/**
  * POST /api/landlord/tenants/:id/leases  (add a lease)
  *
  * @param {string} baseUrl
@@ -652,6 +677,58 @@ export async function addTenantLease(baseUrl, accessToken, tenantId, payload) {
     throw apiError(res.status, code);
   }
   return res.json();
+}
+
+/**
+ * PATCH /api/landlord/leases/:id  (edit a lease)
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} leaseId
+ * @param {{ emailHint?: string, start_date?: string, end_date?: string|null, month_to_month?: boolean, notes?: string|null }} payload
+ * @returns {Promise<object>}
+ */
+export async function updateLease(baseUrl, accessToken, leaseId, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/leases/${encodeURIComponent(leaseId)}`),
+    {
+      method: 'PATCH',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * DELETE /api/landlord/leases/:id  (delete a lease)
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} leaseId
+ * @param {{ emailHint?: string }} [params]
+ * @returns {Promise<void>}
+ */
+export async function deleteLease(baseUrl, accessToken, leaseId, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/leases/${encodeURIComponent(leaseId)}`),
+    {
+      method: 'DELETE',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
 }
 
 /**

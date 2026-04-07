@@ -39,7 +39,10 @@ vi.mock('../lib/portalApiClient', async (importOriginal) => {
     fetchTenants: vi.fn().mockResolvedValue({ tenants: [] }),
     createTenant: vi.fn().mockResolvedValue({ tenant: { id: 'new-tenant-1' }, lease: { id: 'lease-1' } }),
     patchTenantAccess: vi.fn().mockResolvedValue({ tenant: { id: 't1', status: 'DISABLED' } }),
+    deleteTenant: vi.fn().mockResolvedValue(undefined),
     addTenantLease: vi.fn().mockResolvedValue({ lease: { id: 'lease-2' } }),
+    updateLease: vi.fn().mockResolvedValue({ lease: { id: 'lease-1' } }),
+    deleteLease: vi.fn().mockResolvedValue(undefined),
     fetchLandlords: vi.fn().mockResolvedValue({ landlords: [] }),
     fetchLandlordProperties: vi.fn().mockResolvedValue({ properties: [] }),
   };
@@ -160,13 +163,19 @@ describe('PortalTenants', () => {
     expect(screen.getByRole('button', { name: /enable access/i })).toBeInTheDocument();
   });
 
-  it('calls patchTenantAccess when "Disable access" is clicked', async () => {
+  it('calls patchTenantAccess when "Disable access" is clicked and confirmed', async () => {
     portalApiClient.fetchTenants.mockResolvedValue({ tenants: [makeTenant()] });
     portalApiClient.patchTenantAccess.mockResolvedValue({ tenant: { id: 't1', status: 'DISABLED' } });
     render(<WithAppTheme><PortalTenants /></WithAppTheme>);
     await waitFor(() => expect(screen.getByText('Alice Smith')).toBeInTheDocument());
 
     fireEvent.click(screen.getByRole('button', { name: /disable access/i }));
+
+    // Confirm dialog should appear — click the confirm button
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+    const dialog = screen.getByRole('dialog');
+    const confirmBtn = within(dialog).getByRole('button', { name: /disable access/i });
+    fireEvent.click(confirmBtn);
 
     await waitFor(() => {
       expect(portalApiClient.patchTenantAccess).toHaveBeenCalledWith(
@@ -185,6 +194,12 @@ describe('PortalTenants', () => {
     await waitFor(() => expect(screen.getByText('Alice Smith')).toBeInTheDocument());
 
     fireEvent.click(screen.getByRole('button', { name: /disable access/i }));
+
+    // Confirm dialog should appear — click the confirm button
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+    const dialog = screen.getByRole('dialog');
+    const confirmBtn = within(dialog).getByRole('button', { name: /disable access/i });
+    fireEvent.click(confirmBtn);
 
     await waitFor(() => {
       expect(screen.getByText(/tenant access disabled/i)).toBeInTheDocument();

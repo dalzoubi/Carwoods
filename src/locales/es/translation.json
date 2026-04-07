@@ -889,7 +889,16 @@
     },
     "actions": {
       "deactivate": "Desactivar",
-      "reactivate": "Reactivar"
+      "reactivate": "Reactivar",
+      "cancel": "Cancelar"
+    },
+    "confirmDeactivate": {
+      "title": "¿Desactivar propietario?",
+      "body": "Esto deshabilitará el acceso de {{name}} al portal. Puedes reactivarlo en cualquier momento."
+    },
+    "confirmReactivate": {
+      "title": "¿Reactivar propietario?",
+      "body": "Esto restaurará el acceso de {{name}} al portal."
     },
     "errors": {
       "apiUnavailable": "Configura VITE_API_BASE_URL para habilitar el alta admin.",
@@ -1128,11 +1137,18 @@
       "title": "Añadir contrato",
       "save": "Añadir contrato"
     },
+    "editLeaseDialog": {
+      "title": "Editar contrato",
+      "save": "Guardar cambios"
+    },
     "actions": {
       "onboardTenant": "Incorporar inquilino",
       "disable": "Desactivar acceso",
       "enable": "Activar acceso",
+      "deleteTenant": "Eliminar inquilino",
       "addLease": "Añadir contrato",
+      "editLease": "Editar contrato",
+      "deleteLease": "Eliminar contrato",
       "expand": "Ver contratos",
       "collapse": "Ocultar contratos",
       "refresh": "Actualizar lista de inquilinos",
@@ -1140,11 +1156,28 @@
       "saving": "Guardando…",
       "retry": "Reintentar"
     },
+    "disableConfirm": {
+      "title": "¿Desactivar acceso del inquilino?",
+      "body": "Esto impedirá que {{name}} inicie sesión en el portal. Puedes volver a habilitarlo en cualquier momento."
+    },
+    "deleteTenantConfirm": {
+      "title": "¿Eliminar inquilino?",
+      "body": "Esto eliminará permanentemente a {{name}} de tu lista de inquilinos y desactivará su acceso al portal. Esta acción no se puede deshacer.",
+      "confirm": "Eliminar inquilino"
+    },
+    "deleteLeaseConfirm": {
+      "title": "¿Eliminar contrato?",
+      "body": "Esto eliminará permanentemente este registro de contrato. Esta acción no se puede deshacer.",
+      "confirm": "Eliminar contrato"
+    },
     "messages": {
       "tenantOnboarded": "Inquilino incorporado correctamente.",
       "tenantEnabled": "Acceso del inquilino activado.",
       "tenantDisabled": "Acceso del inquilino desactivado.",
-      "leaseSaved": "Contrato añadido correctamente."
+      "tenantDeleted": "Inquilino eliminado correctamente.",
+      "leaseSaved": "Contrato añadido correctamente.",
+      "leaseUpdated": "Contrato actualizado correctamente.",
+      "leaseDeleted": "Contrato eliminado correctamente."
     },
     "errors": {
       "apiUnavailable": "Establece VITE_API_BASE_URL para habilitar la gestión de inquilinos.",

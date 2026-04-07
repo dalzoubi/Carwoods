@@ -889,7 +889,16 @@
     },
     "actions": {
       "deactivate": "Deactivate",
-      "reactivate": "Reactivate"
+      "reactivate": "Reactivate",
+      "cancel": "Cancel"
+    },
+    "confirmDeactivate": {
+      "title": "Deactivate landlord?",
+      "body": "This will disable {{name}}'s access to the portal. You can reactivate them at any time."
+    },
+    "confirmReactivate": {
+      "title": "Reactivate landlord?",
+      "body": "This will restore {{name}}'s access to the portal."
     },
     "errors": {
       "apiUnavailable": "Set VITE_API_BASE_URL to enable admin onboarding.",
@@ -1129,11 +1138,18 @@
       "title": "Add Lease",
       "save": "Add lease"
     },
+    "editLeaseDialog": {
+      "title": "Edit Lease",
+      "save": "Save changes"
+    },
     "actions": {
       "onboardTenant": "Onboard Tenant",
       "disable": "Disable access",
       "enable": "Enable access",
+      "deleteTenant": "Delete tenant",
       "addLease": "Add lease",
+      "editLease": "Edit lease",
+      "deleteLease": "Delete lease",
       "expand": "Show leases",
       "collapse": "Hide leases",
       "refresh": "Refresh tenant list",
@@ -1141,11 +1157,28 @@
       "saving": "Saving…",
       "retry": "Retry"
     },
+    "disableConfirm": {
+      "title": "Disable tenant access?",
+      "body": "This will prevent {{name}} from signing in to the portal. You can re-enable access at any time."
+    },
+    "deleteTenantConfirm": {
+      "title": "Delete tenant?",
+      "body": "This will permanently remove {{name}} from your tenant list and disable their portal access. This cannot be undone.",
+      "confirm": "Delete tenant"
+    },
+    "deleteLeaseConfirm": {
+      "title": "Delete lease?",
+      "body": "This will permanently remove this lease record. This cannot be undone.",
+      "confirm": "Delete lease"
+    },
     "messages": {
       "tenantOnboarded": "Tenant onboarded successfully.",
       "tenantEnabled": "Tenant access enabled.",
       "tenantDisabled": "Tenant access disabled.",
-      "leaseSaved": "Lease added successfully."
+      "tenantDeleted": "Tenant removed successfully.",
+      "leaseSaved": "Lease added successfully.",
+      "leaseUpdated": "Lease updated successfully.",
+      "leaseDeleted": "Lease removed successfully."
     },
     "errors": {
       "apiUnavailable": "Set VITE_API_BASE_URL to enable tenant management.",

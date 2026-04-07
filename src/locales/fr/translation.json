@@ -889,7 +889,16 @@
     },
     "actions": {
       "deactivate": "Désactiver",
-      "reactivate": "Réactiver"
+      "reactivate": "Réactiver",
+      "cancel": "Annuler"
+    },
+    "confirmDeactivate": {
+      "title": "Désactiver le propriétaire ?",
+      "body": "Cela désactivera l'accès de {{name}} au portail. Vous pouvez le réactiver à tout moment."
+    },
+    "confirmReactivate": {
+      "title": "Réactiver le propriétaire ?",
+      "body": "Cela rétablira l'accès de {{name}} au portail."
     },
     "errors": {
       "apiUnavailable": "Définissez VITE_API_BASE_URL pour activer ce module admin.",
@@ -1128,11 +1137,18 @@
       "title": "Ajouter un bail",
       "save": "Ajouter le bail"
     },
+    "editLeaseDialog": {
+      "title": "Modifier le bail",
+      "save": "Enregistrer les modifications"
+    },
     "actions": {
       "onboardTenant": "Intégrer un locataire",
       "disable": "Désactiver l'accès",
       "enable": "Activer l'accès",
+      "deleteTenant": "Supprimer le locataire",
       "addLease": "Ajouter un bail",
+      "editLease": "Modifier le bail",
+      "deleteLease": "Supprimer le bail",
       "expand": "Afficher les baux",
       "collapse": "Masquer les baux",
       "refresh": "Actualiser la liste des locataires",
@@ -1140,11 +1156,28 @@
       "saving": "Enregistrement…",
       "retry": "Réessayer"
     },
+    "disableConfirm": {
+      "title": "Désactiver l'accès du locataire ?",
+      "body": "Cela empêchera {{name}} de se connecter au portail. Vous pouvez réactiver l'accès à tout moment."
+    },
+    "deleteTenantConfirm": {
+      "title": "Supprimer le locataire ?",
+      "body": "Cela supprimera définitivement {{name}} de votre liste de locataires et désactivera son accès au portail. Cette action est irréversible.",
+      "confirm": "Supprimer le locataire"
+    },
+    "deleteLeaseConfirm": {
+      "title": "Supprimer le bail ?",
+      "body": "Cela supprimera définitivement cet enregistrement de bail. Cette action est irréversible.",
+      "confirm": "Supprimer le bail"
+    },
     "messages": {
       "tenantOnboarded": "Locataire intégré avec succès.",
       "tenantEnabled": "Accès du locataire activé.",
       "tenantDisabled": "Accès du locataire désactivé.",
-      "leaseSaved": "Bail ajouté avec succès."
+      "tenantDeleted": "Locataire supprimé avec succès.",
+      "leaseSaved": "Bail ajouté avec succès.",
+      "leaseUpdated": "Bail mis à jour avec succès.",
+      "leaseDeleted": "Bail supprimé avec succès."
     },
     "errors": {
       "apiUnavailable": "Définissez VITE_API_BASE_URL pour activer la gestion des locataires.",
