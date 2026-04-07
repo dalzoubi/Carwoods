@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { requireLandlordOrAdmin, jsonResponse, mapDomainError } from '../lib/managementRequest.js';
 import { getPool } from '../lib/db.js';
+import { withRateLimit } from '../lib/rateLimiter.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 
 import { listProperties } from '../useCases/properties/listProperties.js';
@@ -239,12 +240,12 @@ app.http('landlordPropertiesCollection', {
   methods: ['GET', 'POST', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'landlord/properties',
-  handler: landlordPropertiesCollection,
+  handler: withRateLimit(landlordPropertiesCollection),
 });
 
 app.http('landlordPropertiesItem', {
   methods: ['GET', 'PATCH', 'DELETE', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'landlord/properties/{id}',
-  handler: landlordPropertiesItem,
+  handler: withRateLimit(landlordPropertiesItem),
 });

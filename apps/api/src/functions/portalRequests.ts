@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
 import { jsonResponse, mapDomainError, requirePortalUser } from '../lib/managementRequest.js';
+import { withRateLimit } from '../lib/rateLimiter.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 import type { PortalRole } from '../lib/requestAccessPolicy.js';
 
@@ -362,47 +363,47 @@ app.http('portalRequestsCollection', {
   methods: ['GET', 'POST', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/requests',
-  handler: portalRequestsCollection,
+  handler: withRateLimit(portalRequestsCollection),
 });
 
 app.http('portalRequestItem', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/requests/{id}',
-  handler: portalRequestItem,
+  handler: withRateLimit(portalRequestItem),
 });
 
 app.http('portalRequestLookups', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/request-lookups',
-  handler: portalRequestLookups,
+  handler: withRateLimit(portalRequestLookups),
 });
 
 app.http('portalRequestMessages', {
   methods: ['GET', 'POST', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/requests/{id}/messages',
-  handler: portalRequestMessages,
+  handler: withRateLimit(portalRequestMessages),
 });
 
 app.http('portalRequestUploadIntent', {
   methods: ['POST', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/requests/{id}/uploads/intent',
-  handler: portalRequestUploadIntent,
+  handler: withRateLimit(portalRequestUploadIntent),
 });
 
 app.http('portalRequestAttachmentFinalize', {
   methods: ['POST', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/requests/{id}/attachments/finalize',
-  handler: portalRequestAttachmentFinalize,
+  handler: withRateLimit(portalRequestAttachmentFinalize),
 });
 
 app.http('portalRequestAttachmentsList', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/requests/{id}/attachments',
-  handler: portalRequestAttachmentsList,
+  handler: withRateLimit(portalRequestAttachmentsList),
 });

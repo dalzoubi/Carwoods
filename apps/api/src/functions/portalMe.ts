@@ -14,6 +14,7 @@ import {
 } from '../lib/jwtVerify.js';
 import { findUserByClaims } from '../lib/usersRepo.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
+import { withRateLimit } from '../lib/rateLimiter.js';
 import { Role } from '../domain/constants.js';
 
 async function portalMeHandler(
@@ -142,5 +143,5 @@ app.http('portalMe', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/me',
-  handler: portalMeHandler,
+  handler: withRateLimit(portalMeHandler),
 });
