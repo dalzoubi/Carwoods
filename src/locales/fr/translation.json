@@ -1084,6 +1084,81 @@
     "anyAccount": "Se connecter avec un autre compte",
     "anyAccountAriaLabel": "Se connecter — choisir un type de compte"
   },
+  "portalTenants": {
+    "title": "Carwoods - Intégration des locataires",
+    "metaDescription": "Intégrez et gérez les locataires pour vos propriétés locatives.",
+    "heading": "Locataires",
+    "intro": "Intégrez des locataires, gérez leur accès et consultez l'historique des baux.",
+    "adminFilter": {
+      "heading": "Filtrer par propriétaire",
+      "allLandlords": "Tous les propriétaires"
+    },
+    "list": {
+      "heading": "Liste des locataires",
+      "empty": "Aucun locataire trouvé. Utilisez le bouton Intégrer un locataire pour commencer."
+    },
+    "status": {
+      "active": "Actif",
+      "disabled": "Désactivé"
+    },
+    "lease": {
+      "heading": "Baux",
+      "empty": "Aucun bail trouvé pour ce locataire.",
+      "active": "Actif",
+      "ended": "Terminé"
+    },
+    "form": {
+      "email": "E-mail du locataire",
+      "firstName": "Prénom",
+      "lastName": "Nom de famille",
+      "phone": "Téléphone (facultatif)",
+      "selectProperty": "Sélectionner une propriété",
+      "startDate": "Date de début du bail",
+      "endDate": "Date de fin du bail",
+      "monthToMonth": "Mois par mois (sans date de fin)",
+      "notes": "Notes (facultatif)"
+    },
+    "onboardDialog": {
+      "title": "Intégrer un locataire",
+      "tenantSection": "Informations du locataire",
+      "leaseSection": "Bail initial",
+      "save": "Intégrer le locataire"
+    },
+    "addLeaseDialog": {
+      "title": "Ajouter un bail",
+      "save": "Ajouter le bail"
+    },
+    "actions": {
+      "onboardTenant": "Intégrer un locataire",
+      "disable": "Désactiver l'accès",
+      "enable": "Activer l'accès",
+      "addLease": "Ajouter un bail",
+      "expand": "Afficher les baux",
+      "collapse": "Masquer les baux",
+      "refresh": "Actualiser la liste des locataires",
+      "cancel": "Annuler",
+      "saving": "Enregistrement…",
+      "retry": "Réessayer"
+    },
+    "messages": {
+      "tenantOnboarded": "Locataire intégré avec succès.",
+      "tenantEnabled": "Accès du locataire activé.",
+      "tenantDisabled": "Accès du locataire désactivé.",
+      "leaseSaved": "Bail ajouté avec succès."
+    },
+    "errors": {
+      "apiUnavailable": "Définissez VITE_API_BASE_URL pour activer la gestion des locataires.",
+      "accessDenied": "Seuls les comptes propriétaire ou administrateur peuvent gérer les locataires.",
+      "loadFailed": "Impossible de charger les locataires.",
+      "loadLeasesFailed": "Impossible de charger les baux.",
+      "emailInvalid": "Saisissez une adresse e-mail valide.",
+      "firstNameRequired": "Le prénom est obligatoire.",
+      "lastNameRequired": "Le nom de famille est obligatoire.",
+      "propertyRequired": "Veuillez sélectionner une propriété.",
+      "startDateRequired": "La date de début du bail est obligatoire.",
+      "endDateBeforeStart": "La date de fin doit être postérieure à la date de début."
+    }
+  },
   "skipToMain": "Aller au contenu principal",
   "languageNames": {
     "en": "English",

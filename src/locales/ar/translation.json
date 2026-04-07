@@ -1084,6 +1084,81 @@
     "anyAccount": "تسجيل الدخول بأي حساب",
     "anyAccountAriaLabel": "تسجيل الدخول — اختر نوع الحساب"
   },
+  "portalTenants": {
+    "title": "Carwoods - تأهيل المستأجرين",
+    "metaDescription": "أَهِّل المستأجرين وأدِرْهم لعقاراتك المؤجَّرة.",
+    "heading": "المستأجرون",
+    "intro": "أَهِّل المستأجرين وأدِرْ صلاحياتهم واطَّلِع على سجل عقود الإيجار.",
+    "adminFilter": {
+      "heading": "تصفية حسب المالك",
+      "allLandlords": "جميع الملاك"
+    },
+    "list": {
+      "heading": "قائمة المستأجرين",
+      "empty": "لم يُعثَر على مستأجرين. استخدم زر تأهيل مستأجر للبدء."
+    },
+    "status": {
+      "active": "نشط",
+      "disabled": "معطَّل"
+    },
+    "lease": {
+      "heading": "عقود الإيجار",
+      "empty": "لا توجد عقود إيجار لهذا المستأجر.",
+      "active": "نشط",
+      "ended": "منتهٍ"
+    },
+    "form": {
+      "email": "بريد المستأجر الإلكتروني",
+      "firstName": "الاسم الأول",
+      "lastName": "اسم العائلة",
+      "phone": "الهاتف (اختياري)",
+      "selectProperty": "اختر عقاراً",
+      "startDate": "تاريخ بدء عقد الإيجار",
+      "endDate": "تاريخ انتهاء عقد الإيجار",
+      "monthToMonth": "شهراً بشهر (بدون تاريخ انتهاء)",
+      "notes": "ملاحظات (اختياري)"
+    },
+    "onboardDialog": {
+      "title": "تأهيل مستأجر",
+      "tenantSection": "معلومات المستأجر",
+      "leaseSection": "عقد الإيجار الأولي",
+      "save": "تأهيل المستأجر"
+    },
+    "addLeaseDialog": {
+      "title": "إضافة عقد إيجار",
+      "save": "إضافة عقد الإيجار"
+    },
+    "actions": {
+      "onboardTenant": "تأهيل مستأجر",
+      "disable": "تعطيل الوصول",
+      "enable": "تفعيل الوصول",
+      "addLease": "إضافة عقد إيجار",
+      "expand": "عرض عقود الإيجار",
+      "collapse": "إخفاء عقود الإيجار",
+      "refresh": "تحديث قائمة المستأجرين",
+      "cancel": "إلغاء",
+      "saving": "جارٍ الحفظ…",
+      "retry": "إعادة المحاولة"
+    },
+    "messages": {
+      "tenantOnboarded": "تم تأهيل المستأجر بنجاح.",
+      "tenantEnabled": "تم تفعيل وصول المستأجر.",
+      "tenantDisabled": "تم تعطيل وصول المستأجر.",
+      "leaseSaved": "تمت إضافة عقد الإيجار بنجاح."
+    },
+    "errors": {
+      "apiUnavailable": "عيِّن VITE_API_BASE_URL لتفعيل إدارة المستأجرين.",
+      "accessDenied": "يمكن للمالك أو المسؤول فقط إدارة المستأجرين.",
+      "loadFailed": "تعذَّر تحميل المستأجرين.",
+      "loadLeasesFailed": "تعذَّر تحميل عقود الإيجار.",
+      "emailInvalid": "أدخِل عنوان بريد إلكتروني صحيحاً.",
+      "firstNameRequired": "الاسم الأول مطلوب.",
+      "lastNameRequired": "اسم العائلة مطلوب.",
+      "propertyRequired": "يُرجى اختيار عقار.",
+      "startDateRequired": "تاريخ بدء عقد الإيجار مطلوب.",
+      "endDateBeforeStart": "يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء."
+    }
+  },
   "skipToMain": "الانتقال إلى المحتوى الرئيسي",
   "languageNames": {
     "en": "English",
