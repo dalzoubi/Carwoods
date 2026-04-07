@@ -1053,6 +1053,9 @@
     },
     "accessDenied": "Vous n'avez pas la permission d'accéder à cette page."
   },
+  "portalLoading": {
+    "ariaLabel": "Chargement du portail"
+  },
   "portalLogin": {
     "title": "Carwoods - Portail Immobilier",
     "metaDescription": "Connectez-vous au portail immobilier Carwoods.",

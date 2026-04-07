@@ -1053,6 +1053,9 @@
     },
     "accessDenied": "No tienes permiso para ver esa página."
   },
+  "portalLoading": {
+    "ariaLabel": "Cargando portal"
+  },
   "portalLogin": {
     "title": "Carwoods - Portal de Propiedades",
     "metaDescription": "Inicia sesión en el portal de propiedades de Carwoods.",

@@ -1053,6 +1053,9 @@
     },
     "accessDenied": "ليس لديك إذن لعرض هذه الصفحة."
   },
+  "portalLoading": {
+    "ariaLabel": "جارٍ تحميل البوابة"
+  },
   "portalLogin": {
     "title": "Carwoods - بوابة العقارات",
     "metaDescription": "سجل الدخول إلى بوابة العقارات في Carwoods.",
