@@ -5,6 +5,7 @@ import {
   type InvocationContext,
 } from '@azure/functions';
 import { requireLandlordOrAdmin, jsonResponse, mapDomainError } from '../lib/managementRequest.js';
+import { readJsonBody } from '../lib/readBody.js';
 import { getPool } from '../lib/db.js';
 import { withRateLimit } from '../lib/rateLimiter.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
@@ -66,8 +67,13 @@ async function landlordPropertiesCollection(
   if (request.method === 'POST') {
     let body: unknown;
     try {
-      body = await request.json();
-    } catch {
+      body = await readJsonBody(request);
+    } catch (e) {
+      const mapped = mapDomainError(e, ctx.headers);
+      if (mapped) return mapped;
+      throw e;
+    }
+    if (body === null) {
       logWarn(context, 'properties.collection.create.invalid_json', { userId: ctx.user.id });
       return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
     }
@@ -149,8 +155,13 @@ async function landlordPropertiesItem(
   if (request.method === 'PATCH') {
     let body: unknown;
     try {
-      body = await request.json();
-    } catch {
+      body = await readJsonBody(request);
+    } catch (e) {
+      const mapped = mapDomainError(e, ctx.headers);
+      if (mapped) return mapped;
+      throw e;
+    }
+    if (body === null) {
       logWarn(context, 'properties.item.patch.invalid_json', { userId: ctx.user.id, propertyId: id });
       return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
     }

@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
 import { jsonResponse, mapDomainError, requirePortalUser } from '../lib/managementRequest.js';
+import { readJsonBody } from '../lib/readBody.js';
 import { withRateLimit } from '../lib/rateLimiter.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 import type { PortalRole } from '../lib/requestAccessPolicy.js';
@@ -19,6 +20,8 @@ import { postRequestMessage } from '../useCases/requests/postRequestMessage.js';
 import { requestUploadIntent } from '../useCases/requests/requestUploadIntent.js';
 import { finalizeRequestAttachment } from '../useCases/requests/finalizeRequestAttachment.js';
 import { listRequestAttachments } from '../useCases/requests/listRequestAttachments.js';
+
+const MESSAGE_BODY_MAX_BYTES = 512 * 1024;
 
 // ---------------------------------------------------------------------------
 // Parsing helpers
@@ -68,8 +71,13 @@ async function portalRequestsCollection(
 
   let body: unknown;
   try {
-    body = await request.json();
-  } catch {
+    body = await readJsonBody(request, MESSAGE_BODY_MAX_BYTES);
+  } catch (e) {
+    const mapped = mapDomainError(e, headers);
+    if (mapped) return mapped;
+    throw e;
+  }
+  if (body === null) {
     return jsonResponse(400, headers, { error: 'invalid_json' });
   }
   const b = asRecord(body);
@@ -178,8 +186,13 @@ async function portalRequestMessages(
 
   let body: unknown;
   try {
-    body = await request.json();
-  } catch {
+    body = await readJsonBody(request, MESSAGE_BODY_MAX_BYTES);
+  } catch (e) {
+    const mapped = mapDomainError(e, headers);
+    if (mapped) return mapped;
+    throw e;
+  }
+  if (body === null) {
     return jsonResponse(400, headers, { error: 'invalid_json' });
   }
   const b = asRecord(body);
@@ -218,8 +231,13 @@ async function portalRequestUploadIntent(
 
   let body: unknown;
   try {
-    body = await request.json();
-  } catch {
+    body = await readJsonBody(request);
+  } catch (e) {
+    const mapped = mapDomainError(e, headers);
+    if (mapped) return mapped;
+    throw e;
+  }
+  if (body === null) {
     return jsonResponse(400, headers, { error: 'invalid_json' });
   }
   const b = asRecord(body);
@@ -271,8 +289,13 @@ async function portalRequestAttachmentFinalize(
 
   let body: unknown;
   try {
-    body = await request.json();
-  } catch {
+    body = await readJsonBody(request);
+  } catch (e) {
+    const mapped = mapDomainError(e, headers);
+    if (mapped) return mapped;
+    throw e;
+  }
+  if (body === null) {
     return jsonResponse(400, headers, { error: 'invalid_json' });
   }
   const b = asRecord(body);
