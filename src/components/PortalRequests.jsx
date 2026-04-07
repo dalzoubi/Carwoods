@@ -73,6 +73,9 @@ const PortalRequests = () => {
     loadRequests,
     onTenantField,
     onCreateRequest,
+    onCancelRequest,
+    cancelStatus,
+    cancelError,
     onManagementField,
     onUpdateRequest,
     onMessageSubmit,
@@ -224,6 +227,9 @@ const PortalRequests = () => {
                 auditEvents={auditEvents}
                 auditStatus={auditStatus}
                 auditError={auditError}
+                onCancelRequest={onCancelRequest}
+                cancelStatus={cancelStatus}
+                cancelError={cancelError}
               />
             ) : (
               <Box sx={{ py: 6, textAlign: 'center' }}>

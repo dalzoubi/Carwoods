@@ -107,7 +107,8 @@ export async function updateRequestStatus(
     });
 
     await client.query('COMMIT');
-    return { request: updated };
+    const refreshed = (await getRequestById(client as Parameters<typeof getRequestById>[0], input.requestId)) ?? updated;
+    return { request: refreshed };
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;

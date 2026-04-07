@@ -791,6 +791,7 @@
       "attachFile": "Adjuntar archivo",
       "suggestReply": "Sugerir respuesta",
       "exportCsv": "Exportar CSV",
+      "cancelRequest": "Cancelar solicitud",
       "saving": "Guardando…"
     },
     "errors": {
@@ -849,6 +850,15 @@
       "heading": "Archivos adjuntos",
       "empty": "Aún no hay adjuntos.",
       "saved": "Metadatos del adjunto guardados."
+    },
+    "cancel": {
+      "heading": "Cancelar solicitud",
+      "description": "Puedes cancelar esta solicitud porque aún no ha sido programada. Esta acción no se puede deshacer.",
+      "cancelled": "Solicitud cancelada.",
+      "confirmTitle": "¿Cancelar esta solicitud?",
+      "confirmBody": "Esto marcará la solicitud como cancelada. Tu administrador de propiedad recibirá una notificación. Puedes enviar una nueva solicitud en cualquier momento.",
+      "confirmYes": "Sí, cancelarla",
+      "confirmNo": "Mantener solicitud"
     },
     "audit": {
       "tabsLabel": "Pestañas de vista de solicitud",

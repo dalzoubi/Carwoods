@@ -785,6 +785,7 @@
     "actions": {
       "reload": "Reload requests",
       "create": "Create request",
+      "cancelRequest": "Cancel request",
       "saveChanges": "Save updates",
       "sendMessage": "Send message",
       "chooseFile": "Choose file",
@@ -849,6 +850,15 @@
       "heading": "Attachments",
       "empty": "No attachments yet.",
       "saved": "Attachment metadata saved."
+    },
+    "cancel": {
+      "heading": "Cancel request",
+      "description": "You can cancel this request because it has not yet been scheduled. This cannot be undone.",
+      "cancelled": "Request cancelled.",
+      "confirmTitle": "Cancel this request?",
+      "confirmBody": "This will mark the request as cancelled. Your property manager will be notified. You can submit a new request at any time.",
+      "confirmYes": "Yes, cancel it",
+      "confirmNo": "Keep request"
     },
     "audit": {
       "tabsLabel": "Request view tabs",
