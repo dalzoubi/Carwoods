@@ -69,8 +69,8 @@ export function applyThemeCssVariables(muiTheme) {
         isDark ? palette.primary.light : palette.primary.light
     );
 
-    const ctaBg = isDark ? palette.primary.dark : palette.primary.main;
-    const ctaHover = isDark ? palette.primary.main : palette.primary.dark;
+    const ctaBg = isDark ? 'transparent' : palette.primary.main;
+    const ctaHover = isDark ? 'rgba(255, 255, 255, 0.08)' : palette.primary.dark;
     root.style.setProperty('--cta-button-bg', ctaBg);
     root.style.setProperty('--cta-button-bg-hover', ctaHover);
     root.style.setProperty('--cta-button-text', '#ffffff');
