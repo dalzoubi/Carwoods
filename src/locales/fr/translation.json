@@ -791,6 +791,7 @@
       "attachFile": "Joindre le fichier",
       "suggestReply": "Suggérer une reponse",
       "exportCsv": "Exporter CSV",
+      "cancelRequest": "Annuler la demande",
       "saving": "Enregistrement…"
     },
     "errors": {
@@ -849,6 +850,15 @@
       "heading": "Pieces jointes",
       "empty": "Aucune piece jointe pour le moment.",
       "saved": "Metadonnees de piece jointe enregistrees."
+    },
+    "cancel": {
+      "heading": "Annuler la demande",
+      "description": "Vous pouvez annuler cette demande car elle n'a pas encore ete planifiee. Cette action est irreversible.",
+      "cancelled": "Demande annulee.",
+      "confirmTitle": "Annuler cette demande ?",
+      "confirmBody": "Cela marquera la demande comme annulee. Votre gestionnaire de propriete sera notifie. Vous pouvez soumettre une nouvelle demande a tout moment.",
+      "confirmYes": "Oui, annuler",
+      "confirmNo": "Garder la demande"
     },
     "audit": {
       "tabsLabel": "Onglets de vue de demande",

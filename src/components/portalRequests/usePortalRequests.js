@@ -5,6 +5,7 @@ import {
   fetchRequests,
   fetchRequestLookups,
   createRequest,
+  cancelRequest,
   postMessage,
   requestUploadIntent,
   putBlobToStorage,
@@ -78,6 +79,8 @@ export function usePortalRequests({
   });
   const [tenantCreateStatus, setTenantCreateStatus] = useState('idle');
   const [tenantCreateError, setTenantCreateError] = useState('');
+  const [cancelStatus, setCancelStatus] = useState('idle');
+  const [cancelError, setCancelError] = useState('');
   const [lookupStatus, setLookupStatus] = useState('idle');
   const [lookupError, setLookupError] = useState('');
   const [lookupContact, setLookupContact] = useState(null);
@@ -327,6 +330,23 @@ export function usePortalRequests({
     }
   };
 
+  const onCancelRequest = async () => {
+    if (!baseUrl || !selectedRequestId) return;
+    setCancelStatus('saving');
+    setCancelError('');
+    try {
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      await cancelRequest(baseUrl, token, selectedRequestId, { emailHint });
+      setCancelStatus('success');
+      await loadRequests({ keepSelection: true });
+    } catch (error) {
+      handleApiForbidden(error);
+      setCancelStatus('error');
+      setCancelError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
+    }
+  };
+
   const onManagementField = (field) => (event) => {
     const value = event.target.value;
     setManagementForm((prev) => ({ ...prev, [field]: value }));
@@ -508,6 +528,8 @@ export function usePortalRequests({
     priorityOptions,
     tenantCreateStatus,
     tenantCreateError,
+    cancelStatus,
+    cancelError,
     managementForm,
     managementUpdateStatus,
     managementUpdateError,
@@ -531,6 +553,7 @@ export function usePortalRequests({
     loadRequests,
     onTenantField,
     onCreateRequest,
+    onCancelRequest,
     onManagementField,
     onUpdateRequest,
     onMessageSubmit,

@@ -14,6 +14,7 @@ import type { PortalRole } from '../lib/requestAccessPolicy.js';
 import { listRequests } from '../useCases/requests/listRequests.js';
 import { getRequest } from '../useCases/requests/getRequest.js';
 import { createRequest } from '../useCases/requests/createRequest.js';
+import { cancelRequest } from '../useCases/requests/cancelRequest.js';
 import { listRequestLookups } from '../useCases/requests/listRequestLookups.js';
 import { listRequestMessages } from '../useCases/requests/listRequestMessages.js';
 import { postRequestMessage } from '../useCases/requests/postRequestMessage.js';
@@ -138,22 +139,64 @@ async function portalRequestItem(
   const { user, headers } = gate.ctx;
   const role = String(user.role ?? '').toUpperCase() as PortalRole;
 
-  if (request.method !== 'GET') {
-    return jsonResponse(405, headers, { error: 'method_not_allowed' });
+  if (request.method === 'GET') {
+    try {
+      const result = await getRequest(getPool(), {
+        requestId: request.params.id,
+        actorUserId: user.id,
+        actorRole: role,
+      });
+      return jsonResponse(200, headers, { request: result.request });
+    } catch (e) {
+      const mapped = mapDomainError(e, headers);
+      if (mapped) return mapped;
+      throw e;
+    }
   }
 
-  try {
-    const result = await getRequest(getPool(), {
-      requestId: request.params.id,
-      actorUserId: user.id,
-      actorRole: role,
-    });
-    return jsonResponse(200, headers, { request: result.request });
-  } catch (e) {
-    const mapped = mapDomainError(e, headers);
-    if (mapped) return mapped;
-    throw e;
+  if (request.method === 'PATCH') {
+    let body: unknown;
+    try {
+      body = await readJsonBody(request, MESSAGE_BODY_MAX_BYTES);
+    } catch (e) {
+      const mapped = mapDomainError(e, headers);
+      if (mapped) return mapped;
+      throw e;
+    }
+    if (body === null) {
+      return jsonResponse(400, headers, { error: 'invalid_json' });
+    }
+    const b = asRecord(body);
+    const action = str(b.action);
+
+    if (action === 'cancel') {
+      try {
+        const result = await cancelRequest(getPool(), {
+          requestId: request.params.id,
+          actorUserId: user.id,
+          actorRole: role,
+        });
+        logInfo(context, 'portal.requests.cancel.success', {
+          userId: user.id,
+          requestId: request.params.id,
+        });
+        return jsonResponse(200, headers, { request: result.request });
+      } catch (e) {
+        const mapped = mapDomainError(e, headers);
+        if (mapped) return mapped;
+        logError(context, 'portal.requests.cancel.error', {
+          userId: user.id,
+          requestId: request.params.id,
+          message: e instanceof Error ? e.message : 'unknown_error',
+        });
+        throw e;
+      }
+    }
+
+    return jsonResponse(400, headers, { error: 'unknown_action' });
   }
+
+  return jsonResponse(405, headers, { error: 'method_not_allowed' });
 }
 
 async function portalRequestMessages(
@@ -390,7 +433,7 @@ app.http('portalRequestsCollection', {
 });
 
 app.http('portalRequestItem', {
-  methods: ['GET', 'OPTIONS'],
+  methods: ['GET', 'PATCH', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/requests/{id}',
   handler: withRateLimit(portalRequestItem),

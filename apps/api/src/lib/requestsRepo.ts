@@ -12,6 +12,8 @@ export type RequestRow = {
   category_id: string;
   priority_id: string;
   current_status_id: string;
+  status_code: string | null;
+  status_name: string | null;
   title: string;
   description: string;
   internal_notes: string | null;
@@ -209,13 +211,16 @@ export async function listRequestsForTenant(
 ): Promise<RequestRow[]> {
   const r = await client.query<RequestRow>(
     `SELECT mr.id, mr.property_id, mr.lease_id, mr.submitted_by_user_id, mr.assigned_vendor_id,
-            mr.category_id, mr.priority_id, mr.current_status_id, mr.title, mr.description,
+            mr.category_id, mr.priority_id, mr.current_status_id,
+            rs.code AS status_code, rs.name AS status_name,
+            mr.title, mr.description,
             mr.internal_notes, mr.estimated_cost, mr.actual_cost, mr.scheduled_for,
             mr.vendor_contact_name, mr.vendor_contact_email, mr.vendor_contact_phone,
             mr.emergency_disclaimer_acknowledged, mr.created_at, mr.updated_at,
             mr.completed_at, mr.closed_at, mr.deleted_at
      FROM maintenance_requests mr
      JOIN lease_tenants lt ON lt.lease_id = mr.lease_id
+     LEFT JOIN request_statuses rs ON rs.id = mr.current_status_id
      WHERE lt.user_id = $1
        AND mr.deleted_at IS NULL
        AND (lt.access_end_at IS NULL OR lt.access_end_at > SYSDATETIMEOFFSET())
@@ -227,29 +232,35 @@ export async function listRequestsForTenant(
 
 export async function listRequestsForManagement(client: Queryable): Promise<RequestRow[]> {
   const r = await client.query<RequestRow>(
-    `SELECT id, property_id, lease_id, submitted_by_user_id, assigned_vendor_id,
-            category_id, priority_id, current_status_id, title, description,
-            internal_notes, estimated_cost, actual_cost, scheduled_for,
-            vendor_contact_name, vendor_contact_email, vendor_contact_phone,
-            emergency_disclaimer_acknowledged, created_at, updated_at,
-            completed_at, closed_at, deleted_at
-     FROM maintenance_requests
-     WHERE deleted_at IS NULL
-     ORDER BY updated_at DESC`
+    `SELECT mr.id, mr.property_id, mr.lease_id, mr.submitted_by_user_id, mr.assigned_vendor_id,
+            mr.category_id, mr.priority_id, mr.current_status_id,
+            rs.code AS status_code, rs.name AS status_name,
+            mr.title, mr.description,
+            mr.internal_notes, mr.estimated_cost, mr.actual_cost, mr.scheduled_for,
+            mr.vendor_contact_name, mr.vendor_contact_email, mr.vendor_contact_phone,
+            mr.emergency_disclaimer_acknowledged, mr.created_at, mr.updated_at,
+            mr.completed_at, mr.closed_at, mr.deleted_at
+     FROM maintenance_requests mr
+     LEFT JOIN request_statuses rs ON rs.id = mr.current_status_id
+     WHERE mr.deleted_at IS NULL
+     ORDER BY mr.updated_at DESC`
   );
   return r.rows;
 }
 
 export async function getRequestById(client: Queryable, id: string): Promise<RequestRow | null> {
   const r = await client.query<RequestRow>(
-    `SELECT id, property_id, lease_id, submitted_by_user_id, assigned_vendor_id,
-            category_id, priority_id, current_status_id, title, description,
-            internal_notes, estimated_cost, actual_cost, scheduled_for,
-            vendor_contact_name, vendor_contact_email, vendor_contact_phone,
-            emergency_disclaimer_acknowledged, created_at, updated_at,
-            completed_at, closed_at, deleted_at
-     FROM maintenance_requests
-     WHERE id = $1 AND deleted_at IS NULL`,
+    `SELECT mr.id, mr.property_id, mr.lease_id, mr.submitted_by_user_id, mr.assigned_vendor_id,
+            mr.category_id, mr.priority_id, mr.current_status_id,
+            rs.code AS status_code, rs.name AS status_name,
+            mr.title, mr.description,
+            mr.internal_notes, mr.estimated_cost, mr.actual_cost, mr.scheduled_for,
+            mr.vendor_contact_name, mr.vendor_contact_email, mr.vendor_contact_phone,
+            mr.emergency_disclaimer_acknowledged, mr.created_at, mr.updated_at,
+            mr.completed_at, mr.closed_at, mr.deleted_at
+     FROM maintenance_requests mr
+     LEFT JOIN request_statuses rs ON rs.id = mr.current_status_id
+     WHERE mr.id = $1 AND mr.deleted_at IS NULL`,
     [id]
   );
   return r.rows[0] ?? null;

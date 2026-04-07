@@ -10,6 +10,7 @@
 
 import {
   findSystemDefaultStatusId,
+  getRequestById,
   insertMaintenanceRequest,
   tenantCanSubmitForLease,
   type RequestRow,
@@ -90,7 +91,7 @@ export async function createRequest(
   const client = await db.connect();
   try {
     await client.query('BEGIN');
-    const created = await insertMaintenanceRequest(client as Parameters<typeof insertMaintenanceRequest>[0], {
+    const inserted = await insertMaintenanceRequest(client as Parameters<typeof insertMaintenanceRequest>[0], {
       propertyId: input.propertyId!,
       leaseId: input.leaseId!,
       submittedByUserId: input.actorUserId,
@@ -101,6 +102,7 @@ export async function createRequest(
       description: input.description!,
       emergencyAcknowledged: input.emergencyAcknowledged,
     });
+    const created = (await getRequestById(client as Parameters<typeof getRequestById>[0], inserted.id)) ?? inserted;
     await writeAudit(client as Parameters<typeof writeAudit>[0], {
       actorUserId: input.actorUserId,
       entityType: 'MAINTENANCE_REQUEST',

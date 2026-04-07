@@ -276,6 +276,38 @@ export async function requestUploadIntent(baseUrl, accessToken, requestId, paylo
 }
 
 // ---------------------------------------------------------------------------
+// PATCH /api/portal/requests/:id  (tenant cancel)
+// ---------------------------------------------------------------------------
+
+/**
+ * Cancel a maintenance request. Only allowed for tenants on requests in
+ * NOT_STARTED or ACKNOWLEDGED status.
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} requestId
+ * @param {{ emailHint?: string }} [params]
+ * @returns {Promise<object>}
+ */
+export async function cancelRequest(baseUrl, accessToken, requestId, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/requests/${encodeURIComponent(requestId)}`),
+    {
+      method: 'PATCH',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify({ action: 'cancel' }),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
 // PUT <upload_url>  (direct Azure Blob Storage upload — no auth header)
 // ---------------------------------------------------------------------------
 

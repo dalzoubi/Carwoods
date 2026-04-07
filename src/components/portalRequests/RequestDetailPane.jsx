@@ -4,6 +4,11 @@ import {
   Box,
   Button,
   Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   FormControlLabel,
   Tab,
   Tabs,
@@ -13,6 +18,8 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
+
+const CANCELLABLE_STATUS_CODES = new Set(['NOT_STARTED', 'ACKNOWLEDGED']);
 
 const RequestDetailPane = ({
   requestDetail,
@@ -42,9 +49,13 @@ const RequestDetailPane = ({
   auditEvents,
   auditStatus,
   auditError,
+  onCancelRequest,
+  cancelStatus,
+  cancelError,
 }) => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('details');
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const managementStatusMessage = managementUpdateStatus === 'error'
     ? { severity: 'error', text: managementUpdateError || t('portalRequests.errors.saveFailed') }
     : managementUpdateStatus === 'success'
@@ -157,10 +168,65 @@ const RequestDetailPane = ({
             {t('portalRequests.labels.requestId')}: {requestDetail.id}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {t('portalRequests.labels.status')}: {requestDetail.current_status_id || '-'}
+            {t('portalRequests.labels.status')}: {requestDetail.status_name || requestDetail.status_code || '-'}
           </Typography>
         </Stack>
       </Box>
+
+      {!isManagement && CANCELLABLE_STATUS_CODES.has((requestDetail.status_code || '').toUpperCase()) && (
+        <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 2 }}>
+          <Stack spacing={1.5}>
+            <Typography variant="h3" sx={{ fontSize: '1.1rem' }}>
+              {t('portalRequests.cancel.heading')}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {t('portalRequests.cancel.description')}
+            </Typography>
+            {cancelStatus === 'error' && (
+              <Alert severity="error">{cancelError || t('portalRequests.errors.saveFailed')}</Alert>
+            )}
+            {cancelStatus === 'success' && (
+              <Alert severity="success">{t('portalRequests.cancel.cancelled')}</Alert>
+            )}
+            <Stack direction="row">
+              <Button
+                type="button"
+                variant="outlined"
+                color="error"
+                disabled={cancelStatus === 'saving'}
+                onClick={() => setCancelDialogOpen(true)}
+              >
+                {cancelStatus === 'saving'
+                  ? t('portalRequests.actions.saving')
+                  : t('portalRequests.actions.cancelRequest')}
+              </Button>
+            </Stack>
+          </Stack>
+        </Box>
+      )}
+
+      <Dialog open={cancelDialogOpen} onClose={() => setCancelDialogOpen(false)}>
+        <DialogTitle>{t('portalRequests.cancel.confirmTitle')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{t('portalRequests.cancel.confirmBody')}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button type="button" onClick={() => setCancelDialogOpen(false)}>
+            {t('portalRequests.cancel.confirmNo')}
+          </Button>
+          <Button
+            type="button"
+            color="error"
+            variant="contained"
+            onClick={() => {
+              setCancelDialogOpen(false);
+              onCancelRequest();
+            }}
+          >
+            {t('portalRequests.cancel.confirmYes')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {isManagement && (
         <Box

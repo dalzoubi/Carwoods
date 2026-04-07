@@ -64,7 +64,7 @@ const RequestListPane = ({
               >
                 <ListItemText
                   primary={item.title || t('portalRequests.list.untitled')}
-                  secondary={`${t('portalRequests.labels.status')}: ${item.current_status_id || '-'}`}
+                  secondary={`${t('portalRequests.labels.status')}: ${item.status_name || item.status_code || '-'}`}
                 />
               </ListItemButton>
             ))}
