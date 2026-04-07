@@ -82,7 +82,7 @@ const signInCtaButtonSx = {
     borderRadius: 'var(--shape-border-radius)',
     backgroundColor: 'var(--cta-button-bg)',
     color: 'var(--cta-button-text)',
-    border: '1px solid transparent',
+    border: '2px solid rgba(255,255,255,0.85)',
     boxShadow: 'none',
     transition: 'background-color 0.2s, color 0.2s, transform 0.2s',
     '&:hover': {
