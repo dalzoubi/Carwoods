@@ -71,10 +71,10 @@ export function applyThemeCssVariables(muiTheme) {
 
     const ctaBg = isDark ? palette.primary.dark : palette.primary.main;
     const ctaHover = isDark ? palette.primary.main : palette.primary.dark;
-    const ctaText = isDark ? '#0d1117' : '#ffffff';
     root.style.setProperty('--cta-button-bg', ctaBg);
     root.style.setProperty('--cta-button-bg-hover', ctaHover);
-    root.style.setProperty('--cta-button-text', ctaText);
+    root.style.setProperty('--cta-button-text', '#ffffff');
+    root.style.setProperty('--avatar-on-primary', '#ffffff');
 
     const drawer = palette.drawer;
     root.style.setProperty('--palette-drawer-background', drawer.background);
