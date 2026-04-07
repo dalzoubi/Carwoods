@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -9,6 +10,7 @@ import {
   Chip,
   Paper,
   Skeleton,
+  Snackbar,
   Stack,
   Typography,
 } from '@mui/material';
@@ -73,7 +75,7 @@ const StatCard = ({ label, value, loading }) => (
 
 const PortalDashboard = () => {
   const { t } = useTranslation();
-  const { pathname } = useLocation();
+  const { pathname, state: locationState } = useLocation();
   const {
     baseUrl,
     isAuthenticated,
@@ -88,6 +90,10 @@ const PortalDashboard = () => {
   const isGuest = isGuestRole(normalized);
   const isManagement = hasLandlordAccess(normalized);
   const firstName = (meData?.user?.first_name ?? '').trim();
+
+  const [accessDeniedOpen, setAccessDeniedOpen] = useState(
+    () => !!(locationState?.portalAccessDenied)
+  );
 
   const [requests, setRequests] = useState([]);
   const [reqStatus, setReqStatus] = useState('idle');
@@ -123,6 +129,21 @@ const PortalDashboard = () => {
         <title>{t('portalDashboard.title')}</title>
         <meta name="description" content={t('portalDashboard.metaDescription')} />
       </Helmet>
+
+      <Snackbar
+        open={accessDeniedOpen}
+        autoHideDuration={5000}
+        onClose={() => setAccessDeniedOpen(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          severity="warning"
+          onClose={() => setAccessDeniedOpen(false)}
+          sx={{ width: '100%' }}
+        >
+          {t('portalDashboard.accessDenied')}
+        </Alert>
+      </Snackbar>
 
       <Stack spacing={3}>
         {/* Welcome */}

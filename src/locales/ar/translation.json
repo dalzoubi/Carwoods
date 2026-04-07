@@ -1050,7 +1050,8 @@
       "emptyManagement": "لم يتم العثور على طلبات.",
       "viewAll": "عرض جميع الطلبات",
       "noTitle": "طلب بدون عنوان"
-    }
+    },
+    "accessDenied": "ليس لديك إذن لعرض هذه الصفحة."
   },
   "portalLogin": {
     "title": "Carwoods - بوابة العقارات",

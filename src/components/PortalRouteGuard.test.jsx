@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ThemeModeProvider } from '../ThemeModeContext';
 import { LanguageProvider } from '../LanguageContext';
@@ -20,6 +20,12 @@ vi.mock('../PortalAuthContext', () => ({
   usePortalAuth: () => authState,
   PortalAuthProvider: ({ children }) => children,
 }));
+
+/** Captures the location.state of whatever route ultimately renders. */
+function LocationStateSpy() {
+  const { state } = useLocation();
+  return <div data-testid="location-state">{JSON.stringify(state)}</div>;
+}
 
 function renderWithRouter(ui, { initialPath = '/portal/admin' } = {}) {
   return render(
@@ -105,11 +111,33 @@ describe('PortalRouteGuard', () => {
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
   });
 
-  it('renders nothing (no redirect) while /me is still loading', () => {
+  it('passes portalAccessDenied=true in location state when redirecting', () => {
+    authState.meData = { user: { role: Role.TENANT, status: 'ACTIVE' } };
+
+    renderWithRouter(
+      <Routes>
+        <Route
+          path="/portal/admin"
+          element={
+            <PortalRouteGuard allowedRoles={[Role.ADMIN]}>
+              <div>Admin content</div>
+            </PortalRouteGuard>
+          }
+        />
+        <Route path="/portal" element={<LocationStateSpy />} />
+      </Routes>
+    );
+
+    const spy = screen.getByTestId('location-state');
+    const state = JSON.parse(spy.textContent);
+    expect(state?.portalAccessDenied).toBe(true);
+  });
+
+  it('renders children (no redirect) while /me is still loading', () => {
     authState.meData = null;
     authState.meStatus = 'loading';
 
-    const { container } = renderWithRouter(
+    renderWithRouter(
       <Routes>
         <Route
           path="/portal/admin"
@@ -123,11 +151,30 @@ describe('PortalRouteGuard', () => {
       </Routes>
     );
 
-    // Guard renders null while loading; neither child nor redirect destination renders.
-    expect(screen.queryByText('Admin content')).not.toBeInTheDocument();
+    // Guard passes children through while /me is loading.
+    expect(screen.getByText('Admin content')).toBeInTheDocument();
     expect(screen.queryByText('Dashboard')).not.toBeInTheDocument();
-    // The route element itself is present (the Routes wrapper), just nothing inside the guard.
-    expect(container).toBeTruthy();
+  });
+
+  it('renders children (no redirect) when meStatus is idle', () => {
+    authState.meData = null;
+    authState.meStatus = 'idle';
+
+    renderWithRouter(
+      <Routes>
+        <Route
+          path="/portal/admin"
+          element={
+            <PortalRouteGuard allowedRoles={[Role.ADMIN]}>
+              <div>Admin content</div>
+            </PortalRouteGuard>
+          }
+        />
+        <Route path="/portal" element={<div>Dashboard</div>} />
+      </Routes>
+    );
+
+    expect(screen.getByText('Admin content')).toBeInTheDocument();
   });
 
   it('supports a custom allow predicate', () => {

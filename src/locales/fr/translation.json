@@ -1050,7 +1050,8 @@
       "emptyManagement": "Aucune demande trouvée.",
       "viewAll": "Voir toutes les demandes",
       "noTitle": "Demande sans titre"
-    }
+    },
+    "accessDenied": "Vous n'avez pas la permission d'accéder à cette page."
   },
   "portalLogin": {
     "title": "Carwoods - Portail Immobilier",

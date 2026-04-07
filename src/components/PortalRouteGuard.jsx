@@ -8,20 +8,27 @@ import { resolveRole, normalizeRole } from '../portalUtils';
  * the portal home page (/portal) instead of seeing the page.
  *
  * Props:
- *   allowedRoles  – array of Role constants; if provided, user's normalized
- *                  role must be in the list.
+ *   allowedRoles  – array of Role constants; if provided, the user's
+ *                  normalized role must be in the list.
  *   allow         – optional function (role: string) => boolean; custom
  *                  predicate for more flexible checks.
  *
- * While /me is still loading we render nothing (the PortalAuthGate spinner
- * already covers this case; we just avoid a flash-redirect).
+ * The guard only acts once the /me profile has fully resolved
+ * (meStatus === 'ok'). While the profile is still loading or the API is
+ * not configured (meStatus 'idle'/'loading'), children are rendered as-is
+ * so that a page refresh does not wrongly redirect the user before their
+ * role is known.
  */
 const PortalRouteGuard = ({ children, allowedRoles, allow }) => {
-  const { isAuthenticated, account, meData, meStatus } = usePortalAuth();
+  const { account, meData, meStatus } = usePortalAuth();
 
-  // Still resolving the user profile — wait before deciding.
-  if (isAuthenticated && meStatus === 'loading') {
-    return null;
+  // Wait until the role is definitively known before making an access decision.
+  // 'idle'  – no API configured or not yet started (e.g. right after refresh).
+  // 'loading' – in-flight; don't redirect prematurely.
+  // 'error'   – keep the user where they are; the page component can show its
+  //             own error or the auth gate will handle a 403 sign-out.
+  if (meStatus !== 'ok') {
+    return children;
   }
 
   const role = normalizeRole(resolveRole(meData, account));
@@ -31,7 +38,7 @@ const PortalRouteGuard = ({ children, allowedRoles, allow }) => {
     : Array.isArray(allowedRoles) && allowedRoles.includes(role);
 
   if (!permitted) {
-    return <Navigate to="/portal" replace />;
+    return <Navigate to="/portal" replace state={{ portalAccessDenied: true }} />;
   }
 
   return children;

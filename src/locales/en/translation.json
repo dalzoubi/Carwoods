@@ -1050,7 +1050,8 @@
       "emptyManagement": "No requests found.",
       "viewAll": "View all requests",
       "noTitle": "Untitled request"
-    }
+    },
+    "accessDenied": "You don't have permission to view that page."
   },
   "portalLogin": {
     "title": "Carwoods - Property Portal",
