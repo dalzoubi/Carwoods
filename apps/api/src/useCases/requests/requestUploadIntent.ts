@@ -20,9 +20,15 @@ import {
   validateRequestId,
   type UploadMediaType,
 } from '../../domain/requestValidation.js';
-import { forbidden, notFound, validationError } from '../../domain/errors.js';
+import { forbidden, notFound, unprocessable, validationError } from '../../domain/errors.js';
 import { Role, hasLandlordAccess } from '../../domain/constants.js';
 import type { Queryable } from '../types.js';
+import {
+  BlobSASPermissions,
+  SASProtocol,
+  StorageSharedKeyCredential,
+  generateBlobSASQueryParameters,
+} from '@azure/storage-blob';
 
 export type RequestUploadIntentInput = {
   requestId: string | undefined;
@@ -85,7 +91,38 @@ export async function requestUploadIntent(
 
   const safeFileName = input.filename!.replace(/[^a-zA-Z0-9._-]/g, '_');
   const storage_path = `${requestId}/${Date.now()}-${safeFileName}`;
-  const upload_url = `https://example.invalid/uploads/${encodeURIComponent(storage_path)}`;
+  const storageAccountName = process.env.AZURE_STORAGE_ACCOUNT_NAME?.trim();
+  const storageContainerName = process.env.AZURE_STORAGE_CONTAINER_NAME?.trim();
+  const storageAccountKey = process.env.AZURE_STORAGE_ACCOUNT_KEY?.trim();
+
+  if (!storageAccountName || !storageContainerName || !storageAccountKey) {
+    throw unprocessable('storage_not_configured');
+  }
+
+  const now = new Date();
+  const expiresOn = new Date(now.getTime() + 300 * 1000);
+  const sharedKeyCredential = new StorageSharedKeyCredential(
+    storageAccountName,
+    storageAccountKey
+  );
+  const sasToken = generateBlobSASQueryParameters(
+    {
+      containerName: storageContainerName,
+      blobName: storage_path,
+      permissions: BlobSASPermissions.parse('cw'),
+      startsOn: now,
+      expiresOn,
+      protocol: SASProtocol.Https,
+      contentType: input.contentType!,
+    },
+    sharedKeyCredential
+  ).toString();
+  const upload_url = `https://${storageAccountName}.blob.core.windows.net/${encodeURIComponent(
+    storageContainerName
+  )}/${storage_path
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/')}?${sasToken}`;
 
   return { upload_url, storage_path, media_type: mediaType, expires_in_seconds: 300 };
 }
