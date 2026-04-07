@@ -1084,6 +1084,81 @@
     "anyAccount": "Iniciar sesión con otra cuenta",
     "anyAccountAriaLabel": "Iniciar sesión — elegir tipo de cuenta"
   },
+  "portalTenants": {
+    "title": "Carwoods - Incorporación de inquilinos",
+    "metaDescription": "Incorpora y administra inquilinos para tus propiedades en alquiler.",
+    "heading": "Inquilinos",
+    "intro": "Incorpora inquilinos, administra su acceso y consulta el historial de contratos.",
+    "adminFilter": {
+      "heading": "Filtrar por propietario",
+      "allLandlords": "Todos los propietarios"
+    },
+    "list": {
+      "heading": "Lista de inquilinos",
+      "empty": "No se encontraron inquilinos. Usa el botón Incorporar inquilino para comenzar."
+    },
+    "status": {
+      "active": "Activo",
+      "disabled": "Desactivado"
+    },
+    "lease": {
+      "heading": "Contratos",
+      "empty": "No se encontraron contratos para este inquilino.",
+      "active": "Activo",
+      "ended": "Finalizado"
+    },
+    "form": {
+      "email": "Correo del inquilino",
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "phone": "Teléfono (opcional)",
+      "selectProperty": "Selecciona una propiedad",
+      "startDate": "Fecha de inicio del contrato",
+      "endDate": "Fecha de fin del contrato",
+      "monthToMonth": "Mes a mes (sin fecha de fin)",
+      "notes": "Notas (opcional)"
+    },
+    "onboardDialog": {
+      "title": "Incorporar inquilino",
+      "tenantSection": "Información del inquilino",
+      "leaseSection": "Contrato inicial",
+      "save": "Incorporar inquilino"
+    },
+    "addLeaseDialog": {
+      "title": "Añadir contrato",
+      "save": "Añadir contrato"
+    },
+    "actions": {
+      "onboardTenant": "Incorporar inquilino",
+      "disable": "Desactivar acceso",
+      "enable": "Activar acceso",
+      "addLease": "Añadir contrato",
+      "expand": "Ver contratos",
+      "collapse": "Ocultar contratos",
+      "refresh": "Actualizar lista de inquilinos",
+      "cancel": "Cancelar",
+      "saving": "Guardando…",
+      "retry": "Reintentar"
+    },
+    "messages": {
+      "tenantOnboarded": "Inquilino incorporado correctamente.",
+      "tenantEnabled": "Acceso del inquilino activado.",
+      "tenantDisabled": "Acceso del inquilino desactivado.",
+      "leaseSaved": "Contrato añadido correctamente."
+    },
+    "errors": {
+      "apiUnavailable": "Establece VITE_API_BASE_URL para habilitar la gestión de inquilinos.",
+      "accessDenied": "Solo las cuentas de propietario o administrador pueden gestionar inquilinos.",
+      "loadFailed": "No se pudieron cargar los inquilinos.",
+      "loadLeasesFailed": "No se pudieron cargar los contratos.",
+      "emailInvalid": "Introduce una dirección de correo válida.",
+      "firstNameRequired": "El nombre es obligatorio.",
+      "lastNameRequired": "El apellido es obligatorio.",
+      "propertyRequired": "Por favor selecciona una propiedad.",
+      "startDateRequired": "La fecha de inicio del contrato es obligatoria.",
+      "endDateBeforeStart": "La fecha de fin debe ser posterior a la fecha de inicio."
+    }
+  },
   "skipToMain": "Saltar al contenido principal",
   "languageNames": {
     "en": "English",
