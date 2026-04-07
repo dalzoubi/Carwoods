@@ -364,7 +364,7 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
           <ListItemIcon>
             <Person fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary={`${t('portalHeader.nav.profile')} (${roleLabel})`} />
+          <ListItemText primary={t('portalHeader.nav.profile')} />
         </MenuItem>
         <Divider />
         <MenuItem
