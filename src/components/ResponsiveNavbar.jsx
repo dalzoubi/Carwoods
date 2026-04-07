@@ -451,7 +451,7 @@ const ResponsiveNavbar = () => {
                             sx={{ marginInlineStart: 0.5, p: 0 }}
                         >
                             <Avatar
-                                sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.8rem', border: '1px solid rgba(255,255,255,0.85)', color: 'var(--avatar-on-primary)' }}
+                                sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: '0.875rem' }}
                             >
                                 {initials}
                             </Avatar>
