@@ -19,6 +19,7 @@ import { Role } from '../domain/constants.js';
 import { validatePersonBasics, validatePersonField } from '../portalPersonValidation';
 import { resolveRole, normalizeRole } from '../portalUtils';
 import { fetchLandlords, createLandlord, patchResource } from '../lib/portalApiClient';
+import PortalConfirmDialog from './PortalConfirmDialog';
 
 function displayName(landlord) {
   const first = String(landlord.first_name ?? '').trim();
@@ -46,6 +47,9 @@ const PortalAdminLandlords = () => {
   const [showInactive, setShowInactive] = useState(false);
   const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
   const [landlordsState, setLandlordsState] = useState({ status: 'idle', detail: '', landlords: [] });
+
+  // Confirmation dialog for toggle active/inactive
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, landlordId: null, activate: false, name: '' });
 
   const loadLandlords = useCallback(async () => {
     if (!canUseModule || !baseUrl) {
@@ -119,6 +123,21 @@ const PortalAdminLandlords = () => {
             : 'request_failed';
       setSubmitState({ status: 'error', detail });
     }
+  };
+
+  const openConfirmDialog = (landlord, activate) => {
+    setConfirmDialog({
+      open: true,
+      landlordId: landlord.id,
+      activate,
+      name: displayName(landlord),
+    });
+  };
+
+  const handleConfirmToggle = () => {
+    const { landlordId, activate } = confirmDialog;
+    setConfirmDialog({ open: false, landlordId: null, activate: false, name: '' });
+    void onToggleActive(landlordId, activate);
   };
 
   const onChange = (field) => (event) => {
@@ -337,7 +356,7 @@ const PortalAdminLandlords = () => {
                         type="button"
                         size="small"
                         variant="outlined"
-                        onClick={() => void onToggleActive(landlord.id, true)}
+                        onClick={() => openConfirmDialog(landlord, true)}
                         disabled={!canUseModule || submitState.status === 'saving'}
                       >
                         {t('portalAdminLandlords.actions.reactivate')}
@@ -348,7 +367,7 @@ const PortalAdminLandlords = () => {
                         size="small"
                         color="warning"
                         variant="outlined"
-                        onClick={() => void onToggleActive(landlord.id, false)}
+                        onClick={() => openConfirmDialog(landlord, false)}
                         disabled={!canUseModule || submitState.status === 'saving'}
                       >
                         {t('portalAdminLandlords.actions.deactivate')}
@@ -361,6 +380,29 @@ const PortalAdminLandlords = () => {
           </Stack>
         </Box>
       </Stack>
+
+      <PortalConfirmDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog((prev) => ({ ...prev, open: false }))}
+        onConfirm={handleConfirmToggle}
+        title={
+          confirmDialog.activate
+            ? t('portalAdminLandlords.confirmReactivate.title')
+            : t('portalAdminLandlords.confirmDeactivate.title')
+        }
+        body={
+          confirmDialog.activate
+            ? t('portalAdminLandlords.confirmReactivate.body', { name: confirmDialog.name })
+            : t('portalAdminLandlords.confirmDeactivate.body', { name: confirmDialog.name })
+        }
+        confirmLabel={
+          confirmDialog.activate
+            ? t('portalAdminLandlords.actions.reactivate')
+            : t('portalAdminLandlords.actions.deactivate')
+        }
+        cancelLabel={t('portalAdminLandlords.actions.cancel')}
+        confirmColor={confirmDialog.activate ? 'primary' : 'warning'}
+      />
     </Box>
   );
 };
