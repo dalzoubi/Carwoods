@@ -3,7 +3,7 @@ const ID_TOKEN_CLAIMS_STORAGE_KEY = 'portal.idTokenClaimsByHomeAccountId';
 export function readStoredClaimsByHomeAccountId() {
   if (typeof window === 'undefined') return {};
   try {
-    const raw = window.localStorage.getItem(ID_TOKEN_CLAIMS_STORAGE_KEY);
+    const raw = window.sessionStorage.getItem(ID_TOKEN_CLAIMS_STORAGE_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw);
     return parsed && typeof parsed === 'object' ? parsed : {};
@@ -15,7 +15,7 @@ export function readStoredClaimsByHomeAccountId() {
 export function writeStoredClaimsByHomeAccountId(map) {
   if (typeof window === 'undefined') return;
   try {
-    window.localStorage.setItem(ID_TOKEN_CLAIMS_STORAGE_KEY, JSON.stringify(map));
+    window.sessionStorage.setItem(ID_TOKEN_CLAIMS_STORAGE_KEY, JSON.stringify(map));
   } catch {
     // Best-effort cache persistence.
   }
