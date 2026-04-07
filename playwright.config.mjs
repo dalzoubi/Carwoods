@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const portalDevAuth = process.env.PORTAL_E2E === 'true';
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -15,7 +17,9 @@ export default defineConfig({
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
   ],
   webServer: {
-    command: 'npm run build && npx serve -s build -l 3000',
+    command: portalDevAuth
+      ? 'VITE_PORTAL_DEV_AUTH=true npm run build && npx serve -s build -l 3000'
+      : 'npm run build && npx serve -s build -l 3000',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
   },
