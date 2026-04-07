@@ -524,6 +524,159 @@ export async function fetchHarPreview(baseUrl, accessToken, harId) {
 }
 
 // ---------------------------------------------------------------------------
+// GET/POST /api/landlord/tenants
+// ---------------------------------------------------------------------------
+
+/**
+ * List tenants visible to the actor.
+ * Admin may pass landlordId to filter by a specific landlord.
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ emailHint?: string, landlordId?: string }} [params]
+ * @returns {Promise<object>}
+ */
+export async function fetchTenants(baseUrl, accessToken, params) {
+  const { emailHint, landlordId } = params ?? {};
+  const qs = landlordId ? `?landlord_id=${encodeURIComponent(landlordId)}` : '';
+  const res = await fetch(buildUrl(baseUrl, `/api/landlord/tenants${qs}`), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * Onboard a new tenant.
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ emailHint?: string, email: string, first_name: string, last_name: string, phone?: string, property_id: string, lease: object }} payload
+ * @returns {Promise<object>}
+ */
+export async function createTenant(baseUrl, accessToken, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(buildUrl(baseUrl, '/api/landlord/tenants'), {
+    method: 'POST',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * GET /api/landlord/tenants/:id
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} tenantId
+ * @param {{ emailHint?: string }} [params]
+ * @returns {Promise<object>}
+ */
+export async function fetchTenant(baseUrl, accessToken, tenantId, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/tenants/${encodeURIComponent(tenantId)}`),
+    {
+      method: 'GET',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * PATCH /api/landlord/tenants/:id  (enable/disable access)
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} tenantId
+ * @param {{ emailHint?: string, active: boolean }} payload
+ * @returns {Promise<object>}
+ */
+export async function patchTenantAccess(baseUrl, accessToken, tenantId, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/tenants/${encodeURIComponent(tenantId)}`),
+    {
+      method: 'PATCH',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * POST /api/landlord/tenants/:id/leases  (add a lease)
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} tenantId
+ * @param {{ emailHint?: string, property_id: string, start_date: string, end_date?: string|null, month_to_month?: boolean, notes?: string }} payload
+ * @returns {Promise<object>}
+ */
+export async function addTenantLease(baseUrl, accessToken, tenantId, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/tenants/${encodeURIComponent(tenantId)}/leases`),
+    {
+      method: 'POST',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * GET /api/landlord/properties  (reusable for property selection dropdowns)
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ emailHint?: string }} [params]
+ * @returns {Promise<object>}
+ */
+export async function fetchLandlordProperties(baseUrl, accessToken, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(buildUrl(baseUrl, '/api/landlord/properties'), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
 // GET /api/health  (unauthenticated)
 // ---------------------------------------------------------------------------
 

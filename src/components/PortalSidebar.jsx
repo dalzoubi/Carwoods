@@ -25,6 +25,7 @@ import Person from '@mui/icons-material/Person';
 import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
 import MonitorHeart from '@mui/icons-material/MonitorHeart';
 import HomeWork from '@mui/icons-material/HomeWork';
+import People from '@mui/icons-material/People';
 import Logout from '@mui/icons-material/Logout';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import ChevronLeft from '@mui/icons-material/ChevronLeft';
@@ -85,6 +86,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
     ...(roleResolved && (normalized === Role.LANDLORD || normalized === Role.ADMIN)
       ? [
           { key: 'properties', to: '/portal/properties', label: t('portalLayout.sidebar.properties'), icon: <HomeWork /> },
+          { key: 'tenants', to: '/portal/tenants', label: t('portalLayout.sidebar.tenants'), icon: <People /> },
         ]
       : []),
     ...(roleResolved && !isGuest
