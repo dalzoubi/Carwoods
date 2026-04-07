@@ -74,7 +74,6 @@ export function applyThemeCssVariables(muiTheme) {
     root.style.setProperty('--cta-button-bg', ctaBg);
     root.style.setProperty('--cta-button-bg-hover', ctaHover);
     root.style.setProperty('--cta-button-text', '#ffffff');
-    root.style.setProperty('--avatar-on-primary', '#ffffff');
 
     const drawer = palette.drawer;
     root.style.setProperty('--palette-drawer-background', drawer.background);
