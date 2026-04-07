@@ -69,16 +69,26 @@ function isActiveStatus(status) {
   return String(status ?? '').toUpperCase() === 'ACTIVE';
 }
 
+function toDatePart(dateStr) {
+  if (!dateStr) return '';
+  // The mssql driver returns DATE columns as JS Date objects, which JSON-serialize
+  // to full ISO strings ("2024-01-15T00:00:00.000Z"). Slice to YYYY-MM-DD so
+  // comparisons, <input type="date"> values, and display formatting all work.
+  return String(dateStr).slice(0, 10);
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return null;
   try {
-    return new Date(dateStr + 'T00:00:00').toLocaleDateString(undefined, {
+    // Append local midnight so the displayed day matches the stored date regardless
+    // of the user's UTC offset (avoids off-by-one when the stored time is midnight UTC).
+    return new Date(toDatePart(dateStr) + 'T00:00:00').toLocaleDateString(undefined, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     });
   } catch {
-    return dateStr;
+    return String(dateStr);
   }
 }
 
@@ -103,8 +113,8 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
     if (open && lease) {
       setForm({
         property_id: lease.property_id ?? '',
-        start_date: lease.start_date ?? '',
-        end_date: lease.end_date ?? '',
+        start_date: toDatePart(lease.start_date),
+        end_date: toDatePart(lease.end_date),
         month_to_month: Boolean(lease.month_to_month),
         notes: lease.notes ?? '',
       });
