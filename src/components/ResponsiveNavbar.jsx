@@ -1,13 +1,16 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import {
     AppBar,
+    Avatar,
     Toolbar,
     IconButton,
     Button,
     Chip,
+    CircularProgress,
     Drawer,
     List,
     ListItemButton,
+    ListItemIcon,
     ListItemText,
     ListSubheader,
     Menu,
@@ -28,8 +31,9 @@ import RestartAlt from '@mui/icons-material/RestartAlt';
 import Print from '@mui/icons-material/Print';
 import Language from '@mui/icons-material/Language';
 import Gavel from '@mui/icons-material/Gavel';
-import AccountCircle from '@mui/icons-material/AccountCircle';
 import Login from '@mui/icons-material/Login';
+import Person from '@mui/icons-material/Person';
+import Logout from '@mui/icons-material/Logout';
 import { NavLink } from '../styles';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useThemeMode } from '../ThemeModeContext';
@@ -69,28 +73,6 @@ const toolbarChromeIconButtonSx = {
     },
 };
 
-const headerActionButtonSx = {
-    textTransform: 'none',
-    fontWeight: 700,
-    fontSize: '0.9rem',
-    px: '0.55rem',
-    py: '0.3rem',
-    borderRadius: '4px',
-    color: 'inherit',
-    backgroundColor: 'transparent',
-    transition: 'background-color 0.3s, color 0.3s',
-    boxShadow: 'none',
-    '&:hover': {
-        backgroundColor: 'var(--nav-chrome-hover-bg)',
-        color: 'var(--nav-chrome-active-text)',
-        boxShadow: 'none',
-    },
-    '&.Mui-focusVisible': {
-        outline: '2px solid var(--palette-primary-light)',
-        outlineOffset: 3,
-    },
-};
-
 const signInCtaButtonSx = {
     textTransform: 'none',
     fontWeight: 700,
@@ -118,33 +100,6 @@ const signInCtaButtonSx = {
     },
 };
 
-const signedInAccountButtonSx = {
-    textTransform: 'none',
-    fontWeight: 700,
-    fontSize: '0.85rem',
-    px: 1.1,
-    py: 0.35,
-    borderRadius: '999px',
-    color: 'var(--nav-chrome-active-text)',
-    backgroundColor: 'var(--nav-chrome-hover-bg)',
-    border: '1px solid var(--nav-chrome-focus-ring)',
-    boxShadow: 'none',
-    transition: 'background-color 0.2s, border-color 0.2s, transform 0.2s',
-    '&:hover': {
-        backgroundColor: 'var(--nav-chrome-active-bg)',
-        borderColor: 'var(--nav-chrome-active-text)',
-        boxShadow: 'none',
-        transform: 'translateY(-1px)',
-    },
-    '&:active': {
-        transform: 'translateY(0)',
-    },
-    '&.Mui-focusVisible': {
-        outline: '2px solid var(--nav-chrome-focus-ring)',
-        outlineOffset: 2,
-    },
-};
-
 const logoLinkSx = {
     display: 'inline-block',
     lineHeight: 0,
@@ -166,6 +121,16 @@ function portalRoleLabel(role, t) {
     if (normalized === Role.LANDLORD) return t('portalHeader.roles.landlord');
     if (normalized === Role.TENANT) return t('portalHeader.roles.tenant');
     return t('portalHeader.roles.unknown');
+}
+
+function userInitials(meData) {
+    const first = (meData?.user?.first_name ?? '').trim();
+    const last = (meData?.user?.last_name ?? '').trim();
+    const f = first.charAt(0).toUpperCase();
+    const l = last.charAt(0).toUpperCase();
+    if (f && l) return `${f}${l}`;
+    if (f) return f;
+    return '?';
 }
 
 const ResponsiveNavbar = () => {
@@ -208,6 +173,8 @@ const ResponsiveNavbar = () => {
     const currentPortalRoleLabel = portalRoleLabel(portalRole, t);
     const roleResolved = isAuthenticated && meStatus !== 'loading';
     const isGuestAccount = roleResolved && isGuestRole(normalizedPortalRole);
+    const meLoading = isAuthenticated && meStatus === 'loading';
+    const initials = userInitials(meData);
     const portalLinkTo = '/portal';
 
     const menuHorizontalOrigin = muiTheme.direction === 'rtl' ? 'right' : 'left';
@@ -377,13 +344,6 @@ const ResponsiveNavbar = () => {
     const isRouteActive = (to) => normalizedPathname === to;
 
     const showToolbarActions = showPrintButton || showAppearanceMenu || true; // language always shown
-    const isCompactAccountIcon = isMobile && isAuthenticated;
-    const accountButtonLabel = isAuthenticated
-        ? (isCompactAccountIcon ? '' : portalAccountName)
-        : t('portalHeader.actions.signIn');
-    const accountButtonIcon = isAuthenticated
-        ? <AccountCircle fontSize="small" aria-hidden />
-        : <Login fontSize="small" aria-hidden />;
     const headerToolbarActions = showToolbarActions ? (
         <Box
             sx={{
@@ -462,54 +422,60 @@ const ResponsiveNavbar = () => {
                     </IconButton>
                 </Tooltip>
             ) : null}
-            <Button
-                type="button"
-                size={isMobile ? 'small' : 'medium'}
-                variant={isAuthenticated ? 'text' : 'contained'}
-                id="portal-account-menu-button"
-                aria-haspopup={isAuthenticated ? 'true' : undefined}
-                aria-expanded={isAuthenticated ? Boolean(accountAnchor) : undefined}
-                aria-controls={isAuthenticated && accountAnchor ? 'portal-account-menu' : undefined}
-                aria-label={
-                    isAuthenticated
-                        ? `${t('portalHeader.status.signedIn')} - ${portalAccountName}`
-                        : t('portalHeader.actions.signIn')
-                }
-                onClick={handleAccountButtonClick}
-                startIcon={!isAuthenticated ? accountButtonIcon : undefined}
-                endIcon={isAuthenticated && !isCompactAccountIcon ? accountButtonIcon : undefined}
-                sx={{
-                    ...(isAuthenticated
-                        ? (isCompactAccountIcon ? headerActionButtonSx : signedInAccountButtonSx)
-                        : signInCtaButtonSx),
-                    fontSize: isMobile
-                        ? '0.75rem'
-                        : (isAuthenticated
-                            ? (isCompactAccountIcon ? headerActionButtonSx.fontSize : signedInAccountButtonSx.fontSize)
-                            : signInCtaButtonSx.fontSize),
-                    px: isMobile
-                        ? (isCompactAccountIcon ? 0.5 : (isAuthenticated ? 1 : 1.1))
-                        : (isAuthenticated
-                            ? (isCompactAccountIcon ? headerActionButtonSx.px : signedInAccountButtonSx.px)
-                            : signInCtaButtonSx.px),
-                    minWidth: 0,
-                    width: isCompactAccountIcon ? 32 : 'auto',
-                    height: isCompactAccountIcon ? 32 : 'auto',
-                    maxWidth: isMobile ? 128 : 'none',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                    textOverflow: 'ellipsis',
-                    '& .MuiButton-startIcon': {
-                        margin: 0,
-                    },
-                    '& .MuiButton-endIcon': {
-                        margin: isCompactAccountIcon ? 0 : undefined,
-                        marginInlineStart: isCompactAccountIcon ? 0 : 0.75,
-                    },
-                }}
-            >
-                {isCompactAccountIcon ? accountButtonIcon : accountButtonLabel}
-            </Button>
+            {isAuthenticated ? (
+                meLoading ? (
+                    <Box
+                        sx={{
+                            width: 32,
+                            height: 32,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginInlineStart: 0.5,
+                            color: 'inherit',
+                        }}
+                    >
+                        <CircularProgress size={20} sx={{ color: 'inherit' }} />
+                    </Box>
+                ) : (
+                    <Tooltip title={t('portalLayout.topBar.accountMenu')} arrow>
+                        <IconButton
+                            type="button"
+                            size="small"
+                            id="portal-account-menu-button"
+                            onClick={handleAccountOpen}
+                            aria-haspopup="true"
+                            aria-expanded={Boolean(accountAnchor)}
+                            aria-controls={accountAnchor ? 'portal-account-menu' : undefined}
+                            aria-label={`${t('portalHeader.status.signedIn')} - ${portalAccountName}`}
+                            sx={{ marginInlineStart: 0.5, p: 0 }}
+                        >
+                            <Avatar
+                                sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.8rem' }}
+                            >
+                                {initials}
+                            </Avatar>
+                        </IconButton>
+                    </Tooltip>
+                )
+            ) : (
+                <Button
+                    type="button"
+                    size={isMobile ? 'small' : 'medium'}
+                    variant="contained"
+                    id="portal-account-menu-button"
+                    aria-label={t('portalHeader.actions.signIn')}
+                    onClick={handleAccountButtonClick}
+                    startIcon={<Login fontSize="small" aria-hidden />}
+                    sx={{
+                        ...signInCtaButtonSx,
+                        fontSize: isMobile ? '0.75rem' : signInCtaButtonSx.fontSize,
+                        px: isMobile ? 1.1 : signInCtaButtonSx.px,
+                    }}
+                >
+                    {t('portalHeader.actions.signIn')}
+                </Button>
+            )}
         </Box>
     ) : null;
 
@@ -1114,28 +1080,45 @@ const ResponsiveNavbar = () => {
                     },
                 }}
             >
-                <>
-                    <MenuItem
-                        onClick={() => {
-                            if (!isGuestAccount) {
-                                navigate(withDarkPath(pathname, '/portal/profile'));
-                            }
-                            handleAccountClose();
-                        }}
-                        disabled={isGuestAccount}
-                    >
-                        <ListItemText primary={`${t('portalHeader.nav.profile')} (${currentPortalRoleLabel})`} />
-                    </MenuItem>
-                    <Divider />
-                    <MenuItem
-                        onClick={() => {
-                            handleSignOutConfirmOpen();
-                            handleAccountClose();
-                        }}
-                    >
-                        {t('portalHeader.actions.signOut')}
-                    </MenuItem>
-                </>
+                <Box sx={{ px: 2, pt: 1.5, pb: 1 }}>
+                    <Typography variant="body2" fontWeight={600} noWrap>
+                        {portalAccountName}
+                    </Typography>
+                    <Chip
+                        label={currentPortalRoleLabel}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                        sx={{ height: 20, fontSize: '0.7rem', mt: 0.5 }}
+                    />
+                </Box>
+                <Divider />
+                <MenuItem
+                    onClick={() => {
+                        if (!isGuestAccount) {
+                            navigate(withDarkPath(pathname, '/portal/profile'));
+                        }
+                        handleAccountClose();
+                    }}
+                    disabled={isGuestAccount}
+                >
+                    <ListItemIcon>
+                        <Person fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText primary={`${t('portalHeader.nav.profile')} (${currentPortalRoleLabel})`} />
+                </MenuItem>
+                <Divider />
+                <MenuItem
+                    onClick={() => {
+                        handleSignOutConfirmOpen();
+                        handleAccountClose();
+                    }}
+                >
+                    <ListItemIcon>
+                        <Logout fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText primary={t('portalHeader.actions.signOut')} />
+                </MenuItem>
             </Menu>
             <PortalSignOutConfirmDialog
                 open={signOutConfirmOpen}
