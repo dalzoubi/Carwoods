@@ -1052,6 +1052,9 @@
       "noTitle": "Untitled request"
     }
   },
+  "portalLoading": {
+    "ariaLabel": "Loading portal"
+  },
   "portalLogin": {
     "title": "Carwoods - Property Portal",
     "metaDescription": "Sign in to the Carwoods property portal.",

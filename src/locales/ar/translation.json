@@ -1052,6 +1052,9 @@
       "noTitle": "طلب بدون عنوان"
     }
   },
+  "portalLoading": {
+    "ariaLabel": "جارٍ تحميل البوابة"
+  },
   "portalLogin": {
     "title": "Carwoods - بوابة العقارات",
     "metaDescription": "سجل الدخول إلى بوابة العقارات في Carwoods.",

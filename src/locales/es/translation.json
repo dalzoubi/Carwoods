@@ -1052,6 +1052,9 @@
       "noTitle": "Solicitud sin título"
     }
   },
+  "portalLoading": {
+    "ariaLabel": "Cargando portal"
+  },
   "portalLogin": {
     "title": "Carwoods - Portal de Propiedades",
     "metaDescription": "Inicia sesión en el portal de propiedades de Carwoods.",

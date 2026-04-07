@@ -1052,6 +1052,9 @@
       "noTitle": "Demande sans titre"
     }
   },
+  "portalLoading": {
+    "ariaLabel": "Chargement du portail"
+  },
   "portalLogin": {
     "title": "Carwoods - Portail Immobilier",
     "metaDescription": "Connectez-vous au portail immobilier Carwoods.",
