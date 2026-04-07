@@ -22,7 +22,9 @@ import PortalAdminLandlords from './components/PortalAdminLandlords';
 import PortalAdminProperties from './components/PortalAdminProperties';
 import PortalLayout from './components/PortalLayout';
 import PortalAuthGate from './components/PortalAuthGate';
+import PortalRouteGuard from './components/PortalRouteGuard';
 import { isDarkPreviewRoute, isPortalRoute } from './routePaths';
+import { Role } from './domain/constants';
 
 function ScrollToTopOnRouteChange() {
     const { pathname, hash } = useLocation();
@@ -76,11 +78,46 @@ function PortalRoutes() {
     return (
         <Routes location={routesLocation}>
             <Route path="/portal" element={<PortalDashboard />} />
-            <Route path="/portal/status" element={<PortalStatus />} />
-            <Route path="/portal/profile" element={<PortalProfile />} />
-            <Route path="/portal/requests" element={<PortalRequests />} />
-            <Route path="/portal/admin" element={<PortalAdminLandlords />} />
-            <Route path="/portal/properties" element={<PortalAdminProperties />} />
+            <Route
+                path="/portal/status"
+                element={
+                    <PortalRouteGuard allowedRoles={[Role.ADMIN]}>
+                        <PortalStatus />
+                    </PortalRouteGuard>
+                }
+            />
+            <Route
+                path="/portal/profile"
+                element={
+                    <PortalRouteGuard allowedRoles={[Role.TENANT, Role.LANDLORD, Role.ADMIN]}>
+                        <PortalProfile />
+                    </PortalRouteGuard>
+                }
+            />
+            <Route
+                path="/portal/requests"
+                element={
+                    <PortalRouteGuard allowedRoles={[Role.TENANT, Role.LANDLORD, Role.ADMIN]}>
+                        <PortalRequests />
+                    </PortalRouteGuard>
+                }
+            />
+            <Route
+                path="/portal/admin"
+                element={
+                    <PortalRouteGuard allowedRoles={[Role.ADMIN]}>
+                        <PortalAdminLandlords />
+                    </PortalRouteGuard>
+                }
+            />
+            <Route
+                path="/portal/properties"
+                element={
+                    <PortalRouteGuard allowedRoles={[Role.LANDLORD, Role.ADMIN]}>
+                        <PortalAdminProperties />
+                    </PortalRouteGuard>
+                }
+            />
             <Route path="/portal/tenant" element={<Navigate to="/portal" replace />} />
             <Route path="/portal/landlord" element={<Navigate to="/portal" replace />} />
         </Routes>
