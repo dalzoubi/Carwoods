@@ -79,6 +79,7 @@ export function usePortalRequests({
   });
   const [tenantCreateStatus, setTenantCreateStatus] = useState('idle');
   const [tenantCreateError, setTenantCreateError] = useState('');
+  const [createAttachmentFiles, setCreateAttachmentFiles] = useState([]);
   const [cancelStatus, setCancelStatus] = useState('idle');
   const [cancelError, setCancelError] = useState('');
   const [lookupStatus, setLookupStatus] = useState('idle');
@@ -305,6 +306,17 @@ export function usePortalRequests({
     setTenantCreateError('');
   };
 
+  const onCreateAttachmentChange = (event) => {
+    const files = Array.from(event.target.files || []);
+    setCreateAttachmentFiles((prev) => [...prev, ...files]);
+    setTenantCreateStatus('idle');
+    setTenantCreateError('');
+  };
+
+  const onRemoveCreateAttachment = (index) => {
+    setCreateAttachmentFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const onCreateRequest = async (event) => {
     event.preventDefault();
     if (!baseUrl || !tenantDefaults) return;
@@ -313,15 +325,45 @@ export function usePortalRequests({
     try {
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
-      await createRequest(baseUrl, token, {
+      const result = await createRequest(baseUrl, token, {
         emailHint,
         property_id: tenantDefaults.property_id,
         lease_id: tenantDefaults.lease_id,
         ...tenantForm,
         emergency_disclaimer_acknowledged: true,
       });
+      const newRequestId = result?.request?.id;
+      if (newRequestId && createAttachmentFiles.length > 0) {
+        for (const file of createAttachmentFiles) {
+          const contentType = file.type || 'application/octet-stream';
+          const mediaType = detectMediaType(contentType);
+          if (!mediaType) continue;
+          try {
+            const intentPayload = await requestUploadIntent(baseUrl, token, newRequestId, {
+              emailHint,
+              filename: file.name,
+              content_type: contentType,
+              file_size_bytes: file.size,
+            });
+            const storagePath = intentPayload?.upload?.storage_path;
+            const uploadUrl = intentPayload?.upload?.upload_url;
+            if (!storagePath || !uploadUrl) continue;
+            await putBlobToStorage(uploadUrl, file);
+            await finalizeUpload(baseUrl, token, newRequestId, {
+              emailHint,
+              storage_path: storagePath,
+              filename: file.name,
+              content_type: contentType,
+              file_size_bytes: file.size,
+            });
+          } catch {
+            // attachment upload failures are non-fatal; request was already created
+          }
+        }
+      }
       setTenantCreateStatus('success');
       setTenantForm((prev) => ({ ...prev, title: '', description: '' }));
+      setCreateAttachmentFiles([]);
       await loadRequests({ keepSelection: false });
     } catch (error) {
       handleApiForbidden(error);
@@ -528,6 +570,7 @@ export function usePortalRequests({
     priorityOptions,
     tenantCreateStatus,
     tenantCreateError,
+    createAttachmentFiles,
     cancelStatus,
     cancelError,
     managementForm,
@@ -552,6 +595,8 @@ export function usePortalRequests({
     loadAuditForRequest,
     loadRequests,
     onTenantField,
+    onCreateAttachmentChange,
+    onRemoveCreateAttachment,
     onCreateRequest,
     onCancelRequest,
     onManagementField,

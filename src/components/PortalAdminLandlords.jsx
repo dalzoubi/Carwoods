@@ -4,6 +4,7 @@ import {
   Alert,
   Box,
   Button,
+  Collapse,
   FormControlLabel,
   IconButton,
   Switch,
@@ -12,6 +13,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import Refresh from '@mui/icons-material/Refresh';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -42,6 +44,7 @@ const PortalAdminLandlords = () => {
   const isAdmin = role === Role.ADMIN;
   const canUseModule = isAuthenticated && isAdmin && Boolean(baseUrl);
 
+  const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState({ email: '', firstName: '', lastName: '' });
   const [fieldErrors, setFieldErrors] = useState({});
   const [showInactive, setShowInactive] = useState(false);
@@ -187,6 +190,7 @@ const PortalAdminLandlords = () => {
       });
       setFieldErrors({});
       setForm({ email: '', firstName: '', lastName: '' });
+      setCreateOpen(false);
       void loadLandlords();
     } catch (error) {
       handleApiForbidden(error);
@@ -220,67 +224,83 @@ const PortalAdminLandlords = () => {
           <Alert severity="error">{t('portalAdminLandlords.errors.adminOnly')}</Alert>
         )}
 
-        <Box
-          component="form"
-          onSubmit={onSubmit}
-          sx={{
-            border: '1px solid',
-            borderColor: 'divider',
-            borderRadius: 2,
-            p: 2.5,
-            backgroundColor: 'background.paper',
-          }}
-        >
-          <Stack spacing={1.5}>
-            <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
-              {t('portalAdminLandlords.form.heading')}
-            </Typography>
-            <TextField
-              label={t('portalAdminLandlords.form.email')}
-              value={form.email}
-              onChange={onChange('email')}
-              onBlur={onBlur('email')}
-              required
-              type="email"
-              autoComplete="email"
-              error={Boolean(fieldErrors.email)}
-              helperText={fieldErrors.email || ' '}
-              fullWidth
-            />
-            <TextField
-              label={t('portalAdminLandlords.form.firstName')}
-              value={form.firstName}
-              onChange={onChange('firstName')}
-              onBlur={onBlur('firstName')}
-              required
-              error={Boolean(fieldErrors.firstName)}
-              helperText={fieldErrors.firstName || ' '}
-              fullWidth
-            />
-            <TextField
-              label={t('portalAdminLandlords.form.lastName')}
-              value={form.lastName}
-              onChange={onChange('lastName')}
-              onBlur={onBlur('lastName')}
-              required
-              error={Boolean(fieldErrors.lastName)}
-              helperText={fieldErrors.lastName || ' '}
-              fullWidth
-            />
-            <Stack direction="row" spacing={1.25} sx={{ flexWrap: 'wrap' }}>
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={!canUseModule || submitState.status === 'saving' || !isFormValid}
-              >
-                {submitState.status === 'saving'
-                  ? t('portalAdminLandlords.form.sending')
-                  : t('portalAdminLandlords.form.saveLandlord')}
-              </Button>
-            </Stack>
-            {submitState.status === 'error' && <Alert severity="error">{submitState.detail}</Alert>}
-            {submitState.status === 'ok' && <Alert severity="success">{submitState.detail}</Alert>}
-          </Stack>
+        <Box>
+          <Button
+            type="button"
+            variant={createOpen ? 'outlined' : 'contained'}
+            startIcon={<AddIcon />}
+            disabled={!canUseModule}
+            onClick={() => setCreateOpen((prev) => !prev)}
+            sx={{ mb: createOpen ? 1 : 0 }}
+          >
+            {createOpen
+              ? t('portalAdminLandlords.form.hideForm')
+              : t('portalAdminLandlords.form.showForm')}
+          </Button>
+          <Collapse in={createOpen} unmountOnExit>
+            <Box
+              component="form"
+              onSubmit={onSubmit}
+              sx={{
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 2,
+                p: 2.5,
+                backgroundColor: 'background.paper',
+              }}
+            >
+              <Stack spacing={1.5}>
+                <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
+                  {t('portalAdminLandlords.form.heading')}
+                </Typography>
+                <TextField
+                  label={t('portalAdminLandlords.form.email')}
+                  value={form.email}
+                  onChange={onChange('email')}
+                  onBlur={onBlur('email')}
+                  required
+                  type="email"
+                  autoComplete="email"
+                  error={Boolean(fieldErrors.email)}
+                  helperText={fieldErrors.email || ' '}
+                  fullWidth
+                />
+                <TextField
+                  label={t('portalAdminLandlords.form.firstName')}
+                  value={form.firstName}
+                  onChange={onChange('firstName')}
+                  onBlur={onBlur('firstName')}
+                  required
+                  error={Boolean(fieldErrors.firstName)}
+                  helperText={fieldErrors.firstName || ' '}
+                  fullWidth
+                />
+                <TextField
+                  label={t('portalAdminLandlords.form.lastName')}
+                  value={form.lastName}
+                  onChange={onChange('lastName')}
+                  onBlur={onBlur('lastName')}
+                  required
+                  error={Boolean(fieldErrors.lastName)}
+                  helperText={fieldErrors.lastName || ' '}
+                  fullWidth
+                />
+                <Stack direction="row" spacing={1.25} sx={{ flexWrap: 'wrap' }}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={!canUseModule || submitState.status === 'saving' || !isFormValid}
+                  >
+                    {submitState.status === 'saving'
+                      ? t('portalAdminLandlords.form.sending')
+                      : t('portalAdminLandlords.form.saveLandlord')}
+                  </Button>
+                </Stack>
+                {submitState.status === 'error' && <Alert severity="error">{submitState.detail}</Alert>}
+                {submitState.status === 'ok' && <Alert severity="success">{submitState.detail}</Alert>}
+              </Stack>
+            </Box>
+          </Collapse>
         </Box>
 
         <Box

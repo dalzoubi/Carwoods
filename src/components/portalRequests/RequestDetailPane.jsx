@@ -309,7 +309,8 @@ const RequestDetailPane = ({
               {threadMessages.map((msg) => (
                 <Box key={msg.id} sx={{ borderBottom: '1px solid', borderColor: 'divider', pb: 1 }}>
                   <Typography sx={{ fontWeight: 600 }}>
-                    {msg.sender_user_id} {msg.is_internal ? `(${t('portalRequests.messages.internalTag')})` : ''}
+                    {msg.sender_display_name || msg.sender_user_id}
+                    {msg.is_internal ? ` (${t('portalRequests.messages.internalTag')})` : ''}
                   </Typography>
                   <Typography color="text.secondary">{msg.body}</Typography>
                 </Box>

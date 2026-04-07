@@ -35,6 +35,8 @@ export type RequestMessageRow = {
   id: string;
   request_id: string;
   sender_user_id: string;
+  sender_display_name: string | null;
+  sender_role: string | null;
   body: string;
   is_internal: boolean;
   source: string;
@@ -423,11 +425,18 @@ export async function listRequestMessages(
   includeInternal: boolean
 ): Promise<RequestMessageRow[]> {
   const r = await client.query<RequestMessageRow>(
-    `SELECT id, request_id, sender_user_id, body, is_internal, source, created_at, updated_at
-     FROM request_messages
-     WHERE request_id = $1
-       AND ($2 = 1 OR is_internal = 0)
-     ORDER BY created_at ASC`,
+    `SELECT rm.id, rm.request_id, rm.sender_user_id,
+            CASE
+              WHEN LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, ''))) = '' THEN u.email
+              ELSE LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, '')))
+            END AS sender_display_name,
+            u.role AS sender_role,
+            rm.body, rm.is_internal, rm.source, rm.created_at, rm.updated_at
+     FROM request_messages rm
+     LEFT JOIN users u ON u.id = rm.sender_user_id
+     WHERE rm.request_id = $1
+       AND ($2 = 1 OR rm.is_internal = 0)
+     ORDER BY rm.created_at ASC`,
     [requestId, includeInternal ? 1 : 0]
   );
   return r.rows;

@@ -124,6 +124,9 @@ describe('PortalAdminProperties', () => {
     );
     await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
 
+    fireEvent.click(screen.getByRole('button', { name: /add property/i }));
+    await waitFor(() => expect(screen.getByLabelText(/city, state, zip/i)).toBeInTheDocument());
+
     fireEvent.change(screen.getByLabelText(/city, state, zip/i), {
       target: { value: 'Houston, TX 77001' },
     });
@@ -137,6 +140,9 @@ describe('PortalAdminProperties', () => {
   it('calls createPropertyApi and resets form on valid submit', async () => {
     render(<WithAppTheme><PortalAdminProperties /></WithAppTheme>);
     await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole('button', { name: /add property/i }));
+    await waitFor(() => expect(screen.getByLabelText(/street address/i)).toBeInTheDocument());
 
     fireEvent.change(screen.getByLabelText(/street address/i), { target: { value: '123 Main St' } });
     fireEvent.change(screen.getByLabelText(/city, state, zip/i), { target: { value: 'Houston, TX 77001' } });
@@ -180,6 +186,9 @@ describe('PortalAdminProperties', () => {
     render(<WithAppTheme><PortalAdminProperties /></WithAppTheme>);
     await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
     await waitFor(() => expect(portalApiClient.fetchLandlords).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole('button', { name: /add property/i }));
+    await waitFor(() => expect(screen.getByLabelText(/street address/i)).toBeInTheDocument());
 
     fireEvent.change(screen.getByLabelText(/street address/i), { target: { value: '124 Main St' } });
     fireEvent.change(screen.getByLabelText(/city, state, zip/i), { target: { value: 'Houston, TX 77002' } });
@@ -401,6 +410,9 @@ describe('PortalAdminProperties', () => {
 
     await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
 
+    fireEvent.click(screen.getByRole('button', { name: /add property/i }));
+    await waitFor(() => expect(screen.getByLabelText(/har listing id or url/i)).toBeInTheDocument());
+
     const input = screen.getByLabelText(/har listing id or url/i);
     fireEvent.change(input, {
       target: { value: 'https://www.har.com/homedetail/6314-bonnie-chase-ln-katy-tx-77449/8469293' },
@@ -452,6 +464,9 @@ describe('PortalAdminProperties', () => {
 
     await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
 
+    fireEvent.click(screen.getByRole('button', { name: /add property/i }));
+    await waitFor(() => expect(screen.getByLabelText(/har listing id or url/i)).toBeInTheDocument());
+
     fireEvent.change(screen.getByLabelText(/har listing id or url/i), {
       target: { value: '8469293' },
     });
@@ -471,6 +486,9 @@ describe('PortalAdminProperties', () => {
       </WithAppTheme>
     );
     await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole('button', { name: /add property/i }));
+    await waitFor(() => expect(screen.getByLabelText(/har listing id or url/i)).toBeInTheDocument());
 
     const input = screen.getByLabelText(/har listing id or url/i);
     fireEvent.change(input, { target: { value: 'https://example.com/not-a-har-url' } });
@@ -495,6 +513,9 @@ describe('PortalAdminProperties', () => {
     );
 
     await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole('button', { name: /add property/i }));
+    await waitFor(() => expect(screen.getByLabelText(/har listing id or url/i)).toBeInTheDocument());
 
     fireEvent.change(screen.getByLabelText(/har listing id or url/i), {
       target: { value: '8469293' },

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { Alert, Box, Button, Chip, Paper, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Alert, Box, Button, Chip, Collapse, Paper, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import { usePortalAuth } from '../PortalAuthContext';
 import { hasLandlordAccess } from '../domain/roleUtils.js';
 import { Role } from '../domain/constants.js';
@@ -72,6 +73,9 @@ const PortalRequests = () => {
     loadAuditForRequest,
     loadRequests,
     onTenantField,
+    onCreateAttachmentChange,
+    onRemoveCreateAttachment,
+    createAttachmentFiles,
     onCreateRequest,
     onCancelRequest,
     cancelStatus,
@@ -105,6 +109,11 @@ const PortalRequests = () => {
     : null;
 
   const hasDetail = selectedRequestId && requestDetail;
+  const [createOpen, setCreateOpen] = useState(false);
+  // Close the create form automatically after a successful submission
+  React.useEffect(() => {
+    if (tenantCreateStatus === 'success') setCreateOpen(false);
+  }, [tenantCreateStatus]);
 
   return (
     <Box>
@@ -137,20 +146,39 @@ const PortalRequests = () => {
         {exportStatus === 'ok' && <Alert severity="success">{t('portalRequests.exportSuccess')}</Alert>}
 
         {!isManagement && (
-          <TenantRequestForm
-            tenantForm={tenantForm}
-            tenantDefaults={tenantDefaults}
-            lookupsStatus={lookupStatus}
-            lookupsError={lookupError}
-            lookupContact={lookupContact}
-            categoryOptions={categoryOptions}
-            priorityOptions={priorityOptions}
-            onTenantField={onTenantField}
-            onCreateRequest={onCreateRequest}
-            tenantCreateStatus={tenantCreateStatus}
-            tenantCreateError={tenantCreateError}
-            disabled={!isAuthenticated || !baseUrl || tenantCreateStatus === 'saving' || isGuest}
-          />
+          <Box>
+            <Button
+              type="button"
+              variant={createOpen ? 'outlined' : 'contained'}
+              startIcon={<AddIcon />}
+              onClick={() => setCreateOpen((prev) => !prev)}
+              disabled={!isAuthenticated || !baseUrl || isGuest}
+              sx={{ mb: createOpen ? 1 : 0 }}
+            >
+              {createOpen
+                ? t('portalRequests.actions.hideCreate')
+                : t('portalRequests.actions.newRequest')}
+            </Button>
+            <Collapse in={createOpen} unmountOnExit>
+              <TenantRequestForm
+                tenantForm={tenantForm}
+                tenantDefaults={tenantDefaults}
+                lookupsStatus={lookupStatus}
+                lookupsError={lookupError}
+                lookupContact={lookupContact}
+                categoryOptions={categoryOptions}
+                priorityOptions={priorityOptions}
+                onTenantField={onTenantField}
+                onCreateRequest={onCreateRequest}
+                tenantCreateStatus={tenantCreateStatus}
+                tenantCreateError={tenantCreateError}
+                createAttachmentFiles={createAttachmentFiles}
+                onCreateAttachmentChange={onCreateAttachmentChange}
+                onRemoveCreateAttachment={onRemoveCreateAttachment}
+                disabled={!isAuthenticated || !baseUrl || tenantCreateStatus === 'saving' || isGuest}
+              />
+            </Collapse>
+          </Box>
         )}
 
         {/* Split pane: list + detail side by side on desktop */}
