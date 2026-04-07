@@ -7,7 +7,8 @@ test.describe('Critical path: Home → Tenant Criteria → Application Docs', ()
     await expect(page.getByRole('heading', { name: /houston rentals, managed right/i })).toBeVisible();
 
     await page.getByRole('button', { name: /tenant menu/i }).click();
-    await page.getByRole('link', { name: /selection criteria/i }).click();
+    // Menu items are role="menuitem" (MUI MenuItem inside a Menu)
+    await page.getByRole('menuitem', { name: /selection criteria/i }).click();
 
     await expect(page).toHaveURL(/tenant-selection-criteria/);
     await expect(page.getByRole('heading', { name: /tenant selection criteria/i })).toBeVisible();
@@ -17,7 +18,8 @@ test.describe('Critical path: Home → Tenant Criteria → Application Docs', ()
     await page.goto('/tenant-selection-criteria');
 
     await page.getByRole('button', { name: /tenant menu/i }).click();
-    await page.getByRole('link', { name: /required documents/i }).click();
+    // Menu items are role="menuitem" (MUI MenuItem inside a Menu)
+    await page.getByRole('menuitem', { name: /required documents/i }).click();
 
     await expect(page).toHaveURL(/application-required-documents/);
     await expect(page.getByRole('heading', { name: /application required documents/i })).toBeVisible();
@@ -37,7 +39,8 @@ test.describe('Critical path: Home → Tenant Criteria → Application Docs', ()
     await page.goto('/contact-us');
 
     await expect(page.getByRole('heading', { name: /contact us/i })).toBeVisible();
-    await expect(page.getByText(/har\.com/i)).toBeVisible();
+    // Use .first() because "har.com" appears in both paragraph text and the CTA link
+    await expect(page.getByText(/har\.com/i).first()).toBeVisible();
 
     const harLink = page.getByRole('link', { name: /contact our agent on har\.com/i });
     await expect(harLink).toBeVisible();
