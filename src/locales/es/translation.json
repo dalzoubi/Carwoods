@@ -1050,7 +1050,8 @@
       "emptyManagement": "No se encontraron solicitudes.",
       "viewAll": "Ver todas las solicitudes",
       "noTitle": "Solicitud sin título"
-    }
+    },
+    "accessDenied": "No tienes permiso para ver esa página."
   },
   "portalLogin": {
     "title": "Carwoods - Portal de Propiedades",
