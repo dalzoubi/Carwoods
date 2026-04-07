@@ -297,7 +297,11 @@ const PortalAdminProperties = () => {
     try {
       const token = await getAccessTokenRef.current();
       if (signal?.aborted) return;
-      const rows = await listPropertiesApi(baseUrl, token, { includeDeleted: showDeleted });
+      const rows = await listPropertiesApi(baseUrl, token, {
+        includeDeleted: showDeleted,
+        // Show-deleted should reflect live DB state, not a stale list cache.
+        skipCache: showDeleted,
+      });
       if (signal?.aborted) return;
       setProperties(rows.map(apiPropertyToDisplay));
     } catch (err) {

@@ -101,9 +101,12 @@ function jsonAuthHeaders(accessToken) {
  */
 export async function listPropertiesApi(baseUrl, accessToken, opts = {}) {
   const includeDeleted = Boolean(opts.includeDeleted);
+  const skipCache = Boolean(opts.skipCache);
   const key = cacheKey(baseUrl, includeDeleted);
-  const cached = cacheGet(key);
-  if (cached) return cached;
+  if (!skipCache) {
+    const cached = cacheGet(key);
+    if (cached) return cached;
+  }
 
   const path = includeDeleted
     ? '/api/landlord/properties?include_deleted=true'
@@ -120,7 +123,9 @@ export async function listPropertiesApi(baseUrl, accessToken, opts = {}) {
   }
   const payload = await res.json();
   const properties = Array.isArray(payload.properties) ? payload.properties : [];
-  cacheSet(key, properties, opts.ttlMs ?? DEFAULT_TTL_MS);
+  if (!skipCache) {
+    cacheSet(key, properties, opts.ttlMs ?? DEFAULT_TTL_MS);
+  }
   return properties;
 }
 
