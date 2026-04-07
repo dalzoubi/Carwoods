@@ -9,7 +9,7 @@
  */
 
 import {
-  findStatusIdByCode,
+  findSystemDefaultStatusId,
   insertMaintenanceRequest,
   tenantCanSubmitForLease,
   type RequestRow,
@@ -20,7 +20,7 @@ import {
   validateCreateRequest,
 } from '../../domain/requestValidation.js';
 import { forbidden, validationError } from '../../domain/errors.js';
-import { Role, RequestStatus } from '../../domain/constants.js';
+import { Role } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
 
 export type CreateRequestInput = {
@@ -80,7 +80,7 @@ export async function createRequest(
   const [categoryId, priorityId, openStatusId] = await Promise.all([
     resolveLookupId(db, 'service_categories', input.categoryCode!),
     resolveLookupId(db, 'request_priorities', input.priorityCode!),
-    findStatusIdByCode(db, RequestStatus.NOT_STARTED),
+    findSystemDefaultStatusId(db),
   ]);
 
   if (!categoryId || !priorityId || !openStatusId) {

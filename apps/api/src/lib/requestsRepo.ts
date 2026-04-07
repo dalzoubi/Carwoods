@@ -81,6 +81,15 @@ export async function findStatusIdByCode(client: Queryable, code: string): Promi
   return r.rows[0]?.id ?? null;
 }
 
+export async function findSystemDefaultStatusId(client: Queryable): Promise<string | null> {
+  const r = await client.query<{ id: string }>(
+    `SELECT TOP 1 id
+     FROM request_statuses
+     WHERE system_default = 1 AND active = 1`
+  );
+  return r.rows[0]?.id ?? null;
+}
+
 export async function listActiveServiceCategories(
   client: Queryable
 ): Promise<RequestLookupOption[]> {
