@@ -803,7 +803,9 @@
       "landlordFallbackName": "tu propietario",
       "loadFailed": "No se pudieron cargar las solicitudes.",
       "saveFailed": "No se pudieron guardar los cambios.",
-      "uploadIntentMissingPath": "La intención de carga no devolvió una ruta de almacenamiento."
+      "uploadIntentMissingPath": "La intención de carga no devolvió una ruta de almacenamiento.",
+      "unsupportedFileType": "Tipo de archivo no admitido. Permitidos: imágenes, vídeos, PDF, Word o texto plano.",
+      "fileTooLarge": "El archivo supera el límite de {{maxMb}} MB para este tipo."
     },
     "list": {
       "heading": "Lista de solicitudes",
@@ -817,6 +819,7 @@
       "propertyStreet": "Dirección completa de la propiedad",
       "leaseEndDate": "Fecha de finalización del contrato",
       "leaseEndDateNotSet": "No establecido",
+      "leaseEndDateMonthToMonth": "Mes a mes",
       "notAvailable": "No disponible",
       "categoryCode": "Categoría",
       "priorityCode": "Prioridad",

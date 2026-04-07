@@ -225,7 +225,7 @@ describe('usePortalRequests', () => {
     expect(result.current.attachmentError).toBe('portalRequests.errors.uploadIntentMissingPath');
   });
 
-  it('surfaces non-2xx upload intent errors with backend error code', async () => {
+  it('rejects unsupported file types with a client-side error before calling the API', async () => {
     global.fetch
       .mockResolvedValueOnce(
         jsonResponse({
@@ -247,8 +247,7 @@ describe('usePortalRequests', () => {
         })
       )
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
-      .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
-      .mockResolvedValueOnce(jsonResponse({ error: 'unsupported_mime_type' }, 400));
+      .mockResolvedValueOnce(jsonResponse({ attachments: [] }));
 
     const params = baseParams();
     const { result } = renderHook(() => usePortalRequests(params));
@@ -256,6 +255,8 @@ describe('usePortalRequests', () => {
     await waitFor(() => {
       expect(result.current.requestsStatus).toBe('ok');
     });
+
+    const fetchCallsBefore = global.fetch.mock.calls.length;
 
     const file = new File(['not-image'], 'archive.zip', { type: 'application/zip' });
     await act(async () => {
@@ -267,8 +268,9 @@ describe('usePortalRequests', () => {
     });
 
     expect(result.current.attachmentStatus).toBe('error');
-    expect(result.current.attachmentError).toContain('HTTP 400');
-    expect(result.current.attachmentError).toContain('unsupported_mime_type');
+    expect(result.current.attachmentError).toBe('portalRequests.errors.unsupportedFileType');
+    // No additional fetch calls should have been made (client-side rejection)
+    expect(global.fetch.mock.calls.length).toBe(fetchCallsBefore);
   });
 });
 

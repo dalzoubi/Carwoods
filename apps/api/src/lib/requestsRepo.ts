@@ -62,6 +62,7 @@ export type TenantRequestDefaults = {
   lease_id: string;
   property_address: string | null;
   lease_end_date: string | null;
+  month_to_month: boolean;
 };
 
 export type TenantLandlordContact = {
@@ -76,6 +77,15 @@ export async function findStatusIdByCode(client: Queryable, code: string): Promi
      FROM request_statuses
      WHERE UPPER(code) = UPPER($1) AND active = 1`,
     [code]
+  );
+  return r.rows[0]?.id ?? null;
+}
+
+export async function findSystemDefaultStatusId(client: Queryable): Promise<string | null> {
+  const r = await client.query<{ id: string }>(
+    `SELECT TOP 1 id
+     FROM request_statuses
+     WHERE system_default = 1 AND active = 1`
   );
   return r.rows[0]?.id ?? null;
 }
@@ -131,7 +141,8 @@ export async function findTenantRequestDefaults(
         l.property_id,
         lt.lease_id,
         CONCAT(p.street, ', ', p.city, ', ', p.state, ' ', p.zip) AS property_address,
-        CONVERT(NVARCHAR(10), l.end_date, 23) AS lease_end_date
+        CONVERT(NVARCHAR(10), l.end_date, 23) AS lease_end_date,
+        CAST(l.month_to_month AS BIT) AS month_to_month
      FROM lease_tenants lt
      JOIN leases l ON l.id = lt.lease_id
      LEFT JOIN properties p ON p.id = l.property_id

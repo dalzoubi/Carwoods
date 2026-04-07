@@ -803,7 +803,9 @@
       "landlordFallbackName": "المالك",
       "loadFailed": "تعذر تحميل بيانات الطلبات.",
       "saveFailed": "تعذر حفظ التغييرات.",
-      "uploadIntentMissingPath": "نية الرفع لم تُرجع مسار تخزين."
+      "uploadIntentMissingPath": "نية الرفع لم تُرجع مسار تخزين.",
+      "unsupportedFileType": "نوع الملف غير مدعوم. المسموح به: صور، فيديو، PDF، Word أو نص عادي.",
+      "fileTooLarge": "حجم الملف يتجاوز حد {{maxMb}} ميغابايت لهذا النوع."
     },
     "list": {
       "heading": "قائمة الطلبات",
@@ -817,6 +819,7 @@
       "propertyStreet": "العنوان الكامل للعقار",
       "leaseEndDate": "تاريخ انتهاء عقد الإيجار",
       "leaseEndDateNotSet": "غير محدد",
+      "leaseEndDateMonthToMonth": "شهراً بشهر",
       "notAvailable": "غير متوفر",
       "categoryCode": "الفئة",
       "priorityCode": "الأولوية",
