@@ -82,7 +82,7 @@ const signInCtaButtonSx = {
     borderRadius: 'var(--shape-border-radius)',
     backgroundColor: 'var(--cta-button-bg)',
     color: 'var(--cta-button-text)',
-    border: '2px solid rgba(255,255,255,0.85)',
+    border: '1px solid rgba(255,255,255,0.85)',
     boxShadow: 'none',
     transition: 'background-color 0.2s, color 0.2s, transform 0.2s',
     '&:hover': {
@@ -451,7 +451,7 @@ const ResponsiveNavbar = () => {
                             sx={{ marginInlineStart: 0.5, p: 0 }}
                         >
                             <Avatar
-                                sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.8rem', border: '2px solid rgba(255,255,255,0.85)' }}
+                                sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.8rem', border: '1px solid rgba(255,255,255,0.85)' }}
                             >
                                 {initials}
                             </Avatar>
