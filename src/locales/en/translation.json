@@ -1013,6 +1013,7 @@
       "profile": "Profile",
       "adminLandlords": "Landlords",
       "properties": "Properties",
+      "tenants": "Tenants",
       "status": "System Status",
       "collapse": "Collapse sidebar",
       "expand": "Expand sidebar",
@@ -1083,6 +1084,81 @@
     "orDivider": "or",
     "anyAccount": "Sign in with any account",
     "anyAccountAriaLabel": "Sign in — choose your account type"
+  },
+  "portalTenants": {
+    "title": "Carwoods - Tenant Onboarding",
+    "metaDescription": "Onboard and manage tenants for your rental properties.",
+    "heading": "Tenants",
+    "intro": "Onboard tenants, manage their access, and view lease history.",
+    "adminFilter": {
+      "heading": "Filter by landlord",
+      "allLandlords": "All landlords"
+    },
+    "list": {
+      "heading": "Tenant list",
+      "empty": "No tenants found. Use the Onboard Tenant button to get started."
+    },
+    "status": {
+      "active": "Active",
+      "disabled": "Disabled"
+    },
+    "lease": {
+      "heading": "Leases",
+      "empty": "No leases found for this tenant.",
+      "active": "Active",
+      "ended": "Ended"
+    },
+    "form": {
+      "email": "Tenant email",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phone": "Phone (optional)",
+      "selectProperty": "Select a property",
+      "startDate": "Lease start date",
+      "endDate": "Lease end date",
+      "monthToMonth": "Month-to-month (no end date)",
+      "notes": "Notes (optional)"
+    },
+    "onboardDialog": {
+      "title": "Onboard Tenant",
+      "tenantSection": "Tenant information",
+      "leaseSection": "Initial lease",
+      "save": "Onboard tenant"
+    },
+    "addLeaseDialog": {
+      "title": "Add Lease",
+      "save": "Add lease"
+    },
+    "actions": {
+      "onboardTenant": "Onboard Tenant",
+      "disable": "Disable access",
+      "enable": "Enable access",
+      "addLease": "Add lease",
+      "expand": "Show leases",
+      "collapse": "Hide leases",
+      "refresh": "Refresh tenant list",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "retry": "Retry"
+    },
+    "messages": {
+      "tenantOnboarded": "Tenant onboarded successfully.",
+      "tenantEnabled": "Tenant access enabled.",
+      "tenantDisabled": "Tenant access disabled.",
+      "leaseSaved": "Lease added successfully."
+    },
+    "errors": {
+      "apiUnavailable": "Set VITE_API_BASE_URL to enable tenant management.",
+      "accessDenied": "Only landlord or admin accounts can manage tenants.",
+      "loadFailed": "Unable to load tenants.",
+      "loadLeasesFailed": "Unable to load leases.",
+      "emailInvalid": "Enter a valid email address.",
+      "firstNameRequired": "First name is required.",
+      "lastNameRequired": "Last name is required.",
+      "propertyRequired": "Please select a property.",
+      "startDateRequired": "Lease start date is required.",
+      "endDateBeforeStart": "End date must be after start date."
+    }
   },
   "skipToMain": "Skip to main content",
   "languageNames": {

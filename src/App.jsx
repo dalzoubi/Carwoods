@@ -20,6 +20,7 @@ import PortalProfile from './components/PortalProfile';
 import PortalRequests from './components/PortalRequests';
 import PortalAdminLandlords from './components/PortalAdminLandlords';
 import PortalAdminProperties from './components/PortalAdminProperties';
+import PortalTenants from './components/PortalTenants';
 import PortalLayout from './components/PortalLayout';
 import PortalAuthGate from './components/PortalAuthGate';
 import PortalRouteGuard from './components/PortalRouteGuard';
@@ -115,6 +116,14 @@ function PortalRoutes() {
                 element={
                     <PortalRouteGuard allowedRoles={[Role.LANDLORD, Role.ADMIN]}>
                         <PortalAdminProperties />
+                    </PortalRouteGuard>
+                }
+            />
+            <Route
+                path="/portal/tenants"
+                element={
+                    <PortalRouteGuard allowedRoles={[Role.LANDLORD, Role.ADMIN]}>
+                        <PortalTenants />
                     </PortalRouteGuard>
                 }
             />
