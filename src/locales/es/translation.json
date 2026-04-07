@@ -780,7 +780,11 @@
     "exportSuccess": "Exportación CSV descargada.",
     "labels": {
       "requestId": "ID de solicitud",
-      "status": "Estado"
+      "status": "Estado",
+      "createdAt": "Creado",
+      "updatedAt": "Actualizado",
+      "category": "Categoría",
+      "priority": "Prioridad"
     },
     "actions": {
       "reload": "Recargar solicitudes",
@@ -792,8 +796,10 @@
       "sendMessage": "Enviar mensaje",
       "chooseFile": "Elegir archivo",
       "attachFile": "Adjuntar archivo",
+      "backToList": "Volver a la lista",
       "suggestReply": "Sugerir respuesta",
       "exportCsv": "Exportar CSV",
+      "exportingCsv": "Exportando…",
       "cancelRequest": "Cancelar solicitud",
       "saving": "Guardando…"
     },
@@ -814,6 +820,14 @@
     "list": {
       "heading": "Lista de solicitudes",
       "empty": "No hay solicitudes para esta cuenta.",
+      "selectPrompt": "Seleccione una solicitud para ver los detalles.",
+      "filters": {
+        "all": "Todas",
+        "open": "Abiertas",
+        "inProgress": "En progreso",
+        "cancelled": "Canceladas",
+        "resolved": "Resueltas"
+      },
       "untitled": "Solicitud sin título"
     },
     "create": {
@@ -836,7 +850,8 @@
     "management": {
       "heading": "Actualizaciones de gestión",
       "statusCode": "Código de estado",
-      "statusCodePlaceholder": "OPEN, IN_PROGRESS, CLOSED",
+      "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, OPEN, IN_PROGRESS, CANCELLED, RESOLVED, CLOSED",
+      "selectStatusCode": "Seleccionar estado",
       "vendorId": "ID de proveedor asignado",
       "internalNotes": "Notas internas",
       "saved": "Solicitud actualizada."
@@ -849,12 +864,16 @@
       "empty": "Aún no hay mensajes.",
       "bodyLabel": "Mensaje",
       "internalToggle": "Mensaje interno (solo propietario/administrador)",
-      "internalTag": "Interno"
+      "internalTag": "Interno",
+      "sent": "Mensaje enviado.",
+      "senderUnknown": "Remitente desconocido"
     },
     "attachments": {
       "heading": "Archivos adjuntos",
       "empty": "Aún no hay adjuntos.",
-      "saved": "Metadatos del adjunto guardados."
+      "saved": "Metadatos del adjunto guardados.",
+      "uploadProgress": "Progreso de carga: {{percent}}%",
+      "unavailable": "La descarga no está disponible en este momento."
     },
     "cancel": {
       "heading": "Cancelar solicitud",
@@ -874,6 +893,7 @@
       "empty": "No hay eventos de auditoría para esta solicitud.",
       "actor": "Actor",
       "when": "Cuándo",
+      "changedFields": "Campos cambiados",
       "before": "Antes",
       "after": "Después"
     }
@@ -952,6 +972,8 @@
     },
     "form": {
       "heading": "Detalles de la propiedad",
+      "addDialogTitle": "Agregar propiedad",
+      "editDialogTitle": "Editar propiedad",
       "landlord": "Propietario",
       "landlordSelect": "Seleccionar propietario",
       "landlordLoading": "Cargando propietarios…",
@@ -962,13 +984,14 @@
       "harListingUrl": "URL del listado HAR",
       "applyUrl": "URL de solicitud de alquiler",
       "detailLines": "Líneas de detalle (una por línea, ej. \"3 Habitaciones\")",
-      "showOnApplyPage": "Mostrar en página de solicitudes",
+      "showOnApplyPage": "Visible en la página de solicitudes",
       "photo": "Foto de la propiedad",
       "photoUpload": "Subir foto",
       "photoUrlLabel": "O ingresa URL de foto",
       "photoPreview": "Vista previa de foto",
       "showForm": "Agregar propiedad",
       "addProperty": "Agregar propiedad",
+      "createProperty": "Crear propiedad",
       "saveChanges": "Guardar cambios",
       "saving": "Guardando…",
       "cancel": "Cancelar",
@@ -978,13 +1001,33 @@
       "heading": "Tus propiedades",
       "empty": "Sin propiedades aún. Usa el formulario de arriba para agregar una.",
       "loading": "Cargando propiedades…",
+      "showDeleted": "Mostrar eliminadas",
+      "visibilityFilterLabel": "Filtro de visibilidad",
+      "visibilityFilterAll": "Todas",
+      "visibilityFilterVisible": "Visibles",
+      "visibilityFilterHidden": "No visibles",
+      "visibilityFilterDeleted": "Solo eliminadas",
       "editButton": "Editar",
       "deleteButton": "Eliminar",
+      "syncHarButton": "Sincronizar con HAR",
+      "restoreButton": "Restaurar",
       "deleteConfirmTitle": "¿Eliminar propiedad?",
       "deleteConfirmBody": "Esto eliminará \"{{address}}\" de tu lista. Esta acción no se puede deshacer.",
       "deleteConfirmAction": "Eliminar",
       "deleteCancel": "Cancelar",
-      "showOnApply": "Página de solicitudes",
+      "restoreConfirmTitle": "¿Restaurar propiedad?",
+      "restoreConfirmBody": "Esto restaurará \"{{address}}\" a tu lista activa de propiedades.",
+      "restoreConfirmAction": "Restaurar",
+      "restoreCancel": "Cancelar",
+      "visibleConfirmTitle": "¿Cambiar estado de visibilidad?",
+      "visibleConfirmBody": "¿Establecer \"{{address}}\" como \"{{value}}\" en la página de solicitudes?",
+      "visibleConfirmAction": "Confirmar",
+      "visibleCancel": "Cancelar",
+      "visibilityOnLabel": "Visible",
+      "visibilityOffLabel": "No visible",
+      "visible": "Visible",
+      "deleted": "Eliminada",
+      "showOnApply": "Visible",
       "landlord": "Propietario",
       "harId": "ID HAR",
       "noPhoto": "Sin foto"
@@ -992,7 +1035,10 @@
     "messages": {
       "added": "Propiedad agregada exitosamente.",
       "updated": "Propiedad actualizada exitosamente.",
-      "deleted": "Propiedad eliminada."
+      "deleted": "Propiedad eliminada.",
+      "restored": "Propiedad restaurada.",
+      "visibilityUpdated": "Visibilidad actualizada.",
+      "harSynced": "Listado de HAR actualizado."
     },
     "errors": {
       "signInRequired": "Inicia sesión antes de gestionar propiedades.",
@@ -1003,6 +1049,9 @@
       "loadFailed": "No se pudieron cargar las propiedades: {{error}}",
       "saveFailed": "No se pudo guardar la propiedad: {{error}}",
       "deleteFailed": "No se pudo eliminar la propiedad: {{error}}",
+      "restoreFailed": "No se pudo restaurar la propiedad: {{error}}",
+      "visibilityFailed": "No se pudo actualizar la visibilidad: {{error}}",
+      "syncHarFailed": "No se pudo actualizar el listado de HAR: {{error}}",
       "noApiConfigured": "La API no está configurada. Define VITE_API_BASE_URL en tu .env para habilitar la gestión de propiedades."
     }
   },

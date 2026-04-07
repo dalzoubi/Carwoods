@@ -17,8 +17,8 @@ const DEFAULT_TTL_MS = 30_000;
 /** @type {Map<string, { data: unknown, expiresAt: number }>} */
 const _cache = new Map();
 
-function cacheKey(baseUrl) {
-  return `landlord-properties:${baseUrl}`;
+function cacheKey(baseUrl, includeDeleted = false) {
+  return `landlord-properties:${baseUrl}:includeDeleted=${includeDeleted ? '1' : '0'}`;
 }
 
 function cacheGet(key) {
@@ -36,7 +36,8 @@ function cacheSet(key, data, ttlMs = DEFAULT_TTL_MS) {
 }
 
 export function invalidatePropertiesCache(baseUrl) {
-  _cache.delete(cacheKey(baseUrl));
+  _cache.delete(cacheKey(baseUrl, false));
+  _cache.delete(cacheKey(baseUrl, true));
 }
 
 /** Exposed for tests only. */
@@ -99,11 +100,15 @@ function jsonAuthHeaders(accessToken) {
  * @returns {Promise<object[]>}  Array of PropertyRowFull records
  */
 export async function listPropertiesApi(baseUrl, accessToken, opts = {}) {
-  const key = cacheKey(baseUrl);
+  const includeDeleted = Boolean(opts.includeDeleted);
+  const key = cacheKey(baseUrl, includeDeleted);
   const cached = cacheGet(key);
   if (cached) return cached;
 
-  const res = await fetch(buildUrl(baseUrl, '/api/landlord/properties'), {
+  const path = includeDeleted
+    ? '/api/landlord/properties?include_deleted=true'
+    : '/api/landlord/properties';
+  const res = await fetch(buildUrl(baseUrl, path), {
     method: 'GET',
     headers: authHeaders(accessToken),
     credentials: 'omit',
@@ -169,13 +174,26 @@ export async function createPropertyApi(baseUrl, accessToken, data) {
  */
 export async function updatePropertyApi(baseUrl, accessToken, id, data) {
   const body = formDataToApiBody(data);
+  return patchPropertyApi(baseUrl, accessToken, id, body);
+}
+
+/**
+ * Partially update an existing property. Invalidates the list cache on success.
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} id
+ * @param {object} patch
+ * @returns {Promise<object>}
+ */
+export async function patchPropertyApi(baseUrl, accessToken, id, patch) {
   const res = await fetch(
     buildUrl(baseUrl, `/api/landlord/properties/${encodeURIComponent(id)}`),
     {
       method: 'PATCH',
       headers: jsonAuthHeaders(accessToken),
       credentials: 'omit',
-      body: JSON.stringify(body),
+      body: JSON.stringify(patch),
     }
   );
   if (!res.ok) {
@@ -185,6 +203,31 @@ export async function updatePropertyApi(baseUrl, accessToken, id, data) {
   const payload = await res.json();
   invalidatePropertiesCache(baseUrl);
   return payload.property;
+}
+
+/**
+ * Restore a previously soft-deleted property.
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} id
+ * @returns {Promise<void>}
+ */
+export async function restorePropertyApi(baseUrl, accessToken, id) {
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/properties/${encodeURIComponent(id)}`),
+    {
+      method: 'PATCH',
+      headers: jsonAuthHeaders(accessToken),
+      credentials: 'omit',
+      body: JSON.stringify({ restore: true }),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  invalidatePropertiesCache(baseUrl);
 }
 
 // ---------------------------------------------------------------------------
@@ -335,5 +378,6 @@ export function apiPropertyToDisplay(row) {
     landlordUserId: typeof row.landlord_user_id === 'string' ? row.landlord_user_id : '',
     createdAt: row.created_at ?? '',
     updatedAt: row.updated_at ?? '',
+    deletedAt: row.deleted_at ?? null,
   };
 }

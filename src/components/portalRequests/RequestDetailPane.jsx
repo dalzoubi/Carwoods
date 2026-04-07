@@ -10,6 +10,11 @@ import {
   DialogContentText,
   DialogTitle,
   FormControlLabel,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  LinearProgress,
   Tab,
   Tabs,
   Stack,
@@ -18,14 +23,37 @@ import {
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
+import { RequestStatus } from '../../domain/constants.js';
 
-const CANCELLABLE_STATUS_CODES = new Set(['NOT_STARTED', 'ACKNOWLEDGED']);
+const CANCELLABLE_STATUS_CODES = new Set([RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED]);
+
+function formatDateTime(value) {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString();
+}
+
+function formatAuditValue(value) {
+  if (value === null || value === undefined) return '-';
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
 
 const RequestDetailPane = ({
   requestDetail,
+  detailStatus,
+  detailError,
   isManagement,
   isAdmin,
   managementForm,
+  managementStatusOptions,
   onManagementField,
   onUpdateRequest,
   managementUpdateStatus,
@@ -46,6 +74,7 @@ const RequestDetailPane = ({
   attachmentFile,
   attachmentStatus,
   attachmentError,
+  attachmentUploadProgress,
   auditEvents,
   auditStatus,
   auditError,
@@ -56,6 +85,7 @@ const RequestDetailPane = ({
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('details');
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [attachmentInputKey, setAttachmentInputKey] = useState(0);
   const managementStatusMessage = managementUpdateStatus === 'error'
     ? { severity: 'error', text: managementUpdateError || t('portalRequests.errors.saveFailed') }
     : managementUpdateStatus === 'success'
@@ -66,6 +96,8 @@ const RequestDetailPane = ({
     : null;
   const messageStatusMessage = messageStatus === 'error'
     ? { severity: 'error', text: messageError || t('portalRequests.errors.saveFailed') }
+    : messageStatus === 'success'
+      ? { severity: 'success', text: t('portalRequests.messages.sent') }
     : null;
   const attachmentStatusMessage = attachmentStatus === 'error'
     ? { severity: 'error', text: attachmentError || t('portalRequests.errors.saveFailed') }
@@ -86,6 +118,34 @@ const RequestDetailPane = ({
         ...event,
         beforeParsed: parseJsonSafe(event.before_json),
         afterParsed: parseJsonSafe(event.after_json),
+        beforeObject:
+          parseJsonSafe(event.before_json)
+          && !Array.isArray(parseJsonSafe(event.before_json))
+          && typeof parseJsonSafe(event.before_json) === 'object'
+            ? parseJsonSafe(event.before_json)
+            : null,
+        afterObject:
+          parseJsonSafe(event.after_json)
+          && !Array.isArray(parseJsonSafe(event.after_json))
+          && typeof parseJsonSafe(event.after_json) === 'object'
+            ? parseJsonSafe(event.after_json)
+            : null,
+        changedFields: (() => {
+          const beforeObj = parseJsonSafe(event.before_json);
+          const afterObj = parseJsonSafe(event.after_json);
+          if (
+            !beforeObj
+            || !afterObj
+            || Array.isArray(beforeObj)
+            || Array.isArray(afterObj)
+            || typeof beforeObj !== 'object'
+            || typeof afterObj !== 'object'
+          ) {
+            return [];
+          }
+          const keys = new Set([...Object.keys(beforeObj), ...Object.keys(afterObj)]);
+          return [...keys].filter((key) => JSON.stringify(beforeObj[key]) !== JSON.stringify(afterObj[key]));
+        })(),
       };
     }),
     [auditEvents]
@@ -95,10 +155,33 @@ const RequestDetailPane = ({
     if (!requestDetail) return;
     setActiveTab('details');
   }, [requestDetail]);
-  if (!requestDetail) return null;
+  useEffect(() => {
+    if (attachmentStatus !== 'success') return;
+    setAttachmentInputKey((value) => value + 1);
+  }, [attachmentStatus]);
 
   return (
     <Stack spacing={2} sx={{ flex: 1 }}>
+      <StatusAlertSlot
+        message={
+          cancelStatus === 'success'
+            ? { severity: 'success', text: t('portalRequests.cancel.cancelled') }
+            : cancelStatus === 'error'
+              ? { severity: 'error', text: cancelError || t('portalRequests.errors.saveFailed') }
+              : null
+        }
+      />
+      {detailStatus === 'loading' && (
+        <Alert severity="info">{t('portalRequests.loading')}</Alert>
+      )}
+      {detailStatus === 'error' && (
+        <Alert severity="error">{detailError || t('portalRequests.errors.loadFailed')}</Alert>
+      )}
+      {!requestDetail && detailStatus !== 'loading' && (
+        <Typography color="text.secondary">{t('portalRequests.list.selectPrompt')}</Typography>
+      )}
+      {requestDetail && (
+        <>
       {isAdmin && (
         <Tabs
           value={activeTab}
@@ -132,11 +215,34 @@ const RequestDetailPane = ({
                     {event.action} - {event.entity_type}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {t('portalRequests.audit.actor')}: {event.actor_user_id}
+                    {t('portalRequests.audit.actor')}: {event.actor_display_name || event.actor_user_id}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {t('portalRequests.audit.when')}: {event.created_at}
+                    {t('portalRequests.audit.when')}: {formatDateTime(event.created_at)}
                   </Typography>
+                  {event.changedFields.length > 0 && (
+                    <Stack spacing={0.5}>
+                      <Typography variant="caption" color="text.secondary">
+                        {t('portalRequests.audit.changedFields')}: {event.changedFields.join(', ')}
+                      </Typography>
+                      {event.changedFields.map((field) => (
+                        <Box
+                          key={field}
+                          sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 0.75, p: 0.75 }}
+                        >
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                            {field}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                            {t('portalRequests.audit.before')}: {formatAuditValue(event.beforeObject?.[field])}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                            {t('portalRequests.audit.after')}: {formatAuditValue(event.afterObject?.[field])}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Stack>
+                  )}
                   <Box>
                     <Typography variant="caption" sx={{ fontWeight: 600 }}>
                       {t('portalRequests.audit.before')}
@@ -170,6 +276,18 @@ const RequestDetailPane = ({
           <Typography variant="body2" color="text.secondary">
             {t('portalRequests.labels.status')}: {requestDetail.status_name || requestDetail.status_code || '-'}
           </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {t('portalRequests.labels.createdAt')}: {formatDateTime(requestDetail.created_at)}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {t('portalRequests.labels.updatedAt')}: {formatDateTime(requestDetail.updated_at)}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {t('portalRequests.labels.category')}: {requestDetail.category_name || requestDetail.category_code || '-'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {t('portalRequests.labels.priority')}: {requestDetail.priority_name || requestDetail.priority_code || '-'}
+          </Typography>
         </Stack>
       </Box>
 
@@ -182,12 +300,6 @@ const RequestDetailPane = ({
             <Typography variant="body2" color="text.secondary">
               {t('portalRequests.cancel.description')}
             </Typography>
-            {cancelStatus === 'error' && (
-              <Alert severity="error">{cancelError || t('portalRequests.errors.saveFailed')}</Alert>
-            )}
-            {cancelStatus === 'success' && (
-              <Alert severity="success">{t('portalRequests.cancel.cancelled')}</Alert>
-            )}
             <Stack direction="row">
               <Button
                 type="button"
@@ -238,13 +350,25 @@ const RequestDetailPane = ({
             <Typography variant="h3" sx={{ fontSize: '1.1rem' }}>
               {t('portalRequests.management.heading')}
             </Typography>
-            <TextField
-              label={t('portalRequests.management.statusCode')}
-              value={managementForm.status_code}
-              onChange={onManagementField('status_code')}
-              placeholder={t('portalRequests.management.statusCodePlaceholder')}
-              disabled={managementUpdateStatus === 'saving'}
-            />
+            <FormControl>
+              <InputLabel id="management-status-code-label">{t('portalRequests.management.statusCode')}</InputLabel>
+              <Select
+                labelId="management-status-code-label"
+                label={t('portalRequests.management.statusCode')}
+                value={managementForm.status_code}
+                onChange={onManagementField('status_code')}
+                disabled={managementUpdateStatus === 'saving'}
+              >
+                <MenuItem value="">
+                  {t('portalRequests.management.selectStatusCode')}
+                </MenuItem>
+                {(managementStatusOptions || []).map((statusCode) => (
+                  <MenuItem key={statusCode} value={statusCode}>
+                    {statusCode}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <TextField
               label={t('portalRequests.management.vendorId')}
               value={managementForm.assigned_vendor_id}
@@ -309,8 +433,11 @@ const RequestDetailPane = ({
               {threadMessages.map((msg) => (
                 <Box key={msg.id} sx={{ borderBottom: '1px solid', borderColor: 'divider', pb: 1 }}>
                   <Typography sx={{ fontWeight: 600 }}>
-                    {msg.sender_display_name || msg.sender_user_id}
+                    {msg.sender_display_name || msg.sender_email || t('portalRequests.messages.senderUnknown')}
                     {msg.is_internal ? ` (${t('portalRequests.messages.internalTag')})` : ''}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {formatDateTime(msg.created_at)}
                   </Typography>
                   <Typography color="text.secondary">{msg.body}</Typography>
                 </Box>
@@ -368,15 +495,36 @@ const RequestDetailPane = ({
                 <Typography color="text.secondary">{t('portalRequests.attachments.empty')}</Typography>
               )}
               {attachments.map((att) => (
-                <Typography key={att.id} variant="body2">
-                  {att.original_filename} ({att.media_type})
-                </Typography>
+                <Box key={att.id}>
+                  {att.file_url ? (
+                    <Button
+                      component="a"
+                      href={att.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="small"
+                      sx={{ textTransform: 'none', p: 0, minWidth: 0 }}
+                    >
+                      {att.original_filename}
+                    </Button>
+                  ) : (
+                    <Box>
+                      <Typography variant="body2">{att.original_filename}</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {t('portalRequests.attachments.unavailable')}
+                      </Typography>
+                    </Box>
+                  )}
+                  <Typography variant="caption" color="text.secondary">
+                    {att.media_type}
+                  </Typography>
+                </Box>
               ))}
             </Stack>
           </Box>
           <Button variant="outlined" component="label" type="button">
             {t('portalRequests.actions.chooseFile')}
-            <input type="file" hidden onChange={onAttachmentChange} />
+            <input key={attachmentInputKey} type="file" hidden onChange={onAttachmentChange} />
           </Button>
           {attachmentFile && (
             <Typography color="text.secondary">
@@ -384,6 +532,19 @@ const RequestDetailPane = ({
             </Typography>
           )}
           <StatusAlertSlot message={attachmentStatusMessage} />
+          {attachmentStatus === 'saving' && (
+            <Stack spacing={0.5}>
+              <LinearProgress
+                variant={attachmentUploadProgress > 0 ? 'determinate' : 'indeterminate'}
+                value={attachmentUploadProgress > 0 ? attachmentUploadProgress : undefined}
+              />
+              {attachmentUploadProgress > 0 && (
+                <Typography variant="caption" color="text.secondary">
+                  {t('portalRequests.attachments.uploadProgress', { percent: attachmentUploadProgress })}
+                </Typography>
+              )}
+            </Stack>
+          )}
           <Stack direction="row" justifyContent="flex-end">
             <Button type="submit" variant="contained" disabled={!attachmentFile || attachmentStatus === 'saving'}>
               {attachmentStatus === 'saving'
@@ -394,6 +555,8 @@ const RequestDetailPane = ({
         </Stack>
       </Box>
         </>
+      )}
+      </>
       )}
     </Stack>
   );

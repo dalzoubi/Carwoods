@@ -13,6 +13,12 @@ import { forbidden, notFound, validationError } from '../../domain/errors.js';
 import { validateRequestId } from '../../domain/requestValidation.js';
 import { Role, hasLandlordAccess } from '../../domain/constants.js';
 import type { Queryable } from '../types.js';
+import {
+  BlobSASPermissions,
+  SASProtocol,
+  StorageSharedKeyCredential,
+  generateBlobSASQueryParameters,
+} from '@azure/storage-blob';
 
 export type ListRequestAttachmentsInput = {
   requestId: string | undefined;
@@ -21,8 +27,36 @@ export type ListRequestAttachmentsInput = {
 };
 
 export type ListRequestAttachmentsOutput = {
-  attachments: RequestAttachmentRow[];
+  attachments: Array<RequestAttachmentRow & { file_url: string | null }>;
 };
+
+function buildAttachmentReadUrl(storagePath: string): string | null {
+  const storageAccountName = process.env.AZURE_STORAGE_ACCOUNT_NAME?.trim();
+  const storageContainerName = process.env.AZURE_STORAGE_CONTAINER_NAME?.trim();
+  const storageAccountKey = process.env.AZURE_STORAGE_ACCOUNT_KEY?.trim();
+  if (!storageAccountName || !storageContainerName || !storageAccountKey) return null;
+
+  const now = new Date();
+  const expiresOn = new Date(now.getTime() + 15 * 60 * 1000);
+  const sharedKeyCredential = new StorageSharedKeyCredential(storageAccountName, storageAccountKey);
+  const sasToken = generateBlobSASQueryParameters(
+    {
+      containerName: storageContainerName,
+      blobName: storagePath,
+      permissions: BlobSASPermissions.parse('r'),
+      startsOn: now,
+      expiresOn,
+      protocol: SASProtocol.Https,
+    },
+    sharedKeyCredential
+  ).toString();
+  return `https://${storageAccountName}.blob.core.windows.net/${encodeURIComponent(
+    storageContainerName
+  )}/${storagePath
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/')}?${sasToken}`;
+}
 
 export async function listRequestAttachments(
   db: Queryable,
@@ -44,6 +78,9 @@ export async function listRequestAttachments(
     if (!allowed) throw notFound();
   }
 
-  const attachments = await listAttachments(db, requestId);
+  const attachments = (await listAttachments(db, requestId)).map((attachment) => ({
+    ...attachment,
+    file_url: buildAttachmentReadUrl(attachment.storage_path),
+  }));
   return { attachments };
 }

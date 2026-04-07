@@ -780,7 +780,11 @@
     "exportSuccess": "CSV export downloaded.",
     "labels": {
       "requestId": "Request ID",
-      "status": "Status"
+      "status": "Status",
+      "createdAt": "Created",
+      "updatedAt": "Updated",
+      "category": "Category",
+      "priority": "Priority"
     },
     "actions": {
       "reload": "Reload requests",
@@ -792,8 +796,10 @@
       "sendMessage": "Send message",
       "chooseFile": "Choose file",
       "attachFile": "Attach file",
+      "backToList": "Back to list",
       "suggestReply": "Suggest reply",
       "exportCsv": "Export CSV",
+      "exportingCsv": "Exporting…",
       "saving": "Saving…"
     },
     "errors": {
@@ -813,6 +819,14 @@
     "list": {
       "heading": "Request list",
       "empty": "No requests found for this account.",
+      "selectPrompt": "Select a request to view details.",
+      "filters": {
+        "all": "All",
+        "open": "Open",
+        "inProgress": "In Progress",
+        "cancelled": "Cancelled",
+        "resolved": "Resolved"
+      },
       "untitled": "Untitled request"
     },
     "create": {
@@ -835,7 +849,8 @@
     "management": {
       "heading": "Management updates",
       "statusCode": "Status code",
-      "statusCodePlaceholder": "OPEN, IN_PROGRESS, CLOSED",
+      "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, OPEN, IN_PROGRESS, CANCELLED, RESOLVED, CLOSED",
+      "selectStatusCode": "Select status",
       "vendorId": "Assigned vendor ID",
       "internalNotes": "Internal notes",
       "saved": "Request updated."
@@ -848,12 +863,16 @@
       "empty": "No messages yet.",
       "bodyLabel": "Message",
       "internalToggle": "Internal message (landlord/admin only)",
-      "internalTag": "Internal"
+      "internalTag": "Internal",
+      "sent": "Message sent.",
+      "senderUnknown": "Unknown sender"
     },
     "attachments": {
       "heading": "Attachments",
       "empty": "No attachments yet.",
-      "saved": "Attachment metadata saved."
+      "saved": "Attachment metadata saved.",
+      "uploadProgress": "Upload progress: {{percent}}%",
+      "unavailable": "Download currently unavailable."
     },
     "cancel": {
       "heading": "Cancel request",
@@ -873,6 +892,7 @@
       "empty": "No audit events for this request.",
       "actor": "Actor",
       "when": "When",
+      "changedFields": "Changed fields",
       "before": "Before",
       "after": "After"
     }
@@ -951,6 +971,8 @@
     },
     "form": {
       "heading": "Property details",
+      "addDialogTitle": "Add property",
+      "editDialogTitle": "Edit property",
       "landlord": "Landlord",
       "landlordSelect": "Select landlord",
       "landlordLoading": "Loading landlords…",
@@ -961,13 +983,14 @@
       "harListingUrl": "HAR listing URL",
       "applyUrl": "Rental Application URL",
       "detailLines": "Detail lines (one per line, e.g. \"3 Bedroom(s)\")",
-      "showOnApplyPage": "Show on Apply page",
+      "showOnApplyPage": "Visible on Apply page",
       "photo": "Property photo",
       "photoUpload": "Upload photo",
       "photoUrlLabel": "Or enter photo URL",
       "photoPreview": "Photo preview",
       "showForm": "Add property",
       "addProperty": "Add property",
+      "createProperty": "Create property",
       "saveChanges": "Save changes",
       "saving": "Saving…",
       "cancel": "Cancel",
@@ -977,13 +1000,33 @@
       "heading": "Your properties",
       "empty": "No properties yet. Use the form above to add one.",
       "loading": "Loading properties…",
+      "showDeleted": "Show deleted",
+      "visibilityFilterLabel": "Visibility filter",
+      "visibilityFilterAll": "All",
+      "visibilityFilterVisible": "Visible",
+      "visibilityFilterHidden": "Not visible",
+      "visibilityFilterDeleted": "Deleted only",
       "editButton": "Edit",
       "deleteButton": "Delete",
+      "syncHarButton": "Sync with HAR",
+      "restoreButton": "Restore",
       "deleteConfirmTitle": "Delete property?",
       "deleteConfirmBody": "This will remove \"{{address}}\" from your property list. This cannot be undone.",
       "deleteConfirmAction": "Delete",
       "deleteCancel": "Cancel",
-      "showOnApply": "Apply page",
+      "restoreConfirmTitle": "Restore property?",
+      "restoreConfirmBody": "This will restore \"{{address}}\" back to your active property list.",
+      "restoreConfirmAction": "Restore",
+      "restoreCancel": "Cancel",
+      "visibleConfirmTitle": "Change visible status?",
+      "visibleConfirmBody": "Set \"{{address}}\" to \"{{value}}\" on the Apply page?",
+      "visibleConfirmAction": "Confirm",
+      "visibleCancel": "Cancel",
+      "visibilityOnLabel": "Visible",
+      "visibilityOffLabel": "Not visible",
+      "visible": "Visible",
+      "deleted": "Deleted",
+      "showOnApply": "Visible",
       "landlord": "Landlord",
       "harId": "HAR ID",
       "noPhoto": "No photo"
@@ -991,7 +1034,10 @@
     "messages": {
       "added": "Property added successfully.",
       "updated": "Property updated successfully.",
-      "deleted": "Property deleted."
+      "deleted": "Property deleted.",
+      "restored": "Property restored.",
+      "visibilityUpdated": "Visibility updated.",
+      "harSynced": "HAR listing refreshed."
     },
     "errors": {
       "signInRequired": "Sign in before managing properties.",
@@ -1002,6 +1048,9 @@
       "loadFailed": "Could not load properties: {{error}}",
       "saveFailed": "Could not save property: {{error}}",
       "deleteFailed": "Could not delete property: {{error}}",
+      "restoreFailed": "Could not restore property: {{error}}",
+      "visibilityFailed": "Could not update visibility: {{error}}",
+      "syncHarFailed": "Could not refresh HAR listing: {{error}}",
       "noApiConfigured": "API is not configured. Set VITE_API_BASE_URL in your .env to enable property management."
     }
   },

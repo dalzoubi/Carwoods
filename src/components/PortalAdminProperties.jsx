@@ -9,7 +9,6 @@ import {
   CardMedia,
   Chip,
   CircularProgress,
-  Collapse,
   Dialog,
   DialogActions,
   DialogContent,
@@ -32,6 +31,7 @@ import Search from '@mui/icons-material/Search';
 import Edit from '@mui/icons-material/Edit';
 import Delete from '@mui/icons-material/Delete';
 import Add from '@mui/icons-material/Add';
+import Sync from '@mui/icons-material/Sync';
 import Close from '@mui/icons-material/Close';
 import Home from '@mui/icons-material/Home';
 import { useTranslation } from 'react-i18next';
@@ -42,7 +42,9 @@ import {
   listPropertiesApi,
   createPropertyApi,
   updatePropertyApi,
+  patchPropertyApi,
   deletePropertyApi,
+  restorePropertyApi,
   apiPropertyToDisplay,
 } from '../lib/propertiesApiClient';
 import { listingFromHarPreviewPayload, parseHarInput } from '../portalHarPreviewParse';
@@ -105,8 +107,19 @@ function validate(form, t, opts = {}) {
   return errors;
 }
 
-const PropertyCard = ({ property, onEdit, onDelete, t }) => {
+const PropertyCard = ({
+  property,
+  isAdmin,
+  syncingHar,
+  onEdit,
+  onDelete,
+  onRestore,
+  onToggleVisible,
+  onSyncHar,
+  t,
+}) => {
   const hasPhoto = Boolean(property.photoUrl);
+  const isDeleted = Boolean(property.deletedAt);
   return (
     <Card variant="outlined" sx={{ display: 'flex', flexDirection: 'column', height: '100%', borderRadius: 2 }}>
       {hasPhoto ? (
@@ -147,41 +160,86 @@ const PropertyCard = ({ property, onEdit, onDelete, t }) => {
               {t('portalAdminProperties.grid.harId')}: {property.harId}
             </Typography>
           )}
-          {property.landlordName && (
+          {isAdmin && property.landlordName && (
             <Typography variant="caption" color="text.secondary">
               {t('portalAdminProperties.grid.landlord')}: {property.landlordName}
             </Typography>
           )}
         </Stack>
-        <Chip
-          label={t('portalAdminProperties.grid.showOnApply')}
-          size="small"
-          color={property.showOnApplyPage ? 'success' : 'default'}
-          variant={property.showOnApplyPage ? 'filled' : 'outlined'}
-          sx={{ mb: 1 }}
-        />
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1, minHeight: 32 }}>
+          <FormControlLabel
+            control={(
+              <Switch
+                size="small"
+                checked={Boolean(property.showOnApplyPage)}
+                disabled={isDeleted}
+                onChange={() => onToggleVisible(property)}
+              />
+            )}
+            label={t('portalAdminProperties.grid.visible')}
+            sx={{ m: 0 }}
+          />
+          {isDeleted ? (
+            <Chip label={t('portalAdminProperties.grid.deleted')} size="small" color="warning" variant="outlined" />
+          ) : null}
+        </Stack>
       </CardContent>
       <Box sx={{ px: 2, pb: 2, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+        {isDeleted ? (
+          <Tooltip title={t('portalAdminProperties.grid.restoreButton')}>
+            <span>
+              <IconButton
+                type="button"
+                size="small"
+                color="primary"
+                aria-label={t('portalAdminProperties.grid.restoreButton')}
+                onClick={() => onRestore(property)}
+              >
+                <Add fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        ) : null}
+        <Tooltip title={t('portalAdminProperties.grid.syncHarButton')}>
+          <span>
+            <IconButton
+              type="button"
+              size="small"
+              color="primary"
+              disabled={isDeleted || !property.harId || syncingHar}
+              aria-label={t('portalAdminProperties.grid.syncHarButton')}
+              onClick={() => onSyncHar(property)}
+            >
+              {syncingHar ? <CircularProgress size={16} /> : <Sync fontSize="small" />}
+            </IconButton>
+          </span>
+        </Tooltip>
         <Tooltip title={t('portalAdminProperties.grid.editButton')}>
-          <IconButton
-            type="button"
-            size="small"
-            aria-label={t('portalAdminProperties.grid.editButton')}
-            onClick={() => onEdit(property)}
-          >
-            <Edit fontSize="small" />
-          </IconButton>
+          <span>
+            <IconButton
+              type="button"
+              size="small"
+              disabled={isDeleted}
+              aria-label={t('portalAdminProperties.grid.editButton')}
+              onClick={() => onEdit(property)}
+            >
+              <Edit fontSize="small" />
+            </IconButton>
+          </span>
         </Tooltip>
         <Tooltip title={t('portalAdminProperties.grid.deleteButton')}>
-          <IconButton
-            type="button"
-            size="small"
-            color="error"
-            aria-label={t('portalAdminProperties.grid.deleteButton')}
-            onClick={() => onDelete(property)}
-          >
-            <Delete fontSize="small" />
-          </IconButton>
+          <span>
+            <IconButton
+              type="button"
+              size="small"
+              color="error"
+              disabled={isDeleted}
+              aria-label={t('portalAdminProperties.grid.deleteButton')}
+              onClick={() => onDelete(property)}
+            >
+              <Delete fontSize="small" />
+            </IconButton>
+          </span>
         </Tooltip>
       </Box>
     </Card>
@@ -199,6 +257,8 @@ const PortalAdminProperties = () => {
   const [properties, setProperties] = useState([]);
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState('');
+  const [showDeleted, setShowDeleted] = useState(false);
+  const [visibilityFilter, setVisibilityFilter] = useState('all');
 
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -217,6 +277,11 @@ const PortalAdminProperties = () => {
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteStatus, setDeleteStatus] = useState('idle'); // idle | deleting | error
+  const [restoreTarget, setRestoreTarget] = useState(null);
+  const [restoreStatus, setRestoreStatus] = useState('idle'); // idle | restoring | error
+  const [visibleToggleTarget, setVisibleToggleTarget] = useState(null);
+  const [visibleToggleStatus, setVisibleToggleStatus] = useState('idle'); // idle | saving | error
+  const [syncHarTargetId, setSyncHarTargetId] = useState('');
   const fileInputRef = useRef(null);
 
   const getAccessTokenRef = useRef(getAccessToken);
@@ -232,7 +297,7 @@ const PortalAdminProperties = () => {
     try {
       const token = await getAccessTokenRef.current();
       if (signal?.aborted) return;
-      const rows = await listPropertiesApi(baseUrl, token);
+      const rows = await listPropertiesApi(baseUrl, token, { includeDeleted: showDeleted });
       if (signal?.aborted) return;
       setProperties(rows.map(apiPropertyToDisplay));
     } catch (err) {
@@ -242,7 +307,7 @@ const PortalAdminProperties = () => {
     } finally {
       if (!signal?.aborted) setListLoading(false);
     }
-  }, [isAuthenticated, baseUrl]);
+  }, [isAuthenticated, baseUrl, showDeleted]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -308,12 +373,21 @@ const PortalAdminProperties = () => {
     setFieldErrors({});
     setSubmitStatus('idle');
     setSubmitError('');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDeleteClick = (property) => {
     setDeleteTarget(property);
     setDeleteStatus('idle');
+  };
+
+  const handleRestoreClick = (property) => {
+    setRestoreTarget(property);
+    setRestoreStatus('idle');
+  };
+
+  const handleVisibilityToggleClick = (property) => {
+    setVisibleToggleTarget(property);
+    setVisibleToggleStatus('idle');
   };
 
   const handleDeleteConfirm = async () => {
@@ -330,6 +404,58 @@ const PortalAdminProperties = () => {
       const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
       setDeleteStatus('error');
       showSnack(t('portalAdminProperties.errors.deleteFailed', { error: msg }), 'error');
+    }
+  };
+
+  const handleRestoreConfirm = async () => {
+    if (!restoreTarget) return;
+    setRestoreStatus('restoring');
+    try {
+      const token = await getAccessToken();
+      await restorePropertyApi(baseUrl, token, restoreTarget.id);
+      setRestoreTarget(null);
+      setRestoreStatus('idle');
+      showSnack(t('portalAdminProperties.messages.restored'));
+      void refresh();
+    } catch (err) {
+      const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
+      setRestoreStatus('error');
+      showSnack(t('portalAdminProperties.errors.restoreFailed', { error: msg }), 'error');
+    }
+  };
+
+  const handleVisibilityToggleConfirm = async () => {
+    if (!visibleToggleTarget) return;
+    setVisibleToggleStatus('saving');
+    try {
+      const token = await getAccessToken();
+      await patchPropertyApi(baseUrl, token, visibleToggleTarget.id, {
+        apply_visible: !Boolean(visibleToggleTarget.showOnApplyPage),
+      });
+      setVisibleToggleTarget(null);
+      setVisibleToggleStatus('idle');
+      showSnack(t('portalAdminProperties.messages.visibilityUpdated'));
+      void refresh();
+    } catch (err) {
+      const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
+      setVisibleToggleStatus('error');
+      showSnack(t('portalAdminProperties.errors.visibilityFailed', { error: msg }), 'error');
+    }
+  };
+
+  const handleSyncHar = async (property) => {
+    if (!property?.id || !property?.harId) return;
+    setSyncHarTargetId(property.id);
+    try {
+      const token = await getAccessToken();
+      await patchPropertyApi(baseUrl, token, property.id, { refresh_har: true });
+      showSnack(t('portalAdminProperties.messages.harSynced'));
+      void refresh();
+    } catch (err) {
+      const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
+      showSnack(t('portalAdminProperties.errors.syncHarFailed', { error: msg }), 'error');
+    } finally {
+      setSyncHarTargetId('');
     }
   };
 
@@ -443,6 +569,13 @@ const PortalAdminProperties = () => {
     }
   };
 
+  const filteredProperties = properties.filter((property) => {
+    if (visibilityFilter === 'visible' && !property.showOnApplyPage) return false;
+    if (visibilityFilter === 'hidden' && property.showOnApplyPage) return false;
+    if (visibilityFilter === 'deleted' && !property.deletedAt) return false;
+    return true;
+  });
+
   return (
     <Box sx={{ py: 4 }}>
       <Helmet>
@@ -468,81 +601,167 @@ const PortalAdminProperties = () => {
         )}
         {listError && <Alert severity="error">{listError}</Alert>}
 
-        {/* Add / Edit property toggle */}
-        {!formOpen && (
-          <Box>
-            <Button
-              type="button"
-              variant="contained"
-              startIcon={<Add />}
-              disabled={!canManage}
-              onClick={() => setFormOpen(true)}
-            >
-              {t('portalAdminProperties.form.showForm')}
-            </Button>
-          </Box>
-        )}
+        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+          <Button
+            type="button"
+            variant="contained"
+            startIcon={<Add />}
+            disabled={!canManage}
+            onClick={() => {
+              setEditingId(null);
+              setForm({ ...EMPTY_FORM });
+              setFieldErrors({});
+              setHarSearchId('');
+              setHarStatus('idle');
+              setHarMessage('');
+              setSubmitStatus('idle');
+              setSubmitError('');
+              setFormOpen(true);
+            }}
+          >
+            {t('portalAdminProperties.form.showForm')}
+          </Button>
+          <FormControlLabel
+            control={(
+              <Switch
+                checked={showDeleted}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setShowDeleted(checked);
+                  setVisibilityFilter((prev) => {
+                    if (checked) return 'deleted';
+                    return prev === 'deleted' ? 'all' : prev;
+                  });
+                }}
+              />
+            )}
+            label={t('portalAdminProperties.grid.showDeleted')}
+          />
+          <TextField
+            select
+            label={t('portalAdminProperties.grid.visibilityFilterLabel')}
+            value={visibilityFilter}
+            onChange={(e) => setVisibilityFilter(e.target.value)}
+            size="small"
+            sx={{ minWidth: 220 }}
+          >
+            <MenuItem value="all">{t('portalAdminProperties.grid.visibilityFilterAll')}</MenuItem>
+            <MenuItem value="visible">{t('portalAdminProperties.grid.visibilityFilterVisible')}</MenuItem>
+            <MenuItem value="hidden">{t('portalAdminProperties.grid.visibilityFilterHidden')}</MenuItem>
+            {showDeleted ? (
+              <MenuItem value="deleted">{t('portalAdminProperties.grid.visibilityFilterDeleted')}</MenuItem>
+            ) : null}
+          </TextField>
+        </Box>
 
-        <Collapse in={formOpen} unmountOnExit>
-        {/* HAR Search Panel */}
+        {/* Properties Grid */}
         <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
           <Typography variant="h6" fontWeight={600} gutterBottom>
-            {t('portalAdminProperties.harSearch.heading')}
+            {t('portalAdminProperties.grid.heading')}
           </Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems="flex-start">
-            <TextField
-              label={t('portalAdminProperties.harSearch.harIdLabel')}
-              helperText={t('portalAdminProperties.harSearch.harIdHelperText')}
-              value={harSearchId}
-              onChange={(e) => {
-                setHarSearchId(e.target.value);
-                setHarStatus('idle');
-                setHarMessage('');
-              }}
-              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void handleHarSearch(); } }}
-              placeholder="8469293 or https://www.har.com/homedetail/…/8469293"
-              size="small"
-              sx={{ minWidth: 220, flexShrink: 0 }}
-              slotProps={{
-                input: {
-                  endAdornment: harStatus === 'searching' ? (
-                    <InputAdornment position="end">
-                      <CircularProgress size={18} />
-                    </InputAdornment>
-                  ) : null,
-                },
-              }}
-            />
-            <Button
-              type="button"
-              variant="contained"
-              startIcon={<Search />}
-              onClick={() => void handleHarSearch()}
-              disabled={!harSearchId.trim() || harStatus === 'searching'}
-              sx={{ mt: { xs: 0, sm: '4px' }, whiteSpace: 'nowrap' }}
-            >
-              {harStatus === 'searching'
-                ? t('portalAdminProperties.harSearch.searching')
-                : t('portalAdminProperties.harSearch.searchButton')}
-            </Button>
-          </Stack>
-          {harMessage && (
-            <Alert
-              severity={harStatus === 'found' ? 'success' : 'warning'}
-              sx={{ mt: 1.5 }}
-            >
-              {harMessage}
-            </Alert>
+
+          {listLoading ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <CircularProgress size={20} />
+              <Typography variant="body2" color="text.secondary">
+                {t('portalAdminProperties.grid.loading')}
+              </Typography>
+            </Box>
+          ) : filteredProperties.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              {t('portalAdminProperties.grid.empty')}
+            </Typography>
+          ) : (
+            <Grid container spacing={2}>
+              {filteredProperties.map((property) => (
+                <Grid item xs={12} sm={6} md={4} key={property.id}>
+                  <PropertyCard
+                    property={property}
+                    isAdmin={isAdmin}
+                    syncingHar={syncHarTargetId === property.id}
+                    onEdit={handleEdit}
+                    onDelete={handleDeleteClick}
+                    onRestore={handleRestoreClick}
+                    onToggleVisible={handleVisibilityToggleClick}
+                    onSyncHar={handleSyncHar}
+                    t={t}
+                  />
+                </Grid>
+              ))}
+            </Grid>
           )}
         </Paper>
+      </Stack>
 
-        {/* Property Form */}
-        <Paper
-          component="form"
-          variant="outlined"
-          onSubmit={(e) => void onSubmit(e)}
-          sx={{ p: 3, borderRadius: 2 }}
-        >
+      <Dialog
+        open={formOpen}
+        onClose={resetForm}
+        maxWidth="lg"
+        fullWidth
+        slotProps={{ paper: { sx: { backgroundImage: 'none' } } }}
+      >
+        <DialogTitle>
+          {editingId ? t('portalAdminProperties.form.editDialogTitle') : t('portalAdminProperties.form.addDialogTitle')}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                {t('portalAdminProperties.harSearch.heading')}
+              </Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems="flex-start">
+                <TextField
+                  label={t('portalAdminProperties.harSearch.harIdLabel')}
+                  helperText={t('portalAdminProperties.harSearch.harIdHelperText')}
+                  value={harSearchId}
+                  onChange={(e) => {
+                    setHarSearchId(e.target.value);
+                    setHarStatus('idle');
+                    setHarMessage('');
+                  }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void handleHarSearch(); } }}
+                  placeholder="8469293 or https://www.har.com/homedetail/…/8469293"
+                  size="small"
+                  sx={{ minWidth: 220, flexShrink: 0 }}
+                  slotProps={{
+                    input: {
+                      endAdornment: harStatus === 'searching' ? (
+                        <InputAdornment position="end">
+                          <CircularProgress size={18} />
+                        </InputAdornment>
+                      ) : null,
+                    },
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="contained"
+                  startIcon={<Search />}
+                  onClick={() => void handleHarSearch()}
+                  disabled={!harSearchId.trim() || harStatus === 'searching'}
+                  sx={{ mt: { xs: 0, sm: '4px' }, whiteSpace: 'nowrap' }}
+                >
+                  {harStatus === 'searching'
+                    ? t('portalAdminProperties.harSearch.searching')
+                    : t('portalAdminProperties.harSearch.searchButton')}
+                </Button>
+              </Stack>
+              {harMessage && (
+                <Alert
+                  severity={harStatus === 'found' ? 'success' : 'warning'}
+                  sx={{ mt: 1.5 }}
+                >
+                  {harMessage}
+                </Alert>
+              )}
+            </Paper>
+
+            <Paper
+              component="form"
+              variant="outlined"
+              onSubmit={(e) => void onSubmit(e)}
+              sx={{ p: 3, borderRadius: 2 }}
+            >
           <Stack spacing={2}>
             <Typography variant="h6" fontWeight={600}>
               {t('portalAdminProperties.form.heading')}
@@ -748,7 +967,7 @@ const PortalAdminProperties = () => {
                   ? t('portalAdminProperties.form.saving')
                   : editingId
                     ? t('portalAdminProperties.form.saveChanges')
-                    : t('portalAdminProperties.form.addProperty')}
+                    : t('portalAdminProperties.form.createProperty')}
               </Button>
               <Button
                 type="button"
@@ -759,42 +978,10 @@ const PortalAdminProperties = () => {
               </Button>
             </Stack>
           </Stack>
-        </Paper>
-        </Collapse>
-
-        {/* Properties Grid */}
-        <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-          <Typography variant="h6" fontWeight={600} gutterBottom>
-            {t('portalAdminProperties.grid.heading')}
-          </Typography>
-
-          {listLoading ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <CircularProgress size={20} />
-              <Typography variant="body2" color="text.secondary">
-                {t('portalAdminProperties.grid.loading')}
-              </Typography>
-            </Box>
-          ) : properties.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              {t('portalAdminProperties.grid.empty')}
-            </Typography>
-          ) : (
-            <Grid container spacing={2}>
-              {properties.map((property) => (
-                <Grid item xs={12} sm={6} md={4} key={property.id}>
-                  <PropertyCard
-                    property={property}
-                    onEdit={handleEdit}
-                    onDelete={handleDeleteClick}
-                    t={t}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          )}
-        </Paper>
-      </Stack>
+            </Paper>
+          </Stack>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog
@@ -827,6 +1014,75 @@ const PortalAdminProperties = () => {
             onClick={() => void handleDeleteConfirm()}
           >
             {t('portalAdminProperties.grid.deleteConfirmAction')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(restoreTarget)}
+        onClose={() => { if (restoreStatus !== 'restoring') setRestoreTarget(null); }}
+        slotProps={{ paper: { sx: { backgroundImage: 'none' } } }}
+      >
+        <DialogTitle>{t('portalAdminProperties.grid.restoreConfirmTitle')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {t('portalAdminProperties.grid.restoreConfirmBody', {
+              address: restoreTarget?.addressLine ?? '',
+            })}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            type="button"
+            onClick={() => setRestoreTarget(null)}
+            disabled={restoreStatus === 'restoring'}
+          >
+            {t('portalAdminProperties.grid.restoreCancel')}
+          </Button>
+          <Button
+            type="button"
+            variant="contained"
+            disabled={restoreStatus === 'restoring'}
+            startIcon={restoreStatus === 'restoring' ? <CircularProgress size={16} /> : null}
+            onClick={() => void handleRestoreConfirm()}
+          >
+            {t('portalAdminProperties.grid.restoreConfirmAction')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(visibleToggleTarget)}
+        onClose={() => { if (visibleToggleStatus !== 'saving') setVisibleToggleTarget(null); }}
+        slotProps={{ paper: { sx: { backgroundImage: 'none' } } }}
+      >
+        <DialogTitle>{t('portalAdminProperties.grid.visibleConfirmTitle')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {t('portalAdminProperties.grid.visibleConfirmBody', {
+              address: visibleToggleTarget?.addressLine ?? '',
+              value: visibleToggleTarget?.showOnApplyPage
+                ? t('portalAdminProperties.grid.visibilityOffLabel')
+                : t('portalAdminProperties.grid.visibilityOnLabel'),
+            })}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            type="button"
+            onClick={() => setVisibleToggleTarget(null)}
+            disabled={visibleToggleStatus === 'saving'}
+          >
+            {t('portalAdminProperties.grid.visibleCancel')}
+          </Button>
+          <Button
+            type="button"
+            variant="contained"
+            disabled={visibleToggleStatus === 'saving'}
+            startIcon={visibleToggleStatus === 'saving' ? <CircularProgress size={16} /> : null}
+            onClick={() => void handleVisibilityToggleConfirm()}
+          >
+            {t('portalAdminProperties.grid.visibleConfirmAction')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -10,6 +10,7 @@ import type { Queryable } from '../types.js';
 export type ListPropertiesInput = {
   actorUserId: string;
   actorRole: string;
+  includeDeleted?: boolean;
 };
 
 export type ListPropertiesOutput = {
@@ -21,6 +22,11 @@ export async function listProperties(
   input: ListPropertiesInput
 ): Promise<ListPropertiesOutput> {
   if (!hasLandlordAccess(input.actorRole)) throw forbidden();
-  const properties = await listPropertiesForActor(db, input.actorRole, input.actorUserId);
+  const properties = await listPropertiesForActor(
+    db,
+    input.actorRole,
+    input.actorUserId,
+    Boolean(input.includeDeleted)
+  );
   return { properties };
 }

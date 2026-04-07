@@ -780,7 +780,11 @@
     "exportSuccess": "تم تنزيل تصدير CSV.",
     "labels": {
       "requestId": "معرف الطلب",
-      "status": "الحالة"
+      "status": "الحالة",
+      "createdAt": "تاريخ الإنشاء",
+      "updatedAt": "آخر تحديث",
+      "category": "الفئة",
+      "priority": "الأولوية"
     },
     "actions": {
       "reload": "إعادة تحميل الطلبات",
@@ -792,8 +796,10 @@
       "sendMessage": "إرسال رسالة",
       "chooseFile": "اختيار ملف",
       "attachFile": "إرفاق ملف",
+      "backToList": "العودة إلى القائمة",
       "suggestReply": "اقتراح رد",
       "exportCsv": "تصدير CSV",
+      "exportingCsv": "جارٍ التصدير…",
       "cancelRequest": "إلغاء الطلب",
       "saving": "جارٍ الحفظ…"
     },
@@ -814,6 +820,14 @@
     "list": {
       "heading": "قائمة الطلبات",
       "empty": "لا توجد طلبات لهذا الحساب.",
+      "selectPrompt": "اختر طلبًا لعرض التفاصيل.",
+      "filters": {
+        "all": "الكل",
+        "open": "مفتوحة",
+        "inProgress": "قيد التنفيذ",
+        "cancelled": "ملغاة",
+        "resolved": "محلولة"
+      },
       "untitled": "طلب بدون عنوان"
     },
     "create": {
@@ -836,7 +850,8 @@
     "management": {
       "heading": "تحديثات الإدارة",
       "statusCode": "رمز الحالة",
-      "statusCodePlaceholder": "OPEN, IN_PROGRESS, CLOSED",
+      "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, OPEN, IN_PROGRESS, CANCELLED, RESOLVED, CLOSED",
+      "selectStatusCode": "اختر الحالة",
       "vendorId": "معرف المورّد المعيّن",
       "internalNotes": "ملاحظات داخلية",
       "saved": "تم تحديث الطلب."
@@ -849,12 +864,16 @@
       "empty": "لا توجد رسائل بعد.",
       "bodyLabel": "الرسالة",
       "internalToggle": "رسالة داخلية (للمالك/الإدارة فقط)",
-      "internalTag": "داخلي"
+      "internalTag": "داخلي",
+      "sent": "تم إرسال الرسالة.",
+      "senderUnknown": "مرسل غير معروف"
     },
     "attachments": {
       "heading": "المرفقات",
       "empty": "لا توجد مرفقات بعد.",
-      "saved": "تم حفظ بيانات المرفق."
+      "saved": "تم حفظ بيانات المرفق.",
+      "uploadProgress": "تقدم الرفع: {{percent}}%",
+      "unavailable": "التنزيل غير متاح حالياً."
     },
     "cancel": {
       "heading": "إلغاء الطلب",
@@ -874,6 +893,7 @@
       "empty": "لا توجد أحداث تدقيق لهذا الطلب.",
       "actor": "المنفذ",
       "when": "الوقت",
+      "changedFields": "الحقول المتغيرة",
       "before": "قبل",
       "after": "بعد"
     }
@@ -952,6 +972,8 @@
     },
     "form": {
       "heading": "تفاصيل العقار",
+      "addDialogTitle": "إضافة عقار",
+      "editDialogTitle": "تعديل العقار",
       "landlord": "المالك",
       "landlordSelect": "اختر المالك",
       "landlordLoading": "جارٍ تحميل الملاك…",
@@ -962,13 +984,14 @@
       "harListingUrl": "رابط قائمة HAR",
       "applyUrl": "رابط طلب الإيجار",
       "detailLines": "سطور التفاصيل (سطر لكل عنصر، مثال: «3 غرف نوم»)",
-      "showOnApplyPage": "عرض في صفحة التقديم",
+      "showOnApplyPage": "مرئي في صفحة التقديم",
       "photo": "صورة العقار",
       "photoUpload": "رفع صورة",
       "photoUrlLabel": "أو أدخل رابط الصورة",
       "photoPreview": "معاينة الصورة",
       "showForm": "إضافة عقار",
       "addProperty": "إضافة عقار",
+      "createProperty": "إنشاء عقار",
       "saveChanges": "حفظ التغييرات",
       "saving": "جارٍ الحفظ…",
       "cancel": "إلغاء",
@@ -978,13 +1001,33 @@
       "heading": "عقاراتك",
       "empty": "لا توجد عقارات بعد. استخدم النموذج أعلاه لإضافة عقار.",
       "loading": "جارٍ تحميل العقارات…",
+      "showDeleted": "إظهار المحذوفة",
+      "visibilityFilterLabel": "تصفية الظهور",
+      "visibilityFilterAll": "الكل",
+      "visibilityFilterVisible": "مرئية",
+      "visibilityFilterHidden": "غير مرئية",
+      "visibilityFilterDeleted": "المحذوفة فقط",
       "editButton": "تعديل",
       "deleteButton": "حذف",
+      "syncHarButton": "مزامنة مع HAR",
+      "restoreButton": "استعادة",
       "deleteConfirmTitle": "حذف العقار؟",
       "deleteConfirmBody": "سيؤدي هذا إلى حذف «{{address}}» من قائمتك. لا يمكن التراجع عن هذا الإجراء.",
       "deleteConfirmAction": "حذف",
       "deleteCancel": "إلغاء",
-      "showOnApply": "صفحة التقديم",
+      "restoreConfirmTitle": "استعادة العقار؟",
+      "restoreConfirmBody": "سيؤدي هذا إلى استعادة «{{address}}» إلى قائمة العقارات النشطة.",
+      "restoreConfirmAction": "استعادة",
+      "restoreCancel": "إلغاء",
+      "visibleConfirmTitle": "تغيير حالة الظهور؟",
+      "visibleConfirmBody": "تعيين «{{address}}» إلى «{{value}}» في صفحة التقديم؟",
+      "visibleConfirmAction": "تأكيد",
+      "visibleCancel": "إلغاء",
+      "visibilityOnLabel": "مرئي",
+      "visibilityOffLabel": "غير مرئي",
+      "visible": "مرئي",
+      "deleted": "محذوف",
+      "showOnApply": "مرئي",
       "landlord": "المالك",
       "harId": "معرّف HAR",
       "noPhoto": "لا توجد صورة"
@@ -992,7 +1035,10 @@
     "messages": {
       "added": "تمت إضافة العقار بنجاح.",
       "updated": "تم تحديث العقار بنجاح.",
-      "deleted": "تم حذف العقار."
+      "deleted": "تم حذف العقار.",
+      "restored": "تمت استعادة العقار.",
+      "visibilityUpdated": "تم تحديث حالة الظهور.",
+      "harSynced": "تم تحديث قائمة HAR."
     },
     "errors": {
       "signInRequired": "سجّل الدخول قبل إدارة العقارات.",
@@ -1003,6 +1049,9 @@
       "loadFailed": "تعذّر تحميل العقارات: {{error}}",
       "saveFailed": "تعذّر حفظ العقار: {{error}}",
       "deleteFailed": "تعذّر حذف العقار: {{error}}",
+      "restoreFailed": "تعذّر استعادة العقار: {{error}}",
+      "visibilityFailed": "تعذّر تحديث حالة الظهور: {{error}}",
+      "syncHarFailed": "تعذّر تحديث قائمة HAR: {{error}}",
       "noApiConfigured": "واجهة API غير مهيّأة. حدّد VITE_API_BASE_URL في ملف .env لتفعيل إدارة العقارات."
     }
   },

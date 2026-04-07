@@ -31,7 +31,9 @@ vi.mock('../lib/propertiesApiClient', async (importOriginal) => {
     listPropertiesApi: vi.fn().mockResolvedValue([]),
     createPropertyApi: vi.fn().mockResolvedValue({ id: 'db-test-1' }),
     updatePropertyApi: vi.fn().mockResolvedValue({ id: 'db-test-1' }),
+    patchPropertyApi: vi.fn().mockResolvedValue({ id: 'db-test-1' }),
     deletePropertyApi: vi.fn().mockResolvedValue(undefined),
+    restorePropertyApi: vi.fn().mockResolvedValue(undefined),
   };
 });
 
@@ -89,7 +91,9 @@ describe('PortalAdminProperties', () => {
     propertiesApiClient.listPropertiesApi.mockResolvedValue([]);
     propertiesApiClient.createPropertyApi.mockResolvedValue({ id: 'db-test-1' });
     propertiesApiClient.updatePropertyApi.mockResolvedValue({ id: 'db-test-1' });
+    propertiesApiClient.patchPropertyApi.mockResolvedValue({ id: 'db-test-1' });
     propertiesApiClient.deletePropertyApi.mockResolvedValue(undefined);
+    propertiesApiClient.restorePropertyApi.mockResolvedValue(undefined);
     portalApiClient.fetchLandlords.mockResolvedValue({ landlords: [] });
     await i18n.changeLanguage('en');
   });
@@ -117,7 +121,7 @@ describe('PortalAdminProperties', () => {
   });
 
   it('shows validation error when address is missing', async () => {
-    const { container } = render(
+    render(
       <WithAppTheme>
         <PortalAdminProperties />
       </WithAppTheme>
@@ -130,7 +134,7 @@ describe('PortalAdminProperties', () => {
     fireEvent.change(screen.getByLabelText(/city, state, zip/i), {
       target: { value: 'Houston, TX 77001' },
     });
-    const form = container.querySelector('form');
+    const form = document.querySelector('form');
     fireEvent.submit(form);
     await waitFor(() => {
       expect(screen.getByText(/street address is required/i)).toBeInTheDocument();
@@ -146,7 +150,7 @@ describe('PortalAdminProperties', () => {
 
     fireEvent.change(screen.getByLabelText(/street address/i), { target: { value: '123 Main St' } });
     fireEvent.change(screen.getByLabelText(/city, state, zip/i), { target: { value: 'Houston, TX 77001' } });
-    fireEvent.click(screen.getByRole('button', { name: /add property/i }));
+    fireEvent.click(screen.getByRole('button', { name: /create property/i }));
 
     await waitFor(() => {
       expect(propertiesApiClient.createPropertyApi).toHaveBeenCalledWith(
@@ -171,7 +175,7 @@ describe('PortalAdminProperties', () => {
     });
     expect(screen.getByText('Katy, TX 77449')).toBeInTheDocument();
     expect(screen.getByText('$2,100/mo')).toBeInTheDocument();
-    expect(screen.getByText(/Landlord:\s+Lana Lord/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Landlord:\s+Lana Lord/i)).not.toBeInTheDocument();
   });
 
   it('requires landlord selection for admin property create', async () => {
@@ -192,14 +196,14 @@ describe('PortalAdminProperties', () => {
 
     fireEvent.change(screen.getByLabelText(/street address/i), { target: { value: '124 Main St' } });
     fireEvent.change(screen.getByLabelText(/city, state, zip/i), { target: { value: 'Houston, TX 77002' } });
-    fireEvent.click(screen.getByRole('button', { name: /add property/i }));
+    fireEvent.click(screen.getByRole('button', { name: /create property/i }));
     await waitFor(() => {
       expect(propertiesApiClient.createPropertyApi).not.toHaveBeenCalled();
     });
 
     fireEvent.mouseDown(screen.getByLabelText(/landlord/i));
     fireEvent.click(screen.getByRole('option', { name: /lana lord/i }));
-    fireEvent.click(screen.getByRole('button', { name: /add property/i }));
+    fireEvent.click(screen.getByRole('button', { name: /create property/i }));
 
     await waitFor(() => {
       expect(propertiesApiClient.createPropertyApi).toHaveBeenCalledWith(
@@ -527,5 +531,139 @@ describe('PortalAdminProperties', () => {
     });
 
     delete global.fetch;
+  });
+
+  it('confirms and updates visible toggle from the grid', async () => {
+    propertiesApiClient.listPropertiesApi.mockResolvedValue([
+      makeApiRow({ id: 'db-vis-1', apply_visible: true }),
+    ]);
+
+    render(<WithAppTheme><PortalAdminProperties /></WithAppTheme>);
+    await waitFor(() => expect(screen.getByText('6314 Bonnie Chase Ln')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('checkbox', { name: /visible/i }));
+    await waitFor(() => {
+      expect(screen.getByRole('dialog', { name: /change visible status\?/i })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
+
+    await waitFor(() => {
+      expect(propertiesApiClient.patchPropertyApi).toHaveBeenCalledWith(
+        'https://api.carwoods.com',
+        'mock-token',
+        'db-vis-1',
+        { apply_visible: false }
+      );
+    });
+  });
+
+  it('restores a deleted property from the grid', async () => {
+    propertiesApiClient.listPropertiesApi.mockResolvedValue([
+      makeApiRow({ id: 'db-restore-1', deleted_at: '2026-04-01T00:00:00Z' }),
+    ]);
+
+    render(<WithAppTheme><PortalAdminProperties /></WithAppTheme>);
+    await waitFor(() => expect(screen.getByText('6314 Bonnie Chase Ln')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByLabelText(/show deleted/i));
+    await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalledTimes(2));
+    fireEvent.click(screen.getByRole('button', { name: /restore/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^restore$/i }));
+
+    await waitFor(() => {
+      expect(propertiesApiClient.restorePropertyApi).toHaveBeenCalledWith(
+        'https://api.carwoods.com',
+        'mock-token',
+        'db-restore-1'
+      );
+    });
+  });
+
+  it('syncs property with HAR from card action', async () => {
+    propertiesApiClient.listPropertiesApi.mockResolvedValue([
+      makeApiRow({ id: 'db-sync-1', har_listing_id: '8469293' }),
+    ]);
+
+    render(<WithAppTheme><PortalAdminProperties /></WithAppTheme>);
+    await waitFor(() => expect(screen.getByText('6314 Bonnie Chase Ln')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: /sync with har/i }));
+
+    await waitFor(() => {
+      expect(propertiesApiClient.patchPropertyApi).toHaveBeenCalledWith(
+        'https://api.carwoods.com',
+        'mock-token',
+        'db-sync-1',
+        { refresh_har: true }
+      );
+    });
+  });
+
+  it('switches to deleted filter when show deleted is enabled', async () => {
+    propertiesApiClient.listPropertiesApi.mockImplementation(async (_baseUrl, _token, opts) => {
+      if (opts?.includeDeleted) {
+        return [
+          makeApiRow({
+            id: 'db-active-1',
+            deleted_at: null,
+            metadata: {
+              apply: {
+                addressLine: '111 Active St',
+                cityStateZip: 'Houston, TX 77001',
+                monthlyRentLabel: '',
+                photoUrl: '',
+                harListingUrl: '',
+                applyUrl: '',
+                detailLines: [],
+              },
+            },
+          }),
+          makeApiRow({
+            id: 'db-deleted-1',
+            deleted_at: '2026-04-01T00:00:00Z',
+            metadata: {
+              apply: {
+                addressLine: '222 Deleted St',
+                cityStateZip: 'Houston, TX 77002',
+                monthlyRentLabel: '',
+                photoUrl: '',
+                harListingUrl: '',
+                applyUrl: '',
+                detailLines: [],
+              },
+            },
+          }),
+        ];
+      }
+      return [
+        makeApiRow({
+          id: 'db-active-1',
+          deleted_at: null,
+          metadata: {
+            apply: {
+              addressLine: '111 Active St',
+              cityStateZip: 'Houston, TX 77001',
+              monthlyRentLabel: '',
+              photoUrl: '',
+              harListingUrl: '',
+              applyUrl: '',
+              detailLines: [],
+            },
+          },
+        }),
+      ];
+    });
+
+    render(<WithAppTheme><PortalAdminProperties /></WithAppTheme>);
+    await waitFor(() => expect(screen.getByText('111 Active St')).toBeInTheDocument());
+    expect(screen.queryByText('222 Deleted St')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText(/show deleted/i));
+
+    await waitFor(() => {
+      expect(screen.getByText('222 Deleted St')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('111 Active St')).not.toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /visibility filter/i })).toHaveTextContent(/deleted only/i);
   });
 });

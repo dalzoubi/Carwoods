@@ -6,6 +6,7 @@ type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResul
 export type AuditLogRow = {
   id: string;
   actor_user_id: string;
+  actor_display_name: string | null;
   entity_type: string;
   entity_id: string;
   action: string;
@@ -47,10 +48,22 @@ export async function listAuditForEntity(
   const safeLimit = Number.isFinite(limit) ? Math.max(1, Math.min(Math.floor(limit), 500)) : 100;
   const r = await client.query<AuditLogRow>(
     `SELECT TOP (${safeLimit})
-        id, actor_user_id, entity_type, entity_id, action, before_json, after_json, created_at
-     FROM audit_log
+        al.id,
+        al.actor_user_id,
+        CASE
+          WHEN LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, ''))) = '' THEN u.email
+          ELSE LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, '')))
+        END AS actor_display_name,
+        al.entity_type,
+        al.entity_id,
+        al.action,
+        al.before_json,
+        al.after_json,
+        al.created_at
+     FROM audit_log al
+     LEFT JOIN users u ON u.id = al.actor_user_id
      WHERE entity_id = $1
-     ORDER BY created_at DESC`,
+     ORDER BY al.created_at DESC`,
     [entityId]
   );
   return r.rows;

@@ -780,7 +780,11 @@
     "exportSuccess": "Export CSV telecharge.",
     "labels": {
       "requestId": "ID de demande",
-      "status": "Statut"
+      "status": "Statut",
+      "createdAt": "Créé",
+      "updatedAt": "Mis à jour",
+      "category": "Catégorie",
+      "priority": "Priorité"
     },
     "actions": {
       "reload": "Recharger les demandes",
@@ -792,8 +796,10 @@
       "sendMessage": "Envoyer le message",
       "chooseFile": "Choisir un fichier",
       "attachFile": "Joindre le fichier",
+      "backToList": "Retour à la liste",
       "suggestReply": "Suggérer une reponse",
       "exportCsv": "Exporter CSV",
+      "exportingCsv": "Export en cours…",
       "cancelRequest": "Annuler la demande",
       "saving": "Enregistrement…"
     },
@@ -814,6 +820,14 @@
     "list": {
       "heading": "Liste des demandes",
       "empty": "Aucune demande trouvee pour ce compte.",
+      "selectPrompt": "Sélectionnez une demande pour voir les détails.",
+      "filters": {
+        "all": "Toutes",
+        "open": "Ouvertes",
+        "inProgress": "En cours",
+        "cancelled": "Annulées",
+        "resolved": "Résolues"
+      },
       "untitled": "Demande sans titre"
     },
     "create": {
@@ -836,7 +850,8 @@
     "management": {
       "heading": "Mises a jour de gestion",
       "statusCode": "Code statut",
-      "statusCodePlaceholder": "OPEN, IN_PROGRESS, CLOSED",
+      "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, OPEN, IN_PROGRESS, CANCELLED, RESOLVED, CLOSED",
+      "selectStatusCode": "Sélectionner un statut",
       "vendorId": "ID fournisseur assigne",
       "internalNotes": "Notes internes",
       "saved": "Demande mise a jour."
@@ -849,12 +864,16 @@
       "empty": "Aucun message pour le moment.",
       "bodyLabel": "Message",
       "internalToggle": "Message interne (proprietaire/admin uniquement)",
-      "internalTag": "Interne"
+      "internalTag": "Interne",
+      "sent": "Message envoyé.",
+      "senderUnknown": "Expéditeur inconnu"
     },
     "attachments": {
       "heading": "Pieces jointes",
       "empty": "Aucune piece jointe pour le moment.",
-      "saved": "Metadonnees de piece jointe enregistrees."
+      "saved": "Metadonnees de piece jointe enregistrees.",
+      "uploadProgress": "Progression du televersement : {{percent}}%",
+      "unavailable": "Telechargement indisponible pour le moment."
     },
     "cancel": {
       "heading": "Annuler la demande",
@@ -874,6 +893,7 @@
       "empty": "Aucun evenement d'audit pour cette demande.",
       "actor": "Acteur",
       "when": "Quand",
+      "changedFields": "Champs modifies",
       "before": "Avant",
       "after": "Apres"
     }
@@ -952,6 +972,8 @@
     },
     "form": {
       "heading": "Détails de la propriété",
+      "addDialogTitle": "Ajouter une propriété",
+      "editDialogTitle": "Modifier la propriété",
       "landlord": "Propriétaire",
       "landlordSelect": "Sélectionner un propriétaire",
       "landlordLoading": "Chargement des propriétaires…",
@@ -962,13 +984,14 @@
       "harListingUrl": "URL de l'annonce HAR",
       "applyUrl": "URL de candidature locative",
       "detailLines": "Lignes de détails (une par ligne, ex. «3 chambres»)",
-      "showOnApplyPage": "Afficher sur la page de candidature",
+      "showOnApplyPage": "Visible sur la page Apply",
       "photo": "Photo de la propriété",
       "photoUpload": "Télécharger une photo",
       "photoUrlLabel": "Ou saisir l'URL de la photo",
       "photoPreview": "Aperçu de la photo",
       "showForm": "Ajouter une propriété",
       "addProperty": "Ajouter une propriété",
+      "createProperty": "Créer la propriété",
       "saveChanges": "Enregistrer les modifications",
       "saving": "Enregistrement…",
       "cancel": "Annuler",
@@ -978,13 +1001,33 @@
       "heading": "Vos propriétés",
       "empty": "Aucune propriété encore. Utilisez le formulaire ci-dessus pour en ajouter une.",
       "loading": "Chargement des propriétés…",
+      "showDeleted": "Afficher les supprimées",
+      "visibilityFilterLabel": "Filtre de visibilité",
+      "visibilityFilterAll": "Toutes",
+      "visibilityFilterVisible": "Visibles",
+      "visibilityFilterHidden": "Non visibles",
+      "visibilityFilterDeleted": "Supprimées uniquement",
       "editButton": "Modifier",
       "deleteButton": "Supprimer",
+      "syncHarButton": "Synchroniser avec HAR",
+      "restoreButton": "Restaurer",
       "deleteConfirmTitle": "Supprimer la propriété ?",
       "deleteConfirmBody": "Cela supprimera « {{address}} » de votre liste. Cette action est irréversible.",
       "deleteConfirmAction": "Supprimer",
       "deleteCancel": "Annuler",
-      "showOnApply": "Page de candidature",
+      "restoreConfirmTitle": "Restaurer la propriété ?",
+      "restoreConfirmBody": "Cela restaurera « {{address}} » dans votre liste active de propriétés.",
+      "restoreConfirmAction": "Restaurer",
+      "restoreCancel": "Annuler",
+      "visibleConfirmTitle": "Changer le statut Visible ?",
+      "visibleConfirmBody": "Définir « {{address}} » sur « {{value}} » sur la page Apply ?",
+      "visibleConfirmAction": "Confirmer",
+      "visibleCancel": "Annuler",
+      "visibilityOnLabel": "Visible",
+      "visibilityOffLabel": "Non visible",
+      "visible": "Visible",
+      "deleted": "Supprimée",
+      "showOnApply": "Visible",
       "landlord": "Propriétaire",
       "harId": "ID HAR",
       "noPhoto": "Pas de photo"
@@ -992,7 +1035,10 @@
     "messages": {
       "added": "Propriété ajoutée avec succès.",
       "updated": "Propriété mise à jour avec succès.",
-      "deleted": "Propriété supprimée."
+      "deleted": "Propriété supprimée.",
+      "restored": "Propriété restaurée.",
+      "visibilityUpdated": "Visibilité mise à jour.",
+      "harSynced": "Annonce HAR actualisée."
     },
     "errors": {
       "signInRequired": "Connectez-vous avant de gérer les propriétés.",
@@ -1003,6 +1049,9 @@
       "loadFailed": "Impossible de charger les propriétés : {{error}}",
       "saveFailed": "Impossible d'enregistrer la propriété : {{error}}",
       "deleteFailed": "Impossible de supprimer la propriété : {{error}}",
+      "restoreFailed": "Impossible de restaurer la propriété : {{error}}",
+      "visibilityFailed": "Impossible de mettre à jour la visibilité : {{error}}",
+      "syncHarFailed": "Impossible d'actualiser l'annonce HAR : {{error}}",
       "noApiConfigured": "L'API n'est pas configurée. Définissez VITE_API_BASE_URL dans votre .env pour activer la gestion des propriétés."
     }
   },

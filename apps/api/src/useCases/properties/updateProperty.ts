@@ -31,6 +31,7 @@ export type UpdatePropertyInput = {
   apply_visible?: boolean;
   har_listing_id?: string | null;
   metadata?: unknown;
+  refresh_har?: boolean;
   /** Pass `true` to indicate the key was present in the body (even if null). */
   har_listing_id_present?: boolean;
   metadata_present?: boolean;
@@ -73,6 +74,7 @@ export async function updateProperty(
       {
         har_listing_id: input.har_listing_id,
         metadata: input.metadata,
+        refresh_har: input.refresh_har,
       }
     );
   } catch (e) {

@@ -317,21 +317,30 @@ export async function cancelRequest(baseUrl, accessToken, requestId, params) {
  *
  * @param {string} uploadUrl   Pre-signed Azure Blob SAS URL from requestUploadIntent
  * @param {File} file          The File object to upload
+ * @param {(percent: number) => void} [onProgress] Optional upload progress callback
  * @returns {Promise<void>}
  */
-export async function putBlobToStorage(uploadUrl, file) {
-  const res = await fetch(uploadUrl, {
-    method: 'PUT',
-    headers: {
-      'x-ms-blob-type': 'BlockBlob',
-      'Content-Type': file.type || 'application/octet-stream',
-    },
-    body: file,
-    credentials: 'omit',
+export async function putBlobToStorage(uploadUrl, file, onProgress) {
+  await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', uploadUrl);
+    xhr.setRequestHeader('x-ms-blob-type', 'BlockBlob');
+    xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+    xhr.upload.onprogress = (event) => {
+      if (!onProgress || !event.lengthComputable) return;
+      const percent = Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100)));
+      onProgress(percent);
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+        return;
+      }
+      reject(apiError(xhr.status || 500, 'blob_upload_failed'));
+    };
+    xhr.onerror = () => reject(apiError(500, 'blob_upload_failed'));
+    xhr.send(file);
   });
-  if (!res.ok) {
-    throw apiError(res.status, 'blob_upload_failed');
-  }
 }
 
 // ---------------------------------------------------------------------------

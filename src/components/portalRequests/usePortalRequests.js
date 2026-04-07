@@ -15,6 +15,7 @@ import {
   fetchExportCsv,
   fetchRequestAudit,
 } from '../../lib/portalApiClient';
+import { RequestStatus } from '../../domain/constants.js';
 
 const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
@@ -62,12 +63,15 @@ export function usePortalRequests({
   getAccessToken,
   handleApiForbidden,
   t,
+  initialSelectedRequestId = '',
 }) {
   const [requestsStatus, setRequestsStatus] = useState('idle');
   const [requestsError, setRequestsError] = useState('');
   const [requests, setRequests] = useState([]);
   const [selectedRequestId, setSelectedRequestId] = useState('');
   const [requestDetail, setRequestDetail] = useState(null);
+  const [detailStatus, setDetailStatus] = useState('idle');
+  const [detailError, setDetailError] = useState('');
   const [threadMessages, setThreadMessages] = useState([]);
   const [attachments, setAttachments] = useState([]);
 
@@ -104,6 +108,7 @@ export function usePortalRequests({
   const [attachmentFile, setAttachmentFile] = useState(null);
   const [attachmentStatus, setAttachmentStatus] = useState('idle');
   const [attachmentError, setAttachmentError] = useState('');
+  const [attachmentUploadProgress, setAttachmentUploadProgress] = useState(0);
 
   const [suggestionStatus, setSuggestionStatus] = useState('idle');
   const [suggestionError, setSuggestionError] = useState('');
@@ -114,6 +119,15 @@ export function usePortalRequests({
   const [auditEvents, setAuditEvents] = useState([]);
   const [auditStatus, setAuditStatus] = useState('idle');
   const [auditError, setAuditError] = useState('');
+  const [managementStatusOptions] = useState(() => [
+    RequestStatus.NOT_STARTED,
+    RequestStatus.ACKNOWLEDGED,
+    RequestStatus.OPEN,
+    RequestStatus.IN_PROGRESS,
+    RequestStatus.CANCELLED,
+    RequestStatus.RESOLVED,
+    RequestStatus.CLOSED,
+  ]);
 
   const loadAuditForRequest = async (requestId) => {
     if (!requestId || !baseUrl || !isAdmin) {
@@ -144,28 +158,38 @@ export function usePortalRequests({
 
   const loadRequestDetails = async (requestId) => {
     if (!requestId || !baseUrl) return;
-    const token = await getAccessToken();
-    const emailHint = emailFromAccount(account);
+    setDetailStatus('loading');
+    setDetailError('');
+    try {
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
 
-    const detailPath = isManagement
-      ? `/api/landlord/requests/${encodeURIComponent(requestId)}`
-      : `/api/portal/requests/${encodeURIComponent(requestId)}`;
-    const messagesPath = `/api/portal/requests/${encodeURIComponent(requestId)}/messages`;
-    const attachmentsPath = `/api/portal/requests/${encodeURIComponent(requestId)}/attachments`;
+      const detailPath = isManagement
+        ? `/api/landlord/requests/${encodeURIComponent(requestId)}`
+        : `/api/portal/requests/${encodeURIComponent(requestId)}`;
+      const messagesPath = `/api/portal/requests/${encodeURIComponent(requestId)}/messages`;
+      const attachmentsPath = `/api/portal/requests/${encodeURIComponent(requestId)}/attachments`;
 
-    const { detail, messagesPayload, attachmentsPayload } = await fetchRequestDetail(
-      baseUrl,
-      token,
-      { detailPath, messagesPath, attachmentsPath, emailHint }
-    );
+      const { detail, messagesPayload, attachmentsPayload } = await fetchRequestDetail(
+        baseUrl,
+        token,
+        { detailPath, messagesPath, attachmentsPath, emailHint }
+      );
 
-    setRequestDetail(detail);
-    setThreadMessages(Array.isArray(messagesPayload?.messages) ? messagesPayload.messages : []);
-    setAttachments(Array.isArray(attachmentsPayload?.attachments) ? attachmentsPayload.attachments : []);
-    setManagementForm((prev) => ({
-      ...prev,
-      internal_notes: detail?.internal_notes ?? '',
-    }));
+      setRequestDetail(detail);
+      setThreadMessages(Array.isArray(messagesPayload?.messages) ? messagesPayload.messages : []);
+      setAttachments(Array.isArray(attachmentsPayload?.attachments) ? attachmentsPayload.attachments : []);
+      setManagementForm((prev) => ({
+        ...prev,
+        internal_notes: detail?.internal_notes ?? '',
+      }));
+      setDetailStatus('ok');
+    } catch (error) {
+      handleApiForbidden(error);
+      setDetailStatus('error');
+      setDetailError(extractErrorMessage(error, t, 'portalRequests.errors.loadFailed'));
+      throw error;
+    }
   };
 
   const loadRequests = async (opts = { keepSelection: true }) => {
@@ -182,14 +206,28 @@ export function usePortalRequests({
       setRequestsStatus('ok');
 
       const nextSelected = opts.keepSelection
-        ? selectedRequestId || nextRequests[0]?.id || ''
+        ? (
+            nextRequests.some((request) => request.id === selectedRequestId)
+              ? selectedRequestId
+              : initialSelectedRequestId && nextRequests.some((request) => request.id === initialSelectedRequestId)
+                ? initialSelectedRequestId
+                : nextRequests[0]?.id || ''
+          )
         : nextRequests[0]?.id || '';
       setSelectedRequestId(nextSelected);
       if (nextSelected) {
-        await loadRequestDetails(nextSelected);
-        await loadAuditForRequest(nextSelected);
+        try {
+          await loadRequestDetails(nextSelected);
+          await loadAuditForRequest(nextSelected);
+        } catch (error) {
+          handleApiForbidden(error);
+          setDetailStatus('error');
+          setDetailError(extractErrorMessage(error, t, 'portalRequests.errors.loadFailed'));
+        }
       } else {
         setRequestDetail(null);
+        setDetailStatus('idle');
+        setDetailError('');
         setThreadMessages([]);
         setAttachments([]);
         setAuditEvents([]);
@@ -207,7 +245,25 @@ export function usePortalRequests({
     if (!baseUrl || !isAuthenticated || isGuest || meStatus !== 'ok') return;
     loadRequests({ keepSelection: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseUrl, isAuthenticated, isGuest, meStatus, listPath]);
+  }, [baseUrl, isAuthenticated, isGuest, meStatus, listPath, initialSelectedRequestId]);
+
+  useEffect(() => {
+    if (!selectedRequestId) return;
+    setCancelStatus('idle');
+    setCancelError('');
+    setManagementUpdateStatus('idle');
+    setManagementUpdateError('');
+    setMessageStatus('idle');
+    setMessageError('');
+    setAttachmentStatus('idle');
+    setAttachmentError('');
+    setAttachmentUploadProgress(0);
+    setAttachmentFile(null);
+    setSuggestionStatus('idle');
+    setSuggestionError('');
+    setSuggestionText('');
+    setMessageForm({ body: '', is_internal: false });
+  }, [selectedRequestId]);
 
   useEffect(() => {
     if (!baseUrl || !isAuthenticated || isGuest || isManagement || meStatus !== 'ok') {
@@ -405,7 +461,9 @@ export function usePortalRequests({
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
       const body = {};
-      if (managementForm.status_code.trim()) body.status_code = managementForm.status_code.trim();
+      if (managementForm.status_code.trim()) {
+        body.status_code = managementForm.status_code.trim().toUpperCase();
+      }
       body.assigned_vendor_id = managementForm.assigned_vendor_id.trim() || null;
       body.internal_notes = managementForm.internal_notes.trim() || null;
       await patchResource(
@@ -451,6 +509,7 @@ export function usePortalRequests({
     setAttachmentFile(file);
     setAttachmentStatus('idle');
     setAttachmentError('');
+    setAttachmentUploadProgress(0);
   };
 
   const onAttachmentSubmit = async (event) => {
@@ -477,6 +536,7 @@ export function usePortalRequests({
 
     setAttachmentStatus('saving');
     setAttachmentError('');
+    setAttachmentUploadProgress(0);
     try {
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
@@ -491,7 +551,9 @@ export function usePortalRequests({
       const uploadUrl = intentPayload?.upload?.upload_url;
       if (!storagePath || !uploadUrl) throw new Error(t('portalRequests.errors.uploadIntentMissingPath'));
 
-      await putBlobToStorage(uploadUrl, attachmentFile);
+      await putBlobToStorage(uploadUrl, attachmentFile, (progress) => {
+        setAttachmentUploadProgress(progress);
+      });
 
       await finalizeUpload(baseUrl, token, selectedRequestId, {
         emailHint,
@@ -502,6 +564,7 @@ export function usePortalRequests({
       });
       setAttachmentStatus('success');
       setAttachmentFile(null);
+      setAttachmentUploadProgress(100);
       await loadRequestDetails(selectedRequestId);
     } catch (error) {
       handleApiForbidden(error);
@@ -559,6 +622,8 @@ export function usePortalRequests({
     selectedRequestId,
     setSelectedRequestId,
     requestDetail,
+    detailStatus,
+    detailError,
     threadMessages,
     attachments,
     tenantForm,
@@ -574,6 +639,7 @@ export function usePortalRequests({
     cancelStatus,
     cancelError,
     managementForm,
+    managementStatusOptions,
     managementUpdateStatus,
     managementUpdateError,
     messageForm,
@@ -583,6 +649,7 @@ export function usePortalRequests({
     attachmentFile,
     attachmentStatus,
     attachmentError,
+    attachmentUploadProgress,
     suggestionStatus,
     suggestionError,
     suggestionText,

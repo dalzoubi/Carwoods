@@ -51,14 +51,15 @@ export async function harColumnsForPatch(
     har_sync_error: string | null;
     har_last_synced_at: Date | null;
   },
-  body: { har_listing_id?: string | null; metadata?: unknown }
+  body: { har_listing_id?: string | null; metadata?: unknown; refresh_har?: boolean }
 ): Promise<HarColumns> {
   const metaBase = { ...asRecord(current.metadata) };
   if (body.metadata !== undefined) {
     Object.assign(metaBase, asRecord(body.metadata));
   }
 
-  if (body.har_listing_id === undefined) {
+  const refreshHar = body.refresh_har === true;
+  if (body.har_listing_id === undefined && !refreshHar) {
     return {
       har_listing_id: current.har_listing_id,
       listing_source: current.listing_source,
@@ -69,7 +70,9 @@ export async function harColumnsForPatch(
     };
   }
 
-  const nextHar = body.har_listing_id?.trim() || null;
+  const nextHar = body.har_listing_id === undefined
+    ? (current.har_listing_id?.trim() || null)
+    : (body.har_listing_id?.trim() || null);
   if (!nextHar) {
     return {
       har_listing_id: null,

@@ -5,8 +5,11 @@ export const Role = {
 };
 
 export const RequestStatus = {
-  OPEN: 'open',
-  IN_PROGRESS: 'in-progress',
-  RESOLVED: 'resolved',
-  CLOSED: 'closed',
+  OPEN: 'OPEN',
+  NOT_STARTED: 'NOT_STARTED',
+  ACKNOWLEDGED: 'ACKNOWLEDGED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  CANCELLED: 'CANCELLED',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED',
 };

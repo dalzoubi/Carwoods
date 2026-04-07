@@ -83,8 +83,10 @@ const RentBadge = styled.span`
     border-radius: 4px;
     font-size: 0.875rem;
     font-weight: 600;
-    background: var(--cta-button-bg);
-    color: var(--cta-button-text);
+    background: color-mix(in srgb, var(--palette-background-paper) 90%, transparent);
+    color: var(--palette-text-primary);
+    border: 1px solid color-mix(in srgb, var(--palette-divider) 80%, transparent);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
     pointer-events: none;
 `;
 

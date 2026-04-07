@@ -15,6 +15,7 @@ import { getProperty } from '../useCases/properties/getProperty.js';
 import { createProperty } from '../useCases/properties/createProperty.js';
 import { updateProperty } from '../useCases/properties/updateProperty.js';
 import { deleteProperty } from '../useCases/properties/deleteProperty.js';
+import { restoreProperty } from '../useCases/properties/restoreProperty.js';
 
 // ---------------------------------------------------------------------------
 // Parsing helpers
@@ -33,6 +34,12 @@ function bool(v: unknown): boolean | undefined {
   return typeof v === 'boolean' ? v : undefined;
 }
 
+function isTrueQueryParam(v: string | undefined): boolean {
+  if (!v) return false;
+  const value = v.trim().toLowerCase();
+  return value === '1' || value === 'true' || value === 'yes';
+}
+
 // ---------------------------------------------------------------------------
 // Handlers
 // ---------------------------------------------------------------------------
@@ -48,9 +55,11 @@ async function landlordPropertiesCollection(
 
   if (request.method === 'GET') {
     try {
+      const includeDeleted = isTrueQueryParam(request.query.get('include_deleted') ?? undefined);
       const result = await listProperties(getPool(), {
         actorUserId: ctx.user.id,
         actorRole: ctx.role,
+        includeDeleted,
       });
       logInfo(context, 'properties.collection.list.success', {
         userId: ctx.user.id,
@@ -166,8 +175,18 @@ async function landlordPropertiesItem(
       return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
     }
     const b = asRecord(body);
+    const restore = bool(b.restore) === true;
 
     try {
+      if (restore) {
+        await restoreProperty(getPool(), {
+          propertyId: id,
+          actorUserId: ctx.user.id,
+          actorRole: ctx.role,
+        });
+        logInfo(context, 'properties.item.restore.success', { userId: ctx.user.id, propertyId: id });
+        return jsonResponse(200, ctx.headers, { restored: true });
+      }
       const result = await updateProperty(getPool(), {
         propertyId: id,
         actorUserId: ctx.user.id,
@@ -185,6 +204,7 @@ async function landlordPropertiesItem(
         landlord_user_id_present: b.landlord_user_id !== undefined,
         metadata: b.metadata,
         metadata_present: b.metadata !== undefined,
+        refresh_har: bool(b.refresh_har),
       });
       logInfo(context, 'properties.item.patch.success', { userId: ctx.user.id, propertyId: id });
       return jsonResponse(200, ctx.headers, { property: result.property });

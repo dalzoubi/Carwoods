@@ -272,5 +272,158 @@ describe('usePortalRequests', () => {
     // No additional fetch calls should have been made (client-side rejection)
     expect(global.fetch.mock.calls.length).toBe(fetchCallsBefore);
   });
+
+  it('keeps requestsStatus ok when detail load fails', async () => {
+    global.fetch
+      .mockResolvedValueOnce(
+        jsonResponse({
+          requests: [{ id: 'req-x1', title: 'Broken lock', status_code: 'OPEN' }],
+        })
+      )
+      .mockResolvedValueOnce(jsonResponse({ error: 'upstream_failed' }, 500));
+
+    const params = baseParams({
+      isManagement: true,
+      account: { idTokenClaims: { email: 'landlord@example.com' } },
+    });
+    const { result } = renderHook(() => usePortalRequests(params));
+
+    await waitFor(() => {
+      expect(result.current.requestsStatus).toBe('ok');
+    });
+    await waitFor(() => {
+      expect(result.current.detailStatus).toBe('error');
+    });
+
+    expect(result.current.requests).toHaveLength(1);
+    expect(result.current.requestsStatus).toBe('ok');
+  });
+
+  it('handles successful cancel flow and refreshes the list', async () => {
+    global.fetch
+      .mockResolvedValueOnce(jsonResponse({ requests: [{ id: 'req-c1', title: 'Leak', status_code: 'OPEN' }] }))
+      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-c1', title: 'Leak', status_code: 'OPEN' } }))
+      .mockResolvedValueOnce(jsonResponse({ messages: [] }))
+      .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(jsonResponse({ ok: true }))
+      .mockResolvedValueOnce(jsonResponse({ requests: [{ id: 'req-c1', title: 'Leak', status_code: 'CANCELLED' }] }))
+      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-c1', title: 'Leak', status_code: 'CANCELLED' } }))
+      .mockResolvedValueOnce(jsonResponse({ messages: [] }))
+      .mockResolvedValueOnce(jsonResponse({ attachments: [] }));
+
+    const params = baseParams({
+      isManagement: true,
+      account: { idTokenClaims: { email: 'landlord@example.com' } },
+    });
+    const { result } = renderHook(() => usePortalRequests(params));
+
+    await waitFor(() => expect(result.current.selectedRequestId).toBe('req-c1'));
+    await act(async () => {
+      await result.current.onCancelRequest();
+    });
+    await waitFor(() => {
+      expect(result.current.requests.length).toBeGreaterThan(0);
+    });
+
+    expect(result.current.cancelStatus).toBe('success');
+    expect(result.current.requests[0].status_code).toBe('CANCELLED');
+  });
+
+  it('handles management status update with normalized status code', async () => {
+    global.fetch
+      .mockResolvedValueOnce(jsonResponse({ requests: [{ id: 'req-m1', title: 'AC', status_code: 'OPEN' }] }))
+      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-m1', title: 'AC', status_code: 'OPEN' } }))
+      .mockResolvedValueOnce(jsonResponse({ messages: [] }))
+      .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(jsonResponse({ ok: true }))
+      .mockResolvedValueOnce(jsonResponse({ requests: [{ id: 'req-m1', title: 'AC', status_code: 'IN_PROGRESS' }] }))
+      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-m1', title: 'AC', status_code: 'IN_PROGRESS' } }))
+      .mockResolvedValueOnce(jsonResponse({ messages: [] }))
+      .mockResolvedValueOnce(jsonResponse({ attachments: [] }));
+
+    const params = baseParams({
+      isManagement: true,
+      account: { idTokenClaims: { email: 'landlord@example.com' } },
+    });
+    const { result } = renderHook(() => usePortalRequests(params));
+
+    await waitFor(() => expect(result.current.requestsStatus).toBe('ok'));
+    await act(async () => {
+      result.current.onManagementField('status_code')({ target: { value: 'in_progress' } });
+    });
+    await act(async () => {
+      await result.current.onUpdateRequest({ preventDefault() {} });
+    });
+
+    expect(result.current.managementUpdateStatus).toBe('success');
+    expect(result.current.requests[0].status_code).toBe('IN_PROGRESS');
+  });
+
+  it('handles message submit success and clears message form', async () => {
+    global.fetch
+      .mockResolvedValueOnce(jsonResponse({ requests: [{ id: 'req-msg1', title: 'Noise', status_code: 'OPEN' }] }))
+      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-msg1', title: 'Noise', status_code: 'OPEN' } }))
+      .mockResolvedValueOnce(jsonResponse({ messages: [] }))
+      .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(jsonResponse({ ok: true }))
+      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-msg1', title: 'Noise', status_code: 'OPEN' } }))
+      .mockResolvedValueOnce(jsonResponse({
+        messages: [{ id: 'msg-new', sender_display_name: 'Manager', body: 'Thanks', is_internal: false }],
+      }))
+      .mockResolvedValueOnce(jsonResponse({ attachments: [] }));
+
+    const params = baseParams({
+      isManagement: true,
+      account: { idTokenClaims: { email: 'landlord@example.com' } },
+    });
+    const { result } = renderHook(() => usePortalRequests(params));
+
+    await waitFor(() => expect(result.current.selectedRequestId).toBe('req-msg1'));
+    await act(async () => {
+      result.current.setMessageForm({ body: 'Please update me', is_internal: false });
+    });
+    await act(async () => {
+      await result.current.onMessageSubmit({ preventDefault() {} });
+    });
+
+    expect(result.current.messageStatus).toBe('success');
+    expect(result.current.messageForm.body).toBe('');
+    expect(result.current.threadMessages).toHaveLength(1);
+  });
+
+  it('resets transient per-request state when selected request changes', async () => {
+    global.fetch
+      .mockResolvedValueOnce(jsonResponse({
+        requests: [
+          { id: 'req-r1', title: 'Door issue', status_code: 'OPEN' },
+          { id: 'req-r2', title: 'Pipe issue', status_code: 'OPEN' },
+        ],
+      }))
+      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-r1', title: 'Door issue', status_code: 'OPEN' } }))
+      .mockResolvedValueOnce(jsonResponse({ messages: [] }))
+      .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(jsonResponse({ error: 'upstream_failed' }, 500));
+
+    const params = baseParams();
+    const { result } = renderHook(() => usePortalRequests(params));
+
+    await waitFor(() => expect(result.current.requestsStatus).toBe('ok'));
+    await act(async () => {
+      result.current.setMessageForm({ body: 'Any update?', is_internal: false });
+    });
+    await act(async () => {
+      await result.current.onMessageSubmit({ preventDefault() {} });
+    });
+    expect(result.current.messageStatus).toBe('error');
+
+    await act(async () => {
+      result.current.setSelectedRequestId('req-r2');
+    });
+
+    expect(result.current.messageStatus).toBe('idle');
+    expect(result.current.messageError).toBe('');
+    expect(result.current.attachmentStatus).toBe('idle');
+    expect(result.current.cancelStatus).toBe('idle');
+  });
 });
 

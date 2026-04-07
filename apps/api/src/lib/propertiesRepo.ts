@@ -74,8 +74,10 @@ export async function listPropertiesLandlord(
 export async function listPropertiesForActor(
   client: Queryable,
   actorRole: string,
-  actorUserId: string
+  actorUserId: string,
+  includeDeleted = false
 ): Promise<PropertyRowFull[]> {
+  const deletedClause = includeDeleted ? '' : ' AND p.deleted_at IS NULL';
   const r = await client.query<PropertyRowFull>(
     `SELECT p.id, p.name, p.street, p.city, p.state, p.zip, p.har_listing_id, p.listing_source, p.apply_visible,
             p.metadata, p.har_sync_status, p.har_sync_error, p.har_last_synced_at,
@@ -88,8 +90,7 @@ export async function listPropertiesForActor(
      FROM properties p
      LEFT JOIN users landlord
        ON landlord.id = p.created_by
-     WHERE p.deleted_at IS NULL
-       AND ($1 = 'ADMIN' OR p.created_by = $2)
+     WHERE ($1 = 'ADMIN' OR p.created_by = $2)${deletedClause}
      ORDER BY p.created_at DESC`,
     [actorRole.trim().toUpperCase(), actorUserId]
   );
@@ -123,6 +124,24 @@ export async function getPropertyByIdForActor(
      FROM properties
      WHERE id = $1
        AND deleted_at IS NULL
+       AND ($2 = 'ADMIN' OR created_by = $3)`,
+    [id, actorRole.trim().toUpperCase(), actorUserId]
+  );
+  return r.rows[0] ?? null;
+}
+
+export async function getPropertyByIdForActorIncludeDeleted(
+  client: Queryable,
+  id: string,
+  actorRole: string,
+  actorUserId: string
+): Promise<PropertyRowFull | null> {
+  const r = await client.query<PropertyRowFull>(
+    `SELECT id, name, street, city, state, zip, har_listing_id, listing_source, apply_visible,
+            metadata, har_sync_status, har_sync_error, har_last_synced_at,
+            created_at, updated_at, deleted_at, created_by
+     FROM properties
+     WHERE id = $1
        AND ($2 = 'ADMIN' OR created_by = $3)`,
     [id, actorRole.trim().toUpperCase(), actorUserId]
   );
@@ -273,6 +292,19 @@ export async function softDeleteProperty(
   const r = await client.query(
     `UPDATE properties SET deleted_at = GETUTCDATE(), updated_by = $2, updated_at = GETUTCDATE()
      WHERE id = $1 AND deleted_at IS NULL`,
+    [id, updatedBy]
+  );
+  return (r.rowCount ?? 0) > 0;
+}
+
+export async function restoreProperty(
+  client: PoolClient,
+  id: string,
+  updatedBy: string
+): Promise<boolean> {
+  const r = await client.query(
+    `UPDATE properties SET deleted_at = NULL, updated_by = $2, updated_at = GETUTCDATE()
+     WHERE id = $1 AND deleted_at IS NOT NULL`,
     [id, updatedBy]
   );
   return (r.rowCount ?? 0) > 0;

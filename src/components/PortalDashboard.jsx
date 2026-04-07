@@ -24,27 +24,31 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
 import { hasLandlordAccess } from '../domain/roleUtils.js';
 import { isGuestRole, normalizeRole, resolveRole, emailFromAccount } from '../portalUtils';
-import { Role } from '../domain/constants.js';
+import { RequestStatus, Role } from '../domain/constants.js';
 import { withDarkPath } from '../routePaths';
 import { fetchRequests } from '../lib/portalApiClient';
 
-function statusColor(statusId) {
-  const s = String(statusId ?? '').toUpperCase();
-  if (s === 'OPEN' || s === 'NEW') return 'warning';
-  if (s === 'IN_PROGRESS') return 'info';
-  if (s === 'CLOSED' || s === 'RESOLVED') return 'success';
+export function statusColor(statusCode) {
+  const s = String(statusCode ?? '').toUpperCase();
+  if ([RequestStatus.OPEN, RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED].includes(s)) {
+    return 'warning';
+  }
+  if (s === RequestStatus.IN_PROGRESS) return 'info';
+  if ([RequestStatus.CLOSED, RequestStatus.RESOLVED, RequestStatus.CANCELLED].includes(s)) {
+    return 'success';
+  }
   return 'default';
 }
 
-function countByStatus(requests) {
+export function countByStatus(requests) {
   let open = 0;
   let inProgress = 0;
   let resolved = 0;
   for (const r of requests) {
-    const s = String(r.current_status_id ?? '').toUpperCase();
-    if (s === 'CLOSED' || s === 'RESOLVED') resolved++;
-    else if (s === 'IN_PROGRESS') inProgress++;
-    else open++;
+    const s = String(r.status_code ?? '').toUpperCase();
+    if ([RequestStatus.CLOSED, RequestStatus.RESOLVED, RequestStatus.CANCELLED].includes(s)) resolved++;
+    else if (s === RequestStatus.IN_PROGRESS) inProgress++;
+    else if ([RequestStatus.OPEN, RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED].includes(s)) open++;
   }
   return { open, inProgress, resolved };
 }
@@ -289,7 +293,10 @@ const PortalDashboard = () => {
                         transition: 'border-color 0.2s',
                       }}
                       component={RouterLink}
-                      to={withDarkPath(pathname, '/portal/requests')}
+                      to={withDarkPath(
+                        pathname,
+                        `/portal/requests?id=${encodeURIComponent(req.id)}`
+                      )}
                       style={{ textDecoration: 'none', color: 'inherit' }}
                     >
                       <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
@@ -303,9 +310,9 @@ const PortalDashboard = () => {
                             {req.title || t('portalDashboard.recentRequests.noTitle')}
                           </Typography>
                           <Chip
-                            label={req.current_status_id || 'OPEN'}
+                            label={req.status_name || req.status_code || 'Open'}
                             size="small"
-                            color={statusColor(req.current_status_id)}
+                            color={statusColor(req.status_code)}
                             variant="outlined"
                           />
                         </Stack>

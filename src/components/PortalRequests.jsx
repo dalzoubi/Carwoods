@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { Alert, Box, Button, Chip, Collapse, Paper, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Alert, Box, Button, Collapse, Paper, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import { useLocation } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
 import { hasLandlordAccess } from '../domain/roleUtils.js';
 import { Role } from '../domain/constants.js';
@@ -17,6 +18,10 @@ const PortalRequests = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  const location = useLocation();
+  const selectedRequestFromUrl = new URLSearchParams(location.search).get('id') || '';
+  const listPaneRef = useRef(null);
+  const detailPaneRef = useRef(null);
   const {
     baseUrl,
     isAuthenticated,
@@ -40,6 +45,8 @@ const PortalRequests = () => {
     selectedRequestId,
     setSelectedRequestId,
     requestDetail,
+    detailStatus,
+    detailError,
     threadMessages,
     attachments,
     tenantForm,
@@ -52,6 +59,7 @@ const PortalRequests = () => {
     tenantCreateStatus,
     tenantCreateError,
     managementForm,
+    managementStatusOptions,
     managementUpdateStatus,
     managementUpdateError,
     messageForm,
@@ -61,6 +69,7 @@ const PortalRequests = () => {
     attachmentFile,
     attachmentStatus,
     attachmentError,
+    attachmentUploadProgress,
     suggestionStatus,
     suggestionError,
     suggestionText,
@@ -98,6 +107,7 @@ const PortalRequests = () => {
     getAccessToken,
     handleApiForbidden,
     t,
+    initialSelectedRequestId: selectedRequestFromUrl,
   });
 
   const portalStateMessage = isAuthenticated
@@ -108,7 +118,6 @@ const PortalRequests = () => {
         : null
     : null;
 
-  const hasDetail = selectedRequestId && requestDetail;
   const [createOpen, setCreateOpen] = useState(false);
   // Close the create form automatically after a successful submission
   React.useEffect(() => {
@@ -134,7 +143,9 @@ const PortalRequests = () => {
           </Box>
           {isManagement && (
             <Button type="button" variant="outlined" size="small" onClick={onExportCsv} sx={{ textTransform: 'none' }}>
-              {t('portalRequests.actions.exportCsv')}
+              {exportStatus === 'loading'
+                ? t('portalRequests.actions.exportingCsv')
+                : t('portalRequests.actions.exportCsv')}
             </Button>
           )}
         </Stack>
@@ -189,6 +200,7 @@ const PortalRequests = () => {
         >
           {/* List pane */}
           <Paper
+            ref={listPaneRef}
             variant="outlined"
             sx={{
               width: isDesktop ? 340 : '100%',
@@ -207,8 +219,15 @@ const PortalRequests = () => {
               selectedRequestId={selectedRequestId}
               onSelectRequest={async (id) => {
                 setSelectedRequestId(id);
-                await loadRequestDetails(id);
-                await loadAuditForRequest(id);
+                try {
+                  await loadRequestDetails(id);
+                  await loadAuditForRequest(id);
+                  if (!isDesktop) {
+                    detailPaneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                } catch {
+                  // detail errors are surfaced in detailStatus/detailError
+                }
               }}
               onReload={() => loadRequests({ keepSelection: true })}
               reloadDisabled={!isAuthenticated || !baseUrl || isGuest || requestsStatus === 'loading'}
@@ -218,6 +237,7 @@ const PortalRequests = () => {
           {/* Detail pane */}
           <Paper
             variant="outlined"
+            ref={detailPaneRef}
             sx={{
               flex: 1,
               p: 2,
@@ -226,12 +246,29 @@ const PortalRequests = () => {
               width: isDesktop ? undefined : '100%',
             }}
           >
-            {hasDetail ? (
+            {!isDesktop && selectedRequestId && (
+              <Box sx={{ mb: 1.5 }}>
+                <Button
+                  type="button"
+                  size="small"
+                  onClick={() => {
+                    setSelectedRequestId('');
+                    listPaneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
+                >
+                  {t('portalRequests.actions.backToList')}
+                </Button>
+              </Box>
+            )}
+            {selectedRequestId ? (
               <RequestDetailPane
                 requestDetail={requestDetail}
+                detailStatus={detailStatus}
+                detailError={detailError}
                 isManagement={isManagement}
                 isAdmin={isAdmin}
                 managementForm={managementForm}
+                managementStatusOptions={managementStatusOptions}
                 onManagementField={onManagementField}
                 onUpdateRequest={onUpdateRequest}
                 managementUpdateStatus={managementUpdateStatus}
@@ -252,6 +289,7 @@ const PortalRequests = () => {
                 attachmentFile={attachmentFile}
                 attachmentStatus={attachmentStatus}
                 attachmentError={attachmentError}
+                attachmentUploadProgress={attachmentUploadProgress}
                 auditEvents={auditEvents}
                 auditStatus={auditStatus}
                 auditError={auditError}
@@ -263,7 +301,7 @@ const PortalRequests = () => {
               <Box sx={{ py: 6, textAlign: 'center' }}>
                 <Typography color="text.secondary" variant="body2">
                   {requests.length > 0
-                    ? t('portalRequests.list.empty').replace('No requests found', 'Select a request to view details')
+                    ? t('portalRequests.list.selectPrompt')
                     : t('portalRequests.list.empty')}
                 </Typography>
               </Box>
