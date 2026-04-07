@@ -74,7 +74,13 @@ const TenantRequestForm = ({
           />
           <TextField
             label={t('portalRequests.create.leaseEndDate')}
-            value={tenantDefaults?.lease_end_date || t('portalRequests.create.leaseEndDateNotSet')}
+            value={
+              tenantDefaults?.lease_end_date
+                ? tenantDefaults.lease_end_date
+                : tenantDefaults?.month_to_month
+                  ? t('portalRequests.create.leaseEndDateMonthToMonth')
+                  : t('portalRequests.create.leaseEndDateNotSet')
+            }
             InputProps={{ readOnly: true }}
             fullWidth
           />

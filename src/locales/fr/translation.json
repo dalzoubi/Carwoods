@@ -803,7 +803,9 @@
       "landlordFallbackName": "votre proprietaire",
       "loadFailed": "Impossible de charger les demandes.",
       "saveFailed": "Impossible d'enregistrer les modifications.",
-      "uploadIntentMissingPath": "L'intention d'upload n'a pas retourne de chemin de stockage."
+      "uploadIntentMissingPath": "L'intention d'upload n'a pas retourne de chemin de stockage.",
+      "unsupportedFileType": "Type de fichier non pris en charge. Autorisés : images, vidéos, PDF, Word ou texte brut.",
+      "fileTooLarge": "Le fichier dépasse la limite de {{maxMb}} Mo pour ce type."
     },
     "list": {
       "heading": "Liste des demandes",
@@ -817,6 +819,7 @@
       "propertyStreet": "Adresse complete de la propriete",
       "leaseEndDate": "Date de fin du bail",
       "leaseEndDateNotSet": "Non defini",
+      "leaseEndDateMonthToMonth": "Mois par mois",
       "notAvailable": "Non disponible",
       "categoryCode": "Categorie",
       "priorityCode": "Priorite",

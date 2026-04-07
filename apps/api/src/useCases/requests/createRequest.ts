@@ -80,7 +80,7 @@ export async function createRequest(
   const [categoryId, priorityId, openStatusId] = await Promise.all([
     resolveLookupId(db, 'service_categories', input.categoryCode!),
     resolveLookupId(db, 'request_priorities', input.priorityCode!),
-    findStatusIdByCode(db, RequestStatus.OPEN),
+    findStatusIdByCode(db, RequestStatus.NOT_STARTED),
   ]);
 
   if (!categoryId || !priorityId || !openStatusId) {

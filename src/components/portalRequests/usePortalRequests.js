@@ -7,12 +7,40 @@ import {
   createRequest,
   postMessage,
   requestUploadIntent,
+  putBlobToStorage,
   finalizeUpload,
   patchResource,
   fetchSuggestReply,
   fetchExportCsv,
   fetchRequestAudit,
 } from '../../lib/portalApiClient';
+
+const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
+const MAX_FILE_BYTES = 25 * 1024 * 1024;
+const PHOTO_MIME_PREFIXES = ['image/'];
+const VIDEO_MIME_PREFIXES = ['video/'];
+const FILE_MIME_ALLOWED = [
+  'application/pdf',
+  'text/plain',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
+
+function detectMediaType(contentType) {
+  const mime = (contentType || '').trim().toLowerCase();
+  if (!mime) return null;
+  if (PHOTO_MIME_PREFIXES.some((prefix) => mime.startsWith(prefix))) return 'PHOTO';
+  if (VIDEO_MIME_PREFIXES.some((prefix) => mime.startsWith(prefix))) return 'VIDEO';
+  if (FILE_MIME_ALLOWED.includes(mime)) return 'FILE';
+  return null;
+}
+
+function maxBytesForMediaType(mediaType) {
+  if (mediaType === 'PHOTO') return MAX_PHOTO_BYTES;
+  if (mediaType === 'VIDEO') return MAX_VIDEO_BYTES;
+  return MAX_FILE_BYTES;
+}
 
 function extractErrorMessage(error, t, fallbackKey) {
   if (error && typeof error === 'object' && typeof error.message === 'string') {
@@ -366,6 +394,25 @@ export function usePortalRequests({
   const onAttachmentSubmit = async (event) => {
     event.preventDefault();
     if (!baseUrl || !selectedRequestId || !attachmentFile) return;
+
+    const contentType = attachmentFile.type || 'application/octet-stream';
+    const mediaType = detectMediaType(contentType);
+    if (!mediaType) {
+      setAttachmentStatus('error');
+      setAttachmentError(t('portalRequests.errors.unsupportedFileType'));
+      return;
+    }
+    const maxBytes = maxBytesForMediaType(mediaType);
+    if (attachmentFile.size > maxBytes) {
+      setAttachmentStatus('error');
+      setAttachmentError(
+        t('portalRequests.errors.fileTooLarge', {
+          maxMb: Math.round(maxBytes / (1024 * 1024)),
+        })
+      );
+      return;
+    }
+
     setAttachmentStatus('saving');
     setAttachmentError('');
     try {
@@ -374,18 +421,21 @@ export function usePortalRequests({
       const filePayload = {
         emailHint,
         filename: attachmentFile.name,
-        content_type: attachmentFile.type || 'application/octet-stream',
+        content_type: contentType,
         file_size_bytes: attachmentFile.size,
       };
       const intentPayload = await requestUploadIntent(baseUrl, token, selectedRequestId, filePayload);
       const storagePath = intentPayload?.upload?.storage_path;
-      if (!storagePath) throw new Error(t('portalRequests.errors.uploadIntentMissingPath'));
+      const uploadUrl = intentPayload?.upload?.upload_url;
+      if (!storagePath || !uploadUrl) throw new Error(t('portalRequests.errors.uploadIntentMissingPath'));
+
+      await putBlobToStorage(uploadUrl, attachmentFile);
 
       await finalizeUpload(baseUrl, token, selectedRequestId, {
         emailHint,
         storage_path: storagePath,
         filename: attachmentFile.name,
-        content_type: attachmentFile.type || 'application/octet-stream',
+        content_type: contentType,
         file_size_bytes: attachmentFile.size,
       });
       setAttachmentStatus('success');

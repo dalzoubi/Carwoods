@@ -803,7 +803,9 @@
       "landlordFallbackName": "your property manager",
       "loadFailed": "Unable to load request data.",
       "saveFailed": "Unable to save changes.",
-      "uploadIntentMissingPath": "Upload intent did not return a storage path."
+      "uploadIntentMissingPath": "Upload intent did not return a storage path.",
+      "unsupportedFileType": "File type not supported. Allowed: images, videos, PDF, Word, or plain text.",
+      "fileTooLarge": "File exceeds the {{maxMb}} MB limit for this type."
     },
     "list": {
       "heading": "Request list",
@@ -817,6 +819,7 @@
       "propertyStreet": "Property full address",
       "leaseEndDate": "Lease end date",
       "leaseEndDateNotSet": "Not set",
+      "leaseEndDateMonthToMonth": "Month-to-month",
       "notAvailable": "Not available",
       "categoryCode": "Category",
       "priorityCode": "Priority",

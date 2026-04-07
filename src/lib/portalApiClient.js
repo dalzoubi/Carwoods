@@ -276,6 +276,33 @@ export async function requestUploadIntent(baseUrl, accessToken, requestId, paylo
 }
 
 // ---------------------------------------------------------------------------
+// PUT <upload_url>  (direct Azure Blob Storage upload — no auth header)
+// ---------------------------------------------------------------------------
+
+/**
+ * Upload a file's bytes directly to a pre-signed Azure Blob Storage URL.
+ * The URL already contains a SAS token so no Authorization header is sent.
+ *
+ * @param {string} uploadUrl   Pre-signed Azure Blob SAS URL from requestUploadIntent
+ * @param {File} file          The File object to upload
+ * @returns {Promise<void>}
+ */
+export async function putBlobToStorage(uploadUrl, file) {
+  const res = await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: {
+      'x-ms-blob-type': 'BlockBlob',
+      'Content-Type': file.type || 'application/octet-stream',
+    },
+    body: file,
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    throw apiError(res.status, 'blob_upload_failed');
+  }
+}
+
+// ---------------------------------------------------------------------------
 // POST /api/portal/requests/:id/attachments/finalize
 // ---------------------------------------------------------------------------
 

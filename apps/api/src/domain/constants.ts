@@ -7,10 +7,13 @@ export const Role = {
 export type Role = typeof Role[keyof typeof Role];
 
 export const RequestStatus = {
-  OPEN: 'open',
-  IN_PROGRESS: 'in-progress',
-  RESOLVED: 'resolved',
-  CLOSED: 'closed',
+  NOT_STARTED: 'NOT_STARTED',
+  ACKNOWLEDGED: 'ACKNOWLEDGED',
+  SCHEDULED: 'SCHEDULED',
+  WAITING_ON_TENANT: 'WAITING_ON_TENANT',
+  WAITING_ON_VENDOR: 'WAITING_ON_VENDOR',
+  COMPLETE: 'COMPLETE',
+  CANCELLED: 'CANCELLED',
 } as const;
 
 export type RequestStatus = typeof RequestStatus[keyof typeof RequestStatus];
