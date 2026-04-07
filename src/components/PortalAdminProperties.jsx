@@ -9,6 +9,7 @@ import {
   CardMedia,
   Chip,
   CircularProgress,
+  Collapse,
   Dialog,
   DialogActions,
   DialogContent,
@@ -199,6 +200,7 @@ const PortalAdminProperties = () => {
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState('');
 
+  const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [fieldErrors, setFieldErrors] = useState({});
   const [editingId, setEditingId] = useState(null);
@@ -288,6 +290,7 @@ const PortalAdminProperties = () => {
     });
     setFieldErrors({});
     setEditingId(null);
+    setFormOpen(false);
     setHarSearchId('');
     setHarStatus('idle');
     setHarMessage('');
@@ -298,6 +301,7 @@ const PortalAdminProperties = () => {
   const handleEdit = (property) => {
     setForm(propertyToForm(property));
     setEditingId(property.id);
+    setFormOpen(true);
     setHarSearchId(property.harId ?? '');
     setHarStatus('idle');
     setHarMessage('');
@@ -464,6 +468,22 @@ const PortalAdminProperties = () => {
         )}
         {listError && <Alert severity="error">{listError}</Alert>}
 
+        {/* Add / Edit property toggle */}
+        {!formOpen && (
+          <Box>
+            <Button
+              type="button"
+              variant="contained"
+              startIcon={<Add />}
+              disabled={!canManage}
+              onClick={() => setFormOpen(true)}
+            >
+              {t('portalAdminProperties.form.showForm')}
+            </Button>
+          </Box>
+        )}
+
+        <Collapse in={formOpen} unmountOnExit>
         {/* HAR Search Panel */}
         <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
           <Typography variant="h6" fontWeight={600} gutterBottom>
@@ -730,18 +750,17 @@ const PortalAdminProperties = () => {
                     ? t('portalAdminProperties.form.saveChanges')
                     : t('portalAdminProperties.form.addProperty')}
               </Button>
-              {editingId && (
-                <Button
-                  type="button"
-                  variant="outlined"
-                  onClick={resetForm}
-                >
-                  {t('portalAdminProperties.form.cancel')}
-                </Button>
-              )}
+              <Button
+                type="button"
+                variant="outlined"
+                onClick={resetForm}
+              >
+                {t('portalAdminProperties.form.cancel')}
+              </Button>
             </Stack>
           </Stack>
         </Paper>
+        </Collapse>
 
         {/* Properties Grid */}
         <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Box, Button, Link, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, IconButton, Link, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
 
@@ -15,6 +16,9 @@ const TenantRequestForm = ({
   onCreateRequest,
   tenantCreateStatus,
   tenantCreateError,
+  createAttachmentFiles,
+  onCreateAttachmentChange,
+  onRemoveCreateAttachment,
   disabled,
 }) => {
   const { t } = useTranslation();
@@ -129,6 +133,37 @@ const TenantRequestForm = ({
           minRows={3}
           disabled={disabled}
         />
+        <Stack spacing={0.75}>
+          <Typography variant="body2" color="text.secondary">
+            {t('portalRequests.create.attachmentsLabel')}
+          </Typography>
+          {createAttachmentFiles && createAttachmentFiles.length > 0 && (
+            <Stack spacing={0.5}>
+              {createAttachmentFiles.map((file, index) => (
+                <Stack key={index} direction="row" alignItems="center" spacing={0.5}>
+                  <Typography variant="body2" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {file.name}
+                  </Typography>
+                  <Tooltip title={t('portalRequests.create.removeAttachment')}>
+                    <IconButton
+                      type="button"
+                      size="small"
+                      onClick={() => onRemoveCreateAttachment(index)}
+                      aria-label={t('portalRequests.create.removeAttachment')}
+                      disabled={disabled}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              ))}
+            </Stack>
+          )}
+          <Button variant="outlined" component="label" type="button" disabled={disabled} size="small">
+            {t('portalRequests.actions.chooseFile')}
+            <input type="file" hidden multiple onChange={onCreateAttachmentChange} />
+          </Button>
+        </Stack>
         <StatusAlertSlot message={createStatusMessage} />
         <Stack direction="row" justifyContent="flex-end">
           <Button type="submit" variant="contained" disabled={disabled || lookupsUnavailable}>

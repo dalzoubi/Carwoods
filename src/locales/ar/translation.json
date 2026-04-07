@@ -784,6 +784,9 @@
     },
     "actions": {
       "reload": "إعادة تحميل الطلبات",
+      "newRequest": "طلب جديد",
+      "hideCreate": "إلغاء",
+      "create": "إرسال الطلب",
       "create": "إنشاء طلب",
       "saveChanges": "حفظ التحديثات",
       "sendMessage": "إرسال رسالة",
@@ -826,6 +829,8 @@
       "priorityCode": "الأولوية",
       "titleLabel": "عنوان الطلب",
       "descriptionLabel": "وصف الطلب",
+      "attachmentsLabel": "المرفقات (اختياري)",
+      "removeAttachment": "إزالة المرفق",
       "saved": "تم إنشاء الطلب."
     },
     "management": {
@@ -880,6 +885,8 @@
     "intro": "أنشئ وأدر سجلات الملاك في البوابة. يتم عرض الملاك النشطين افتراضيًا.",
     "form": {
       "heading": "إضافة مالك",
+      "showForm": "إضافة مالك",
+      "hideForm": "إلغاء",
       "email": "بريد المالك الإلكتروني",
       "firstName": "الاسم الأول",
       "lastName": "اسم العائلة",
@@ -960,6 +967,7 @@
       "photoUpload": "رفع صورة",
       "photoUrlLabel": "أو أدخل رابط الصورة",
       "photoPreview": "معاينة الصورة",
+      "showForm": "إضافة عقار",
       "addProperty": "إضافة عقار",
       "saveChanges": "حفظ التغييرات",
       "saving": "جارٍ الحفظ…",

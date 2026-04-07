@@ -784,6 +784,9 @@
     },
     "actions": {
       "reload": "Recharger les demandes",
+      "newRequest": "Nouvelle demande",
+      "hideCreate": "Annuler",
+      "create": "Soumettre la demande",
       "create": "Creer la demande",
       "saveChanges": "Enregistrer les modifications",
       "sendMessage": "Envoyer le message",
@@ -826,6 +829,8 @@
       "priorityCode": "Priorite",
       "titleLabel": "Titre de la demande",
       "descriptionLabel": "Description de la demande",
+      "attachmentsLabel": "Pièces jointes (facultatif)",
+      "removeAttachment": "Supprimer la pièce jointe",
       "saved": "Demande creee."
     },
     "management": {
@@ -880,6 +885,8 @@
     "intro": "Créez et gérez les enregistrements propriétaires du portail. Les propriétaires actifs sont affichés par défaut.",
     "form": {
       "heading": "Ajouter un propriétaire",
+      "showForm": "Ajouter un propriétaire",
+      "hideForm": "Annuler",
       "email": "E-mail du propriétaire",
       "firstName": "Prénom",
       "lastName": "Nom",
@@ -960,6 +967,7 @@
       "photoUpload": "Télécharger une photo",
       "photoUrlLabel": "Ou saisir l'URL de la photo",
       "photoPreview": "Aperçu de la photo",
+      "showForm": "Ajouter une propriété",
       "addProperty": "Ajouter une propriété",
       "saveChanges": "Enregistrer les modifications",
       "saving": "Enregistrement…",

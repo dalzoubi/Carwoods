@@ -784,7 +784,9 @@
     },
     "actions": {
       "reload": "Reload requests",
-      "create": "Create request",
+      "newRequest": "New request",
+      "hideCreate": "Cancel",
+      "create": "Submit request",
       "cancelRequest": "Cancel request",
       "saveChanges": "Save updates",
       "sendMessage": "Send message",
@@ -826,6 +828,8 @@
       "priorityCode": "Priority",
       "titleLabel": "Request title",
       "descriptionLabel": "Request description",
+      "attachmentsLabel": "Attachments (optional)",
+      "removeAttachment": "Remove attachment",
       "saved": "Request created."
     },
     "management": {
@@ -880,6 +884,8 @@
     "intro": "Create and manage landlord portal records. Active landlords are shown by default.",
     "form": {
       "heading": "Add landlord",
+      "showForm": "Add landlord",
+      "hideForm": "Cancel",
       "email": "Landlord email",
       "firstName": "First name",
       "lastName": "Last name",
@@ -960,6 +966,7 @@
       "photoUpload": "Upload photo",
       "photoUrlLabel": "Or enter photo URL",
       "photoPreview": "Photo preview",
+      "showForm": "Add property",
       "addProperty": "Add property",
       "saveChanges": "Save changes",
       "saving": "Saving…",

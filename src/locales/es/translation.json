@@ -784,6 +784,9 @@
     },
     "actions": {
       "reload": "Recargar solicitudes",
+      "newRequest": "Nueva solicitud",
+      "hideCreate": "Cancelar",
+      "create": "Enviar solicitud",
       "create": "Crear solicitud",
       "saveChanges": "Guardar cambios",
       "sendMessage": "Enviar mensaje",
@@ -826,6 +829,8 @@
       "priorityCode": "Prioridad",
       "titleLabel": "Título de solicitud",
       "descriptionLabel": "Descripción de solicitud",
+      "attachmentsLabel": "Archivos adjuntos (opcional)",
+      "removeAttachment": "Eliminar archivo adjunto",
       "saved": "Solicitud creada."
     },
     "management": {
@@ -880,6 +885,8 @@
     "intro": "Crea y administra registros de propietarios del portal. Por defecto se muestran propietarios activos.",
     "form": {
       "heading": "Agregar propietario",
+      "showForm": "Agregar propietario",
+      "hideForm": "Cancelar",
       "email": "Correo del propietario",
       "firstName": "Nombre",
       "lastName": "Apellido",
@@ -960,6 +967,7 @@
       "photoUpload": "Subir foto",
       "photoUrlLabel": "O ingresa URL de foto",
       "photoPreview": "Vista previa de foto",
+      "showForm": "Agregar propiedad",
       "addProperty": "Agregar propiedad",
       "saveChanges": "Guardar cambios",
       "saving": "Guardando…",
