@@ -219,7 +219,7 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
                   sx={{ marginInlineStart: 0.5 }}
                 >
                   <Avatar
-                    sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.8rem' }}
+                    sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.8rem', border: '1px solid rgba(255,255,255,0.85)' }}
                   >
                     {initials}
                   </Avatar>
@@ -364,7 +364,7 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
           <ListItemIcon>
             <Person fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary={`${t('portalHeader.nav.profile')} (${roleLabel})`} />
+          <ListItemText primary={t('portalHeader.nav.profile')} />
         </MenuItem>
         <Divider />
         <MenuItem
