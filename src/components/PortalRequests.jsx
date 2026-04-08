@@ -72,9 +72,6 @@ const PortalRequests = () => {
     attachmentStatus,
     attachmentError,
     attachmentUploadProgress,
-    suggestionStatus,
-    suggestionError,
-    suggestionText,
     exportStatus,
     exportError,
     auditEvents,
@@ -105,7 +102,6 @@ const PortalRequests = () => {
     onDeleteMessage,
     onAttachmentChange,
     onAttachmentSubmit,
-    onSuggestReply,
     onExportCsv,
     onSetElsaAutoRespond,
     onRunElsa,
@@ -288,10 +284,6 @@ const PortalRequests = () => {
                 onUpdateRequest={onUpdateRequest}
                 managementUpdateStatus={managementUpdateStatus}
                 managementUpdateError={managementUpdateError}
-                onSuggestReply={onSuggestReply}
-                suggestionStatus={suggestionStatus}
-                suggestionError={suggestionError}
-                suggestionText={suggestionText}
                 threadMessages={threadMessages}
                 messageForm={messageForm}
                 setMessageForm={setMessageForm}

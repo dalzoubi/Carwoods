@@ -11,7 +11,6 @@ import { logError, logWarn } from '../lib/serverLogger.js';
 import { listRequests } from '../useCases/requests/listRequests.js';
 import { getRequest } from '../useCases/requests/getRequest.js';
 import { updateRequestStatus } from '../useCases/requests/updateRequestStatus.js';
-import { suggestRequestReply } from '../useCases/requests/suggestRequestReply.js';
 import { exportRequestsCsv } from '../useCases/requests/exportRequestsCsv.js';
 import { listRequestAudit } from '../useCases/requests/listRequestAudit.js';
 import { processElsaAutoResponse } from '../useCases/requests/processElsaAutoResponse.js';
@@ -150,35 +149,6 @@ async function landlordRequestItem(
       userId: ctx.user.id,
       message: e instanceof Error ? e.message : 'unknown_error',
     });
-    throw e;
-  }
-}
-
-async function landlordSuggestReply(
-  request: HttpRequest,
-  context: InvocationContext
-): Promise<HttpResponseInit> {
-  const gate = await requireLandlordOrAdmin(request, context);
-  if (!gate.ok) return gate.response;
-  const { ctx } = gate;
-
-  if (request.method !== 'POST') {
-    return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
-  }
-
-  const requestId = request.params.id;
-  if (!requestId) return jsonResponse(400, ctx.headers, { error: 'missing_id' });
-
-  try {
-    const result = await suggestRequestReply(getPool(), {
-      requestId,
-      actorUserId: ctx.user.id,
-      actorRole: ctx.role,
-    });
-    return jsonResponse(200, ctx.headers, result);
-  } catch (e) {
-    const mapped = mapDomainError(e, ctx.headers);
-    if (mapped) return mapped;
     throw e;
   }
 }
@@ -552,13 +522,6 @@ app.http('landlordRequestsItem', {
   authLevel: 'anonymous',
   route: 'landlord/requests/{id}',
   handler: landlordRequestItem,
-});
-
-app.http('landlordRequestsSuggestReply', {
-  methods: ['POST', 'OPTIONS'],
-  authLevel: 'anonymous',
-  route: 'landlord/requests/{id}/suggest-reply',
-  handler: landlordSuggestReply,
 });
 
 app.http('landlordRequestAudit', {

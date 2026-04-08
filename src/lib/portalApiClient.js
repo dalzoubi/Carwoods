@@ -559,37 +559,6 @@ export async function fetchLandlords(baseUrl, accessToken, params) {
   return res.json();
 }
 
-// ---------------------------------------------------------------------------
-// POST /api/landlord/requests/:id/suggest-reply
-// ---------------------------------------------------------------------------
-
-/**
- * @param {string} baseUrl
- * @param {string} accessToken
- * @param {string} requestId
- * @param {{ emailHint?: string }} [params]
- * @returns {Promise<object>}
- */
-export async function fetchSuggestReply(baseUrl, accessToken, requestId, params) {
-  const emailHint = params?.emailHint;
-  const res = await fetch(
-    buildUrl(
-      baseUrl,
-      `/api/landlord/requests/${encodeURIComponent(requestId)}/suggest-reply`
-    ),
-    {
-      method: 'POST',
-      headers: jsonHeaders(accessToken, emailHint),
-      credentials: 'omit',
-    }
-  );
-  if (!res.ok) {
-    const code = await readErrorBody(res);
-    throw apiError(res.status, code);
-  }
-  return res.json();
-}
-
 export async function fetchElsaSettings(baseUrl, accessToken, params) {
   const emailHint = params?.emailHint;
   const requestParam = params?.requestId ? `?request_id=${encodeURIComponent(params.requestId)}` : '';

@@ -24,8 +24,6 @@ import {
   Typography,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import ContentCopy from '@mui/icons-material/ContentCopy';
-import EditNote from '@mui/icons-material/EditNote';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
 import { RequestStatus, Role } from '../../domain/constants.js';
@@ -103,10 +101,6 @@ const RequestDetailPane = ({
   onUpdateRequest,
   managementUpdateStatus,
   managementUpdateError,
-  onSuggestReply,
-  suggestionStatus,
-  suggestionError,
-  suggestionText,
   threadMessages,
   messageForm,
   setMessageForm,
@@ -145,15 +139,11 @@ const RequestDetailPane = ({
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [deleteDialogMessage, setDeleteDialogMessage] = useState(null);
   const [attachmentInputKey, setAttachmentInputKey] = useState(0);
-  const [suggestionActionMessage, setSuggestionActionMessage] = useState(null);
   const managementStatusMessage = managementUpdateStatus === 'error'
     ? { severity: 'error', text: managementUpdateError || t('portalRequests.errors.saveFailed') }
     : managementUpdateStatus === 'success'
       ? { severity: 'success', text: t('portalRequests.management.saved') }
       : null;
-  const suggestionStatusMessage = suggestionStatus === 'error'
-    ? { severity: 'error', text: suggestionError || t('portalRequests.errors.loadFailed') }
-    : null;
   const messageStatusMessage = messageStatus === 'error'
     ? { severity: 'error', text: messageError || t('portalRequests.errors.saveFailed') }
     : messageStatus === 'success'
@@ -169,9 +159,6 @@ const RequestDetailPane = ({
     : attachmentStatus === 'success'
       ? { severity: 'success', text: t('portalRequests.attachments.saved') }
       : null;
-  const suggestionActionStatusMessage = suggestionActionMessage
-    ? { severity: suggestionActionMessage.severity, text: suggestionActionMessage.text }
-    : null;
   const parsedAudits = useMemo(
     () => (Array.isArray(auditEvents) ? auditEvents : []).map((event) => {
       const parseJsonSafe = (raw) => {
@@ -222,29 +209,11 @@ const RequestDetailPane = ({
   useEffect(() => {
     if (!requestDetail) return;
     setActiveTab('details');
-    setSuggestionActionMessage(null);
   }, [requestDetail]);
   useEffect(() => {
     if (attachmentStatus !== 'success') return;
     setAttachmentInputKey((value) => value + 1);
   }, [attachmentStatus]);
-
-  const handleCopySuggestion = async () => {
-    if (!suggestionText) return;
-    try {
-      if (!navigator?.clipboard?.writeText) throw new Error('clipboard_unavailable');
-      await navigator.clipboard.writeText(suggestionText);
-      setSuggestionActionMessage({ severity: 'success', text: t('portalRequests.suggest.copySuccess') });
-    } catch {
-      setSuggestionActionMessage({ severity: 'error', text: t('portalRequests.suggest.copyFailed') });
-    }
-  };
-
-  const handleInsertSuggestion = () => {
-    if (!suggestionText) return;
-    setMessageForm((prev) => ({ ...prev, body: suggestionText }));
-    setSuggestionActionMessage({ severity: 'success', text: t('portalRequests.suggest.insertSuccess') });
-  };
 
   return (
     <Stack spacing={2} sx={{ flex: 1 }}>
@@ -530,46 +499,6 @@ const RequestDetailPane = ({
                   : t('portalRequests.actions.saveChanges')}
               </Button>
             </Stack>
-          </Stack>
-        </Box>
-      )}
-
-      {isManagement && elsaFeatureEnabled && (
-        <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 2 }}>
-          <Stack spacing={1.5}>
-            <Typography variant="h3" sx={{ fontSize: '1.1rem' }}>
-              {t('portalRequests.suggest.heading')}
-            </Typography>
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-              <Button type="button" variant="outlined" onClick={onSuggestReply} disabled={suggestionStatus === 'loading'}>
-                {t('portalRequests.actions.suggestReply')}
-              </Button>
-              <Button
-                type="button"
-                variant="outlined"
-                startIcon={<ContentCopy />}
-                onClick={handleCopySuggestion}
-                disabled={!suggestionText}
-              >
-                {t('portalRequests.actions.copy')}
-              </Button>
-              <Button
-                type="button"
-                variant="outlined"
-                startIcon={<EditNote />}
-                onClick={handleInsertSuggestion}
-                disabled={!suggestionText}
-              >
-                {t('portalRequests.actions.insertIntoMessage')}
-              </Button>
-            </Stack>
-            <StatusAlertSlot message={suggestionStatusMessage} />
-            <StatusAlertSlot message={suggestionActionStatusMessage} />
-            {suggestionStatus === 'ok' && suggestionText && (
-              <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1.5 }}>
-                <Typography>{suggestionText}</Typography>
-              </Box>
-            )}
           </Stack>
         </Box>
       )}
