@@ -5,6 +5,7 @@ import {
   Button,
   Chip,
   Checkbox,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -227,7 +228,10 @@ const RequestDetailPane = ({
         }
       />
       {detailStatus === 'loading' && (
-        <Alert severity="info">{t('portalRequests.loading')}</Alert>
+        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ py: 1 }}>
+          <CircularProgress size={20} />
+          <Typography color="text.secondary" variant="body2">{t('portalRequests.loading')}</Typography>
+        </Stack>
       )}
       {detailStatus === 'error' && (
         <Alert severity="error">{detailError || t('portalRequests.errors.loadFailed')}</Alert>
@@ -255,7 +259,10 @@ const RequestDetailPane = ({
               {t('portalRequests.audit.heading')}
             </Typography>
             {auditStatus === 'loading' && (
-              <Typography color="text.secondary">{t('portalRequests.audit.loading')}</Typography>
+              <Stack direction="row" alignItems="center" spacing={1.5}>
+                <CircularProgress size={18} />
+                <Typography color="text.secondary" variant="body2">{t('portalRequests.audit.loading')}</Typography>
+              </Stack>
             )}
             {auditStatus === 'error' && (
               <Alert severity="error">{auditError || t('portalRequests.errors.loadFailed')}</Alert>
@@ -387,6 +394,7 @@ const RequestDetailPane = ({
                 color="error"
                 disabled={cancelStatus === 'saving'}
                 onClick={() => setCancelDialogOpen(true)}
+                startIcon={cancelStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
               >
                 {cancelStatus === 'saving'
                   ? t('portalRequests.actions.saving')
@@ -493,7 +501,12 @@ const RequestDetailPane = ({
             />
             <StatusAlertSlot message={managementStatusMessage} />
             <Stack direction="row" justifyContent="flex-end">
-              <Button type="submit" variant="contained" disabled={managementUpdateStatus === 'saving'}>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={managementUpdateStatus === 'saving'}
+                startIcon={managementUpdateStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
+              >
                 {managementUpdateStatus === 'saving'
                   ? t('portalRequests.actions.saving')
                   : t('portalRequests.actions.saveChanges')}
@@ -519,8 +532,16 @@ const RequestDetailPane = ({
               label={t('portalRequests.elsa.autoRespondToggle')}
             />
             <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-              <Button type="button" variant="outlined" onClick={onRunElsa} disabled={elsaDecisionStatus === 'loading'}>
-                {t('portalRequests.elsa.runNow')}
+              <Button
+                type="button"
+                variant="outlined"
+                onClick={onRunElsa}
+                disabled={elsaDecisionStatus === 'loading'}
+                startIcon={elsaDecisionStatus === 'loading' ? <CircularProgress size={16} /> : null}
+              >
+                {elsaDecisionStatus === 'loading'
+                  ? t('portalRequests.elsa.running')
+                  : t('portalRequests.elsa.runNow')}
               </Button>
             </Stack>
             {elsaSettingsError && <Alert severity="error">{elsaSettingsError}</Alert>}
@@ -580,6 +601,7 @@ const RequestDetailPane = ({
                         variant="contained"
                         onClick={() => onReviewElsaDecision(decision.id, 'SEND_AND_RESOLVE')}
                         disabled={elsaDecisionActionStatus === 'saving'}
+                        startIcon={elsaDecisionActionStatus === 'saving' ? <CircularProgress size={14} color="inherit" /> : null}
                       >
                         {t('portalRequests.elsa.actions.sendAndResolve')}
                       </Button>
@@ -589,6 +611,7 @@ const RequestDetailPane = ({
                         variant="outlined"
                         onClick={() => onReviewElsaDecision(decision.id, 'MARK_RESOLVED')}
                         disabled={elsaDecisionActionStatus === 'saving'}
+                        startIcon={elsaDecisionActionStatus === 'saving' ? <CircularProgress size={14} color="inherit" /> : null}
                       >
                         {t('portalRequests.elsa.actions.markResolved')}
                       </Button>
@@ -599,6 +622,7 @@ const RequestDetailPane = ({
                         variant="outlined"
                         onClick={() => onReviewElsaDecision(decision.id, 'DISMISS')}
                         disabled={elsaDecisionActionStatus === 'saving'}
+                        startIcon={elsaDecisionActionStatus === 'saving' ? <CircularProgress size={14} color="inherit" /> : null}
                       >
                         {t('portalRequests.elsa.actions.dismiss')}
                       </Button>
@@ -765,7 +789,12 @@ const RequestDetailPane = ({
           <StatusAlertSlot message={messageStatusMessage} />
           <StatusAlertSlot message={messageDeleteStatusMessage} />
           <Stack direction="row" justifyContent="flex-end">
-            <Button type="submit" variant="contained" disabled={messageStatus === 'saving'}>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={messageStatus === 'saving'}
+              startIcon={messageStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
+            >
               {messageStatus === 'saving'
                 ? t('portalRequests.actions.saving')
                 : t('portalRequests.actions.sendMessage')}
@@ -840,7 +869,12 @@ const RequestDetailPane = ({
             </Stack>
           )}
           <Stack direction="row" justifyContent="flex-end">
-            <Button type="submit" variant="contained" disabled={!attachmentFile || attachmentStatus === 'saving'}>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={!attachmentFile || attachmentStatus === 'saving'}
+              startIcon={attachmentStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
+            >
               {attachmentStatus === 'saving'
                 ? t('portalRequests.actions.saving')
                 : t('portalRequests.actions.attachFile')}

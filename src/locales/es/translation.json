@@ -916,6 +916,7 @@
       "heading": "Respuesta automática protegida de Elsa",
       "autoRespondToggle": "Habilitar auto-respuesta de Elsa para esta solicitud",
       "runNow": "Ejecutar Elsa ahora",
+      "running": "Ejecutando…",
       "enableGlobalAutoSend": "Habilitar envío automático global",
       "disableGlobalAutoSend": "Deshabilitar envío automático global",
       "toggleCategoryAutoSend": "Alternar autoenvío por categoría",

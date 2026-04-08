@@ -915,6 +915,7 @@
       "heading": "Elsa Guardrailed Auto-Response",
       "autoRespondToggle": "Enable Elsa auto-respond for this request",
       "runNow": "Run Elsa now",
+      "running": "Running…",
       "enableGlobalAutoSend": "Enable global auto-send",
       "disableGlobalAutoSend": "Disable global auto-send",
       "toggleCategoryAutoSend": "Toggle category auto-send",
