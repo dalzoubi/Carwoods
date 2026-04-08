@@ -73,6 +73,7 @@ BEGIN
     triggering_event          NVARCHAR(120)    NOT NULL,
     triggering_user_id        UNIQUEIDENTIFIER NULL REFERENCES users (id),
     model_name                NVARCHAR(200)    NULL,
+    provider_used             NVARCHAR(40)     NULL,
     prompt_version            NVARCHAR(100)    NULL,
     mode                      NVARCHAR(60)     NULL,
     delivery_decision         NVARCHAR(60)     NULL,
@@ -90,6 +91,12 @@ BEGIN
     sent_at                   DATETIMEOFFSET   NULL,
     created_at                DATETIMEOFFSET   NOT NULL DEFAULT SYSDATETIMEOFFSET()
   );
+END;
+
+IF COL_LENGTH('elsa_decisions', 'provider_used') IS NULL
+BEGIN
+  ALTER TABLE elsa_decisions
+    ADD provider_used NVARCHAR(40) NULL;
 END;
 
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'idx_elsa_decisions_request_created')
