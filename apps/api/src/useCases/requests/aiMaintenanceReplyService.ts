@@ -2,7 +2,7 @@
  * Elsa AI maintenance reply service.
  *
  * This module owns:
- * - Prompt construction (Elsa guardrails v3)
+ * - Prompt construction (Elsa guardrails v4)
  * - JSON extraction / schema validation of the model's output
  * - Safe degraded-mode response when the LLM module returns null
  *
@@ -16,11 +16,18 @@ import type { RequestMessageRow, RequestRow } from '../../lib/requestsRepo.js';
 import { ElsaDeliveryDecision, parseElsaSuggestion, type ElsaSuggestion } from './elsaTypes.js';
 import type { LlmClient, LlmMetricsHook } from '../../lib/llm/index.js';
 
+export type ElsaLogger = {
+  info?: (message: string) => void;
+  warn?: (message: string) => void;
+  error?: (message: string) => void;
+};
+
 export type AiMaintenanceReplyContext = {
   request: RequestRow;
   messages: RequestMessageRow[];
   weatherSeverity: 'NORMAL' | 'DANGEROUS_HEAT' | 'DANGEROUS_COLD';
   nowIso: string;
+  logger?: ElsaLogger;
 };
 
 export type AiMaintenanceReplyResult = {
@@ -30,7 +37,29 @@ export type AiMaintenanceReplyResult = {
   promptVersion: string;
 };
 
-const PROMPT_VERSION = 'elsa-guardrails-v3-remote';
+const PROMPT_VERSION = 'elsa-guardrails-v4-remote';
+
+// ── Logger helper ─────────────────────────────────────────────────────────────
+
+function log(
+  logger: ElsaLogger | undefined,
+  level: 'info' | 'warn' | 'error',
+  event: string,
+  data: Record<string, unknown>
+): void {
+  const payload = JSON.stringify({ event, ...data });
+  // Use explicit method-call syntax so `this` is preserved for host objects
+  // like Azure InvocationContext that rely on it internally.
+  if (level === 'error') {
+    if (logger?.error) { logger.error(payload); } else { console.error(payload); }
+    return;
+  }
+  if (level === 'warn') {
+    if (logger?.warn) { logger.warn(payload); } else { console.warn(payload); }
+    return;
+  }
+  if (logger?.info) { logger.info(payload); } else { console.log(payload); }
+}
 
 // ── Prompt builder ────────────────────────────────────────────────────────────
 
@@ -45,30 +74,31 @@ function buildPrompt(context: AiMaintenanceReplyContext): string {
 
   return [
     'You are Elsa, a constrained maintenance triage assistant for a property management company.',
-    'Return ONLY strict JSON matching this exact schema (no markdown, no extra text):',
+    'Return ONLY a single raw JSON object — no markdown, no code fences, no explanation.',
+    'The JSON must match this schema exactly:',
     '{',
-    '  "mode":"NEED_MORE_INFO|SAFE_BASIC_TROUBLESHOOTING|ESCALATE_TO_VENDOR|EMERGENCY_ESCALATION|DUPLICATE_OR_ALREADY_IN_PROGRESS",',
-    '  "deliveryDecision":"AUTO_SEND_ALLOWED|ADMIN_REVIEW_REQUIRED",',
-    '  "tenantReplyDraft":"string",',
-    '  "internalSummary":"string",',
-    '  "recommendedNextAction":"string",',
-    '  "missingInformation":["string"],',
-    '  "safeTroubleshootingSteps":["string"],',
-    '  "dispatchSummary":"string",',
-    '  "confidence":0.0,',
-    '  "policyFlags":["string"],',
-    '  "autoSendRationale":"string"',
+    '  "mode": "NEED_MORE_INFO | SAFE_BASIC_TROUBLESHOOTING | ESCALATE_TO_VENDOR | EMERGENCY_ESCALATION | DUPLICATE_OR_ALREADY_IN_PROGRESS",',
+    '  "deliveryDecision": "AUTO_SEND_ALLOWED | ADMIN_REVIEW_REQUIRED",',
+    '  "tenantReplyDraft": "string",',
+    '  "internalSummary": "string",',
+    '  "recommendedNextAction": "string",',
+    '  "missingInformation": ["string"],',
+    '  "safeTroubleshootingSteps": ["string"],',
+    '  "dispatchSummary": "string",',
+    '  "confidence": 0.0,',
+    '  "policyFlags": ["string"],',
+    '  "autoSendRationale": "string"',
     '}',
     '',
     'Rules:',
-    '- tenantReplyDraft must be concise, empathetic, and safe. No legal advice, no liability admissions.',
-    '- Do not make specific scheduling promises unless scheduled_from/scheduled_to are set.',
-    '- If the conversation already contains a management reply that is similar or identical to what you would write, write something meaningfully different: ask for one new concrete detail, acknowledge a new symptom, or give a brief status update. Never repeat what was already sent.',
-    '- Set mode=EMERGENCY_ESCALATION and deliveryDecision=ADMIN_REVIEW_REQUIRED for any gas, fire, smoke, flooding, sparking, sewage, or carbon monoxide signals.',
-    '- Set confidence between 0.0 and 1.0. Use >= 0.78 only when the reply is clearly safe and low-risk.',
-    '- policyFlags: include EMERGENCY_SIGNAL_* codes when emergency keywords are present.',
+    '- tenantReplyDraft must be concise, empathetic, and safe. No legal advice. No liability admissions.',
+    '- Do NOT make scheduling promises unless scheduled_from or scheduled_to is already set in the request.',
+    '- The full non-internal conversation history is included below. Read every prior management message. If a prior management message is similar or identical to what you would write, produce something meaningfully different — ask for one new concrete detail, acknowledge a new symptom, or give a short progress update. Never repeat what was already sent.',
+    '- Set mode=EMERGENCY_ESCALATION and deliveryDecision=ADMIN_REVIEW_REQUIRED for any gas, fire, smoke, flooding, sparking, sewage, or carbon monoxide signal.',
+    '- confidence must be a float between 0.0 and 1.0. Only use >= 0.78 for clearly safe, low-risk informational replies.',
+    '- policyFlags: include EMERGENCY_SIGNAL_GAS, EMERGENCY_SIGNAL_SMOKE, etc. when applicable.',
     '',
-    'Request context (full non-internal conversation history is included so you can avoid repetition):',
+    'Request context:',
     JSON.stringify(
       {
         request: {
@@ -95,32 +125,27 @@ function buildPrompt(context: AiMaintenanceReplyContext): string {
 
 function extractJsonFromText(text: string): unknown {
   const trimmed = text.trim();
-  const codeFenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  const candidate = codeFenceMatch ? codeFenceMatch[1].trim() : trimmed;
+  // Strip markdown code fences if present
+  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const candidate = fenceMatch ? fenceMatch[1].trim() : trimmed;
   return JSON.parse(candidate);
 }
 
 // ── Degraded-mode stub ────────────────────────────────────────────────────────
 
-function buildUnavailableSuggestion(modelName: string): AiMaintenanceReplyResult {
-  const suggestion: ElsaSuggestion = {
+function buildUnavailableSuggestion(reason: string): ElsaSuggestion {
+  return {
     mode: 'NEED_MORE_INFO',
     deliveryDecision: ElsaDeliveryDecision.ADMIN_REVIEW_REQUIRED,
-    tenantReplyDraft: 'Thanks for your request. We are reviewing this and a team member will follow up shortly.',
-    internalSummary: 'LLM provider unavailable or returned an invalid response. Held for admin review.',
+    tenantReplyDraft: 'Thanks for your request. A team member will review and follow up shortly.',
+    internalSummary: reason,
     recommendedNextAction: 'Review and respond manually.',
     missingInformation: [],
     safeTroubleshootingSteps: [],
     dispatchSummary: '',
     confidence: 0.0,
     policyFlags: ['MODEL_PROVIDER_UNAVAILABLE'],
-    autoSendRationale: 'Remote model unavailable; held for review.',
-  };
-  return {
-    suggestion,
-    modelName,
-    providerUsed: 'unavailable',
-    promptVersion: PROMPT_VERSION,
+    autoSendRationale: 'Model unavailable; held for manual review.',
   };
 }
 
@@ -146,35 +171,85 @@ export async function suggestReply(
   deps: SuggestReplyDeps
 ): Promise<AiMaintenanceReplyResult> {
   const { llmClient } = deps;
+  const logger = context.logger;
 
   if (!llmClient) {
-    return buildUnavailableSuggestion('unconfigured');
+    log(logger, 'warn', 'elsa.gemini.no_api_key', {
+      hint: 'Set GEMINI_API_KEY in Function App settings to enable AI responses.',
+    });
+    return {
+      suggestion: buildUnavailableSuggestion('GEMINI_API_KEY is not configured.'),
+      modelName: 'unconfigured',
+      providerUsed: 'unavailable',
+      promptVersion: PROMPT_VERSION,
+    };
   }
+
+  log(logger, 'info', 'elsa.gemini.request.start', { requestId: context.request.id });
 
   const response = await llmClient.complete({
     prompt: buildPrompt(context),
-    expectJsonResponse: true,
+    // Do NOT request JSON MIME mode — not supported on all model versions and
+    // causes silent 400s. extractJsonFromText handles raw model output.
+    expectJsonResponse: false,
     temperature: 0.2,
   });
 
   if (response === null) {
-    return buildUnavailableSuggestion('unknown');
+    log(logger, 'error', 'elsa.gemini.request_failed', {
+      reason: 'LlmClient returned null (all retries + fallback exhausted or circuit open)',
+    });
+    return {
+      suggestion: buildUnavailableSuggestion('LLM provider unavailable (retries exhausted or circuit open).'),
+      modelName: 'unknown',
+      providerUsed: 'unavailable',
+      promptVersion: PROMPT_VERSION,
+    };
   }
 
+  let parsed: unknown;
   try {
-    const parsed = extractJsonFromText(response.text);
-    const suggestion = parseElsaSuggestion(parsed);
-    if (suggestion) {
-      return {
-        suggestion,
-        modelName: response.model,
-        providerUsed: 'remote',
-        promptVersion: PROMPT_VERSION,
-      };
-    }
-  } catch {
-    // JSON parse error – fall through to degraded
+    parsed = extractJsonFromText(response.text);
+  } catch (parseErr) {
+    log(logger, 'error', 'elsa.gemini.json_parse_error', {
+      model: response.model,
+      error: parseErr instanceof Error ? parseErr.message : String(parseErr),
+      rawText: response.text.slice(0, 500),
+    });
+    return {
+      suggestion: buildUnavailableSuggestion('Gemini response could not be parsed as JSON.'),
+      modelName: response.model,
+      providerUsed: 'unavailable',
+      promptVersion: PROMPT_VERSION,
+    };
   }
 
-  return buildUnavailableSuggestion(response.model);
+  const suggestion = parseElsaSuggestion(parsed);
+  if (!suggestion) {
+    log(logger, 'error', 'elsa.gemini.schema_validation_failed', {
+      model: response.model,
+      parsed: JSON.stringify(parsed).slice(0, 500),
+    });
+    return {
+      suggestion: buildUnavailableSuggestion('Gemini response failed schema validation.'),
+      modelName: response.model,
+      providerUsed: 'unavailable',
+      promptVersion: PROMPT_VERSION,
+    };
+  }
+
+  log(logger, 'info', 'elsa.gemini.success', {
+    model: response.model,
+    usedFallback: response.usedFallback,
+    attempts: response.attempts,
+    latencyMs: response.latencyMs,
+    mode: suggestion.mode,
+    confidence: suggestion.confidence,
+  });
+  return {
+    suggestion,
+    modelName: response.model,
+    providerUsed: 'remote',
+    promptVersion: PROMPT_VERSION,
+  };
 }

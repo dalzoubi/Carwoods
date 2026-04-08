@@ -54,7 +54,9 @@ export class GeminiProvider implements LlmProvider {
         },
       ],
       generationConfig: {
-        ...(request.expectJsonResponse ? { responseMimeType: 'application/json' } : {}),
+        // Do NOT use responseMimeType — not supported on all model versions and
+        // causes silent 400s (notably on gemini-1.5-flash and some gemini-2.0 builds).
+        // We rely on extractJsonFromText in the service layer to parse raw output.
         temperature: request.temperature ?? 0.2,
       },
     });
