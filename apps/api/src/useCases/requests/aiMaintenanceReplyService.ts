@@ -1,9 +1,20 @@
+/**
+ * Elsa AI maintenance reply service.
+ *
+ * This module owns:
+ * - Prompt construction (Elsa guardrails v3)
+ * - JSON extraction / schema validation of the model's output
+ * - Safe degraded-mode response when the LLM module returns null
+ *
+ * It does NOT own:
+ * - Transport, retry, circuit breaker, or model selection (→ LlmClient)
+ * - Policy evaluation (→ autoSendPolicyEngine)
+ * - Persistence (→ elsaRepo, processElsaAutoResponse)
+ */
+
 import type { RequestMessageRow, RequestRow } from '../../lib/requestsRepo.js';
-import {
-  ElsaDeliveryDecision,
-  parseElsaSuggestion,
-  type ElsaSuggestion,
-} from './elsaTypes.js';
+import { ElsaDeliveryDecision, parseElsaSuggestion, type ElsaSuggestion } from './elsaTypes.js';
+import type { LlmClient, LlmMetricsHook } from '../../lib/llm/index.js';
 
 export type AiMaintenanceReplyContext = {
   request: RequestRow;
@@ -19,7 +30,9 @@ export type AiMaintenanceReplyResult = {
   promptVersion: string;
 };
 
-const REMOTE_MODEL_TIMEOUT_MS = 8000;
+const PROMPT_VERSION = 'elsa-guardrails-v3-remote';
+
+// ── Prompt builder ────────────────────────────────────────────────────────────
 
 function buildPrompt(context: AiMaintenanceReplyContext): string {
   const conversationHistory = context.messages
@@ -29,6 +42,7 @@ function buildPrompt(context: AiMaintenanceReplyContext): string {
       body: msg.body,
       created_at: msg.created_at,
     }));
+
   return [
     'You are Elsa, a constrained maintenance triage assistant for a property management company.',
     'Return ONLY strict JSON matching this exact schema (no markdown, no extra text):',
@@ -77,6 +91,8 @@ function buildPrompt(context: AiMaintenanceReplyContext): string {
   ].join('\n');
 }
 
+// ── JSON extraction ───────────────────────────────────────────────────────────
+
 function extractJsonFromText(text: string): unknown {
   const trimmed = text.trim();
   const codeFenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
@@ -84,66 +100,14 @@ function extractJsonFromText(text: string): unknown {
   return JSON.parse(candidate);
 }
 
-export async function suggestReply(context: AiMaintenanceReplyContext): Promise<AiMaintenanceReplyResult> {
-  const apiKey = process.env.GEMINI_API_KEY?.trim();
-  const modelName = process.env.GEMINI_MODEL?.trim() || 'gemini-1.5-flash';
+// ── Degraded-mode stub ────────────────────────────────────────────────────────
 
-  if (apiKey) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), REMOTE_MODEL_TIMEOUT_MS);
-    try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: buildPrompt(context) }],
-            },
-          ],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            temperature: 0.2,
-          },
-        }),
-      });
-      if (res.ok) {
-        const payload = (await res.json()) as {
-          candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-        };
-        const text = payload?.candidates?.[0]?.content?.parts
-          ?.map((part) => part?.text ?? '')
-          .join('\n')
-          .trim();
-        if (text) {
-          const parsed = extractJsonFromText(text);
-          const suggestion = parseElsaSuggestion(parsed);
-          if (suggestion) {
-            return {
-              suggestion,
-              modelName,
-              providerUsed: 'remote',
-              promptVersion: 'elsa-guardrails-v3-remote',
-            };
-          }
-        }
-      }
-    } catch {
-      // fall through to unavailable stub
-    } finally {
-      clearTimeout(timeout);
-    }
-  }
-
-  // Gemini is unavailable or returned an unusable response — hold for admin review.
-  const unavailableSuggestion: ElsaSuggestion = {
+function buildUnavailableSuggestion(modelName: string): AiMaintenanceReplyResult {
+  const suggestion: ElsaSuggestion = {
     mode: 'NEED_MORE_INFO',
     deliveryDecision: ElsaDeliveryDecision.ADMIN_REVIEW_REQUIRED,
     tenantReplyDraft: 'Thanks for your request. We are reviewing this and a team member will follow up shortly.',
-    internalSummary: 'Gemini model unavailable or returned an invalid response. Held for admin review.',
+    internalSummary: 'LLM provider unavailable or returned an invalid response. Held for admin review.',
     recommendedNextAction: 'Review and respond manually.',
     missingInformation: [],
     safeTroubleshootingSteps: [],
@@ -153,9 +117,64 @@ export async function suggestReply(context: AiMaintenanceReplyContext): Promise<
     autoSendRationale: 'Remote model unavailable; held for review.',
   };
   return {
-    suggestion: unavailableSuggestion,
+    suggestion,
     modelName,
     providerUsed: 'unavailable',
-    promptVersion: 'elsa-guardrails-v3-remote',
+    promptVersion: PROMPT_VERSION,
   };
+}
+
+// ── Main entry point ──────────────────────────────────────────────────────────
+
+export type SuggestReplyDeps = {
+  /**
+   * LlmClient instance. When null (GEMINI_API_KEY absent), the service
+   * immediately returns degraded-mode without attempting any network call.
+   */
+  llmClient: LlmClient | null;
+  metrics?: LlmMetricsHook;
+};
+
+/**
+ * Generate an Elsa suggestion for a maintenance request.
+ *
+ * Never throws. All LLM errors are caught by LlmClient and result in a null response,
+ * which this function converts to a safe degraded-mode suggestion.
+ */
+export async function suggestReply(
+  context: AiMaintenanceReplyContext,
+  deps: SuggestReplyDeps
+): Promise<AiMaintenanceReplyResult> {
+  const { llmClient } = deps;
+
+  if (!llmClient) {
+    return buildUnavailableSuggestion('unconfigured');
+  }
+
+  const response = await llmClient.complete({
+    prompt: buildPrompt(context),
+    expectJsonResponse: true,
+    temperature: 0.2,
+  });
+
+  if (response === null) {
+    return buildUnavailableSuggestion('unknown');
+  }
+
+  try {
+    const parsed = extractJsonFromText(response.text);
+    const suggestion = parseElsaSuggestion(parsed);
+    if (suggestion) {
+      return {
+        suggestion,
+        modelName: response.model,
+        providerUsed: 'remote',
+        promptVersion: PROMPT_VERSION,
+      };
+    }
+  } catch {
+    // JSON parse error – fall through to degraded
+  }
+
+  return buildUnavailableSuggestion(response.model);
 }

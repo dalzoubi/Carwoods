@@ -22,6 +22,17 @@ Values are **names only**; store secrets in Azure Key Vault or Function App sett
 | `BLOB_ACCOUNT_URL`                                | If using MI | `https://{account}.blob.core.windows.net`             |
 | `ACS_CONNECTION_STRING` or ACS + MI               | Yes (email) | Azure Communication Services                          |
 | `GEMINI_API_KEY`                                  | Yes (AI)    | Backend only; never in Vite env                       |
+| `GEMINI_MODEL`                                    | No          | Primary model. Default: `gemini-2.5-flash`            |
+| `GEMINI_FALLBACK_MODEL`                           | No          | Fallback model. Set to `none` to disable. Default: `gemini-1.5-flash` |
+| `LLM_TIMEOUT_MS`                                  | No          | Per-attempt HTTP timeout in ms. Default: `15000`      |
+| `LLM_MAX_PRIMARY_ATTEMPTS`                        | No          | Max retries on primary model. Default: `3`            |
+| `LLM_MAX_FALLBACK_ATTEMPTS`                       | No          | Max retries on fallback model. Default: `2`           |
+| `LLM_RETRY_BASE_DELAY_MS`                         | No          | Exponential backoff base in ms. Default: `500`        |
+| `LLM_RETRY_MAX_DELAY_MS`                          | No          | Backoff cap in ms. Default: `10000`                   |
+| `LLM_RETRY_JITTER_FACTOR`                         | No          | Jitter fraction 0–1. Default: `0.3`                   |
+| `LLM_CB_FAILURE_THRESHOLD`                        | No          | Consecutive failures to open circuit. Default: `5`    |
+| `LLM_CB_OPEN_DURATION_MS`                         | No          | Circuit open window in ms. Default: `60000`           |
+| `LLM_CB_HALF_OPEN_PROBES`                         | No          | Successes to close circuit from half-open. Default: `2` |
 | `ENTRA_TENANT_ID`                                 | Yes         | External ID tenant ID (reference; not used directly by current JWT code) |
 | `ENTRA_API_AUDIENCE`                              | Yes         | API app registration audience (`aud`) for JWT validation |
 | `ENTRA_ISSUER`                                    | Yes         | Token issuer (`iss`) — must match access tokens exactly (including trailing slash) |

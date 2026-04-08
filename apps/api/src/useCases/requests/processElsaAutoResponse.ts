@@ -18,6 +18,7 @@ import {
 } from '../../lib/requestsRepo.js';
 import { enqueueNotification } from '../../lib/notificationRepo.js';
 import { suggestReply } from './aiMaintenanceReplyService.js';
+import { getLlmClient } from '../../lib/llmClientFactory.js';
 import { evaluatePolicy } from './autoSendPolicyEngine.js';
 import { normalizeTenantReply } from './elsaTemplateNormalizer.js';
 import { ElsaPolicyDecision, parseElsaSuggestion } from './elsaTypes.js';
@@ -101,12 +102,16 @@ export async function processElsaAutoResponse(
     requestStatusCode: request.status_code ?? null,
   });
 
-  const aiResult = await suggestReply({
-    request,
-    messages,
-    weatherSeverity: input.weatherSeverity ?? 'NORMAL',
-    nowIso: new Date().toISOString(),
-  });
+  const llmClient = getLlmClient();
+  const aiResult = await suggestReply(
+    {
+      request,
+      messages,
+      weatherSeverity: input.weatherSeverity ?? 'NORMAL',
+      nowIso: new Date().toISOString(),
+    },
+    { llmClient }
+  );
   const validated = parseElsaSuggestion(aiResult.suggestion);
   const suggestion = validated ?? {
     mode: 'NEED_MORE_INFO',
