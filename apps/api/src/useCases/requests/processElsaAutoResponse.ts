@@ -46,23 +46,6 @@ export type ProcessElsaAutoResponseOutput = {
   normalizedReply: string;
 };
 
-function normalizeForComparison(value: string): string {
-  return String(value || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function isNearDuplicateReply(candidate: string, previous: string): boolean {
-  const a = normalizeForComparison(candidate);
-  const b = normalizeForComparison(previous);
-  if (!a || !b) return false;
-  if (a === b) return true;
-  if (a.length < 24 || b.length < 24) return false;
-  return a.includes(b) || b.includes(a);
-}
-
 export async function processElsaAutoResponse(
   db: TransactionPool,
   input: ProcessElsaAutoResponseInput
@@ -172,35 +155,17 @@ export async function processElsaAutoResponse(
     },
     suggestion
   );
-  let evaluation = {
+  const evaluation = {
     ...baseEvaluation,
     policyFlags: [...baseEvaluation.policyFlags],
     reasons: [...baseEvaluation.reasons],
   };
   const normalizedReply = normalizeTenantReply(suggestion, evaluation);
-  const priorExternalManagementBodies = messages
-    .filter(
-      (msg) => !msg.is_internal && String(msg.sender_role || '').toUpperCase() !== 'TENANT'
-    )
-    .map((msg) => String(msg.body || '').trim())
-    .filter(Boolean);
-  const duplicateDetected = priorExternalManagementBodies.some((body) =>
-    isNearDuplicateReply(normalizedReply, body)
-  );
-  if (duplicateDetected) {
-    evaluation = {
-      ...evaluation,
-      policyDecision: ElsaPolicyDecision.HOLD_FOR_REVIEW,
-      policyFlags: Array.from(new Set([...evaluation.policyFlags, 'REPLY_NEAR_DUPLICATE_IN_THREAD'])),
-      reasons: Array.from(new Set([...evaluation.reasons, 'Reply is near-duplicate of prior outbound message'])),
-    };
-  }
   log('info', 'elsa.process.policy.evaluated', {
     requestId: input.requestId,
     policyDecision: evaluation.policyDecision,
     reasons: evaluation.reasons,
     policyFlags: evaluation.policyFlags,
-    duplicateDetected,
   });
 
   const client = await db.connect();
