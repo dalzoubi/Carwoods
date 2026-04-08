@@ -1,18 +1,18 @@
 import React, { useMemo, useState } from 'react';
 import {
   Box,
+  Button,
   Chip,
-  IconButton,
   List,
   ListItemButton,
   ListItemText,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
-  Tooltip,
   Typography,
 } from '@mui/material';
 import Refresh from '@mui/icons-material/Refresh';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
 import { RequestStatus } from '../../domain/constants';
@@ -22,7 +22,7 @@ function statusColor(statusCode) {
   if ([RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED, RequestStatus.OPEN].includes(normalized)) {
     return 'warning';
   }
-  if (normalized === RequestStatus.IN_PROGRESS) return 'info';
+  if ([RequestStatus.SCHEDULED, RequestStatus.IN_PROGRESS].includes(normalized)) return 'info';
   if ([RequestStatus.CANCELLED, RequestStatus.RESOLVED, RequestStatus.CLOSED].includes(normalized)) {
     return 'success';
   }
@@ -48,6 +48,7 @@ const RequestListPane = ({
         return [RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED, RequestStatus.OPEN].includes(statusCode);
       }
       if (statusFilter === 'inProgress') return statusCode === RequestStatus.IN_PROGRESS;
+      if (statusFilter === 'scheduled') return statusCode === RequestStatus.SCHEDULED;
       if (statusFilter === 'cancelled') return statusCode === RequestStatus.CANCELLED;
       if (statusFilter === 'resolved') return [RequestStatus.RESOLVED, RequestStatus.CLOSED].includes(statusCode);
       return true;
@@ -57,9 +58,10 @@ const RequestListPane = ({
     ? { severity: 'info', text: t('portalRequests.loading') }
     : requestsStatus === 'error'
       ? { severity: 'error', text: requestsError || t('portalRequests.errors.loadFailed') }
-      : requestsStatus === 'ok' && filteredRequests.length === 0
-        ? { severity: 'info', text: t('portalRequests.list.empty') }
-        : null;
+      : null;
+  const emptyStatusMessage = requestsStatus === 'ok' && filteredRequests.length === 0
+    ? { severity: 'info', text: t('portalRequests.list.empty') }
+    : null;
 
   return (
     <Stack spacing={2}>
@@ -67,19 +69,17 @@ const RequestListPane = ({
         <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
           {t('portalRequests.list.heading')}
         </Typography>
-        <Tooltip title={t('portalRequests.actions.reload')}>
-          <span>
-            <IconButton
-              type="button"
-              size="small"
-              onClick={onReload}
-              disabled={reloadDisabled}
-              aria-label={t('portalRequests.actions.reload')}
-            >
-              <Refresh fontSize="small" />
-            </IconButton>
-          </span>
-        </Tooltip>
+        <Button
+          type="button"
+          size="small"
+          variant="outlined"
+          onClick={onReload}
+          disabled={reloadDisabled}
+          startIcon={requestsStatus === 'loading' ? <CircularProgress size={16} /> : <Refresh fontSize="small" />}
+          sx={{ textTransform: 'none' }}
+        >
+          {t('portalRequests.actions.reload')}
+        </Button>
       </Stack>
       <StatusAlertSlot message={listStatusMessage} />
       <ToggleButtonGroup
@@ -89,13 +89,25 @@ const RequestListPane = ({
         onChange={(_, nextValue) => {
           if (nextValue) setStatusFilter(nextValue);
         }}
+        sx={{
+          alignSelf: 'flex-start',
+          flexWrap: 'nowrap',
+          overflowX: 'auto',
+          maxWidth: '100%',
+          '& .MuiToggleButton-root': {
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          },
+        }}
       >
         <ToggleButton value="all">{t('portalRequests.list.filters.all')}</ToggleButton>
         <ToggleButton value="open">{t('portalRequests.list.filters.open')}</ToggleButton>
+        <ToggleButton value="scheduled">{t('portalRequests.list.filters.scheduled')}</ToggleButton>
         <ToggleButton value="inProgress">{t('portalRequests.list.filters.inProgress')}</ToggleButton>
         <ToggleButton value="cancelled">{t('portalRequests.list.filters.cancelled')}</ToggleButton>
         <ToggleButton value="resolved">{t('portalRequests.list.filters.resolved')}</ToggleButton>
       </ToggleButtonGroup>
+      <StatusAlertSlot message={emptyStatusMessage} />
 
       {filteredRequests.length > 0 && (
         <Box sx={{ minWidth: { md: 320 }, border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>

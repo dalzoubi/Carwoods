@@ -10,6 +10,26 @@ export const UserRole = {
 
 export type UserRoleType = (typeof UserRole)[keyof typeof UserRole];
 
+/**
+ * Canonical role constants shared by frontend + API.
+ * Kept in sync with UserRole for backwards compatibility.
+ */
+export const Role = UserRole;
+export type Role = UserRoleType;
+
+export const RequestStatus = {
+  OPEN: 'OPEN',
+  NOT_STARTED: 'NOT_STARTED',
+  ACKNOWLEDGED: 'ACKNOWLEDGED',
+  SCHEDULED: 'SCHEDULED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  CANCELLED: 'CANCELLED',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED',
+} as const;
+
+export type RequestStatus = (typeof RequestStatus)[keyof typeof RequestStatus];
+
 export const UserStatus = {
   ACTIVE: 'ACTIVE',
   INVITED: 'INVITED',

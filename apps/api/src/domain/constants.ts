@@ -4,6 +4,17 @@ export const Role = {
   TENANT: 'TENANT',
 } as const;
 
+export const RequestStatus = {
+  OPEN: 'OPEN',
+  NOT_STARTED: 'NOT_STARTED',
+  ACKNOWLEDGED: 'ACKNOWLEDGED',
+  SCHEDULED: 'SCHEDULED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  CANCELLED: 'CANCELLED',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED',
+} as const;
+
 export type Role = typeof Role[keyof typeof Role];
 
 /** Returns true when the given role string has management (landlord/admin) access. */

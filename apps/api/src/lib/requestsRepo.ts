@@ -20,9 +20,13 @@ export type RequestRow = {
   estimated_cost: number | null;
   actual_cost: number | null;
   scheduled_for: Date | null;
+  scheduled_from: Date | null;
+  scheduled_to: Date | null;
   vendor_contact_name: string | null;
   vendor_contact_email: string | null;
   vendor_contact_phone: string | null;
+  submitted_by_display_name: string | null;
+  submitted_by_role: string | null;
   emergency_disclaimer_acknowledged: boolean;
   created_at: Date;
   updated_at: Date;
@@ -217,12 +221,19 @@ export async function listRequestsForTenant(
             rs.code AS status_code, rs.name AS status_name,
             mr.title, mr.description,
             mr.internal_notes, mr.estimated_cost, mr.actual_cost, mr.scheduled_for,
+            mr.scheduled_from, mr.scheduled_to,
             mr.vendor_contact_name, mr.vendor_contact_email, mr.vendor_contact_phone,
+            CASE
+              WHEN LTRIM(RTRIM(ISNULL(su.first_name, '') + ' ' + ISNULL(su.last_name, ''))) = '' THEN su.email
+              ELSE LTRIM(RTRIM(ISNULL(su.first_name, '') + ' ' + ISNULL(su.last_name, '')))
+            END AS submitted_by_display_name,
+            su.role AS submitted_by_role,
             mr.emergency_disclaimer_acknowledged, mr.created_at, mr.updated_at,
             mr.completed_at, mr.closed_at, mr.deleted_at
      FROM maintenance_requests mr
      JOIN lease_tenants lt ON lt.lease_id = mr.lease_id
      LEFT JOIN request_statuses rs ON rs.id = mr.current_status_id
+     LEFT JOIN users su ON su.id = mr.submitted_by_user_id
      WHERE lt.user_id = $1
        AND mr.deleted_at IS NULL
        AND (lt.access_end_at IS NULL OR lt.access_end_at > SYSDATETIMEOFFSET())
@@ -239,11 +250,18 @@ export async function listRequestsForManagement(client: Queryable): Promise<Requ
             rs.code AS status_code, rs.name AS status_name,
             mr.title, mr.description,
             mr.internal_notes, mr.estimated_cost, mr.actual_cost, mr.scheduled_for,
+            mr.scheduled_from, mr.scheduled_to,
             mr.vendor_contact_name, mr.vendor_contact_email, mr.vendor_contact_phone,
+            CASE
+              WHEN LTRIM(RTRIM(ISNULL(su.first_name, '') + ' ' + ISNULL(su.last_name, ''))) = '' THEN su.email
+              ELSE LTRIM(RTRIM(ISNULL(su.first_name, '') + ' ' + ISNULL(su.last_name, '')))
+            END AS submitted_by_display_name,
+            su.role AS submitted_by_role,
             mr.emergency_disclaimer_acknowledged, mr.created_at, mr.updated_at,
             mr.completed_at, mr.closed_at, mr.deleted_at
      FROM maintenance_requests mr
      LEFT JOIN request_statuses rs ON rs.id = mr.current_status_id
+     LEFT JOIN users su ON su.id = mr.submitted_by_user_id
      WHERE mr.deleted_at IS NULL
      ORDER BY mr.updated_at DESC`
   );
@@ -257,11 +275,18 @@ export async function getRequestById(client: Queryable, id: string): Promise<Req
             rs.code AS status_code, rs.name AS status_name,
             mr.title, mr.description,
             mr.internal_notes, mr.estimated_cost, mr.actual_cost, mr.scheduled_for,
+            mr.scheduled_from, mr.scheduled_to,
             mr.vendor_contact_name, mr.vendor_contact_email, mr.vendor_contact_phone,
+            CASE
+              WHEN LTRIM(RTRIM(ISNULL(su.first_name, '') + ' ' + ISNULL(su.last_name, ''))) = '' THEN su.email
+              ELSE LTRIM(RTRIM(ISNULL(su.first_name, '') + ' ' + ISNULL(su.last_name, '')))
+            END AS submitted_by_display_name,
+            su.role AS submitted_by_role,
             mr.emergency_disclaimer_acknowledged, mr.created_at, mr.updated_at,
             mr.completed_at, mr.closed_at, mr.deleted_at
      FROM maintenance_requests mr
      LEFT JOIN request_statuses rs ON rs.id = mr.current_status_id
+     LEFT JOIN users su ON su.id = mr.submitted_by_user_id
      WHERE mr.id = $1 AND mr.deleted_at IS NULL`,
     [id]
   );
@@ -307,10 +332,13 @@ export async function insertMaintenanceRequest(
      )
      OUTPUT INSERTED.id, INSERTED.property_id, INSERTED.lease_id, INSERTED.submitted_by_user_id,
             INSERTED.assigned_vendor_id, INSERTED.category_id, INSERTED.priority_id,
-            INSERTED.current_status_id, INSERTED.title, INSERTED.description,
+            INSERTED.current_status_id, NULL AS status_code, NULL AS status_name,
+            INSERTED.title, INSERTED.description,
             INSERTED.internal_notes, INSERTED.estimated_cost, INSERTED.actual_cost,
-            INSERTED.scheduled_for, INSERTED.vendor_contact_name, INSERTED.vendor_contact_email,
+            INSERTED.scheduled_for, INSERTED.scheduled_from, INSERTED.scheduled_to,
+            INSERTED.vendor_contact_name, INSERTED.vendor_contact_email,
             INSERTED.vendor_contact_phone, INSERTED.emergency_disclaimer_acknowledged,
+            NULL AS submitted_by_display_name, NULL AS submitted_by_role,
             INSERTED.created_at, INSERTED.updated_at, INSERTED.completed_at, INSERTED.closed_at,
             INSERTED.deleted_at
      VALUES (NEWID(), $1, $2, $3, $4, $5, $6, $7, $8, $9)`,
@@ -335,6 +363,11 @@ export async function updateRequestManagementFields(
   patch: {
     currentStatusId?: string;
     assignedVendorId?: string | null;
+    scheduledFor?: Date | null;
+    scheduledFrom?: Date | null;
+    scheduledTo?: Date | null;
+    vendorContactName?: string | null;
+    vendorContactPhone?: string | null;
     internalNotes?: string | null;
   }
 ): Promise<RequestRow | null> {
@@ -343,6 +376,13 @@ export async function updateRequestManagementFields(
   const currentStatusId = patch.currentStatusId ?? cur.current_status_id;
   const assignedVendorId =
     patch.assignedVendorId !== undefined ? patch.assignedVendorId : cur.assigned_vendor_id;
+  const scheduledFor = patch.scheduledFor !== undefined ? patch.scheduledFor : cur.scheduled_for;
+  const scheduledFrom = patch.scheduledFrom !== undefined ? patch.scheduledFrom : cur.scheduled_from;
+  const scheduledTo = patch.scheduledTo !== undefined ? patch.scheduledTo : cur.scheduled_to;
+  const vendorContactName =
+    patch.vendorContactName !== undefined ? patch.vendorContactName : cur.vendor_contact_name;
+  const vendorContactPhone =
+    patch.vendorContactPhone !== undefined ? patch.vendorContactPhone : cur.vendor_contact_phone;
   const internalNotes =
     patch.internalNotes !== undefined ? patch.internalNotes : cur.internal_notes;
 
@@ -350,18 +390,26 @@ export async function updateRequestManagementFields(
     `UPDATE maintenance_requests
        SET current_status_id = $2,
            assigned_vendor_id = $3,
-           internal_notes = $4,
+           scheduled_for = $4,
+           scheduled_from = $5,
+           scheduled_to = $6,
+           vendor_contact_name = $7,
+           vendor_contact_phone = $8,
+           internal_notes = $9,
            updated_at = SYSDATETIMEOFFSET()
      OUTPUT INSERTED.id, INSERTED.property_id, INSERTED.lease_id, INSERTED.submitted_by_user_id,
             INSERTED.assigned_vendor_id, INSERTED.category_id, INSERTED.priority_id,
-            INSERTED.current_status_id, INSERTED.title, INSERTED.description,
+            INSERTED.current_status_id, NULL AS status_code, NULL AS status_name,
+            INSERTED.title, INSERTED.description,
             INSERTED.internal_notes, INSERTED.estimated_cost, INSERTED.actual_cost,
-            INSERTED.scheduled_for, INSERTED.vendor_contact_name, INSERTED.vendor_contact_email,
+            INSERTED.scheduled_for, INSERTED.scheduled_from, INSERTED.scheduled_to,
+            INSERTED.vendor_contact_name, INSERTED.vendor_contact_email,
             INSERTED.vendor_contact_phone, INSERTED.emergency_disclaimer_acknowledged,
+            NULL AS submitted_by_display_name, NULL AS submitted_by_role,
             INSERTED.created_at, INSERTED.updated_at, INSERTED.completed_at, INSERTED.closed_at,
             INSERTED.deleted_at
      WHERE id = $1 AND deleted_at IS NULL`,
-    [requestId, currentStatusId, assignedVendorId, internalNotes]
+    [requestId, currentStatusId, assignedVendorId, scheduledFor, scheduledFrom, scheduledTo, vendorContactName, vendorContactPhone, internalNotes]
   );
   return r.rows[0] ?? null;
 }

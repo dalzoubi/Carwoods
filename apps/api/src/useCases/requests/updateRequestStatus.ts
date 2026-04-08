@@ -27,12 +27,32 @@ export type UpdateRequestStatusInput = {
   actorRole: string;
   statusCode?: string;
   assignedVendorId?: string | null;
+  scheduledFor?: string | null;
+  scheduledFrom?: string | null;
+  scheduledTo?: string | null;
+  vendorContactName?: string | null;
+  vendorContactPhone?: string | null;
   internalNotes?: string | null;
 };
 
 export type UpdateRequestStatusOutput = {
   request: RequestRow;
 };
+
+function normalizeOptionalDateTimeOffset(
+  raw: string | null | undefined,
+  fieldName: string
+): Date | null | undefined {
+  if (raw === undefined) return undefined;
+  if (raw === null) return null;
+  const value = raw.trim();
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    throw validationError(`invalid_${fieldName}`);
+  }
+  return parsed;
+}
 
 export async function updateRequestStatus(
   db: TransactionPool,
@@ -56,6 +76,18 @@ export async function updateRequestStatus(
     if (!statusId) throw validationError('invalid_status_code');
     newStatusId = statusId;
   }
+  const normalizedScheduledFor = normalizeOptionalDateTimeOffset(
+    input.scheduledFor,
+    'scheduled_for'
+  );
+  const normalizedScheduledFrom = normalizeOptionalDateTimeOffset(
+    input.scheduledFrom,
+    'scheduled_from'
+  );
+  const normalizedScheduledTo = normalizeOptionalDateTimeOffset(
+    input.scheduledTo,
+    'scheduled_to'
+  );
 
   const client = await db.connect();
   try {
@@ -66,6 +98,11 @@ export async function updateRequestStatus(
       {
         currentStatusId: newStatusId,
         assignedVendorId: input.assignedVendorId,
+        scheduledFor: normalizedScheduledFor,
+        scheduledFrom: normalizedScheduledFrom,
+        scheduledTo: normalizedScheduledTo,
+        vendorContactName: input.vendorContactName,
+        vendorContactPhone: input.vendorContactPhone,
         internalNotes: input.internalNotes,
       }
     );

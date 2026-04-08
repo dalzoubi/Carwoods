@@ -32,6 +32,7 @@ import Edit from '@mui/icons-material/Edit';
 import Delete from '@mui/icons-material/Delete';
 import Add from '@mui/icons-material/Add';
 import Sync from '@mui/icons-material/Sync';
+import Refresh from '@mui/icons-material/Refresh';
 import Close from '@mui/icons-material/Close';
 import Home from '@mui/icons-material/Home';
 import { useTranslation } from 'react-i18next';
@@ -660,9 +661,28 @@ const PortalAdminProperties = () => {
 
         {/* Properties Grid */}
         <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-          <Typography variant="h6" fontWeight={600} gutterBottom>
-            {t('portalAdminProperties.grid.heading')}
-          </Typography>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={1.5}
+            justifyContent="space-between"
+            alignItems={{ xs: 'flex-start', sm: 'center' }}
+            sx={{ mb: 2 }}
+          >
+            <Typography variant="h6" fontWeight={600}>
+              {t('portalAdminProperties.grid.heading')}
+            </Typography>
+            <Button
+              type="button"
+              size="small"
+              variant="outlined"
+              disabled={listLoading || !canManage}
+              onClick={() => void refresh()}
+              startIcon={listLoading ? <CircularProgress size={16} /> : <Refresh fontSize="small" />}
+              sx={{ textTransform: 'none' }}
+            >
+              {t('portalAdminProperties.grid.refreshButton')}
+            </Button>
+          </Stack>
 
           {listLoading ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>

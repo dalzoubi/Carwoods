@@ -1,15 +1,1 @@
-export const Role = {
-  ADMIN: 'ADMIN',
-  LANDLORD: 'LANDLORD',
-  TENANT: 'TENANT',
-};
-
-export const RequestStatus = {
-  OPEN: 'OPEN',
-  NOT_STARTED: 'NOT_STARTED',
-  ACKNOWLEDGED: 'ACKNOWLEDGED',
-  IN_PROGRESS: 'IN_PROGRESS',
-  CANCELLED: 'CANCELLED',
-  RESOLVED: 'RESOLVED',
-  CLOSED: 'CLOSED',
-};
+export { Role, RequestStatus } from '../../packages/domain/src/index.ts';

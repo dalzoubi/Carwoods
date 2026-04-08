@@ -784,7 +784,13 @@
       "createdAt": "تاريخ الإنشاء",
       "updatedAt": "آخر تحديث",
       "category": "الفئة",
-      "priority": "الأولوية"
+      "priority": "الأولوية",
+      "reportedBy": "أُبلغ بواسطة",
+      "scheduledFor": "موعد الحضور المتوقع",
+      "scheduledFrom": "موعد البدء المتوقع",
+      "scheduledTo": "موعد الانتهاء المتوقع",
+      "vendorName": "اسم المورّد",
+      "vendorPhone": "هاتف المورّد"
     },
     "actions": {
       "reload": "إعادة تحميل الطلبات",
@@ -798,6 +804,8 @@
       "attachFile": "إرفاق ملف",
       "backToList": "العودة إلى القائمة",
       "suggestReply": "اقتراح رد",
+      "copy": "نسخ",
+      "insertIntoMessage": "إدراج في الرسالة",
       "exportCsv": "تصدير CSV",
       "exportingCsv": "جارٍ التصدير…",
       "cancelRequest": "إلغاء الطلب",
@@ -824,6 +832,7 @@
       "filters": {
         "all": "الكل",
         "open": "مفتوحة",
+        "scheduled": "مجدولة",
         "inProgress": "قيد التنفيذ",
         "cancelled": "ملغاة",
         "resolved": "محلولة"
@@ -850,14 +859,32 @@
     "management": {
       "heading": "تحديثات الإدارة",
       "statusCode": "رمز الحالة",
-      "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, OPEN, IN_PROGRESS, CANCELLED, RESOLVED, CLOSED",
+      "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, OPEN, SCHEDULED, IN_PROGRESS, CANCELLED, RESOLVED, CLOSED",
       "selectStatusCode": "اختر الحالة",
+      "scheduledFor": "التاريخ والوقت المتوقعان",
+      "scheduledFrom": "تاريخ ووقت البداية المتوقعان",
+      "scheduledTo": "تاريخ ووقت النهاية المتوقعان",
       "vendorId": "معرف المورّد المعيّن",
+      "vendorContactName": "اسم جهة اتصال المورّد",
+      "vendorContactPhone": "هاتف جهة اتصال المورّد",
       "internalNotes": "ملاحظات داخلية",
       "saved": "تم تحديث الطلب."
     },
     "suggest": {
-      "heading": "اقتراح رد بالذكاء الاصطناعي"
+      "heading": "اقتراح رد بالذكاء الاصطناعي",
+      "copySuccess": "تم نسخ الرد المقترح إلى الحافظة.",
+      "copyFailed": "تعذر نسخ الرد المقترح.",
+      "insertSuccess": "تم إدراج الرد المقترح في مربع الرسالة."
+    },
+    "statuses": {
+      "NOT_STARTED": "لم يبدأ",
+      "ACKNOWLEDGED": "تم الاستلام",
+      "OPEN": "مفتوح",
+      "SCHEDULED": "مجدول",
+      "IN_PROGRESS": "قيد التنفيذ",
+      "CANCELLED": "ملغي",
+      "RESOLVED": "محلول",
+      "CLOSED": "مغلق"
     },
     "messages": {
       "heading": "سلسلة الرسائل",
@@ -999,6 +1026,7 @@
     },
     "grid": {
       "heading": "عقاراتك",
+      "refreshButton": "تحديث العقارات",
       "empty": "لا توجد عقارات بعد. استخدم النموذج أعلاه لإضافة عقار.",
       "loading": "جارٍ تحميل العقارات…",
       "showDeleted": "إظهار المحذوفة",
@@ -1129,6 +1157,9 @@
       "emptyManagement": "لم يتم العثور على طلبات.",
       "viewAll": "عرض جميع الطلبات",
       "noTitle": "طلب بدون عنوان"
+    },
+    "actions": {
+      "refresh": "تحديث"
     },
     "accessDenied": "ليس لديك إذن لعرض هذه الصفحة."
   },

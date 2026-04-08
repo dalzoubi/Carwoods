@@ -95,6 +95,11 @@ async function landlordRequestItem(
   const b = asRecord(body);
   const statusCode = str(b.status_code);
   const assignedVendorId = b.assigned_vendor_id === null ? null : str(b.assigned_vendor_id);
+  const scheduledFor = b.scheduled_for === null ? null : str(b.scheduled_for);
+  const scheduledFrom = b.scheduled_from === null ? null : str(b.scheduled_from);
+  const scheduledTo = b.scheduled_to === null ? null : str(b.scheduled_to);
+  const vendorContactName = b.vendor_contact_name === null ? null : str(b.vendor_contact_name);
+  const vendorContactPhone = b.vendor_contact_phone === null ? null : str(b.vendor_contact_phone);
   const internalNotes = b.internal_notes === null ? null : str(b.internal_notes);
 
   try {
@@ -104,6 +109,11 @@ async function landlordRequestItem(
       actorRole: ctx.role,
       statusCode,
       assignedVendorId: b.assigned_vendor_id !== undefined ? (assignedVendorId ?? null) : undefined,
+      scheduledFor: b.scheduled_for !== undefined ? (scheduledFor ?? null) : undefined,
+      scheduledFrom: b.scheduled_from !== undefined ? (scheduledFrom ?? null) : undefined,
+      scheduledTo: b.scheduled_to !== undefined ? (scheduledTo ?? null) : undefined,
+      vendorContactName: b.vendor_contact_name !== undefined ? (vendorContactName ?? null) : undefined,
+      vendorContactPhone: b.vendor_contact_phone !== undefined ? (vendorContactPhone ?? null) : undefined,
       internalNotes: b.internal_notes !== undefined ? (internalNotes ?? null) : undefined,
     });
     return jsonResponse(200, ctx.headers, { request: result.request });

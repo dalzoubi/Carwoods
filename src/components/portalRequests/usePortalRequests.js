@@ -52,6 +52,14 @@ function extractErrorMessage(error, t, fallbackKey) {
   return t(fallbackKey);
 }
 
+function formatDateTimeLocalValue(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export function usePortalRequests({
   baseUrl,
   isAuthenticated,
@@ -96,6 +104,10 @@ export function usePortalRequests({
   const [managementForm, setManagementForm] = useState({
     status_code: '',
     assigned_vendor_id: '',
+    scheduled_from: '',
+    scheduled_to: '',
+    vendor_contact_name: '',
+    vendor_contact_phone: '',
     internal_notes: '',
   });
   const [managementUpdateStatus, setManagementUpdateStatus] = useState('idle');
@@ -123,6 +135,7 @@ export function usePortalRequests({
     RequestStatus.NOT_STARTED,
     RequestStatus.ACKNOWLEDGED,
     RequestStatus.OPEN,
+    RequestStatus.SCHEDULED,
     RequestStatus.IN_PROGRESS,
     RequestStatus.CANCELLED,
     RequestStatus.RESOLVED,
@@ -181,6 +194,12 @@ export function usePortalRequests({
       setAttachments(Array.isArray(attachmentsPayload?.attachments) ? attachmentsPayload.attachments : []);
       setManagementForm((prev) => ({
         ...prev,
+        status_code: detail?.status_code ?? '',
+        assigned_vendor_id: detail?.assigned_vendor_id ?? '',
+        scheduled_from: formatDateTimeLocalValue(detail?.scheduled_from || detail?.scheduled_for),
+        scheduled_to: formatDateTimeLocalValue(detail?.scheduled_to),
+        vendor_contact_name: detail?.vendor_contact_name ?? '',
+        vendor_contact_phone: detail?.vendor_contact_phone ?? '',
         internal_notes: detail?.internal_notes ?? '',
       }));
       setDetailStatus('ok');
@@ -464,7 +483,24 @@ export function usePortalRequests({
       if (managementForm.status_code.trim()) {
         body.status_code = managementForm.status_code.trim().toUpperCase();
       }
+      const scheduledFromDate = managementForm.scheduled_from.trim()
+        ? new Date(managementForm.scheduled_from)
+        : null;
+      const scheduledToDate = managementForm.scheduled_to.trim()
+        ? new Date(managementForm.scheduled_to)
+        : null;
       body.assigned_vendor_id = managementForm.assigned_vendor_id.trim() || null;
+      body.scheduled_for = scheduledFromDate && !Number.isNaN(scheduledFromDate.getTime())
+        ? scheduledFromDate.toISOString()
+        : null;
+      body.scheduled_from = scheduledFromDate && !Number.isNaN(scheduledFromDate.getTime())
+        ? scheduledFromDate.toISOString()
+        : null;
+      body.scheduled_to = scheduledToDate && !Number.isNaN(scheduledToDate.getTime())
+        ? scheduledToDate.toISOString()
+        : null;
+      body.vendor_contact_name = managementForm.vendor_contact_name.trim() || null;
+      body.vendor_contact_phone = managementForm.vendor_contact_phone.trim() || null;
       body.internal_notes = managementForm.internal_notes.trim() || null;
       await patchResource(
         baseUrl,

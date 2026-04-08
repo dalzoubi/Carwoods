@@ -784,7 +784,13 @@
       "createdAt": "Created",
       "updatedAt": "Updated",
       "category": "Category",
-      "priority": "Priority"
+      "priority": "Priority",
+      "reportedBy": "Reported by",
+      "scheduledFor": "Scheduled for",
+      "scheduledFrom": "Scheduled from",
+      "scheduledTo": "Scheduled to",
+      "vendorName": "Vendor name",
+      "vendorPhone": "Vendor phone"
     },
     "actions": {
       "reload": "Reload requests",
@@ -798,6 +804,8 @@
       "attachFile": "Attach file",
       "backToList": "Back to list",
       "suggestReply": "Suggest reply",
+      "copy": "Copy",
+      "insertIntoMessage": "Insert into message",
       "exportCsv": "Export CSV",
       "exportingCsv": "Exporting…",
       "saving": "Saving…"
@@ -823,6 +831,7 @@
       "filters": {
         "all": "All",
         "open": "Open",
+        "scheduled": "Scheduled",
         "inProgress": "In Progress",
         "cancelled": "Cancelled",
         "resolved": "Resolved"
@@ -849,14 +858,32 @@
     "management": {
       "heading": "Management updates",
       "statusCode": "Status code",
-      "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, OPEN, IN_PROGRESS, CANCELLED, RESOLVED, CLOSED",
+      "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, OPEN, SCHEDULED, IN_PROGRESS, CANCELLED, RESOLVED, CLOSED",
       "selectStatusCode": "Select status",
+      "scheduledFor": "Expected date and time",
+      "scheduledFrom": "Expected from date and time",
+      "scheduledTo": "Expected to date and time",
       "vendorId": "Assigned vendor ID",
+      "vendorContactName": "Vendor contact name",
+      "vendorContactPhone": "Vendor contact phone",
       "internalNotes": "Internal notes",
       "saved": "Request updated."
     },
     "suggest": {
-      "heading": "AI suggest reply"
+      "heading": "AI suggest reply",
+      "copySuccess": "Suggested reply copied to clipboard.",
+      "copyFailed": "Unable to copy suggested reply.",
+      "insertSuccess": "Suggested reply inserted into the message box."
+    },
+    "statuses": {
+      "NOT_STARTED": "Not started",
+      "ACKNOWLEDGED": "Acknowledged",
+      "OPEN": "Open",
+      "SCHEDULED": "Scheduled",
+      "IN_PROGRESS": "In progress",
+      "CANCELLED": "Cancelled",
+      "RESOLVED": "Resolved",
+      "CLOSED": "Closed"
     },
     "messages": {
       "heading": "Message thread",
@@ -998,6 +1025,7 @@
     },
     "grid": {
       "heading": "Your properties",
+      "refreshButton": "Refresh properties",
       "empty": "No properties yet. Use the form above to add one.",
       "loading": "Loading properties…",
       "showDeleted": "Show deleted",
@@ -1129,6 +1157,9 @@
       "emptyManagement": "No requests found.",
       "viewAll": "View all requests",
       "noTitle": "Untitled request"
+    },
+    "actions": {
+      "refresh": "Refresh"
     },
     "accessDenied": "You don't have permission to view that page."
   },

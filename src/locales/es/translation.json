@@ -784,7 +784,13 @@
       "createdAt": "Creado",
       "updatedAt": "Actualizado",
       "category": "Categoría",
-      "priority": "Prioridad"
+      "priority": "Prioridad",
+      "reportedBy": "Reportado por",
+      "scheduledFor": "Programado para",
+      "scheduledFrom": "Programado desde",
+      "scheduledTo": "Programado hasta",
+      "vendorName": "Nombre del proveedor",
+      "vendorPhone": "Teléfono del proveedor"
     },
     "actions": {
       "reload": "Recargar solicitudes",
@@ -798,6 +804,8 @@
       "attachFile": "Adjuntar archivo",
       "backToList": "Volver a la lista",
       "suggestReply": "Sugerir respuesta",
+      "copy": "Copiar",
+      "insertIntoMessage": "Insertar en mensaje",
       "exportCsv": "Exportar CSV",
       "exportingCsv": "Exportando…",
       "cancelRequest": "Cancelar solicitud",
@@ -824,6 +832,7 @@
       "filters": {
         "all": "Todas",
         "open": "Abiertas",
+        "scheduled": "Programadas",
         "inProgress": "En progreso",
         "cancelled": "Canceladas",
         "resolved": "Resueltas"
@@ -850,14 +859,32 @@
     "management": {
       "heading": "Actualizaciones de gestión",
       "statusCode": "Código de estado",
-      "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, OPEN, IN_PROGRESS, CANCELLED, RESOLVED, CLOSED",
+      "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, OPEN, SCHEDULED, IN_PROGRESS, CANCELLED, RESOLVED, CLOSED",
       "selectStatusCode": "Seleccionar estado",
+      "scheduledFor": "Fecha y hora esperadas",
+      "scheduledFrom": "Fecha y hora esperadas desde",
+      "scheduledTo": "Fecha y hora esperadas hasta",
       "vendorId": "ID de proveedor asignado",
+      "vendorContactName": "Nombre de contacto del proveedor",
+      "vendorContactPhone": "Teléfono de contacto del proveedor",
       "internalNotes": "Notas internas",
       "saved": "Solicitud actualizada."
     },
     "suggest": {
-      "heading": "Sugerir respuesta con IA"
+      "heading": "Sugerir respuesta con IA",
+      "copySuccess": "Respuesta sugerida copiada al portapapeles.",
+      "copyFailed": "No se pudo copiar la respuesta sugerida.",
+      "insertSuccess": "Respuesta sugerida insertada en el cuadro de mensaje."
+    },
+    "statuses": {
+      "NOT_STARTED": "No iniciada",
+      "ACKNOWLEDGED": "Recibida",
+      "OPEN": "Abierta",
+      "SCHEDULED": "Programada",
+      "IN_PROGRESS": "En progreso",
+      "CANCELLED": "Cancelada",
+      "RESOLVED": "Resuelta",
+      "CLOSED": "Cerrada"
     },
     "messages": {
       "heading": "Hilo de mensajes",
@@ -999,6 +1026,7 @@
     },
     "grid": {
       "heading": "Tus propiedades",
+      "refreshButton": "Actualizar propiedades",
       "empty": "Sin propiedades aún. Usa el formulario de arriba para agregar una.",
       "loading": "Cargando propiedades…",
       "showDeleted": "Mostrar eliminadas",
@@ -1129,6 +1157,9 @@
       "emptyManagement": "No se encontraron solicitudes.",
       "viewAll": "Ver todas las solicitudes",
       "noTitle": "Solicitud sin título"
+    },
+    "actions": {
+      "refresh": "Actualizar"
     },
     "accessDenied": "No tienes permiso para ver esa página."
   },

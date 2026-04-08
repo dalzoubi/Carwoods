@@ -8,6 +8,7 @@ import {
   Card,
   CardContent,
   Chip,
+  CircularProgress,
   Paper,
   Skeleton,
   Snackbar,
@@ -20,6 +21,7 @@ import Assignment from '@mui/icons-material/Assignment';
 import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
 import HomeWork from '@mui/icons-material/HomeWork';
 import ArrowForward from '@mui/icons-material/ArrowForward';
+import Refresh from '@mui/icons-material/Refresh';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
 import { hasLandlordAccess } from '../domain/roleUtils.js';
@@ -33,7 +35,7 @@ export function statusColor(statusCode) {
   if ([RequestStatus.OPEN, RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED].includes(s)) {
     return 'warning';
   }
-  if (s === RequestStatus.IN_PROGRESS) return 'info';
+  if ([RequestStatus.SCHEDULED, RequestStatus.IN_PROGRESS].includes(s)) return 'info';
   if ([RequestStatus.CLOSED, RequestStatus.RESOLVED, RequestStatus.CANCELLED].includes(s)) {
     return 'success';
   }
@@ -47,7 +49,7 @@ export function countByStatus(requests) {
   for (const r of requests) {
     const s = String(r.status_code ?? '').toUpperCase();
     if ([RequestStatus.CLOSED, RequestStatus.RESOLVED, RequestStatus.CANCELLED].includes(s)) resolved++;
-    else if (s === RequestStatus.IN_PROGRESS) inProgress++;
+    else if ([RequestStatus.SCHEDULED, RequestStatus.IN_PROGRESS].includes(s)) inProgress++;
     else if ([RequestStatus.OPEN, RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED].includes(s)) open++;
   }
   return { open, inProgress, resolved };
@@ -251,18 +253,31 @@ const PortalDashboard = () => {
                 <Typography variant="h6" fontWeight={600}>
                   {t('portalDashboard.recentRequests.heading')}
                 </Typography>
-                {requests.length > 0 && (
+                <Stack direction="row" spacing={1} alignItems="center">
                   <Button
-                    component={RouterLink}
-                    to={withDarkPath(pathname, '/portal/requests')}
                     type="button"
                     size="small"
-                    endIcon={<ArrowForward />}
+                    variant="outlined"
+                    onClick={() => void loadRequests()}
+                    disabled={reqStatus === 'loading'}
+                    startIcon={reqStatus === 'loading' ? <CircularProgress size={14} /> : <Refresh />}
                     sx={{ textTransform: 'none' }}
                   >
-                    {t('portalDashboard.recentRequests.viewAll')}
+                    {t('portalDashboard.actions.refresh')}
                   </Button>
-                )}
+                  {requests.length > 0 && (
+                    <Button
+                      component={RouterLink}
+                      to={withDarkPath(pathname, '/portal/requests')}
+                      type="button"
+                      size="small"
+                      endIcon={<ArrowForward />}
+                      sx={{ textTransform: 'none' }}
+                    >
+                      {t('portalDashboard.recentRequests.viewAll')}
+                    </Button>
+                  )}
+                </Stack>
               </Stack>
 
               {reqStatus === 'loading' && (

@@ -4,6 +4,7 @@ import {
   Alert,
   Box,
   Button,
+  CircularProgress,
   Checkbox,
   Chip,
   Collapse,
@@ -1236,18 +1237,21 @@ const PortalTenants = () => {
               <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
                 {t('portalTenants.list.heading')}
               </Typography>
-              <Tooltip title={t('portalTenants.actions.refresh')}>
-                <span>
-                  <IconButton
-                    size="small"
-                    onClick={() => void loadTenants()}
-                    disabled={!canUseModule || tenantsState.status === 'loading'}
-                    aria-label={t('portalTenants.actions.refresh')}
-                  >
-                    <Refresh fontSize="small" />
-                  </IconButton>
-                </span>
-              </Tooltip>
+              <Button
+                type="button"
+                size="small"
+                variant="outlined"
+                onClick={() => void loadTenants()}
+                disabled={!canUseModule || tenantsState.status === 'loading'}
+                startIcon={
+                  tenantsState.status === 'loading'
+                    ? <CircularProgress size={16} />
+                    : <Refresh fontSize="small" />
+                }
+                sx={{ textTransform: 'none' }}
+              >
+                {t('portalTenants.actions.refresh')}
+              </Button>
             </Stack>
 
             {tenantsState.status === 'loading' && (

@@ -4,13 +4,12 @@ import {
   Alert,
   Box,
   Button,
+  CircularProgress,
   Collapse,
   FormControlLabel,
-  IconButton,
   Switch,
   Stack,
   TextField,
-  Tooltip,
   Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -330,19 +329,21 @@ const PortalAdminLandlords = () => {
                   label={t('portalAdminLandlords.list.showInactive')}
                   sx={{ mr: 0 }}
                 />
-                <Tooltip title={t('portalAdminLandlords.list.refreshLandlordList')}>
-                  <span>
-                    <IconButton
-                      type="button"
-                      size="small"
-                      aria-label={t('portalAdminLandlords.list.refreshLandlordList')}
-                      disabled={!canUseModule || landlordsState.status === 'loading'}
-                      onClick={() => void loadLandlords()}
-                    >
-                      <Refresh fontSize="small" />
-                    </IconButton>
-                  </span>
-                </Tooltip>
+                <Button
+                  type="button"
+                  size="small"
+                  variant="outlined"
+                  disabled={!canUseModule || landlordsState.status === 'loading'}
+                  onClick={() => void loadLandlords()}
+                  startIcon={
+                    landlordsState.status === 'loading'
+                      ? <CircularProgress size={16} />
+                      : <Refresh fontSize="small" />
+                  }
+                  sx={{ textTransform: 'none' }}
+                >
+                  {t('portalAdminLandlords.list.refreshLandlordList')}
+                </Button>
               </Stack>
             </Stack>
             {landlordsState.status === 'loading' && (

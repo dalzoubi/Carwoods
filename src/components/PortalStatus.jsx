@@ -5,6 +5,7 @@ import {
   Alert,
   Box,
   Button,
+  CircularProgress,
   Chip,
   IconButton,
   Stack,
@@ -183,19 +184,21 @@ const PortalStatus = () => {
               <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
                 {t('portalSetup.sessionHeading')}
               </Typography>
-              <Tooltip title={t('portalSetup.actions.refreshSession')}>
-                <span>
-                  <IconButton
-                    type="button"
-                    size="small"
-                    aria-label={t('portalSetup.actions.refreshSession')}
-                    onClick={refreshMe}
-                    disabled={!isAuthenticated}
-                  >
-                    <Refresh fontSize="small" />
-                  </IconButton>
-                </span>
-              </Tooltip>
+              <Button
+                type="button"
+                size="small"
+                variant="outlined"
+                onClick={refreshMe}
+                disabled={!isAuthenticated || meStatus === 'loading'}
+                startIcon={
+                  meStatus === 'loading'
+                    ? <CircularProgress size={16} />
+                    : <Refresh fontSize="small" />
+                }
+                sx={{ textTransform: 'none' }}
+              >
+                {t('portalSetup.actions.refreshSession')}
+              </Button>
             </Stack>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
               <Chip
