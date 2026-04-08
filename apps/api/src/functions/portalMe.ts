@@ -17,9 +17,26 @@ import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 import { withRateLimit } from '../lib/rateLimiter.js';
 import { Role } from '../domain/constants.js';
 
-async function portalMeHandler(
+type PortalMeDeps = {
+  hasDatabaseUrl: typeof hasDatabaseUrl;
+  getPool: typeof getPool;
+  verifyAccessToken: typeof verifyAccessToken;
+  entraAuthConfigured: typeof entraAuthConfigured;
+  findUserByClaims: typeof findUserByClaims;
+};
+
+const DEFAULT_PORTAL_ME_DEPS: PortalMeDeps = {
+  hasDatabaseUrl,
+  getPool,
+  verifyAccessToken,
+  entraAuthConfigured,
+  findUserByClaims,
+};
+
+export async function portalMeHandler(
   request: HttpRequest,
-  context: InvocationContext
+  context: InvocationContext,
+  deps: PortalMeDeps = DEFAULT_PORTAL_ME_DEPS
 ): Promise<HttpResponseInit> {
   logInfo(context, 'portal.me.start', { method: request.method });
   const headers = corsHeadersForRequest(request);
@@ -46,7 +63,7 @@ async function portalMeHandler(
     };
   }
 
-  if (!entraAuthConfigured()) {
+  if (!deps.entraAuthConfigured()) {
     logWarn(context, 'portal.me.unavailable', { reason: 'entra_unconfigured' });
     return {
       status: 503,
@@ -57,7 +74,7 @@ async function portalMeHandler(
 
   let claims;
   try {
-    claims = await verifyAccessToken(token);
+    claims = await deps.verifyAccessToken(token);
   } catch {
     logWarn(context, 'portal.me.unauthorized', { reason: 'invalid_token' });
     return {
@@ -70,11 +87,13 @@ async function portalMeHandler(
   const emailHint = request.headers.get('x-email-hint')?.trim() || undefined;
 
   let user: Awaited<ReturnType<typeof findUserByClaims>> = null;
-  if (hasDatabaseUrl()) {
+  let userLookupFailed = false;
+  if (deps.hasDatabaseUrl()) {
     try {
-      const pool = getPool();
-      user = await findUserByClaims(pool, claims, { emailHint, logger: context });
+      const pool = deps.getPool();
+      user = await deps.findUserByClaims(pool, claims, { emailHint, logger: context });
     } catch (error) {
+      userLookupFailed = true;
       logError(context, 'portal.me.user_lookup.error', {
         message: error instanceof Error ? error.message : 'unknown_error',
       });
@@ -83,6 +102,14 @@ async function portalMeHandler(
       );
       user = null;
     }
+  }
+
+  if (userLookupFailed) {
+    return {
+      status: 503,
+      headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
+      jsonBody: { error: 'user_lookup_unavailable' },
+    };
   }
 
   if (!user) {
