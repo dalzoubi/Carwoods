@@ -128,7 +128,7 @@ function unavailableStub(reason: string): ElsaSuggestion {
 export async function suggestReply(context: AiMaintenanceReplyContext): Promise<AiMaintenanceReplyResult> {
   const logger = context.logger;
   const apiKey = process.env.GEMINI_API_KEY?.trim();
-  const modelName = process.env.GEMINI_MODEL?.trim() || 'gemini-1.5-flash';
+  const modelName = process.env.GEMINI_MODEL?.trim() || 'gemini-2.0-flash';
 
   if (!apiKey) {
     log(logger, 'warn', 'elsa.gemini.no_api_key', {
