@@ -31,9 +31,17 @@ const PROMPT_VERSION = 'elsa-guardrails-v4-remote';
 
 function log(logger: ElsaLogger | undefined, level: 'info' | 'warn' | 'error', event: string, data: Record<string, unknown>): void {
   const payload = JSON.stringify({ event, ...data });
-  if (level === 'error') { (logger?.error ?? console.error)(payload); return; }
-  if (level === 'warn')  { (logger?.warn  ?? console.warn)(payload);  return; }
-  (logger?.info ?? console.log)(payload);
+  // Use explicit method-call syntax so `this` is preserved for host objects
+  // like Azure InvocationContext that rely on it internally.
+  if (level === 'error') {
+    if (logger?.error) { logger.error(payload); } else { console.error(payload); }
+    return;
+  }
+  if (level === 'warn') {
+    if (logger?.warn) { logger.warn(payload); } else { console.warn(payload); }
+    return;
+  }
+  if (logger?.info) { logger.info(payload); } else { console.log(payload); }
 }
 
 function buildPrompt(context: AiMaintenanceReplyContext): string {

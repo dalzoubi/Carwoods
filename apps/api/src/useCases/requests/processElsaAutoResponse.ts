@@ -101,13 +101,39 @@ export async function processElsaAutoResponse(
     requestStatusCode: request.status_code ?? null,
   });
 
-  const aiResult = await suggestReply({
-    request,
-    messages,
-    weatherSeverity: input.weatherSeverity ?? 'NORMAL',
-    nowIso: new Date().toISOString(),
-    logger: input.logger,
-  });
+  let aiResult: Awaited<ReturnType<typeof suggestReply>>;
+  try {
+    aiResult = await suggestReply({
+      request,
+      messages,
+      weatherSeverity: input.weatherSeverity ?? 'NORMAL',
+      nowIso: new Date().toISOString(),
+      logger: input.logger,
+    });
+  } catch (aiError) {
+    log('error', 'elsa.process.suggest_reply.threw', {
+      requestId: input.requestId,
+      message: aiError instanceof Error ? aiError.message : String(aiError),
+    });
+    aiResult = {
+      suggestion: {
+        mode: 'NEED_MORE_INFO',
+        deliveryDecision: 'ADMIN_REVIEW_REQUIRED',
+        tenantReplyDraft: 'Thanks for your request. A team member will review and follow up shortly.',
+        internalSummary: 'suggestReply threw an unexpected error. Held for review.',
+        recommendedNextAction: 'Review and respond manually.',
+        missingInformation: [],
+        safeTroubleshootingSteps: [],
+        dispatchSummary: '',
+        confidence: 0.0,
+        policyFlags: ['MODEL_UNEXPECTED_ERROR'],
+        autoSendRationale: 'Unexpected error in AI layer; held for manual review.',
+      },
+      modelName: process.env.GEMINI_MODEL?.trim() || 'gemini-1.5-flash',
+      providerUsed: 'unavailable',
+      promptVersion: 'error',
+    };
+  }
   const validated = parseElsaSuggestion(aiResult.suggestion);
   const suggestion = validated ?? {
     mode: 'NEED_MORE_INFO',
