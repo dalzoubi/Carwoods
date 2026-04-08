@@ -95,48 +95,6 @@ describe('usePortalRequests', () => {
     expect(global.fetch).toHaveBeenCalledTimes(5);
   });
 
-  it('handles suggest-reply failure for management users', async () => {
-    // isManagement: true skips the loadLookups effect, so no extra mock needed.
-    global.fetch
-      .mockResolvedValueOnce(
-        jsonResponse({
-          requests: [{ id: 'req-9', title: 'Broken AC', current_status_id: 'OPEN' }],
-        })
-      )
-      .mockResolvedValueOnce(
-        jsonResponse({
-          request: {
-            id: 'req-9',
-            title: 'Broken AC',
-            description: 'No cooling',
-            current_status_id: 'OPEN',
-          },
-        })
-      )
-      .mockResolvedValueOnce(jsonResponse({ messages: [] }))
-      .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
-      .mockResolvedValueOnce(jsonResponse({ error: 'upstream_failed' }, 500));
-
-    const params = baseParams({
-      isManagement: true,
-      account: { idTokenClaims: { email: 'landlord@example.com' } },
-    });
-    const { result } = renderHook(() => usePortalRequests(params));
-
-    await waitFor(() => {
-      expect(result.current.requestsStatus).toBe('ok');
-    });
-    expect(result.current.selectedRequestId).toBe('req-9');
-
-    await act(async () => {
-      await result.current.onSuggestReply();
-    });
-
-    expect(result.current.suggestionStatus).toBe('error');
-    expect(result.current.suggestionError).toContain('HTTP 500');
-    expect(result.current.suggestionError).toContain('upstream_failed');
-  });
-
   it('loads request audit events for admin users', async () => {
     global.fetch
       .mockResolvedValueOnce(

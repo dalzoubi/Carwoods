@@ -803,9 +803,7 @@
       "chooseFile": "Choose file",
       "attachFile": "Attach file",
       "backToList": "Back to list",
-      "suggestReply": "Suggest reply",
       "copy": "Copy",
-      "insertIntoMessage": "Insert into message",
       "exportCsv": "Export CSV",
       "exportingCsv": "Exporting…",
       "saving": "Saving…"
@@ -869,12 +867,6 @@
       "vendorContactPhone": "Vendor contact phone",
       "internalNotes": "Internal notes",
       "saved": "Request updated."
-    },
-    "suggest": {
-      "heading": "AI suggest reply",
-      "copySuccess": "Suggested reply copied to clipboard.",
-      "copyFailed": "Unable to copy suggested reply.",
-      "insertSuccess": "Suggested reply inserted into the message box."
     },
     "statuses": {
       "NOT_STARTED": "Not started",

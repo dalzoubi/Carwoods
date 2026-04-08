@@ -11,7 +11,6 @@ import {
   putBlobToStorage,
   finalizeUpload,
   patchResource,
-  fetchSuggestReply,
   fetchElsaDecisions,
   fetchElsaSettings,
   patchElsaRequestAutoRespond,
@@ -138,10 +137,6 @@ export function usePortalRequests({
   const [attachmentStatus, setAttachmentStatus] = useState('idle');
   const [attachmentError, setAttachmentError] = useState('');
   const [attachmentUploadProgress, setAttachmentUploadProgress] = useState(0);
-
-  const [suggestionStatus, setSuggestionStatus] = useState('idle');
-  const [suggestionError, setSuggestionError] = useState('');
-  const [suggestionText, setSuggestionText] = useState('');
 
   const [exportStatus, setExportStatus] = useState('idle');
   const [exportError, setExportError] = useState('');
@@ -338,9 +333,6 @@ export function usePortalRequests({
     setAttachmentError('');
     setAttachmentUploadProgress(0);
     setAttachmentFile(null);
-    setSuggestionStatus('idle');
-    setSuggestionError('');
-    setSuggestionText('');
     setMessageForm({ body: '', is_internal: false });
     setElsaDecisionStatus('idle');
     setElsaDecisionError('');
@@ -766,24 +758,6 @@ export function usePortalRequests({
     }
   };
 
-  const onSuggestReply = async () => {
-    if (!baseUrl || !selectedRequestId || !isManagement) return;
-    setSuggestionStatus('loading');
-    setSuggestionError('');
-    setSuggestionText('');
-    try {
-      const token = await getAccessToken();
-      const emailHint = emailFromAccount(account);
-      const payload = await fetchSuggestReply(baseUrl, token, selectedRequestId, { emailHint });
-      setSuggestionStatus('ok');
-      setSuggestionText(typeof payload?.suggestion === 'string' ? payload.suggestion : '');
-    } catch (error) {
-      handleApiForbidden(error);
-      setSuggestionStatus('error');
-      setSuggestionError(extractErrorMessage(error, t, 'portalRequests.errors.loadFailed'));
-    }
-  };
-
   const onExportCsv = async () => {
     if (!baseUrl || !isManagement) return;
     setExportStatus('loading');
@@ -964,9 +938,6 @@ export function usePortalRequests({
     attachmentStatus,
     attachmentError,
     attachmentUploadProgress,
-    suggestionStatus,
-    suggestionError,
-    suggestionText,
     exportStatus,
     exportError,
     auditEvents,
@@ -996,7 +967,6 @@ export function usePortalRequests({
     onDeleteMessage,
     onAttachmentChange,
     onAttachmentSubmit,
-    onSuggestReply,
     onExportCsv,
     onSetElsaAutoRespond,
     onRunElsa,

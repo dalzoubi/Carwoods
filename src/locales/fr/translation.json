@@ -803,9 +803,7 @@
       "chooseFile": "Choisir un fichier",
       "attachFile": "Joindre le fichier",
       "backToList": "Retour à la liste",
-      "suggestReply": "Suggérer une reponse",
       "copy": "Copier",
-      "insertIntoMessage": "Insérer dans le message",
       "exportCsv": "Exporter CSV",
       "exportingCsv": "Export en cours…",
       "cancelRequest": "Annuler la demande",
@@ -870,12 +868,6 @@
       "vendorContactPhone": "Téléphone du contact prestataire",
       "internalNotes": "Notes internes",
       "saved": "Demande mise a jour."
-    },
-    "suggest": {
-      "heading": "Suggestion IA de reponse",
-      "copySuccess": "Réponse suggérée copiée dans le presse-papiers.",
-      "copyFailed": "Impossible de copier la réponse suggérée.",
-      "insertSuccess": "Réponse suggérée insérée dans la zone de message."
     },
     "statuses": {
       "NOT_STARTED": "Non démarrée",

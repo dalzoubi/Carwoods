@@ -4,6 +4,10 @@
  * Business rules:
  * - Tenant must own the request (active lease link).
  * - Only landlords/admins may set is_internal = true.
+ * - When a tenant posts a non-internal message and the request has Elsa
+ *   auto-respond enabled, processElsaAutoResponse is triggered asynchronously
+ *   so the tenant reply is not delayed. Failures are logged but do not fail
+ *   the message post.
  */
 
 import {
@@ -17,6 +21,8 @@ import { validateMessageBody, validateRequestId } from '../../domain/requestVali
 import { forbidden, notFound, validationError } from '../../domain/errors.js';
 import { Role, hasLandlordAccess } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
+import { getElsaRequestAutoRespond, getElsaSettings } from '../../lib/elsaRepo.js';
+import { processElsaAutoResponse } from './processElsaAutoResponse.js';
 
 export type PostRequestMessageInput = {
   requestId: string | undefined;
@@ -29,6 +35,8 @@ export type PostRequestMessageInput = {
 export type PostRequestMessageOutput = {
   message: RequestMessageRow;
 };
+
+const ELSA_SYSTEM_ACTOR_ID = '00000000-0000-0000-0000-000000000000';
 
 export async function postRequestMessage(
   db: TransactionPool,
@@ -88,6 +96,35 @@ export async function postRequestMessage(
       idempotencyKey: `request-message:${created.id}`,
     });
     await client.query('COMMIT');
+
+    // Trigger Elsa auto-respond asynchronously when a tenant posts a non-internal
+    // message and per-request auto-respond is enabled. We fire-and-forget so the
+    // tenant does not wait for the AI pipeline; failures are logged but never
+    // surface to the caller.
+    const shouldTriggerElsa =
+      !isManagement && !isInternal && String(role).toUpperCase() === Role.TENANT;
+
+    if (shouldTriggerElsa) {
+      (async () => {
+        try {
+          const [autoRespondEnabled, settings] = await Promise.all([
+            getElsaRequestAutoRespond(db, requestId),
+            getElsaSettings(db),
+          ]);
+          if (autoRespondEnabled && settings.elsa_enabled) {
+            await processElsaAutoResponse(db, {
+              requestId,
+              actorUserId: ELSA_SYSTEM_ACTOR_ID,
+              actorRole: Role.LANDLORD,
+              triggeringEvent: 'TENANT_MESSAGE_POSTED',
+            });
+          }
+        } catch {
+          // Auto-respond failures are non-fatal; the message was already committed.
+        }
+      })();
+    }
+
     return { message: created };
   } catch (error) {
     await client.query('ROLLBACK');

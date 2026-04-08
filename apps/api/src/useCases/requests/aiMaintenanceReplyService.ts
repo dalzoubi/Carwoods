@@ -72,6 +72,24 @@ function latestTenantText(messages: RequestMessageRow[], fallback: string): stri
   return fallback;
 }
 
+function normalizeForDuplicateCheck(value: string): string {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isNearDuplicateOfPriorReply(candidate: string, priorBodies: string[]): boolean {
+  const a = normalizeForDuplicateCheck(candidate);
+  if (!a || a.length < 24) return false;
+  return priorBodies.some((body) => {
+    const b = normalizeForDuplicateCheck(body);
+    if (!b || b.length < 24) return false;
+    return a === b || a.includes(b) || b.includes(a);
+  });
+}
+
 function hasAny(text: string, patterns: Array<{ code: string; pattern: RegExp }>): string[] {
   return patterns.filter((item) => item.pattern.test(text)).map((item) => item.code);
 }
@@ -286,11 +304,11 @@ function suggestHeuristically(context: AiMaintenanceReplyContext): AiMaintenance
     .filter((msg) => String(msg.sender_role || '').toUpperCase() !== 'TENANT')
     .map((msg) => String(msg.body || '').trim())
     .filter(Boolean);
-  if (priorManagementBodies.some((body) => body.toLowerCase() === tenantReplyDraft.toLowerCase())) {
+  if (isNearDuplicateOfPriorReply(tenantReplyDraft, priorManagementBodies)) {
     suggestion.tenantReplyDraft =
       'Quick update: we are still actively tracking this request. Please share one new detail (changed symptom, exact location, or a fresh photo/video) so we can avoid duplicate steps and proceed faster.';
     suggestion.policyFlags = Array.from(new Set([...(suggestion.policyFlags ?? []), 'REPETITION_AVOIDANCE_REWRITE']));
-    suggestion.internalSummary = `${suggestion.internalSummary} Duplicate-style draft detected and rewritten for tenant experience.`;
+    suggestion.internalSummary = `${suggestion.internalSummary} Near-duplicate draft detected and rewritten for tenant experience.`;
   }
   return { suggestion, modelName, providerUsed: 'heuristic_fallback', promptVersion };
 }

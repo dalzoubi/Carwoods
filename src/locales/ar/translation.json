@@ -803,9 +803,7 @@
       "chooseFile": "اختيار ملف",
       "attachFile": "إرفاق ملف",
       "backToList": "العودة إلى القائمة",
-      "suggestReply": "اقتراح رد",
       "copy": "نسخ",
-      "insertIntoMessage": "إدراج في الرسالة",
       "exportCsv": "تصدير CSV",
       "exportingCsv": "جارٍ التصدير…",
       "cancelRequest": "إلغاء الطلب",
@@ -870,12 +868,6 @@
       "vendorContactPhone": "هاتف جهة اتصال المورّد",
       "internalNotes": "ملاحظات داخلية",
       "saved": "تم تحديث الطلب."
-    },
-    "suggest": {
-      "heading": "اقتراح رد بالذكاء الاصطناعي",
-      "copySuccess": "تم نسخ الرد المقترح إلى الحافظة.",
-      "copyFailed": "تعذر نسخ الرد المقترح.",
-      "insertSuccess": "تم إدراج الرد المقترح في مربع الرسالة."
     },
     "statuses": {
       "NOT_STARTED": "لم يبدأ",
