@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   CircularProgress,
   FormControl,
   FormControlLabel,
@@ -13,9 +14,11 @@ import {
   Stack,
   Switch,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import Refresh from '@mui/icons-material/Refresh';
+import TuneIcon from '@mui/icons-material/Tune';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { emailFromAccount, normalizeRole, resolveRole } from '../portalUtils';
@@ -521,62 +524,103 @@ const PortalAdminAiConfig = () => {
 
         <Paper variant="outlined" sx={{ p: 2 }}>
           <Stack spacing={1}>
-            <Typography variant="h3" sx={{ fontSize: '1.05rem' }}>
-              {t('portalAdminAiConfig.properties.heading')}
-            </Typography>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap' }}>
+              <Typography variant="h3" sx={{ fontSize: '1.05rem' }}>
+                {t('portalAdminAiConfig.properties.heading')}
+              </Typography>
+              {propertyPolicies.filter((row) => row.auto_send_enabled_override !== 'inherit' || row.require_review_all).length > 0 && (
+                <Tooltip title={t('portalAdminAiConfig.properties.customConfigTooltip')}>
+                  <Chip
+                    icon={<TuneIcon />}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                    label={t('portalAdminAiConfig.properties.customConfigCount', {
+                      count: propertyPolicies.filter((row) => row.auto_send_enabled_override !== 'inherit' || row.require_review_all).length,
+                    })}
+                  />
+                </Tooltip>
+              )}
+            </Stack>
             {propertyPolicies.length === 0 && <Typography color="text.secondary">{t('portalAdminAiConfig.properties.empty')}</Typography>}
-            {propertyPolicies.map((row, idx) => (
-              <Stack key={row.property_id || `property-${idx}`} direction={{ xs: 'column', md: 'row' }} spacing={1.5} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 1.25 }}>
-                <Box sx={{ minWidth: 220 }}>
-                  <Typography sx={{ fontWeight: 600 }}>{row.property_id || '-'}</Typography>
-                </Box>
-                <FormControl size="small" sx={{ minWidth: 180 }}>
-                  <InputLabel id={`property-override-${idx}`}>{t('portalAdminAiConfig.properties.autoSendOverride')}</InputLabel>
-                  <Select
-                    labelId={`property-override-${idx}`}
-                    label={t('portalAdminAiConfig.properties.autoSendOverride')}
-                    value={row.auto_send_enabled_override}
-                    onChange={(event) => {
-                      const next = event.target.value;
-                      setPropertyPolicies((prev) => prev.map((item) => (
-                        item.property_id === row.property_id ? { ...item, auto_send_enabled_override: next } : item
-                      )));
-                    }}
-                    disabled={!canUseModule || propertySaving === row.property_id}
-                  >
-                    <MenuItem value="inherit">{t('portalAdminAiConfig.properties.inherit')}</MenuItem>
-                    <MenuItem value="enabled">{t('portalAdminAiConfig.properties.enabled')}</MenuItem>
-                    <MenuItem value="disabled">{t('portalAdminAiConfig.properties.disabled')}</MenuItem>
-                  </Select>
-                </FormControl>
-                <FormControlLabel
-                  control={(
-                    <Switch
-                      checked={Boolean(row.require_review_all)}
+            {propertyPolicies.map((row, idx) => {
+              const hasCustomConfig = row.auto_send_enabled_override !== 'inherit' || row.require_review_all;
+              return (
+                <Stack
+                  key={row.property_id || `property-${idx}`}
+                  direction={{ xs: 'column', md: 'row' }}
+                  spacing={1.5}
+                  sx={(theme) => ({
+                    border: '1px solid',
+                    borderColor: hasCustomConfig ? 'primary.main' : 'divider',
+                    borderRadius: 1.5,
+                    p: 1.25,
+                    backgroundColor: hasCustomConfig
+                      ? theme.palette.mode === 'dark'
+                        ? 'rgba(144,202,249,0.08)'
+                        : 'rgba(25,118,210,0.04)'
+                      : 'transparent',
+                  })}
+                >
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 220 }}>
+                    <Typography sx={{ fontWeight: 600 }}>{row.property_id || '-'}</Typography>
+                    {hasCustomConfig && (
+                      <Chip
+                        icon={<TuneIcon />}
+                        size="small"
+                        color="primary"
+                        label={t('portalAdminAiConfig.properties.customBadge')}
+                      />
+                    )}
+                  </Stack>
+                  <FormControl size="small" sx={{ minWidth: 180 }}>
+                    <InputLabel id={`property-override-${idx}`}>{t('portalAdminAiConfig.properties.autoSendOverride')}</InputLabel>
+                    <Select
+                      labelId={`property-override-${idx}`}
+                      label={t('portalAdminAiConfig.properties.autoSendOverride')}
+                      value={row.auto_send_enabled_override}
                       onChange={(event) => {
-                        const next = event.target.checked;
+                        const next = event.target.value;
                         setPropertyPolicies((prev) => prev.map((item) => (
-                          item.property_id === row.property_id ? { ...item, require_review_all: next } : item
+                          item.property_id === row.property_id ? { ...item, auto_send_enabled_override: next } : item
                         )));
                       }}
-                    />
-                  )}
-                  label={t('portalAdminAiConfig.properties.requireReviewAll')}
-                  disabled={!canUseModule || propertySaving === row.property_id}
-                />
-                <Button
-                  type="button"
-                  variant="outlined"
-                  size="small"
-                  onClick={() => void saveProperty(row)}
-                  disabled={!canUseModule || propertySaving === row.property_id}
-                >
-                  {propertySaving === row.property_id
-                    ? t('portalAdminAiConfig.actions.saving')
-                    : t('portalAdminAiConfig.actions.saveRow')}
-                </Button>
-              </Stack>
-            ))}
+                      disabled={!canUseModule || propertySaving === row.property_id}
+                    >
+                      <MenuItem value="inherit">{t('portalAdminAiConfig.properties.inherit')}</MenuItem>
+                      <MenuItem value="enabled">{t('portalAdminAiConfig.properties.enabled')}</MenuItem>
+                      <MenuItem value="disabled">{t('portalAdminAiConfig.properties.disabled')}</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <FormControlLabel
+                    control={(
+                      <Switch
+                        checked={Boolean(row.require_review_all)}
+                        onChange={(event) => {
+                          const next = event.target.checked;
+                          setPropertyPolicies((prev) => prev.map((item) => (
+                            item.property_id === row.property_id ? { ...item, require_review_all: next } : item
+                          )));
+                        }}
+                      />
+                    )}
+                    label={t('portalAdminAiConfig.properties.requireReviewAll')}
+                    disabled={!canUseModule || propertySaving === row.property_id}
+                  />
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    size="small"
+                    onClick={() => void saveProperty(row)}
+                    disabled={!canUseModule || propertySaving === row.property_id}
+                  >
+                    {propertySaving === row.property_id
+                      ? t('portalAdminAiConfig.actions.saving')
+                      : t('portalAdminAiConfig.actions.saveRow')}
+                  </Button>
+                </Stack>
+              );
+            })}
           </Stack>
         </Paper>
       </Stack>

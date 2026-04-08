@@ -126,9 +126,7 @@ const RequestDetailPane = ({
   auditEvents,
   auditStatus,
   auditError,
-  elsaSettings,
   elsaFeatureEnabled,
-  elsaSettingsStatus,
   elsaSettingsError,
   elsaDecisionStatus,
   elsaDecisionError,
@@ -138,9 +136,6 @@ const RequestDetailPane = ({
   onSetElsaAutoRespond,
   onRunElsa,
   onReviewElsaDecision,
-  onUpdateElsaGlobalSettings,
-  onSetElsaCategoryEnabled,
-  onSetElsaPriorityPolicy,
   onCancelRequest,
   cancelStatus,
   cancelError,
@@ -598,67 +593,12 @@ const RequestDetailPane = ({
               <Button type="button" variant="outlined" onClick={onRunElsa} disabled={elsaDecisionStatus === 'loading'}>
                 {t('portalRequests.elsa.runNow')}
               </Button>
-              <Button
-                type="button"
-                variant="outlined"
-                onClick={() =>
-                  onUpdateElsaGlobalSettings({
-                    elsa_auto_send_enabled: !Boolean(elsaSettings?.elsa_auto_send_enabled),
-                  })
-                }
-                disabled={elsaSettingsStatus === 'loading'}
-              >
-                {Boolean(elsaSettings?.elsa_auto_send_enabled)
-                  ? t('portalRequests.elsa.disableGlobalAutoSend')
-                  : t('portalRequests.elsa.enableGlobalAutoSend')}
-              </Button>
-              <Button
-                type="button"
-                variant="outlined"
-                onClick={() =>
-                  onSetElsaCategoryEnabled(
-                    requestDetail?.category_code,
-                    !Boolean(elsaSettings?.elsa_allowed_categories?.includes(requestDetail?.category_code))
-                  )
-                }
-                disabled={!requestDetail?.category_code || elsaSettingsStatus === 'loading'}
-              >
-                {t('portalRequests.elsa.toggleCategoryAutoSend')}
-              </Button>
-              <Button
-                type="button"
-                variant="outlined"
-                onClick={() =>
-                  onSetElsaPriorityPolicy(
-                    requestDetail?.priority_code,
-                    true,
-                    true
-                  )
-                }
-                disabled={!requestDetail?.priority_code || elsaSettingsStatus === 'loading'}
-              >
-                {t('portalRequests.elsa.requireReviewForPriority')}
-              </Button>
             </Stack>
             {elsaSettingsError && <Alert severity="error">{elsaSettingsError}</Alert>}
             {elsaDecisionError && <Alert severity="error">{elsaDecisionError}</Alert>}
             {elsaDecisionActionStatus === 'success' && (
               <Alert severity="success">{t('portalRequests.elsa.reviewActionSaved')}</Alert>
             )}
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-              <Chip
-                size="small"
-                label={`${t('portalRequests.elsa.globalAutoSend')}: ${
-                  Boolean(elsaSettings?.elsa_auto_send_enabled) ? t('portalRequests.elsa.enabled') : t('portalRequests.elsa.disabled')
-                }`}
-                color={Boolean(elsaSettings?.elsa_auto_send_enabled) ? 'success' : 'default'}
-              />
-              <Chip
-                size="small"
-                label={`${t('portalRequests.elsa.confidenceThreshold')}: ${elsaSettings?.elsa_auto_send_confidence_threshold ?? '-'}`}
-                color="info"
-              />
-            </Stack>
             {(elsaDecisions || [])
               .filter((decision) => (
                 decision.policy_decision !== 'HOLD_FOR_REVIEW' || !decision.reviewed_at

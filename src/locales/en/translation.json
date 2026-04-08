@@ -1082,7 +1082,10 @@
       "inherit": "Inherit global",
       "enabled": "Enabled",
       "disabled": "Disabled",
-      "requireReviewAll": "Require review for all replies"
+      "requireReviewAll": "Require review for all replies",
+      "customBadge": "Custom",
+      "customConfigCount": "{{count}} custom",
+      "customConfigTooltip": "Properties with overridden AI settings"
     }
   },
   "portalAdminProperties": {
