@@ -39,7 +39,7 @@ export type LlmConfig = {
 
 const DEFAULTS: LlmConfig = {
   primaryModel: 'gemini-2.5-flash',
-  fallbackModel: 'gemini-1.5-flash',
+  fallbackModel: 'gemini-2.5-flash-lite',
   timeoutMs: 15_000,
   maxPrimaryAttempts: 3,
   maxFallbackAttempts: 2,
