@@ -85,7 +85,8 @@ BEGIN
     dispatch_summary          NVARCHAR(MAX)    NULL,
     policy_flags_json         NVARCHAR(MAX)    NULL,
     auto_send_rationale       NVARCHAR(MAX)    NULL,
-    sent_message_id           UNIQUEIDENTIFIER NULL REFERENCES request_messages (id) ON DELETE SET NULL,
+    -- Keep default NO ACTION to avoid multiple cascade paths from maintenance_requests.
+    sent_message_id           UNIQUEIDENTIFIER NULL REFERENCES request_messages (id),
     sent_at                   DATETIMEOFFSET   NULL,
     created_at                DATETIMEOFFSET   NOT NULL DEFAULT SYSDATETIMEOFFSET()
   );
