@@ -80,9 +80,7 @@ const PortalRequests = () => {
     auditEvents,
     auditStatus,
     auditError,
-    elsaSettings,
     elsaFeatureEnabled,
-    elsaSettingsStatus,
     elsaSettingsError,
     elsaDecisionStatus,
     elsaDecisionError,
@@ -112,9 +110,6 @@ const PortalRequests = () => {
     onSetElsaAutoRespond,
     onRunElsa,
     onReviewElsaDecision,
-    onUpdateElsaGlobalSettings,
-    onSetElsaCategoryEnabled,
-    onSetElsaPriorityPolicy,
   } = usePortalRequests({
     baseUrl,
     isAuthenticated,
@@ -316,9 +311,7 @@ const PortalRequests = () => {
                 auditEvents={auditEvents}
                 auditStatus={auditStatus}
                 auditError={auditError}
-                elsaSettings={elsaSettings}
                 elsaFeatureEnabled={elsaFeatureEnabled}
-                elsaSettingsStatus={elsaSettingsStatus}
                 elsaSettingsError={elsaSettingsError}
                 elsaDecisionStatus={elsaDecisionStatus}
                 elsaDecisionError={elsaDecisionError}
@@ -328,9 +321,6 @@ const PortalRequests = () => {
                 onSetElsaAutoRespond={onSetElsaAutoRespond}
                 onRunElsa={onRunElsa}
                 onReviewElsaDecision={onReviewElsaDecision}
-                onUpdateElsaGlobalSettings={onUpdateElsaGlobalSettings}
-                onSetElsaCategoryEnabled={onSetElsaCategoryEnabled}
-                onSetElsaPriorityPolicy={onSetElsaPriorityPolicy}
                 onCancelRequest={onCancelRequest}
                 cancelStatus={cancelStatus}
                 cancelError={cancelError}
