@@ -106,6 +106,7 @@ export async function processElsaAutoResponse(
     messages,
     weatherSeverity: input.weatherSeverity ?? 'NORMAL',
     nowIso: new Date().toISOString(),
+    logger: input.logger,
   });
   const validated = parseElsaSuggestion(aiResult.suggestion);
   const suggestion = validated ?? {
