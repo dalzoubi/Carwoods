@@ -14,7 +14,13 @@ BEGIN
 END
 
 -- Backfill start value from legacy single-point schedule column.
-UPDATE dbo.maintenance_requests
-SET scheduled_from = scheduled_for
-WHERE scheduled_for IS NOT NULL
-  AND scheduled_from IS NULL;
+IF COL_LENGTH('dbo.maintenance_requests', 'scheduled_for') IS NOT NULL
+  AND COL_LENGTH('dbo.maintenance_requests', 'scheduled_from') IS NOT NULL
+BEGIN
+  EXEC sp_executesql N'
+    UPDATE dbo.maintenance_requests
+    SET scheduled_from = scheduled_for
+    WHERE scheduled_for IS NOT NULL
+      AND scheduled_from IS NULL;
+  ';
+END
