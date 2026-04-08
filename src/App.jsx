@@ -19,6 +19,7 @@ import PortalStatus from './components/PortalStatus';
 import PortalProfile from './components/PortalProfile';
 import PortalRequests from './components/PortalRequests';
 import PortalAdminLandlords from './components/PortalAdminLandlords';
+import PortalAdminAiSettings from './components/PortalAdminAiSettings';
 import PortalAdminProperties from './components/PortalAdminProperties';
 import PortalTenants from './components/PortalTenants';
 import PortalLayout from './components/PortalLayout';
@@ -105,9 +106,25 @@ function PortalRoutes() {
             />
             <Route
                 path="/portal/admin"
+                element={<Navigate to="/portal/admin/landlords" replace />}
+            />
+            <Route
+                path="/portal/admin/landlords"
                 element={
                     <PortalRouteGuard allowedRoles={[Role.ADMIN]}>
                         <PortalAdminLandlords />
+                    </PortalRouteGuard>
+                }
+            />
+            <Route
+                path="/portal/admin/ai"
+                element={<Navigate to="/portal/admin/config" replace />}
+            />
+            <Route
+                path="/portal/admin/config"
+                element={
+                    <PortalRouteGuard allowedRoles={[Role.ADMIN]}>
+                        <PortalAdminAiSettings />
                     </PortalRouteGuard>
                 }
             />

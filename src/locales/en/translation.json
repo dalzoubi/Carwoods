@@ -892,7 +892,9 @@
       "internalToggle": "Internal message (landlord/admin only)",
       "internalTag": "Internal",
       "sent": "Message sent.",
-      "senderUnknown": "Unknown sender"
+      "senderUnknown": "Unknown sender",
+      "elsaName": "Elsa",
+      "aiAssistantRole": "AI Assistant"
     },
     "attachments": {
       "heading": "Attachments",
@@ -910,6 +912,39 @@
       "confirmYes": "Yes, cancel it",
       "confirmNo": "Keep request"
     },
+    "elsa": {
+      "heading": "Elsa Guardrailed Auto-Response",
+      "autoRespondToggle": "Enable Elsa auto-respond for this request",
+      "runNow": "Run Elsa now",
+      "enableGlobalAutoSend": "Enable global auto-send",
+      "disableGlobalAutoSend": "Disable global auto-send",
+      "toggleCategoryAutoSend": "Toggle category auto-send",
+      "requireReviewForPriority": "Require review for this priority",
+      "globalAutoSend": "Global auto-send",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "confidenceThreshold": "Confidence threshold",
+      "confidence": "Confidence",
+      "provider": "Provider",
+      "nextAction": "Next action",
+      "reviewActionSaved": "Decision updated.",
+      "reviewedBadge": "Reviewed: {{status}}",
+      "resolved": "Resolved",
+      "actions": {
+        "sendAndResolve": "Send draft + resolve",
+        "markResolved": "Mark resolved",
+        "dismiss": "Dismiss"
+      },
+      "badges": {
+        "autoSent": "Auto-sent",
+        "held": "Held for review",
+        "blocked": "Blocked"
+      },
+      "timeline": {
+        "autoSentByElsa": "Auto-sent by Elsa",
+        "suggestedAwaitingReview": "Suggested by Elsa, awaiting review"
+      }
+    },
     "audit": {
       "tabsLabel": "Request view tabs",
       "detailsTab": "Details",
@@ -925,9 +960,9 @@
     }
   },
   "portalAdminLandlords": {
-    "title": "Carwoods - Admin Landlord Onboarding",
-    "metaDescription": "Admin workspace for onboarding landlords and managing active/inactive status.",
-    "heading": "Landlord Onboarding",
+    "title": "Carwoods - Admin Landlords",
+    "metaDescription": "Admin workspace for managing landlords and active/inactive status.",
+    "heading": "Landlords",
     "intro": "Create and manage landlord portal records. Active landlords are shown by default.",
     "form": {
       "heading": "Add landlord",
@@ -967,14 +1002,80 @@
       "body": "This will restore {{name}}'s access to the portal."
     },
     "errors": {
-      "apiUnavailable": "Set VITE_API_BASE_URL to enable admin onboarding.",
-      "signInRequired": "Sign in before using admin onboarding.",
+      "apiUnavailable": "Set VITE_API_BASE_URL to enable landlord admin tools.",
+      "signInRequired": "Sign in before managing landlords.",
       "adminOnly": "Only admin accounts can use this module.",
       "validation": "Please fix the highlighted fields.",
       "emailRequired": "Email is required.",
       "emailInvalid": "Enter a valid email address.",
       "firstNameRequired": "First name is required.",
       "lastNameRequired": "Last name is required."
+    }
+  },
+  "portalAdminConfigurations": {
+    "title": "Carwoods - Admin Configurations",
+    "metaDescription": "Admin workspace for platform configurations.",
+    "heading": "Configurations",
+    "intro": "Manage system configurations from one place.",
+    "tabsLabel": "Configuration tabs",
+    "tabs": {
+      "ai": "AI Configuration"
+    }
+  },
+  "portalAdminAiConfig": {
+    "heading": "AI Configuration",
+    "intro": "Review and update Elsa AI policies from one place.",
+    "actions": {
+      "refresh": "Refresh",
+      "saveGlobal": "Save global settings",
+      "saveRow": "Save",
+      "saving": "Saving..."
+    },
+    "messages": {
+      "globalSaved": "AI global settings saved."
+    },
+    "errors": {
+      "featureDisabled": "Set VITE_FEATURE_ELSA_AUTO=true to enable AI configuration.",
+      "apiUnavailable": "Set VITE_API_BASE_URL to enable AI configuration.",
+      "signInRequired": "Sign in before using AI configuration.",
+      "adminOnly": "Only admin accounts can manage AI configuration.",
+      "loadFailed": "Unable to load AI configuration.",
+      "saveFailed": "Unable to save AI configuration."
+    },
+    "global": {
+      "heading": "Global settings",
+      "elsaEnabled": "Enable Elsa AI features",
+      "autoSendEnabled": "Enable global auto-send",
+      "emergencyTemplateEnabled": "Enable emergency template",
+      "confidenceThreshold": "Auto-send confidence threshold",
+      "confidenceHelp": "Use a value between 0 and 1.",
+      "maxQuestions": "Maximum AI follow-up questions",
+      "maxSteps": "Maximum AI workflow steps",
+      "allowedCategories": "Allowed categories (one per line or comma-separated)",
+      "allowedPriorities": "Allowed priorities (one per line or comma-separated)",
+      "blockedKeywords": "Blocked keywords (one per line or comma-separated)",
+      "emergencyKeywords": "Emergency keywords (one per line or comma-separated)",
+      "adminAlertRecipients": "Admin alert recipients (one per line or comma-separated)"
+    },
+    "categories": {
+      "heading": "Category policies",
+      "empty": "No category policy rows available.",
+      "autoSend": "Allow auto-send"
+    },
+    "priorities": {
+      "heading": "Priority policies",
+      "empty": "No priority policy rows available.",
+      "autoSend": "Allow auto-send",
+      "requireReview": "Require admin review"
+    },
+    "properties": {
+      "heading": "Property policies",
+      "empty": "No property policy rows available.",
+      "autoSendOverride": "Auto-send override",
+      "inherit": "Inherit global",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "requireReviewAll": "Require review for all replies"
     }
   },
   "portalAdminProperties": {
@@ -1057,7 +1158,8 @@
       "showOnApply": "Visible",
       "landlord": "Landlord",
       "harId": "HAR ID",
-      "noPhoto": "No photo"
+      "noPhoto": "No photo",
+      "elsaAutoSend": "Elsa auto-send allowed"
     },
     "messages": {
       "added": "Property added successfully.",
@@ -1065,7 +1167,8 @@
       "deleted": "Property deleted.",
       "restored": "Property restored.",
       "visibilityUpdated": "Visibility updated.",
-      "harSynced": "HAR listing refreshed."
+      "harSynced": "HAR listing refreshed.",
+      "elsaPolicyUpdated": "Elsa property policy updated."
     },
     "errors": {
       "signInRequired": "Sign in before managing properties.",
@@ -1079,6 +1182,7 @@
       "restoreFailed": "Could not restore property: {{error}}",
       "visibilityFailed": "Could not update visibility: {{error}}",
       "syncHarFailed": "Could not refresh HAR listing: {{error}}",
+      "elsaPolicyFailed": "Could not update Elsa property policy: {{error}}",
       "noApiConfigured": "API is not configured. Set VITE_API_BASE_URL in your .env to enable property management."
     }
   },
@@ -1118,6 +1222,8 @@
       "requests": "Requests",
       "profile": "Profile",
       "adminLandlords": "Landlords",
+      "adminConfigurations": "Configurations",
+      "adminAiConfig": "AI Configuration",
       "properties": "Properties",
       "tenants": "Tenants",
       "status": "System Status",

@@ -15,6 +15,7 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  Switch,
   LinearProgress,
   Tab,
   Tabs,
@@ -22,6 +23,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import ContentCopy from '@mui/icons-material/ContentCopy';
 import EditNote from '@mui/icons-material/EditNote';
 import { useTranslation } from 'react-i18next';
@@ -67,15 +69,22 @@ function displayNameWithFallback(data, fallbackText) {
   return fallbackText;
 }
 
-function NameWithRole({ name, role, t }) {
+function NameWithRole({
+  name,
+  role,
+  t,
+  roleLabelOverride = '',
+  chipColor = 'primary',
+  chipVariant = 'outlined',
+}) {
   return (
     <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexWrap: 'wrap' }}>
       <Typography sx={{ fontWeight: 600 }}>{name}</Typography>
       <Chip
-        label={roleLabel(role, t)}
+        label={roleLabelOverride || roleLabel(role, t)}
         size="small"
-        color="primary"
-        variant="outlined"
+        color={chipColor}
+        variant={chipVariant}
         sx={{ height: 20, fontSize: '0.7rem' }}
       />
     </Stack>
@@ -114,6 +123,21 @@ const RequestDetailPane = ({
   auditEvents,
   auditStatus,
   auditError,
+  elsaSettings,
+  elsaFeatureEnabled,
+  elsaSettingsStatus,
+  elsaSettingsError,
+  elsaDecisionStatus,
+  elsaDecisionError,
+  elsaDecisionActionStatus,
+  elsaDecisions,
+  elsaAutoRespondEnabled,
+  onSetElsaAutoRespond,
+  onRunElsa,
+  onReviewElsaDecision,
+  onUpdateElsaGlobalSettings,
+  onSetElsaCategoryEnabled,
+  onSetElsaPriorityPolicy,
   onCancelRequest,
   cancelStatus,
   cancelError,
@@ -506,7 +530,7 @@ const RequestDetailPane = ({
         </Box>
       )}
 
-      {isManagement && (
+      {isManagement && elsaFeatureEnabled && (
         <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 2 }}>
           <Stack spacing={1.5}>
             <Typography variant="h3" sx={{ fontSize: '1.1rem' }}>
@@ -546,6 +570,176 @@ const RequestDetailPane = ({
         </Box>
       )}
 
+      {isManagement && (
+        <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 2 }}>
+          <Stack spacing={1.5}>
+            <Typography variant="h3" sx={{ fontSize: '1.1rem' }}>
+              {t('portalRequests.elsa.heading')}
+            </Typography>
+            <FormControlLabel
+              control={(
+                <Switch
+                  checked={Boolean(elsaAutoRespondEnabled)}
+                  onChange={(event) => onSetElsaAutoRespond(event.target.checked)}
+                />
+              )}
+              label={t('portalRequests.elsa.autoRespondToggle')}
+            />
+            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+              <Button type="button" variant="outlined" onClick={onRunElsa} disabled={elsaDecisionStatus === 'loading'}>
+                {t('portalRequests.elsa.runNow')}
+              </Button>
+              <Button
+                type="button"
+                variant="outlined"
+                onClick={() =>
+                  onUpdateElsaGlobalSettings({
+                    elsa_auto_send_enabled: !Boolean(elsaSettings?.elsa_auto_send_enabled),
+                  })
+                }
+                disabled={elsaSettingsStatus === 'loading'}
+              >
+                {Boolean(elsaSettings?.elsa_auto_send_enabled)
+                  ? t('portalRequests.elsa.disableGlobalAutoSend')
+                  : t('portalRequests.elsa.enableGlobalAutoSend')}
+              </Button>
+              <Button
+                type="button"
+                variant="outlined"
+                onClick={() =>
+                  onSetElsaCategoryEnabled(
+                    requestDetail?.category_code,
+                    !Boolean(elsaSettings?.elsa_allowed_categories?.includes(requestDetail?.category_code))
+                  )
+                }
+                disabled={!requestDetail?.category_code || elsaSettingsStatus === 'loading'}
+              >
+                {t('portalRequests.elsa.toggleCategoryAutoSend')}
+              </Button>
+              <Button
+                type="button"
+                variant="outlined"
+                onClick={() =>
+                  onSetElsaPriorityPolicy(
+                    requestDetail?.priority_code,
+                    true,
+                    true
+                  )
+                }
+                disabled={!requestDetail?.priority_code || elsaSettingsStatus === 'loading'}
+              >
+                {t('portalRequests.elsa.requireReviewForPriority')}
+              </Button>
+            </Stack>
+            {elsaSettingsError && <Alert severity="error">{elsaSettingsError}</Alert>}
+            {elsaDecisionError && <Alert severity="error">{elsaDecisionError}</Alert>}
+            {elsaDecisionActionStatus === 'success' && (
+              <Alert severity="success">{t('portalRequests.elsa.reviewActionSaved')}</Alert>
+            )}
+            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+              <Chip
+                size="small"
+                label={`${t('portalRequests.elsa.globalAutoSend')}: ${
+                  Boolean(elsaSettings?.elsa_auto_send_enabled) ? t('portalRequests.elsa.enabled') : t('portalRequests.elsa.disabled')
+                }`}
+                color={Boolean(elsaSettings?.elsa_auto_send_enabled) ? 'success' : 'default'}
+              />
+              <Chip
+                size="small"
+                label={`${t('portalRequests.elsa.confidenceThreshold')}: ${elsaSettings?.elsa_auto_send_confidence_threshold ?? '-'}`}
+                color="info"
+              />
+            </Stack>
+            {(elsaDecisions || [])
+              .filter((decision) => (
+                decision.policy_decision !== 'HOLD_FOR_REVIEW' || !decision.reviewed_at
+              ))
+              .slice(0, 3)
+              .map((decision) => (
+              <Box key={decision.id} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1 }}>
+                <Stack spacing={0.5}>
+                  <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                    <Chip
+                      size="small"
+                      label={decision.policy_decision === 'SEND_AUTOMATICALLY'
+                        ? t('portalRequests.elsa.badges.autoSent')
+                        : decision.policy_decision === 'BLOCK_AND_ALERT_ADMIN'
+                          ? t('portalRequests.elsa.badges.blocked')
+                          : t('portalRequests.elsa.badges.held')}
+                      color={decision.policy_decision === 'SEND_AUTOMATICALLY'
+                        ? 'success'
+                        : decision.policy_decision === 'BLOCK_AND_ALERT_ADMIN'
+                          ? 'error'
+                          : 'warning'}
+                    />
+                    {decision.mode ? <Chip size="small" label={decision.mode} variant="outlined" /> : null}
+                    {decision.provider_used ? (
+                      <Chip
+                        size="small"
+                        label={`${t('portalRequests.elsa.provider')}: ${decision.provider_used}`}
+                        variant="outlined"
+                      />
+                    ) : null}
+                    {decision.confidence !== null && decision.confidence !== undefined
+                      ? <Chip size="small" label={`${t('portalRequests.elsa.confidence')}: ${decision.confidence}`} variant="outlined" />
+                      : null}
+                  </Stack>
+                  {decision.internal_summary && (
+                    <Typography variant="body2" color="text.secondary">
+                      {decision.internal_summary}
+                    </Typography>
+                  )}
+                  {decision.recommended_next_action && (
+                    <Typography variant="caption" color="text.secondary">
+                      {t('portalRequests.elsa.nextAction')}: {decision.recommended_next_action}
+                    </Typography>
+                  )}
+                  {decision.policy_decision === 'HOLD_FOR_REVIEW' && !decision.reviewed_at && (
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mt: 0.5 }}>
+                      <Button
+                        type="button"
+                        size="small"
+                        variant="contained"
+                        onClick={() => onReviewElsaDecision(decision.id, 'SEND_AND_RESOLVE')}
+                        disabled={elsaDecisionActionStatus === 'saving'}
+                      >
+                        {t('portalRequests.elsa.actions.sendAndResolve')}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="small"
+                        variant="outlined"
+                        onClick={() => onReviewElsaDecision(decision.id, 'MARK_RESOLVED')}
+                        disabled={elsaDecisionActionStatus === 'saving'}
+                      >
+                        {t('portalRequests.elsa.actions.markResolved')}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="small"
+                        color="warning"
+                        variant="outlined"
+                        onClick={() => onReviewElsaDecision(decision.id, 'DISMISS')}
+                        disabled={elsaDecisionActionStatus === 'saving'}
+                      >
+                        {t('portalRequests.elsa.actions.dismiss')}
+                      </Button>
+                    </Stack>
+                  )}
+                  {decision.reviewed_at && (
+                    <Typography variant="caption" color="text.secondary">
+                      {t('portalRequests.elsa.reviewedBadge', {
+                        status: decision.review_status || t('portalRequests.elsa.resolved'),
+                      })}
+                    </Typography>
+                  )}
+                </Stack>
+              </Box>
+            ))}
+          </Stack>
+        </Box>
+      )}
+
       <Box
         component="form"
         onSubmit={onMessageSubmit}
@@ -561,24 +755,69 @@ const RequestDetailPane = ({
                 <Typography color="text.secondary">{t('portalRequests.messages.empty')}</Typography>
               )}
               {threadMessages.map((msg) => (
-                <Box key={msg.id} sx={{ borderBottom: '1px solid', borderColor: 'divider', pb: 1 }}>
-                  <NameWithRole
-                    name={displayNameWithFallback({
-                      displayName: msg.sender_display_name,
-                      email: msg.sender_email,
-                      userId: msg.sender_user_id,
-                    }, t('portalRequests.messages.senderUnknown'))}
-                    role={msg.sender_role}
-                    t={t}
-                  />
-                  {msg.is_internal && (
-                    <Typography variant="caption" color="text.secondary">
-                      {t('portalRequests.messages.internalTag')}
-                    </Typography>
-                  )}
-                  <Typography variant="caption" color="text.secondary">
+                <Box
+                  key={msg.id}
+                  sx={(theme) => ({
+                    borderBottom: '1px solid',
+                    borderColor: msg.is_internal ? 'warning.main' : 'divider',
+                    pb: 1,
+                    px: 1,
+                    pt: 1,
+                    borderRadius: 1,
+                    backgroundColor: msg.is_internal
+                      ? alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.22 : 0.12)
+                      : 'transparent',
+                  })}
+                >
+                  {/*
+                    Elsa auto-sent messages are persisted with source=SYSTEM.
+                    Render a stable assistant identity regardless of actor user metadata.
+                  */}
+                  <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexWrap: 'wrap' }}>
+                    {msg.is_internal && (
+                      <Chip
+                        size="small"
+                        color="warning"
+                        variant="filled"
+                        label={t('portalRequests.messages.internalTag')}
+                        sx={{
+                          height: 20,
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          letterSpacing: 0.3,
+                        }}
+                      />
+                    )}
+                    {(() => {
+                      const isElsaAutoMessage = msg.source === 'SYSTEM' || msg.source === 'ELSA_AUTO_SENT';
+                      const senderName = isElsaAutoMessage
+                        ? t('portalRequests.messages.elsaName')
+                        : displayNameWithFallback({
+                          displayName: msg.sender_display_name,
+                          email: msg.sender_email,
+                          userId: msg.sender_user_id,
+                        }, t('portalRequests.messages.senderUnknown'));
+                      return (
+                        <NameWithRole
+                          name={senderName}
+                          role={msg.sender_role}
+                          t={t}
+                          roleLabelOverride={isElsaAutoMessage ? t('portalRequests.messages.aiAssistantRole') : ''}
+                          chipColor={isElsaAutoMessage ? 'secondary' : 'primary'}
+                          chipVariant={isElsaAutoMessage ? 'filled' : 'outlined'}
+                        />
+                      );
+                    })()}
+                  </Stack>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
                     {formatDateTime(msg.created_at)}
                   </Typography>
+                  {msg.source === 'SYSTEM' && (
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                      {t('portalRequests.elsa.timeline.autoSentByElsa')}
+                    </Typography>
+                  )}
                   <Typography color="text.secondary">{msg.body}</Typography>
                 </Box>
               ))}

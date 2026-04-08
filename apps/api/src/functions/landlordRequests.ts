@@ -14,6 +14,21 @@ import { updateRequestStatus } from '../useCases/requests/updateRequestStatus.js
 import { suggestRequestReply } from '../useCases/requests/suggestRequestReply.js';
 import { exportRequestsCsv } from '../useCases/requests/exportRequestsCsv.js';
 import { listRequestAudit } from '../useCases/requests/listRequestAudit.js';
+import { processElsaAutoResponse } from '../useCases/requests/processElsaAutoResponse.js';
+import { reviewElsaDecision } from '../useCases/requests/reviewElsaDecision.js';
+import {
+  getElsaSettings,
+  getElsaRequestAutoRespond,
+  listCategoryPolicies,
+  listElsaDecisionsForRequest,
+  listPriorityPolicies,
+  listPropertyPolicies,
+  setElsaRequestAutoRespond,
+  upsertCategoryPolicy,
+  upsertElsaSettings,
+  upsertPriorityPolicy,
+  upsertPropertyPolicy,
+} from '../lib/elsaRepo.js';
 
 // ---------------------------------------------------------------------------
 // Parsing helpers
@@ -26,6 +41,16 @@ function asRecord(v: unknown): Record<string, unknown> {
 
 function str(v: unknown): string | undefined {
   return typeof v === 'string' ? v.trim() : undefined;
+}
+
+function bool(v: unknown): boolean | undefined {
+  return typeof v === 'boolean' ? v : undefined;
+}
+
+function listStrings(v: unknown): string[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  const items = v.map((item) => String(item ?? '').trim()).filter(Boolean);
+  return items;
 }
 
 // ---------------------------------------------------------------------------
@@ -187,6 +212,296 @@ async function landlordRequestAudit(
   }
 }
 
+async function landlordElsaSettings(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireLandlordOrAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  if (request.method === 'GET') {
+    const settings = await getElsaSettings(getPool());
+    const [categories, priorities, properties] = await Promise.all([
+      listCategoryPolicies(getPool()),
+      listPriorityPolicies(getPool()),
+      listPropertyPolicies(getPool()),
+    ]);
+    const requestId = str(request.query.get('request_id'));
+    const requestPolicy = requestId
+      ? { auto_respond_enabled: await getElsaRequestAutoRespond(getPool(), requestId) }
+      : null;
+    return jsonResponse(200, ctx.headers, { settings, categories, priorities, properties, request: requestPolicy });
+  }
+  if (request.method !== 'PATCH') {
+    return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+  }
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
+  }
+  const b = asRecord(body);
+  const updates = {
+    elsa_enabled: bool(b.elsa_enabled),
+    elsa_auto_send_enabled: bool(b.elsa_auto_send_enabled),
+    elsa_auto_send_confidence_threshold:
+      b.elsa_auto_send_confidence_threshold !== undefined
+        ? Number(b.elsa_auto_send_confidence_threshold)
+        : undefined,
+    elsa_allowed_categories: listStrings(b.elsa_allowed_categories),
+    elsa_allowed_priorities: listStrings(b.elsa_allowed_priorities),
+    elsa_blocked_keywords: listStrings(b.elsa_blocked_keywords),
+    elsa_emergency_keywords: listStrings(b.elsa_emergency_keywords),
+    elsa_max_questions: b.elsa_max_questions !== undefined ? Number(b.elsa_max_questions) : undefined,
+    elsa_max_steps: b.elsa_max_steps !== undefined ? Number(b.elsa_max_steps) : undefined,
+    elsa_admin_alert_recipients: listStrings(b.elsa_admin_alert_recipients),
+    elsa_emergency_template_enabled: bool(b.elsa_emergency_template_enabled),
+  };
+
+  const client = await getPool().connect();
+  try {
+    await client.query('BEGIN');
+    await upsertElsaSettings(client, ctx.user.id, updates);
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+  return jsonResponse(200, ctx.headers, { ok: true });
+}
+
+async function landlordElsaCategoryPolicy(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireLandlordOrAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  if (request.method !== 'PATCH') return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+  const categoryCode = str(request.params.categoryCode);
+  if (!categoryCode) return jsonResponse(400, ctx.headers, { error: 'missing_category_code' });
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
+  }
+  const b = asRecord(body);
+  const enabled = bool(b.auto_send_enabled);
+  if (enabled === undefined) return jsonResponse(400, ctx.headers, { error: 'missing_auto_send_enabled' });
+
+  const client = await getPool().connect();
+  try {
+    await client.query('BEGIN');
+    await upsertCategoryPolicy(client, categoryCode, enabled, ctx.user.id);
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+  return jsonResponse(200, ctx.headers, { ok: true });
+}
+
+async function landlordElsaPriorityPolicy(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireLandlordOrAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  if (request.method !== 'PATCH') return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+  const priorityCode = str(request.params.priorityCode);
+  if (!priorityCode) return jsonResponse(400, ctx.headers, { error: 'missing_priority_code' });
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
+  }
+  const b = asRecord(body);
+  const autoSendEnabled = bool(b.auto_send_enabled);
+  const requireAdminReview = bool(b.require_admin_review);
+  if (autoSendEnabled === undefined || requireAdminReview === undefined) {
+    return jsonResponse(400, ctx.headers, { error: 'missing_policy_fields' });
+  }
+
+  const client = await getPool().connect();
+  try {
+    await client.query('BEGIN');
+    await upsertPriorityPolicy(client, priorityCode, autoSendEnabled, requireAdminReview, ctx.user.id);
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+  return jsonResponse(200, ctx.headers, { ok: true });
+}
+
+async function landlordElsaPropertyPolicy(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireLandlordOrAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  if (request.method !== 'PATCH') return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+  const propertyId = str(request.params.propertyId);
+  if (!propertyId) return jsonResponse(400, ctx.headers, { error: 'missing_property_id' });
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
+  }
+  const b = asRecord(body);
+  const requireReviewAll = bool(b.require_review_all);
+  const autoOverride = b.auto_send_enabled_override === null ? null : bool(b.auto_send_enabled_override);
+  if (requireReviewAll === undefined || autoOverride === undefined) {
+    return jsonResponse(400, ctx.headers, { error: 'missing_policy_fields' });
+  }
+
+  const client = await getPool().connect();
+  try {
+    await client.query('BEGIN');
+    await upsertPropertyPolicy(client, propertyId, autoOverride, requireReviewAll, ctx.user.id);
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+  return jsonResponse(200, ctx.headers, { ok: true });
+}
+
+async function landlordRequestElsaAutoRespond(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireLandlordOrAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  const requestId = request.params.id;
+  if (!requestId) return jsonResponse(400, ctx.headers, { error: 'missing_id' });
+  if (request.method !== 'PATCH') return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
+  }
+  const b = asRecord(body);
+  const enabled = bool(b.auto_respond_enabled);
+  if (enabled === undefined) return jsonResponse(400, ctx.headers, { error: 'missing_auto_respond_enabled' });
+
+  const client = await getPool().connect();
+  try {
+    await client.query('BEGIN');
+    await setElsaRequestAutoRespond(client, requestId, enabled, ctx.user.id);
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+  return jsonResponse(200, ctx.headers, { ok: true, auto_respond_enabled: enabled });
+}
+
+async function landlordProcessElsa(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireLandlordOrAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  if (request.method !== 'POST') return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+  const requestId = request.params.id;
+  if (!requestId) return jsonResponse(400, ctx.headers, { error: 'missing_id' });
+  let body: unknown = {};
+  try {
+    body = await request.json();
+  } catch {
+    body = {};
+  }
+  const b = asRecord(body);
+  const weatherSeverity = str(b.weather_severity) as 'NORMAL' | 'DANGEROUS_HEAT' | 'DANGEROUS_COLD' | undefined;
+  const result = await processElsaAutoResponse(getPool(), {
+    requestId,
+    actorUserId: ctx.user.id,
+    actorRole: ctx.role,
+    triggeringEvent: 'MANUAL_REVIEW_ACTION',
+    weatherSeverity,
+    logger: context,
+  });
+  return jsonResponse(200, ctx.headers, result);
+}
+
+async function landlordRequestElsaDecisions(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireLandlordOrAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  if (request.method !== 'GET') return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+  const requestId = request.params.id;
+  if (!requestId) return jsonResponse(400, ctx.headers, { error: 'missing_id' });
+  const result = await listElsaDecisionsForRequest(getPool(), requestId, 25);
+  return jsonResponse(200, ctx.headers, { decisions: result });
+}
+
+async function landlordRequestElsaDecisionReview(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireLandlordOrAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  if (request.method !== 'PATCH') return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+  const requestId = request.params.id;
+  const decisionId = request.params.decisionId;
+  if (!requestId) return jsonResponse(400, ctx.headers, { error: 'missing_id' });
+  if (!decisionId) return jsonResponse(400, ctx.headers, { error: 'missing_decision_id' });
+
+  let body: unknown = {};
+  try {
+    body = await request.json();
+  } catch {
+    body = {};
+  }
+  const b = asRecord(body);
+  const actionRaw = str(b.action);
+  const action = actionRaw ? actionRaw.toUpperCase() : undefined;
+  if (!action || !['MARK_RESOLVED', 'SEND_AND_RESOLVE', 'DISMISS'].includes(action)) {
+    return jsonResponse(400, ctx.headers, { error: 'invalid_action' });
+  }
+
+  try {
+    const result = await reviewElsaDecision(getPool(), {
+      requestId,
+      decisionId,
+      actorUserId: ctx.user.id,
+      actorRole: ctx.role,
+      action: action as 'MARK_RESOLVED' | 'SEND_AND_RESOLVE' | 'DISMISS',
+    });
+    return jsonResponse(200, ctx.headers, result);
+  } catch (e) {
+    const mapped = mapDomainError(e, ctx.headers);
+    if (mapped) return mapped;
+    throw e;
+  }
+}
+
 async function landlordExportRequestsCsv(
   request: HttpRequest,
   context: InvocationContext
@@ -251,6 +566,62 @@ app.http('landlordRequestAudit', {
   authLevel: 'anonymous',
   route: 'landlord/requests/{id}/audit',
   handler: landlordRequestAudit,
+});
+
+app.http('landlordElsaSettings', {
+  methods: ['GET', 'PATCH', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'landlord/elsa/settings',
+  handler: landlordElsaSettings,
+});
+
+app.http('landlordElsaCategoryPolicy', {
+  methods: ['PATCH', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'landlord/elsa/settings/categories/{categoryCode}',
+  handler: landlordElsaCategoryPolicy,
+});
+
+app.http('landlordElsaPriorityPolicy', {
+  methods: ['PATCH', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'landlord/elsa/settings/priorities/{priorityCode}',
+  handler: landlordElsaPriorityPolicy,
+});
+
+app.http('landlordElsaPropertyPolicy', {
+  methods: ['PATCH', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'landlord/elsa/settings/properties/{propertyId}',
+  handler: landlordElsaPropertyPolicy,
+});
+
+app.http('landlordRequestElsaAutoRespond', {
+  methods: ['PATCH', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'landlord/requests/{id}/elsa/auto-respond',
+  handler: landlordRequestElsaAutoRespond,
+});
+
+app.http('landlordRequestElsaProcess', {
+  methods: ['POST', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'landlord/requests/{id}/elsa/process',
+  handler: landlordProcessElsa,
+});
+
+app.http('landlordRequestElsaDecisions', {
+  methods: ['GET', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'landlord/requests/{id}/elsa/decisions',
+  handler: landlordRequestElsaDecisions,
+});
+
+app.http('landlordRequestElsaDecisionReview', {
+  methods: ['PATCH', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'landlord/requests/{id}/elsa/decisions/{decisionId}',
+  handler: landlordRequestElsaDecisionReview,
 });
 
 app.http('landlordRequestsCsvExport', {

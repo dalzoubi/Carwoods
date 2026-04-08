@@ -49,7 +49,9 @@ import {
   apiPropertyToDisplay,
 } from '../lib/propertiesApiClient';
 import { listingFromHarPreviewPayload, parseHarInput } from '../portalHarPreviewParse';
-import { fetchHarPreview, fetchLandlords } from '../lib/portalApiClient';
+import { fetchElsaSettings, fetchHarPreview, fetchLandlords, patchElsaPropertyPolicy } from '../lib/portalApiClient';
+
+const FEATURE_ELSA_AUTO = import.meta.env.VITE_FEATURE_ELSA_AUTO === 'true';
 
 const EMPTY_FORM = {
   harId: '',
@@ -116,6 +118,10 @@ const PropertyCard = ({
   onDelete,
   onRestore,
   onToggleVisible,
+  onToggleElsaAutoSend,
+  elsaAutoSendEnabled,
+  updatingElsaPolicy,
+  showElsaAutoSend,
   onSyncHar,
   t,
 }) => {
@@ -184,6 +190,22 @@ const PropertyCard = ({
             <Chip label={t('portalAdminProperties.grid.deleted')} size="small" color="warning" variant="outlined" />
           ) : null}
         </Stack>
+        {showElsaAutoSend && (
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1, minHeight: 32 }}>
+            <FormControlLabel
+              control={(
+                <Switch
+                  size="small"
+                  checked={Boolean(elsaAutoSendEnabled)}
+                  disabled={isDeleted || updatingElsaPolicy}
+                  onChange={() => onToggleElsaAutoSend(property)}
+                />
+              )}
+              label={t('portalAdminProperties.grid.elsaAutoSend')}
+              sx={{ m: 0 }}
+            />
+          </Stack>
+        )}
       </CardContent>
       <Box sx={{ px: 2, pb: 2, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
         {isDeleted ? (
@@ -283,6 +305,8 @@ const PortalAdminProperties = () => {
   const [visibleToggleTarget, setVisibleToggleTarget] = useState(null);
   const [visibleToggleStatus, setVisibleToggleStatus] = useState('idle'); // idle | saving | error
   const [syncHarTargetId, setSyncHarTargetId] = useState('');
+  const [elsaPropertyPolicyById, setElsaPropertyPolicyById] = useState({});
+  const [elsaPolicyTargetId, setElsaPolicyTargetId] = useState('');
   const fileInputRef = useRef(null);
 
   const getAccessTokenRef = useRef(getAccessToken);
@@ -303,8 +327,19 @@ const PortalAdminProperties = () => {
         // Show-deleted should reflect live DB state, not a stale list cache.
         skipCache: showDeleted,
       });
+      const policyMap = {};
+      if (FEATURE_ELSA_AUTO) {
+        const elsaPayload = await fetchElsaSettings(baseUrl, token);
+        const propertyPolicies = Array.isArray(elsaPayload?.properties) ? elsaPayload.properties : [];
+        for (const row of propertyPolicies) {
+          if (row && typeof row.property_id === 'string') {
+            policyMap[row.property_id] = row.auto_send_enabled_override !== false;
+          }
+        }
+      }
       if (signal?.aborted) return;
       setProperties(rows.map(apiPropertyToDisplay));
+      setElsaPropertyPolicyById(policyMap);
     } catch (err) {
       if (signal?.aborted) return;
       const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
@@ -461,6 +496,27 @@ const PortalAdminProperties = () => {
       showSnack(t('portalAdminProperties.errors.syncHarFailed', { error: msg }), 'error');
     } finally {
       setSyncHarTargetId('');
+    }
+  };
+
+  const handleToggleElsaAutoSend = async (property) => {
+    if (!FEATURE_ELSA_AUTO) return;
+    if (!property?.id) return;
+    const current = elsaPropertyPolicyById[property.id] !== false;
+    setElsaPolicyTargetId(property.id);
+    try {
+      const token = await getAccessToken();
+      await patchElsaPropertyPolicy(baseUrl, token, property.id, {
+        auto_send_enabled_override: !current,
+        require_review_all: false,
+      });
+      setElsaPropertyPolicyById((prev) => ({ ...prev, [property.id]: !current }));
+      showSnack(t('portalAdminProperties.messages.elsaPolicyUpdated'));
+    } catch (err) {
+      const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
+      showSnack(t('portalAdminProperties.errors.elsaPolicyFailed', { error: msg }), 'error');
+    } finally {
+      setElsaPolicyTargetId('');
     }
   };
 
@@ -707,6 +763,10 @@ const PortalAdminProperties = () => {
                     onDelete={handleDeleteClick}
                     onRestore={handleRestoreClick}
                     onToggleVisible={handleVisibilityToggleClick}
+                    onToggleElsaAutoSend={handleToggleElsaAutoSend}
+                    elsaAutoSendEnabled={elsaPropertyPolicyById[property.id] !== false}
+                    updatingElsaPolicy={elsaPolicyTargetId === property.id}
+                    showElsaAutoSend={FEATURE_ELSA_AUTO}
                     onSyncHar={handleSyncHar}
                     t={t}
                   />

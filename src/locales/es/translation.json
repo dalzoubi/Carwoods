@@ -893,7 +893,9 @@
       "internalToggle": "Mensaje interno (solo propietario/administrador)",
       "internalTag": "Interno",
       "sent": "Mensaje enviado.",
-      "senderUnknown": "Remitente desconocido"
+      "senderUnknown": "Remitente desconocido",
+      "elsaName": "Elsa",
+      "aiAssistantRole": "Asistente de IA"
     },
     "attachments": {
       "heading": "Archivos adjuntos",
@@ -911,6 +913,39 @@
       "confirmYes": "Sí, cancelarla",
       "confirmNo": "Mantener solicitud"
     },
+    "elsa": {
+      "heading": "Respuesta automática protegida de Elsa",
+      "autoRespondToggle": "Habilitar auto-respuesta de Elsa para esta solicitud",
+      "runNow": "Ejecutar Elsa ahora",
+      "enableGlobalAutoSend": "Habilitar envío automático global",
+      "disableGlobalAutoSend": "Deshabilitar envío automático global",
+      "toggleCategoryAutoSend": "Alternar autoenvío por categoría",
+      "requireReviewForPriority": "Exigir revisión para esta prioridad",
+      "globalAutoSend": "Envío automático global",
+      "enabled": "Habilitado",
+      "disabled": "Deshabilitado",
+      "confidenceThreshold": "Umbral de confianza",
+      "confidence": "Confianza",
+      "provider": "Proveedor",
+      "nextAction": "Siguiente acción",
+      "reviewActionSaved": "Decisión actualizada.",
+      "reviewedBadge": "Revisado: {{status}}",
+      "resolved": "Resuelto",
+      "actions": {
+        "sendAndResolve": "Enviar borrador y resolver",
+        "markResolved": "Marcar como resuelto",
+        "dismiss": "Descartar"
+      },
+      "badges": {
+        "autoSent": "Enviado automáticamente",
+        "held": "En espera de revisión",
+        "blocked": "Bloqueado"
+      },
+      "timeline": {
+        "autoSentByElsa": "Enviado automáticamente por Elsa",
+        "suggestedAwaitingReview": "Sugerido por Elsa, pendiente de revisión"
+      }
+    },
     "audit": {
       "tabsLabel": "Pestañas de vista de solicitud",
       "detailsTab": "Detalles",
@@ -926,9 +961,9 @@
     }
   },
   "portalAdminLandlords": {
-    "title": "Carwoods - Alta de propietarios (admin)",
+    "title": "Carwoods - Propietarios (admin)",
     "metaDescription": "Espacio admin para dar de alta propietarios y administrar estado activo/inactivo.",
-    "heading": "Alta de propietarios",
+    "heading": "Propietarios",
     "intro": "Crea y administra registros de propietarios del portal. Por defecto se muestran propietarios activos.",
     "form": {
       "heading": "Agregar propietario",
@@ -976,6 +1011,72 @@
       "emailInvalid": "Ingresa un correo electrónico válido.",
       "firstNameRequired": "El nombre es obligatorio.",
       "lastNameRequired": "El apellido es obligatorio."
+    }
+  },
+  "portalAdminConfigurations": {
+    "title": "Carwoods - Configuraciones (admin)",
+    "metaDescription": "Espacio admin para configuraciones de la plataforma.",
+    "heading": "Configuraciones",
+    "intro": "Administra las configuraciones del sistema desde un solo lugar.",
+    "tabsLabel": "Pestañas de configuración",
+    "tabs": {
+      "ai": "Configuración de IA"
+    }
+  },
+  "portalAdminAiConfig": {
+    "heading": "AI Configuration",
+    "intro": "Review and update Elsa AI policies from one place.",
+    "actions": {
+      "refresh": "Refresh",
+      "saveGlobal": "Save global settings",
+      "saveRow": "Save",
+      "saving": "Saving..."
+    },
+    "messages": {
+      "globalSaved": "AI global settings saved."
+    },
+    "errors": {
+      "featureDisabled": "Set VITE_FEATURE_ELSA_AUTO=true to enable AI configuration.",
+      "apiUnavailable": "Set VITE_API_BASE_URL to enable AI configuration.",
+      "signInRequired": "Sign in before using AI configuration.",
+      "adminOnly": "Only admin accounts can manage AI configuration.",
+      "loadFailed": "Unable to load AI configuration.",
+      "saveFailed": "Unable to save AI configuration."
+    },
+    "global": {
+      "heading": "Global settings",
+      "elsaEnabled": "Enable Elsa AI features",
+      "autoSendEnabled": "Enable global auto-send",
+      "emergencyTemplateEnabled": "Enable emergency template",
+      "confidenceThreshold": "Auto-send confidence threshold",
+      "confidenceHelp": "Use a value between 0 and 1.",
+      "maxQuestions": "Maximum AI follow-up questions",
+      "maxSteps": "Maximum AI workflow steps",
+      "allowedCategories": "Allowed categories (one per line or comma-separated)",
+      "allowedPriorities": "Allowed priorities (one per line or comma-separated)",
+      "blockedKeywords": "Blocked keywords (one per line or comma-separated)",
+      "emergencyKeywords": "Emergency keywords (one per line or comma-separated)",
+      "adminAlertRecipients": "Admin alert recipients (one per line or comma-separated)"
+    },
+    "categories": {
+      "heading": "Category policies",
+      "empty": "No category policy rows available.",
+      "autoSend": "Allow auto-send"
+    },
+    "priorities": {
+      "heading": "Priority policies",
+      "empty": "No priority policy rows available.",
+      "autoSend": "Allow auto-send",
+      "requireReview": "Require admin review"
+    },
+    "properties": {
+      "heading": "Property policies",
+      "empty": "No property policy rows available.",
+      "autoSendOverride": "Auto-send override",
+      "inherit": "Inherit global",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "requireReviewAll": "Require review for all replies"
     }
   },
   "portalAdminProperties": {
@@ -1058,7 +1159,8 @@
       "showOnApply": "Visible",
       "landlord": "Propietario",
       "harId": "ID HAR",
-      "noPhoto": "Sin foto"
+      "noPhoto": "Sin foto",
+      "elsaAutoSend": "Permitir envío automático de Elsa"
     },
     "messages": {
       "added": "Propiedad agregada exitosamente.",
@@ -1066,7 +1168,8 @@
       "deleted": "Propiedad eliminada.",
       "restored": "Propiedad restaurada.",
       "visibilityUpdated": "Visibilidad actualizada.",
-      "harSynced": "Listado de HAR actualizado."
+      "harSynced": "Listado de HAR actualizado.",
+      "elsaPolicyUpdated": "Política de Elsa del inmueble actualizada."
     },
     "errors": {
       "signInRequired": "Inicia sesión antes de gestionar propiedades.",
@@ -1080,6 +1183,7 @@
       "restoreFailed": "No se pudo restaurar la propiedad: {{error}}",
       "visibilityFailed": "No se pudo actualizar la visibilidad: {{error}}",
       "syncHarFailed": "No se pudo actualizar el listado de HAR: {{error}}",
+      "elsaPolicyFailed": "No se pudo actualizar la política de Elsa del inmueble: {{error}}",
       "noApiConfigured": "La API no está configurada. Define VITE_API_BASE_URL en tu .env para habilitar la gestión de propiedades."
     }
   },
@@ -1119,6 +1223,8 @@
       "requests": "Solicitudes",
       "profile": "Perfil",
       "adminLandlords": "Propietarios",
+      "adminConfigurations": "Configuraciones",
+      "adminAiConfig": "Configuración de IA",
       "properties": "Propiedades",
       "status": "Estado del sistema",
       "collapse": "Contraer barra lateral",

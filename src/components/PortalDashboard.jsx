@@ -235,7 +235,7 @@ const PortalDashboard = () => {
                 {normalized === Role.ADMIN && (
                   <Button
                     component={RouterLink}
-                    to={withDarkPath(pathname, '/portal/admin')}
+                    to={withDarkPath(pathname, '/portal/admin/landlords')}
                     type="button"
                     variant="outlined"
                     startIcon={<SupervisorAccount />}

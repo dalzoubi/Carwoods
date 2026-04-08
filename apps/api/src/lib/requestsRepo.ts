@@ -10,7 +10,11 @@ export type RequestRow = {
   submitted_by_user_id: string;
   assigned_vendor_id: string | null;
   category_id: string;
+  category_code: string | null;
+  category_name: string | null;
   priority_id: string;
+  priority_code: string | null;
+  priority_name: string | null;
   current_status_id: string;
   status_code: string | null;
   status_name: string | null;
@@ -217,7 +221,9 @@ export async function listRequestsForTenant(
 ): Promise<RequestRow[]> {
   const r = await client.query<RequestRow>(
     `SELECT mr.id, mr.property_id, mr.lease_id, mr.submitted_by_user_id, mr.assigned_vendor_id,
-            mr.category_id, mr.priority_id, mr.current_status_id,
+            mr.category_id, sc.code AS category_code, sc.name AS category_name,
+            mr.priority_id, rp.code AS priority_code, rp.name AS priority_name,
+            mr.current_status_id,
             rs.code AS status_code, rs.name AS status_name,
             mr.title, mr.description,
             mr.internal_notes, mr.estimated_cost, mr.actual_cost, mr.scheduled_for,
@@ -232,6 +238,8 @@ export async function listRequestsForTenant(
             mr.completed_at, mr.closed_at, mr.deleted_at
      FROM maintenance_requests mr
      JOIN lease_tenants lt ON lt.lease_id = mr.lease_id
+     LEFT JOIN service_categories sc ON sc.id = mr.category_id
+     LEFT JOIN request_priorities rp ON rp.id = mr.priority_id
      LEFT JOIN request_statuses rs ON rs.id = mr.current_status_id
      LEFT JOIN users su ON su.id = mr.submitted_by_user_id
      WHERE lt.user_id = $1
@@ -246,7 +254,9 @@ export async function listRequestsForTenant(
 export async function listRequestsForManagement(client: Queryable): Promise<RequestRow[]> {
   const r = await client.query<RequestRow>(
     `SELECT mr.id, mr.property_id, mr.lease_id, mr.submitted_by_user_id, mr.assigned_vendor_id,
-            mr.category_id, mr.priority_id, mr.current_status_id,
+            mr.category_id, sc.code AS category_code, sc.name AS category_name,
+            mr.priority_id, rp.code AS priority_code, rp.name AS priority_name,
+            mr.current_status_id,
             rs.code AS status_code, rs.name AS status_name,
             mr.title, mr.description,
             mr.internal_notes, mr.estimated_cost, mr.actual_cost, mr.scheduled_for,
@@ -260,6 +270,8 @@ export async function listRequestsForManagement(client: Queryable): Promise<Requ
             mr.emergency_disclaimer_acknowledged, mr.created_at, mr.updated_at,
             mr.completed_at, mr.closed_at, mr.deleted_at
      FROM maintenance_requests mr
+     LEFT JOIN service_categories sc ON sc.id = mr.category_id
+     LEFT JOIN request_priorities rp ON rp.id = mr.priority_id
      LEFT JOIN request_statuses rs ON rs.id = mr.current_status_id
      LEFT JOIN users su ON su.id = mr.submitted_by_user_id
      WHERE mr.deleted_at IS NULL
@@ -271,7 +283,9 @@ export async function listRequestsForManagement(client: Queryable): Promise<Requ
 export async function getRequestById(client: Queryable, id: string): Promise<RequestRow | null> {
   const r = await client.query<RequestRow>(
     `SELECT mr.id, mr.property_id, mr.lease_id, mr.submitted_by_user_id, mr.assigned_vendor_id,
-            mr.category_id, mr.priority_id, mr.current_status_id,
+            mr.category_id, sc.code AS category_code, sc.name AS category_name,
+            mr.priority_id, rp.code AS priority_code, rp.name AS priority_name,
+            mr.current_status_id,
             rs.code AS status_code, rs.name AS status_name,
             mr.title, mr.description,
             mr.internal_notes, mr.estimated_cost, mr.actual_cost, mr.scheduled_for,
@@ -285,6 +299,8 @@ export async function getRequestById(client: Queryable, id: string): Promise<Req
             mr.emergency_disclaimer_acknowledged, mr.created_at, mr.updated_at,
             mr.completed_at, mr.closed_at, mr.deleted_at
      FROM maintenance_requests mr
+     LEFT JOIN service_categories sc ON sc.id = mr.category_id
+     LEFT JOIN request_priorities rp ON rp.id = mr.priority_id
      LEFT JOIN request_statuses rs ON rs.id = mr.current_status_id
      LEFT JOIN users su ON su.id = mr.submitted_by_user_id
      WHERE mr.id = $1 AND mr.deleted_at IS NULL`,
@@ -331,7 +347,8 @@ export async function insertMaintenanceRequest(
        title, description, emergency_disclaimer_acknowledged
      )
      OUTPUT INSERTED.id, INSERTED.property_id, INSERTED.lease_id, INSERTED.submitted_by_user_id,
-            INSERTED.assigned_vendor_id, INSERTED.category_id, INSERTED.priority_id,
+            INSERTED.assigned_vendor_id, INSERTED.category_id, NULL AS category_code, NULL AS category_name,
+            INSERTED.priority_id, NULL AS priority_code, NULL AS priority_name,
             INSERTED.current_status_id, NULL AS status_code, NULL AS status_name,
             INSERTED.title, INSERTED.description,
             INSERTED.internal_notes, INSERTED.estimated_cost, INSERTED.actual_cost,
@@ -398,7 +415,8 @@ export async function updateRequestManagementFields(
            internal_notes = $9,
            updated_at = SYSDATETIMEOFFSET()
      OUTPUT INSERTED.id, INSERTED.property_id, INSERTED.lease_id, INSERTED.submitted_by_user_id,
-            INSERTED.assigned_vendor_id, INSERTED.category_id, INSERTED.priority_id,
+            INSERTED.assigned_vendor_id, INSERTED.category_id, NULL AS category_code, NULL AS category_name,
+            INSERTED.priority_id, NULL AS priority_code, NULL AS priority_name,
             INSERTED.current_status_id, NULL AS status_code, NULL AS status_name,
             INSERTED.title, INSERTED.description,
             INSERTED.internal_notes, INSERTED.estimated_cost, INSERTED.actual_cost,

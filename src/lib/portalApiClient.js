@@ -241,6 +241,30 @@ export async function postMessage(baseUrl, accessToken, requestId, payload) {
   return res.json();
 }
 
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} requestId
+ * @param {{ emailHint?: string }} [params]
+ * @returns {Promise<object>}
+ */
+export async function fetchRequestMessages(baseUrl, accessToken, requestId, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/requests/${encodeURIComponent(requestId)}/messages`),
+    {
+      method: 'GET',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
 // ---------------------------------------------------------------------------
 // POST /api/portal/requests/:id/uploads/intent
 // ---------------------------------------------------------------------------
@@ -529,6 +553,164 @@ export async function fetchSuggestReply(baseUrl, accessToken, requestId, params)
       method: 'POST',
       headers: jsonHeaders(accessToken, emailHint),
       credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function fetchElsaSettings(baseUrl, accessToken, params) {
+  const emailHint = params?.emailHint;
+  const requestParam = params?.requestId ? `?request_id=${encodeURIComponent(params.requestId)}` : '';
+  const res = await fetch(buildUrl(baseUrl, `/api/landlord/elsa/settings${requestParam}`), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function patchElsaSettings(baseUrl, accessToken, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(buildUrl(baseUrl, '/api/landlord/elsa/settings'), {
+    method: 'PATCH',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function patchElsaRequestAutoRespond(baseUrl, accessToken, requestId, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/requests/${encodeURIComponent(requestId)}/elsa/auto-respond`),
+    {
+      method: 'PATCH',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function processElsaRequest(baseUrl, accessToken, requestId, payload = {}) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/requests/${encodeURIComponent(requestId)}/elsa/process`),
+    {
+      method: 'POST',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function fetchElsaDecisions(baseUrl, accessToken, requestId, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/requests/${encodeURIComponent(requestId)}/elsa/decisions`),
+    {
+      method: 'GET',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function patchElsaDecisionReview(baseUrl, accessToken, requestId, decisionId, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(
+      baseUrl,
+      `/api/landlord/requests/${encodeURIComponent(requestId)}/elsa/decisions/${encodeURIComponent(decisionId)}`
+    ),
+    {
+      method: 'PATCH',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function patchElsaCategoryPolicy(baseUrl, accessToken, categoryCode, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/elsa/settings/categories/${encodeURIComponent(categoryCode)}`),
+    {
+      method: 'PATCH',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function patchElsaPriorityPolicy(baseUrl, accessToken, priorityCode, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/elsa/settings/priorities/${encodeURIComponent(priorityCode)}`),
+    {
+      method: 'PATCH',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function patchElsaPropertyPolicy(baseUrl, accessToken, propertyId, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/elsa/settings/properties/${encodeURIComponent(propertyId)}`),
+    {
+      method: 'PATCH',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
     }
   );
   if (!res.ok) {

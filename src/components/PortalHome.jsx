@@ -34,7 +34,7 @@ const PortalHome = () => {
     { to: '/portal/requests', label: t('portalHeader.nav.requests') },
     { to: '/portal/profile', label: t('portalHeader.nav.profile') },
     ...(normalizedRole === Role.ADMIN
-      ? [{ to: '/portal/admin', label: t('portalHeader.nav.adminLandlords') }]
+      ? [{ to: '/portal/admin/landlords', label: t('portalHeader.nav.adminLandlords') }]
       : []),
   ];
 

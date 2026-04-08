@@ -78,8 +78,18 @@ const PortalRequests = () => {
     auditEvents,
     auditStatus,
     auditError,
+    elsaSettings,
+    elsaFeatureEnabled,
+    elsaSettingsStatus,
+    elsaSettingsError,
+    elsaDecisionStatus,
+    elsaDecisionError,
+    elsaDecisionActionStatus,
+    elsaDecisions,
+    elsaAutoRespondEnabled,
     loadRequestDetails,
     loadAuditForRequest,
+    loadElsaContext,
     loadRequests,
     onTenantField,
     onCreateAttachmentChange,
@@ -96,6 +106,12 @@ const PortalRequests = () => {
     onAttachmentSubmit,
     onSuggestReply,
     onExportCsv,
+    onSetElsaAutoRespond,
+    onRunElsa,
+    onReviewElsaDecision,
+    onUpdateElsaGlobalSettings,
+    onSetElsaCategoryEnabled,
+    onSetElsaPriorityPolicy,
   } = usePortalRequests({
     baseUrl,
     isAuthenticated,
@@ -222,6 +238,7 @@ const PortalRequests = () => {
                 try {
                   await loadRequestDetails(id);
                   await loadAuditForRequest(id);
+                  await loadElsaContext(id);
                   if (!isDesktop) {
                     detailPaneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
@@ -293,6 +310,21 @@ const PortalRequests = () => {
                 auditEvents={auditEvents}
                 auditStatus={auditStatus}
                 auditError={auditError}
+                elsaSettings={elsaSettings}
+                elsaFeatureEnabled={elsaFeatureEnabled}
+                elsaSettingsStatus={elsaSettingsStatus}
+                elsaSettingsError={elsaSettingsError}
+                elsaDecisionStatus={elsaDecisionStatus}
+                elsaDecisionError={elsaDecisionError}
+                elsaDecisionActionStatus={elsaDecisionActionStatus}
+                elsaDecisions={elsaDecisions}
+                elsaAutoRespondEnabled={elsaAutoRespondEnabled}
+                onSetElsaAutoRespond={onSetElsaAutoRespond}
+                onRunElsa={onRunElsa}
+                onReviewElsaDecision={onReviewElsaDecision}
+                onUpdateElsaGlobalSettings={onUpdateElsaGlobalSettings}
+                onSetElsaCategoryEnabled={onSetElsaCategoryEnabled}
+                onSetElsaPriorityPolicy={onSetElsaPriorityPolicy}
                 onCancelRequest={onCancelRequest}
                 cancelStatus={cancelStatus}
                 cancelError={cancelError}

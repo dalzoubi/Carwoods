@@ -893,7 +893,9 @@
       "internalToggle": "رسالة داخلية (للمالك/الإدارة فقط)",
       "internalTag": "داخلي",
       "sent": "تم إرسال الرسالة.",
-      "senderUnknown": "مرسل غير معروف"
+      "senderUnknown": "مرسل غير معروف",
+      "elsaName": "إلسا",
+      "aiAssistantRole": "مساعد ذكاء اصطناعي"
     },
     "attachments": {
       "heading": "المرفقات",
@@ -911,6 +913,39 @@
       "confirmYes": "نعم، إلغاؤه",
       "confirmNo": "الإبقاء على الطلب"
     },
+    "elsa": {
+      "heading": "الرد التلقائي المحكوم من إلسا",
+      "autoRespondToggle": "تمكين الرد التلقائي من إلسا لهذا الطلب",
+      "runNow": "تشغيل إلسا الآن",
+      "enableGlobalAutoSend": "تمكين الإرسال التلقائي العام",
+      "disableGlobalAutoSend": "تعطيل الإرسال التلقائي العام",
+      "toggleCategoryAutoSend": "تبديل الإرسال التلقائي للفئة",
+      "requireReviewForPriority": "فرض المراجعة لهذه الأولوية",
+      "globalAutoSend": "الإرسال التلقائي العام",
+      "enabled": "مفعّل",
+      "disabled": "معطّل",
+      "confidenceThreshold": "حد الثقة",
+      "confidence": "الثقة",
+      "provider": "المزوّد",
+      "nextAction": "الإجراء التالي",
+      "reviewActionSaved": "تم تحديث القرار.",
+      "reviewedBadge": "تمت المراجعة: {{status}}",
+      "resolved": "تم الحل",
+      "actions": {
+        "sendAndResolve": "إرسال المسودة وحلّها",
+        "markResolved": "تحديد كمحلولة",
+        "dismiss": "تجاهل"
+      },
+      "badges": {
+        "autoSent": "تم الإرسال تلقائيًا",
+        "held": "معلّق للمراجعة",
+        "blocked": "محظور"
+      },
+      "timeline": {
+        "autoSentByElsa": "تم الإرسال تلقائيًا بواسطة إلسا",
+        "suggestedAwaitingReview": "تم اقتراحه بواسطة إلسا وبانتظار المراجعة"
+      }
+    },
     "audit": {
       "tabsLabel": "علامات تبويب عرض الطلب",
       "detailsTab": "التفاصيل",
@@ -926,9 +961,9 @@
     }
   },
   "portalAdminLandlords": {
-    "title": "Carwoods - إعداد الملاك (إدارة)",
+    "title": "Carwoods - الملاك (إدارة)",
     "metaDescription": "مساحة الإدارة لإعداد الملاك وإدارة حالة النشط/غير النشط.",
-    "heading": "إعداد الملاك",
+    "heading": "الملاك",
     "intro": "أنشئ وأدر سجلات الملاك في البوابة. يتم عرض الملاك النشطين افتراضيًا.",
     "form": {
       "heading": "إضافة مالك",
@@ -976,6 +1011,72 @@
       "emailInvalid": "أدخل عنوان بريد إلكتروني صالحًا.",
       "firstNameRequired": "الاسم الأول مطلوب.",
       "lastNameRequired": "اسم العائلة مطلوب."
+    }
+  },
+  "portalAdminConfigurations": {
+    "title": "Carwoods - الإعدادات (الإدارة)",
+    "metaDescription": "مساحة الإدارة لإعدادات المنصة.",
+    "heading": "الإعدادات",
+    "intro": "أدر إعدادات النظام من مكان واحد.",
+    "tabsLabel": "علامات تبويب الإعدادات",
+    "tabs": {
+      "ai": "إعدادات الذكاء الاصطناعي"
+    }
+  },
+  "portalAdminAiConfig": {
+    "heading": "AI Configuration",
+    "intro": "Review and update Elsa AI policies from one place.",
+    "actions": {
+      "refresh": "Refresh",
+      "saveGlobal": "Save global settings",
+      "saveRow": "Save",
+      "saving": "Saving..."
+    },
+    "messages": {
+      "globalSaved": "AI global settings saved."
+    },
+    "errors": {
+      "featureDisabled": "Set VITE_FEATURE_ELSA_AUTO=true to enable AI configuration.",
+      "apiUnavailable": "Set VITE_API_BASE_URL to enable AI configuration.",
+      "signInRequired": "Sign in before using AI configuration.",
+      "adminOnly": "Only admin accounts can manage AI configuration.",
+      "loadFailed": "Unable to load AI configuration.",
+      "saveFailed": "Unable to save AI configuration."
+    },
+    "global": {
+      "heading": "Global settings",
+      "elsaEnabled": "Enable Elsa AI features",
+      "autoSendEnabled": "Enable global auto-send",
+      "emergencyTemplateEnabled": "Enable emergency template",
+      "confidenceThreshold": "Auto-send confidence threshold",
+      "confidenceHelp": "Use a value between 0 and 1.",
+      "maxQuestions": "Maximum AI follow-up questions",
+      "maxSteps": "Maximum AI workflow steps",
+      "allowedCategories": "Allowed categories (one per line or comma-separated)",
+      "allowedPriorities": "Allowed priorities (one per line or comma-separated)",
+      "blockedKeywords": "Blocked keywords (one per line or comma-separated)",
+      "emergencyKeywords": "Emergency keywords (one per line or comma-separated)",
+      "adminAlertRecipients": "Admin alert recipients (one per line or comma-separated)"
+    },
+    "categories": {
+      "heading": "Category policies",
+      "empty": "No category policy rows available.",
+      "autoSend": "Allow auto-send"
+    },
+    "priorities": {
+      "heading": "Priority policies",
+      "empty": "No priority policy rows available.",
+      "autoSend": "Allow auto-send",
+      "requireReview": "Require admin review"
+    },
+    "properties": {
+      "heading": "Property policies",
+      "empty": "No property policy rows available.",
+      "autoSendOverride": "Auto-send override",
+      "inherit": "Inherit global",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "requireReviewAll": "Require review for all replies"
     }
   },
   "portalAdminProperties": {
@@ -1058,7 +1159,8 @@
       "showOnApply": "مرئي",
       "landlord": "المالك",
       "harId": "معرّف HAR",
-      "noPhoto": "لا توجد صورة"
+      "noPhoto": "لا توجد صورة",
+      "elsaAutoSend": "السماح بالإرسال التلقائي من إلسا"
     },
     "messages": {
       "added": "تمت إضافة العقار بنجاح.",
@@ -1066,7 +1168,8 @@
       "deleted": "تم حذف العقار.",
       "restored": "تمت استعادة العقار.",
       "visibilityUpdated": "تم تحديث حالة الظهور.",
-      "harSynced": "تم تحديث قائمة HAR."
+      "harSynced": "تم تحديث قائمة HAR.",
+      "elsaPolicyUpdated": "تم تحديث سياسة إلسا للعقار."
     },
     "errors": {
       "signInRequired": "سجّل الدخول قبل إدارة العقارات.",
@@ -1080,6 +1183,7 @@
       "restoreFailed": "تعذّر استعادة العقار: {{error}}",
       "visibilityFailed": "تعذّر تحديث حالة الظهور: {{error}}",
       "syncHarFailed": "تعذّر تحديث قائمة HAR: {{error}}",
+      "elsaPolicyFailed": "تعذّر تحديث سياسة إلسا للعقار: {{error}}",
       "noApiConfigured": "واجهة API غير مهيّأة. حدّد VITE_API_BASE_URL في ملف .env لتفعيل إدارة العقارات."
     }
   },
@@ -1119,6 +1223,8 @@
       "requests": "الطلبات",
       "profile": "الملف الشخصي",
       "adminLandlords": "الملاك",
+      "adminConfigurations": "الإعدادات",
+      "adminAiConfig": "إعدادات الذكاء الاصطناعي",
       "properties": "العقارات",
       "status": "حالة النظام",
       "collapse": "طي الشريط الجانبي",

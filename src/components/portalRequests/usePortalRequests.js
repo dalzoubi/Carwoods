@@ -12,10 +12,24 @@ import {
   finalizeUpload,
   patchResource,
   fetchSuggestReply,
+  fetchElsaDecisions,
+  fetchElsaSettings,
+  patchElsaRequestAutoRespond,
+  patchElsaCategoryPolicy,
+  patchElsaPriorityPolicy,
+  patchElsaSettings,
+  processElsaRequest,
+  patchElsaDecisionReview,
   fetchExportCsv,
   fetchRequestAudit,
+  fetchRequestMessages,
 } from '../../lib/portalApiClient';
 import { RequestStatus } from '../../domain/constants.js';
+
+const FEATURE_ELSA_AUTO = import.meta.env.VITE_FEATURE_ELSA_AUTO === 'true';
+const MESSAGE_POLL_INTERVAL_MS = 15000;
+const MESSAGE_SUCCESS_AUTO_DISMISS_MS = 5000;
+const ELSA_DECISION_ACTION_SUCCESS_AUTO_DISMISS_MS = 5000;
 
 const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
@@ -131,6 +145,14 @@ export function usePortalRequests({
   const [auditEvents, setAuditEvents] = useState([]);
   const [auditStatus, setAuditStatus] = useState('idle');
   const [auditError, setAuditError] = useState('');
+  const [elsaSettings, setElsaSettings] = useState(null);
+  const [elsaSettingsStatus, setElsaSettingsStatus] = useState('idle');
+  const [elsaSettingsError, setElsaSettingsError] = useState('');
+  const [elsaDecisionStatus, setElsaDecisionStatus] = useState('idle');
+  const [elsaDecisionError, setElsaDecisionError] = useState('');
+  const [elsaDecisions, setElsaDecisions] = useState([]);
+  const [elsaDecisionActionStatus, setElsaDecisionActionStatus] = useState('idle');
+  const [elsaAutoRespondEnabled, setElsaAutoRespondEnabled] = useState(false);
   const [managementStatusOptions] = useState(() => [
     RequestStatus.NOT_STARTED,
     RequestStatus.ACKNOWLEDGED,
@@ -161,6 +183,35 @@ export function usePortalRequests({
       handleApiForbidden(error);
       setAuditStatus('error');
       setAuditError(extractErrorMessage(error, t, 'portalRequests.errors.loadFailed'));
+    }
+  };
+
+  const loadElsaContext = async (requestId) => {
+    if (!FEATURE_ELSA_AUTO || !requestId || !baseUrl || !isManagement) {
+      setElsaDecisions([]);
+      setElsaDecisionStatus('idle');
+      setElsaDecisionError('');
+      return;
+    }
+    setElsaDecisionStatus('loading');
+    setElsaDecisionError('');
+    try {
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      const [settingsPayload, decisionsPayload] = await Promise.all([
+        fetchElsaSettings(baseUrl, token, { emailHint, requestId }),
+        fetchElsaDecisions(baseUrl, token, requestId, { emailHint }),
+      ]);
+      const decisions = Array.isArray(decisionsPayload?.decisions) ? decisionsPayload.decisions : [];
+      setElsaSettings(settingsPayload?.settings ?? null);
+      setElsaAutoRespondEnabled(Boolean(settingsPayload?.request?.auto_respond_enabled ?? false));
+      setElsaDecisions(decisions);
+      setElsaDecisionStatus('ok');
+      setElsaSettingsStatus('ok');
+    } catch (error) {
+      handleApiForbidden(error);
+      setElsaDecisionStatus('error');
+      setElsaDecisionError(extractErrorMessage(error, t, 'portalRequests.errors.loadFailed'));
     }
   };
 
@@ -238,6 +289,7 @@ export function usePortalRequests({
         try {
           await loadRequestDetails(nextSelected);
           await loadAuditForRequest(nextSelected);
+          await loadElsaContext(nextSelected);
         } catch (error) {
           handleApiForbidden(error);
           setDetailStatus('error');
@@ -252,6 +304,9 @@ export function usePortalRequests({
         setAuditEvents([]);
         setAuditStatus('idle');
         setAuditError('');
+        setElsaDecisions([]);
+        setElsaDecisionStatus('idle');
+        setElsaDecisionError('');
       }
     } catch (error) {
       handleApiForbidden(error);
@@ -282,7 +337,31 @@ export function usePortalRequests({
     setSuggestionError('');
     setSuggestionText('');
     setMessageForm({ body: '', is_internal: false });
+    setElsaDecisionStatus('idle');
+    setElsaDecisionError('');
+    setElsaDecisions([]);
+    setElsaDecisionActionStatus('idle');
   }, [selectedRequestId]);
+
+  useEffect(() => {
+    if (messageStatus !== 'success') return undefined;
+    const timeoutId = window.setTimeout(() => {
+      setMessageStatus('idle');
+    }, MESSAGE_SUCCESS_AUTO_DISMISS_MS);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [messageStatus]);
+
+  useEffect(() => {
+    if (elsaDecisionActionStatus !== 'success') return undefined;
+    const timeoutId = window.setTimeout(() => {
+      setElsaDecisionActionStatus('idle');
+    }, ELSA_DECISION_ACTION_SUCCESS_AUTO_DISMISS_MS);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [elsaDecisionActionStatus]);
 
   useEffect(() => {
     if (!baseUrl || !isAuthenticated || isGuest || isManagement || meStatus !== 'ok') {
@@ -373,6 +452,48 @@ export function usePortalRequests({
           : firstPriorityCode,
     }));
   }, [categoryOptions, lookupStatus, priorityOptions]);
+
+  useEffect(() => {
+    if (!selectedRequestId || !baseUrl || !isAuthenticated || isGuest || meStatus !== 'ok') return undefined;
+
+    let cancelled = false;
+    let refreshInFlight = false;
+
+    const refreshMessages = async () => {
+      if (cancelled || refreshInFlight) return;
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      refreshInFlight = true;
+      try {
+        const token = await getAccessToken();
+        if (cancelled) return;
+        const emailHint = emailFromAccount(account);
+        const payload = await fetchRequestMessages(baseUrl, token, selectedRequestId, { emailHint });
+        if (cancelled) return;
+        setThreadMessages(Array.isArray(payload?.messages) ? payload.messages : []);
+      } catch (error) {
+        if (!cancelled) {
+          handleApiForbidden(error);
+        }
+      } finally {
+        refreshInFlight = false;
+      }
+    };
+
+    const intervalId = window.setInterval(refreshMessages, MESSAGE_POLL_INTERVAL_MS);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [
+    selectedRequestId,
+    baseUrl,
+    isAuthenticated,
+    isGuest,
+    meStatus,
+    getAccessToken,
+    account,
+    handleApiForbidden,
+  ]);
 
   const onTenantField = (field) => (event) => {
     const value = event.target.value;
@@ -651,6 +772,125 @@ export function usePortalRequests({
     }
   };
 
+  const onSetElsaAutoRespond = async (enabled) => {
+    if (!FEATURE_ELSA_AUTO || !baseUrl || !selectedRequestId || !isManagement) return;
+    setElsaDecisionStatus('loading');
+    setElsaDecisionError('');
+    try {
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      await patchElsaRequestAutoRespond(baseUrl, token, selectedRequestId, {
+        emailHint,
+        auto_respond_enabled: Boolean(enabled),
+      });
+      setElsaAutoRespondEnabled(Boolean(enabled));
+      await loadElsaContext(selectedRequestId);
+    } catch (error) {
+      handleApiForbidden(error);
+      setElsaDecisionStatus('error');
+      setElsaDecisionError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
+    }
+  };
+
+  const onRunElsa = async () => {
+    if (!FEATURE_ELSA_AUTO || !baseUrl || !selectedRequestId || !isManagement) return;
+    setElsaDecisionStatus('loading');
+    setElsaDecisionError('');
+    try {
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      await processElsaRequest(baseUrl, token, selectedRequestId, { emailHint });
+      await loadRequestDetails(selectedRequestId);
+      await loadElsaContext(selectedRequestId);
+    } catch (error) {
+      handleApiForbidden(error);
+      setElsaDecisionStatus('error');
+      setElsaDecisionError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
+    }
+  };
+
+  const onReviewElsaDecision = async (decisionId, action) => {
+    if (!FEATURE_ELSA_AUTO || !baseUrl || !selectedRequestId || !isManagement || !decisionId || !action) return;
+    setElsaDecisionActionStatus('saving');
+    setElsaDecisionError('');
+    try {
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      await patchElsaDecisionReview(baseUrl, token, selectedRequestId, decisionId, {
+        emailHint,
+        action,
+      });
+      setElsaDecisionActionStatus('success');
+      await loadRequestDetails(selectedRequestId);
+      await loadElsaContext(selectedRequestId);
+    } catch (error) {
+      handleApiForbidden(error);
+      setElsaDecisionActionStatus('error');
+      setElsaDecisionError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
+    }
+  };
+
+  const onUpdateElsaGlobalSettings = async (updates) => {
+    if (!FEATURE_ELSA_AUTO || !baseUrl || !isManagement) return;
+    setElsaSettingsStatus('loading');
+    setElsaSettingsError('');
+    try {
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      await patchElsaSettings(baseUrl, token, { emailHint, ...updates });
+      const payload = await fetchElsaSettings(baseUrl, token, { emailHint });
+      setElsaSettings(payload?.settings ?? null);
+      setElsaSettingsStatus('ok');
+    } catch (error) {
+      handleApiForbidden(error);
+      setElsaSettingsStatus('error');
+      setElsaSettingsError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
+    }
+  };
+
+  const onSetElsaCategoryEnabled = async (categoryCode, enabled) => {
+    if (!FEATURE_ELSA_AUTO || !baseUrl || !isManagement || !categoryCode) return;
+    setElsaSettingsStatus('loading');
+    setElsaSettingsError('');
+    try {
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      await patchElsaCategoryPolicy(baseUrl, token, categoryCode, {
+        emailHint,
+        auto_send_enabled: Boolean(enabled),
+      });
+      const payload = await fetchElsaSettings(baseUrl, token, { emailHint });
+      setElsaSettings(payload?.settings ?? null);
+      setElsaSettingsStatus('ok');
+    } catch (error) {
+      handleApiForbidden(error);
+      setElsaSettingsStatus('error');
+      setElsaSettingsError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
+    }
+  };
+
+  const onSetElsaPriorityPolicy = async (priorityCode, autoSendEnabled, requireAdminReview) => {
+    if (!FEATURE_ELSA_AUTO || !baseUrl || !isManagement || !priorityCode) return;
+    setElsaSettingsStatus('loading');
+    setElsaSettingsError('');
+    try {
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      await patchElsaPriorityPolicy(baseUrl, token, priorityCode, {
+        emailHint,
+        auto_send_enabled: Boolean(autoSendEnabled),
+        require_admin_review: Boolean(requireAdminReview),
+      });
+      const payload = await fetchElsaSettings(baseUrl, token, { emailHint });
+      setElsaSettings(payload?.settings ?? null);
+      setElsaSettingsStatus('ok');
+    } catch (error) {
+      handleApiForbidden(error);
+      setElsaSettingsStatus('error');
+      setElsaSettingsError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
+    }
+  };
+
   return {
     requestsStatus,
     requestsError,
@@ -694,8 +934,18 @@ export function usePortalRequests({
     auditEvents,
     auditStatus,
     auditError,
+    elsaSettings,
+    elsaFeatureEnabled: FEATURE_ELSA_AUTO,
+    elsaSettingsStatus,
+    elsaSettingsError,
+    elsaDecisionStatus,
+    elsaDecisionError,
+    elsaDecisionActionStatus,
+    elsaDecisions,
+    elsaAutoRespondEnabled,
     loadRequestDetails,
     loadAuditForRequest,
+    loadElsaContext,
     loadRequests,
     onTenantField,
     onCreateAttachmentChange,
@@ -709,6 +959,12 @@ export function usePortalRequests({
     onAttachmentSubmit,
     onSuggestReply,
     onExportCsv,
+    onSetElsaAutoRespond,
+    onRunElsa,
+    onReviewElsaDecision,
+    onUpdateElsaGlobalSettings,
+    onSetElsaCategoryEnabled,
+    onSetElsaPriorityPolicy,
   };
 }
 
