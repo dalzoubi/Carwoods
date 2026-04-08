@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import { Box, Paper, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import PortalAdminAiConfig from './PortalAdminAiConfig';
+import PortalAdminAiAgents from './PortalAdminAiAgents';
 
 const PortalAdminAiSettings = () => {
   const { t } = useTranslation();
@@ -25,10 +26,12 @@ const PortalAdminAiSettings = () => {
             onChange={(_, nextTab) => setTab(nextTab)}
             aria-label={t('portalAdminConfigurations.tabsLabel')}
           >
-            <Tab label={t('portalAdminConfigurations.tabs.ai')} />
+            <Tab label={t('portalAdminConfigurations.tabs.policies')} />
+            <Tab label={t('portalAdminConfigurations.tabs.agents')} />
           </Tabs>
         </Paper>
         {tab === 0 && <PortalAdminAiConfig />}
+        {tab === 1 && <PortalAdminAiAgents />}
       </Stack>
     </Box>
   );

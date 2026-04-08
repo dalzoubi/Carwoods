@@ -115,7 +115,7 @@ export async function postRequestMessage(
             await processElsaAutoResponse(db, {
               requestId,
               actorUserId: ELSA_SYSTEM_ACTOR_ID,
-              actorRole: Role.LANDLORD,
+              actorRole: Role.AI_AGENT,
               triggeringEvent: 'TENANT_MESSAGE_POSTED',
             });
           }

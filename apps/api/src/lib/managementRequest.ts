@@ -191,7 +191,7 @@ export function mapDomainError(
 /**
  * OPTIONS, missing DB, missing Entra config, bad/missing token, or missing user row
  * -> HttpResponseInit.
- * Otherwise returns the authenticated active portal user (TENANT/LANDLORD/ADMIN).
+ * Otherwise returns the authenticated active portal user (TENANT/LANDLORD/ADMIN/AI_AGENT).
  */
 export async function requirePortalUser(
   request: HttpRequest,
@@ -255,7 +255,11 @@ export async function requirePortalUser(
 
   const role = String(user.role ?? '').toUpperCase();
   const status = String(user.status ?? '').toUpperCase();
-  const isAllowedRole = role === Role.TENANT || role === Role.LANDLORD || role === Role.ADMIN;
+  const isAllowedRole =
+    role === Role.TENANT
+    || role === Role.LANDLORD
+    || role === Role.ADMIN
+    || role === Role.AI_AGENT;
   const isActive = status === 'ACTIVE' || status === 'INVITED';
   if (!isAllowedRole || !isActive) {
     logWarn(context, 'portal.auth.failed', {

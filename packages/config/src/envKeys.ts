@@ -9,10 +9,6 @@ export const EnvKeys = {
   ACS_CONNECTION_STRING: 'ACS_CONNECTION_STRING',
   // ── Gemini / LLM ──────────────────────────────────────────────────────────
   GEMINI_API_KEY: 'GEMINI_API_KEY',
-  /** Primary model name. Default: gemini-2.5-flash */
-  GEMINI_MODEL: 'GEMINI_MODEL',
-  /** Fallback model name. Set to 'none' to disable. Default: gemini-1.5-flash */
-  GEMINI_FALLBACK_MODEL: 'GEMINI_FALLBACK_MODEL',
   /** Per-attempt HTTP timeout in ms. Default: 15000 */
   LLM_TIMEOUT_MS: 'LLM_TIMEOUT_MS',
   /** Max retries on primary model. Default: 3 */

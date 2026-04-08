@@ -2,6 +2,7 @@ export const Role = {
   ADMIN: 'ADMIN',
   LANDLORD: 'LANDLORD',
   TENANT: 'TENANT',
+  AI_AGENT: 'AI_AGENT',
 } as const;
 
 export const RequestStatus = {
@@ -21,4 +22,9 @@ export type Role = typeof Role[keyof typeof Role];
 export function hasLandlordAccess(role: string): boolean {
   const r = role.trim().toUpperCase();
   return r === Role.ADMIN || r === Role.LANDLORD;
+}
+
+/** Returns true for Elsa/system automation roles. */
+export function hasAiAgentAccess(role: string): boolean {
+  return role.trim().toUpperCase() === Role.AI_AGENT;
 }

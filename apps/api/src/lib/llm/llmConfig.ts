@@ -68,8 +68,6 @@ function parseFloatOr(value: string | undefined, fallback: number): number {
  *
  * Variables (all optional – defaults apply when absent):
  *
- *   GEMINI_MODEL           – primary model name
- *   GEMINI_FALLBACK_MODEL  – fallback model name ('none' to disable)
  *   LLM_TIMEOUT_MS
  *   LLM_MAX_PRIMARY_ATTEMPTS
  *   LLM_MAX_FALLBACK_ATTEMPTS
@@ -81,14 +79,10 @@ function parseFloatOr(value: string | undefined, fallback: number): number {
  *   LLM_CB_HALF_OPEN_PROBES
  */
 export function loadLlmConfigFromEnv(env: NodeJS.ProcessEnv = process.env): LlmConfig {
-  const primaryModel = env.GEMINI_MODEL?.trim() || DEFAULTS.primaryModel;
-  const fallbackRaw = env.GEMINI_FALLBACK_MODEL?.trim();
-  const fallbackModel =
-    fallbackRaw === undefined ? DEFAULTS.fallbackModel : fallbackRaw === 'none' ? null : fallbackRaw;
-
   return {
-    primaryModel,
-    fallbackModel,
+    // Primary model selection is sourced from DB agent routing when available.
+    primaryModel: DEFAULTS.primaryModel,
+    fallbackModel: DEFAULTS.fallbackModel,
     timeoutMs: parseIntOr(env.LLM_TIMEOUT_MS, DEFAULTS.timeoutMs),
     maxPrimaryAttempts: parseIntOr(env.LLM_MAX_PRIMARY_ATTEMPTS, DEFAULTS.maxPrimaryAttempts),
     maxFallbackAttempts: parseIntOr(env.LLM_MAX_FALLBACK_ATTEMPTS, DEFAULTS.maxFallbackAttempts),

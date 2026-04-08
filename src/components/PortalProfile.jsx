@@ -276,7 +276,7 @@ const PortalProfile = () => {
 
       <Snackbar
         open={snackOpen}
-        autoHideDuration={4000}
+        autoHideDuration={5000}
         onClose={() => setSnackOpen(false)}
         message={t('portalProfile.saved')}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}

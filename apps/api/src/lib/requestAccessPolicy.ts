@@ -1,6 +1,6 @@
 import { Role } from '../domain/constants.js';
 
-export type PortalRole = 'ADMIN' | 'LANDLORD' | 'TENANT';
+export type PortalRole = 'ADMIN' | 'LANDLORD' | 'TENANT' | 'AI_AGENT';
 
 export function canViewInternalMessages(role: PortalRole): boolean {
   return role === Role.ADMIN || role === Role.LANDLORD;

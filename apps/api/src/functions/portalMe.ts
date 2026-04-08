@@ -127,7 +127,11 @@ export async function portalMeHandler(
 
   const role = String(user.role ?? '').trim().toUpperCase();
   const status = String(user.status ?? '').trim().toUpperCase();
-  const isAllowedRole = role === Role.TENANT || role === Role.LANDLORD || role === Role.ADMIN;
+  const isAllowedRole =
+    role === Role.TENANT
+    || role === Role.LANDLORD
+    || role === Role.ADMIN
+    || role === Role.AI_AGENT;
   const isActive = status === 'ACTIVE' || status === 'INVITED';
   if (!isAllowedRole || !isActive) {
     const isDisabled = status === 'DISABLED';

@@ -1,5 +1,5 @@
 import { forbidden, notFound, validationError } from '../../domain/errors.js';
-import { hasLandlordAccess } from '../../domain/constants.js';
+import { hasAiAgentAccess, hasLandlordAccess } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
 import { writeAudit } from '../../lib/auditRepo.js';
 import {
@@ -7,6 +7,7 @@ import {
   getElsaRequestAutoRespond,
   getElsaSettings,
   listActiveTroubleshootingAllowlist,
+  resolveAiAgentModels,
   listCategoryPolicies,
   listPriorityPolicies,
   listPropertyPolicies,
@@ -74,7 +75,7 @@ export async function processElsaAutoResponse(
     weatherSeverity: input.weatherSeverity ?? 'NORMAL',
   });
 
-  if (!hasLandlordAccess(input.actorRole)) throw forbidden();
+  if (!hasLandlordAccess(input.actorRole) && !hasAiAgentAccess(input.actorRole)) throw forbidden();
   if (!input.requestId) throw validationError('missing_id');
   const request = await getRequestById(db, input.requestId);
   if (!request) throw notFound();
@@ -82,11 +83,12 @@ export async function processElsaAutoResponse(
   // Elsa should evaluate only tenant-visible conversation history.
   const messages = await listRequestMessages(db, input.requestId, false);
   const settings = await getElsaSettings(db);
-  const [categoryPolicies, priorityPolicies, propertyPolicies, allowlistCodes] = await Promise.all([
+  const [categoryPolicies, priorityPolicies, propertyPolicies, allowlistCodes, agentModels] = await Promise.all([
     listCategoryPolicies(db),
     listPriorityPolicies(db),
     listPropertyPolicies(db),
     listActiveTroubleshootingAllowlist(db),
+    resolveAiAgentModels(db),
   ]);
   const requestAutoRespondEnabled = await getElsaRequestAutoRespond(db, input.requestId);
   log('info', 'elsa.process.context.loaded', {
@@ -96,13 +98,18 @@ export async function processElsaAutoResponse(
     priorityPolicyCount: priorityPolicies.length,
     propertyPolicyCount: propertyPolicies.length,
     allowlistCount: allowlistCodes.length,
+    primaryAgentModel: agentModels.primaryModel,
+    fallbackAgentModel: agentModels.fallbackModel,
     requestAutoRespondEnabled,
     requestCategoryCode: request.category_code ?? null,
     requestPriorityCode: request.priority_code ?? null,
     requestStatusCode: request.status_code ?? null,
   });
 
-  const llmClient = getLlmClient();
+  const llmClient = getLlmClient({
+    primaryModel: agentModels.primaryModel ?? undefined,
+    fallbackModel: agentModels.fallbackModel,
+  });
   let aiResult: Awaited<ReturnType<typeof suggestReply>>;
   try {
     aiResult = await suggestReply(
@@ -134,7 +141,7 @@ export async function processElsaAutoResponse(
         policyFlags: ['MODEL_UNEXPECTED_ERROR'],
         autoSendRationale: 'Unexpected error in AI layer; held for manual review.',
       },
-      modelName: process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash',
+      modelName: agentModels.primaryModel ?? 'gemini-2.5-flash',
       providerUsed: 'unavailable',
       promptVersion: 'error',
     };

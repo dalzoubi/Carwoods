@@ -23,6 +23,12 @@ test('management roles can view/post internal messages', () => {
   assert.equal(canPostInternalMessages('LANDLORD'), true);
 });
 
+test('AI_AGENT cannot create requests or post internal notes directly', () => {
+  assert.equal(canCreateMaintenanceRequest('AI_AGENT'), false);
+  assert.equal(canViewInternalMessages('AI_AGENT'), false);
+  assert.equal(canPostInternalMessages('AI_AGENT'), false);
+});
+
 test('upload media detection and byte ceilings', () => {
   assert.equal(detectMediaType('image/jpeg'), 'PHOTO');
   assert.equal(detectMediaType('video/mp4'), 'VIDEO');

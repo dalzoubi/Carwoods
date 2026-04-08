@@ -22,8 +22,6 @@ Values are **names only**; store secrets in Azure Key Vault or Function App sett
 | `BLOB_ACCOUNT_URL`                                | If using MI | `https://{account}.blob.core.windows.net`             |
 | `ACS_CONNECTION_STRING` or ACS + MI               | Yes (email) | Azure Communication Services                          |
 | `GEMINI_API_KEY`                                  | Yes (AI)    | Backend only; never in Vite env                       |
-| `GEMINI_MODEL`                                    | No          | Primary model. Default: `gemini-2.5-flash`            |
-| `GEMINI_FALLBACK_MODEL`                           | No          | Fallback model. Set to `none` to disable. Default: `gemini-1.5-flash` |
 | `LLM_TIMEOUT_MS`                                  | No          | Per-attempt HTTP timeout in ms. Default: `15000`      |
 | `LLM_MAX_PRIMARY_ATTEMPTS`                        | No          | Max retries on primary model. Default: `3`            |
 | `LLM_MAX_FALLBACK_ATTEMPTS`                       | No          | Max retries on fallback model. Default: `2`           |

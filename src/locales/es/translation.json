@@ -927,6 +927,7 @@
       "confidenceThreshold": "Umbral de confianza",
       "confidence": "Confianza",
       "provider": "Proveedor",
+      "model": "Modelo",
       "nextAction": "Siguiente acción",
       "reviewActionSaved": "Decisión actualizada.",
       "reviewedBadge": "Revisado: {{status}}",
@@ -1020,7 +1021,8 @@
     "intro": "Administra las configuraciones del sistema desde un solo lugar.",
     "tabsLabel": "Pestañas de configuración",
     "tabs": {
-      "ai": "Configuración de IA"
+      "policies": "Políticas de IA",
+      "agents": "Agentes"
     }
   },
   "portalAdminAiConfig": {
@@ -1080,6 +1082,39 @@
       "customBadge": "Personalizado",
       "customConfigCount": "{{count}} personalizado",
       "customConfigTooltip": "Propiedades con configuración de IA personalizada"
+    }
+  },
+  "portalAdminAiAgents": {
+    "heading": "Agentes",
+    "intro": "Selecciona los agentes de IA primario y de respaldo que usa la automatización de Elsa.",
+    "actions": {
+      "refresh": "Actualizar",
+      "saveRouting": "Guardar enrutamiento",
+      "saving": "Guardando..."
+    },
+    "messages": {
+      "routingSaved": "Enrutamiento de agentes guardado."
+    },
+    "errors": {
+      "featureDisabled": "Configura VITE_FEATURE_ELSA_AUTO=true para habilitar la configuración de agentes.",
+      "apiUnavailable": "Configura VITE_API_BASE_URL para habilitar la configuración de agentes.",
+      "signInRequired": "Inicia sesión antes de usar la configuración de agentes.",
+      "adminOnly": "Solo las cuentas admin pueden gestionar la configuración de agentes.",
+      "loadFailed": "No se pudo cargar la configuración de agentes.",
+      "saveFailed": "No se pudo guardar la configuración de agentes."
+    },
+    "routing": {
+      "heading": "Enrutamiento activo",
+      "primary": "Agente primario",
+      "fallback": "Agente de respaldo",
+      "none": "Ninguno"
+    },
+    "details": {
+      "heading": "Detalles de agentes seleccionados",
+      "primaryAgent": "Nombre del agente primario",
+      "primaryModel": "Modelo primario",
+      "fallbackAgent": "Nombre del agente de respaldo",
+      "fallbackModel": "Modelo de respaldo"
     }
   },
   "portalAdminProperties": {

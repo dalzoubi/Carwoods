@@ -926,6 +926,7 @@
       "confidenceThreshold": "Confidence threshold",
       "confidence": "Confidence",
       "provider": "Provider",
+      "model": "Model",
       "nextAction": "Next action",
       "reviewActionSaved": "Decision updated.",
       "reviewedBadge": "Reviewed: {{status}}",
@@ -1019,7 +1020,8 @@
     "intro": "Manage system configurations from one place.",
     "tabsLabel": "Configuration tabs",
     "tabs": {
-      "ai": "AI Configuration"
+      "policies": "AI Policies",
+      "agents": "Agents"
     }
   },
   "portalAdminAiConfig": {
@@ -1079,6 +1081,39 @@
       "customBadge": "Custom",
       "customConfigCount": "{{count}} custom",
       "customConfigTooltip": "Properties with overridden AI settings"
+    }
+  },
+  "portalAdminAiAgents": {
+    "heading": "Agents",
+    "intro": "Select the primary and fallback AI agents used by Elsa automation.",
+    "actions": {
+      "refresh": "Refresh",
+      "saveRouting": "Save routing",
+      "saving": "Saving..."
+    },
+    "messages": {
+      "routingSaved": "Agent routing saved."
+    },
+    "errors": {
+      "featureDisabled": "Set VITE_FEATURE_ELSA_AUTO=true to enable agent configuration.",
+      "apiUnavailable": "Set VITE_API_BASE_URL to enable agent configuration.",
+      "signInRequired": "Sign in before using agent configuration.",
+      "adminOnly": "Only admin accounts can manage agent configuration.",
+      "loadFailed": "Unable to load agent configuration.",
+      "saveFailed": "Unable to save agent configuration."
+    },
+    "routing": {
+      "heading": "Active routing",
+      "primary": "Primary agent",
+      "fallback": "Fallback agent",
+      "none": "None"
+    },
+    "details": {
+      "heading": "Selected agent details",
+      "primaryAgent": "Primary agent name",
+      "primaryModel": "Primary model",
+      "fallbackAgent": "Fallback agent name",
+      "fallbackModel": "Fallback model"
     }
   },
   "portalAdminProperties": {

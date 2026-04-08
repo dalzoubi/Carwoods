@@ -927,6 +927,7 @@
       "confidenceThreshold": "Seuil de confiance",
       "confidence": "Confiance",
       "provider": "Fournisseur",
+      "model": "Modèle",
       "nextAction": "Prochaine action",
       "reviewActionSaved": "Decision mise a jour.",
       "reviewedBadge": "Revisee : {{status}}",
@@ -1020,7 +1021,8 @@
     "intro": "Gérez les configurations du système depuis un seul endroit.",
     "tabsLabel": "Onglets de configuration",
     "tabs": {
-      "ai": "Configuration IA"
+      "policies": "Politiques IA",
+      "agents": "Agents"
     }
   },
   "portalAdminAiConfig": {
@@ -1080,6 +1082,39 @@
       "customBadge": "Personnalisé",
       "customConfigCount": "{{count}} personnalisé",
       "customConfigTooltip": "Propriétés avec une configuration IA personnalisée"
+    }
+  },
+  "portalAdminAiAgents": {
+    "heading": "Agents",
+    "intro": "Sélectionnez les agents IA principal et de secours utilisés par l'automatisation Elsa.",
+    "actions": {
+      "refresh": "Actualiser",
+      "saveRouting": "Enregistrer le routage",
+      "saving": "Enregistrement..."
+    },
+    "messages": {
+      "routingSaved": "Routage des agents enregistré."
+    },
+    "errors": {
+      "featureDisabled": "Définissez VITE_FEATURE_ELSA_AUTO=true pour activer la configuration des agents.",
+      "apiUnavailable": "Définissez VITE_API_BASE_URL pour activer la configuration des agents.",
+      "signInRequired": "Connectez-vous avant d'utiliser la configuration des agents.",
+      "adminOnly": "Seuls les comptes admin peuvent gérer la configuration des agents.",
+      "loadFailed": "Impossible de charger la configuration des agents.",
+      "saveFailed": "Impossible d'enregistrer la configuration des agents."
+    },
+    "routing": {
+      "heading": "Routage actif",
+      "primary": "Agent principal",
+      "fallback": "Agent de secours",
+      "none": "Aucun"
+    },
+    "details": {
+      "heading": "Détails des agents sélectionnés",
+      "primaryAgent": "Nom de l'agent principal",
+      "primaryModel": "Modèle principal",
+      "fallbackAgent": "Nom de l'agent de secours",
+      "fallbackModel": "Modèle de secours"
     }
   },
   "portalAdminProperties": {

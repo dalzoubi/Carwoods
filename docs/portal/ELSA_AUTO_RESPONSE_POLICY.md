@@ -52,7 +52,7 @@ Emergency auto-response uses a fixed approved template only (no free-form model 
 Model provider runtime configuration:
 
 - `GEMINI_API_KEY` enables remote model calls for Elsa suggestion generation.
-- `GEMINI_MODEL` selects the model (defaults to `gemini-1.5-flash` for remote calls).
+- Primary/fallback models are resolved from DB routing (`ai_agent_routing` + `ai_agents`), with code-level defaults if routing is unavailable.
 - If the provider is unavailable or response JSON is invalid, Elsa falls back to conservative heuristic suggestion generation and forces review.
 
 Property/category/priority/request-level overrides are available via Elsa policy tables and admin endpoints.

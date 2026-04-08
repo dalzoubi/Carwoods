@@ -11,8 +11,6 @@
     "ENTRA_OPENID_METADATA_URL": "",
     "ENTRA_ADMIN_OBJECT_IDS": "your-admin-user-object-id",
     "ENTRA_LANDLORD_OBJECT_IDS": "your-landlord-user-object-id",
-    "GEMINI_API_KEY": "<your-gemini-api-key>",
-    "GEMINI_MODEL": "gemini-2.5-flash",
-    "GEMINI_FALLBACK_MODEL": "gemini-1.5-flash"
+    "GEMINI_API_KEY": "<your-gemini-api-key>"
   }
 }

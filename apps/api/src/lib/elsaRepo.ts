@@ -43,6 +43,25 @@ export type ElsaDecisionRow = {
   created_at: Date;
 };
 
+export type AiAgentRow = {
+  id: string;
+  code: string;
+  display_name: string;
+  provider: string;
+  primary_model: string;
+  fallback_model: string | null;
+  enabled: boolean;
+  is_system: boolean;
+  metadata_json: string | null;
+  updated_at: Date;
+};
+
+export type AiAgentRoutingRow = {
+  primary_agent_id: string;
+  fallback_agent_id: string | null;
+  updated_at: Date;
+};
+
 const DEFAULT_SETTINGS: ElsaSettings = {
   elsa_enabled: true,
   elsa_auto_send_enabled: false,
@@ -451,4 +470,101 @@ export async function markElsaDecisionReviewed(
     [params.requestId, params.decisionId, params.reviewStatus, params.reviewAction, params.actorUserId]
   );
   return r.rows[0] ?? null;
+}
+
+export async function listAiAgents(client: Queryable): Promise<AiAgentRow[]> {
+  const r = await client.query<AiAgentRow>(
+    `SELECT
+       CONVERT(NVARCHAR(36), id) AS id,
+       code,
+       display_name,
+       provider,
+       primary_model,
+       fallback_model,
+       enabled,
+       is_system,
+       metadata_json,
+       updated_at
+     FROM ai_agents
+     ORDER BY enabled DESC, code ASC`
+  );
+  return r.rows;
+}
+
+export async function getAiAgentRouting(client: Queryable): Promise<AiAgentRoutingRow | null> {
+  const r = await client.query<AiAgentRoutingRow>(
+    `SELECT TOP 1
+       CONVERT(NVARCHAR(36), primary_agent_id) AS primary_agent_id,
+       CONVERT(NVARCHAR(36), fallback_agent_id) AS fallback_agent_id,
+       updated_at
+     FROM ai_agent_routing
+     WHERE config_key = 'default'`
+  );
+  return r.rows[0] ?? null;
+}
+
+export async function setAiAgentRouting(
+  client: PoolClient,
+  params: {
+    primaryAgentId: string;
+    fallbackAgentId: string | null;
+    actorUserId: string;
+  }
+): Promise<void> {
+  await client.query(
+    `MERGE ai_agent_routing AS target
+     USING (
+       SELECT
+         'default' AS config_key,
+         CAST($1 AS UNIQUEIDENTIFIER) AS primary_agent_id,
+         CAST($2 AS UNIQUEIDENTIFIER) AS fallback_agent_id,
+         CAST($3 AS UNIQUEIDENTIFIER) AS updated_by_user_id
+     ) AS src
+       ON target.config_key = src.config_key
+     WHEN MATCHED THEN
+       UPDATE SET primary_agent_id = src.primary_agent_id,
+                  fallback_agent_id = src.fallback_agent_id,
+                  updated_by_user_id = src.updated_by_user_id,
+                  updated_at = SYSDATETIMEOFFSET()
+     WHEN NOT MATCHED THEN
+       INSERT (config_key, primary_agent_id, fallback_agent_id, updated_by_user_id)
+       VALUES (src.config_key, src.primary_agent_id, src.fallback_agent_id, src.updated_by_user_id);`,
+    [params.primaryAgentId, params.fallbackAgentId, params.actorUserId]
+  );
+}
+
+export async function resolveAiAgentModels(client: Queryable): Promise<{
+  primaryModel: string | null;
+  fallbackModel: string | null;
+  primaryAgentId: string | null;
+  fallbackAgentId: string | null;
+}> {
+  const routing = await getAiAgentRouting(client);
+  if (!routing) {
+    return {
+      primaryModel: null,
+      fallbackModel: null,
+      primaryAgentId: null,
+      fallbackAgentId: null,
+    };
+  }
+
+  const r = await client.query<{
+    primary_model: string | null;
+    fallback_model: string | null;
+  }>(
+    `SELECT TOP 1
+       p.primary_model AS primary_model,
+       f.primary_model AS fallback_model
+     FROM ai_agent_routing ar
+     INNER JOIN ai_agents p ON p.id = ar.primary_agent_id AND p.enabled = 1
+     LEFT JOIN ai_agents f ON f.id = ar.fallback_agent_id AND f.enabled = 1
+     WHERE ar.config_key = 'default'`
+  );
+  return {
+    primaryModel: r.rows[0]?.primary_model ?? null,
+    fallbackModel: r.rows[0]?.fallback_model ?? null,
+    primaryAgentId: routing.primary_agent_id,
+    fallbackAgentId: routing.fallback_agent_id,
+  };
 }

@@ -579,6 +579,13 @@ const RequestDetailPane = ({
                         variant="outlined"
                       />
                     ) : null}
+                    {decision.model_name ? (
+                      <Chip
+                        size="small"
+                        label={`${t('portalRequests.elsa.model')}: ${decision.model_name}`}
+                        variant="outlined"
+                      />
+                    ) : null}
                     {decision.confidence !== null && decision.confidence !== undefined
                       ? <Chip size="small" label={`${t('portalRequests.elsa.confidence')}: ${decision.confidence}`} variant="outlined" />
                       : null}

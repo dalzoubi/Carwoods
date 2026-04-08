@@ -13,21 +13,48 @@
 import { GeminiProvider, LlmClient, loadLlmConfigFromEnv } from './llm/index.js';
 import type { LlmClient as LlmClientType } from './llm/index.js';
 
-let _instance: LlmClientType | null | undefined = undefined;
+type LlmModelOverrides = {
+  primaryModel?: string;
+  fallbackModel?: string | null;
+};
 
-export function getLlmClient(): LlmClientType | null {
-  if (_instance !== undefined) return _instance;
+const _instances = new Map<string, LlmClientType | null>();
+
+function buildCacheKey(
+  apiKey: string,
+  primaryModel: string,
+  fallbackModel: string | null
+): string {
+  return `${apiKey}::${primaryModel}::${fallbackModel ?? 'none'}`;
+}
+
+export function getLlmClient(overrides?: LlmModelOverrides): LlmClientType | null {
+  const primaryOverride = overrides?.primaryModel?.trim();
+  const fallbackOverride = overrides?.fallbackModel === undefined
+    ? undefined
+    : overrides.fallbackModel === null
+      ? null
+      : overrides.fallbackModel.trim() || null;
 
   const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey) {
-    _instance = null;
     return null;
   }
 
-  const config = loadLlmConfigFromEnv(process.env);
+  const baseConfig = loadLlmConfigFromEnv(process.env);
+  const config = {
+    ...baseConfig,
+    primaryModel: primaryOverride || baseConfig.primaryModel,
+    fallbackModel: fallbackOverride === undefined ? baseConfig.fallbackModel : fallbackOverride,
+  };
+  const cacheKey = buildCacheKey(apiKey, config.primaryModel, config.fallbackModel);
+  const cached = _instances.get(cacheKey);
+  if (cached !== undefined) return cached;
+
   const provider = new GeminiProvider(apiKey);
-  _instance = new LlmClient({ provider, config });
-  return _instance;
+  const instance = new LlmClient({ provider, config });
+  _instances.set(cacheKey, instance);
+  return instance;
 }
 
 /**
@@ -35,5 +62,5 @@ export function getLlmClient(): LlmClientType | null {
  * Never call this in production code.
  */
 export function _resetLlmClientSingleton(): void {
-  _instance = undefined;
+  _instances.clear();
 }

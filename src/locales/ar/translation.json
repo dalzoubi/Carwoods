@@ -927,6 +927,7 @@
       "confidenceThreshold": "حد الثقة",
       "confidence": "الثقة",
       "provider": "المزوّد",
+      "model": "النموذج",
       "nextAction": "الإجراء التالي",
       "reviewActionSaved": "تم تحديث القرار.",
       "reviewedBadge": "تمت المراجعة: {{status}}",
@@ -1020,7 +1021,8 @@
     "intro": "أدر إعدادات النظام من مكان واحد.",
     "tabsLabel": "علامات تبويب الإعدادات",
     "tabs": {
-      "ai": "إعدادات الذكاء الاصطناعي"
+      "policies": "سياسات الذكاء الاصطناعي",
+      "agents": "الوكلاء"
     }
   },
   "portalAdminAiConfig": {
@@ -1080,6 +1082,39 @@
       "customBadge": "مخصص",
       "customConfigCount": "{{count}} مخصص",
       "customConfigTooltip": "عقارات ذات إعدادات ذكاء اصطناعي مخصصة"
+    }
+  },
+  "portalAdminAiAgents": {
+    "heading": "الوكلاء",
+    "intro": "اختر وكيل الذكاء الاصطناعي الأساسي ووكيل النسخ الاحتياطي المستخدمين في أتمتة إلسا.",
+    "actions": {
+      "refresh": "تحديث",
+      "saveRouting": "حفظ التوجيه",
+      "saving": "جارٍ الحفظ..."
+    },
+    "messages": {
+      "routingSaved": "تم حفظ توجيه الوكلاء."
+    },
+    "errors": {
+      "featureDisabled": "اضبط VITE_FEATURE_ELSA_AUTO=true لتفعيل إعدادات الوكلاء.",
+      "apiUnavailable": "اضبط VITE_API_BASE_URL لتفعيل إعدادات الوكلاء.",
+      "signInRequired": "سجّل الدخول قبل استخدام إعدادات الوكلاء.",
+      "adminOnly": "يمكن لحسابات الإدارة فقط إدارة إعدادات الوكلاء.",
+      "loadFailed": "تعذر تحميل إعدادات الوكلاء.",
+      "saveFailed": "تعذر حفظ إعدادات الوكلاء."
+    },
+    "routing": {
+      "heading": "التوجيه النشط",
+      "primary": "الوكيل الأساسي",
+      "fallback": "وكيل النسخ الاحتياطي",
+      "none": "لا يوجد"
+    },
+    "details": {
+      "heading": "تفاصيل الوكلاء المحددين",
+      "primaryAgent": "اسم الوكيل الأساسي",
+      "primaryModel": "النموذج الأساسي",
+      "fallbackAgent": "اسم وكيل النسخ الاحتياطي",
+      "fallbackModel": "نموذج النسخ الاحتياطي"
     }
   },
   "portalAdminProperties": {

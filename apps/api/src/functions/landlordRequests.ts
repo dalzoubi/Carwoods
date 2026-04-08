@@ -16,12 +16,15 @@ import { listRequestAudit } from '../useCases/requests/listRequestAudit.js';
 import { processElsaAutoResponse } from '../useCases/requests/processElsaAutoResponse.js';
 import { reviewElsaDecision } from '../useCases/requests/reviewElsaDecision.js';
 import {
+  getAiAgentRouting,
   getElsaSettings,
   getElsaRequestAutoRespond,
+  listAiAgents,
   listCategoryPolicies,
   listElsaDecisionsForRequest,
   listPriorityPolicies,
   listPropertyPolicies,
+  setAiAgentRouting,
   setElsaRequestAutoRespond,
   upsertCategoryPolicy,
   upsertElsaSettings,
@@ -191,16 +194,26 @@ async function landlordElsaSettings(
   const { ctx } = gate;
   if (request.method === 'GET') {
     const settings = await getElsaSettings(getPool());
-    const [categories, priorities, properties] = await Promise.all([
+    const [categories, priorities, properties, agents, routing] = await Promise.all([
       listCategoryPolicies(getPool()),
       listPriorityPolicies(getPool()),
       listPropertyPolicies(getPool()),
+      listAiAgents(getPool()),
+      getAiAgentRouting(getPool()),
     ]);
     const requestId = str(request.query.get('request_id'));
     const requestPolicy = requestId
       ? { auto_respond_enabled: await getElsaRequestAutoRespond(getPool(), requestId) }
       : null;
-    return jsonResponse(200, ctx.headers, { settings, categories, priorities, properties, request: requestPolicy });
+    return jsonResponse(200, ctx.headers, {
+      settings,
+      categories,
+      priorities,
+      properties,
+      request: requestPolicy,
+      agents,
+      routing,
+    });
   }
   if (request.method !== 'PATCH') {
     return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
@@ -229,11 +242,20 @@ async function landlordElsaSettings(
     elsa_admin_alert_recipients: listStrings(b.elsa_admin_alert_recipients),
     elsa_emergency_template_enabled: bool(b.elsa_emergency_template_enabled),
   };
+  const primaryAgentId = str(b.primary_agent_id);
+  const fallbackAgentId = b.fallback_agent_id === null ? null : str(b.fallback_agent_id);
 
   const client = await getPool().connect();
   try {
     await client.query('BEGIN');
     await upsertElsaSettings(client, ctx.user.id, updates);
+    if (primaryAgentId) {
+      await setAiAgentRouting(client, {
+        primaryAgentId,
+        fallbackAgentId: fallbackAgentId ?? null,
+        actorUserId: ctx.user.id,
+      });
+    }
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');

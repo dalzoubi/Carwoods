@@ -9,6 +9,7 @@
 
 import { getRequestById } from '../../lib/requestsRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
+import { resolveAiAgentModels } from '../../lib/elsaRepo.js';
 import { forbidden, notFound, validationError } from '../../domain/errors.js';
 import { hasLandlordAccess } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
@@ -46,7 +47,8 @@ export async function suggestRequestReply(
   const start = Date.now();
   const suggestion = `Thanks for reporting this. We have logged your request "${req.title}" and will follow up with scheduling details shortly.`;
   const latencyMs = Date.now() - start;
-  const model = process.env.GEMINI_MODEL?.trim() || 'gemini-backend-adapter';
+  const agentModels = await resolveAiAgentModels(db);
+  const model = agentModels.primaryModel ?? 'gemini-backend-adapter';
   const promptTemplateVersion = 'v1-maintenance-reply';
 
   const client = await db.connect();
