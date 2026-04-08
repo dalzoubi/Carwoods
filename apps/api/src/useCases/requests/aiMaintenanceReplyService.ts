@@ -1,9 +1,20 @@
+/**
+ * Elsa AI maintenance reply service.
+ *
+ * This module owns:
+ * - Prompt construction (Elsa guardrails v4)
+ * - JSON extraction / schema validation of the model's output
+ * - Safe degraded-mode response when the LLM module returns null
+ *
+ * It does NOT own:
+ * - Transport, retry, circuit breaker, or model selection (→ LlmClient)
+ * - Policy evaluation (→ autoSendPolicyEngine)
+ * - Persistence (→ elsaRepo, processElsaAutoResponse)
+ */
+
 import type { RequestMessageRow, RequestRow } from '../../lib/requestsRepo.js';
-import {
-  ElsaDeliveryDecision,
-  parseElsaSuggestion,
-  type ElsaSuggestion,
-} from './elsaTypes.js';
+import { ElsaDeliveryDecision, parseElsaSuggestion, type ElsaSuggestion } from './elsaTypes.js';
+import type { LlmClient, LlmMetricsHook } from '../../lib/llm/index.js';
 
 export type ElsaLogger = {
   info?: (message: string) => void;
@@ -26,10 +37,16 @@ export type AiMaintenanceReplyResult = {
   promptVersion: string;
 };
 
-const REMOTE_MODEL_TIMEOUT_MS = 12000;
 const PROMPT_VERSION = 'elsa-guardrails-v4-remote';
 
-function log(logger: ElsaLogger | undefined, level: 'info' | 'warn' | 'error', event: string, data: Record<string, unknown>): void {
+// ── Logger helper ─────────────────────────────────────────────────────────────
+
+function log(
+  logger: ElsaLogger | undefined,
+  level: 'info' | 'warn' | 'error',
+  event: string,
+  data: Record<string, unknown>
+): void {
   const payload = JSON.stringify({ event, ...data });
   // Use explicit method-call syntax so `this` is preserved for host objects
   // like Azure InvocationContext that rely on it internally.
@@ -44,6 +61,8 @@ function log(logger: ElsaLogger | undefined, level: 'info' | 'warn' | 'error', e
   if (logger?.info) { logger.info(payload); } else { console.log(payload); }
 }
 
+// ── Prompt builder ────────────────────────────────────────────────────────────
+
 function buildPrompt(context: AiMaintenanceReplyContext): string {
   const conversationHistory = context.messages
     .filter((msg) => !msg.is_internal)
@@ -52,6 +71,7 @@ function buildPrompt(context: AiMaintenanceReplyContext): string {
       body: msg.body,
       created_at: msg.created_at,
     }));
+
   return [
     'You are Elsa, a constrained maintenance triage assistant for a property management company.',
     'Return ONLY a single raw JSON object — no markdown, no code fences, no explanation.',
@@ -101,6 +121,8 @@ function buildPrompt(context: AiMaintenanceReplyContext): string {
   ].join('\n');
 }
 
+// ── JSON extraction ───────────────────────────────────────────────────────────
+
 function extractJsonFromText(text: string): unknown {
   const trimmed = text.trim();
   // Strip markdown code fences if present
@@ -109,7 +131,9 @@ function extractJsonFromText(text: string): unknown {
   return JSON.parse(candidate);
 }
 
-function unavailableStub(reason: string): ElsaSuggestion {
+// ── Degraded-mode stub ────────────────────────────────────────────────────────
+
+function buildUnavailableSuggestion(reason: string): ElsaSuggestion {
   return {
     mode: 'NEED_MORE_INFO',
     deliveryDecision: ElsaDeliveryDecision.ADMIN_REVIEW_REQUIRED,
@@ -125,96 +149,107 @@ function unavailableStub(reason: string): ElsaSuggestion {
   };
 }
 
-export async function suggestReply(context: AiMaintenanceReplyContext): Promise<AiMaintenanceReplyResult> {
-  const logger = context.logger;
-  const apiKey = process.env.GEMINI_API_KEY?.trim();
-  const modelName = process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash';
+// ── Main entry point ──────────────────────────────────────────────────────────
 
-  if (!apiKey) {
+export type SuggestReplyDeps = {
+  /**
+   * LlmClient instance. When null (GEMINI_API_KEY absent), the service
+   * immediately returns degraded-mode without attempting any network call.
+   */
+  llmClient: LlmClient | null;
+  metrics?: LlmMetricsHook;
+};
+
+/**
+ * Generate an Elsa suggestion for a maintenance request.
+ *
+ * Never throws. All LLM errors are caught by LlmClient and result in a null response,
+ * which this function converts to a safe degraded-mode suggestion.
+ */
+export async function suggestReply(
+  context: AiMaintenanceReplyContext,
+  deps: SuggestReplyDeps
+): Promise<AiMaintenanceReplyResult> {
+  const { llmClient } = deps;
+  const logger = context.logger;
+
+  if (!llmClient) {
     log(logger, 'warn', 'elsa.gemini.no_api_key', {
       hint: 'Set GEMINI_API_KEY in Function App settings to enable AI responses.',
     });
-    return { suggestion: unavailableStub('GEMINI_API_KEY is not configured.'), modelName, providerUsed: 'unavailable', promptVersion: PROMPT_VERSION };
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REMOTE_MODEL_TIMEOUT_MS);
-  try {
-    const endpoint =
-      `https://generativelanguage.googleapis.com/v1beta/models/` +
-      `${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-
-    log(logger, 'info', 'elsa.gemini.request.start', { modelName, requestId: context.request.id });
-
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal,
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: buildPrompt(context) }] }],
-        // Do NOT use responseMimeType — not supported on all model versions and
-        // causes silent 400s. We rely on extractJsonFromText to parse the output.
-        generationConfig: { temperature: 0.2 },
-      }),
-    });
-
-    if (!res.ok) {
-      let errBody = '';
-      try { errBody = await res.text(); } catch { /* ignore */ }
-      log(logger, 'error', 'elsa.gemini.http_error', {
-        status: res.status,
-        statusText: res.statusText,
-        body: errBody.slice(0, 500),
-        modelName,
-      });
-      return { suggestion: unavailableStub(`Gemini HTTP ${res.status}: ${res.statusText}`), modelName, providerUsed: 'unavailable', promptVersion: PROMPT_VERSION };
-    }
-
-    const payload = (await res.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    return {
+      suggestion: buildUnavailableSuggestion('GEMINI_API_KEY is not configured.'),
+      modelName: 'unconfigured',
+      providerUsed: 'unavailable',
+      promptVersion: PROMPT_VERSION,
     };
-    const rawText = payload?.candidates?.[0]?.content?.parts
-      ?.map((p) => p?.text ?? '')
-      .join('\n')
-      .trim();
-
-    if (!rawText) {
-      log(logger, 'error', 'elsa.gemini.empty_response', { modelName, payload: JSON.stringify(payload).slice(0, 500) });
-      return { suggestion: unavailableStub('Gemini returned an empty response.'), modelName, providerUsed: 'unavailable', promptVersion: PROMPT_VERSION };
-    }
-
-    let parsed: unknown;
-    try {
-      parsed = extractJsonFromText(rawText);
-    } catch (parseErr) {
-      log(logger, 'error', 'elsa.gemini.json_parse_error', {
-        modelName,
-        error: parseErr instanceof Error ? parseErr.message : String(parseErr),
-        rawText: rawText.slice(0, 500),
-      });
-      return { suggestion: unavailableStub('Gemini response could not be parsed as JSON.'), modelName, providerUsed: 'unavailable', promptVersion: PROMPT_VERSION };
-    }
-
-    const suggestion = parseElsaSuggestion(parsed);
-    if (!suggestion) {
-      log(logger, 'error', 'elsa.gemini.schema_validation_failed', {
-        modelName,
-        parsed: JSON.stringify(parsed).slice(0, 500),
-      });
-      return { suggestion: unavailableStub('Gemini response failed schema validation.'), modelName, providerUsed: 'unavailable', promptVersion: PROMPT_VERSION };
-    }
-
-    log(logger, 'info', 'elsa.gemini.success', { modelName, mode: suggestion.mode, confidence: suggestion.confidence });
-    return { suggestion, modelName, providerUsed: 'remote', promptVersion: PROMPT_VERSION };
-
-  } catch (err) {
-    const isAbort = err instanceof Error && err.name === 'AbortError';
-    log(logger, 'error', 'elsa.gemini.request_failed', {
-      modelName,
-      reason: isAbort ? 'timeout' : (err instanceof Error ? err.message : String(err)),
-    });
-    return { suggestion: unavailableStub(isAbort ? 'Gemini request timed out.' : 'Gemini request failed with a network error.'), modelName, providerUsed: 'unavailable', promptVersion: PROMPT_VERSION };
-  } finally {
-    clearTimeout(timeout);
   }
+
+  log(logger, 'info', 'elsa.gemini.request.start', { requestId: context.request.id });
+
+  const response = await llmClient.complete({
+    prompt: buildPrompt(context),
+    // Do NOT request JSON MIME mode — not supported on all model versions and
+    // causes silent 400s. extractJsonFromText handles raw model output.
+    expectJsonResponse: false,
+    temperature: 0.2,
+  });
+
+  if (response === null) {
+    log(logger, 'error', 'elsa.gemini.request_failed', {
+      reason: 'LlmClient returned null (all retries + fallback exhausted or circuit open)',
+    });
+    return {
+      suggestion: buildUnavailableSuggestion('LLM provider unavailable (retries exhausted or circuit open).'),
+      modelName: 'unknown',
+      providerUsed: 'unavailable',
+      promptVersion: PROMPT_VERSION,
+    };
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = extractJsonFromText(response.text);
+  } catch (parseErr) {
+    log(logger, 'error', 'elsa.gemini.json_parse_error', {
+      model: response.model,
+      error: parseErr instanceof Error ? parseErr.message : String(parseErr),
+      rawText: response.text.slice(0, 500),
+    });
+    return {
+      suggestion: buildUnavailableSuggestion('Gemini response could not be parsed as JSON.'),
+      modelName: response.model,
+      providerUsed: 'unavailable',
+      promptVersion: PROMPT_VERSION,
+    };
+  }
+
+  const suggestion = parseElsaSuggestion(parsed);
+  if (!suggestion) {
+    log(logger, 'error', 'elsa.gemini.schema_validation_failed', {
+      model: response.model,
+      parsed: JSON.stringify(parsed).slice(0, 500),
+    });
+    return {
+      suggestion: buildUnavailableSuggestion('Gemini response failed schema validation.'),
+      modelName: response.model,
+      providerUsed: 'unavailable',
+      promptVersion: PROMPT_VERSION,
+    };
+  }
+
+  log(logger, 'info', 'elsa.gemini.success', {
+    model: response.model,
+    usedFallback: response.usedFallback,
+    attempts: response.attempts,
+    latencyMs: response.latencyMs,
+    mode: suggestion.mode,
+    confidence: suggestion.confidence,
+  });
+  return {
+    suggestion,
+    modelName: response.model,
+    providerUsed: 'remote',
+    promptVersion: PROMPT_VERSION,
+  };
 }

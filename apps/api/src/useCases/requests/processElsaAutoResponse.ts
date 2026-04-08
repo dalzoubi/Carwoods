@@ -18,6 +18,7 @@ import {
 } from '../../lib/requestsRepo.js';
 import { enqueueNotification } from '../../lib/notificationRepo.js';
 import { suggestReply } from './aiMaintenanceReplyService.js';
+import { getLlmClient } from '../../lib/llmClientFactory.js';
 import { evaluatePolicy } from './autoSendPolicyEngine.js';
 import { normalizeTenantReply } from './elsaTemplateNormalizer.js';
 import { ElsaPolicyDecision, parseElsaSuggestion } from './elsaTypes.js';
@@ -101,15 +102,19 @@ export async function processElsaAutoResponse(
     requestStatusCode: request.status_code ?? null,
   });
 
+  const llmClient = getLlmClient();
   let aiResult: Awaited<ReturnType<typeof suggestReply>>;
   try {
-    aiResult = await suggestReply({
-      request,
-      messages,
-      weatherSeverity: input.weatherSeverity ?? 'NORMAL',
-      nowIso: new Date().toISOString(),
-      logger: input.logger,
-    });
+    aiResult = await suggestReply(
+      {
+        request,
+        messages,
+        weatherSeverity: input.weatherSeverity ?? 'NORMAL',
+        nowIso: new Date().toISOString(),
+        logger: input.logger,
+      },
+      { llmClient }
+    );
   } catch (aiError) {
     log('error', 'elsa.process.suggest_reply.threw', {
       requestId: input.requestId,
@@ -129,7 +134,7 @@ export async function processElsaAutoResponse(
         policyFlags: ['MODEL_UNEXPECTED_ERROR'],
         autoSendRationale: 'Unexpected error in AI layer; held for manual review.',
       },
-      modelName: process.env.GEMINI_MODEL?.trim() || 'gemini-1.5-flash',
+      modelName: process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash',
       providerUsed: 'unavailable',
       promptVersion: 'error',
     };
@@ -138,7 +143,7 @@ export async function processElsaAutoResponse(
   const suggestion = validated ?? {
     mode: 'NEED_MORE_INFO',
     deliveryDecision: 'ADMIN_REVIEW_REQUIRED',
-    tenantReplyDraft: 'Thanks for your request. We are reviewing this and a team member will follow up shortly.',
+    tenantReplyDraft: 'Thanks for your request. A team member will review and follow up shortly.',
     internalSummary: 'Model output failed schema validation. Held for review.',
     recommendedNextAction: 'Admin review required due to schema mismatch.',
     missingInformation: [],
