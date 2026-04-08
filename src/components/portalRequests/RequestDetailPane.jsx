@@ -113,6 +113,9 @@ const RequestDetailPane = ({
   onMessageSubmit,
   messageStatus,
   messageError,
+  messageDeleteStatus,
+  messageDeleteError,
+  onDeleteMessage,
   attachments,
   onAttachmentChange,
   onAttachmentSubmit,
@@ -145,6 +148,7 @@ const RequestDetailPane = ({
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('details');
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [deleteDialogMessage, setDeleteDialogMessage] = useState(null);
   const [attachmentInputKey, setAttachmentInputKey] = useState(0);
   const [suggestionActionMessage, setSuggestionActionMessage] = useState(null);
   const managementStatusMessage = managementUpdateStatus === 'error'
@@ -160,6 +164,11 @@ const RequestDetailPane = ({
     : messageStatus === 'success'
       ? { severity: 'success', text: t('portalRequests.messages.sent') }
     : null;
+  const messageDeleteStatusMessage = messageDeleteStatus === 'error'
+    ? { severity: 'error', text: messageDeleteError || t('portalRequests.errors.saveFailed') }
+    : messageDeleteStatus === 'success'
+      ? { severity: 'success', text: t('portalRequests.messages.deleted') }
+      : null;
   const attachmentStatusMessage = attachmentStatus === 'error'
     ? { severity: 'error', text: attachmentError || t('portalRequests.errors.saveFailed') }
     : attachmentStatus === 'success'
@@ -819,10 +828,46 @@ const RequestDetailPane = ({
                     </Typography>
                   )}
                   <Typography color="text.secondary">{msg.body}</Typography>
+                  {isAdmin && (
+                    <Stack direction="row" justifyContent="flex-end" sx={{ mt: 0.75 }}>
+                      <Button
+                        type="button"
+                        size="small"
+                        color="error"
+                        onClick={() => setDeleteDialogMessage(msg)}
+                        disabled={messageDeleteStatus === 'saving'}
+                      >
+                        {t('portalRequests.messages.deleteAction')}
+                      </Button>
+                    </Stack>
+                  )}
                 </Box>
               ))}
             </Stack>
           </Box>
+          <Dialog open={Boolean(deleteDialogMessage)} onClose={() => setDeleteDialogMessage(null)}>
+            <DialogTitle>{t('portalRequests.messages.deleteConfirmTitle')}</DialogTitle>
+            <DialogContent>
+              <DialogContentText>{t('portalRequests.messages.deleteConfirmBody')}</DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button type="button" onClick={() => setDeleteDialogMessage(null)}>
+                {t('portalRequests.messages.deleteConfirmNo')}
+              </Button>
+              <Button
+                type="button"
+                color="error"
+                variant="contained"
+                onClick={async () => {
+                  const messageId = deleteDialogMessage?.id;
+                  setDeleteDialogMessage(null);
+                  if (messageId) await onDeleteMessage(messageId);
+                }}
+              >
+                {t('portalRequests.messages.deleteConfirmYes')}
+              </Button>
+            </DialogActions>
+          </Dialog>
           <TextField
             label={t('portalRequests.messages.bodyLabel')}
             value={messageForm.body}
@@ -849,6 +894,7 @@ const RequestDetailPane = ({
             />
           )}
           <StatusAlertSlot message={messageStatusMessage} />
+          <StatusAlertSlot message={messageDeleteStatusMessage} />
           <Stack direction="row" justifyContent="flex-end">
             <Button type="submit" variant="contained" disabled={messageStatus === 'saving'}>
               {messageStatus === 'saving'

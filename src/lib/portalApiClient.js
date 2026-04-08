@@ -265,6 +265,34 @@ export async function fetchRequestMessages(baseUrl, accessToken, requestId, para
   return res.json();
 }
 
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} requestId
+ * @param {string} messageId
+ * @param {{ emailHint?: string }} [params]
+ * @returns {Promise<object>}
+ */
+export async function deleteRequestMessage(baseUrl, accessToken, requestId, messageId, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(
+      baseUrl,
+      `/api/portal/requests/${encodeURIComponent(requestId)}/messages/${encodeURIComponent(messageId)}`
+    ),
+    {
+      method: 'DELETE',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
 // ---------------------------------------------------------------------------
 // POST /api/portal/requests/:id/uploads/intent
 // ---------------------------------------------------------------------------

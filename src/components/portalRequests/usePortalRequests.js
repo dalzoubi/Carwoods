@@ -23,6 +23,7 @@ import {
   fetchExportCsv,
   fetchRequestAudit,
   fetchRequestMessages,
+  deleteRequestMessage,
 } from '../../lib/portalApiClient';
 import { RequestStatus } from '../../domain/constants.js';
 
@@ -130,6 +131,8 @@ export function usePortalRequests({
   const [messageForm, setMessageForm] = useState({ body: '', is_internal: false });
   const [messageStatus, setMessageStatus] = useState('idle');
   const [messageError, setMessageError] = useState('');
+  const [messageDeleteStatus, setMessageDeleteStatus] = useState('idle');
+  const [messageDeleteError, setMessageDeleteError] = useState('');
 
   const [attachmentFile, setAttachmentFile] = useState(null);
   const [attachmentStatus, setAttachmentStatus] = useState('idle');
@@ -329,6 +332,8 @@ export function usePortalRequests({
     setManagementUpdateError('');
     setMessageStatus('idle');
     setMessageError('');
+    setMessageDeleteStatus('idle');
+    setMessageDeleteError('');
     setAttachmentStatus('idle');
     setAttachmentError('');
     setAttachmentUploadProgress(0);
@@ -352,6 +357,16 @@ export function usePortalRequests({
       window.clearTimeout(timeoutId);
     };
   }, [messageStatus]);
+
+  useEffect(() => {
+    if (messageDeleteStatus !== 'success') return undefined;
+    const timeoutId = window.setTimeout(() => {
+      setMessageDeleteStatus('idle');
+    }, MESSAGE_SUCCESS_AUTO_DISMISS_MS);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [messageDeleteStatus]);
 
   useEffect(() => {
     if (elsaDecisionActionStatus !== 'success') return undefined;
@@ -661,6 +676,27 @@ export function usePortalRequests({
     }
   };
 
+  const onDeleteMessage = async (messageId) => {
+    if (!baseUrl || !selectedRequestId || !messageId || !isAdmin) return;
+    setMessageDeleteStatus('saving');
+    setMessageDeleteError('');
+    try {
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      await deleteRequestMessage(baseUrl, token, selectedRequestId, messageId, { emailHint });
+      setMessageDeleteStatus('success');
+      await loadRequestDetails(selectedRequestId);
+    } catch (error) {
+      handleApiForbidden(error);
+      setMessageDeleteStatus('error');
+      if (error && typeof error === 'object' && error.code === 'message_protected') {
+        setMessageDeleteError(t('portalRequests.errors.messageProtected'));
+      } else {
+        setMessageDeleteError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
+      }
+    }
+  };
+
   const onAttachmentChange = (event) => {
     const file = event.target.files?.[0] ?? null;
     setAttachmentFile(file);
@@ -922,6 +958,8 @@ export function usePortalRequests({
     setMessageForm,
     messageStatus,
     messageError,
+    messageDeleteStatus,
+    messageDeleteError,
     attachmentFile,
     attachmentStatus,
     attachmentError,
@@ -955,6 +993,7 @@ export function usePortalRequests({
     onManagementField,
     onUpdateRequest,
     onMessageSubmit,
+    onDeleteMessage,
     onAttachmentChange,
     onAttachmentSubmit,
     onSuggestReply,

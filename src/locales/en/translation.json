@@ -820,6 +820,7 @@
       "landlordFallbackName": "your property manager",
       "loadFailed": "Unable to load request data.",
       "saveFailed": "Unable to save changes.",
+      "messageProtected": "This message cannot be deleted because it is referenced by Elsa history.",
       "uploadIntentMissingPath": "Upload intent did not return a storage path.",
       "unsupportedFileType": "File type not supported. Allowed: images, videos, PDF, Word, or plain text.",
       "fileTooLarge": "File exceeds the {{maxMb}} MB limit for this type."
@@ -892,6 +893,12 @@
       "internalToggle": "Internal message (landlord/admin only)",
       "internalTag": "Internal",
       "sent": "Message sent.",
+      "deleted": "Message deleted.",
+      "deleteAction": "Delete message",
+      "deleteConfirmTitle": "Delete this message?",
+      "deleteConfirmBody": "This will permanently remove the message from the thread.",
+      "deleteConfirmYes": "Delete",
+      "deleteConfirmNo": "Keep message",
       "senderUnknown": "Unknown sender",
       "elsaName": "Elsa",
       "aiAssistantRole": "AI Assistant"

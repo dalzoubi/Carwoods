@@ -66,6 +66,8 @@ const PortalRequests = () => {
     setMessageForm,
     messageStatus,
     messageError,
+    messageDeleteStatus,
+    messageDeleteError,
     attachmentFile,
     attachmentStatus,
     attachmentError,
@@ -102,6 +104,7 @@ const PortalRequests = () => {
     onManagementField,
     onUpdateRequest,
     onMessageSubmit,
+    onDeleteMessage,
     onAttachmentChange,
     onAttachmentSubmit,
     onSuggestReply,
@@ -300,6 +303,9 @@ const PortalRequests = () => {
                 onMessageSubmit={onMessageSubmit}
                 messageStatus={messageStatus}
                 messageError={messageError}
+                messageDeleteStatus={messageDeleteStatus}
+                messageDeleteError={messageDeleteError}
+                onDeleteMessage={onDeleteMessage}
                 attachments={attachments}
                 onAttachmentChange={onAttachmentChange}
                 onAttachmentSubmit={onAttachmentSubmit}

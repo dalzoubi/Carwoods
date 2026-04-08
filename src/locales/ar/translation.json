@@ -821,6 +821,7 @@
       "landlordFallbackName": "المالك",
       "loadFailed": "تعذر تحميل بيانات الطلبات.",
       "saveFailed": "تعذر حفظ التغييرات.",
+      "messageProtected": "لا يمكن حذف هذه الرسالة لأنها مرتبطة بسجل إلسا.",
       "uploadIntentMissingPath": "نية الرفع لم تُرجع مسار تخزين.",
       "unsupportedFileType": "نوع الملف غير مدعوم. المسموح به: صور، فيديو، PDF، Word أو نص عادي.",
       "fileTooLarge": "حجم الملف يتجاوز حد {{maxMb}} ميغابايت لهذا النوع."
@@ -893,6 +894,12 @@
       "internalToggle": "رسالة داخلية (للمالك/الإدارة فقط)",
       "internalTag": "داخلي",
       "sent": "تم إرسال الرسالة.",
+      "deleted": "تم حذف الرسالة.",
+      "deleteAction": "حذف الرسالة",
+      "deleteConfirmTitle": "هل تريد حذف هذه الرسالة؟",
+      "deleteConfirmBody": "سيؤدي هذا إلى إزالة الرسالة نهائيًا من السلسلة.",
+      "deleteConfirmYes": "حذف",
+      "deleteConfirmNo": "الإبقاء على الرسالة",
       "senderUnknown": "مرسل غير معروف",
       "elsaName": "إلسا",
       "aiAssistantRole": "مساعد ذكاء اصطناعي"

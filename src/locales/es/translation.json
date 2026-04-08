@@ -821,6 +821,7 @@
       "landlordFallbackName": "tu propietario",
       "loadFailed": "No se pudieron cargar las solicitudes.",
       "saveFailed": "No se pudieron guardar los cambios.",
+      "messageProtected": "No se puede eliminar este mensaje porque está referenciado por el historial de Elsa.",
       "uploadIntentMissingPath": "La intención de carga no devolvió una ruta de almacenamiento.",
       "unsupportedFileType": "Tipo de archivo no admitido. Permitidos: imágenes, vídeos, PDF, Word o texto plano.",
       "fileTooLarge": "El archivo supera el límite de {{maxMb}} MB para este tipo."
@@ -893,6 +894,12 @@
       "internalToggle": "Mensaje interno (solo propietario/administrador)",
       "internalTag": "Interno",
       "sent": "Mensaje enviado.",
+      "deleted": "Mensaje eliminado.",
+      "deleteAction": "Eliminar mensaje",
+      "deleteConfirmTitle": "¿Eliminar este mensaje?",
+      "deleteConfirmBody": "Esto eliminará permanentemente el mensaje del hilo.",
+      "deleteConfirmYes": "Eliminar",
+      "deleteConfirmNo": "Conservar mensaje",
       "senderUnknown": "Remitente desconocido",
       "elsaName": "Elsa",
       "aiAssistantRole": "Asistente de IA"

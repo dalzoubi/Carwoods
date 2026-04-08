@@ -18,6 +18,7 @@ import { cancelRequest } from '../useCases/requests/cancelRequest.js';
 import { listRequestLookups } from '../useCases/requests/listRequestLookups.js';
 import { listRequestMessages } from '../useCases/requests/listRequestMessages.js';
 import { postRequestMessage } from '../useCases/requests/postRequestMessage.js';
+import { deleteRequestMessage } from '../useCases/requests/deleteRequestMessage.js';
 import { requestUploadIntent } from '../useCases/requests/requestUploadIntent.js';
 import { finalizeRequestAttachment } from '../useCases/requests/finalizeRequestAttachment.js';
 import { listRequestAttachments } from '../useCases/requests/listRequestAttachments.js';
@@ -261,6 +262,40 @@ async function portalRequestMessages(
   }
 }
 
+async function portalRequestMessageItem(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requirePortalUser(request, context);
+  if (!gate.ok) return gate.response;
+  const { user, headers } = gate.ctx;
+  const role = String(user.role ?? '').toUpperCase() as PortalRole;
+
+  if (request.method !== 'DELETE') {
+    return jsonResponse(405, headers, { error: 'method_not_allowed' });
+  }
+
+  try {
+    const result = await deleteRequestMessage(getPool(), {
+      requestId: request.params.id,
+      messageId: request.params.messageId,
+      actorUserId: user.id,
+      actorRole: role,
+    });
+    return jsonResponse(200, headers, result);
+  } catch (e) {
+    const mapped = mapDomainError(e, headers);
+    if (mapped) return mapped;
+    logError(context, 'portal.requests.messages.delete.error', {
+      requestId: request.params.id,
+      messageId: request.params.messageId,
+      userId: user.id,
+      message: e instanceof Error ? e.message : 'unknown_error',
+    });
+    throw e;
+  }
+}
+
 async function portalRequestUploadIntent(
   request: HttpRequest,
   context: InvocationContext
@@ -451,6 +486,13 @@ app.http('portalRequestMessages', {
   authLevel: 'anonymous',
   route: 'portal/requests/{id}/messages',
   handler: withRateLimit(portalRequestMessages),
+});
+
+app.http('portalRequestMessageItem', {
+  methods: ['DELETE', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'portal/requests/{id}/messages/{messageId}',
+  handler: withRateLimit(portalRequestMessageItem),
 });
 
 app.http('portalRequestUploadIntent', {

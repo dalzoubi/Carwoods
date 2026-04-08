@@ -508,6 +508,58 @@ export async function listRequestMessages(
   return r.rows;
 }
 
+export async function getRequestMessageById(
+  client: Queryable,
+  requestId: string,
+  messageId: string
+): Promise<RequestMessageRow | null> {
+  const r = await client.query<RequestMessageRow>(
+    `SELECT TOP 1 rm.id, rm.request_id, rm.sender_user_id,
+            CASE
+              WHEN LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, ''))) = '' THEN u.email
+              ELSE LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, '')))
+            END AS sender_display_name,
+            u.role AS sender_role,
+            rm.body, rm.is_internal, rm.source, rm.created_at, rm.updated_at
+     FROM request_messages rm
+     LEFT JOIN users u ON u.id = rm.sender_user_id
+     WHERE rm.request_id = $1
+       AND rm.id = $2`,
+    [requestId, messageId]
+  );
+  return r.rows[0] ?? null;
+}
+
+export async function isMessageReferencedByElsaDecision(
+  client: Queryable,
+  messageId: string
+): Promise<boolean> {
+  const r = await client.query<{ ok: number }>(
+    `SELECT TOP 1 1 AS ok
+     FROM elsa_decisions
+     WHERE sent_message_id = $1`,
+    [messageId]
+  );
+  return r.rows.length > 0;
+}
+
+export async function deleteRequestMessageById(
+  client: PoolClient,
+  requestId: string,
+  messageId: string
+): Promise<RequestMessageRow | null> {
+  const r = await client.query<RequestMessageRow>(
+    `DELETE FROM request_messages
+     OUTPUT DELETED.id, DELETED.request_id, DELETED.sender_user_id,
+            NULL AS sender_display_name, NULL AS sender_role,
+            DELETED.body, DELETED.is_internal, DELETED.source, DELETED.created_at, DELETED.updated_at
+     WHERE request_id = $1
+       AND id = $2`,
+    [requestId, messageId]
+  );
+  return r.rows[0] ?? null;
+}
+
 export async function countRequestAttachmentMedia(
   client: Queryable,
   requestId: string

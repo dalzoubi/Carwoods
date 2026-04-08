@@ -77,12 +77,14 @@ function hasAny(text: string, patterns: Array<{ code: string; pattern: RegExp }>
 }
 
 function buildPrompt(context: AiMaintenanceReplyContext): string {
-  const recentMessages = context.messages.slice(-8).map((msg) => ({
+  const conversationHistory = context.messages
+    .filter((msg) => !msg.is_internal)
+    .map((msg) => ({
     sender_role: msg.sender_role,
     is_internal: msg.is_internal,
     body: msg.body,
     created_at: msg.created_at,
-  }));
+    }));
   return [
     'You are Elsa, a constrained maintenance triage assistant.',
     'Return only strict JSON matching this schema:',
@@ -102,6 +104,8 @@ function buildPrompt(context: AiMaintenanceReplyContext): string {
     'Rules:',
     '- Keep tenantReplyDraft concise and safe.',
     '- No legal advice, no liability admissions, no unsupported scheduling promises.',
+    '- Do not repeat prior non-tenant external messages verbatim or near-verbatim.',
+    '- If the thread already contains a similar management reply, provide a brief non-repetitive update or ask for one new concrete detail.',
     '- Include emergency-related policy flags when applicable.',
     '',
     'Request context:',
@@ -117,7 +121,7 @@ function buildPrompt(context: AiMaintenanceReplyContext): string {
           scheduled_from: context.request.scheduled_from,
           scheduled_to: context.request.scheduled_to,
         },
-        recent_messages: recentMessages,
+        conversation_history: conversationHistory,
         weather_severity: context.weatherSeverity,
         now_iso: context.nowIso,
       },
@@ -187,8 +191,9 @@ async function suggestFromRemoteModel(
 function suggestHeuristically(context: AiMaintenanceReplyContext): AiMaintenanceReplyResult {
   const modelName = process.env.GEMINI_MODEL?.trim() || 'elsa-guardrailed-v1';
   const promptVersion = 'elsa-guardrails-v1';
-  const latestText = latestTenantText(context.messages, context.request.description || '');
-  const allThreadText = [context.request.title, context.request.description, ...context.messages.map((m) => m.body)]
+  const externalMessages = context.messages.filter((msg) => !msg.is_internal);
+  const latestText = latestTenantText(externalMessages, context.request.description || '');
+  const allThreadText = [context.request.title, context.request.description, ...externalMessages.map((m) => m.body)]
     .join('\n')
     .toLowerCase();
   const emergencyFlags = hasAny(allThreadText, EMERGENCY_PATTERNS);
@@ -277,6 +282,16 @@ function suggestHeuristically(context: AiMaintenanceReplyContext): AiMaintenance
         ? 'Low-risk informational response with no unsupported promises.'
         : 'Higher-risk/emergency context requires deterministic hold or block.',
   };
+  const priorManagementBodies = externalMessages
+    .filter((msg) => String(msg.sender_role || '').toUpperCase() !== 'TENANT')
+    .map((msg) => String(msg.body || '').trim())
+    .filter(Boolean);
+  if (priorManagementBodies.some((body) => body.toLowerCase() === tenantReplyDraft.toLowerCase())) {
+    suggestion.tenantReplyDraft =
+      'Quick update: we are still actively tracking this request. Please share one new detail (changed symptom, exact location, or a fresh photo/video) so we can avoid duplicate steps and proceed faster.';
+    suggestion.policyFlags = Array.from(new Set([...(suggestion.policyFlags ?? []), 'REPETITION_AVOIDANCE_REWRITE']));
+    suggestion.internalSummary = `${suggestion.internalSummary} Duplicate-style draft detected and rewritten for tenant experience.`;
+  }
   return { suggestion, modelName, providerUsed: 'heuristic_fallback', promptVersion };
 }
 
