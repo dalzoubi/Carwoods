@@ -916,6 +916,7 @@
       "heading": "Auto-reponse Elsa sous garde-fous",
       "autoRespondToggle": "Activer l'auto-reponse Elsa pour cette demande",
       "runNow": "Executer Elsa maintenant",
+      "running": "En cours…",
       "enableGlobalAutoSend": "Activer l'envoi automatique global",
       "disableGlobalAutoSend": "Desactiver l'envoi automatique global",
       "toggleCategoryAutoSend": "Basculer l'auto-envoi par categorie",

@@ -916,6 +916,7 @@
       "heading": "الرد التلقائي المحكوم من إلسا",
       "autoRespondToggle": "تمكين الرد التلقائي من إلسا لهذا الطلب",
       "runNow": "تشغيل إلسا الآن",
+      "running": "جارٍ التشغيل…",
       "enableGlobalAutoSend": "تمكين الإرسال التلقائي العام",
       "disableGlobalAutoSend": "تعطيل الإرسال التلقائي العام",
       "toggleCategoryAutoSend": "تبديل الإرسال التلقائي للفئة",

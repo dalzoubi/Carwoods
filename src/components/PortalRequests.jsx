@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { Alert, Box, Button, Collapse, Paper, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Collapse, Paper, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useLocation } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -152,7 +152,15 @@ const PortalRequests = () => {
             </Typography>
           </Box>
           {isManagement && (
-            <Button type="button" variant="outlined" size="small" onClick={onExportCsv} sx={{ textTransform: 'none' }}>
+            <Button
+              type="button"
+              variant="outlined"
+              size="small"
+              onClick={onExportCsv}
+              disabled={exportStatus === 'loading'}
+              startIcon={exportStatus === 'loading' ? <CircularProgress size={16} color="inherit" /> : null}
+              sx={{ textTransform: 'none' }}
+            >
               {exportStatus === 'loading'
                 ? t('portalRequests.actions.exportingCsv')
                 : t('portalRequests.actions.exportCsv')}
