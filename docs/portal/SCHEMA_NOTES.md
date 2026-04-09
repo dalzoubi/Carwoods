@@ -11,7 +11,6 @@ Source of truth: [`infra/db/migrations/001_initial_portal.sql`](../../infra/db/m
 | `leases.deleted_at`, `created_by`, `updated_by` | Same |
 | `request_status_history` | Timeline fidelity for status changes (separate from free-text messages) |
 | `notification_outbox` | Reliable dispatch + idempotency key |
-| `notification_deliveries` | Per-recipient send log / failures |
 
 ## Indexes (summary)
 
@@ -30,3 +29,5 @@ Application policy: **5-year retention**; use soft delete and avoid hard deletes
 ## Historical notes
 
 - `ai_suggestion_log` was retired in `infra/db/migrations/012_drop_ai_suggestion_log.sql` after the legacy suggest-reply flow was removed.
+- `notification_rules`, `notification_event_types`, `notification_deliveries`, `property_listing_sync_jobs`, `message_attachments`, and `canned_responses` were retired in `infra/db/migrations/013_drop_unused_portal_tables.sql` after remaining unused in runtime code paths.
+- `maintenance_requests.vendor_contact_email` was retired in `infra/db/migrations/014_drop_unused_vendor_contact_email.sql` after remaining unused in API handlers and portal UI flows.

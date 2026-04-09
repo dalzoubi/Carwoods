@@ -27,7 +27,6 @@ export type RequestRow = {
   scheduled_from: Date | null;
   scheduled_to: Date | null;
   vendor_contact_name: string | null;
-  vendor_contact_email: string | null;
   vendor_contact_phone: string | null;
   submitted_by_display_name: string | null;
   submitted_by_role: string | null;
@@ -238,7 +237,7 @@ export async function listRequestsForTenant(
             mr.title, mr.description,
             mr.internal_notes, mr.estimated_cost, mr.actual_cost, mr.scheduled_for,
             mr.scheduled_from, mr.scheduled_to,
-            mr.vendor_contact_name, mr.vendor_contact_email, mr.vendor_contact_phone,
+            mr.vendor_contact_name, mr.vendor_contact_phone,
             CASE
               WHEN LTRIM(RTRIM(ISNULL(su.first_name, '') + ' ' + ISNULL(su.last_name, ''))) = '' THEN su.email
               ELSE LTRIM(RTRIM(ISNULL(su.first_name, '') + ' ' + ISNULL(su.last_name, '')))
@@ -271,7 +270,7 @@ export async function listRequestsForManagement(client: Queryable): Promise<Requ
             mr.title, mr.description,
             mr.internal_notes, mr.estimated_cost, mr.actual_cost, mr.scheduled_for,
             mr.scheduled_from, mr.scheduled_to,
-            mr.vendor_contact_name, mr.vendor_contact_email, mr.vendor_contact_phone,
+            mr.vendor_contact_name, mr.vendor_contact_phone,
             CASE
               WHEN LTRIM(RTRIM(ISNULL(su.first_name, '') + ' ' + ISNULL(su.last_name, ''))) = '' THEN su.email
               ELSE LTRIM(RTRIM(ISNULL(su.first_name, '') + ' ' + ISNULL(su.last_name, '')))
@@ -300,7 +299,7 @@ export async function getRequestById(client: Queryable, id: string): Promise<Req
             mr.title, mr.description,
             mr.internal_notes, mr.estimated_cost, mr.actual_cost, mr.scheduled_for,
             mr.scheduled_from, mr.scheduled_to,
-            mr.vendor_contact_name, mr.vendor_contact_email, mr.vendor_contact_phone,
+            mr.vendor_contact_name, mr.vendor_contact_phone,
             CASE
               WHEN LTRIM(RTRIM(ISNULL(su.first_name, '') + ' ' + ISNULL(su.last_name, ''))) = '' THEN su.email
               ELSE LTRIM(RTRIM(ISNULL(su.first_name, '') + ' ' + ISNULL(su.last_name, '')))
@@ -363,8 +362,8 @@ export async function insertMaintenanceRequest(
             INSERTED.title, INSERTED.description,
             INSERTED.internal_notes, INSERTED.estimated_cost, INSERTED.actual_cost,
             INSERTED.scheduled_for, INSERTED.scheduled_from, INSERTED.scheduled_to,
-            INSERTED.vendor_contact_name, INSERTED.vendor_contact_email,
-            INSERTED.vendor_contact_phone, INSERTED.emergency_disclaimer_acknowledged,
+            INSERTED.vendor_contact_name, INSERTED.vendor_contact_phone,
+            INSERTED.emergency_disclaimer_acknowledged,
             NULL AS submitted_by_display_name, NULL AS submitted_by_role,
             INSERTED.created_at, INSERTED.updated_at, INSERTED.completed_at, INSERTED.closed_at,
             INSERTED.deleted_at
@@ -434,8 +433,8 @@ export async function updateRequestManagementFields(
             INSERTED.title, INSERTED.description,
             INSERTED.internal_notes, INSERTED.estimated_cost, INSERTED.actual_cost,
             INSERTED.scheduled_for, INSERTED.scheduled_from, INSERTED.scheduled_to,
-            INSERTED.vendor_contact_name, INSERTED.vendor_contact_email,
-            INSERTED.vendor_contact_phone, INSERTED.emergency_disclaimer_acknowledged,
+            INSERTED.vendor_contact_name, INSERTED.vendor_contact_phone,
+            INSERTED.emergency_disclaimer_acknowledged,
             NULL AS submitted_by_display_name, NULL AS submitted_by_role,
             INSERTED.created_at, INSERTED.updated_at, INSERTED.completed_at, INSERTED.closed_at,
             INSERTED.deleted_at
