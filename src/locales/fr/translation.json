@@ -913,10 +913,10 @@
       "confirmNo": "Garder la demande"
     },
     "elsa": {
-      "heading": "Auto-reponse Elsa sous garde-fous",
-      "autoRespondToggle": "Activer l'auto-reponse Elsa pour cette demande",
-      "runNow": "Executer Elsa maintenant",
-      "running": "En cours…",
+      "heading": "Assistant IA",
+      "autoRespondToggle": "Repondre automatiquement a cette demande",
+      "runNow": "Obtenir une suggestion IA",
+      "running": "Analyse en cours…",
       "enableGlobalAutoSend": "Activer l'envoi automatique global",
       "disableGlobalAutoSend": "Desactiver l'envoi automatique global",
       "toggleCategoryAutoSend": "Basculer l'auto-envoi par categorie",
@@ -928,7 +928,20 @@
       "confidence": "Confiance",
       "provider": "Fournisseur",
       "model": "Modèle",
-      "nextAction": "Prochaine action",
+      "nextAction": "Recommande",
+      "plannedReply": "Message au locataire",
+      "modes": {
+        "needMoreInfo": "Infos supplementaires requises",
+        "basicTroubleshooting": "Depannage de base",
+        "dispatchVendor": "Envoyer un prestataire",
+        "emergency": "Urgence",
+        "duplicateOrInProgress": "Doublon / deja en cours"
+      },
+      "confidenceLevel": {
+        "high": "Confiance elevee",
+        "medium": "Confiance moyenne",
+        "low": "Confiance faible"
+      },
       "reviewActionSaved": "Decision mise a jour.",
       "reviewedBadge": "Revisee : {{status}}",
       "resolved": "Resolue",

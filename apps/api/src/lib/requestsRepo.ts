@@ -537,10 +537,23 @@ export async function isMessageReferencedByElsaDecision(
   const r = await client.query<{ ok: number }>(
     `SELECT TOP 1 1 AS ok
      FROM elsa_decisions
-     WHERE sent_message_id = $1`,
+     WHERE sent_message_id = $1
+       AND ISNULL(review_status, '') <> 'DISMISSED'`,
     [messageId]
   );
   return r.rows.length > 0;
+}
+
+export async function clearElsaDecisionMessageReference(
+  client: Queryable,
+  messageId: string
+): Promise<void> {
+  await client.query(
+    `UPDATE elsa_decisions
+     SET sent_message_id = NULL
+     WHERE sent_message_id = $1`,
+    [messageId]
+  );
 }
 
 export async function deleteRequestMessageById(

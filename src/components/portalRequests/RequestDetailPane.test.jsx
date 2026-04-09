@@ -84,7 +84,7 @@ describe('RequestDetailPane', () => {
     await i18n.changeLanguage('en');
   });
 
-  it('renders provider and model chips for Elsa decisions', () => {
+  it('renders simplified Elsa labels and hides technical chips', () => {
     const props = makeProps({
       elsaDecisions: [
         {
@@ -94,6 +94,7 @@ describe('RequestDetailPane', () => {
           provider_used: 'remote',
           model_name: 'gemini-2.5-flash',
           confidence: 0.92,
+          normalized_tenant_reply: 'Please share a photo so we can schedule service.',
           internal_summary: 'Need one more detail from tenant.',
           recommended_next_action: 'Ask for photo.',
           reviewed_at: null,
@@ -107,7 +108,36 @@ describe('RequestDetailPane', () => {
       </WithAppTheme>
     );
 
-    expect(screen.getByText('Provider: remote')).toBeInTheDocument();
-    expect(screen.getByText('Model: gemini-2.5-flash')).toBeInTheDocument();
+    expect(screen.getByText('AI Assistant')).toBeInTheDocument();
+    expect(screen.getByText('Needs more info')).toBeInTheDocument();
+    expect(screen.getByText('High confidence')).toBeInTheDocument();
+    expect(screen.getByText('Message to tenant: Please share a photo so we can schedule service.')).toBeInTheDocument();
+    expect(screen.queryByText('Provider: remote')).not.toBeInTheDocument();
+    expect(screen.queryByText('Model: gemini-2.5-flash')).not.toBeInTheDocument();
+  });
+
+  it('shows dismiss action for auto-sent Elsa decisions', () => {
+    const props = makeProps({
+      elsaDecisions: [
+        {
+          id: 'decision-auto-1',
+          policy_decision: 'SEND_AUTOMATICALLY',
+          mode: 'ESCALATE_TO_VENDOR',
+          confidence: 0.84,
+          normalized_tenant_reply: 'We have dispatched a vendor.',
+          internal_summary: 'Vendor dispatch required.',
+          recommended_next_action: 'Confirm visit window.',
+          reviewed_at: null,
+        },
+      ],
+    });
+
+    render(
+      <WithAppTheme>
+        <RequestDetailPane {...props} />
+      </WithAppTheme>
+    );
+
+    expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
   });
 });

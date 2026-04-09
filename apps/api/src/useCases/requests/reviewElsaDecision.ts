@@ -49,7 +49,13 @@ export async function reviewElsaDecision(
 
   const existingDecision = await getElsaDecisionForRequest(db, input.requestId, input.decisionId);
   if (!existingDecision) throw notFound();
-  if (String(existingDecision.policy_decision).toUpperCase() !== 'HOLD_FOR_REVIEW') {
+  if (existingDecision.reviewed_at) {
+    throw validationError('decision_already_reviewed');
+  }
+  if (
+    input.action === 'SEND_AND_RESOLVE'
+    && String(existingDecision.policy_decision).toUpperCase() !== 'HOLD_FOR_REVIEW'
+  ) {
     throw validationError('decision_not_hold_for_review');
   }
 

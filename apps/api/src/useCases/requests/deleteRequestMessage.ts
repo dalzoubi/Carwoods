@@ -1,7 +1,7 @@
 import {
+  clearElsaDecisionMessageReference,
   deleteRequestMessageById,
   getRequestMessageById,
-  isMessageReferencedByElsaDecision,
 } from '../../lib/requestsRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
 import { forbidden, notFound, validationError } from '../../domain/errors.js';
@@ -44,11 +44,7 @@ export async function deleteRequestMessage(
       await client.query('ROLLBACK');
       throw notFound();
     }
-    const protectedByElsa = await isMessageReferencedByElsaDecision(client, input.messageId);
-    if (protectedByElsa) {
-      await client.query('ROLLBACK');
-      throw validationError('message_protected');
-    }
+    await clearElsaDecisionMessageReference(client, input.messageId);
     const deleted = await deleteRequestMessageById(
       client as Parameters<typeof deleteRequestMessageById>[0],
       input.requestId!,

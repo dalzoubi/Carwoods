@@ -912,10 +912,10 @@
       "confirmNo": "Keep request"
     },
     "elsa": {
-      "heading": "Elsa Guardrailed Auto-Response",
-      "autoRespondToggle": "Enable Elsa auto-respond for this request",
-      "runNow": "Run Elsa now",
-      "running": "Running…",
+      "heading": "AI Assistant",
+      "autoRespondToggle": "Auto-respond to this request",
+      "runNow": "Get AI suggestion",
+      "running": "Analyzing…",
       "enableGlobalAutoSend": "Enable global auto-send",
       "disableGlobalAutoSend": "Disable global auto-send",
       "toggleCategoryAutoSend": "Toggle category auto-send",
@@ -927,7 +927,20 @@
       "confidence": "Confidence",
       "provider": "Provider",
       "model": "Model",
-      "nextAction": "Next action",
+      "nextAction": "Recommended",
+      "plannedReply": "Message to tenant",
+      "modes": {
+        "needMoreInfo": "Needs more info",
+        "basicTroubleshooting": "Basic troubleshooting",
+        "dispatchVendor": "Dispatch vendor",
+        "emergency": "Emergency",
+        "duplicateOrInProgress": "Duplicate / in progress"
+      },
+      "confidenceLevel": {
+        "high": "High confidence",
+        "medium": "Medium confidence",
+        "low": "Low confidence"
+      },
       "reviewActionSaved": "Decision updated.",
       "reviewedBadge": "Reviewed: {{status}}",
       "resolved": "Resolved",

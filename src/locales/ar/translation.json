@@ -913,10 +913,10 @@
       "confirmNo": "الإبقاء على الطلب"
     },
     "elsa": {
-      "heading": "الرد التلقائي المحكوم من إلسا",
-      "autoRespondToggle": "تمكين الرد التلقائي من إلسا لهذا الطلب",
-      "runNow": "تشغيل إلسا الآن",
-      "running": "جارٍ التشغيل…",
+      "heading": "مساعد الذكاء الاصطناعي",
+      "autoRespondToggle": "الرد تلقائيًا على هذا الطلب",
+      "runNow": "الحصول على اقتراح بالذكاء الاصطناعي",
+      "running": "جارٍ التحليل…",
       "enableGlobalAutoSend": "تمكين الإرسال التلقائي العام",
       "disableGlobalAutoSend": "تعطيل الإرسال التلقائي العام",
       "toggleCategoryAutoSend": "تبديل الإرسال التلقائي للفئة",
@@ -928,7 +928,20 @@
       "confidence": "الثقة",
       "provider": "المزوّد",
       "model": "النموذج",
-      "nextAction": "الإجراء التالي",
+      "nextAction": "الموصى به",
+      "plannedReply": "الرسالة إلى المستأجر",
+      "modes": {
+        "needMoreInfo": "معلومات إضافية مطلوبة",
+        "basicTroubleshooting": "استكشاف أعطال أساسي",
+        "dispatchVendor": "إرسال مزود الخدمة",
+        "emergency": "طارئ",
+        "duplicateOrInProgress": "مكرر / قيد التنفيذ"
+      },
+      "confidenceLevel": {
+        "high": "ثقة عالية",
+        "medium": "ثقة متوسطة",
+        "low": "ثقة منخفضة"
+      },
       "reviewActionSaved": "تم تحديث القرار.",
       "reviewedBadge": "تمت المراجعة: {{status}}",
       "resolved": "تم الحل",

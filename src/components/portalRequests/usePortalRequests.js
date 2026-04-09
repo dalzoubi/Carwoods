@@ -583,8 +583,8 @@ export function usePortalRequests({
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
       await cancelRequest(baseUrl, token, selectedRequestId, { emailHint });
-      setCancelStatus('success');
       await loadRequests({ keepSelection: true });
+      setCancelStatus('success');
     } catch (error) {
       handleApiForbidden(error);
       setCancelStatus('error');
@@ -636,8 +636,8 @@ export function usePortalRequests({
         `/api/landlord/requests/${encodeURIComponent(selectedRequestId)}`,
         { emailHint, ...body }
       );
-      setManagementUpdateStatus('success');
       await loadRequests({ keepSelection: true });
+      setManagementUpdateStatus('success');
     } catch (error) {
       handleApiForbidden(error);
       setManagementUpdateStatus('error');
@@ -658,9 +658,9 @@ export function usePortalRequests({
         body: messageForm.body.trim(),
         is_internal: isManagement ? Boolean(messageForm.is_internal) : false,
       });
-      setMessageStatus('success');
       setMessageForm({ body: '', is_internal: false });
       await loadRequestDetails(selectedRequestId);
+      setMessageStatus('success');
     } catch (error) {
       handleApiForbidden(error);
       setMessageStatus('error');
@@ -676,8 +676,8 @@ export function usePortalRequests({
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
       await deleteRequestMessage(baseUrl, token, selectedRequestId, messageId, { emailHint });
-      setMessageDeleteStatus('success');
       await loadRequestDetails(selectedRequestId);
+      setMessageDeleteStatus('success');
     } catch (error) {
       handleApiForbidden(error);
       setMessageDeleteStatus('error');
@@ -747,10 +747,10 @@ export function usePortalRequests({
         content_type: contentType,
         file_size_bytes: attachmentFile.size,
       });
-      setAttachmentStatus('success');
       setAttachmentFile(null);
       setAttachmentUploadProgress(100);
       await loadRequestDetails(selectedRequestId);
+      setAttachmentStatus('success');
     } catch (error) {
       handleApiForbidden(error);
       setAttachmentStatus('error');
@@ -830,9 +830,9 @@ export function usePortalRequests({
         emailHint,
         action,
       });
-      setElsaDecisionActionStatus('success');
       await loadRequestDetails(selectedRequestId);
       await loadElsaContext(selectedRequestId);
+      setElsaDecisionActionStatus('success');
     } catch (error) {
       handleApiForbidden(error);
       setElsaDecisionActionStatus('error');

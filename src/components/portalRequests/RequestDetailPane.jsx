@@ -31,6 +31,13 @@ import { RequestStatus, Role } from '../../domain/constants.js';
 import { normalizeRole } from '../../portalUtils';
 
 const CANCELLABLE_STATUS_CODES = new Set([RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED]);
+const ELSA_MODE_LABEL_KEYS = {
+  NEED_MORE_INFO: 'portalRequests.elsa.modes.needMoreInfo',
+  SAFE_BASIC_TROUBLESHOOTING: 'portalRequests.elsa.modes.basicTroubleshooting',
+  ESCALATE_TO_VENDOR: 'portalRequests.elsa.modes.dispatchVendor',
+  EMERGENCY_ESCALATION: 'portalRequests.elsa.modes.emergency',
+  DUPLICATE_OR_ALREADY_IN_PROGRESS: 'portalRequests.elsa.modes.duplicateOrInProgress',
+};
 
 function formatDateTime(value) {
   if (!value) return '-';
@@ -48,6 +55,36 @@ function formatAuditValue(value) {
     return JSON.stringify(value);
   } catch {
     return String(value);
+  }
+}
+
+function getConfidenceLevel(confidenceValue) {
+  if (!Number.isFinite(confidenceValue)) return null;
+  if (confidenceValue >= 0.8) {
+    return { color: 'success', labelKey: 'portalRequests.elsa.confidenceLevel.high' };
+  }
+  if (confidenceValue >= 0.5) {
+    return { color: 'warning', labelKey: 'portalRequests.elsa.confidenceLevel.medium' };
+  }
+  return { color: 'error', labelKey: 'portalRequests.elsa.confidenceLevel.low' };
+}
+
+function extractPlannedReply(decision) {
+  const normalizedReply = typeof decision?.normalized_tenant_reply === 'string'
+    ? decision.normalized_tenant_reply.trim()
+    : '';
+  if (normalizedReply) return normalizedReply;
+
+  const suggestionJson = typeof decision?.suggestion_json === 'string'
+    ? decision.suggestion_json.trim()
+    : '';
+  if (!suggestionJson) return '';
+
+  try {
+    const parsed = JSON.parse(suggestionJson);
+    return typeof parsed?.tenantReplyDraft === 'string' ? parsed.tenantReplyDraft.trim() : '';
+  } catch {
+    return '';
   }
 }
 
@@ -140,6 +177,7 @@ const RequestDetailPane = ({
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [deleteDialogMessage, setDeleteDialogMessage] = useState(null);
   const [attachmentInputKey, setAttachmentInputKey] = useState(0);
+  const [pendingElsaAction, setPendingElsaAction] = useState(null);
   const managementStatusMessage = managementUpdateStatus === 'error'
     ? { severity: 'error', text: managementUpdateError || t('portalRequests.errors.saveFailed') }
     : managementUpdateStatus === 'success'
@@ -215,6 +253,20 @@ const RequestDetailPane = ({
     if (attachmentStatus !== 'success') return;
     setAttachmentInputKey((value) => value + 1);
   }, [attachmentStatus]);
+  useEffect(() => {
+    if (elsaDecisionActionStatus === 'saving') return;
+    setPendingElsaAction(null);
+  }, [elsaDecisionActionStatus]);
+
+  const handleReviewElsaDecision = (decisionId, action) => {
+    setPendingElsaAction({ decisionId, action });
+    onReviewElsaDecision(decisionId, action);
+  };
+  const isElsaActionSaving = (decisionId, action) => (
+    elsaDecisionActionStatus === 'saving'
+    && pendingElsaAction?.decisionId === decisionId
+    && pendingElsaAction?.action === action
+  );
 
   return (
     <Stack spacing={2} sx={{ flex: 1 }}>
@@ -551,10 +603,13 @@ const RequestDetailPane = ({
             )}
             {(elsaDecisions || [])
               .filter((decision) => (
-                decision.policy_decision !== 'HOLD_FOR_REVIEW' || !decision.reviewed_at
+                (decision.policy_decision !== 'HOLD_FOR_REVIEW' || !decision.reviewed_at)
+                && String(decision.review_status || '').toUpperCase() !== 'DISMISSED'
               ))
               .slice(0, 3)
-              .map((decision) => (
+              .map((decision) => {
+                const plannedReply = extractPlannedReply(decision);
+                return (
               <Box key={decision.id} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1 }}>
                 <Stack spacing={0.5}>
                   <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
@@ -571,25 +626,32 @@ const RequestDetailPane = ({
                           ? 'error'
                           : 'warning'}
                     />
-                    {decision.mode ? <Chip size="small" label={decision.mode} variant="outlined" /> : null}
-                    {decision.provider_used ? (
+                    {decision.mode ? (
                       <Chip
                         size="small"
-                        label={`${t('portalRequests.elsa.provider')}: ${decision.provider_used}`}
+                        label={ELSA_MODE_LABEL_KEYS[decision.mode]
+                          ? t(ELSA_MODE_LABEL_KEYS[decision.mode])
+                          : decision.mode}
                         variant="outlined"
                       />
                     ) : null}
-                    {decision.model_name ? (
-                      <Chip
-                        size="small"
-                        label={`${t('portalRequests.elsa.model')}: ${decision.model_name}`}
-                        variant="outlined"
-                      />
-                    ) : null}
-                    {decision.confidence !== null && decision.confidence !== undefined
-                      ? <Chip size="small" label={`${t('portalRequests.elsa.confidence')}: ${decision.confidence}`} variant="outlined" />
-                      : null}
+                    {(() => {
+                      const confidenceLevel = getConfidenceLevel(Number(decision.confidence));
+                      if (!confidenceLevel) return null;
+                      return (
+                        <Chip
+                          size="small"
+                          color={confidenceLevel.color}
+                          label={t(confidenceLevel.labelKey)}
+                        />
+                      );
+                    })()}
                   </Stack>
+                  {plannedReply && (
+                    <Typography variant="body2">
+                      {t('portalRequests.elsa.plannedReply')}: {plannedReply}
+                    </Typography>
+                  )}
                   {decision.internal_summary && (
                     <Typography variant="body2" color="text.secondary">
                       {decision.internal_summary}
@@ -606,9 +668,9 @@ const RequestDetailPane = ({
                         type="button"
                         size="small"
                         variant="contained"
-                        onClick={() => onReviewElsaDecision(decision.id, 'SEND_AND_RESOLVE')}
+                        onClick={() => handleReviewElsaDecision(decision.id, 'SEND_AND_RESOLVE')}
                         disabled={elsaDecisionActionStatus === 'saving'}
-                        startIcon={elsaDecisionActionStatus === 'saving' ? <CircularProgress size={14} color="inherit" /> : null}
+                        startIcon={isElsaActionSaving(decision.id, 'SEND_AND_RESOLVE') ? <CircularProgress size={14} color="inherit" /> : null}
                       >
                         {t('portalRequests.elsa.actions.sendAndResolve')}
                       </Button>
@@ -616,9 +678,9 @@ const RequestDetailPane = ({
                         type="button"
                         size="small"
                         variant="outlined"
-                        onClick={() => onReviewElsaDecision(decision.id, 'MARK_RESOLVED')}
+                        onClick={() => handleReviewElsaDecision(decision.id, 'MARK_RESOLVED')}
                         disabled={elsaDecisionActionStatus === 'saving'}
-                        startIcon={elsaDecisionActionStatus === 'saving' ? <CircularProgress size={14} color="inherit" /> : null}
+                        startIcon={isElsaActionSaving(decision.id, 'MARK_RESOLVED') ? <CircularProgress size={14} color="inherit" /> : null}
                       >
                         {t('portalRequests.elsa.actions.markResolved')}
                       </Button>
@@ -627,9 +689,24 @@ const RequestDetailPane = ({
                         size="small"
                         color="warning"
                         variant="outlined"
-                        onClick={() => onReviewElsaDecision(decision.id, 'DISMISS')}
+                        onClick={() => handleReviewElsaDecision(decision.id, 'DISMISS')}
                         disabled={elsaDecisionActionStatus === 'saving'}
-                        startIcon={elsaDecisionActionStatus === 'saving' ? <CircularProgress size={14} color="inherit" /> : null}
+                        startIcon={isElsaActionSaving(decision.id, 'DISMISS') ? <CircularProgress size={14} color="inherit" /> : null}
+                      >
+                        {t('portalRequests.elsa.actions.dismiss')}
+                      </Button>
+                    </Stack>
+                  )}
+                  {decision.policy_decision === 'SEND_AUTOMATICALLY' && !decision.reviewed_at && (
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mt: 0.5 }}>
+                      <Button
+                        type="button"
+                        size="small"
+                        color="warning"
+                        variant="outlined"
+                        onClick={() => handleReviewElsaDecision(decision.id, 'DISMISS')}
+                        disabled={elsaDecisionActionStatus === 'saving'}
+                        startIcon={isElsaActionSaving(decision.id, 'DISMISS') ? <CircularProgress size={14} color="inherit" /> : null}
                       >
                         {t('portalRequests.elsa.actions.dismiss')}
                       </Button>
@@ -644,7 +721,8 @@ const RequestDetailPane = ({
                   )}
                 </Stack>
               </Box>
-            ))}
+            );
+            })}
           </Stack>
         </Box>
       )}

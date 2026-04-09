@@ -913,10 +913,10 @@
       "confirmNo": "Mantener solicitud"
     },
     "elsa": {
-      "heading": "Respuesta automática protegida de Elsa",
-      "autoRespondToggle": "Habilitar auto-respuesta de Elsa para esta solicitud",
-      "runNow": "Ejecutar Elsa ahora",
-      "running": "Ejecutando…",
+      "heading": "Asistente de IA",
+      "autoRespondToggle": "Responder automáticamente a esta solicitud",
+      "runNow": "Obtener sugerencia de IA",
+      "running": "Analizando…",
       "enableGlobalAutoSend": "Habilitar envío automático global",
       "disableGlobalAutoSend": "Deshabilitar envío automático global",
       "toggleCategoryAutoSend": "Alternar autoenvío por categoría",
@@ -928,7 +928,20 @@
       "confidence": "Confianza",
       "provider": "Proveedor",
       "model": "Modelo",
-      "nextAction": "Siguiente acción",
+      "nextAction": "Recomendado",
+      "plannedReply": "Mensaje para el inquilino",
+      "modes": {
+        "needMoreInfo": "Falta información",
+        "basicTroubleshooting": "Solución básica",
+        "dispatchVendor": "Enviar proveedor",
+        "emergency": "Emergencia",
+        "duplicateOrInProgress": "Duplicado / en progreso"
+      },
+      "confidenceLevel": {
+        "high": "Confianza alta",
+        "medium": "Confianza media",
+        "low": "Confianza baja"
+      },
       "reviewActionSaved": "Decisión actualizada.",
       "reviewedBadge": "Revisado: {{status}}",
       "resolved": "Resuelto",
