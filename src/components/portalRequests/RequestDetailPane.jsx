@@ -695,6 +695,8 @@ const RequestDetailPane = ({
               .slice(0, 3)
               .map((decision) => {
                 const plannedReply = extractPlannedReply(decision);
+                const canUseSuggestedReply = shouldOfferManualAction(decision, plannedReply);
+                const canDismissSuggestion = shouldOfferDismissAction(decision);
                 return (
               <Box key={decision.id} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1 }}>
                 <Stack spacing={0.5}>
@@ -748,7 +750,7 @@ const RequestDetailPane = ({
                       {t('portalRequests.elsa.nextAction')}: {decision.recommended_next_action}
                     </Typography>
                   )}
-                  {shouldOfferManualAction(decision, plannedReply) && (
+                  {canUseSuggestedReply && (
                     <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mt: 0.5 }}>
                       <Button
                         type="button"
@@ -759,9 +761,22 @@ const RequestDetailPane = ({
                       >
                         {t('portalRequests.elsa.actions.copyToMessage')}
                       </Button>
+                      {canDismissSuggestion && (
+                        <Button
+                          type="button"
+                          size="small"
+                          color="warning"
+                          variant="outlined"
+                          onClick={() => handleReviewElsaDecision(decision.id, 'DISMISS')}
+                          disabled={elsaDecisionActionStatus === 'saving'}
+                          startIcon={isElsaActionSaving(decision.id, 'DISMISS') ? <CircularProgress size={14} color="inherit" /> : null}
+                        >
+                          {t('portalRequests.elsa.actions.dismiss')}
+                        </Button>
+                      )}
                     </Stack>
                   )}
-                  {shouldOfferDismissAction(decision) && (
+                  {!canUseSuggestedReply && canDismissSuggestion && (
                     <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mt: 0.5 }}>
                       <Button
                         type="button"
