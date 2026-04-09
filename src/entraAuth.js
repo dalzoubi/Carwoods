@@ -32,7 +32,7 @@ export const msalInstance = ENTRA_AUTH_CONFIGURED
           typeof window !== 'undefined' ? `${window.location.origin}/portal` : undefined,
       },
       cache: {
-        cacheLocation: 'sessionStorage',
+        cacheLocation: 'localStorage',
         storeAuthStateInCookie: false,
       },
     })
