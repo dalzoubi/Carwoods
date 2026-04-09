@@ -171,6 +171,7 @@ describe('RequestDetailPane', () => {
       </WithAppTheme>
     );
 
+    expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Use in message box' }));
 
     expect(setMessageForm).toHaveBeenCalledTimes(1);

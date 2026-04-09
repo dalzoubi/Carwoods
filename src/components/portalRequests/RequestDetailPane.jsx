@@ -274,6 +274,7 @@ const RequestDetailPane = ({
       || Boolean(decision.recommended_next_action)
     )
   );
+  const shouldOfferDismissAction = (decision) => !decision.reviewed_at;
   const isElsaActionSaving = (decisionId, action) => (
     elsaDecisionActionStatus === 'saving'
     && pendingElsaAction?.decisionId === decisionId
@@ -760,6 +761,21 @@ const RequestDetailPane = ({
                       </Button>
                     </Stack>
                   )}
+                  {shouldOfferDismissAction(decision) && (
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mt: 0.5 }}>
+                      <Button
+                        type="button"
+                        size="small"
+                        color="warning"
+                        variant="outlined"
+                        onClick={() => handleReviewElsaDecision(decision.id, 'DISMISS')}
+                        disabled={elsaDecisionActionStatus === 'saving'}
+                        startIcon={isElsaActionSaving(decision.id, 'DISMISS') ? <CircularProgress size={14} color="inherit" /> : null}
+                      >
+                        {t('portalRequests.elsa.actions.dismiss')}
+                      </Button>
+                    </Stack>
+                  )}
                   {decision.policy_decision === 'HOLD_FOR_REVIEW' && !decision.reviewed_at && (
                     <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mt: 0.5 }}>
                       <Button
@@ -781,32 +797,6 @@ const RequestDetailPane = ({
                         startIcon={isElsaActionSaving(decision.id, 'MARK_RESOLVED') ? <CircularProgress size={14} color="inherit" /> : null}
                       >
                         {t('portalRequests.elsa.actions.markResolved')}
-                      </Button>
-                      <Button
-                        type="button"
-                        size="small"
-                        color="warning"
-                        variant="outlined"
-                        onClick={() => handleReviewElsaDecision(decision.id, 'DISMISS')}
-                        disabled={elsaDecisionActionStatus === 'saving'}
-                        startIcon={isElsaActionSaving(decision.id, 'DISMISS') ? <CircularProgress size={14} color="inherit" /> : null}
-                      >
-                        {t('portalRequests.elsa.actions.dismiss')}
-                      </Button>
-                    </Stack>
-                  )}
-                  {decision.policy_decision === 'SEND_AUTOMATICALLY' && !decision.reviewed_at && (
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mt: 0.5 }}>
-                      <Button
-                        type="button"
-                        size="small"
-                        color="warning"
-                        variant="outlined"
-                        onClick={() => handleReviewElsaDecision(decision.id, 'DISMISS')}
-                        disabled={elsaDecisionActionStatus === 'saving'}
-                        startIcon={isElsaActionSaving(decision.id, 'DISMISS') ? <CircularProgress size={14} color="inherit" /> : null}
-                      >
-                        {t('portalRequests.elsa.actions.dismiss')}
                       </Button>
                     </Stack>
                   )}
