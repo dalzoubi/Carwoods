@@ -121,6 +121,7 @@ async function landlordRequestItem(
   }
   const b = asRecord(body);
   const statusCode = str(b.status_code);
+  const priorityCode = str(b.priority_code);
   const assignedVendorId = b.assigned_vendor_id === null ? null : str(b.assigned_vendor_id);
   const scheduledFor = b.scheduled_for === null ? null : str(b.scheduled_for);
   const scheduledFrom = b.scheduled_from === null ? null : str(b.scheduled_from);
@@ -135,6 +136,7 @@ async function landlordRequestItem(
       actorUserId: ctx.user.id,
       actorRole: ctx.role,
       statusCode,
+      priorityCode,
       assignedVendorId: b.assigned_vendor_id !== undefined ? (assignedVendorId ?? null) : undefined,
       scheduledFor: b.scheduled_for !== undefined ? (scheduledFor ?? null) : undefined,
       scheduledFrom: b.scheduled_from !== undefined ? (scheduledFrom ?? null) : undefined,

@@ -9,6 +9,7 @@
  */
 
 import {
+  findPriorityIdByCode,
   findStatusIdByCode,
   getRequestById,
   insertRequestStatusHistory,
@@ -26,6 +27,7 @@ export type UpdateRequestStatusInput = {
   actorUserId: string;
   actorRole: string;
   statusCode?: string;
+  priorityCode?: string;
   assignedVendorId?: string | null;
   scheduledFor?: string | null;
   scheduledFrom?: string | null;
@@ -76,6 +78,12 @@ export async function updateRequestStatus(
     if (!statusId) throw validationError('invalid_status_code');
     newStatusId = statusId;
   }
+  let newPriorityId: string | undefined;
+  if (input.priorityCode) {
+    const priorityId = await findPriorityIdByCode(pool, input.priorityCode);
+    if (!priorityId) throw validationError('invalid_priority_code');
+    newPriorityId = priorityId;
+  }
   const normalizedScheduledFor = normalizeOptionalDateTimeOffset(
     input.scheduledFor,
     'scheduled_for'
@@ -97,6 +105,7 @@ export async function updateRequestStatus(
       input.requestId,
       {
         currentStatusId: newStatusId,
+        priorityId: newPriorityId,
         assignedVendorId: input.assignedVendorId,
         scheduledFor: normalizedScheduledFor,
         scheduledFrom: normalizedScheduledFrom,

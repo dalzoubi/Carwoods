@@ -1,7 +1,21 @@
 import React, { useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
-import { Alert, Box, Button, CircularProgress, Collapse, Paper, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Paper,
+  Stack,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useLocation } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -13,6 +27,9 @@ import RequestListPane from './portalRequests/RequestListPane';
 import RequestDetailPane from './portalRequests/RequestDetailPane';
 import { usePortalRequests } from './portalRequests/usePortalRequests';
 import StatusAlertSlot from './StatusAlertSlot';
+import { usePortalFeedback } from '../hooks/usePortalFeedback';
+import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
+import { fetchLandlords } from '../lib/portalApiClient';
 
 const PortalRequests = () => {
   const { t } = useTranslation();
@@ -127,12 +144,82 @@ const PortalRequests = () => {
         ? { severity: 'warning', text: t('portalRequests.errors.guestBlocked') }
         : null
     : null;
+  const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
   const [createOpen, setCreateOpen] = useState(false);
+  const [landlords, setLandlords] = useState([]);
+  const [landlordsStatus, setLandlordsStatus] = useState('idle');
+  const [selectedLandlordId, setSelectedLandlordId] = useState('');
+
+  React.useEffect(() => {
+    if (!isAdmin || !baseUrl || !isAuthenticated || isGuest || meStatus !== 'ok') {
+      setLandlords([]);
+      setLandlordsStatus('idle');
+      setSelectedLandlordId('');
+      return;
+    }
+
+    let cancelled = false;
+    const loadLandlords = async () => {
+      setLandlordsStatus('loading');
+      try {
+        const accessToken = await getAccessToken();
+        const payload = await fetchLandlords(baseUrl, accessToken, { includeInactive: false });
+        if (cancelled) return;
+        const rows = Array.isArray(payload?.landlords) ? payload.landlords : [];
+        setLandlords(rows);
+        setLandlordsStatus('ok');
+        setSelectedLandlordId((prev) => (rows.some((landlord) => landlord.id === prev) ? prev : ''));
+      } catch (error) {
+        if (cancelled) return;
+        handleApiForbidden(error);
+        setLandlords([]);
+        setLandlordsStatus('error');
+      }
+    };
+
+    loadLandlords();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    baseUrl,
+    getAccessToken,
+    handleApiForbidden,
+    isAdmin,
+    isAuthenticated,
+    isGuest,
+    meStatus,
+  ]);
+
   // Close the create form automatically after a successful submission
   React.useEffect(() => {
     if (tenantCreateStatus === 'success') setCreateOpen(false);
   }, [tenantCreateStatus]);
+  React.useEffect(() => {
+    if (tenantCreateStatus === 'success') showFeedback(t('portalRequests.create.saved'));
+  }, [showFeedback, t, tenantCreateStatus]);
+  React.useEffect(() => {
+    if (cancelStatus === 'success') showFeedback(t('portalRequests.cancel.cancelled'));
+  }, [cancelStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (managementUpdateStatus === 'success') showFeedback(t('portalRequests.management.saved'));
+  }, [managementUpdateStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (messageStatus === 'success') showFeedback(t('portalRequests.messages.sent'));
+  }, [messageStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (messageDeleteStatus === 'success') showFeedback(t('portalRequests.messages.deleted'));
+  }, [messageDeleteStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (attachmentStatus === 'success') showFeedback(t('portalRequests.attachments.saved'));
+  }, [attachmentStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (elsaDecisionActionStatus === 'success') showFeedback(t('portalRequests.elsa.reviewActionSaved'));
+  }, [elsaDecisionActionStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (exportStatus === 'ok') showFeedback(t('portalRequests.exportSuccess'));
+  }, [exportStatus, showFeedback, t]);
 
   return (
     <Box>
@@ -172,23 +259,28 @@ const PortalRequests = () => {
         {!isAuthenticated && <Alert severity="warning">{t('portalRequests.errors.signInRequired')}</Alert>}
         <StatusAlertSlot message={portalStateMessage} />
         {exportStatus === 'error' && <Alert severity="error">{exportError || t('portalRequests.errors.loadFailed')}</Alert>}
-        {exportStatus === 'ok' && <Alert severity="success">{t('portalRequests.exportSuccess')}</Alert>}
 
         {!isManagement && (
           <Box>
             <Button
               type="button"
-              variant={createOpen ? 'outlined' : 'contained'}
+              variant="contained"
               startIcon={<AddIcon />}
-              onClick={() => setCreateOpen((prev) => !prev)}
+              onClick={() => setCreateOpen(true)}
               disabled={!isAuthenticated || !baseUrl || isGuest}
-              sx={{ mb: createOpen ? 1 : 0 }}
             >
-              {createOpen
-                ? t('portalRequests.actions.hideCreate')
-                : t('portalRequests.actions.newRequest')}
+              {t('portalRequests.actions.newRequest')}
             </Button>
-            <Collapse in={createOpen} unmountOnExit>
+            <Dialog
+              open={createOpen}
+              onClose={() => {
+                if (tenantCreateStatus !== 'saving') setCreateOpen(false);
+              }}
+              fullWidth
+              maxWidth="md"
+            >
+              <DialogTitle>{t('portalRequests.create.heading')}</DialogTitle>
+              <DialogContent dividers>
               <TenantRequestForm
                 tenantForm={tenantForm}
                 tenantDefaults={tenantDefaults}
@@ -205,8 +297,20 @@ const PortalRequests = () => {
                 onCreateAttachmentChange={onCreateAttachmentChange}
                 onRemoveCreateAttachment={onRemoveCreateAttachment}
                 disabled={!isAuthenticated || !baseUrl || tenantCreateStatus === 'saving' || isGuest}
+                hideHeading
+                framed={false}
               />
-            </Collapse>
+              </DialogContent>
+              <DialogActions>
+                <Button
+                  type="button"
+                  onClick={() => setCreateOpen(false)}
+                  disabled={tenantCreateStatus === 'saving'}
+                >
+                  {t('portalRequests.actions.close')}
+                </Button>
+              </DialogActions>
+            </Dialog>
           </Box>
         )}
 
@@ -250,6 +354,11 @@ const PortalRequests = () => {
               }}
               onReload={() => loadRequests({ keepSelection: true })}
               reloadDisabled={!isAuthenticated || !baseUrl || isGuest || requestsStatus === 'loading'}
+              isAdmin={isAdmin}
+              landlords={landlords}
+              landlordsStatus={landlordsStatus}
+              selectedLandlordId={selectedLandlordId}
+              onSelectLandlord={setSelectedLandlordId}
             />
           </Paper>
 
@@ -288,6 +397,7 @@ const PortalRequests = () => {
                 isAdmin={isAdmin}
                 managementForm={managementForm}
                 managementStatusOptions={managementStatusOptions}
+                managementPriorityOptions={priorityOptions}
                 onManagementField={onManagementField}
                 onUpdateRequest={onUpdateRequest}
                 managementUpdateStatus={managementUpdateStatus}
@@ -337,6 +447,7 @@ const PortalRequests = () => {
           </Paper>
         </Stack>
       </Stack>
+      <PortalFeedbackSnackbar feedback={feedback} onClose={closeFeedback} />
     </Box>
   );
 };

@@ -27,6 +27,7 @@ import {
 import { alpha } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
+import InlineActionStatus from '../InlineActionStatus';
 import { RequestStatus, Role } from '../../domain/constants.js';
 import { normalizeRole } from '../../portalUtils';
 
@@ -135,6 +136,7 @@ const RequestDetailPane = ({
   isAdmin,
   managementForm,
   managementStatusOptions,
+  managementPriorityOptions,
   onManagementField,
   onUpdateRequest,
   managementUpdateStatus,
@@ -175,29 +177,23 @@ const RequestDetailPane = ({
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('details');
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [managementDialogOpen, setManagementDialogOpen] = useState(false);
   const [deleteDialogMessage, setDeleteDialogMessage] = useState(null);
   const [attachmentInputKey, setAttachmentInputKey] = useState(0);
   const [pendingElsaAction, setPendingElsaAction] = useState(null);
+  const [copyDismissDecision, setCopyDismissDecision] = useState(null);
   const managementStatusMessage = managementUpdateStatus === 'error'
     ? { severity: 'error', text: managementUpdateError || t('portalRequests.errors.saveFailed') }
-    : managementUpdateStatus === 'success'
-      ? { severity: 'success', text: t('portalRequests.management.saved') }
-      : null;
+    : null;
   const messageStatusMessage = messageStatus === 'error'
     ? { severity: 'error', text: messageError || t('portalRequests.errors.saveFailed') }
-    : messageStatus === 'success'
-      ? { severity: 'success', text: t('portalRequests.messages.sent') }
     : null;
   const messageDeleteStatusMessage = messageDeleteStatus === 'error'
     ? { severity: 'error', text: messageDeleteError || t('portalRequests.errors.saveFailed') }
-    : messageDeleteStatus === 'success'
-      ? { severity: 'success', text: t('portalRequests.messages.deleted') }
-      : null;
+    : null;
   const attachmentStatusMessage = attachmentStatus === 'error'
     ? { severity: 'error', text: attachmentError || t('portalRequests.errors.saveFailed') }
-    : attachmentStatus === 'success'
-      ? { severity: 'success', text: t('portalRequests.attachments.saved') }
-      : null;
+    : null;
   const parsedAudits = useMemo(
     () => (Array.isArray(auditEvents) ? auditEvents : []).map((event) => {
       const parseJsonSafe = (raw) => {
@@ -254,6 +250,10 @@ const RequestDetailPane = ({
     setAttachmentInputKey((value) => value + 1);
   }, [attachmentStatus]);
   useEffect(() => {
+    if (managementUpdateStatus !== 'success') return;
+    setManagementDialogOpen(false);
+  }, [managementUpdateStatus]);
+  useEffect(() => {
     if (elsaDecisionActionStatus === 'saving') return;
     setPendingElsaAction(null);
   }, [elsaDecisionActionStatus]);
@@ -262,6 +262,18 @@ const RequestDetailPane = ({
     setPendingElsaAction({ decisionId, action });
     onReviewElsaDecision(decisionId, action);
   };
+  const handleUseSuggestedReply = (decision, suggestedReply) => {
+    setMessageForm((prev) => ({ ...prev, body: suggestedReply }));
+    setCopyDismissDecision(decision);
+  };
+  const shouldOfferManualAction = (decision, plannedReply) => (
+    Boolean(plannedReply)
+    && (
+      decision.policy_decision === 'BLOCK_AND_ALERT_ADMIN'
+      || decision.policy_decision === 'HOLD_FOR_REVIEW'
+      || Boolean(decision.recommended_next_action)
+    )
+  );
   const isElsaActionSaving = (decisionId, action) => (
     elsaDecisionActionStatus === 'saving'
     && pendingElsaAction?.decisionId === decisionId
@@ -272,11 +284,9 @@ const RequestDetailPane = ({
     <Stack spacing={2} sx={{ flex: 1 }}>
       <StatusAlertSlot
         message={
-          cancelStatus === 'success'
-            ? { severity: 'success', text: t('portalRequests.cancel.cancelled') }
-            : cancelStatus === 'error'
-              ? { severity: 'error', text: cancelError || t('portalRequests.errors.saveFailed') }
-              : null
+          cancelStatus === 'error'
+            ? { severity: 'error', text: cancelError || t('portalRequests.errors.saveFailed') }
+            : null
         }
       />
       {detailStatus === 'loading' && (
@@ -382,7 +392,20 @@ const RequestDetailPane = ({
         <>
       <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 2 }}>
         <Stack spacing={1}>
-          <Typography sx={{ fontWeight: 700 }}>{requestDetail.title}</Typography>
+          <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} sx={{ flexWrap: 'wrap' }}>
+            <Typography sx={{ fontWeight: 700 }}>{requestDetail.title}</Typography>
+            {isManagement && (
+              <Button
+                type="button"
+                variant="outlined"
+                size="small"
+                onClick={() => setManagementDialogOpen(true)}
+                disabled={managementUpdateStatus === 'saving'}
+              >
+                {t('portalRequests.actions.updateRequest')}
+              </Button>
+            )}
+          </Stack>
           <Typography color="text.secondary">{requestDetail.description}</Typography>
           <Typography variant="body2" color="text.secondary">
             {t('portalRequests.labels.requestId')}: {requestDetail.id}
@@ -480,92 +503,157 @@ const RequestDetailPane = ({
         </DialogActions>
       </Dialog>
 
+      <Dialog
+        open={Boolean(copyDismissDecision)}
+        onClose={() => {
+          if (elsaDecisionActionStatus !== 'saving') setCopyDismissDecision(null);
+        }}
+      >
+        <DialogTitle>{t('portalRequests.elsa.copyDialog.title')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{t('portalRequests.elsa.copyDialog.body')}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            type="button"
+            onClick={() => setCopyDismissDecision(null)}
+            disabled={elsaDecisionActionStatus === 'saving'}
+          >
+            {t('portalRequests.elsa.copyDialog.keepOpen')}
+          </Button>
+          <Button
+            type="button"
+            color="warning"
+            variant="contained"
+            onClick={() => {
+              if (!copyDismissDecision?.id) return;
+              handleReviewElsaDecision(copyDismissDecision.id, 'DISMISS');
+              setCopyDismissDecision(null);
+            }}
+            disabled={elsaDecisionActionStatus === 'saving'}
+            startIcon={isElsaActionSaving(copyDismissDecision?.id, 'DISMISS') ? <CircularProgress size={14} color="inherit" /> : null}
+          >
+            {t('portalRequests.elsa.copyDialog.dismissNow')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {isManagement && (
-        <Box
-          component="form"
-          onSubmit={onUpdateRequest}
-          sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 2 }}
+        <Dialog
+          open={managementDialogOpen}
+          onClose={() => {
+            if (managementUpdateStatus !== 'saving') setManagementDialogOpen(false);
+          }}
+          fullWidth
+          maxWidth="sm"
         >
-          <Stack spacing={1.5}>
-            <Typography variant="h3" sx={{ fontSize: '1.1rem' }}>
-              {t('portalRequests.management.heading')}
-            </Typography>
-            <FormControl>
-              <InputLabel id="management-status-code-label">{t('portalRequests.management.statusCode')}</InputLabel>
-              <Select
-                labelId="management-status-code-label"
-                label={t('portalRequests.management.statusCode')}
-                value={managementForm.status_code}
-                onChange={onManagementField('status_code')}
-                disabled={managementUpdateStatus === 'saving'}
-              >
-                <MenuItem value="">
-                  {t('portalRequests.management.selectStatusCode')}
-                </MenuItem>
-                {(managementStatusOptions || []).map((statusCode) => (
-                  <MenuItem key={statusCode} value={statusCode}>
-                    {t(`portalRequests.statuses.${String(statusCode || '').toUpperCase()}`, { defaultValue: statusCode })}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              label={t('portalRequests.management.scheduledFrom')}
-              type="datetime-local"
-              value={managementForm.scheduled_from}
-              onChange={onManagementField('scheduled_from')}
+          <DialogTitle>{t('portalRequests.management.dialogTitle')}</DialogTitle>
+          <DialogContent dividers>
+            <Box component="form" id="management-update-form" onSubmit={onUpdateRequest}>
+              <Stack spacing={1.5}>
+                <FormControl>
+                  <InputLabel id="management-status-code-label">{t('portalRequests.management.statusCode')}</InputLabel>
+                  <Select
+                    labelId="management-status-code-label"
+                    label={t('portalRequests.management.statusCode')}
+                    value={managementForm.status_code}
+                    onChange={onManagementField('status_code')}
+                    disabled={managementUpdateStatus === 'saving'}
+                  >
+                    <MenuItem value="">
+                      {t('portalRequests.management.selectStatusCode')}
+                    </MenuItem>
+                    {(managementStatusOptions || []).map((statusCode) => (
+                      <MenuItem key={statusCode} value={statusCode}>
+                        {t(`portalRequests.statuses.${String(statusCode || '').toUpperCase()}`, { defaultValue: statusCode })}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl>
+                  <InputLabel id="management-priority-code-label">{t('portalRequests.management.priorityCode')}</InputLabel>
+                  <Select
+                    labelId="management-priority-code-label"
+                    label={t('portalRequests.management.priorityCode')}
+                    value={managementForm.priority_code}
+                    onChange={onManagementField('priority_code')}
+                    disabled={managementUpdateStatus === 'saving'}
+                  >
+                    <MenuItem value="">{t('portalRequests.management.selectPriorityCode')}</MenuItem>
+                    {(managementPriorityOptions || []).map((priority) => (
+                      <MenuItem key={priority.code} value={priority.code}>
+                        {priority.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <TextField
+                  label={t('portalRequests.management.scheduledFrom')}
+                  type="datetime-local"
+                  value={managementForm.scheduled_from}
+                  onChange={onManagementField('scheduled_from')}
+                  disabled={managementUpdateStatus === 'saving'}
+                  InputLabelProps={{ shrink: true }}
+                />
+                <TextField
+                  label={t('portalRequests.management.scheduledTo')}
+                  type="datetime-local"
+                  value={managementForm.scheduled_to}
+                  onChange={onManagementField('scheduled_to')}
+                  disabled={managementUpdateStatus === 'saving'}
+                  InputLabelProps={{ shrink: true }}
+                />
+                <TextField
+                  label={t('portalRequests.management.vendorId')}
+                  value={managementForm.assigned_vendor_id}
+                  onChange={onManagementField('assigned_vendor_id')}
+                  disabled={managementUpdateStatus === 'saving'}
+                />
+                <TextField
+                  label={t('portalRequests.management.vendorContactName')}
+                  value={managementForm.vendor_contact_name}
+                  onChange={onManagementField('vendor_contact_name')}
+                  disabled={managementUpdateStatus === 'saving'}
+                />
+                <TextField
+                  label={t('portalRequests.management.vendorContactPhone')}
+                  value={managementForm.vendor_contact_phone}
+                  onChange={onManagementField('vendor_contact_phone')}
+                  disabled={managementUpdateStatus === 'saving'}
+                />
+                <TextField
+                  label={t('portalRequests.management.internalNotes')}
+                  value={managementForm.internal_notes}
+                  onChange={onManagementField('internal_notes')}
+                  multiline
+                  minRows={3}
+                  disabled={managementUpdateStatus === 'saving'}
+                />
+                <InlineActionStatus message={managementStatusMessage} />
+              </Stack>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              type="button"
+              onClick={() => setManagementDialogOpen(false)}
               disabled={managementUpdateStatus === 'saving'}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              label={t('portalRequests.management.scheduledTo')}
-              type="datetime-local"
-              value={managementForm.scheduled_to}
-              onChange={onManagementField('scheduled_to')}
+            >
+              {t('portalRequests.actions.close')}
+            </Button>
+            <Button
+              type="submit"
+              form="management-update-form"
+              variant="contained"
               disabled={managementUpdateStatus === 'saving'}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              label={t('portalRequests.management.vendorId')}
-              value={managementForm.assigned_vendor_id}
-              onChange={onManagementField('assigned_vendor_id')}
-              disabled={managementUpdateStatus === 'saving'}
-            />
-            <TextField
-              label={t('portalRequests.management.vendorContactName')}
-              value={managementForm.vendor_contact_name}
-              onChange={onManagementField('vendor_contact_name')}
-              disabled={managementUpdateStatus === 'saving'}
-            />
-            <TextField
-              label={t('portalRequests.management.vendorContactPhone')}
-              value={managementForm.vendor_contact_phone}
-              onChange={onManagementField('vendor_contact_phone')}
-              disabled={managementUpdateStatus === 'saving'}
-            />
-            <TextField
-              label={t('portalRequests.management.internalNotes')}
-              value={managementForm.internal_notes}
-              onChange={onManagementField('internal_notes')}
-              multiline
-              minRows={3}
-              disabled={managementUpdateStatus === 'saving'}
-            />
-            <StatusAlertSlot message={managementStatusMessage} />
-            <Stack direction="row" justifyContent="flex-end">
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={managementUpdateStatus === 'saving'}
-                startIcon={managementUpdateStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
-              >
-                {managementUpdateStatus === 'saving'
-                  ? t('portalRequests.actions.saving')
-                  : t('portalRequests.actions.saveChanges')}
-              </Button>
-            </Stack>
-          </Stack>
-        </Box>
+              startIcon={managementUpdateStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
+            >
+              {managementUpdateStatus === 'saving'
+                ? t('portalRequests.actions.saving')
+                : t('portalRequests.actions.saveChanges')}
+            </Button>
+          </DialogActions>
+        </Dialog>
       )}
 
       {isManagement && (
@@ -598,9 +686,6 @@ const RequestDetailPane = ({
             </Stack>
             {elsaSettingsError && <Alert severity="error">{elsaSettingsError}</Alert>}
             {elsaDecisionError && <Alert severity="error">{elsaDecisionError}</Alert>}
-            {elsaDecisionActionStatus === 'success' && (
-              <Alert severity="success">{t('portalRequests.elsa.reviewActionSaved')}</Alert>
-            )}
             {(elsaDecisions || [])
               .filter((decision) => (
                 (decision.policy_decision !== 'HOLD_FOR_REVIEW' || !decision.reviewed_at)
@@ -661,6 +746,19 @@ const RequestDetailPane = ({
                     <Typography variant="caption" color="text.secondary">
                       {t('portalRequests.elsa.nextAction')}: {decision.recommended_next_action}
                     </Typography>
+                  )}
+                  {shouldOfferManualAction(decision, plannedReply) && (
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mt: 0.5 }}>
+                      <Button
+                        type="button"
+                        size="small"
+                        variant="outlined"
+                        onClick={() => handleUseSuggestedReply(decision, plannedReply)}
+                        disabled={elsaDecisionActionStatus === 'saving'}
+                      >
+                        {t('portalRequests.elsa.actions.copyToMessage')}
+                      </Button>
+                    </Stack>
                   )}
                   {decision.policy_decision === 'HOLD_FOR_REVIEW' && !decision.reviewed_at && (
                     <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mt: 0.5 }}>
@@ -871,9 +969,14 @@ const RequestDetailPane = ({
               label={t('portalRequests.messages.internalToggle')}
             />
           )}
-          <StatusAlertSlot message={messageStatusMessage} />
-          <StatusAlertSlot message={messageDeleteStatusMessage} />
-          <Stack direction="row" justifyContent="flex-end">
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            spacing={1}
+            sx={{ flexWrap: 'wrap', rowGap: 1 }}
+          >
+            <InlineActionStatus message={messageDeleteStatusMessage || messageStatusMessage} />
             <Button
               type="submit"
               variant="contained"
@@ -939,7 +1042,6 @@ const RequestDetailPane = ({
               {attachmentFile.name} ({attachmentFile.size} bytes)
             </Typography>
           )}
-          <StatusAlertSlot message={attachmentStatusMessage} />
           {attachmentStatus === 'saving' && (
             <Stack spacing={0.5}>
               <LinearProgress
@@ -953,7 +1055,14 @@ const RequestDetailPane = ({
               )}
             </Stack>
           )}
-          <Stack direction="row" justifyContent="flex-end">
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            spacing={1}
+            sx={{ flexWrap: 'wrap', rowGap: 1 }}
+          >
+            <InlineActionStatus message={attachmentStatusMessage} />
             <Button
               type="submit"
               variant="contained"

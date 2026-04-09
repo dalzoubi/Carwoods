@@ -117,6 +117,7 @@ export function usePortalRequests({
 
   const [managementForm, setManagementForm] = useState({
     status_code: '',
+    priority_code: '',
     assigned_vendor_id: '',
     scheduled_from: '',
     scheduled_to: '',
@@ -244,6 +245,7 @@ export function usePortalRequests({
       setManagementForm((prev) => ({
         ...prev,
         status_code: detail?.status_code ?? '',
+        priority_code: detail?.priority_code ?? '',
         assigned_vendor_id: detail?.assigned_vendor_id ?? '',
         scheduled_from: formatDateTimeLocalValue(detail?.scheduled_from || detail?.scheduled_for),
         scheduled_to: formatDateTimeLocalValue(detail?.scheduled_to),
@@ -371,7 +373,7 @@ export function usePortalRequests({
   }, [elsaDecisionActionStatus]);
 
   useEffect(() => {
-    if (!baseUrl || !isAuthenticated || isGuest || isManagement || meStatus !== 'ok') {
+    if (!baseUrl || !isAuthenticated || isGuest || meStatus !== 'ok') {
       setLookupStatus('idle');
       setLookupError('');
       setLookupContact(null);
@@ -403,7 +405,7 @@ export function usePortalRequests({
           && typeof payload.tenant_defaults.lease_id === 'string'
           ? payload.tenant_defaults
           : null;
-        if (!defaults) {
+        if (!isManagement && !defaults) {
           const landlordName = [
             String(landlordContact?.first_name ?? '').trim(),
             String(landlordContact?.last_name ?? '').trim(),
@@ -426,7 +428,7 @@ export function usePortalRequests({
         setLookupContact(null);
         setCategoryOptions(categories);
         setPriorityOptions(priorities);
-        setTenantDefaults(defaults);
+        setTenantDefaults(defaults ?? null);
         setLookupStatus('ok');
       } catch (error) {
         if (cancelled) return;
@@ -610,6 +612,9 @@ export function usePortalRequests({
       const body = {};
       if (managementForm.status_code.trim()) {
         body.status_code = managementForm.status_code.trim().toUpperCase();
+      }
+      if (managementForm.priority_code.trim()) {
+        body.priority_code = managementForm.priority_code.trim();
       }
       const scheduledFromDate = managementForm.scheduled_from.trim()
         ? new Date(managementForm.scheduled_from)

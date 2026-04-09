@@ -36,6 +36,7 @@ import {
   fetchTenants,
   createTenant,
   patchTenantAccess,
+  updateTenant,
   deleteTenant,
   addTenantLease,
   updateLease,
@@ -44,6 +45,9 @@ import {
   fetchLandlordProperties,
 } from '../lib/portalApiClient';
 import PortalConfirmDialog from './PortalConfirmDialog';
+import InlineActionStatus from './InlineActionStatus';
+import { usePortalFeedback } from '../hooks/usePortalFeedback';
+import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -70,12 +74,65 @@ function isActiveStatus(status) {
   return String(status ?? '').toUpperCase() === 'ACTIVE';
 }
 
+function normalizeTenantRows(rows) {
+  if (!Array.isArray(rows)) return [];
+  const byId = new Map();
+  const withoutId = [];
+
+  rows.forEach((row) => {
+    if (!row || typeof row !== 'object') return;
+    const id = typeof row.id === 'string' ? row.id.trim() : '';
+    if (id) {
+      byId.set(id, row);
+      return;
+    }
+
+    const first = String(row.first_name ?? '').trim();
+    const last = String(row.last_name ?? '').trim();
+    const email = String(row.email ?? '').trim();
+    const hasVisibleContent = Boolean(first || last || email);
+    if (hasVisibleContent) {
+      withoutId.push(row);
+    }
+  });
+
+  return [...byId.values(), ...withoutId];
+}
+
+function tenantRowKey(tenant, index) {
+  if (tenant?.id) return tenant.id;
+  const email = typeof tenant?.email === 'string' ? tenant.email.trim() : '';
+  if (email) return `email:${email}`;
+  const first = String(tenant?.first_name ?? '').trim();
+  const last = String(tenant?.last_name ?? '').trim();
+  if (first || last) return `name:${first}:${last}:${index}`;
+  return `tenant-row:${index}`;
+}
+
 function toDatePart(dateStr) {
   if (!dateStr) return '';
   // The mssql driver returns DATE columns as JS Date objects, which JSON-serialize
   // to full ISO strings ("2024-01-15T00:00:00.000Z"). Slice to YYYY-MM-DD so
   // comparisons, <input type="date"> values, and display formatting all work.
   return String(dateStr).slice(0, 10);
+}
+
+function tenantApiErrorMessage(error, t) {
+  const code = typeof error?.code === 'string' ? error.code : '';
+  switch (code) {
+    case 'email_already_in_use':
+      return t('portalTenants.errors.emailAlreadyInUse');
+    case 'email_belongs_to_admin':
+      return t('portalTenants.errors.emailBelongsToAdmin');
+    case 'email_belongs_to_landlord':
+      return t('portalTenants.errors.emailBelongsToLandlord');
+    case 'invalid_phone':
+      return t('portalTenants.errors.phoneInvalid');
+    case 'active_lease_not_found':
+      return t('portalTenants.errors.activeLeaseRequiredForReassign');
+    default:
+      return error?.message ?? 'request_failed';
+  }
 }
 
 function formatDate(dateStr) {
@@ -109,6 +166,9 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
   const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
   const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
   const emailHint = meData?.user?.email ?? account?.username ?? '';
+  const submitStatusMessage = submitState.status === 'error'
+    ? { severity: 'error', text: submitState.detail }
+    : null;
 
   useEffect(() => {
     if (open && lease) {
@@ -170,9 +230,6 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
       <Box component="form" onSubmit={onSubmit}>
         <DialogContent>
           <Stack spacing={2}>
-            {submitState.status === 'error' && (
-              <Alert severity="error">{submitState.detail}</Alert>
-            )}
             <Select
               value={form.property_id}
               onChange={onChange('property_id')}
@@ -237,6 +294,7 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
           </Stack>
         </DialogContent>
         <DialogActions>
+          <InlineActionStatus message={submitStatusMessage} />
           <Button type="button" onClick={onClose} disabled={submitState.status === 'saving'}>
             {t('portalTenants.actions.cancel')}
           </Button>
@@ -387,6 +445,9 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
   const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
   const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
   const emailHint = meData?.user?.email ?? account?.username ?? '';
+  const submitStatusMessage = submitState.status === 'error'
+    ? { severity: 'error', text: submitState.detail }
+    : null;
 
   useEffect(() => {
     if (open) {
@@ -444,9 +505,6 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
       <Box component="form" onSubmit={onSubmit}>
         <DialogContent>
           <Stack spacing={2}>
-            {submitState.status === 'error' && (
-              <Alert severity="error">{submitState.detail}</Alert>
-            )}
             <Select
               value={form.property_id}
               onChange={onChange('property_id')}
@@ -516,6 +574,7 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
           </Stack>
         </DialogContent>
         <DialogActions>
+          <InlineActionStatus message={submitStatusMessage} />
           <Button type="button" onClick={onClose} disabled={submitState.status === 'saving'}>
             {t('portalTenants.actions.cancel')}
           </Button>
@@ -535,13 +594,253 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
 }
 
 // ---------------------------------------------------------------------------
+// EditTenantDialog — edit basic tenant profile fields
+// ---------------------------------------------------------------------------
+
+const EMPTY_EDIT_TENANT_FORM = {
+  email: '',
+  firstName: '',
+  lastName: '',
+  phone: '',
+  landlord_id: '',
+  property_id: '',
+};
+
+function EditTenantDialog({
+  open,
+  onClose,
+  onSaved,
+  tenant,
+  properties,
+  landlords,
+  isAdmin,
+  t,
+}) {
+  const [form, setForm] = useState(EMPTY_EDIT_TENANT_FORM);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
+  const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
+  const emailHint = meData?.user?.email ?? account?.username ?? '';
+  const submitStatusMessage = submitState.status === 'error'
+    ? { severity: 'error', text: submitState.detail }
+    : null;
+
+  useEffect(() => {
+    if (open && tenant) {
+      setForm({
+        email: String(tenant.email ?? ''),
+        firstName: String(tenant.first_name ?? ''),
+        lastName: String(tenant.last_name ?? ''),
+        phone: String(tenant.phone ?? ''),
+        landlord_id: String(tenant.landlord_id ?? ''),
+        property_id: String(tenant.property_id ?? ''),
+      });
+      setFieldErrors({});
+      setSubmitState({ status: 'idle', detail: '' });
+    }
+  }, [open, tenant]);
+
+  const onChange = (field) => (e) => {
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    setFieldErrors((prev) => ({ ...prev, [field]: '' }));
+  };
+
+  const validate = () => {
+    const errors = {};
+    if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      errors.email = t('portalTenants.errors.emailInvalid');
+    }
+    if (!form.firstName.trim()) errors.firstName = t('portalTenants.errors.firstNameRequired');
+    if (!form.lastName.trim()) errors.lastName = t('portalTenants.errors.lastNameRequired');
+    if (isAdmin) {
+      if (!form.landlord_id) errors.landlord_id = t('portalTenants.errors.landlordRequired');
+      if (!form.property_id) errors.property_id = t('portalTenants.errors.propertyRequired');
+    }
+    return errors;
+  };
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    const errors = validate();
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+    setSubmitState({ status: 'saving', detail: '' });
+    try {
+      const accessToken = await getAccessToken();
+      await updateTenant(baseUrl, accessToken, tenant.id, {
+        emailHint,
+        email: form.email.trim().toLowerCase(),
+        first_name: form.firstName.trim(),
+        last_name: form.lastName.trim(),
+        phone: form.phone.trim() || null,
+        property_id: isAdmin ? form.property_id : undefined,
+      });
+      setSubmitState({ status: 'ok', detail: '' });
+      onSaved();
+    } catch (error) {
+      const detail = tenantApiErrorMessage(error, t);
+      setSubmitState({ status: 'error', detail });
+    }
+  };
+
+  const availableProperties = isAdmin
+    ? properties.filter((p) => p.landlord_user_id === form.landlord_id || p.created_by === form.landlord_id)
+    : properties;
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{t('portalTenants.editTenantDialog.title')}</DialogTitle>
+      <Box component="form" onSubmit={onSubmit}>
+        <DialogContent>
+          <Stack spacing={2}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+              <TextField
+                label={t('portalTenants.form.firstName')}
+                value={form.firstName}
+                onChange={onChange('firstName')}
+                required
+                fullWidth
+                error={Boolean(fieldErrors.firstName)}
+                helperText={fieldErrors.firstName || ' '}
+                size="small"
+                autoComplete="given-name"
+              />
+              <TextField
+                label={t('portalTenants.form.lastName')}
+                value={form.lastName}
+                onChange={onChange('lastName')}
+                required
+                fullWidth
+                error={Boolean(fieldErrors.lastName)}
+                helperText={fieldErrors.lastName || ' '}
+                size="small"
+                autoComplete="family-name"
+              />
+            </Stack>
+            <TextField
+              label={t('portalTenants.form.email')}
+              value={form.email}
+              onChange={onChange('email')}
+              required
+              type="email"
+              fullWidth
+              error={Boolean(fieldErrors.email)}
+              helperText={fieldErrors.email || ' '}
+              size="small"
+              autoComplete="email"
+            />
+            <TextField
+              label={t('portalTenants.form.phone')}
+              value={form.phone}
+              onChange={onChange('phone')}
+              fullWidth
+              size="small"
+              autoComplete="tel"
+            />
+            {isAdmin && (
+              <>
+                <Select
+                  value={form.landlord_id}
+                  onChange={(e) => {
+                    const nextLandlordId = e.target.value;
+                    setForm((prev) => ({
+                      ...prev,
+                      landlord_id: nextLandlordId,
+                      property_id: '',
+                    }));
+                    setFieldErrors((prev) => ({
+                      ...prev,
+                      landlord_id: '',
+                      property_id: '',
+                    }));
+                  }}
+                  displayEmpty
+                  fullWidth
+                  error={Boolean(fieldErrors.landlord_id)}
+                  size="small"
+                >
+                  <MenuItem value="" disabled>
+                    {t('portalTenants.form.selectLandlord')}
+                  </MenuItem>
+                  {landlords.map((l) => (
+                    <MenuItem key={l.id} value={l.id}>
+                      {displayName(l)} — {l.email}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {fieldErrors.landlord_id && (
+                  <Typography variant="caption" color="error" sx={{ mt: '-8px !important' }}>
+                    {fieldErrors.landlord_id}
+                  </Typography>
+                )}
+                <Select
+                  value={form.property_id}
+                  onChange={onChange('property_id')}
+                  displayEmpty
+                  fullWidth
+                  error={Boolean(fieldErrors.property_id)}
+                  disabled={!form.landlord_id}
+                  size="small"
+                >
+                  <MenuItem value="" disabled>
+                    {t('portalTenants.form.selectProperty')}
+                  </MenuItem>
+                  {availableProperties.map((p) => (
+                    <MenuItem key={p.id} value={p.id}>
+                      {propertyLabel(p)}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {fieldErrors.property_id && (
+                  <Typography variant="caption" color="error" sx={{ mt: '-8px !important' }}>
+                    {fieldErrors.property_id}
+                  </Typography>
+                )}
+              </>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <InlineActionStatus message={submitStatusMessage} />
+          <Button type="button" onClick={onClose} disabled={submitState.status === 'saving'}>
+            {t('portalTenants.actions.cancel')}
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={submitState.status === 'saving'}
+          >
+            {submitState.status === 'saving'
+              ? t('portalTenants.actions.saving')
+              : t('portalTenants.editTenantDialog.save')}
+          </Button>
+        </DialogActions>
+      </Box>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // TenantRow — one tenant in the list with expandable lease detail
 // ---------------------------------------------------------------------------
 
-function TenantRow({ tenant, properties, onToggleAccess, onDeleteTenant, onLeaseSaved, t }) {
+function TenantRow({
+  tenant,
+  properties,
+  landlords,
+  isAdmin,
+  onToggleAccess,
+  onDeleteTenant,
+  onLeaseSaved,
+  onTenantUpdated,
+  t,
+}) {
   const [expanded, setExpanded] = useState(false);
   const [leasesState, setLeasesState] = useState({ status: 'idle', leases: [] });
   const [addLeaseOpen, setAddLeaseOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [disableConfirmOpen, setDisableConfirmOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
@@ -631,6 +930,16 @@ function TenantRow({ tenant, properties, onToggleAccess, onDeleteTenant, onLease
         </Box>
 
         <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', flexShrink: 0 }}>
+          <Tooltip title={t('portalTenants.actions.editTenant')}>
+            <IconButton
+              type="button"
+              size="small"
+              onClick={() => setEditOpen(true)}
+              aria-label={t('portalTenants.actions.editTenant')}
+            >
+              <Edit fontSize="small" />
+            </IconButton>
+          </Tooltip>
           {isActive ? (
             <Button
               type="button"
@@ -740,6 +1049,19 @@ function TenantRow({ tenant, properties, onToggleAccess, onDeleteTenant, onLease
         properties={properties}
         t={t}
       />
+      <EditTenantDialog
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        onSaved={() => {
+          setEditOpen(false);
+          onTenantUpdated();
+        }}
+        tenant={tenant}
+        properties={properties}
+        landlords={landlords}
+        isAdmin={isAdmin}
+        t={t}
+      />
 
       {/* Disable access confirmation */}
       <PortalConfirmDialog
@@ -777,6 +1099,7 @@ const EMPTY_ONBOARD_FORM = {
   firstName: '',
   lastName: '',
   phone: '',
+  landlord_id: '',
   property_id: '',
   start_date: '',
   end_date: '',
@@ -784,20 +1107,36 @@ const EMPTY_ONBOARD_FORM = {
   notes: '',
 };
 
-function OnboardTenantDialog({ open, onClose, onSaved, properties, t }) {
+function OnboardTenantDialog({
+  open,
+  onClose,
+  onSaved,
+  properties,
+  landlords,
+  isAdmin,
+  selectedLandlordId,
+  onLandlordChange,
+  t,
+}) {
   const [form, setForm] = useState(EMPTY_ONBOARD_FORM);
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
   const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
   const emailHint = meData?.user?.email ?? account?.username ?? '';
+  const submitStatusMessage = submitState.status === 'error'
+    ? { severity: 'error', text: submitState.detail }
+    : null;
 
   useEffect(() => {
     if (open) {
-      setForm(EMPTY_ONBOARD_FORM);
+      setForm({
+        ...EMPTY_ONBOARD_FORM,
+        landlord_id: isAdmin ? selectedLandlordId : '',
+      });
       setFieldErrors({});
       setSubmitState({ status: 'idle', detail: '' });
     }
-  }, [open]);
+  }, [open, isAdmin, selectedLandlordId]);
 
   const onChange = (field) => (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -812,6 +1151,7 @@ function OnboardTenantDialog({ open, onClose, onSaved, properties, t }) {
     }
     if (!form.firstName.trim()) errors.firstName = t('portalTenants.errors.firstNameRequired');
     if (!form.lastName.trim()) errors.lastName = t('portalTenants.errors.lastNameRequired');
+    if (isAdmin && !form.landlord_id) errors.landlord_id = t('portalTenants.errors.landlordRequired');
     if (!form.property_id) errors.property_id = t('portalTenants.errors.propertyRequired');
     if (!form.start_date) errors.start_date = t('portalTenants.errors.startDateRequired');
     if (!form.month_to_month && form.end_date && form.end_date <= form.start_date) {
@@ -836,6 +1176,7 @@ function OnboardTenantDialog({ open, onClose, onSaved, properties, t }) {
         first_name: form.firstName.trim(),
         last_name: form.lastName.trim(),
         phone: form.phone.trim() || null,
+        landlord_id: form.landlord_id || undefined,
         property_id: form.property_id,
         lease: {
           start_date: form.start_date,
@@ -847,10 +1188,14 @@ function OnboardTenantDialog({ open, onClose, onSaved, properties, t }) {
       setSubmitState({ status: 'ok', detail: '' });
       onSaved();
     } catch (error) {
-      const detail = error?.message ?? 'request_failed';
+      const detail = tenantApiErrorMessage(error, t);
       setSubmitState({ status: 'error', detail });
     }
   };
+
+  const availableProperties = isAdmin
+    ? properties.filter((p) => p.landlord_user_id === form.landlord_id || p.created_by === form.landlord_id)
+    : properties;
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -858,10 +1203,6 @@ function OnboardTenantDialog({ open, onClose, onSaved, properties, t }) {
       <Box component="form" onSubmit={onSubmit}>
         <DialogContent>
           <Stack spacing={2}>
-            {submitState.status === 'error' && (
-              <Alert severity="error">{submitState.detail}</Alert>
-            )}
-
             <Typography variant="subtitle2" color="text.secondary">
               {t('portalTenants.onboardDialog.tenantSection')}
             </Typography>
@@ -915,18 +1256,61 @@ function OnboardTenantDialog({ open, onClose, onSaved, properties, t }) {
               {t('portalTenants.onboardDialog.leaseSection')}
             </Typography>
 
+            {isAdmin && (
+              <>
+                <Select
+                  value={form.landlord_id}
+                  onChange={(e) => {
+                    const nextLandlordId = e.target.value;
+                    setForm((prev) => ({
+                      ...prev,
+                      landlord_id: nextLandlordId,
+                      property_id: '',
+                    }));
+                    setFieldErrors((prev) => ({
+                      ...prev,
+                      landlord_id: '',
+                      property_id: '',
+                    }));
+                    if (typeof onLandlordChange === 'function') {
+                      onLandlordChange(nextLandlordId);
+                    }
+                  }}
+                  displayEmpty
+                  fullWidth
+                  error={Boolean(fieldErrors.landlord_id)}
+                  size="small"
+                >
+                  <MenuItem value="" disabled>
+                    {t('portalTenants.form.selectLandlord')}
+                  </MenuItem>
+                  {landlords.map((l) => (
+                    <MenuItem key={l.id} value={l.id}>
+                      {displayName(l)} — {l.email}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {fieldErrors.landlord_id && (
+                  <Typography variant="caption" color="error" sx={{ mt: '-8px !important' }}>
+                    {fieldErrors.landlord_id}
+                  </Typography>
+                )}
+              </>
+            )}
+
             <Select
               value={form.property_id}
               onChange={onChange('property_id')}
               displayEmpty
               fullWidth
               error={Boolean(fieldErrors.property_id)}
+              disabled={isAdmin && !form.landlord_id}
               size="small"
             >
               <MenuItem value="" disabled>
                 {t('portalTenants.form.selectProperty')}
               </MenuItem>
-              {properties.map((p) => (
+              {availableProperties.map((p) => (
                 <MenuItem key={p.id} value={p.id}>
                   {propertyLabel(p)}
                 </MenuItem>
@@ -985,6 +1369,7 @@ function OnboardTenantDialog({ open, onClose, onSaved, properties, t }) {
           </Stack>
         </DialogContent>
         <DialogActions>
+          <InlineActionStatus message={submitStatusMessage} />
           <Button type="button" onClick={onClose} disabled={submitState.status === 'saving'}>
             {t('portalTenants.actions.cancel')}
           </Button>
@@ -1037,6 +1422,7 @@ const PortalTenants = () => {
   // Dialogs
   const [onboardOpen, setOnboardOpen] = useState(false);
   const [actionState, setActionState] = useState({ status: 'idle', detail: '' });
+  const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
   const emailHint = meData?.user?.email ?? account?.username ?? '';
 
@@ -1052,22 +1438,18 @@ const PortalTenants = () => {
     }
   }, [baseUrl, canUseModule, isAdmin, getAccessToken, handleApiForbidden]);
 
-  // Load properties visible to actor (or to selected landlord for admin)
+  // Load all properties visible to actor
   const loadProperties = useCallback(async () => {
     if (!canUseModule || !baseUrl) return;
     try {
       const accessToken = await getAccessToken();
       const payload = await fetchLandlordProperties(baseUrl, accessToken, { emailHint });
       const all = Array.isArray(payload?.properties) ? payload.properties : [];
-      if (isAdmin && selectedLandlordId) {
-        setProperties(all.filter((p) => p.landlord_user_id === selectedLandlordId || p.created_by === selectedLandlordId));
-      } else {
-        setProperties(all);
-      }
+      setProperties(all);
     } catch (e) {
       handleApiForbidden(e);
     }
-  }, [baseUrl, canUseModule, getAccessToken, emailHint, isAdmin, selectedLandlordId, handleApiForbidden]);
+  }, [baseUrl, canUseModule, getAccessToken, emailHint, handleApiForbidden]);
 
   // Load tenants
   const loadTenants = useCallback(async () => {
@@ -1082,7 +1464,7 @@ const PortalTenants = () => {
       const payload = await fetchTenants(baseUrl, accessToken, { emailHint, landlordId });
       setTenantsState({
         status: 'ok',
-        tenants: Array.isArray(payload?.tenants) ? payload.tenants : [],
+        tenants: normalizeTenantRows(payload?.tenants),
       });
     } catch (e) {
       handleApiForbidden(e);
@@ -1136,11 +1518,21 @@ const PortalTenants = () => {
     }
   };
 
+  const handleTenantUpdated = () => {
+    setActionState({ status: 'ok', detail: t('portalTenants.messages.tenantUpdated') });
+    void loadTenants();
+  };
+
   const handleOnboarded = () => {
     setOnboardOpen(false);
     setActionState({ status: 'ok', detail: t('portalTenants.messages.tenantOnboarded') });
     void loadTenants();
   };
+  useEffect(() => {
+    if (actionState.status !== 'ok' || !actionState.detail) return;
+    showFeedback(actionState.detail, 'success');
+    setActionState({ status: 'idle', detail: '' });
+  }, [actionState, showFeedback]);
 
   const accessDenied = isAuthenticated && meStatus !== 'loading' && !canUseModule;
 
@@ -1163,7 +1555,7 @@ const PortalTenants = () => {
             variant="contained"
             startIcon={<Add />}
             onClick={() => setOnboardOpen(true)}
-            disabled={!canUseModule || (isAdmin && !selectedLandlordId && properties.length === 0)}
+            disabled={!canUseModule}
           >
             {t('portalTenants.actions.onboardTenant')}
           </Button>
@@ -1175,11 +1567,6 @@ const PortalTenants = () => {
         )}
         {accessDenied && (
           <Alert severity="error">{t('portalTenants.errors.accessDenied')}</Alert>
-        )}
-        {actionState.status === 'ok' && (
-          <Alert severity="success" onClose={() => setActionState({ status: 'idle', detail: '' })}>
-            {actionState.detail}
-          </Alert>
         )}
         {actionState.status === 'error' && (
           <Alert severity="error" onClose={() => setActionState({ status: 'idle', detail: '' })}>
@@ -1254,11 +1641,12 @@ const PortalTenants = () => {
               </Button>
             </Stack>
 
-            {tenantsState.status === 'loading' && (
-              <Stack spacing={1}>
-                <Skeleton variant="rounded" height={64} />
-                <Skeleton variant="rounded" height={64} />
-                <Skeleton variant="rounded" height={64} />
+            {tenantsState.status === 'loading' && tenantsState.tenants.length === 0 && (
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', py: 1 }}>
+                <CircularProgress size={18} />
+                <Typography variant="body2" color="text.secondary">
+                  {t('portalTenants.list.loading')}
+                </Typography>
               </Stack>
             )}
             {tenantsState.status === 'error' && (
@@ -1267,14 +1655,17 @@ const PortalTenants = () => {
             {tenantsState.status === 'ok' && tenantsState.tenants.length === 0 && (
               <Typography color="text.secondary">{t('portalTenants.list.empty')}</Typography>
             )}
-            {tenantsState.tenants.map((tenant) => (
+            {tenantsState.tenants.map((tenant, index) => (
               <TenantRow
-                key={tenant.id}
+                key={tenantRowKey(tenant, index)}
                 tenant={tenant}
                 properties={properties}
+                landlords={landlords}
+                isAdmin={isAdmin}
                 onToggleAccess={handleToggleAccess}
                 onDeleteTenant={handleDeleteTenant}
                 onLeaseSaved={loadTenants}
+                onTenantUpdated={handleTenantUpdated}
                 t={t}
               />
             ))}
@@ -1287,8 +1678,13 @@ const PortalTenants = () => {
         onClose={() => setOnboardOpen(false)}
         onSaved={handleOnboarded}
         properties={properties}
+        landlords={landlords}
+        isAdmin={isAdmin}
+        selectedLandlordId={selectedLandlordId}
+        onLandlordChange={setSelectedLandlordId}
         t={t}
       />
+      <PortalFeedbackSnackbar feedback={feedback} onClose={closeFeedback} />
     </Box>
   );
 };

@@ -3,6 +3,7 @@ import { Box, Button, IconButton, Link, MenuItem, Stack, TextField, Tooltip, Typ
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
+import InlineActionStatus from '../InlineActionStatus';
 
 const TenantRequestForm = ({
   tenantForm,
@@ -20,6 +21,8 @@ const TenantRequestForm = ({
   onCreateAttachmentChange,
   onRemoveCreateAttachment,
   disabled,
+  hideHeading = false,
+  framed = true,
 }) => {
   const { t } = useTranslation();
   const mailSubject = encodeURIComponent('Issues creating a maintenance request via carwoods.com');
@@ -28,9 +31,7 @@ const TenantRequestForm = ({
     : '';
   const createStatusMessage = tenantCreateStatus === 'error'
     ? { severity: 'error', text: tenantCreateError || t('portalRequests.errors.saveFailed') }
-    : tenantCreateStatus === 'success'
-      ? { severity: 'success', text: t('portalRequests.create.saved') }
-      : null;
+    : null;
   const lookupsStatusMessage = lookupsStatus === 'loading'
     ? { severity: 'info', text: t('portalRequests.loading') }
     : lookupsStatus === 'error'
@@ -57,17 +58,19 @@ const TenantRequestForm = ({
       component="form"
       onSubmit={onCreateRequest}
       sx={{
-        border: '1px solid',
-        borderColor: 'divider',
-        borderRadius: 2,
-        p: 2.5,
-        backgroundColor: 'background.paper',
+        border: framed ? '1px solid' : 'none',
+        borderColor: framed ? 'divider' : undefined,
+        borderRadius: framed ? 2 : 0,
+        p: framed ? 2.5 : 0,
+        backgroundColor: framed ? 'background.paper' : 'transparent',
       }}
     >
       <Stack spacing={1.5}>
-        <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
-          {t('portalRequests.create.heading')}
-        </Typography>
+        {!hideHeading && (
+          <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
+            {t('portalRequests.create.heading')}
+          </Typography>
+        )}
         <StatusAlertSlot message={lookupsStatusMessage} />
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
           <TextField
@@ -164,8 +167,14 @@ const TenantRequestForm = ({
             <input type="file" hidden multiple onChange={onCreateAttachmentChange} />
           </Button>
         </Stack>
-        <StatusAlertSlot message={createStatusMessage} />
-        <Stack direction="row" justifyContent="flex-end">
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          spacing={1}
+          sx={{ flexWrap: 'wrap', rowGap: 1 }}
+        >
+          <InlineActionStatus message={createStatusMessage} />
           <Button type="submit" variant="contained" disabled={disabled || lookupsUnavailable}>
             {tenantCreateStatus === 'saving'
               ? t('portalRequests.actions.saving')

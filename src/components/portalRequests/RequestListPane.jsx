@@ -6,6 +6,8 @@ import {
   List,
   ListItemButton,
   ListItemText,
+  MenuItem,
+  Select,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
@@ -37,12 +39,30 @@ const RequestListPane = ({
   onSelectRequest,
   onReload,
   reloadDisabled,
+  isAdmin = false,
+  landlords = [],
+  landlordsStatus = 'idle',
+  selectedLandlordId = '',
+  onSelectLandlord,
 }) => {
   const { t } = useTranslation();
   const [statusFilter, setStatusFilter] = useState('all');
-  const filteredRequests = useMemo(() => {
-    if (statusFilter === 'all') return requests;
+  const landlordFilteredRequests = useMemo(() => {
+    if (!isAdmin || !selectedLandlordId) return requests;
     return requests.filter((request) => {
+      const landlordUserId = [
+        request.landlord_user_id,
+        request.landlord_id,
+        request.owner_user_id,
+        request.created_by,
+        request.created_by_user_id,
+      ].find((value) => typeof value === 'string' && value.trim());
+      return String(landlordUserId || '').trim() === selectedLandlordId;
+    });
+  }, [isAdmin, requests, selectedLandlordId]);
+  const filteredRequests = useMemo(() => {
+    if (statusFilter === 'all') return landlordFilteredRequests;
+    return landlordFilteredRequests.filter((request) => {
       const statusCode = String(request.status_code || '').toUpperCase();
       if (statusFilter === 'open') {
         return [RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED, RequestStatus.OPEN].includes(statusCode);
@@ -53,7 +73,7 @@ const RequestListPane = ({
       if (statusFilter === 'resolved') return [RequestStatus.RESOLVED, RequestStatus.CLOSED].includes(statusCode);
       return true;
     });
-  }, [requests, statusFilter]);
+  }, [landlordFilteredRequests, statusFilter]);
   const listStatusMessage = requestsStatus === 'loading'
     ? { severity: 'info', text: t('portalRequests.loading') }
     : requestsStatus === 'error'
@@ -82,6 +102,35 @@ const RequestListPane = ({
         </Button>
       </Stack>
       <StatusAlertSlot message={listStatusMessage} />
+      {isAdmin && (
+        <Stack spacing={1}>
+          <Typography variant="body2" color="text.secondary">
+            {t('portalRequests.list.landlordFilter.label')}
+          </Typography>
+          <Select
+            size="small"
+            value={selectedLandlordId}
+            onChange={(event) => {
+              onSelectLandlord?.(event.target.value);
+            }}
+            displayEmpty
+            disabled={landlordsStatus === 'loading' || landlords.length === 0}
+            sx={{ maxWidth: 320 }}
+          >
+            <MenuItem value="">{t('portalRequests.list.landlordFilter.all')}</MenuItem>
+            {landlords.map((landlord) => {
+              const first = String(landlord.first_name ?? '').trim();
+              const last = String(landlord.last_name ?? '').trim();
+              const name = `${first} ${last}`.trim() || String(landlord.email ?? '').trim();
+              return (
+                <MenuItem key={landlord.id} value={landlord.id}>
+                  {name || t('portalRequests.list.landlordFilter.unknown')}
+                </MenuItem>
+              );
+            })}
+          </Select>
+        </Stack>
+      )}
       <ToggleButtonGroup
         size="small"
         exclusive

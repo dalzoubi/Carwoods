@@ -21,6 +21,9 @@ import { validatePersonBasics, validatePersonField } from '../portalPersonValida
 import { resolveRole, normalizeRole } from '../portalUtils';
 import { fetchLandlords, createLandlord, patchResource } from '../lib/portalApiClient';
 import PortalConfirmDialog from './PortalConfirmDialog';
+import InlineActionStatus from './InlineActionStatus';
+import { usePortalFeedback } from '../hooks/usePortalFeedback';
+import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 
 function displayName(landlord) {
   const first = String(landlord.first_name ?? '').trim();
@@ -49,6 +52,7 @@ const PortalAdminLandlords = () => {
   const [showInactive, setShowInactive] = useState(false);
   const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
   const [landlordsState, setLandlordsState] = useState({ status: 'idle', detail: '', landlords: [] });
+  const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
   // Confirmation dialog for toggle active/inactive
   const [confirmDialog, setConfirmDialog] = useState({ open: false, landlordId: null, activate: false, name: '' });
@@ -96,6 +100,14 @@ const PortalAdminLandlords = () => {
     [form, t]
   );
   const isFormValid = Object.keys(formErrors).length === 0;
+  const submitStatusMessage = submitState.status === 'error'
+    ? { severity: 'error', text: submitState.detail }
+    : null;
+  useEffect(() => {
+    if (submitState.status !== 'ok' || !submitState.detail) return;
+    showFeedback(submitState.detail, 'success');
+    setSubmitState({ status: 'idle', detail: '' });
+  }, [showFeedback, submitState]);
 
   const onToggleActive = async (landlordId, active) => {
     if (!canUseModule || !baseUrl) return;
@@ -284,7 +296,14 @@ const PortalAdminLandlords = () => {
                   helperText={fieldErrors.lastName || ' '}
                   fullWidth
                 />
-                <Stack direction="row" spacing={1.25} sx={{ flexWrap: 'wrap' }}>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  spacing={1.25}
+                  sx={{ flexWrap: 'wrap', rowGap: 1 }}
+                >
+                  <InlineActionStatus message={submitStatusMessage} />
                   <Button
                     type="submit"
                     variant="contained"
@@ -295,8 +314,6 @@ const PortalAdminLandlords = () => {
                       : t('portalAdminLandlords.form.saveLandlord')}
                   </Button>
                 </Stack>
-                {submitState.status === 'error' && <Alert severity="error">{submitState.detail}</Alert>}
-                {submitState.status === 'ok' && <Alert severity="success">{submitState.detail}</Alert>}
               </Stack>
             </Box>
           </Collapse>
@@ -346,7 +363,7 @@ const PortalAdminLandlords = () => {
                 </Button>
               </Stack>
             </Stack>
-            {landlordsState.status === 'loading' && (
+            {landlordsState.status === 'loading' && landlordsState.landlords.length === 0 && (
               <Typography color="text.secondary">{t('portalAdminLandlords.list.loading')}</Typography>
             )}
             {landlordsState.status === 'error' && <Alert severity="error">{landlordsState.detail}</Alert>}
@@ -424,6 +441,7 @@ const PortalAdminLandlords = () => {
         cancelLabel={t('portalAdminLandlords.actions.cancel')}
         confirmColor={confirmDialog.activate ? 'primary' : 'warning'}
       />
+      <PortalFeedbackSnackbar feedback={feedback} onClose={closeFeedback} />
     </Box>
   );
 };

@@ -875,6 +875,33 @@ export async function patchTenantAccess(baseUrl, accessToken, tenantId, payload)
 }
 
 /**
+ * PATCH /api/landlord/tenants/:id  (edit tenant profile)
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} tenantId
+ * @param {{ emailHint?: string, email: string, first_name: string, last_name: string, phone?: string|null, property_id?: string }} payload
+ * @returns {Promise<object>}
+ */
+export async function updateTenant(baseUrl, accessToken, tenantId, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/tenants/${encodeURIComponent(tenantId)}`),
+    {
+      method: 'PATCH',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
  * DELETE /api/landlord/tenants/:id  (remove tenant from landlord's list — disables user)
  *
  * @param {string} baseUrl

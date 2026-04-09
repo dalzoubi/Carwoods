@@ -8,7 +8,6 @@ import {
   Button,
   Paper,
   Skeleton,
-  Snackbar,
   Stack,
   TextField,
   Typography,
@@ -17,6 +16,9 @@ import { usePortalAuth } from '../PortalAuthContext';
 import { emailFromAccount, isGuestRole, resolveRole } from '../portalUtils';
 import { validatePersonBasics, validatePersonField } from '../portalPersonValidation';
 import { patchProfile } from '../lib/portalApiClient';
+import InlineActionStatus from './InlineActionStatus';
+import { usePortalFeedback } from '../hooks/usePortalFeedback';
+import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 
 function validateProfileForm(form, t) {
   return validatePersonBasics(form, t, {
@@ -72,7 +74,10 @@ const PortalProfile = () => {
   const [saveStatus, setSaveStatus] = useState('idle');
   const [saveError, setSaveError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
-  const [snackOpen, setSnackOpen] = useState(false);
+  const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
+  const saveStatusMessage = saveStatus === 'error'
+    ? { severity: 'error', text: saveError || t('portalProfile.errors.unknown') }
+    : null;
 
   const initialForm = useMemo(
     () => ({
@@ -96,6 +101,12 @@ const PortalProfile = () => {
     setForm(initialForm);
     setFieldErrors({});
   }, [initialForm]);
+  useEffect(() => {
+    if (saveStatus === 'success') {
+      showFeedback(t('portalProfile.saved'));
+      setSaveStatus('idle');
+    }
+  }, [saveStatus, showFeedback, t]);
 
   const onChange = (field) => (event) => {
     const value = event.target.value;
@@ -142,7 +153,6 @@ const PortalProfile = () => {
         phone: form.phone,
       });
       setSaveStatus('success');
-      setSnackOpen(true);
       refreshMe();
     } catch (error) {
       handleApiForbidden(error);
@@ -188,7 +198,6 @@ const PortalProfile = () => {
 
         {!isAuthenticated && <Alert severity="warning">{t('portalProfile.errors.signInRequired')}</Alert>}
         {!baseUrl && <Alert severity="warning">{t('portalProfile.errors.apiUnavailable')}</Alert>}
-        {saveStatus === 'error' && <Alert severity="error">{saveError || t('portalProfile.errors.unknown')}</Alert>}
 
         <Paper
           variant="outlined"
@@ -258,7 +267,14 @@ const PortalProfile = () => {
                   helperText={fieldErrors.phone || ' '}
                   disabled={formDisabled}
                 />
-                <Stack direction="row" justifyContent="flex-end">
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  spacing={1}
+                  sx={{ flexWrap: 'wrap', rowGap: 1 }}
+                >
+                  <InlineActionStatus message={saveStatusMessage} />
                   <Button
                     type="submit"
                     variant="contained"
@@ -273,14 +289,7 @@ const PortalProfile = () => {
           </Stack>
         </Paper>
       </Stack>
-
-      <Snackbar
-        open={snackOpen}
-        autoHideDuration={5000}
-        onClose={() => setSnackOpen(false)}
-        message={t('portalProfile.saved')}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      />
+      <PortalFeedbackSnackbar feedback={feedback} onClose={closeFeedback} />
     </Box>
   );
 };

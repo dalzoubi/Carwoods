@@ -93,6 +93,16 @@ export async function findStatusIdByCode(client: Queryable, code: string): Promi
   return r.rows[0]?.id ?? null;
 }
 
+export async function findPriorityIdByCode(client: Queryable, code: string): Promise<string | null> {
+  const r = await client.query<{ id: string }>(
+    `SELECT id
+     FROM request_priorities
+     WHERE UPPER(code) = UPPER($1) AND active = 1`,
+    [code]
+  );
+  return r.rows[0]?.id ?? null;
+}
+
 export async function findSystemDefaultStatusId(client: Queryable): Promise<string | null> {
   const r = await client.query<{ id: string }>(
     `SELECT TOP 1 id
@@ -379,6 +389,7 @@ export async function updateRequestManagementFields(
   requestId: string,
   patch: {
     currentStatusId?: string;
+    priorityId?: string;
     assignedVendorId?: string | null;
     scheduledFor?: Date | null;
     scheduledFrom?: Date | null;
@@ -391,6 +402,7 @@ export async function updateRequestManagementFields(
   const cur = await getRequestById(client, requestId);
   if (!cur) return null;
   const currentStatusId = patch.currentStatusId ?? cur.current_status_id;
+  const priorityId = patch.priorityId ?? cur.priority_id;
   const assignedVendorId =
     patch.assignedVendorId !== undefined ? patch.assignedVendorId : cur.assigned_vendor_id;
   const scheduledFor = patch.scheduledFor !== undefined ? patch.scheduledFor : cur.scheduled_for;
@@ -406,13 +418,14 @@ export async function updateRequestManagementFields(
   const r = await client.query<RequestRow>(
     `UPDATE maintenance_requests
        SET current_status_id = $2,
-           assigned_vendor_id = $3,
-           scheduled_for = $4,
-           scheduled_from = $5,
-           scheduled_to = $6,
-           vendor_contact_name = $7,
-           vendor_contact_phone = $8,
-           internal_notes = $9,
+           priority_id = $3,
+           assigned_vendor_id = $4,
+           scheduled_for = $5,
+           scheduled_from = $6,
+           scheduled_to = $7,
+           vendor_contact_name = $8,
+           vendor_contact_phone = $9,
+           internal_notes = $10,
            updated_at = SYSDATETIMEOFFSET()
      OUTPUT INSERTED.id, INSERTED.property_id, INSERTED.lease_id, INSERTED.submitted_by_user_id,
             INSERTED.assigned_vendor_id, INSERTED.category_id, NULL AS category_code, NULL AS category_name,
@@ -427,7 +440,18 @@ export async function updateRequestManagementFields(
             INSERTED.created_at, INSERTED.updated_at, INSERTED.completed_at, INSERTED.closed_at,
             INSERTED.deleted_at
      WHERE id = $1 AND deleted_at IS NULL`,
-    [requestId, currentStatusId, assignedVendorId, scheduledFor, scheduledFrom, scheduledTo, vendorContactName, vendorContactPhone, internalNotes]
+    [
+      requestId,
+      currentStatusId,
+      priorityId,
+      assignedVendorId,
+      scheduledFor,
+      scheduledFrom,
+      scheduledTo,
+      vendorContactName,
+      vendorContactPhone,
+      internalNotes,
+    ]
   );
   return r.rows[0] ?? null;
 }

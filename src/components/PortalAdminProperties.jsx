@@ -20,7 +20,6 @@ import {
   InputAdornment,
   MenuItem,
   Paper,
-  Snackbar,
   Stack,
   Switch,
   TextField,
@@ -39,6 +38,8 @@ import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { normalizeRole, resolveRole } from '../portalUtils';
 import { Role } from '../domain/constants.js';
+import { usePortalFeedback } from '../hooks/usePortalFeedback';
+import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 import {
   listPropertiesApi,
   createPropertyApi,
@@ -294,7 +295,6 @@ const PortalAdminProperties = () => {
 
   const [submitStatus, setSubmitStatus] = useState('idle'); // idle | saving | error
   const [submitError, setSubmitError] = useState('');
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [landlords, setLandlords] = useState([]);
   const [landlordsStatus, setLandlordsStatus] = useState('idle'); // idle | loading | ok | error
 
@@ -308,6 +308,7 @@ const PortalAdminProperties = () => {
   const [elsaPropertyPolicyById, setElsaPropertyPolicyById] = useState({});
   const [elsaPolicyTargetId, setElsaPolicyTargetId] = useState('');
   const fileInputRef = useRef(null);
+  const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
   const getAccessTokenRef = useRef(getAccessToken);
   useEffect(() => { getAccessTokenRef.current = getAccessToken; });
@@ -384,10 +385,6 @@ const PortalAdminProperties = () => {
     };
   }, [isAuthenticated, baseUrl, isAdmin, getAccessToken]);
 
-  const showSnack = (message, severity = 'success') => {
-    setSnackbar({ open: true, message, severity });
-  };
-
   const resetForm = () => {
     setForm({
       ...EMPTY_FORM,
@@ -438,12 +435,12 @@ const PortalAdminProperties = () => {
       await deletePropertyApi(baseUrl, token, deleteTarget.id);
       setDeleteTarget(null);
       setDeleteStatus('idle');
-      showSnack(t('portalAdminProperties.messages.deleted'), 'info');
+      showFeedback(t('portalAdminProperties.messages.deleted'), 'info');
       void refresh();
     } catch (err) {
       const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
       setDeleteStatus('error');
-      showSnack(t('portalAdminProperties.errors.deleteFailed', { error: msg }), 'error');
+      showFeedback(t('portalAdminProperties.errors.deleteFailed', { error: msg }), 'error');
     }
   };
 
@@ -455,12 +452,12 @@ const PortalAdminProperties = () => {
       await restorePropertyApi(baseUrl, token, restoreTarget.id);
       setRestoreTarget(null);
       setRestoreStatus('idle');
-      showSnack(t('portalAdminProperties.messages.restored'));
+      showFeedback(t('portalAdminProperties.messages.restored'));
       void refresh();
     } catch (err) {
       const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
       setRestoreStatus('error');
-      showSnack(t('portalAdminProperties.errors.restoreFailed', { error: msg }), 'error');
+      showFeedback(t('portalAdminProperties.errors.restoreFailed', { error: msg }), 'error');
     }
   };
 
@@ -474,12 +471,12 @@ const PortalAdminProperties = () => {
       });
       setVisibleToggleTarget(null);
       setVisibleToggleStatus('idle');
-      showSnack(t('portalAdminProperties.messages.visibilityUpdated'));
+      showFeedback(t('portalAdminProperties.messages.visibilityUpdated'));
       void refresh();
     } catch (err) {
       const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
       setVisibleToggleStatus('error');
-      showSnack(t('portalAdminProperties.errors.visibilityFailed', { error: msg }), 'error');
+      showFeedback(t('portalAdminProperties.errors.visibilityFailed', { error: msg }), 'error');
     }
   };
 
@@ -489,11 +486,11 @@ const PortalAdminProperties = () => {
     try {
       const token = await getAccessToken();
       await patchPropertyApi(baseUrl, token, property.id, { refresh_har: true });
-      showSnack(t('portalAdminProperties.messages.harSynced'));
+      showFeedback(t('portalAdminProperties.messages.harSynced'));
       void refresh();
     } catch (err) {
       const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
-      showSnack(t('portalAdminProperties.errors.syncHarFailed', { error: msg }), 'error');
+      showFeedback(t('portalAdminProperties.errors.syncHarFailed', { error: msg }), 'error');
     } finally {
       setSyncHarTargetId('');
     }
@@ -511,10 +508,10 @@ const PortalAdminProperties = () => {
         require_review_all: false,
       });
       setElsaPropertyPolicyById((prev) => ({ ...prev, [property.id]: !current }));
-      showSnack(t('portalAdminProperties.messages.elsaPolicyUpdated'));
+      showFeedback(t('portalAdminProperties.messages.elsaPolicyUpdated'));
     } catch (err) {
       const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
-      showSnack(t('portalAdminProperties.errors.elsaPolicyFailed', { error: msg }), 'error');
+      showFeedback(t('portalAdminProperties.errors.elsaPolicyFailed', { error: msg }), 'error');
     } finally {
       setElsaPolicyTargetId('');
     }
@@ -616,10 +613,10 @@ const PortalAdminProperties = () => {
       const token = await getAccessToken();
       if (editingId) {
         await updatePropertyApi(baseUrl, token, editingId, record);
-        showSnack(t('portalAdminProperties.messages.updated'));
+        showFeedback(t('portalAdminProperties.messages.updated'));
       } else {
         await createPropertyApi(baseUrl, token, record);
-        showSnack(t('portalAdminProperties.messages.added'));
+        showFeedback(t('portalAdminProperties.messages.added'));
       }
       resetForm();
       void refresh();
@@ -740,7 +737,7 @@ const PortalAdminProperties = () => {
             </Button>
           </Stack>
 
-          {listLoading ? (
+          {listLoading && properties.length === 0 ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               <CircularProgress size={20} />
               <Typography variant="body2" color="text.secondary">
@@ -1171,20 +1168,7 @@ const PortalAdminProperties = () => {
         </DialogActions>
       </Dialog>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={5000}
-        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          severity={snackbar.severity}
-          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-          variant="filled"
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      <PortalFeedbackSnackbar feedback={feedback} onClose={closeFeedback} />
     </Box>
   );
 };

@@ -15,6 +15,7 @@ import { getTenant } from '../useCases/tenants/getTenant.js';
 import { onboardTenant } from '../useCases/tenants/onboardTenant.js';
 import { setTenantActive } from '../useCases/tenants/setTenantActive.js';
 import { addTenantLease } from '../useCases/tenants/addTenantLease.js';
+import { updateTenant } from '../useCases/tenants/updateTenant.js';
 
 // ---------------------------------------------------------------------------
 // Parsing helpers
@@ -191,7 +192,7 @@ async function landlordTenantsItem(
     }
   }
 
-  // ------- PATCH: enable/disable tenant access -------
+  // ------- PATCH: enable/disable tenant access OR edit tenant profile -------
   if (request.method === 'PATCH') {
     let body: unknown;
     try {
@@ -205,30 +206,65 @@ async function landlordTenantsItem(
       return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
     }
     const b = asRecord(body);
-    if (typeof b.active !== 'boolean') {
-      logWarn(context, 'tenants.item.patch.missing_active', { actorUserId: ctx.user.id, tenantId });
-      return jsonResponse(400, ctx.headers, { error: 'missing_active' });
+
+    // Access toggle flow
+    if (typeof b.active === 'boolean') {
+      try {
+        const result = await setTenantActive(getPool(), {
+          actorUserId: ctx.user.id,
+          actorRole: ctx.role,
+          tenantId,
+          active: b.active,
+        });
+        logInfo(context, 'tenants.item.patch.success', {
+          actorUserId: ctx.user.id,
+          tenantId,
+          active: b.active,
+        });
+        return jsonResponse(200, ctx.headers, { tenant: result.tenant });
+      } catch (e) {
+        const mapped = mapDomainError(e, ctx.headers);
+        if (mapped) {
+          logWarn(context, 'tenants.item.patch.not_found', { actorUserId: ctx.user.id, tenantId });
+          return mapped;
+        }
+        logError(context, 'tenants.item.patch.error', {
+          actorUserId: ctx.user.id,
+          tenantId,
+          message: e instanceof Error ? e.message : 'unknown_error',
+        });
+        throw e;
+      }
     }
+
+    // Profile update flow
     try {
-      const result = await setTenantActive(getPool(), {
+      const result = await updateTenant(getPool(), {
         actorUserId: ctx.user.id,
         actorRole: ctx.role,
         tenantId,
-        active: b.active,
+        email: str(b.email),
+        firstName: strNullable(b.first_name),
+        lastName: strNullable(b.last_name),
+        phone: strNullable(b.phone),
+        propertyId: str(b.property_id),
       });
-      logInfo(context, 'tenants.item.patch.success', {
+      logInfo(context, 'tenants.item.patch.update_profile.success', {
         actorUserId: ctx.user.id,
         tenantId,
-        active: b.active,
       });
       return jsonResponse(200, ctx.headers, { tenant: result.tenant });
     } catch (e) {
       const mapped = mapDomainError(e, ctx.headers);
       if (mapped) {
-        logWarn(context, 'tenants.item.patch.not_found', { actorUserId: ctx.user.id, tenantId });
+        logWarn(context, 'tenants.item.patch.update_profile.failed', {
+          actorUserId: ctx.user.id,
+          tenantId,
+          reason: e instanceof Error ? e.message : 'unknown',
+        });
         return mapped;
       }
-      logError(context, 'tenants.item.patch.error', {
+      logError(context, 'tenants.item.patch.update_profile.error', {
         actorUserId: ctx.user.id,
         tenantId,
         message: e instanceof Error ? e.message : 'unknown_error',

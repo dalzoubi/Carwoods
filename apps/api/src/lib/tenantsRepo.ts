@@ -40,6 +40,14 @@ export type TenantLeaseRow = {
   updated_at: Date;
 };
 
+export type ActiveTenantLeaseRow = {
+  id: string;
+  property_id: string;
+  start_date: string;
+  end_date: string | null;
+  month_to_month: boolean;
+};
+
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
 
 function normalizeEmail(email: string): string {
@@ -261,6 +269,85 @@ export async function setTenantStatus(
     [tenantId, nextStatus]
   );
   return r.rows[0] ?? null;
+}
+
+/**
+ * Updates editable tenant profile fields.
+ * Only updates users with role = TENANT.
+ */
+export async function updateTenantProfile(
+  client: Queryable,
+  tenantId: string,
+  profile: {
+    email: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    phone?: string | null;
+  }
+): Promise<TenantRow | null> {
+  const normalizedEmail = normalizeEmail(profile.email);
+  const firstName = normalizeNamePart(profile.firstName);
+  const lastName = normalizeNamePart(profile.lastName);
+  const phone = normalizePhone(profile.phone);
+  const r = await client.query<TenantRow>(
+    `UPDATE users
+        SET email = $2,
+            first_name = $3,
+            last_name = $4,
+            phone = $5,
+            updated_at = GETUTCDATE()
+      OUTPUT INSERTED.id, INSERTED.email, INSERTED.first_name, INSERTED.last_name,
+             INSERTED.phone, INSERTED.role, INSERTED.status
+      WHERE id = $1
+        AND role = '${Role.TENANT}'`,
+    [tenantId, normalizedEmail, firstName, lastName, phone]
+  );
+  return r.rows[0] ?? null;
+}
+
+/**
+ * Returns the tenant's currently active lease, if any.
+ */
+export async function getActiveLeaseForTenant(
+  client: Queryable,
+  tenantId: string
+): Promise<ActiveTenantLeaseRow | null> {
+  const r = await client.query<ActiveTenantLeaseRow>(
+    `SELECT TOP 1 l.id, l.property_id, l.start_date, l.end_date, l.month_to_month
+     FROM leases l
+     JOIN lease_tenants lt ON lt.lease_id = l.id
+     WHERE lt.user_id = $1
+       AND l.deleted_at IS NULL
+       AND (
+         l.month_to_month = 1
+         OR l.end_date IS NULL
+         OR l.end_date >= CAST(GETUTCDATE() AS DATE)
+       )
+     ORDER BY l.start_date DESC, l.created_at DESC`,
+    [tenantId]
+  );
+  return r.rows[0] ?? null;
+}
+
+/**
+ * Reassigns a lease to a different property.
+ */
+export async function setLeaseProperty(
+  client: Queryable,
+  leaseId: string,
+  propertyId: string,
+  actorUserId: string
+): Promise<boolean> {
+  const r = await client.query(
+    `UPDATE leases
+        SET property_id = $2,
+            updated_by = $3,
+            updated_at = GETUTCDATE()
+      WHERE id = $1
+        AND deleted_at IS NULL`,
+    [leaseId, propertyId, actorUserId]
+  );
+  return (r.rowCount ?? 0) > 0;
 }
 
 /**

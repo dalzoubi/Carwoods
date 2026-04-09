@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { vi } from 'vitest';
 import i18n from '../../i18n';
 import { WithAppTheme } from '../../testUtils';
 import RequestDetailPane from './RequestDetailPane';
@@ -31,6 +32,7 @@ function makeProps(overrides = {}) {
     isAdmin: true,
     managementForm: {
       status_code: '',
+      priority_code: '',
       scheduled_from: '',
       scheduled_to: '',
       assigned_vendor_id: '',
@@ -39,6 +41,10 @@ function makeProps(overrides = {}) {
       internal_notes: '',
     },
     managementStatusOptions: ['OPEN', 'IN_PROGRESS'],
+    managementPriorityOptions: [
+      { code: 'routine', name: 'Routine' },
+      { code: 'urgent', name: 'Urgent' },
+    ],
     onManagementField: () => () => {},
     onUpdateRequest: (event) => event?.preventDefault?.(),
     managementUpdateStatus: 'idle',
@@ -139,5 +145,83 @@ describe('RequestDetailPane', () => {
     );
 
     expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
+  });
+
+  it('copies blocked AI message into compose form and asks for dismiss confirmation', () => {
+    const setMessageForm = vi.fn();
+    const props = makeProps({
+      setMessageForm,
+      elsaDecisions: [
+        {
+          id: 'decision-blocked-1',
+          policy_decision: 'BLOCK_AND_ALERT_ADMIN',
+          mode: 'EMERGENCY_ESCALATION',
+          confidence: 0.91,
+          normalized_tenant_reply: 'Please leave the area and call the gas utility immediately.',
+          internal_summary: 'Potential gas outage and safety risk.',
+          recommended_next_action: 'Contact gas utility and dispatch emergency vendor.',
+          reviewed_at: null,
+        },
+      ],
+    });
+
+    render(
+      <WithAppTheme>
+        <RequestDetailPane {...props} />
+      </WithAppTheme>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Use in message box' }));
+
+    expect(setMessageForm).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('heading', { name: 'Suggested message copied' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Dismiss suggestion' })).toBeInTheDocument();
+  });
+
+  it('dismisses AI suggestion from post-copy confirmation', () => {
+    const onReviewElsaDecision = vi.fn();
+    const props = makeProps({
+      onReviewElsaDecision,
+      elsaDecisions: [
+        {
+          id: 'decision-hold-1',
+          policy_decision: 'HOLD_FOR_REVIEW',
+          mode: 'NEED_MORE_INFO',
+          confidence: 0.88,
+          normalized_tenant_reply: 'Please share a photo of the issue.',
+          internal_summary: 'Need visual confirmation.',
+          recommended_next_action: 'Collect photo before dispatching.',
+          reviewed_at: null,
+        },
+      ],
+    });
+
+    render(
+      <WithAppTheme>
+        <RequestDetailPane {...props} />
+      </WithAppTheme>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Use in message box' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss suggestion' }));
+
+    expect(onReviewElsaDecision).toHaveBeenCalledWith('decision-hold-1', 'DISMISS');
+  });
+
+  it('opens update dialog from request card and submits management form', () => {
+    const onUpdateRequest = vi.fn((event) => event?.preventDefault?.());
+    const props = makeProps({ onUpdateRequest });
+
+    render(
+      <WithAppTheme>
+        <RequestDetailPane {...props} />
+      </WithAppTheme>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Update request' }));
+    expect(screen.getByRole('heading', { name: 'Update request' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save updates' }));
+    expect(onUpdateRequest).toHaveBeenCalledTimes(1);
   });
 });

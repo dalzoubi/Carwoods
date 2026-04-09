@@ -795,9 +795,8 @@
     "actions": {
       "reload": "Recharger les demandes",
       "newRequest": "Nouvelle demande",
-      "hideCreate": "Annuler",
       "create": "Soumettre la demande",
-      "create": "Creer la demande",
+      "updateRequest": "Mettre a jour la demande",
       "saveChanges": "Enregistrer les modifications",
       "sendMessage": "Envoyer le message",
       "chooseFile": "Choisir un fichier",
@@ -807,6 +806,7 @@
       "exportCsv": "Exporter CSV",
       "exportingCsv": "Export en cours…",
       "cancelRequest": "Annuler la demande",
+      "close": "Fermer",
       "saving": "Enregistrement…"
     },
     "errors": {
@@ -828,6 +828,11 @@
       "heading": "Liste des demandes",
       "empty": "Aucune demande trouvee pour ce compte.",
       "selectPrompt": "Sélectionnez une demande pour voir les détails.",
+      "landlordFilter": {
+        "label": "Filtrer par propriétaire",
+        "all": "Tous les propriétaires",
+        "unknown": "Propriétaire inconnu"
+      },
       "filters": {
         "all": "Toutes",
         "open": "Ouvertes",
@@ -857,9 +862,12 @@
     },
     "management": {
       "heading": "Mises a jour de gestion",
+      "dialogTitle": "Mettre a jour la demande",
       "statusCode": "Code statut",
       "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, OPEN, SCHEDULED, IN_PROGRESS, CANCELLED, RESOLVED, CLOSED",
       "selectStatusCode": "Sélectionner un statut",
+      "priorityCode": "Priorite",
+      "selectPriorityCode": "Selectionner une priorite",
       "scheduledFor": "Date et heure prévues",
       "scheduledFrom": "Date et heure prévues de début",
       "scheduledTo": "Date et heure prévues de fin",
@@ -946,9 +954,16 @@
       "reviewedBadge": "Revisee : {{status}}",
       "resolved": "Resolue",
       "actions": {
+        "copyToMessage": "Utiliser dans la zone de message",
         "sendAndResolve": "Envoyer le brouillon et resoudre",
         "markResolved": "Marquer comme resolue",
         "dismiss": "Ignorer"
+      },
+      "copyDialog": {
+        "title": "Message suggere copie",
+        "body": "Le message suggere par l'IA a ete copie dans la zone de message. Voulez-vous ignorer cette suggestion maintenant ?",
+        "keepOpen": "Conserver la suggestion",
+        "dismissNow": "Ignorer la suggestion"
       },
       "badges": {
         "autoSent": "Envoye automatiquement",
@@ -1362,6 +1377,7 @@
     },
     "list": {
       "heading": "Liste des locataires",
+      "loading": "Chargement des locataires…",
       "empty": "Aucun locataire trouvé. Utilisez le bouton Intégrer un locataire pour commencer."
     },
     "status": {
@@ -1379,6 +1395,7 @@
       "firstName": "Prénom",
       "lastName": "Nom de famille",
       "phone": "Téléphone (facultatif)",
+      "selectLandlord": "Sélectionner un propriétaire",
       "selectProperty": "Sélectionner une propriété",
       "startDate": "Date de début du bail",
       "endDate": "Date de fin du bail",
@@ -1399,8 +1416,13 @@
       "title": "Modifier le bail",
       "save": "Enregistrer les modifications"
     },
+    "editTenantDialog": {
+      "title": "Modifier le locataire",
+      "save": "Enregistrer le locataire"
+    },
     "actions": {
       "onboardTenant": "Intégrer un locataire",
+      "editTenant": "Modifier le locataire",
       "disable": "Désactiver l'accès",
       "enable": "Activer l'accès",
       "deleteTenant": "Supprimer le locataire",
@@ -1430,6 +1452,7 @@
     },
     "messages": {
       "tenantOnboarded": "Locataire intégré avec succès.",
+      "tenantUpdated": "Locataire mis à jour avec succès.",
       "tenantEnabled": "Accès du locataire activé.",
       "tenantDisabled": "Accès du locataire désactivé.",
       "tenantDeleted": "Locataire supprimé avec succès.",
@@ -1443,8 +1466,14 @@
       "loadFailed": "Impossible de charger les locataires.",
       "loadLeasesFailed": "Impossible de charger les baux.",
       "emailInvalid": "Saisissez une adresse e-mail valide.",
+      "emailAlreadyInUse": "Cet e-mail est déjà utilisé par un autre compte.",
+      "emailBelongsToAdmin": "Cet e-mail appartient à un compte administrateur et ne peut pas être utilisé pour un locataire.",
+      "emailBelongsToLandlord": "Cet e-mail appartient à un compte propriétaire et ne peut pas être utilisé pour un locataire.",
       "firstNameRequired": "Le prénom est obligatoire.",
       "lastNameRequired": "Le nom de famille est obligatoire.",
+      "phoneInvalid": "Saisissez un numéro de téléphone valide.",
+      "activeLeaseRequiredForReassign": "Ce locataire doit avoir un bail actif avant de pouvoir changer de propriétaire.",
+      "landlordRequired": "Veuillez sélectionner un propriétaire.",
       "propertyRequired": "Veuillez sélectionner une propriété.",
       "startDateRequired": "La date de début du bail est obligatoire.",
       "endDateBeforeStart": "La date de fin doit être postérieure à la date de début."

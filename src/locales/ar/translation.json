@@ -795,9 +795,8 @@
     "actions": {
       "reload": "إعادة تحميل الطلبات",
       "newRequest": "طلب جديد",
-      "hideCreate": "إلغاء",
       "create": "إرسال الطلب",
-      "create": "إنشاء طلب",
+      "updateRequest": "تحديث الطلب",
       "saveChanges": "حفظ التحديثات",
       "sendMessage": "إرسال رسالة",
       "chooseFile": "اختيار ملف",
@@ -807,6 +806,7 @@
       "exportCsv": "تصدير CSV",
       "exportingCsv": "جارٍ التصدير…",
       "cancelRequest": "إلغاء الطلب",
+      "close": "إغلاق",
       "saving": "جارٍ الحفظ…"
     },
     "errors": {
@@ -828,6 +828,11 @@
       "heading": "قائمة الطلبات",
       "empty": "لا توجد طلبات لهذا الحساب.",
       "selectPrompt": "اختر طلبًا لعرض التفاصيل.",
+      "landlordFilter": {
+        "label": "التصفية حسب المالك",
+        "all": "كل الملاك",
+        "unknown": "مالك غير معروف"
+      },
       "filters": {
         "all": "الكل",
         "open": "مفتوحة",
@@ -857,9 +862,12 @@
     },
     "management": {
       "heading": "تحديثات الإدارة",
+      "dialogTitle": "تحديث الطلب",
       "statusCode": "رمز الحالة",
       "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, OPEN, SCHEDULED, IN_PROGRESS, CANCELLED, RESOLVED, CLOSED",
       "selectStatusCode": "اختر الحالة",
+      "priorityCode": "الأولوية",
+      "selectPriorityCode": "اختر الأولوية",
       "scheduledFor": "التاريخ والوقت المتوقعان",
       "scheduledFrom": "تاريخ ووقت البداية المتوقعان",
       "scheduledTo": "تاريخ ووقت النهاية المتوقعان",
@@ -946,9 +954,16 @@
       "reviewedBadge": "تمت المراجعة: {{status}}",
       "resolved": "تم الحل",
       "actions": {
+        "copyToMessage": "استخدام في مربع الرسالة",
         "sendAndResolve": "إرسال المسودة وحلّها",
         "markResolved": "تحديد كمحلولة",
         "dismiss": "تجاهل"
+      },
+      "copyDialog": {
+        "title": "تم نسخ الرسالة المقترحة",
+        "body": "تم نسخ الرسالة المقترحة من الذكاء الاصطناعي إلى مربع الرسالة. هل تريد تجاهل هذا الاقتراح الآن؟",
+        "keepOpen": "الاحتفاظ بالاقتراح",
+        "dismissNow": "تجاهل الاقتراح"
       },
       "badges": {
         "autoSent": "تم الإرسال تلقائيًا",
@@ -1362,6 +1377,7 @@
     },
     "list": {
       "heading": "قائمة المستأجرين",
+      "loading": "جارٍ تحميل المستأجرين…",
       "empty": "لم يُعثَر على مستأجرين. استخدم زر تأهيل مستأجر للبدء."
     },
     "status": {
@@ -1379,6 +1395,7 @@
       "firstName": "الاسم الأول",
       "lastName": "اسم العائلة",
       "phone": "الهاتف (اختياري)",
+      "selectLandlord": "اختر مالكاً",
       "selectProperty": "اختر عقاراً",
       "startDate": "تاريخ بدء عقد الإيجار",
       "endDate": "تاريخ انتهاء عقد الإيجار",
@@ -1399,8 +1416,13 @@
       "title": "تعديل عقد الإيجار",
       "save": "حفظ التغييرات"
     },
+    "editTenantDialog": {
+      "title": "تعديل المستأجر",
+      "save": "حفظ المستأجر"
+    },
     "actions": {
       "onboardTenant": "تأهيل مستأجر",
+      "editTenant": "تعديل المستأجر",
       "disable": "تعطيل الوصول",
       "enable": "تفعيل الوصول",
       "deleteTenant": "حذف المستأجر",
@@ -1430,6 +1452,7 @@
     },
     "messages": {
       "tenantOnboarded": "تم تأهيل المستأجر بنجاح.",
+      "tenantUpdated": "تم تحديث المستأجر بنجاح.",
       "tenantEnabled": "تم تفعيل وصول المستأجر.",
       "tenantDisabled": "تم تعطيل وصول المستأجر.",
       "tenantDeleted": "تمت إزالة المستأجر بنجاح.",
@@ -1443,8 +1466,14 @@
       "loadFailed": "تعذَّر تحميل المستأجرين.",
       "loadLeasesFailed": "تعذَّر تحميل عقود الإيجار.",
       "emailInvalid": "أدخِل عنوان بريد إلكتروني صحيحاً.",
+      "emailAlreadyInUse": "هذا البريد الإلكتروني مستخدم بالفعل بواسطة حساب آخر.",
+      "emailBelongsToAdmin": "هذا البريد الإلكتروني يخص حساب مسؤول ولا يمكن استخدامه لمستأجر.",
+      "emailBelongsToLandlord": "هذا البريد الإلكتروني يخص حساب مالك ولا يمكن استخدامه لمستأجر.",
       "firstNameRequired": "الاسم الأول مطلوب.",
       "lastNameRequired": "اسم العائلة مطلوب.",
+      "phoneInvalid": "أدخِل رقم هاتف صحيحاً.",
+      "activeLeaseRequiredForReassign": "يجب أن يكون لدى هذا المستأجر عقد إيجار نشط قبل تغيير المالك.",
+      "landlordRequired": "يرجى اختيار مالك.",
       "propertyRequired": "يُرجى اختيار عقار.",
       "startDateRequired": "تاريخ بدء عقد الإيجار مطلوب.",
       "endDateBeforeStart": "يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء."
