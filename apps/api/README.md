@@ -36,7 +36,6 @@ Endpoints (local default port **7071**):
 | POST, OPTIONS | `/api/landlord/leases/{leaseId}/tenants` | Landlord or Admin (onboarded email role); body `{ "userId": "<uuid>" }` links an existing `users` row |
 | GET, OPTIONS | `/api/landlord/requests` | Landlord/admin request listing |
 | GET, PATCH, OPTIONS | `/api/landlord/requests/{id}` | Landlord/admin request detail + status/vendor/internal notes updates |
-| POST, OPTIONS | `/api/landlord/requests/{id}/suggest-reply` | Backend-only reply suggestion + `ai_suggestion_log` metadata |
 | GET, OPTIONS | `/api/landlord/exports/requests.csv` | Landlord/admin CSV export |
 | GET, POST, OPTIONS | `/api/portal/admin/landlords` | Admin-only landlord onboarding + listing (active by default) |
 | PATCH, OPTIONS | `/api/portal/admin/landlords/{id}` | Admin-only landlord deactivate/reactivate |

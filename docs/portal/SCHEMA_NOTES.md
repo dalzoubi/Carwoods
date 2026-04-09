@@ -12,7 +12,6 @@ Source of truth: [`infra/db/migrations/001_initial_portal.sql`](../../infra/db/m
 | `request_status_history` | Timeline fidelity for status changes (separate from free-text messages) |
 | `notification_outbox` | Reliable dispatch + idempotency key |
 | `notification_deliveries` | Per-recipient send log / failures |
-| `ai_suggestion_log` | Gemini usage observability (no secrets) |
 
 ## Indexes (summary)
 
@@ -27,3 +26,7 @@ Source of truth: [`infra/db/migrations/001_initial_portal.sql`](../../infra/db/m
 ## Retention
 
 Application policy: **5-year retention**; use soft delete and avoid hard deletes of tenant/request history except where legally required.
+
+## Historical notes
+
+- `ai_suggestion_log` was retired in `infra/db/migrations/012_drop_ai_suggestion_log.sql` after the legacy suggest-reply flow was removed.
