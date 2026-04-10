@@ -23,6 +23,7 @@ import HomeWork from '@mui/icons-material/HomeWork';
 import ArrowForward from '@mui/icons-material/ArrowForward';
 import Refresh from '@mui/icons-material/Refresh';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { alpha } from '@mui/material/styles';
 import { usePortalAuth } from '../PortalAuthContext';
 import { hasLandlordAccess } from '../domain/roleUtils.js';
 import { isGuestRole, normalizeRole, resolveRole, emailFromAccount } from '../portalUtils';
@@ -57,6 +58,84 @@ export function countByStatus(requests) {
     else if ([RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED].includes(s)) open++;
   }
   return { open, inProgress, resolved };
+}
+
+function roleLabel(roleValue, t) {
+  const role = normalizeRole(roleValue);
+  if (role === Role.ADMIN) return t('portalHeader.roles.admin');
+  if (role === Role.LANDLORD) return t('portalHeader.roles.landlord');
+  if (role === Role.TENANT) return t('portalHeader.roles.tenant');
+  return t('portalHeader.roles.unknown');
+}
+
+function toPriorityCode(priorityCode, priorityName) {
+  const fromCode = String(priorityCode ?? '').trim().toUpperCase();
+  if (fromCode) return fromCode;
+  const fromName = String(priorityName ?? '').trim().toUpperCase().replace(/\s+/g, '_');
+  return fromName;
+}
+
+function priorityLabel(req) {
+  return req.priority_name || req.priority_code || '-';
+}
+
+function requesterName(req, t) {
+  const candidates = [
+    req.submitted_by_display_name,
+    req.requester_name,
+    req.reported_by_name,
+    req.tenant_name,
+    req.created_by_name,
+  ];
+  for (const candidate of candidates) {
+    const value = String(candidate ?? '').trim();
+    if (value) return value;
+  }
+  return t('portalRequests.messages.senderUnknown');
+}
+
+function updatedAtMs(req) {
+  const raw = req?.updated_at || req?.updatedAt || req?.modified_at || req?.modifiedAt;
+  const ms = raw ? new Date(raw).getTime() : 0;
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+function formatUpdatedAt(req) {
+  const raw = req?.updated_at || req?.updatedAt || req?.modified_at || req?.modifiedAt;
+  if (!raw) return '-';
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return String(raw);
+  return date.toLocaleString();
+}
+
+export function priorityTone(req) {
+  const code = toPriorityCode(req?.priority_code, req?.priority_name);
+  if (code === 'EMERGENCY') {
+    return {
+      chipColor: 'error',
+      borderColor: 'error.main',
+      bgColor: (theme) => alpha(theme.palette.error.main, 0.08),
+    };
+  }
+  if (code === 'URGENT') {
+    return {
+      chipColor: 'warning',
+      borderColor: 'warning.main',
+      bgColor: (theme) => alpha(theme.palette.warning.main, 0.08),
+    };
+  }
+  if (code === 'ROUTINE') {
+    return {
+      chipColor: 'info',
+      borderColor: 'info.main',
+      bgColor: (theme) => alpha(theme.palette.info.main, 0.06),
+    };
+  }
+  return {
+    chipColor: 'default',
+    borderColor: 'divider',
+    bgColor: 'transparent',
+  };
 }
 
 const StatCard = ({ label, value, loading }) => (
@@ -130,7 +209,9 @@ const PortalDashboard = () => {
   }, [isAuthenticated, meStatus, isGuest, loadRequests]);
 
   const stats = countByStatus(requests);
-  const recentRequests = requests.slice(0, 5);
+  const recentRequests = [...requests]
+    .sort((a, b) => updatedAtMs(b) - updatedAtMs(a))
+    .slice(0, 5);
   const showDashboard = isAuthenticated && meStatus === 'ok' && !isGuest;
 
   return (
@@ -302,42 +383,80 @@ const PortalDashboard = () => {
 
               {reqStatus !== 'loading' && recentRequests.length > 0 && (
                 <Stack spacing={1}>
-                  {recentRequests.map((req) => (
-                    <Card
-                      key={req.id}
-                      variant="outlined"
-                      sx={{
-                        cursor: 'pointer',
-                        '&:hover': { borderColor: 'primary.main' },
-                        transition: 'border-color 0.2s',
-                      }}
-                      component={RouterLink}
-                      to={withDarkPath(
-                        pathname,
-                        `/portal/requests?id=${encodeURIComponent(req.id)}`
-                      )}
-                      style={{ textDecoration: 'none', color: 'inherit' }}
-                    >
-                      <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                        <Stack
-                          direction="row"
-                          justifyContent="space-between"
-                          alignItems="center"
-                          sx={{ flexWrap: 'wrap', gap: 1 }}
-                        >
-                          <Typography variant="body2" fontWeight={600} noWrap sx={{ flex: 1, minWidth: 0 }}>
-                            {req.title || t('portalDashboard.recentRequests.noTitle')}
+                  {recentRequests.map((req) => {
+                    const tone = priorityTone(req);
+                    const submitterRoleLabel = roleLabel(req.submitted_by_role, t);
+                    return (
+                      <Card
+                        key={req.id}
+                        variant="outlined"
+                        sx={{
+                          cursor: 'pointer',
+                          borderInlineStartWidth: 4,
+                          borderInlineStartStyle: 'solid',
+                          borderInlineStartColor: tone.borderColor,
+                          bgcolor: tone.bgColor,
+                          '&:hover': { borderColor: 'primary.main' },
+                          transition: 'border-color 0.2s, background-color 0.2s',
+                        }}
+                        component={RouterLink}
+                        to={withDarkPath(
+                          pathname,
+                          `/portal/requests?id=${encodeURIComponent(req.id)}`
+                        )}
+                        style={{ textDecoration: 'none', color: 'inherit' }}
+                      >
+                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                          <Stack
+                            direction="row"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            sx={{ flexWrap: 'wrap', gap: 1 }}
+                          >
+                            <Typography variant="body2" fontWeight={600} noWrap sx={{ flex: 1, minWidth: 0 }}>
+                              {req.title || t('portalDashboard.recentRequests.noTitle')}
+                            </Typography>
+                            <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap' }}>
+                              <Chip
+                                label={`${t('portalRequests.labels.priority')}: ${priorityLabel(req)}`}
+                                size="small"
+                                color={tone.chipColor}
+                                variant={tone.chipColor === 'default' ? 'outlined' : 'filled'}
+                              />
+                              <Chip
+                                label={req.status_name || req.status_code || 'Open'}
+                                size="small"
+                                color={statusColor(req.status_code)}
+                                variant="outlined"
+                              />
+                            </Stack>
+                          </Stack>
+                          {isManagement && (
+                            <Stack
+                              direction="row"
+                              alignItems="center"
+                              spacing={0.75}
+                              sx={{ mt: 0.75, flexWrap: 'wrap' }}
+                            >
+                              <Typography variant="caption" color="text.secondary">
+                                {t('portalRequests.labels.reportedBy')}: {requesterName(req, t)}
+                              </Typography>
+                              <Chip
+                                label={submitterRoleLabel}
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                                sx={{ height: 20, fontSize: '0.7rem' }}
+                              />
+                            </Stack>
+                          )}
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
+                            {t('portalRequests.labels.updatedAt')}: {formatUpdatedAt(req)}
                           </Typography>
-                          <Chip
-                            label={req.status_name || req.status_code || 'Open'}
-                            size="small"
-                            color={statusColor(req.status_code)}
-                            variant="outlined"
-                          />
-                        </Stack>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </Stack>
               )}
             </Paper>

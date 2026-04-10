@@ -354,6 +354,7 @@ const PortalRequests = () => {
               onReload={() => loadRequests({ keepSelection: true })}
               reloadDisabled={!isAuthenticated || !baseUrl || isGuest || requestsStatus === 'loading'}
               isAdmin={isAdmin}
+              isManagement={isManagement}
               landlords={landlords}
               landlordsStatus={landlordsStatus}
               selectedLandlordId={selectedLandlordId}

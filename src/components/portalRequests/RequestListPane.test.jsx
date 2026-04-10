@@ -68,5 +68,40 @@ describe('RequestListPane', () => {
     expect(screen.getByText('Kitchen leak')).toBeInTheDocument();
     expect(screen.queryByText('AC issue')).not.toBeInTheDocument();
   });
+
+  it('shows requester role and priority details for management users', () => {
+    renderPane({
+      isManagement: true,
+      requests: [
+        makeRequest('r1', 'Kitchen leak', 'NOT_STARTED', {
+          priority_name: 'Emergency',
+          submitted_by_display_name: 'Jane Tenant',
+          submitted_by_role: 'TENANT',
+        }),
+      ],
+    });
+
+    expect(screen.getByText('Priority: Emergency')).toBeInTheDocument();
+    expect(screen.getByText('Reported by: Jane Tenant')).toBeInTheDocument();
+    expect(screen.getByText('Tenant')).toBeInTheDocument();
+    expect(screen.getByText(/Updated:/)).toBeInTheDocument();
+  });
+
+  it('orders requests by updated date descending', () => {
+    renderPane({
+      requests: [
+        makeRequest('r1', 'Older ticket', 'NOT_STARTED', {
+          updated_at: '2026-04-10T10:00:00Z',
+        }),
+        makeRequest('r2', 'Newer ticket', 'NOT_STARTED', {
+          updated_at: '2026-04-10T12:00:00Z',
+        }),
+      ],
+    });
+
+    const newer = screen.getByRole('button', { name: /Newer ticket/i });
+    const older = screen.getByRole('button', { name: /Older ticket/i });
+    expect(newer.compareDocumentPosition(older) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });
 

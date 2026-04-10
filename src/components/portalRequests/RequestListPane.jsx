@@ -11,11 +11,13 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import Refresh from '@mui/icons-material/Refresh';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
-import { RequestStatus } from '../../domain/constants';
+import { RequestStatus, Role } from '../../domain/constants';
+import { normalizeRole } from '../../portalUtils';
 
 function statusColor(statusCode) {
   const normalized = String(statusCode || '').toUpperCase();
@@ -35,6 +37,80 @@ function statusColor(statusCode) {
   return 'default';
 }
 
+function roleLabel(roleValue, t) {
+  const role = normalizeRole(roleValue);
+  if (role === Role.ADMIN) return t('portalHeader.roles.admin');
+  if (role === Role.LANDLORD) return t('portalHeader.roles.landlord');
+  if (role === Role.TENANT) return t('portalHeader.roles.tenant');
+  return t('portalHeader.roles.unknown');
+}
+
+function toPriorityCode(priorityCode, priorityName) {
+  const fromCode = String(priorityCode ?? '').trim().toUpperCase();
+  if (fromCode) return fromCode;
+  const fromName = String(priorityName ?? '').trim().toUpperCase().replace(/\s+/g, '_');
+  return fromName;
+}
+
+function priorityTone(item) {
+  const code = toPriorityCode(item?.priority_code, item?.priority_name);
+  if (code === 'EMERGENCY') {
+    return {
+      chipColor: 'error',
+      borderColor: 'error.main',
+      bgColor: (theme) => alpha(theme.palette.error.main, 0.08),
+    };
+  }
+  if (code === 'URGENT') {
+    return {
+      chipColor: 'warning',
+      borderColor: 'warning.main',
+      bgColor: (theme) => alpha(theme.palette.warning.main, 0.08),
+    };
+  }
+  if (code === 'ROUTINE') {
+    return {
+      chipColor: 'info',
+      borderColor: 'info.main',
+      bgColor: (theme) => alpha(theme.palette.info.main, 0.06),
+    };
+  }
+  return {
+    chipColor: 'default',
+    borderColor: 'divider',
+    bgColor: 'transparent',
+  };
+}
+
+function requesterName(item, t) {
+  const candidates = [
+    item.submitted_by_display_name,
+    item.requester_name,
+    item.reported_by_name,
+    item.tenant_name,
+    item.created_by_name,
+  ];
+  for (const candidate of candidates) {
+    const value = String(candidate ?? '').trim();
+    if (value) return value;
+  }
+  return t('portalRequests.messages.senderUnknown');
+}
+
+function updatedAtMs(item) {
+  const raw = item?.updated_at || item?.updatedAt || item?.modified_at || item?.modifiedAt;
+  const ms = raw ? new Date(raw).getTime() : 0;
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+function formatUpdatedAt(item) {
+  const raw = item?.updated_at || item?.updatedAt || item?.modified_at || item?.modifiedAt;
+  if (!raw) return '-';
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return String(raw);
+  return date.toLocaleString();
+}
+
 const RequestListPane = ({
   requests,
   requestsStatus,
@@ -44,6 +120,7 @@ const RequestListPane = ({
   onReload,
   reloadDisabled,
   isAdmin = false,
+  isManagement = false,
   landlords = [],
   landlordsStatus = 'idle',
   selectedLandlordId = '',
@@ -71,12 +148,16 @@ const RequestListPane = ({
       return statusCode === statusFilter;
     });
   }, [landlordFilteredRequests, statusFilter]);
+  const sortedRequests = useMemo(
+    () => [...filteredRequests].sort((a, b) => updatedAtMs(b) - updatedAtMs(a)),
+    [filteredRequests]
+  );
   const listStatusMessage = requestsStatus === 'loading'
     ? { severity: 'info', text: t('portalRequests.loading') }
     : requestsStatus === 'error'
       ? { severity: 'error', text: requestsError || t('portalRequests.errors.loadFailed') }
       : null;
-  const emptyStatusMessage = requestsStatus === 'ok' && filteredRequests.length === 0
+  const emptyStatusMessage = requestsStatus === 'ok' && sortedRequests.length === 0
     ? { severity: 'info', text: t('portalRequests.list.empty') }
     : null;
 
@@ -152,33 +233,72 @@ const RequestListPane = ({
       </Stack>
       <StatusAlertSlot message={emptyStatusMessage} />
 
-      {filteredRequests.length > 0 && (
+      {sortedRequests.length > 0 && (
         <Box sx={{ minWidth: { md: 320 }, border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
           <List dense disablePadding>
-            {filteredRequests.map((item) => (
-              <ListItemButton
-                key={item.id}
-                selected={selectedRequestId === item.id}
-                onClick={() => onSelectRequest(item.id)}
-              >
-                <ListItemText
-                  primary={item.title || t('portalRequests.list.untitled')}
-                  secondary={
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <Typography variant="caption" color="text.secondary">
-                        {t('portalRequests.labels.status')}:
-                      </Typography>
-                      <Chip
-                        size="small"
-                        label={item.status_name || item.status_code || '-'}
-                        color={statusColor(item.status_code)}
-                        variant="outlined"
-                      />
-                    </Stack>
-                  }
-                />
-              </ListItemButton>
-            ))}
+            {sortedRequests.map((item) => {
+              const tone = priorityTone(item);
+              return (
+                <ListItemButton
+                  key={item.id}
+                  selected={selectedRequestId === item.id}
+                  onClick={() => onSelectRequest(item.id)}
+                  sx={{
+                    alignItems: 'flex-start',
+                    borderInlineStartWidth: 4,
+                    borderInlineStartStyle: 'solid',
+                    borderInlineStartColor: tone.borderColor,
+                    bgcolor: tone.bgColor,
+                    '&.Mui-selected': {
+                      bgcolor: tone.bgColor,
+                    },
+                    '&.Mui-selected:hover': {
+                      bgcolor: tone.bgColor,
+                    },
+                  }}
+                >
+                  <ListItemText
+                    primary={item.title || t('portalRequests.list.untitled')}
+                    secondaryTypographyProps={{ component: 'div' }}
+                    secondary={
+                      <Stack spacing={0.5} sx={{ mt: 0.5 }}>
+                        <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexWrap: 'wrap' }}>
+                          <Chip
+                            size="small"
+                            label={`${t('portalRequests.labels.priority')}: ${item.priority_name || item.priority_code || '-'}`}
+                            color={tone.chipColor}
+                            variant={tone.chipColor === 'default' ? 'outlined' : 'filled'}
+                          />
+                          <Chip
+                            size="small"
+                            label={`${t('portalRequests.labels.status')}: ${item.status_name || item.status_code || '-'}`}
+                            color={statusColor(item.status_code)}
+                            variant="outlined"
+                          />
+                        </Stack>
+                        {isManagement && (
+                          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexWrap: 'wrap' }}>
+                            <Typography variant="caption" color="text.secondary">
+                              {t('portalRequests.labels.reportedBy')}: {requesterName(item, t)}
+                            </Typography>
+                            <Chip
+                              label={roleLabel(item.submitted_by_role, t)}
+                              size="small"
+                              color="primary"
+                              variant="outlined"
+                              sx={{ height: 20, fontSize: '0.7rem' }}
+                            />
+                          </Stack>
+                        )}
+                        <Typography variant="caption" color="text.secondary">
+                          {t('portalRequests.labels.updatedAt')}: {formatUpdatedAt(item)}
+                        </Typography>
+                      </Stack>
+                    }
+                  />
+                </ListItemButton>
+              );
+            })}
           </List>
         </Box>
       )}

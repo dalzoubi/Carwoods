@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { countByStatus, statusColor } from './PortalDashboard';
+import { countByStatus, priorityTone, statusColor } from './PortalDashboard';
 
 describe('PortalDashboard status helpers', () => {
   it('counts statuses from status_code and excludes cancelled from open', () => {
@@ -29,5 +29,12 @@ describe('PortalDashboard status helpers', () => {
     expect(statusColor('CANCELLED')).toBe('success');
     expect(statusColor('COMPLETE')).toBe('success');
     expect(statusColor('something_else')).toBe('default');
+  });
+
+  it('maps request priority to expected color buckets', () => {
+    expect(priorityTone({ priority_code: 'EMERGENCY' }).chipColor).toBe('error');
+    expect(priorityTone({ priority_code: 'urgent' }).chipColor).toBe('warning');
+    expect(priorityTone({ priority_name: 'Routine' }).chipColor).toBe('info');
+    expect(priorityTone({ priority_code: 'unknown' }).chipColor).toBe('default');
   });
 });
