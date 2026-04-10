@@ -11,6 +11,15 @@ describe('Footer', () => {
     expect(screen.getByText(/© 2026 Carwoods/i)).toBeInTheDocument();
   });
 
+  it('renders privacy policy and terms of use links', () => {
+    renderWithRouter(<Footer />);
+    const privacyLink = screen.getByRole('link', { name: /privacy policy/i });
+    const termsLink = screen.getByRole('link', { name: /terms of use/i });
+
+    expect(privacyLink).toHaveAttribute('href', '/privacy');
+    expect(termsLink).toHaveAttribute('href', '/terms-of-service');
+  });
+
   it('renders TREC Consumer Protection link', () => {
     renderWithRouter(<Footer />);
     const link = screen.getByRole('link', { name: /texas real estate commission consumer protection notice/i });

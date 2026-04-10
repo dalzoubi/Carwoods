@@ -1,6 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { withDarkPath } from '../routePaths';
 
 const FooterContainer = styled.footer`
     background-color: var(--palette-app-chrome-main);
@@ -40,6 +42,10 @@ const FooterLink = styled.a`
     ${linkStyles}
 `;
 
+const FooterInternalLink = styled(RouterLink)`
+    ${linkStyles}
+`;
+
 const FooterSeparator = styled.span`
     color: var(--footer-separator-on-primary);
     margin: 0 2px;
@@ -48,9 +54,18 @@ const FooterSeparator = styled.span`
 
 const Footer = () => {
     const { t } = useTranslation();
+    const { pathname } = useLocation();
     return (
         <FooterContainer>
             <p>{t('footer.copyright')}</p>
+            <FooterInternalLink to={withDarkPath(pathname, '/privacy')} aria-label={t('footer.privacyPolicyAriaLabel')}>
+                {t('footer.privacyPolicy')}
+            </FooterInternalLink>
+            <FooterSeparator aria-hidden="true">|</FooterSeparator>
+            <FooterInternalLink to={withDarkPath(pathname, '/terms-of-service')} aria-label={t('footer.termsOfUseAriaLabel')}>
+                {t('footer.termsOfUse')}
+            </FooterInternalLink>
+            <FooterSeparator aria-hidden="true">|</FooterSeparator>
             <FooterLink href="https://www.trec.texas.gov/sites/default/files/pdf-forms/CN%201-2.pdf" target="_blank" rel="noopener noreferrer" aria-label={t('footer.trecNoticeAriaLabel')}>
                 {t('footer.trecNotice')}
             </FooterLink>

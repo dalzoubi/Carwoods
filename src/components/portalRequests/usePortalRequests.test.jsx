@@ -121,7 +121,9 @@ describe('usePortalRequests', () => {
         jsonResponse({
           audits: [{ id: 'aud-1', action: 'UPDATE', entity_id: 'req-a1' }],
         })
-      );
+      )
+      .mockResolvedValueOnce(jsonResponse({ settings: {}, request: { auto_respond_enabled: false } }))
+      .mockResolvedValueOnce(jsonResponse({ decisions: [] }));
 
     const params = baseParams({
       isManagement: true,
@@ -272,11 +274,15 @@ describe('usePortalRequests', () => {
       .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-c1', title: 'Leak', status_code: 'NOT_STARTED' } }))
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(jsonResponse({ settings: {}, request: { auto_respond_enabled: false } }))
+      .mockResolvedValueOnce(jsonResponse({ decisions: [] }))
       .mockResolvedValueOnce(jsonResponse({ ok: true }))
       .mockResolvedValueOnce(jsonResponse({ requests: [{ id: 'req-c1', title: 'Leak', status_code: 'CANCELLED' }] }))
       .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-c1', title: 'Leak', status_code: 'CANCELLED' } }))
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
-      .mockResolvedValueOnce(jsonResponse({ attachments: [] }));
+      .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(jsonResponse({ settings: {}, request: { auto_respond_enabled: false } }))
+      .mockResolvedValueOnce(jsonResponse({ decisions: [] }));
 
     const params = baseParams({
       isManagement: true,
@@ -305,11 +311,15 @@ describe('usePortalRequests', () => {
       .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-m1', title: 'AC', status_code: 'NOT_STARTED' } }))
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(jsonResponse({ settings: {}, request: { auto_respond_enabled: false } }))
+      .mockResolvedValueOnce(jsonResponse({ decisions: [] }))
       .mockResolvedValueOnce(jsonResponse({ ok: true }))
       .mockResolvedValueOnce(jsonResponse({ requests: [{ id: 'req-m1', title: 'AC', status_code: 'WAITING_ON_VENDOR' }] }))
       .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-m1', title: 'AC', status_code: 'WAITING_ON_VENDOR' } }))
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
-      .mockResolvedValueOnce(jsonResponse({ attachments: [] }));
+      .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(jsonResponse({ settings: {}, request: { auto_respond_enabled: false } }))
+      .mockResolvedValueOnce(jsonResponse({ decisions: [] }));
 
     const params = baseParams({
       isManagement: true,
@@ -347,6 +357,8 @@ describe('usePortalRequests', () => {
       .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-msg1', title: 'Noise', status_code: 'NOT_STARTED' } }))
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(jsonResponse({ settings: {}, request: { auto_respond_enabled: false } }))
+      .mockResolvedValueOnce(jsonResponse({ decisions: [] }))
       .mockResolvedValueOnce(jsonResponse({ ok: true }))
       .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-msg1', title: 'Noise', status_code: 'NOT_STARTED' } }))
       .mockResolvedValueOnce(jsonResponse({

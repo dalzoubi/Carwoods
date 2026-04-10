@@ -169,6 +169,10 @@
   },
   "footer": {
     "copyright": "© 2026 Carwoods. Tous droits réservés.",
+    "privacyPolicy": "Politique de confidentialité",
+    "privacyPolicyAriaLabel": "Politique de confidentialité",
+    "termsOfUse": "Conditions d'utilisation",
+    "termsOfUseAriaLabel": "Conditions d'utilisation",
     "trecNotice": "Avis de protection du consommateur de la Commission immobilière du Texas",
     "trecNoticeAriaLabel": "Avis de protection du consommateur de la Commission immobilière du Texas (s'ouvre dans un nouvel onglet)",
     "trecBrokerage": "Informations de la Commission immobilière du Texas sur les services de courtage",

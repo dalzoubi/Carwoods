@@ -42,6 +42,7 @@ vi.mock('../lib/portalApiClient', async (importOriginal) => {
   return {
     ...actual,
     fetchLandlords: vi.fn().mockResolvedValue({ landlords: [] }),
+    fetchElsaSettings: vi.fn().mockResolvedValue({ properties: [] }),
   };
 });
 
@@ -95,6 +96,7 @@ describe('PortalAdminProperties', () => {
     propertiesApiClient.deletePropertyApi.mockResolvedValue(undefined);
     propertiesApiClient.restorePropertyApi.mockResolvedValue(undefined);
     portalApiClient.fetchLandlords.mockResolvedValue({ landlords: [] });
+    portalApiClient.fetchElsaSettings.mockResolvedValue({ properties: [] });
     await i18n.changeLanguage('en');
   });
 

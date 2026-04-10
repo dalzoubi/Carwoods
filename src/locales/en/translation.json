@@ -169,6 +169,10 @@
   },
   "footer": {
     "copyright": "© 2026 Carwoods. All rights reserved.",
+    "privacyPolicy": "Privacy Policy",
+    "privacyPolicyAriaLabel": "Privacy Policy",
+    "termsOfUse": "Terms of Use",
+    "termsOfUseAriaLabel": "Terms of Use",
     "trecNotice": "Texas Real Estate Commission Consumer Protection Notice",
     "trecNoticeAriaLabel": "Texas Real Estate Commission Consumer Protection Notice (opens in new tab)",
     "trecBrokerage": "Texas Real Estate Commission Information About Brokerage Services",
