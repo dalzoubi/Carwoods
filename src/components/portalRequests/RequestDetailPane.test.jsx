@@ -68,7 +68,6 @@ function makeProps(overrides = {}) {
     auditEvents: [],
     auditStatus: 'idle',
     auditError: '',
-    elsaFeatureEnabled: true,
     elsaSettingsError: '',
     elsaDecisionStatus: 'idle',
     elsaDecisionError: '',

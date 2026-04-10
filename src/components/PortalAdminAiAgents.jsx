@@ -20,8 +20,6 @@ import { emailFromAccount, normalizeRole, resolveRole } from '../portalUtils';
 import { Role } from '../domain/constants.js';
 import { fetchElsaSettings, patchElsaSettings } from '../lib/portalApiClient';
 
-const FEATURE_ELSA_AUTO = import.meta.env.VITE_FEATURE_ELSA_AUTO === 'true';
-
 function errorMessage(error) {
   if (error && typeof error === 'object' && typeof error.message === 'string') {
     return error.message;
@@ -42,7 +40,7 @@ const PortalAdminAiAgents = () => {
   } = usePortalAuth();
   const role = normalizeRole(resolveRole(meData, account));
   const isAdmin = role === Role.ADMIN;
-  const canUseModule = FEATURE_ELSA_AUTO && isAuthenticated && isAdmin && Boolean(baseUrl);
+  const canUseModule = isAuthenticated && isAdmin && Boolean(baseUrl);
 
   const [loadStatus, setLoadStatus] = useState('idle');
   const [loadError, setLoadError] = useState('');
@@ -145,7 +143,6 @@ const PortalAdminAiAgents = () => {
           </Button>
         </Stack>
 
-        {!FEATURE_ELSA_AUTO && <Alert severity="info">{t('portalAdminAiAgents.errors.featureDisabled')}</Alert>}
         {!baseUrl && <Alert severity="warning">{t('portalAdminAiAgents.errors.apiUnavailable')}</Alert>}
         {!isAuthenticated && <Alert severity="warning">{t('portalAdminAiAgents.errors.signInRequired')}</Alert>}
         {isAuthenticated && !isAdmin && <Alert severity="error">{t('portalAdminAiAgents.errors.adminOnly')}</Alert>}

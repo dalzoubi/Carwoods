@@ -94,7 +94,6 @@ const PortalRequests = () => {
     auditEvents,
     auditStatus,
     auditError,
-    elsaFeatureEnabled,
     elsaSettingsError,
     elsaDecisionStatus,
     elsaDecisionError,
@@ -421,7 +420,6 @@ const PortalRequests = () => {
                 auditEvents={auditEvents}
                 auditStatus={auditStatus}
                 auditError={auditError}
-                elsaFeatureEnabled={elsaFeatureEnabled}
                 elsaSettingsError={elsaSettingsError}
                 elsaDecisionStatus={elsaDecisionStatus}
                 elsaDecisionError={elsaDecisionError}

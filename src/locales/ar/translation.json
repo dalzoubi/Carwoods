@@ -1067,7 +1067,6 @@
       "globalSaved": "AI global settings saved."
     },
     "errors": {
-      "featureDisabled": "Set VITE_FEATURE_ELSA_AUTO=true to enable AI configuration.",
       "apiUnavailable": "Set VITE_API_BASE_URL to enable AI configuration.",
       "signInRequired": "Sign in before using AI configuration.",
       "adminOnly": "Only admin accounts can manage AI configuration.",
@@ -1125,7 +1124,6 @@
       "routingSaved": "تم حفظ توجيه الوكلاء."
     },
     "errors": {
-      "featureDisabled": "اضبط VITE_FEATURE_ELSA_AUTO=true لتفعيل إعدادات الوكلاء.",
       "apiUnavailable": "اضبط VITE_API_BASE_URL لتفعيل إعدادات الوكلاء.",
       "signInRequired": "سجّل الدخول قبل استخدام إعدادات الوكلاء.",
       "adminOnly": "يمكن لحسابات الإدارة فقط إدارة إعدادات الوكلاء.",

@@ -31,8 +31,6 @@ import {
   patchElsaSettings,
 } from '../lib/portalApiClient';
 
-const FEATURE_ELSA_AUTO = import.meta.env.VITE_FEATURE_ELSA_AUTO === 'true';
-
 const EMPTY_FORM = {
   elsa_enabled: false,
   elsa_auto_send_enabled: false,
@@ -103,7 +101,7 @@ const PortalAdminAiConfig = () => {
   } = usePortalAuth();
   const role = normalizeRole(resolveRole(meData, account));
   const isAdmin = role === Role.ADMIN;
-  const canUseModule = FEATURE_ELSA_AUTO && isAuthenticated && isAdmin && Boolean(baseUrl);
+  const canUseModule = isAuthenticated && isAdmin && Boolean(baseUrl);
 
   const [loadStatus, setLoadStatus] = useState('idle');
   const [loadError, setLoadError] = useState('');
@@ -310,9 +308,6 @@ const PortalAdminAiConfig = () => {
           </Button>
         </Stack>
 
-        {!FEATURE_ELSA_AUTO && (
-          <Alert severity="info">{t('portalAdminAiConfig.errors.featureDisabled')}</Alert>
-        )}
         {!baseUrl && <Alert severity="warning">{t('portalAdminAiConfig.errors.apiUnavailable')}</Alert>}
         {!isAuthenticated && <Alert severity="warning">{t('portalAdminAiConfig.errors.signInRequired')}</Alert>}
         {isAuthenticated && !isAdmin && <Alert severity="error">{t('portalAdminAiConfig.errors.adminOnly')}</Alert>}

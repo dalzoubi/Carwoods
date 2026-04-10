@@ -1067,7 +1067,6 @@
       "globalSaved": "AI global settings saved."
     },
     "errors": {
-      "featureDisabled": "Set VITE_FEATURE_ELSA_AUTO=true to enable AI configuration.",
       "apiUnavailable": "Set VITE_API_BASE_URL to enable AI configuration.",
       "signInRequired": "Sign in before using AI configuration.",
       "adminOnly": "Only admin accounts can manage AI configuration.",
@@ -1125,7 +1124,6 @@
       "routingSaved": "Agent routing saved."
     },
     "errors": {
-      "featureDisabled": "Set VITE_FEATURE_ELSA_AUTO=true to enable agent configuration.",
       "apiUnavailable": "Set VITE_API_BASE_URL to enable agent configuration.",
       "signInRequired": "Sign in before using agent configuration.",
       "adminOnly": "Only admin accounts can manage agent configuration.",

@@ -52,8 +52,6 @@ import {
 import { listingFromHarPreviewPayload, parseHarInput } from '../portalHarPreviewParse';
 import { fetchElsaSettings, fetchHarPreview, fetchLandlords, patchElsaPropertyPolicy } from '../lib/portalApiClient';
 
-const FEATURE_ELSA_AUTO = import.meta.env.VITE_FEATURE_ELSA_AUTO === 'true';
-
 const EMPTY_FORM = {
   harId: '',
   addressLine: '',
@@ -329,13 +327,11 @@ const PortalAdminProperties = () => {
         skipCache: showDeleted,
       });
       const policyMap = {};
-      if (FEATURE_ELSA_AUTO) {
-        const elsaPayload = await fetchElsaSettings(baseUrl, token);
-        const propertyPolicies = Array.isArray(elsaPayload?.properties) ? elsaPayload.properties : [];
-        for (const row of propertyPolicies) {
-          if (row && typeof row.property_id === 'string') {
-            policyMap[row.property_id] = row.auto_send_enabled_override !== false;
-          }
+      const elsaPayload = await fetchElsaSettings(baseUrl, token);
+      const propertyPolicies = Array.isArray(elsaPayload?.properties) ? elsaPayload.properties : [];
+      for (const row of propertyPolicies) {
+        if (row && typeof row.property_id === 'string') {
+          policyMap[row.property_id] = row.auto_send_enabled_override !== false;
         }
       }
       if (signal?.aborted) return;
@@ -497,7 +493,6 @@ const PortalAdminProperties = () => {
   };
 
   const handleToggleElsaAutoSend = async (property) => {
-    if (!FEATURE_ELSA_AUTO) return;
     if (!property?.id) return;
     const current = elsaPropertyPolicyById[property.id] !== false;
     setElsaPolicyTargetId(property.id);
@@ -763,7 +758,7 @@ const PortalAdminProperties = () => {
                     onToggleElsaAutoSend={handleToggleElsaAutoSend}
                     elsaAutoSendEnabled={elsaPropertyPolicyById[property.id] !== false}
                     updatingElsaPolicy={elsaPolicyTargetId === property.id}
-                    showElsaAutoSend={FEATURE_ELSA_AUTO}
+                    showElsaAutoSend
                     onSyncHar={handleSyncHar}
                     t={t}
                   />

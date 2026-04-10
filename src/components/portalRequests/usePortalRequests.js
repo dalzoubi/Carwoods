@@ -25,8 +25,6 @@ import {
   deleteRequestMessage,
 } from '../../lib/portalApiClient';
 import { RequestStatus } from '../../domain/constants.js';
-
-const FEATURE_ELSA_AUTO = import.meta.env.VITE_FEATURE_ELSA_AUTO === 'true';
 const MESSAGE_POLL_INTERVAL_MS = 15000;
 const MESSAGE_SUCCESS_AUTO_DISMISS_MS = 5000;
 const ELSA_DECISION_ACTION_SUCCESS_AUTO_DISMISS_MS = 5000;
@@ -185,7 +183,7 @@ export function usePortalRequests({
   };
 
   const loadElsaContext = async (requestId) => {
-    if (!FEATURE_ELSA_AUTO || !requestId || !baseUrl || !isManagement) {
+    if (!requestId || !baseUrl || !isManagement) {
       setElsaDecisions([]);
       setElsaDecisionStatus('idle');
       setElsaDecisionError('');
@@ -787,7 +785,7 @@ export function usePortalRequests({
   };
 
   const onSetElsaAutoRespond = async (enabled) => {
-    if (!FEATURE_ELSA_AUTO || !baseUrl || !selectedRequestId || !isManagement) return;
+    if (!baseUrl || !selectedRequestId || !isManagement) return;
     setElsaDecisionStatus('loading');
     setElsaDecisionError('');
     try {
@@ -807,7 +805,7 @@ export function usePortalRequests({
   };
 
   const onRunElsa = async () => {
-    if (!FEATURE_ELSA_AUTO || !baseUrl || !selectedRequestId || !isManagement) return;
+    if (!baseUrl || !selectedRequestId || !isManagement) return;
     setElsaDecisionStatus('loading');
     setElsaDecisionError('');
     try {
@@ -824,7 +822,7 @@ export function usePortalRequests({
   };
 
   const onReviewElsaDecision = async (decisionId, action) => {
-    if (!FEATURE_ELSA_AUTO || !baseUrl || !selectedRequestId || !isManagement || !decisionId || !action) return;
+    if (!baseUrl || !selectedRequestId || !isManagement || !decisionId || !action) return;
     setElsaDecisionActionStatus('saving');
     setElsaDecisionError('');
     try {
@@ -845,7 +843,7 @@ export function usePortalRequests({
   };
 
   const onUpdateElsaGlobalSettings = async (updates) => {
-    if (!FEATURE_ELSA_AUTO || !baseUrl || !isManagement) return;
+    if (!baseUrl || !isManagement) return;
     setElsaSettingsStatus('loading');
     setElsaSettingsError('');
     try {
@@ -863,7 +861,7 @@ export function usePortalRequests({
   };
 
   const onSetElsaCategoryEnabled = async (categoryCode, enabled) => {
-    if (!FEATURE_ELSA_AUTO || !baseUrl || !isManagement || !categoryCode) return;
+    if (!baseUrl || !isManagement || !categoryCode) return;
     setElsaSettingsStatus('loading');
     setElsaSettingsError('');
     try {
@@ -884,7 +882,7 @@ export function usePortalRequests({
   };
 
   const onSetElsaPriorityPolicy = async (priorityCode, autoSendEnabled, requireAdminReview) => {
-    if (!FEATURE_ELSA_AUTO || !baseUrl || !isManagement || !priorityCode) return;
+    if (!baseUrl || !isManagement || !priorityCode) return;
     setElsaSettingsStatus('loading');
     setElsaSettingsError('');
     try {
@@ -948,7 +946,6 @@ export function usePortalRequests({
     auditStatus,
     auditError,
     elsaSettings,
-    elsaFeatureEnabled: FEATURE_ELSA_AUTO,
     elsaSettingsStatus,
     elsaSettingsError,
     elsaDecisionStatus,

@@ -160,7 +160,6 @@ const RequestDetailPane = ({
   auditEvents,
   auditStatus,
   auditError,
-  elsaFeatureEnabled,
   elsaSettingsError,
   elsaDecisionStatus,
   elsaDecisionError,
