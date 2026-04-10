@@ -32,11 +32,15 @@ import { fetchRequests } from '../lib/portalApiClient';
 
 export function statusColor(statusCode) {
   const s = String(statusCode ?? '').toUpperCase();
-  if ([RequestStatus.OPEN, RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED].includes(s)) {
+  if ([RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED].includes(s)) {
     return 'warning';
   }
-  if ([RequestStatus.SCHEDULED, RequestStatus.IN_PROGRESS].includes(s)) return 'info';
-  if ([RequestStatus.CLOSED, RequestStatus.RESOLVED, RequestStatus.CANCELLED].includes(s)) {
+  if (
+    [RequestStatus.SCHEDULED, RequestStatus.WAITING_ON_TENANT, RequestStatus.WAITING_ON_VENDOR].includes(s)
+  ) {
+    return 'info';
+  }
+  if ([RequestStatus.COMPLETE, RequestStatus.CANCELLED].includes(s)) {
     return 'success';
   }
   return 'default';
@@ -48,9 +52,9 @@ export function countByStatus(requests) {
   let resolved = 0;
   for (const r of requests) {
     const s = String(r.status_code ?? '').toUpperCase();
-    if ([RequestStatus.CLOSED, RequestStatus.RESOLVED, RequestStatus.CANCELLED].includes(s)) resolved++;
-    else if ([RequestStatus.SCHEDULED, RequestStatus.IN_PROGRESS].includes(s)) inProgress++;
-    else if ([RequestStatus.OPEN, RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED].includes(s)) open++;
+    if ([RequestStatus.COMPLETE, RequestStatus.CANCELLED].includes(s)) resolved++;
+    else if ([RequestStatus.SCHEDULED, RequestStatus.WAITING_ON_TENANT, RequestStatus.WAITING_ON_VENDOR].includes(s)) inProgress++;
+    else if ([RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED].includes(s)) open++;
   }
   return { open, inProgress, resolved };
 }

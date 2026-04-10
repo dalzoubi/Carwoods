@@ -9,8 +9,6 @@ import {
   MenuItem,
   Select,
   Stack,
-  ToggleButton,
-  ToggleButtonGroup,
   Typography,
 } from '@mui/material';
 import Refresh from '@mui/icons-material/Refresh';
@@ -21,11 +19,17 @@ import { RequestStatus } from '../../domain/constants';
 
 function statusColor(statusCode) {
   const normalized = String(statusCode || '').toUpperCase();
-  if ([RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED, RequestStatus.OPEN].includes(normalized)) {
+  if ([RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED].includes(normalized)) {
     return 'warning';
   }
-  if ([RequestStatus.SCHEDULED, RequestStatus.IN_PROGRESS].includes(normalized)) return 'info';
-  if ([RequestStatus.CANCELLED, RequestStatus.RESOLVED, RequestStatus.CLOSED].includes(normalized)) {
+  if (
+    [RequestStatus.SCHEDULED, RequestStatus.WAITING_ON_TENANT, RequestStatus.WAITING_ON_VENDOR].includes(
+      normalized
+    )
+  ) {
+    return 'info';
+  }
+  if ([RequestStatus.CANCELLED, RequestStatus.COMPLETE].includes(normalized)) {
     return 'success';
   }
   return 'default';
@@ -64,14 +68,7 @@ const RequestListPane = ({
     if (statusFilter === 'all') return landlordFilteredRequests;
     return landlordFilteredRequests.filter((request) => {
       const statusCode = String(request.status_code || '').toUpperCase();
-      if (statusFilter === 'open') {
-        return [RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED, RequestStatus.OPEN].includes(statusCode);
-      }
-      if (statusFilter === 'inProgress') return statusCode === RequestStatus.IN_PROGRESS;
-      if (statusFilter === 'scheduled') return statusCode === RequestStatus.SCHEDULED;
-      if (statusFilter === 'cancelled') return statusCode === RequestStatus.CANCELLED;
-      if (statusFilter === 'resolved') return [RequestStatus.RESOLVED, RequestStatus.CLOSED].includes(statusCode);
-      return true;
+      return statusCode === statusFilter;
     });
   }, [landlordFilteredRequests, statusFilter]);
   const listStatusMessage = requestsStatus === 'loading'
@@ -131,31 +128,28 @@ const RequestListPane = ({
           </Select>
         </Stack>
       )}
-      <ToggleButtonGroup
-        size="small"
-        exclusive
-        value={statusFilter}
-        onChange={(_, nextValue) => {
-          if (nextValue) setStatusFilter(nextValue);
-        }}
-        sx={{
-          alignSelf: 'flex-start',
-          flexWrap: 'nowrap',
-          overflowX: 'auto',
-          maxWidth: '100%',
-          '& .MuiToggleButton-root': {
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-          },
-        }}
-      >
-        <ToggleButton value="all">{t('portalRequests.list.filters.all')}</ToggleButton>
-        <ToggleButton value="open">{t('portalRequests.list.filters.open')}</ToggleButton>
-        <ToggleButton value="scheduled">{t('portalRequests.list.filters.scheduled')}</ToggleButton>
-        <ToggleButton value="inProgress">{t('portalRequests.list.filters.inProgress')}</ToggleButton>
-        <ToggleButton value="cancelled">{t('portalRequests.list.filters.cancelled')}</ToggleButton>
-        <ToggleButton value="resolved">{t('portalRequests.list.filters.resolved')}</ToggleButton>
-      </ToggleButtonGroup>
+      <Stack spacing={1}>
+        <Typography variant="body2" color="text.secondary">
+          {t('portalRequests.labels.status')}
+        </Typography>
+        <Select
+          size="small"
+          value={statusFilter}
+          onChange={(event) => {
+            setStatusFilter(event.target.value);
+          }}
+          sx={{ maxWidth: 260 }}
+        >
+          <MenuItem value="all">{t('portalRequests.list.filters.all')}</MenuItem>
+          <MenuItem value={RequestStatus.NOT_STARTED}>{t('portalRequests.statuses.NOT_STARTED')}</MenuItem>
+          <MenuItem value={RequestStatus.ACKNOWLEDGED}>{t('portalRequests.statuses.ACKNOWLEDGED')}</MenuItem>
+          <MenuItem value={RequestStatus.SCHEDULED}>{t('portalRequests.statuses.SCHEDULED')}</MenuItem>
+          <MenuItem value={RequestStatus.WAITING_ON_TENANT}>{t('portalRequests.statuses.WAITING_ON_TENANT')}</MenuItem>
+          <MenuItem value={RequestStatus.WAITING_ON_VENDOR}>{t('portalRequests.statuses.WAITING_ON_VENDOR')}</MenuItem>
+          <MenuItem value={RequestStatus.COMPLETE}>{t('portalRequests.statuses.COMPLETE')}</MenuItem>
+          <MenuItem value={RequestStatus.CANCELLED}>{t('portalRequests.statuses.CANCELLED')}</MenuItem>
+        </Select>
+      </Stack>
       <StatusAlertSlot message={emptyStatusMessage} />
 
       {filteredRequests.length > 0 && (

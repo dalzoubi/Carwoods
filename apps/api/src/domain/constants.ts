@@ -6,14 +6,13 @@ export const Role = {
 } as const;
 
 export const RequestStatus = {
-  OPEN: 'OPEN',
   NOT_STARTED: 'NOT_STARTED',
   ACKNOWLEDGED: 'ACKNOWLEDGED',
   SCHEDULED: 'SCHEDULED',
-  IN_PROGRESS: 'IN_PROGRESS',
+  WAITING_ON_TENANT: 'WAITING_ON_TENANT',
+  WAITING_ON_VENDOR: 'WAITING_ON_VENDOR',
+  COMPLETE: 'COMPLETE',
   CANCELLED: 'CANCELLED',
-  RESOLVED: 'RESOLVED',
-  CLOSED: 'CLOSED',
 } as const;
 
 export type Role = typeof Role[keyof typeof Role];

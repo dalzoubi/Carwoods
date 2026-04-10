@@ -864,7 +864,7 @@
       "heading": "تحديثات الإدارة",
       "dialogTitle": "تحديث الطلب",
       "statusCode": "رمز الحالة",
-      "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, OPEN, SCHEDULED, IN_PROGRESS, CANCELLED, RESOLVED, CLOSED",
+      "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, SCHEDULED, WAITING_ON_TENANT, WAITING_ON_VENDOR, COMPLETE, CANCELLED",
       "selectStatusCode": "اختر الحالة",
       "priorityCode": "الأولوية",
       "selectPriorityCode": "اختر الأولوية",
@@ -880,9 +880,10 @@
     "statuses": {
       "NOT_STARTED": "لم يبدأ",
       "ACKNOWLEDGED": "تم الاستلام",
-      "OPEN": "مفتوح",
       "SCHEDULED": "مجدول",
-      "IN_PROGRESS": "قيد التنفيذ",
+      "WAITING_ON_TENANT": "بانتظار المستأجر",
+      "WAITING_ON_VENDOR": "بانتظار المورّد",
+      "COMPLETE": "مكتمل",
       "CANCELLED": "ملغي",
       "RESOLVED": "محلول",
       "CLOSED": "مغلق"

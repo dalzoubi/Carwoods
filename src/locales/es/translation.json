@@ -864,7 +864,7 @@
       "heading": "Actualizaciones de gestión",
       "dialogTitle": "Actualizar solicitud",
       "statusCode": "Código de estado",
-      "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, OPEN, SCHEDULED, IN_PROGRESS, CANCELLED, RESOLVED, CLOSED",
+      "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, SCHEDULED, WAITING_ON_TENANT, WAITING_ON_VENDOR, COMPLETE, CANCELLED",
       "selectStatusCode": "Seleccionar estado",
       "priorityCode": "Prioridad",
       "selectPriorityCode": "Seleccionar prioridad",
@@ -880,9 +880,10 @@
     "statuses": {
       "NOT_STARTED": "No iniciada",
       "ACKNOWLEDGED": "Recibida",
-      "OPEN": "Abierta",
       "SCHEDULED": "Programada",
-      "IN_PROGRESS": "En progreso",
+      "WAITING_ON_TENANT": "En espera del inquilino",
+      "WAITING_ON_VENDOR": "En espera del proveedor",
+      "COMPLETE": "Completada",
       "CANCELLED": "Cancelada",
       "RESOLVED": "Resuelta",
       "CLOSED": "Cerrada"

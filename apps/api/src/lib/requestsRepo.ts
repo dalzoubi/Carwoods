@@ -7,6 +7,7 @@ export type RequestRow = {
   id: string;
   property_id: string;
   lease_id: string;
+  landlord_user_id?: string | null;
   submitted_by_user_id: string;
   assigned_vendor_id: string | null;
   category_id: string;
@@ -229,7 +230,8 @@ export async function listRequestsForTenant(
   tenantUserId: string
 ): Promise<RequestRow[]> {
   const r = await client.query<RequestRow>(
-    `SELECT mr.id, mr.property_id, mr.lease_id, mr.submitted_by_user_id, mr.assigned_vendor_id,
+    `SELECT mr.id, mr.property_id, mr.lease_id, p.created_by AS landlord_user_id,
+            mr.submitted_by_user_id, mr.assigned_vendor_id,
             mr.category_id, sc.code AS category_code, sc.name AS category_name,
             mr.priority_id, rp.code AS priority_code, rp.name AS priority_name,
             mr.current_status_id,
@@ -247,6 +249,7 @@ export async function listRequestsForTenant(
             mr.completed_at, mr.closed_at, mr.deleted_at
      FROM maintenance_requests mr
      JOIN lease_tenants lt ON lt.lease_id = mr.lease_id
+     LEFT JOIN properties p ON p.id = mr.property_id
      LEFT JOIN service_categories sc ON sc.id = mr.category_id
      LEFT JOIN request_priorities rp ON rp.id = mr.priority_id
      LEFT JOIN request_statuses rs ON rs.id = mr.current_status_id
@@ -262,7 +265,8 @@ export async function listRequestsForTenant(
 
 export async function listRequestsForManagement(client: Queryable): Promise<RequestRow[]> {
   const r = await client.query<RequestRow>(
-    `SELECT mr.id, mr.property_id, mr.lease_id, mr.submitted_by_user_id, mr.assigned_vendor_id,
+    `SELECT mr.id, mr.property_id, mr.lease_id, p.created_by AS landlord_user_id,
+            mr.submitted_by_user_id, mr.assigned_vendor_id,
             mr.category_id, sc.code AS category_code, sc.name AS category_name,
             mr.priority_id, rp.code AS priority_code, rp.name AS priority_name,
             mr.current_status_id,
@@ -279,6 +283,7 @@ export async function listRequestsForManagement(client: Queryable): Promise<Requ
             mr.emergency_disclaimer_acknowledged, mr.created_at, mr.updated_at,
             mr.completed_at, mr.closed_at, mr.deleted_at
      FROM maintenance_requests mr
+     LEFT JOIN properties p ON p.id = mr.property_id
      LEFT JOIN service_categories sc ON sc.id = mr.category_id
      LEFT JOIN request_priorities rp ON rp.id = mr.priority_id
      LEFT JOIN request_statuses rs ON rs.id = mr.current_status_id

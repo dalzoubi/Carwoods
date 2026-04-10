@@ -155,12 +155,11 @@ export function usePortalRequests({
   const [managementStatusOptions] = useState(() => [
     RequestStatus.NOT_STARTED,
     RequestStatus.ACKNOWLEDGED,
-    RequestStatus.OPEN,
     RequestStatus.SCHEDULED,
-    RequestStatus.IN_PROGRESS,
+    RequestStatus.WAITING_ON_TENANT,
+    RequestStatus.WAITING_ON_VENDOR,
+    RequestStatus.COMPLETE,
     RequestStatus.CANCELLED,
-    RequestStatus.RESOLVED,
-    RequestStatus.CLOSED,
   ]);
 
   const loadAuditForRequest = async (requestId) => {

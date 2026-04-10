@@ -4,7 +4,7 @@ import i18n from '../../i18n';
 import { WithAppTheme } from '../../testUtils';
 import RequestListPane from './RequestListPane';
 
-function makeRequest(id, title, statusCode = 'OPEN', extra = {}) {
+function makeRequest(id, title, statusCode = 'NOT_STARTED', extra = {}) {
   return {
     id,
     title,
@@ -17,8 +17,8 @@ function makeRequest(id, title, statusCode = 'OPEN', extra = {}) {
 function renderPane(props = {}) {
   const defaultProps = {
     requests: [
-      makeRequest('r1', 'Kitchen leak', 'OPEN', { landlord_user_id: 'l1' }),
-      makeRequest('r2', 'AC issue', 'IN_PROGRESS', { landlord_user_id: 'l2' }),
+      makeRequest('r1', 'Kitchen leak', 'NOT_STARTED', { landlord_user_id: 'l1' }),
+      makeRequest('r2', 'AC issue', 'WAITING_ON_VENDOR', { landlord_user_id: 'l2' }),
     ],
     requestsStatus: 'ok',
     requestsError: '',

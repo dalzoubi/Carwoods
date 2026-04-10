@@ -864,7 +864,7 @@
       "heading": "Management updates",
       "dialogTitle": "Update request",
       "statusCode": "Status code",
-      "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, OPEN, SCHEDULED, IN_PROGRESS, CANCELLED, RESOLVED, CLOSED",
+      "statusCodePlaceholder": "NOT_STARTED, ACKNOWLEDGED, SCHEDULED, WAITING_ON_TENANT, WAITING_ON_VENDOR, COMPLETE, CANCELLED",
       "selectStatusCode": "Select status",
       "priorityCode": "Priority",
       "selectPriorityCode": "Select priority",
@@ -880,9 +880,10 @@
     "statuses": {
       "NOT_STARTED": "Not started",
       "ACKNOWLEDGED": "Acknowledged",
-      "OPEN": "Open",
       "SCHEDULED": "Scheduled",
-      "IN_PROGRESS": "In progress",
+      "WAITING_ON_TENANT": "Waiting on tenant",
+      "WAITING_ON_VENDOR": "Waiting on vendor",
+      "COMPLETE": "Complete",
       "CANCELLED": "Cancelled",
       "RESOLVED": "Resolved",
       "CLOSED": "Closed"

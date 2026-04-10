@@ -48,7 +48,7 @@ describe('usePortalRequests', () => {
     global.fetch
       .mockResolvedValueOnce(
         jsonResponse({
-          requests: [{ id: 'req-1', title: 'Kitchen leak', current_status_id: 'OPEN' }],
+          requests: [{ id: 'req-1', title: 'Kitchen leak', current_status_id: 'NOT_STARTED' }],
         })
       )
       .mockResolvedValueOnce(
@@ -61,7 +61,7 @@ describe('usePortalRequests', () => {
             id: 'req-1',
             title: 'Kitchen leak',
             description: 'Water under sink',
-            current_status_id: 'OPEN',
+            current_status_id: 'NOT_STARTED',
           },
         })
       )
@@ -99,7 +99,7 @@ describe('usePortalRequests', () => {
     global.fetch
       .mockResolvedValueOnce(
         jsonResponse({
-          requests: [{ id: 'req-a1', title: 'Audit me', current_status_id: 'OPEN' }],
+          requests: [{ id: 'req-a1', title: 'Audit me', current_status_id: 'NOT_STARTED' }],
         })
       )
       .mockResolvedValueOnce(
@@ -111,7 +111,7 @@ describe('usePortalRequests', () => {
             id: 'req-a1',
             title: 'Audit me',
             description: 'Test request',
-            current_status_id: 'OPEN',
+            current_status_id: 'NOT_STARTED',
           },
         })
       )
@@ -145,7 +145,7 @@ describe('usePortalRequests', () => {
     global.fetch
       .mockResolvedValueOnce(
         jsonResponse({
-          requests: [{ id: 'req-2', title: 'Ceiling leak', current_status_id: 'OPEN' }],
+          requests: [{ id: 'req-2', title: 'Ceiling leak', current_status_id: 'NOT_STARTED' }],
         })
       )
       .mockResolvedValueOnce(
@@ -158,7 +158,7 @@ describe('usePortalRequests', () => {
             id: 'req-2',
             title: 'Ceiling leak',
             description: 'Leak near hallway',
-            current_status_id: 'OPEN',
+            current_status_id: 'NOT_STARTED',
           },
         })
       )
@@ -190,7 +190,7 @@ describe('usePortalRequests', () => {
     global.fetch
       .mockResolvedValueOnce(
         jsonResponse({
-          requests: [{ id: 'req-3', title: 'Heater issue', current_status_id: 'OPEN' }],
+          requests: [{ id: 'req-3', title: 'Heater issue', current_status_id: 'NOT_STARTED' }],
         })
       )
       .mockResolvedValueOnce(
@@ -203,7 +203,7 @@ describe('usePortalRequests', () => {
             id: 'req-3',
             title: 'Heater issue',
             description: 'No hot air',
-            current_status_id: 'OPEN',
+            current_status_id: 'NOT_STARTED',
           },
         })
       )
@@ -238,7 +238,7 @@ describe('usePortalRequests', () => {
     global.fetch
       .mockResolvedValueOnce(
         jsonResponse({
-          requests: [{ id: 'req-x1', title: 'Broken lock', status_code: 'OPEN' }],
+          requests: [{ id: 'req-x1', title: 'Broken lock', status_code: 'NOT_STARTED' }],
         })
       )
       .mockResolvedValueOnce(
@@ -265,11 +265,11 @@ describe('usePortalRequests', () => {
 
   it('handles successful cancel flow and refreshes the list', async () => {
     global.fetch
-      .mockResolvedValueOnce(jsonResponse({ requests: [{ id: 'req-c1', title: 'Leak', status_code: 'OPEN' }] }))
+      .mockResolvedValueOnce(jsonResponse({ requests: [{ id: 'req-c1', title: 'Leak', status_code: 'NOT_STARTED' }] }))
       .mockResolvedValueOnce(
         jsonResponse({ categories: [], priorities: [], tenant_defaults: null, landlord_contact: null })
       )
-      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-c1', title: 'Leak', status_code: 'OPEN' } }))
+      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-c1', title: 'Leak', status_code: 'NOT_STARTED' } }))
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
       .mockResolvedValueOnce(jsonResponse({ ok: true }))
@@ -298,16 +298,16 @@ describe('usePortalRequests', () => {
 
   it('handles management status update and includes priority updates', async () => {
     global.fetch
-      .mockResolvedValueOnce(jsonResponse({ requests: [{ id: 'req-m1', title: 'AC', status_code: 'OPEN' }] }))
+      .mockResolvedValueOnce(jsonResponse({ requests: [{ id: 'req-m1', title: 'AC', status_code: 'NOT_STARTED' }] }))
       .mockResolvedValueOnce(
         jsonResponse({ categories: [{ code: 'plumbing', name: 'Plumbing' }], priorities: [{ code: 'routine', name: 'Routine' }], tenant_defaults: null, landlord_contact: null })
       )
-      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-m1', title: 'AC', status_code: 'OPEN' } }))
+      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-m1', title: 'AC', status_code: 'NOT_STARTED' } }))
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
       .mockResolvedValueOnce(jsonResponse({ ok: true }))
-      .mockResolvedValueOnce(jsonResponse({ requests: [{ id: 'req-m1', title: 'AC', status_code: 'IN_PROGRESS' }] }))
-      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-m1', title: 'AC', status_code: 'IN_PROGRESS' } }))
+      .mockResolvedValueOnce(jsonResponse({ requests: [{ id: 'req-m1', title: 'AC', status_code: 'WAITING_ON_VENDOR' }] }))
+      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-m1', title: 'AC', status_code: 'WAITING_ON_VENDOR' } }))
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }));
 
@@ -319,7 +319,7 @@ describe('usePortalRequests', () => {
 
     await waitFor(() => expect(result.current.requestsStatus).toBe('ok'));
     await act(async () => {
-      result.current.onManagementField('status_code')({ target: { value: 'in_progress' } });
+      result.current.onManagementField('status_code')({ target: { value: 'waiting_on_vendor' } });
       result.current.onManagementField('priority_code')({ target: { value: 'routine' } });
     });
     await act(async () => {
@@ -327,28 +327,28 @@ describe('usePortalRequests', () => {
     });
 
     expect(result.current.managementUpdateStatus).toBe('success');
-    expect(result.current.requests[0].status_code).toBe('IN_PROGRESS');
+    expect(result.current.requests[0].status_code).toBe('WAITING_ON_VENDOR');
     const patchCall = global.fetch.mock.calls.find(([url, init]) => (
       String(url).includes('/api/landlord/requests/req-m1')
       && String(init?.method || '').toUpperCase() === 'PATCH'
     ));
     expect(patchCall).toBeTruthy();
     const payload = JSON.parse(patchCall[1].body);
-    expect(payload.status_code).toBe('IN_PROGRESS');
+    expect(payload.status_code).toBe('WAITING_ON_VENDOR');
     expect(payload.priority_code).toBe('routine');
   });
 
   it('handles message submit success and clears message form', async () => {
     global.fetch
-      .mockResolvedValueOnce(jsonResponse({ requests: [{ id: 'req-msg1', title: 'Noise', status_code: 'OPEN' }] }))
+      .mockResolvedValueOnce(jsonResponse({ requests: [{ id: 'req-msg1', title: 'Noise', status_code: 'NOT_STARTED' }] }))
       .mockResolvedValueOnce(
         jsonResponse({ categories: [], priorities: [], tenant_defaults: null, landlord_contact: null })
       )
-      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-msg1', title: 'Noise', status_code: 'OPEN' } }))
+      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-msg1', title: 'Noise', status_code: 'NOT_STARTED' } }))
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
       .mockResolvedValueOnce(jsonResponse({ ok: true }))
-      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-msg1', title: 'Noise', status_code: 'OPEN' } }))
+      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-msg1', title: 'Noise', status_code: 'NOT_STARTED' } }))
       .mockResolvedValueOnce(jsonResponse({
         messages: [{ id: 'msg-new', sender_display_name: 'Manager', body: 'Thanks', is_internal: false }],
       }))
@@ -377,11 +377,11 @@ describe('usePortalRequests', () => {
     global.fetch
       .mockResolvedValueOnce(jsonResponse({
         requests: [
-          { id: 'req-r1', title: 'Door issue', status_code: 'OPEN' },
-          { id: 'req-r2', title: 'Pipe issue', status_code: 'OPEN' },
+          { id: 'req-r1', title: 'Door issue', status_code: 'NOT_STARTED' },
+          { id: 'req-r2', title: 'Pipe issue', status_code: 'NOT_STARTED' },
         ],
       }))
-      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-r1', title: 'Door issue', status_code: 'OPEN' } }))
+      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-r1', title: 'Door issue', status_code: 'NOT_STARTED' } }))
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
       .mockResolvedValueOnce(jsonResponse({ error: 'upstream_failed' }, 500));
