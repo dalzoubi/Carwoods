@@ -7,7 +7,7 @@ import { fetchMe } from '../lib/portalApiClient';
  * is available. Re-fetches when refreshTick changes (triggered by refreshMe).
  *
  * @param {object} params
- * @param {object|null} params.account - Active MSAL account object
+ * @param {object|null} params.account - Active portal auth account object
  * @param {string} params.authStatus - Current auth status string
  * @param {string} params.baseUrl - API base URL (empty string = disabled)
  * @param {() => Promise<string>} params.getAccessToken - Returns a Bearer token

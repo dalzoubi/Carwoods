@@ -4,7 +4,7 @@
  * Tests are split into two groups:
  *  1. Unauthenticated portal behavior — runs against any build (no special env).
  *  2. Authenticated portal behavior — requires PORTAL_E2E=true build so that
- *     VITE_PORTAL_DEV_AUTH=true bypasses MSAL and injects a mock landlord session.
+ *     VITE_PORTAL_DEV_AUTH=true bypasses real auth and injects a mock landlord session.
  *
  * Run unauthenticated tests: npm run test:e2e
  * Run portal tests:          PORTAL_E2E=true npm run test:e2e

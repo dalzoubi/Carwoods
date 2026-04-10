@@ -55,10 +55,20 @@ function MicrosoftLogo() {
   );
 }
 
+function FacebookLogo() {
+  return (
+    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M24 12.073C24 5.404 18.627 0 12 0S0 5.404 0 12.073c0 6.019 4.388 11.009 10.125 11.927v-8.437H7.078v-3.49h3.047V9.413c0-3.017 1.792-4.685 4.533-4.685 1.312 0 2.686.236 2.686.236v2.962h-1.513c-1.491 0-1.956.931-1.956 1.886v2.262h3.328l-.532 3.49h-2.796V24C19.612 23.082 24 18.092 24 12.073z"
+        fill="#1877F2"
+      />
+    </svg>
+  );
+}
+
 /**
  * Renders individual, branded social sign-in buttons for Google, Apple, and Microsoft,
- * plus a "sign in with any account" fallback. Uses MSAL domain_hint routing via
- * signInWithProvider() from PortalAuthContext.
+ * plus a "sign in with any account" fallback.
  *
  * @param {{ disabled?: boolean, compact?: boolean }} props
  */
@@ -68,7 +78,7 @@ const SocialSignInButtons = ({ disabled = false, compact = false }) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isDark = theme.palette.mode === 'dark';
-  const { signInWithProvider, authStatus } = usePortalAuth();
+  const { signIn, signInWithProvider, authStatus } = usePortalAuth();
 
   const isLoading = authStatus === 'initializing' || authStatus === 'authenticating';
   const isDisabled = disabled || isLoading;
@@ -143,10 +153,26 @@ const SocialSignInButtons = ({ disabled = false, compact = false }) => {
 
       <Button
         type="button"
+        variant="outlined"
+        fullWidth
+        sx={buttonSx}
+        startIcon={<FacebookLogo />}
+        onClick={async () => {
+          const didSignIn = await signInWithProvider('facebook.com');
+          if (didSignIn) redirectToPortalHome();
+        }}
+        disabled={isDisabled}
+        aria-label={t('socialSignIn.facebookAriaLabel')}
+      >
+        {t('socialSignIn.facebook')}
+      </Button>
+
+      <Button
+        type="button"
         variant="contained"
         fullWidth
         onClick={async () => {
-          const didSignIn = await signInWithProvider(null);
+          const didSignIn = await signIn();
           if (didSignIn) redirectToPortalHome();
         }}
         disabled={isDisabled}

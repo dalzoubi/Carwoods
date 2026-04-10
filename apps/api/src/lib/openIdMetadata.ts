@@ -9,13 +9,13 @@ const OPEN_ID_METADATA_TTL_SECONDS = 3600;
 const OPEN_ID_METADATA_TTL_MS = OPEN_ID_METADATA_TTL_SECONDS * 1000;
 
 function metadataUrl(): string {
-  const explicit = process.env.ENTRA_OPENID_METADATA_URL?.trim();
+  const explicit = process.env.FIREBASE_OPENID_METADATA_URL?.trim();
   if (explicit) return explicit;
-  const issuer = process.env.ENTRA_ISSUER?.trim().replace(/\/$/, '');
-  if (!issuer) {
-    throw new Error('Set ENTRA_ISSUER or ENTRA_OPENID_METADATA_URL');
+  const projectId = process.env.FIREBASE_PROJECT_ID?.trim();
+  if (!projectId) {
+    throw new Error('Set FIREBASE_PROJECT_ID or FIREBASE_OPENID_METADATA_URL');
   }
-  return `${issuer}/.well-known/openid-configuration`;
+  return `https://securetoken.google.com/${projectId}/.well-known/openid-configuration`;
 }
 
 /**

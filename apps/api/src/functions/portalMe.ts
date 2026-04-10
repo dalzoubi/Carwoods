@@ -10,7 +10,7 @@ import {
   getBearerToken,
   primaryEmailFromClaims,
   verifyAccessToken,
-  entraAuthConfigured,
+  authConfigured,
 } from '../lib/jwtVerify.js';
 import { findUserByClaims } from '../lib/usersRepo.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
@@ -21,7 +21,7 @@ type PortalMeDeps = {
   hasDatabaseUrl: typeof hasDatabaseUrl;
   getPool: typeof getPool;
   verifyAccessToken: typeof verifyAccessToken;
-  entraAuthConfigured: typeof entraAuthConfigured;
+  authConfigured: typeof authConfigured;
   findUserByClaims: typeof findUserByClaims;
 };
 
@@ -29,7 +29,7 @@ const DEFAULT_PORTAL_ME_DEPS: PortalMeDeps = {
   hasDatabaseUrl,
   getPool,
   verifyAccessToken,
-  entraAuthConfigured,
+  authConfigured,
   findUserByClaims,
 };
 
@@ -63,12 +63,12 @@ export async function portalMeHandler(
     };
   }
 
-  if (!deps.entraAuthConfigured()) {
-    logWarn(context, 'portal.me.unavailable', { reason: 'entra_unconfigured' });
+  if (!deps.authConfigured()) {
+    logWarn(context, 'portal.me.unavailable', { reason: 'auth_unconfigured' });
     return {
       status: 503,
       headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-      jsonBody: { error: 'entra_unconfigured' },
+      jsonBody: { error: 'auth_unconfigured' },
     };
   }
 

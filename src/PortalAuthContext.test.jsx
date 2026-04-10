@@ -1,7 +1,7 @@
 /**
  * Tests for the disabled-account immediate lockout feature.
  *
- * We mock MSAL, useMeProfile, and supporting modules, then render a consumer
+ * We mock Firebase Auth, useMeProfile, and supporting modules, then render a consumer
  * of PortalAuthContext to verify that a 403 from /me triggers auto-signout
  * with lockoutReason === 'account_disabled'.
  */
@@ -12,7 +12,7 @@ import i18n from './i18n';
 
 // vi.hoisted runs before module imports and before vi.mock factories,
 // so these objects are available inside the mock factories.
-const { mockMsalInstance, meProfileState } = vi.hoisted(() => {
+const { authState, mockAuth, mockOnAuthStateChanged, mockFirebaseSignOut, meProfileState } = vi.hoisted(() => {
   const meProfileState = {
     meStatus: 'ok',
     meData: { role: 'TENANT', user: { status: 'ACTIVE' } },
@@ -21,40 +21,49 @@ const { mockMsalInstance, meProfileState } = vi.hoisted(() => {
     meErrorCode: null,
   };
 
-  const mockMsalInstance = {
-    initialize: vi.fn().mockResolvedValue(undefined),
-    handleRedirectPromise: vi.fn().mockResolvedValue(null),
-    getActiveAccount: vi.fn(),
-    getAllAccounts: vi.fn().mockReturnValue([]),
-    setActiveAccount: vi.fn(),
-    clearCache: vi.fn().mockResolvedValue(undefined),
-    addEventCallback: vi.fn().mockReturnValue('cb-id'),
-    removeEventCallback: vi.fn(),
-    acquireTokenSilent: vi.fn().mockResolvedValue({
-      accessToken: 'token-abc',
-      account: { homeAccountId: 'acc-1' },
-      idTokenClaims: {},
-    }),
+  const authState = {
+    currentUser: {
+      uid: 'acc-1',
+      displayName: 'Test User',
+      email: 'user@example.com',
+      getIdToken: vi.fn().mockResolvedValue('token-abc'),
+    },
   };
 
-  return { mockMsalInstance, meProfileState };
+  const mockAuth = {
+    currentUser: authState.currentUser,
+  };
+
+  const mockOnAuthStateChanged = vi.fn((_auth, onNext) => {
+    onNext(authState.currentUser);
+    return () => {};
+  });
+
+  const mockFirebaseSignOut = vi.fn().mockImplementation(async () => {
+    authState.currentUser = null;
+    mockAuth.currentUser = null;
+  });
+
+  return { authState, mockAuth, mockOnAuthStateChanged, mockFirebaseSignOut, meProfileState };
 });
 
 vi.mock('./hooks/useMeProfile', () => ({
   useMeProfile: () => ({ ...meProfileState }),
 }));
 
-vi.mock('./entraAuth', () => ({
-  ENTRA_AUTH_CONFIGURED: true,
-  ENTRA_LOGIN_SCOPES: ['openid'],
-  ENTRA_SCOPES: ['api://test/.default'],
-  msalInstance: mockMsalInstance,
+vi.mock('./firebaseAuth', () => ({
+  FIREBASE_AUTH_CONFIGURED: true,
+  auth: mockAuth,
+  googleProvider: { providerId: 'google.com' },
+  appleProvider: { providerId: 'apple.com' },
+  microsoftProvider: { providerId: 'microsoft.com' },
+  facebookProvider: { providerId: 'facebook.com' },
 }));
 
-vi.mock('./lib/portalClaimsStorage', () => ({
-  hydrateAccountClaims: (acct) => acct,
-  persistIdTokenClaims: vi.fn(),
-  writeStoredClaimsByHomeAccountId: vi.fn(),
+vi.mock('firebase/auth', () => ({
+  onAuthStateChanged: mockOnAuthStateChanged,
+  signInWithPopup: vi.fn(async () => ({ user: authState.currentUser })),
+  signOut: mockFirebaseSignOut,
 }));
 
 vi.mock('./featureFlags', () => ({
@@ -113,14 +122,18 @@ describe('PortalAuthContext — disabled-account lockout', () => {
     meProfileState.meErrorStatus = null;
     meProfileState.meErrorCode = null;
 
-    mockMsalInstance.getActiveAccount.mockReturnValue({
-      homeAccountId: 'acc-1',
-      username: 'user@example.com',
+    authState.currentUser = {
+      uid: 'acc-1',
+      displayName: 'Test User',
+      email: 'user@example.com',
+      getIdToken: vi.fn().mockResolvedValue('token-abc'),
+    };
+    mockAuth.currentUser = authState.currentUser;
+    mockFirebaseSignOut.mockClear();
+    mockOnAuthStateChanged.mockImplementation((_auth, onNext) => {
+      onNext(authState.currentUser);
+      return () => {};
     });
-    mockMsalInstance.getAllAccounts.mockReturnValue([
-      { homeAccountId: 'acc-1', username: 'user@example.com' },
-    ]);
-    mockMsalInstance.clearCache.mockClear();
     await i18n.changeLanguage('en');
   });
 
@@ -144,11 +157,10 @@ describe('PortalAuthContext — disabled-account lockout', () => {
     meProfileState.meErrorStatus = 403;
     meProfileState.meErrorCode = 'account_disabled';
 
-    // When clearCache resolves, MSAL no longer has an active account, so
-    // any subsequent syncActiveAccount call correctly sees no account.
-    mockMsalInstance.clearCache.mockImplementation(async () => {
-      mockMsalInstance.getActiveAccount.mockReturnValue(null);
-      mockMsalInstance.getAllAccounts.mockReturnValue([]);
+    // Simulate Firebase sign-out clearing the active user.
+    mockFirebaseSignOut.mockImplementation(async () => {
+      authState.currentUser = null;
+      mockAuth.currentUser = null;
     });
 
     render(
@@ -163,7 +175,7 @@ describe('PortalAuthContext — disabled-account lockout', () => {
     await waitFor(() =>
       expect(screen.getByTestId('authStatus').textContent).toBe('unauthenticated')
     );
-    expect(mockMsalInstance.clearCache).toHaveBeenCalled();
+    expect(mockFirebaseSignOut).toHaveBeenCalled();
   });
 
   it('sets lockoutReason=no_portal_access when /me returns 403 with no_portal_access error code', async () => {
@@ -173,9 +185,9 @@ describe('PortalAuthContext — disabled-account lockout', () => {
     meProfileState.meErrorStatus = 403;
     meProfileState.meErrorCode = 'no_portal_access';
 
-    mockMsalInstance.clearCache.mockImplementation(async () => {
-      mockMsalInstance.getActiveAccount.mockReturnValue(null);
-      mockMsalInstance.getAllAccounts.mockReturnValue([]);
+    mockFirebaseSignOut.mockImplementation(async () => {
+      authState.currentUser = null;
+      mockAuth.currentUser = null;
     });
 
     render(
@@ -190,7 +202,7 @@ describe('PortalAuthContext — disabled-account lockout', () => {
     await waitFor(() =>
       expect(screen.getByTestId('authStatus').textContent).toBe('unauthenticated')
     );
-    expect(mockMsalInstance.clearCache).toHaveBeenCalled();
+    expect(mockFirebaseSignOut).toHaveBeenCalled();
   });
 
   it('does NOT sign out for non-403 /me errors', async () => {
@@ -211,7 +223,7 @@ describe('PortalAuthContext — disabled-account lockout', () => {
     );
 
     expect(screen.getByTestId('lockoutReason').textContent).toBe('none');
-    expect(mockMsalInstance.clearCache).not.toHaveBeenCalled();
+    expect(mockFirebaseSignOut).not.toHaveBeenCalled();
   });
 });
 
@@ -223,14 +235,18 @@ describe('PortalAuthContext — handleApiForbidden', () => {
     meProfileState.meErrorStatus = null;
     meProfileState.meErrorCode = null;
 
-    mockMsalInstance.getActiveAccount.mockReturnValue({
-      homeAccountId: 'acc-1',
-      username: 'user@example.com',
+    authState.currentUser = {
+      uid: 'acc-1',
+      displayName: 'Test User',
+      email: 'user@example.com',
+      getIdToken: vi.fn().mockResolvedValue('token-abc'),
+    };
+    mockAuth.currentUser = authState.currentUser;
+    mockFirebaseSignOut.mockClear();
+    mockOnAuthStateChanged.mockImplementation((_auth, onNext) => {
+      onNext(authState.currentUser);
+      return () => {};
     });
-    mockMsalInstance.getAllAccounts.mockReturnValue([
-      { homeAccountId: 'acc-1', username: 'user@example.com' },
-    ]);
-    mockMsalInstance.clearCache.mockClear();
     await i18n.changeLanguage('en');
   });
 
@@ -250,9 +266,9 @@ describe('PortalAuthContext — handleApiForbidden', () => {
   });
 
   it('signs out with account_disabled lockout when called with a 403 error', async () => {
-    mockMsalInstance.clearCache.mockImplementation(async () => {
-      mockMsalInstance.getActiveAccount.mockReturnValue(null);
-      mockMsalInstance.getAllAccounts.mockReturnValue([]);
+    mockFirebaseSignOut.mockImplementation(async () => {
+      authState.currentUser = null;
+      mockAuth.currentUser = null;
     });
 
     const { getByTestId } = render(
@@ -273,7 +289,7 @@ describe('PortalAuthContext — handleApiForbidden', () => {
     await waitFor(() =>
       expect(getByTestId('authStatus').textContent).toBe('unauthenticated')
     );
-    expect(mockMsalInstance.clearCache).toHaveBeenCalled();
+    expect(mockFirebaseSignOut).toHaveBeenCalled();
   });
 
   it('does NOT sign out when called with a non-403 error', async () => {
@@ -294,7 +310,7 @@ describe('PortalAuthContext — handleApiForbidden', () => {
 
     expect(getByTestId('authStatus').textContent).toBe('authenticated');
     expect(getByTestId('lockoutReason').textContent).toBe('none');
-    expect(mockMsalInstance.clearCache).not.toHaveBeenCalled();
+    expect(mockFirebaseSignOut).not.toHaveBeenCalled();
   });
 
   it('does NOT sign out when called with null or a plain Error', async () => {
@@ -322,6 +338,6 @@ describe('PortalAuthContext — handleApiForbidden', () => {
 
     await new Promise((r) => setTimeout(r, 50));
     expect(screen.getByTestId('authStatus').textContent).toBe('authenticated');
-    expect(mockMsalInstance.clearCache).not.toHaveBeenCalled();
+    expect(mockFirebaseSignOut).not.toHaveBeenCalled();
   });
 });

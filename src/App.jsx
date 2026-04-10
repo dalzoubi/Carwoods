@@ -83,7 +83,7 @@ function PortalRoutes() {
             <Route
                 path="/portal/status"
                 element={
-                    <PortalRouteGuard allowedRoles={[Role.ADMIN]}>
+                    <PortalRouteGuard allowedRoles={[Role.TENANT, Role.LANDLORD, Role.ADMIN]}>
                         <PortalStatus />
                     </PortalRouteGuard>
                 }

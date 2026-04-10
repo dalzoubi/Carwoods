@@ -1,13 +1,15 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { EventType, InteractionRequiredAuthError } from '@azure/msal-browser';
+import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
 import { VITE_API_BASE_URL_RESOLVED } from './featureFlags';
-import { ENTRA_AUTH_CONFIGURED, ENTRA_LOGIN_SCOPES, ENTRA_SCOPES, msalInstance } from './entraAuth';
-import { Role } from './domain/constants.js';
 import {
-  hydrateAccountClaims,
-  persistIdTokenClaims,
-  writeStoredClaimsByHomeAccountId,
-} from './lib/portalClaimsStorage';
+  FIREBASE_AUTH_CONFIGURED,
+  appleProvider,
+  auth,
+  facebookProvider,
+  googleProvider,
+  microsoftProvider,
+} from './firebaseAuth';
+import { Role } from './domain/constants.js';
 import { useMeProfile } from './hooks/useMeProfile';
 
 const PortalAuthContext = createContext(null);
@@ -45,37 +47,28 @@ const DEV_AUTH_VALUE = PORTAL_DEV_AUTH
 
 function RealPortalAuthProvider({ children }) {
   const [authStatus, setAuthStatus] = useState(
-    ENTRA_AUTH_CONFIGURED ? 'initializing' : 'unconfigured'
+    FIREBASE_AUTH_CONFIGURED ? 'initializing' : 'unconfigured'
   );
   const [authError, setAuthError] = useState('');
   const [account, setAccount] = useState(null);
+  const [firebaseUser, setFirebaseUser] = useState(null);
   const [refreshTick, setRefreshTick] = useState(0);
   const [lockoutReason, setLockoutReason] = useState(null);
 
   const baseUrl = VITE_API_BASE_URL_RESOLVED || '';
   const meUrl = baseUrl ? `${baseUrl.replace(/\/$/, '')}/api/portal/me` : '';
 
-  const syncActiveAccount = useCallback(() => {
-    if (!msalInstance) {
-      setAccount(null);
-      setAuthStatus('unconfigured');
-      return null;
-    }
-    const active =
-      msalInstance.getActiveAccount() ?? msalInstance.getAllAccounts()[0] ?? null;
-    if (active) {
-      msalInstance.setActiveAccount(active);
-      setAccount(hydrateAccountClaims(active));
-      setAuthStatus('authenticated');
-      return active;
-    }
-    setAccount(null);
-    setAuthStatus('unauthenticated');
-    return null;
+  const toPortalAccount = useCallback((user) => {
+    if (!user) return null;
+    return {
+      uid: user.uid ?? null,
+      name: user.displayName ?? '',
+      username: user.email ?? '',
+    };
   }, []);
 
-  const signInWithProvider = useCallback(async (domainHint) => {
-    if (!msalInstance) {
+  const signInWithProvider = useCallback(async (providerId) => {
+    if (!auth) {
       setAuthStatus('unconfigured');
       return false;
     }
@@ -83,20 +76,18 @@ function RealPortalAuthProvider({ children }) {
     setAuthError('');
     setLockoutReason(null);
     try {
-      const request = {
-        scopes: ENTRA_LOGIN_SCOPES,
-        prompt: 'select_account',
+      const providerById = {
+        'google.com': googleProvider,
+        'apple.com': appleProvider,
+        'microsoft.com': microsoftProvider,
+        'facebook.com': facebookProvider,
       };
-      if (domainHint) {
-        request.extraQueryParameters = { domain_hint: domainHint };
-      }
-      const result = await msalInstance.loginPopup(request);
-      if (result.account) {
-        persistIdTokenClaims(result.account, result.idTokenClaims);
-        msalInstance.setActiveAccount(result.account);
-        setAccount(hydrateAccountClaims(result.account));
-      }
-      syncActiveAccount();
+      const provider = providerById[providerId] ?? googleProvider;
+      const result = await signInWithPopup(auth, provider);
+      const nextUser = result?.user ?? null;
+      setFirebaseUser(nextUser);
+      setAccount(toPortalAccount(nextUser));
+      setAuthStatus(nextUser ? 'authenticated' : 'unauthenticated');
       setRefreshTick((x) => x + 1);
       return true;
     } catch (error) {
@@ -104,39 +95,38 @@ function RealPortalAuthProvider({ children }) {
       setAuthError(error instanceof Error ? error.message : 'auth_failed');
       return false;
     }
-  }, [syncActiveAccount]);
+  }, [toPortalAccount]);
 
-  const signIn = useCallback(() => signInWithProvider(null), [signInWithProvider]);
+  const signIn = useCallback(() => signInWithProvider('google.com'), [signInWithProvider]);
 
   const signOut = useCallback(async () => {
-    if (!msalInstance) {
+    if (!auth) {
       setAuthStatus('unconfigured');
       return;
     }
     try {
-      await msalInstance.clearCache();
+      await firebaseSignOut(auth);
     } catch {
-      // Best-effort cache clear; local state reset below handles the rest.
+      // Best-effort sign out; local state reset below handles the rest.
     }
-    msalInstance.setActiveAccount(null);
-    writeStoredClaimsByHomeAccountId({});
+    setFirebaseUser(null);
     setAccount(null);
     setAuthError('');
+    setLockoutReason(null);
     setAuthStatus('unauthenticated');
   }, []);
 
   const signOutDueToDisabledAccount = useCallback(async (reason = 'account_disabled') => {
-    if (!msalInstance) {
+    if (!auth) {
       setAuthStatus('unconfigured');
       return;
     }
     try {
-      await msalInstance.clearCache();
+      await firebaseSignOut(auth);
     } catch {
       // Best-effort; local state reset below handles the rest.
     }
-    msalInstance.setActiveAccount(null);
-    writeStoredClaimsByHomeAccountId({});
+    setFirebaseUser(null);
     setAccount(null);
     setAuthError('');
     setAuthStatus('unauthenticated');
@@ -167,83 +157,35 @@ function RealPortalAuthProvider({ children }) {
   );
 
   const getAccessToken = useCallback(async () => {
-    if (!msalInstance || !account) {
+    if (!firebaseUser) {
       throw new Error('auth_unavailable');
     }
-    let tokenResponse;
-    try {
-      tokenResponse = await msalInstance.acquireTokenSilent({
-        account,
-        scopes: ENTRA_SCOPES,
-      });
-    } catch (error) {
-      if (error instanceof InteractionRequiredAuthError) {
-        tokenResponse = await msalInstance.acquireTokenPopup({
-          account,
-          scopes: ENTRA_SCOPES,
-        });
-      } else {
-        throw error;
-      }
-    }
-
-    persistIdTokenClaims(tokenResponse.account, tokenResponse.idTokenClaims);
-    setAccount((prev) => {
-      const sourceAccount = tokenResponse.account ?? prev;
-      const nextAccount = hydrateAccountClaims(sourceAccount);
-      if (!nextAccount) return prev;
-      if (
-        prev?.homeAccountId === nextAccount.homeAccountId &&
-        prev?.idTokenClaims
-      ) {
-        return prev;
-      }
-      return nextAccount;
-    });
-    return tokenResponse.accessToken;
-  }, [account]);
+    return firebaseUser.getIdToken();
+  }, [firebaseUser]);
 
   useEffect(() => {
-    if (!ENTRA_AUTH_CONFIGURED || !msalInstance) {
+    if (!FIREBASE_AUTH_CONFIGURED || !auth) {
       setAuthStatus('unconfigured');
       return;
     }
-    let mounted = true;
-    let callbackId = null;
-
-    const initialize = async () => {
-      setAuthStatus('initializing');
-      setAuthError('');
-      try {
-        await msalInstance.initialize();
-        await msalInstance.handleRedirectPromise();
-        if (mounted) {
-          syncActiveAccount();
-        }
-      } catch (error) {
-        if (!mounted) return;
+    setAuthStatus('initializing');
+    setAuthError('');
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (user) => {
+        setFirebaseUser(user ?? null);
+        setAccount(toPortalAccount(user));
+        setAuthStatus(user ? 'authenticated' : 'unauthenticated');
+      },
+      (error) => {
+        setFirebaseUser(null);
+        setAccount(null);
         setAuthStatus('error');
         setAuthError(error instanceof Error ? error.message : 'auth_init_failed');
       }
-    };
-
-    callbackId = msalInstance.addEventCallback((event) => {
-      if (
-        event.eventType === EventType.LOGIN_SUCCESS ||
-        event.eventType === EventType.LOGOUT_SUCCESS
-      ) {
-        syncActiveAccount();
-      }
-    });
-
-    initialize();
-    return () => {
-      mounted = false;
-      if (callbackId) {
-        msalInstance.removeEventCallback(callbackId);
-      }
-    };
-  }, [syncActiveAccount]);
+    );
+    return () => unsubscribe();
+  }, [toPortalAccount]);
 
   const { meStatus, meData, meError, meErrorStatus, meErrorCode } = useMeProfile({
     account,
@@ -267,12 +209,12 @@ function RealPortalAuthProvider({ children }) {
   // Periodic /me polling while authenticated so a disabled account is detected
   // within ME_POLL_INTERVAL_MS even without navigation or page reload.
   useEffect(() => {
-    if (authStatus !== 'authenticated' || !account || !baseUrl) return;
+    if (authStatus !== 'authenticated' || !firebaseUser || !baseUrl) return;
     const id = setInterval(() => {
       setRefreshTick((x) => x + 1);
     }, ME_POLL_INTERVAL_MS);
     return () => clearInterval(id);
-  }, [authStatus, account, baseUrl]);
+  }, [authStatus, firebaseUser, baseUrl]);
 
   const value = useMemo(
     () => ({

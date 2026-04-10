@@ -32,7 +32,7 @@ const PortalLoginLanding = () => {
   const { pathname } = useLocation();
   const { authStatus, isAuthenticated, meStatus, signIn, lockoutReason } = usePortalAuth();
   const isUnconfigured = authStatus === 'unconfigured';
-  // Show spinner during MSAL init/auth AND while /me is in-flight after sign-in.
+  // Show spinner during Firebase auth init/sign-in and while /me is in-flight.
   const isLoading =
     authStatus === 'initializing' ||
     authStatus === 'authenticating' ||

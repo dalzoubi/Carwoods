@@ -50,9 +50,9 @@ const PortalStatus = () => {
     signOut,
     refreshMe,
   } = usePortalAuth();
-  const entraClientId = (import.meta.env.VITE_ENTRA_CLIENT_ID ?? '').trim();
-  const entraAuthority = (import.meta.env.VITE_ENTRA_AUTHORITY ?? '').trim();
-  const entraScope = (import.meta.env.VITE_ENTRA_API_SCOPE ?? '').trim();
+  const firebaseApiKey = (import.meta.env.VITE_FIREBASE_API_KEY ?? '').trim();
+  const firebaseAuthDomain = (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ?? '').trim();
+  const firebaseProjectId = (import.meta.env.VITE_FIREBASE_PROJECT_ID ?? '').trim();
   const userFirstName = meData?.user?.first_name ?? '';
   const userLastName = meData?.user?.last_name ?? '';
   const profileName = `${userFirstName} ${userLastName}`.trim();
@@ -70,14 +70,10 @@ const PortalStatus = () => {
     if (!account) return '';
     const tokenDetails = {
       account: {
-        homeAccountId: account.homeAccountId ?? null,
-        localAccountId: account.localAccountId ?? null,
+        uid: account.uid ?? null,
         username: account.username ?? null,
-        tenantId: account.tenantId ?? null,
-        environment: account.environment ?? null,
         name: account.name ?? null,
       },
-      idTokenClaims: account.idTokenClaims ?? null,
     };
     return JSON.stringify(tokenDetails, null, 2);
   }, [account]);
@@ -153,19 +149,19 @@ const PortalStatus = () => {
         >
           <Stack spacing={1.5}>
             <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
-              {t('portalSetup.entraHeading')}
+              {t('portalSetup.authHeading')}
             </Typography>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-              <Chip size="small" color={entraClientId ? 'success' : 'default'} label={t('portalSetup.entraClientId')} />
-              <Typography color="text.secondary">{entraClientId || t('portalSetup.notConfigured')}</Typography>
+              <Chip size="small" color={firebaseApiKey ? 'success' : 'default'} label={t('portalSetup.firebaseApiKey')} />
+              <Typography color="text.secondary">{firebaseApiKey || t('portalSetup.notConfigured')}</Typography>
             </Stack>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-              <Chip size="small" color={entraAuthority ? 'success' : 'default'} label={t('portalSetup.entraAuthority')} />
-              <Typography color="text.secondary">{entraAuthority || t('portalSetup.notConfigured')}</Typography>
+              <Chip size="small" color={firebaseAuthDomain ? 'success' : 'default'} label={t('portalSetup.firebaseAuthDomain')} />
+              <Typography color="text.secondary">{firebaseAuthDomain || t('portalSetup.notConfigured')}</Typography>
             </Stack>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-              <Chip size="small" color={entraScope ? 'success' : 'default'} label={t('portalSetup.entraScope')} />
-              <Typography color="text.secondary">{entraScope || t('portalSetup.notConfigured')}</Typography>
+              <Chip size="small" color={firebaseProjectId ? 'success' : 'default'} label={t('portalSetup.firebaseProjectId')} />
+              <Typography color="text.secondary">{firebaseProjectId || t('portalSetup.notConfigured')}</Typography>
             </Stack>
           </Stack>
         </Box>

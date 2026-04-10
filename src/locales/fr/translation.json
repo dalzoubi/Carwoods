@@ -664,10 +664,10 @@
       "signOut": "Se déconnecter",
       "refreshSession": "Actualiser la session enregistrée"
     },
-    "entraHeading": "Vérifications de l'environnement d'authentification",
-    "entraClientId": "ID client",
-    "entraAuthority": "URL d'autorité",
-    "entraScope": "Portée API",
+    "authHeading": "Vérifications de l'environnement d'authentification",
+    "firebaseApiKey": "Clé API",
+    "firebaseAuthDomain": "Domaine d'authentification",
+    "firebaseProjectId": "ID du projet",
     "sessionHeading": "Jeton de session du portail",
     "sessionSaved": "Jeton enregistré",
     "sessionNotSaved": "Aucun jeton enregistré",
@@ -1365,6 +1365,8 @@
     "appleAriaLabel": "Se connecter avec votre compte Apple",
     "microsoft": "Continuer avec Microsoft",
     "microsoftAriaLabel": "Se connecter avec votre compte Microsoft",
+    "facebook": "Continuer avec Facebook",
+    "facebookAriaLabel": "Se connecter avec votre compte Facebook",
     "orDivider": "ou",
     "anyAccount": "Se connecter avec un autre compte",
     "anyAccountAriaLabel": "Se connecter — choisir un type de compte"

@@ -664,10 +664,10 @@
       "signOut": "Sign out",
       "refreshSession": "Refresh saved session"
     },
-    "entraHeading": "Identity environment checks",
-    "entraClientId": "Client ID",
-    "entraAuthority": "Authority URL",
-    "entraScope": "API scope",
+    "authHeading": "Identity environment checks",
+    "firebaseApiKey": "API Key",
+    "firebaseAuthDomain": "Auth Domain",
+    "firebaseProjectId": "Project ID",
     "sessionHeading": "Portal session token",
     "sessionSaved": "Token saved",
     "sessionNotSaved": "No saved token",
@@ -1366,6 +1366,8 @@
     "appleAriaLabel": "Sign in with your Apple account",
     "microsoft": "Continue with Microsoft",
     "microsoftAriaLabel": "Sign in with your Microsoft account",
+    "facebook": "Continue with Facebook",
+    "facebookAriaLabel": "Sign in with your Facebook account",
     "orDivider": "or",
     "anyAccount": "Sign in with any account",
     "anyAccountAriaLabel": "Sign in — choose your account type"

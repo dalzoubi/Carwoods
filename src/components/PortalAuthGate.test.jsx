@@ -37,7 +37,7 @@ describe('PortalAuthGate', () => {
     await i18n.changeLanguage('en');
   });
 
-  it('shows the loading screen while MSAL is initializing', () => {
+  it('shows the loading screen while Firebase Auth is initializing', () => {
     authState.authStatus = 'initializing';
 
     render(

@@ -664,10 +664,10 @@
       "signOut": "تسجيل الخروج",
       "refreshSession": "تحديث الجلسة المحفوظة"
     },
-    "entraHeading": "فحوصات بيئة التوثيق",
-    "entraClientId": "معرّف العميل",
-    "entraAuthority": "رابط جهة الإصدار",
-    "entraScope": "نطاق API",
+    "authHeading": "فحوصات بيئة التوثيق",
+    "firebaseApiKey": "مفتاح API",
+    "firebaseAuthDomain": "نطاق التوثيق",
+    "firebaseProjectId": "معرّف المشروع",
     "sessionHeading": "رمز جلسة البوابة",
     "sessionSaved": "تم حفظ الرمز",
     "sessionNotSaved": "لا يوجد رمز محفوظ",
@@ -1365,6 +1365,8 @@
     "appleAriaLabel": "تسجيل الدخول بحساب Apple",
     "microsoft": "المتابعة مع Microsoft",
     "microsoftAriaLabel": "تسجيل الدخول بحساب Microsoft",
+    "facebook": "المتابعة مع Facebook",
+    "facebookAriaLabel": "تسجيل الدخول بحساب Facebook",
     "orDivider": "أو",
     "anyAccount": "تسجيل الدخول بأي حساب",
     "anyAccountAriaLabel": "تسجيل الدخول — اختر نوع الحساب"

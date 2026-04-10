@@ -1,7 +1,7 @@
 import type { HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { getPool, hasDatabaseUrl } from './db.js';
 import { corsHeadersForRequest } from './corsHeaders.js';
-import { getBearerToken, verifyAccessToken, entraAuthConfigured } from './jwtVerify.js';
+import { getBearerToken, verifyAccessToken, authConfigured } from './jwtVerify.js';
 import { findUserByClaims, type UserRow } from './usersRepo.js';
 import { logInfo, logWarn } from './serverLogger.js';
 import { Role } from '../domain/constants.js';
@@ -43,14 +43,14 @@ export async function requireLandlordOrAdmin(
       },
     };
   }
-  if (!entraAuthConfigured()) {
-    logWarn(context, 'management.auth.failed', { reason: 'entra_unconfigured' });
+  if (!authConfigured()) {
+    logWarn(context, 'management.auth.failed', { reason: 'auth_unconfigured' });
     return {
       ok: false,
       response: {
         status: 503,
         headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-        jsonBody: { error: 'entra_unconfigured' },
+        jsonBody: { error: 'auth_unconfigured' },
       },
     };
   }
@@ -210,11 +210,11 @@ export async function requirePortalUser(
       response: jsonResponse(503, headers, { error: 'database_unconfigured' }),
     };
   }
-  if (!entraAuthConfigured()) {
-    logWarn(context, 'portal.auth.failed', { reason: 'entra_unconfigured' });
+  if (!authConfigured()) {
+    logWarn(context, 'portal.auth.failed', { reason: 'auth_unconfigured' });
     return {
       ok: false,
-      response: jsonResponse(503, headers, { error: 'entra_unconfigured' }),
+      response: jsonResponse(503, headers, { error: 'auth_unconfigured' }),
     };
   }
 

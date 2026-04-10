@@ -24,7 +24,6 @@ import Build from '@mui/icons-material/Build';
 import Person from '@mui/icons-material/Person';
 import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
 import Settings from '@mui/icons-material/Settings';
-import MonitorHeart from '@mui/icons-material/MonitorHeart';
 import HomeWork from '@mui/icons-material/HomeWork';
 import People from '@mui/icons-material/People';
 import Logout from '@mui/icons-material/Logout';
@@ -94,11 +93,6 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
     ...(roleResolved && !isGuest
       ? [
           { key: 'requests', to: '/portal/requests', label: t('portalLayout.sidebar.requests'), icon: <Build /> },
-        ]
-      : []),
-    ...(normalized === Role.ADMIN
-      ? [
-          { key: 'status', to: '/portal/status', label: t('portalLayout.sidebar.status'), icon: <MonitorHeart /> },
         ]
       : []),
     ...(roleResolved && !isGuest

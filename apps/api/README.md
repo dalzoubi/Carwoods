@@ -22,7 +22,7 @@ Endpoints (local default port **7071**):
 |--------|------|------|
 | GET | `/api/health` | Anonymous |
 | GET, OPTIONS | `/api/public/apply-properties` | Anonymous (CORS). Returns tiles for `apply_visible` rows with valid `metadata.apply` (empty list if `DATABASE_URL` unset or DB error). |
-| GET, OPTIONS | `/api/portal/me` | Bearer JWT (`ENTRA_*` + JWKS). **401** without token. |
+| GET, OPTIONS | `/api/portal/me` | Bearer JWT (`FIREBASE_PROJECT_ID` + Google JWKS). **401** without token. |
 | GET, POST, OPTIONS | `/api/portal/requests` | Tenant request listing + creation (lease-linked only) |
 | GET, OPTIONS | `/api/portal/requests/{id}` | Tenant/management request detail (tenant view strips internal notes) |
 | GET, POST, OPTIONS | `/api/portal/requests/{id}/messages` | Thread messages (`is_internal` only for landlord/admin) |

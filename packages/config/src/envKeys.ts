@@ -27,10 +27,9 @@ export const EnvKeys = {
   LLM_CB_OPEN_DURATION_MS: 'LLM_CB_OPEN_DURATION_MS',
   /** Circuit breaker: half-open probe count. Default: 2 */
   LLM_CB_HALF_OPEN_PROBES: 'LLM_CB_HALF_OPEN_PROBES',
-  // ── Entra / auth ─────────────────────────────────────────────────────────
-  ENTRA_TENANT_ID: 'ENTRA_TENANT_ID',
-  ENTRA_API_AUDIENCE: 'ENTRA_API_AUDIENCE',
-  ENTRA_ISSUER: 'ENTRA_ISSUER',
+  // ── Firebase / auth ──────────────────────────────────────────────────────
+  FIREBASE_PROJECT_ID: 'FIREBASE_PROJECT_ID',
+  FIREBASE_OPENID_METADATA_URL: 'FIREBASE_OPENID_METADATA_URL',
   CORS_ALLOWED_ORIGINS: 'CORS_ALLOWED_ORIGINS',
   FEATURE_HAR_IDX_SYNC: 'FEATURE_HAR_IDX_SYNC',
   FEATURE_VENDOR_PORTAL: 'FEATURE_VENDOR_PORTAL',

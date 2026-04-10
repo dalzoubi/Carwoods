@@ -6,7 +6,7 @@ import PortalLoadingScreen from './PortalLoadingScreen';
 const PortalAuthGate = ({ children }) => {
   const { authStatus, isAuthenticated, meStatus } = usePortalAuth();
 
-  // While MSAL is initializing or silently re-authenticating on refresh,
+  // While Firebase Auth is initializing or sign-in is in progress,
   // show a neutral loading screen — NOT the login page.
   if (authStatus === 'initializing' || authStatus === 'authenticating') {
     return <PortalLoadingScreen />;

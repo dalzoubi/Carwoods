@@ -184,7 +184,7 @@ The tenant portal (`/portal/*`) has its own dedicated layout separate from the m
 
 1. **Two-shell strategy**: `App.jsx` detects portal routes via `isPortalRoute()` and renders `PortalApp` (sidebar + top bar) instead of the marketing shell (`ResponsiveNavbar` + `Footer`). **Do not** render portal pages inside the marketing shell.
 2. **`PortalLayout`** (`src/components/PortalLayout.jsx`): flex container with `PortalSidebar` (permanent on `md+`, temporary drawer on mobile) and a main content area with `PortalTopBar`.
-3. **`PortalAuthGate`** (`src/components/PortalAuthGate.jsx`): wraps the layout; shows `PortalLoginLanding` for unauthenticated users, a spinner during MSAL initialization, and the layout + routes when authenticated.
+3. **`PortalAuthGate`** (`src/components/PortalAuthGate.jsx`): wraps the layout; shows `PortalLoginLanding` for unauthenticated users, a spinner during Firebase Auth initialization, and the layout + routes when authenticated.
 4. **`PortalSidebar`** (`src/components/PortalSidebar.jsx`): logo, role-gated nav links, user footer with avatar + role chip + sign out. Width is `SIDEBAR_WIDTH` (260 px).
 5. **`PortalTopBar`** (`src/components/PortalTopBar.jsx`): compact sticky AppBar with page title, hamburger on mobile, user avatar + role chip.
 

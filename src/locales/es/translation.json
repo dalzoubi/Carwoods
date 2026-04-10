@@ -664,10 +664,10 @@
       "signOut": "Cerrar sesión",
       "refreshSession": "Actualizar sesión guardada"
     },
-    "entraHeading": "Comprobaciones del entorno de autenticación",
-    "entraClientId": "ID de cliente",
-    "entraAuthority": "URL de autoridad",
-    "entraScope": "Alcance de API",
+    "authHeading": "Comprobaciones del entorno de autenticación",
+    "firebaseApiKey": "Clave de API",
+    "firebaseAuthDomain": "Dominio de autenticación",
+    "firebaseProjectId": "ID del proyecto",
     "sessionHeading": "Token de sesión del portal",
     "sessionSaved": "Token guardado",
     "sessionNotSaved": "Sin token guardado",
@@ -1365,6 +1365,8 @@
     "appleAriaLabel": "Iniciar sesión con tu cuenta de Apple",
     "microsoft": "Continuar con Microsoft",
     "microsoftAriaLabel": "Iniciar sesión con tu cuenta de Microsoft",
+    "facebook": "Continuar con Facebook",
+    "facebookAriaLabel": "Iniciar sesión con tu cuenta de Facebook",
     "orDivider": "o",
     "anyAccount": "Iniciar sesión con otra cuenta",
     "anyAccountAriaLabel": "Iniciar sesión — elegir tipo de cuenta"

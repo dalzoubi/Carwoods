@@ -31,10 +31,8 @@ Values are **names only**; store secrets in Azure Key Vault or Function App sett
 | `LLM_CB_FAILURE_THRESHOLD`                        | No          | Consecutive failures to open circuit. Default: `5`    |
 | `LLM_CB_OPEN_DURATION_MS`                         | No          | Circuit open window in ms. Default: `60000`           |
 | `LLM_CB_HALF_OPEN_PROBES`                         | No          | Successes to close circuit from half-open. Default: `2` |
-| `ENTRA_TENANT_ID`                                 | Yes         | External ID tenant ID (reference; not used directly by current JWT code) |
-| `ENTRA_API_AUDIENCE`                              | Yes         | API app registration audience (`aud`) for JWT validation |
-| `ENTRA_ISSUER`                                    | Yes         | Token issuer (`iss`) — must match access tokens exactly (including trailing slash) |
-| `ENTRA_OPENID_METADATA_URL`                       | No          | Full OpenID metadata URL; if unset, `{ENTRA_ISSUER}/.well-known/openid-configuration` |
+| `FIREBASE_PROJECT_ID`                             | Yes         | Firebase project ID used as JWT audience and issuer suffix |
+| `FIREBASE_OPENID_METADATA_URL`                    | No          | Full OpenID metadata URL override; if unset, defaults to `https://securetoken.google.com/{FIREBASE_PROJECT_ID}/.well-known/openid-configuration` |
 | `CORS_ALLOWED_ORIGINS`                            | Recommended | Comma-separated origins for browser calls (public + portal + admin). Supports `*` patterns (e.g. Vercel previews). Defaults include localhost + carwoods.com if unset. |
 
 
@@ -54,9 +52,9 @@ Values are **names only**; store secrets in Azure Key Vault or Function App sett
 | Variable                 | Description                                                      |
 | ------------------------ | ---------------------------------------------------------------- |
 | `VITE_API_BASE_URL`      | Base URL for portal/public API (no trailing slash). Production example: `https://carwoods-com-api.azurewebsites.net` until a custom domain is used. |
-| `VITE_ENTRA_CLIENT_ID`   | SPA app registration client ID                                   |
-| `VITE_ENTRA_AUTHORITY`   | External ID authority URL                                        |
-| `VITE_ENTRA_API_SCOPE`   | Scope(s) for API token. The SPA also requests `openid profile email` during login so ID tokens carry the real email for social-IdP users. |
+| `VITE_FIREBASE_API_KEY`     | Firebase web API key used to initialize the Firebase client SDK |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase auth domain, usually `{project}.firebaseapp.com` |
+| `VITE_FIREBASE_PROJECT_ID`  | Firebase project ID; should match API `FIREBASE_PROJECT_ID` |
 | `VITE_FEATURE_APPLY_API` | When **not** `false`, and `VITE_API_BASE_URL` is set, `/apply` uses `GET /api/public/apply-properties` first; falls back to the generated file on error or empty API response. |
 | `VITE_FEATURE_APPLY_DUAL_SOURCE` | Dev only: set to `false` to disable console compare of API vs generated tiles. |
 
