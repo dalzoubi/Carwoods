@@ -8,7 +8,6 @@
     "CORS_ALLOWED_ORIGINS": "http://localhost:3000,https://carwoods.com,https://www.carwoods.com",
     "ENTRA_ISSUER": "https://your-tenant.ciamlogin.com/your-tenant-id/v2.0",
     "ENTRA_API_AUDIENCE": "api://your-api-app-client-id",
-    "ENTRA_OPENID_METADATA_URL": "",
     "GEMINI_API_KEY": "<your-gemini-api-key>"
   }
 }

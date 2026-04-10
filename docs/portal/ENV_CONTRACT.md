@@ -65,6 +65,7 @@ Values are **names only**; store secrets in Azure Key Vault or Function App sett
 
 ## Local development
 
-- Copy `.env.example` at repo root and `apps/api/local.settings.json.example` → `local.settings.json` (gitignored).
-- Use a local SQL Server instance (or `mcr.microsoft.com/mssql/server:2022-latest` via Docker) and Azurite for storage if desired.
+1. Root: start from `.env.example` if you need a tracked baseline; add `CHOKIDAR_USEPOLLING=true` as needed.
+2. Portal + API: `.env.portal.local.example` → `.env.portal.local` (Vite `portal` mode) and `apps/api/local.settings.json.example` → `local.settings.json` (gitignored). See `scripts/start-local-portal.ps1` for Docker SQL + migration helper.
+3. Use a local SQL Server instance (or `mcr.microsoft.com/mssql/server:2022-latest` via Docker) and Azurite for storage if desired.
 
