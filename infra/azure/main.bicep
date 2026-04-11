@@ -27,7 +27,7 @@ param sqlAdminUser string = 'carwoodsadmin'
 param sqlAdminPassword string
 
 @description('Database name on the logical SQL server.')
-param sqlDatabaseName string = 'carwoods_portal'
+param sqlDatabaseName string = 'carwoods_portal_prod'
 
 var hostingPlanName = '${functionAppName}-plan'
 

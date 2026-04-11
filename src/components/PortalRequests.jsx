@@ -92,6 +92,7 @@ const PortalRequests = () => {
     attachmentUploadProgress,
     attachmentDeleteStatus,
     attachmentDeleteError,
+    attachmentRetryHint,
     attachmentShareStatus,
     attachmentShareError,
     exportStatus,
@@ -471,6 +472,7 @@ const PortalRequests = () => {
                 attachmentFile={attachmentFile}
                 attachmentStatus={attachmentStatus}
                 attachmentError={attachmentError}
+                attachmentRetryHint={attachmentRetryHint}
                 attachmentErrorDebugId={attachmentErrorDebugId}
                 attachmentUploadProgress={attachmentUploadProgress}
                 attachmentDeleteStatus={attachmentDeleteStatus}

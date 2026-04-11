@@ -931,7 +931,7 @@
       "deleted": "Adjunto eliminado.",
       "uploadProgress": "Progreso de carga: {{percent}}%",
       "unavailable": "La descarga no está disponible en este momento.",
-      "instructions": "Hasta 3 archivos en total. Imágenes <= 10 MB. Videos <= 50 MB y <= 10 segundos. Se admite arrastrar y soltar.",
+      "instructions": "Sube solo fotos o videos cortos. Máximo 3 archivos por solicitud. Imágenes de hasta 10 MB cada una. Videos de hasta 50 MB y 10 segundos cada uno. Arrastra y suelta o elige archivos.",
       "download": "Descargar",
       "share": "Compartir",
       "preview": "Vista previa",
@@ -943,6 +943,8 @@
       "sharePrompt": "Copia y comparte este enlace temporal:",
       "sharePromptFallback": "Enlace compartido generado. Copialo desde el cuadro.",
       "retryUpload": "Reintentar carga",
+      "retryingHint": "La conexión es inestable. Reintento {{attempt}} de {{maxAttempts}}…",
+      "retryRecoveredHint": "La carga se completó después de {{attempts}} intentos.",
       "errorDialogTitle": "Carga de adjuntos no disponible",
       "deleteAction": "Eliminar adjunto",
       "deleteConfirmTitle": "¿Eliminar este adjunto?",
@@ -953,7 +955,8 @@
       "mediaVideo": "Video",
       "mediaFile": "Archivo",
       "selectedFileLabel": "Archivo seleccionado",
-      "debugIdLabel": "ID de depuracion"
+      "debugIdLabel": "ID de depuracion",
+      "previewVideoLabel": "Vista previa de video"
     },
     "cancel": {
       "heading": "Cancelar solicitud",

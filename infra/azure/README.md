@@ -24,7 +24,7 @@ The template is **scoped to an existing or new resource group** (`carwoods.com`)
 | **App Service plan**                       | Name `{functionAppName}-plan`, **Linux Consumption** (SKU `Y1`, Dynamic)                           |
 | **Function App** (`functionAppName`)       | **Linux**, Node **24**, Functions runtime **~4**, **system-assigned managed identity**, HTTPS only |
 | **Azure SQL logical server** (`sqlServerName`) | SQL Server 2022, TLS 1.2, public access enabled, firewall open to Azure services. |
-| **Azure SQL database** (`sqlDatabaseName`) | **Basic** tier, 5 DTUs, 2 GiB max. ~$5/month. Collation `SQL_Latin1_General_CP1_CI_AS`. Database `carwoods_portal` (override via Bicep param). |
+| **Azure SQL database** (`sqlDatabaseName`) | **Basic** tier, 5 DTUs, 2 GiB max. ~$5/month. Collation `SQL_Latin1_General_CP1_CI_AS`. Database `carwoods_portal_prod` (override via Bicep param). |
 | **Firewall rule** `AllowAzureServices`     | `0.0.0.0`–`0.0.0.0` so **Azure services** (including this Function App's outbound IPs) can connect. |
 
 
@@ -171,7 +171,7 @@ Open the **Variables** tab → **New repository variable**.
 | `AZURE_SQL_SERVER_NAME`      | **Globally unique** DNS name for the Azure SQL logical server. **1–63** chars, **lowercase** letters, numbers, hyphens; cannot start or end with a hyphen.                              | `carwoods-api-sql`  |
 | `AZURE_LOCATION`             | **Recommended.** Set to `eastus2` so push-triggered runs use the same region as your resource group. If unset, the workflow defaults to `eastus2`. | `eastus2`           |
 | `AZURE_SQL_ADMIN_USER`       | **Optional.** Admin login used by the SQL migrations workflow. If unset, defaults to `carwoodsadmin` (the Bicep param default). Only needed if you deployed with a custom `sqlAdminUser`. | `carwoodsadmin`     |
-| `AZURE_SQL_DATABASE_NAME`    | **Optional.** Database name used by the SQL migrations workflow. If unset, defaults to `carwoods_portal` (the Bicep param default). | `carwoods_portal`   |
+| `AZURE_SQL_DATABASE_NAME`    | **Optional.** Database name used by the SQL migrations workflow. If unset, defaults to `carwoods_portal_prod` (the Bicep param default). | `carwoods_portal_prod`   |
 
 
 **Check name availability (CLI, after `az login`):**
@@ -359,7 +359,7 @@ That workflow runs:
 
 Migrations are idempotent — re-running the workflow skips already-applied files.
 
-Migration state is tracked in `dbo.__migrations` in `carwoods_portal`. To view:
+Migration state is tracked in `dbo.__migrations` in `carwoods_portal_prod`. To view:
 
 ```sql
 SELECT name, applied_at FROM dbo.__migrations ORDER BY applied_at;
@@ -370,7 +370,7 @@ SELECT name, applied_at FROM dbo.__migrations ORDER BY applied_at;
 ```bash
 for f in infra/db/migrations/[0-9][0-9][0-9]_*.sql; do
   echo "Applying $f"
-  sqlcmd -S <sqlServerFqdn>,1433 -d carwoods_portal -U carwoodsadmin -P '<password>' -C -i "$f"
+  sqlcmd -S <sqlServerFqdn>,1433 -d carwoods_portal_prod -U carwoodsadmin -P '<password>' -C -i "$f"
 done
 ```
 
@@ -396,7 +396,7 @@ done
 | Variable | `AZURE_SQL_SERVER_NAME`                   |
 | Variable | `AZURE_LOCATION` (recommended: `eastus2`) |
 | Variable | `AZURE_SQL_ADMIN_USER` (optional: defaults to `carwoodsadmin`) |
-| Variable | `AZURE_SQL_DATABASE_NAME` (optional: defaults to `carwoods_portal`) |
+| Variable | `AZURE_SQL_DATABASE_NAME` (optional: defaults to `carwoods_portal_prod`) |
 
 
 ---

@@ -36,6 +36,15 @@ const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 const MAX_ATTACHMENTS = 3;
 const MAX_VIDEO_DURATION_SECONDS = 10;
+const MAX_UPLOAD_RETRY_ATTEMPTS = 3;
+const RETRYABLE_UPLOAD_ERROR_CODES = new Set([
+  'blob_upload_failed',
+  'gateway_timeout',
+  'upstream_timeout',
+  'service_unavailable',
+  'too_many_requests',
+]);
+const RETRYABLE_UPLOAD_HTTP_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 const PHOTO_MIME_PREFIXES = ['image/'];
 const VIDEO_MIME_PREFIXES = ['video/'];
 
@@ -99,6 +108,19 @@ function createUploadDebugId() {
   const timestamp = Date.now().toString(36).toUpperCase();
   const randomPart = Math.random().toString(36).slice(2, 7).toUpperCase();
   return `UP-${timestamp}-${randomPart}`;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
+function isRetryableUploadError(error) {
+  if (!error || typeof error !== 'object') return false;
+  const code = String(error.code || '').trim().toLowerCase();
+  const status = Number(error.status);
+  return RETRYABLE_UPLOAD_ERROR_CODES.has(code) || RETRYABLE_UPLOAD_HTTP_STATUSES.has(status);
 }
 
 function formatDateTimeLocalValue(value) {
@@ -178,6 +200,7 @@ export function usePortalRequests({
   const [attachmentDeleteError, setAttachmentDeleteError] = useState('');
   const [attachmentShareStatus, setAttachmentShareStatus] = useState('idle');
   const [attachmentShareError, setAttachmentShareError] = useState('');
+  const [attachmentRetryHint, setAttachmentRetryHint] = useState('');
 
   const [exportStatus, setExportStatus] = useState('idle');
   const [exportError, setExportError] = useState('');
@@ -388,6 +411,7 @@ export function usePortalRequests({
     setAttachmentDeleteError('');
     setAttachmentShareStatus('idle');
     setAttachmentShareError('');
+    setAttachmentRetryHint('');
     setAttachmentErrorDebugId('');
     setMessageForm({ body: '', is_internal: false });
     setElsaDecisionStatus('idle');
@@ -819,6 +843,7 @@ export function usePortalRequests({
     setAttachmentError('');
     setAttachmentErrorDebugId('');
     setAttachmentUploadProgress(0);
+    setAttachmentRetryHint('');
   };
 
   const onClearAttachmentFile = () => {
@@ -827,6 +852,58 @@ export function usePortalRequests({
     setAttachmentError('');
     setAttachmentErrorDebugId('');
     setAttachmentUploadProgress(0);
+    setAttachmentRetryHint('');
+  };
+
+  const uploadAttachmentWithRetry = async ({
+    requestId,
+    token,
+    emailHint,
+    file,
+    contentType,
+    fileDurationSeconds,
+    onAttemptStart,
+  }) => {
+    let lastError = null;
+    for (let attempt = 1; attempt <= MAX_UPLOAD_RETRY_ATTEMPTS; attempt += 1) {
+      if (onAttemptStart) {
+        onAttemptStart({ attempt, maxAttempts: MAX_UPLOAD_RETRY_ATTEMPTS, shouldRetry: attempt > 1 });
+      }
+      try {
+        const intentPayload = await requestUploadIntent(baseUrl, token, requestId, {
+          emailHint,
+          filename: file.name,
+          content_type: contentType,
+          file_size_bytes: file.size,
+          file_duration_seconds: fileDurationSeconds,
+        });
+        const storagePath = intentPayload?.upload?.storage_path;
+        const uploadUrl = intentPayload?.upload?.upload_url;
+        if (!storagePath || !uploadUrl) {
+          const missingPathError = new Error(t('portalRequests.errors.uploadIntentMissingPath'));
+          missingPathError.code = 'upload_intent_missing_path';
+          throw missingPathError;
+        }
+        await putBlobToStorage(uploadUrl, file, (progress) => {
+          setAttachmentUploadProgress(progress);
+        });
+        await finalizeUpload(baseUrl, token, requestId, {
+          emailHint,
+          storage_path: storagePath,
+          filename: file.name,
+          content_type: contentType,
+          file_size_bytes: file.size,
+          file_duration_seconds: fileDurationSeconds,
+        });
+        return { attemptsUsed: attempt };
+      } catch (error) {
+        lastError = error;
+        const canRetry = attempt < MAX_UPLOAD_RETRY_ATTEMPTS && isRetryableUploadError(error);
+        if (!canRetry) break;
+        await sleep(300 * attempt);
+      }
+    }
+    throw lastError;
   };
 
   const onAttachmentSubmit = async (event) => {
@@ -853,40 +930,34 @@ export function usePortalRequests({
     setAttachmentError('');
     setAttachmentErrorDebugId('');
     setAttachmentUploadProgress(0);
+    setAttachmentRetryHint('');
     try {
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
-      const filePayload = {
+      const uploadResult = await uploadAttachmentWithRetry({
+        requestId: selectedRequestId,
+        token,
         emailHint,
-        filename: attachmentFile.name,
-        content_type: contentType,
-        file_size_bytes: attachmentFile.size,
-        file_duration_seconds: fileDurationSeconds,
-      };
-      const intentPayload = await requestUploadIntent(baseUrl, token, selectedRequestId, filePayload);
-      const storagePath = intentPayload?.upload?.storage_path;
-      const uploadUrl = intentPayload?.upload?.upload_url;
-      if (!storagePath || !uploadUrl) {
-        const missingPathError = new Error(t('portalRequests.errors.uploadIntentMissingPath'));
-        missingPathError.code = 'upload_intent_missing_path';
-        throw missingPathError;
-      }
-
-      await putBlobToStorage(uploadUrl, attachmentFile, (progress) => {
-        setAttachmentUploadProgress(progress);
-      });
-
-      await finalizeUpload(baseUrl, token, selectedRequestId, {
-        emailHint,
-        storage_path: storagePath,
-        filename: attachmentFile.name,
-        content_type: contentType,
-        file_size_bytes: attachmentFile.size,
-        file_duration_seconds: fileDurationSeconds,
+        file: attachmentFile,
+        contentType,
+        fileDurationSeconds,
+        onAttemptStart: ({ attempt, shouldRetry, maxAttempts }) => {
+          if (!shouldRetry) {
+            setAttachmentRetryHint('');
+            return;
+          }
+          setAttachmentUploadProgress(0);
+          setAttachmentRetryHint(t('portalRequests.attachments.retryingHint', { attempt, maxAttempts }));
+        },
       });
       setAttachmentFile(null);
       setAttachmentUploadProgress(100);
       setAttachmentErrorDebugId('');
+      setAttachmentRetryHint(
+        uploadResult.attemptsUsed > 1
+          ? t('portalRequests.attachments.retryRecoveredHint', { attempts: uploadResult.attemptsUsed })
+          : ''
+      );
       await loadRequestDetails(selectedRequestId, { showLoadingState: false });
       setAttachmentStatus('success');
     } catch (error) {
@@ -894,6 +965,7 @@ export function usePortalRequests({
       handleApiForbidden(error);
       setAttachmentStatus('error');
       setAttachmentErrorDebugId(debugId);
+      setAttachmentRetryHint('');
       logAttachmentUploadFailure(error, {
         requestId: selectedRequestId,
         fileName: attachmentFile?.name,
@@ -1150,6 +1222,7 @@ export function usePortalRequests({
     attachmentUploadProgress,
     attachmentDeleteStatus,
     attachmentDeleteError,
+    attachmentRetryHint,
     attachmentShareStatus,
     attachmentShareError,
     exportStatus,

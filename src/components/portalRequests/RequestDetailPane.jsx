@@ -251,6 +251,7 @@ const RequestDetailPane = ({
   attachmentFile,
   attachmentStatus,
   attachmentError,
+  attachmentRetryHint,
   attachmentErrorDebugId,
   attachmentUploadProgress,
   attachmentDeleteStatus,
@@ -1388,6 +1389,7 @@ const RequestDetailPane = ({
                         controls
                         preload="metadata"
                         src={att.file_url}
+                        aria-label={`${t('portalRequests.attachments.previewVideoLabel')}: ${att.original_filename}`}
                         sx={{
                           width: '100%',
                           maxHeight: 260,
@@ -1549,6 +1551,11 @@ const RequestDetailPane = ({
                   {t('portalRequests.attachments.uploadProgress', { percent: attachmentUploadProgress })}
                 </Typography>
               )}
+              {attachmentRetryHint ? (
+                <Typography variant="caption" color="text.secondary">
+                  {attachmentRetryHint}
+                </Typography>
+              ) : null}
             </Stack>
           )}
           <Stack
@@ -1627,6 +1634,7 @@ const RequestDetailPane = ({
               controls
               preload="metadata"
               src={activePreviewAttachment.file_url}
+              aria-label={`${t('portalRequests.attachments.previewVideoLabel')}: ${activePreviewAttachment.original_filename}`}
               sx={{
                 width: '100%',
                 maxHeight: '75vh',

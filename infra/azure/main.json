@@ -63,7 +63,7 @@
     },
     "sqlDatabaseName": {
       "type": "string",
-      "defaultValue": "carwoods_portal",
+      "defaultValue": "carwoods_portal_prod",
       "metadata": {
         "description": "Database name on the logical SQL server."
       }

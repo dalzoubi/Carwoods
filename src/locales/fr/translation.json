@@ -931,7 +931,7 @@
       "deleted": "Piece jointe supprimee.",
       "uploadProgress": "Progression du televersement : {{percent}}%",
       "unavailable": "Telechargement indisponible pour le moment.",
-      "instructions": "Jusqu'a 3 fichiers au total. Images <= 10 Mo. Videos <= 50 Mo et <= 10 secondes. Le glisser-deposer est pris en charge.",
+      "instructions": "Televersez uniquement des photos ou de courtes videos. Maximum 3 fichiers par demande. Images jusqu'a 10 Mo chacune. Videos jusqu'a 50 Mo et 10 secondes chacune. Glissez-deposez ou choisissez des fichiers.",
       "download": "Telecharger",
       "share": "Partager",
       "preview": "Apercu",
@@ -943,6 +943,8 @@
       "sharePrompt": "Copiez et partagez ce lien temporaire :",
       "sharePromptFallback": "Lien de partage genere. Copiez-le depuis l'invite.",
       "retryUpload": "Reessayer l'envoi",
+      "retryingHint": "Connexion instable. Nouvelle tentative {{attempt}} sur {{maxAttempts}}…",
+      "retryRecoveredHint": "Televersement reussi apres {{attempts}} tentatives.",
       "errorDialogTitle": "Upload de piece jointe indisponible",
       "deleteAction": "Supprimer la piece jointe",
       "deleteConfirmTitle": "Supprimer cette piece jointe ?",
@@ -953,7 +955,8 @@
       "mediaVideo": "Video",
       "mediaFile": "Fichier",
       "selectedFileLabel": "Fichier selectionne",
-      "debugIdLabel": "ID de debogage"
+      "debugIdLabel": "ID de debogage",
+      "previewVideoLabel": "Apercu video"
     },
     "cancel": {
       "heading": "Annuler la demande",

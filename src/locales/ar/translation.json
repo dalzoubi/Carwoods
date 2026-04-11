@@ -931,7 +931,7 @@
       "deleted": "تم حذف المرفق.",
       "uploadProgress": "تقدم الرفع: {{percent}}%",
       "unavailable": "التنزيل غير متاح حالياً.",
-      "instructions": "حتى 3 ملفات إجمالاً. الصور <= 10 MB. الفيديو <= 50 MB وبحد أقصى 10 ثوانٍ. السحب والإفلات مدعوم.",
+      "instructions": "ارفع الصور أو مقاطع الفيديو القصيرة فقط. الحد الأقصى 3 ملفات لكل طلب. الصور حتى 10 MB لكل ملف. الفيديو حتى 50 MB ولمدة 10 ثوانٍ لكل ملف. يمكنك السحب والإفلات أو اختيار الملفات.",
       "download": "تنزيل",
       "share": "مشاركة",
       "preview": "معاينة",
@@ -943,6 +943,8 @@
       "sharePrompt": "انسخ وشارك هذا الرابط المؤقت:",
       "sharePromptFallback": "تم إنشاء رابط المشاركة. انسخه من مربع الحوار.",
       "retryUpload": "إعادة المحاولة",
+      "retryingHint": "الاتصال غير مستقر. إعادة المحاولة {{attempt}} من {{maxAttempts}}…",
+      "retryRecoveredHint": "اكتمل الرفع بعد {{attempts}} محاولات.",
       "errorDialogTitle": "رفع المرفق غير متاح",
       "deleteAction": "حذف المرفق",
       "deleteConfirmTitle": "هل تريد حذف هذا المرفق؟",
@@ -953,7 +955,8 @@
       "mediaVideo": "فيديو",
       "mediaFile": "ملف",
       "selectedFileLabel": "الملف المحدد",
-      "debugIdLabel": "معرّف التصحيح"
+      "debugIdLabel": "معرّف التصحيح",
+      "previewVideoLabel": "معاينة الفيديو"
     },
     "cancel": {
       "heading": "إلغاء الطلب",

@@ -4,7 +4,7 @@
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "node",
     "AZURE_RESOURCE_GROUP": "carwoods.com",
-    "DATABASE_URL": "Server=localhost,1433;Database=carwoods_portal;User Id=sa;Password=<your-local-sa-password>;Encrypt=yes;TrustServerCertificate=yes",
+    "DATABASE_URL": "Server=localhost,1433;Database=carwoods_portal_dev;User Id=sa;Password=<your-local-sa-password>;Encrypt=yes;TrustServerCertificate=yes",
     "CORS_ALLOWED_ORIGINS": "http://localhost:3000,https://carwoods.com,https://www.carwoods.com",
     "FIREBASE_PROJECT_ID": "your-project-id",
     "FIREBASE_OPENID_METADATA_URL": "",

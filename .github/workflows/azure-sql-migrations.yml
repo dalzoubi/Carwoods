@@ -83,7 +83,7 @@ jobs:
           set -euo pipefail
 
           HOST="${SQL_FQDN},1433"
-          DB="${SQL_DATABASE:-carwoods_portal}"
+          DB="${SQL_DATABASE:-carwoods_portal_prod}"
           USER="${SQL_ADMIN_USER:-carwoodsadmin}"
           PASS="$SQL_ADMIN_PASSWORD"
 

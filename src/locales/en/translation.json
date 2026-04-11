@@ -931,7 +931,7 @@
       "deleted": "Attachment deleted.",
       "uploadProgress": "Upload progress: {{percent}}%",
       "unavailable": "Download currently unavailable.",
-      "instructions": "Up to 3 files total. Images <= 10 MB. Videos <= 50 MB and <= 10 seconds. Drag and drop is supported.",
+      "instructions": "Upload photos or short videos only. Max 3 files per request. Images up to 10 MB each. Videos up to 50 MB and 10 seconds each. Drag and drop or choose files.",
       "download": "Download",
       "share": "Share",
       "preview": "Preview",
@@ -943,6 +943,8 @@
       "sharePrompt": "Copy and share this temporary link:",
       "sharePromptFallback": "Share link generated. Copy it from the prompt.",
       "retryUpload": "Retry upload",
+      "retryingHint": "Connection is unstable. Retry {{attempt}} of {{maxAttempts}}…",
+      "retryRecoveredHint": "Upload succeeded after {{attempts}} attempts.",
       "errorDialogTitle": "Attachment upload unavailable",
       "deleteAction": "Delete attachment",
       "deleteConfirmTitle": "Delete this attachment?",
@@ -953,7 +955,8 @@
       "mediaVideo": "Video",
       "mediaFile": "File",
       "selectedFileLabel": "Selected file",
-      "debugIdLabel": "Debug ID"
+      "debugIdLabel": "Debug ID",
+      "previewVideoLabel": "Video preview"
     },
     "cancel": {
       "heading": "Cancel request",

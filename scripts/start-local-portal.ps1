@@ -2,7 +2,7 @@ param(
     [string]$SqlContainerName = "carwoods-sql",
     [string]$SqlImage = "",
     [string]$SqlFallbackImage = "mcr.microsoft.com/azure-sql-edge:latest",
-    [string]$SqlDatabaseName = "carwoods_portal",
+    [string]$SqlDatabaseName = "carwoods_portal_dev",
     [string]$SqlSaPassword = "YourStrong!Pass123",
     [switch]$SkipMigrations,
     [switch]$DryRun
@@ -320,10 +320,7 @@ function Wait-ForSqlReady {
 }
 
 function Ensure-DbAndMigrations {
-    docker exec $SqlContainerName /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $SqlSaPassword -C -Q "IF DB_ID('$SqlDatabaseName') IS NULL CREATE DATABASE [$SqlDatabaseName];" | Out-Null
-    if ($LASTEXITCODE -ne 0) {
-        throw "Failed to create or verify database '$SqlDatabaseName'."
-    }
+    Ensure-DatabaseExists
 
     if ($SkipMigrations) {
         Write-Host "Skipping migrations." -ForegroundColor Yellow
@@ -345,6 +342,13 @@ function Ensure-DbAndMigrations {
     }
 
     Write-Host "Applied migrations in $migrationsDir." -ForegroundColor Green
+}
+
+function Ensure-DatabaseExists {
+    docker exec $SqlContainerName /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $SqlSaPassword -C -Q "IF DB_ID('$SqlDatabaseName') IS NULL CREATE DATABASE [$SqlDatabaseName];" | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to create or verify database '$SqlDatabaseName'."
+    }
 }
 
 function Ensure-LocalEnvFiles {
@@ -381,12 +385,25 @@ function Start-DevWindows {
 
 Ensure-Tool -ToolName "npm"
 Ensure-Tool -ToolName "powershell"
+if (-not $SkipMigrations) {
+    Ensure-Tool -ToolName "docker"
+}
 
 Invoke-Step -Message "Ensuring separate local env files" -Action {
     Ensure-LocalEnvFiles
 }
 
 if (-not $SkipMigrations) {
+    Invoke-Step -Message "Starting local SQL container" -Action {
+        Start-SqlContainer
+        Wait-ForSqlReady
+    }
+
+    Invoke-Step -Message "Configuring local API database connection" -Action {
+        Update-ApiDatabaseUrl
+        Ensure-DatabaseExists
+    }
+
     Invoke-Step -Message "Applying API database migrations" -Action {
         npm --prefix $apiDir run db:migrate:local
         if ($LASTEXITCODE -ne 0) {

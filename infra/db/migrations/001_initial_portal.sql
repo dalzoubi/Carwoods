@@ -1,5 +1,5 @@
 -- Carwoods tenant portal — initial schema (Azure SQL / T-SQL)
--- Apply with sqlcmd or Azure Data Studio against database carwoods_portal.
+-- Apply with sqlcmd or Azure Data Studio against database carwoods_portal_prod.
 
 -- ---------------------------------------------------------------------------
 -- users

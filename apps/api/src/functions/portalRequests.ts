@@ -358,7 +358,22 @@ async function portalRequestUploadIntent(
     return jsonResponse(200, headers, { upload: result });
   } catch (e) {
     const mapped = mapDomainError(e, headers);
-    if (mapped) return mapped;
+    if (mapped) {
+      const err = e as { status?: number; code?: string };
+      logWarn(context, 'portal.requests.upload_intent.failed', {
+        requestId: request.params.id,
+        userId: user.id,
+        status: typeof err?.status === 'number' ? err.status : undefined,
+        code: typeof err?.code === 'string' ? err.code : undefined,
+        message: e instanceof Error ? e.message : 'unknown_error',
+      });
+      return mapped;
+    }
+    logError(context, 'portal.requests.upload_intent.error', {
+      requestId: request.params.id,
+      userId: user.id,
+      message: e instanceof Error ? e.message : 'unknown_error',
+    });
     throw e;
   }
 }
@@ -527,10 +542,34 @@ async function portalRequestAttachmentShare(
       actorUserId: user.id,
       actorRole: role,
     });
+    logInfo(context, 'portal.requests.attachments.share.created', {
+      requestId: request.params.id,
+      attachmentId: request.params.attachmentId,
+      userId: user.id,
+      expiresAt: result.expires_at,
+      expiresInSeconds: result.expires_in_seconds,
+    });
     return jsonResponse(200, headers, { share: result });
   } catch (e) {
     const mapped = mapDomainError(e, headers);
-    if (mapped) return mapped;
+    if (mapped) {
+      const err = e as { status?: number; code?: string };
+      logWarn(context, 'portal.requests.attachments.share.failed', {
+        requestId: request.params.id,
+        attachmentId: request.params.attachmentId,
+        userId: user.id,
+        status: typeof err?.status === 'number' ? err.status : undefined,
+        code: typeof err?.code === 'string' ? err.code : undefined,
+        message: e instanceof Error ? e.message : 'unknown_error',
+      });
+      return mapped;
+    }
+    logError(context, 'portal.requests.attachments.share.error', {
+      requestId: request.params.id,
+      attachmentId: request.params.attachmentId,
+      userId: user.id,
+      message: e instanceof Error ? e.message : 'unknown_error',
+    });
     throw e;
   }
 }
