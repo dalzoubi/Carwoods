@@ -797,6 +797,8 @@ const RequestDetailPane = ({
                 const plannedReply = extractPlannedReply(decision);
                 const canUseSuggestedReply = shouldOfferManualAction(decision, plannedReply);
                 const canDismissSuggestion = shouldOfferDismissAction(decision);
+                const canMarkResolved = decision.policy_decision === 'HOLD_FOR_REVIEW' && !decision.reviewed_at;
+                const hasElsaActions = canUseSuggestedReply || canDismissSuggestion || canMarkResolved;
                 return (
               <Box
                 key={decision.id}
@@ -859,33 +861,37 @@ const RequestDetailPane = ({
                       {t('portalRequests.elsa.nextAction')}: {decision.recommended_next_action}
                     </Typography>
                   )}
-                  {canUseSuggestedReply && (
+                  {hasElsaActions && (
                     <Stack
-                      direction={{ xs: 'column', sm: 'row' }}
+                      direction="row"
                       spacing={1}
-                      sx={{ flexWrap: 'wrap', mt: 0.5, alignItems: { xs: 'stretch', sm: 'center' } }}
+                      sx={{ flexWrap: 'nowrap', mt: 0.5, alignItems: 'center', overflowX: 'auto', pb: 0.25 }}
                     >
-                      <Button
-                        type="button"
-                        size="small"
-                        variant="contained"
-                        onClick={() => handleReviewElsaDecision(decision.id, 'SEND_AND_RESOLVE')}
-                        disabled={elsaDecisionActionStatus === 'saving'}
-                        startIcon={isElsaActionSaving(decision.id, 'SEND_AND_RESOLVE') ? <CircularProgress size={14} color="inherit" /> : null}
-                        sx={{ minHeight: 36, width: { xs: '100%', sm: 'auto' } }}
-                      >
-                        {t('portalRequests.elsa.actions.sendAndResolve')}
-                      </Button>
-                      <Button
-                        type="button"
-                        size="small"
-                        variant="outlined"
-                        onClick={() => handleUseSuggestedReply(decision, plannedReply)}
-                        disabled={elsaDecisionActionStatus === 'saving'}
-                        sx={{ minHeight: 36, width: { xs: '100%', sm: 'auto' } }}
-                      >
-                        {t('portalRequests.elsa.actions.copyToMessage')}
-                      </Button>
+                      {canUseSuggestedReply && (
+                        <Button
+                          type="button"
+                          size="small"
+                          variant="contained"
+                          onClick={() => handleReviewElsaDecision(decision.id, 'SEND_AND_RESOLVE')}
+                          disabled={elsaDecisionActionStatus === 'saving'}
+                          startIcon={isElsaActionSaving(decision.id, 'SEND_AND_RESOLVE') ? <CircularProgress size={14} color="inherit" /> : null}
+                          sx={{ minHeight: 36, flexShrink: 0 }}
+                        >
+                          {t('portalRequests.elsa.actions.sendAndResolve')}
+                        </Button>
+                      )}
+                      {canUseSuggestedReply && (
+                        <Button
+                          type="button"
+                          size="small"
+                          variant="outlined"
+                          onClick={() => handleUseSuggestedReply(decision, plannedReply)}
+                          disabled={elsaDecisionActionStatus === 'saving'}
+                          sx={{ minHeight: 36, flexShrink: 0 }}
+                        >
+                          {t('portalRequests.elsa.actions.copyToMessage')}
+                        </Button>
+                      )}
                       {canDismissSuggestion && (
                         <Button
                           type="button"
@@ -895,39 +901,12 @@ const RequestDetailPane = ({
                           onClick={() => handleReviewElsaDecision(decision.id, 'DISMISS')}
                           disabled={elsaDecisionActionStatus === 'saving'}
                           startIcon={isElsaActionSaving(decision.id, 'DISMISS') ? <CircularProgress size={14} color="inherit" /> : null}
-                          sx={{ minHeight: 36, width: { xs: '100%', sm: 'auto' } }}
+                          sx={{ minHeight: 36, flexShrink: 0 }}
                         >
                           {t('portalRequests.elsa.actions.dismiss')}
                         </Button>
                       )}
-                    </Stack>
-                  )}
-                  {!canUseSuggestedReply && canDismissSuggestion && (
-                    <Stack
-                      direction={{ xs: 'column', sm: 'row' }}
-                      spacing={1}
-                      sx={{ flexWrap: 'wrap', mt: 0.5, alignItems: { xs: 'stretch', sm: 'center' } }}
-                    >
-                      <Button
-                        type="button"
-                        size="small"
-                        color="warning"
-                        variant="outlined"
-                        onClick={() => handleReviewElsaDecision(decision.id, 'DISMISS')}
-                        disabled={elsaDecisionActionStatus === 'saving'}
-                        startIcon={isElsaActionSaving(decision.id, 'DISMISS') ? <CircularProgress size={14} color="inherit" /> : null}
-                        sx={{ minHeight: 36, width: { xs: '100%', sm: 'auto' } }}
-                      >
-                        {t('portalRequests.elsa.actions.dismiss')}
-                      </Button>
-                    </Stack>
-                  )}
-                  {decision.policy_decision === 'HOLD_FOR_REVIEW' && !decision.reviewed_at && (
-                    <Stack
-                      direction={{ xs: 'column', sm: 'row' }}
-                      spacing={1}
-                      sx={{ flexWrap: 'wrap', mt: 0.5, alignItems: { xs: 'stretch', sm: 'center' } }}
-                    >
+                      {canMarkResolved && (
                       <Button
                         type="button"
                         size="small"
@@ -935,10 +914,11 @@ const RequestDetailPane = ({
                         onClick={() => handleReviewElsaDecision(decision.id, 'MARK_RESOLVED')}
                         disabled={elsaDecisionActionStatus === 'saving'}
                         startIcon={isElsaActionSaving(decision.id, 'MARK_RESOLVED') ? <CircularProgress size={14} color="inherit" /> : null}
-                        sx={{ minHeight: 36, width: { xs: '100%', sm: 'auto' } }}
+                        sx={{ minHeight: 36, flexShrink: 0 }}
                       >
                         {t('portalRequests.elsa.actions.markResolved')}
                       </Button>
+                      )}
                     </Stack>
                   )}
                   {decision.reviewed_at && (

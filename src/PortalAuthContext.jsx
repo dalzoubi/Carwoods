@@ -67,6 +67,13 @@ function RealPortalAuthProvider({ children }) {
     };
   }, []);
 
+  const applyAccountChooserPrompt = useCallback((provider, providerId) => {
+    if (!provider || typeof provider.setCustomParameters !== 'function') return;
+    if (providerId === 'google.com' || providerId === 'microsoft.com') {
+      provider.setCustomParameters({ prompt: 'select_account' });
+    }
+  }, []);
+
   const signInWithProvider = useCallback(async (providerId) => {
     if (!auth) {
       setAuthStatus('unconfigured');
@@ -83,6 +90,7 @@ function RealPortalAuthProvider({ children }) {
         'facebook.com': facebookProvider,
       };
       const provider = providerById[providerId] ?? googleProvider;
+      applyAccountChooserPrompt(provider, providerId);
       const result = await signInWithPopup(auth, provider);
       const nextUser = result?.user ?? null;
       setFirebaseUser(nextUser);
@@ -95,7 +103,7 @@ function RealPortalAuthProvider({ children }) {
       setAuthError(error instanceof Error ? error.message : 'auth_failed');
       return false;
     }
-  }, [toPortalAccount]);
+  }, [applyAccountChooserPrompt, toPortalAccount]);
 
   const signIn = useCallback(() => signInWithProvider('google.com'), [signInWithProvider]);
 
