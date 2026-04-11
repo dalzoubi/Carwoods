@@ -939,7 +939,8 @@
       "deleteConfirmNo": "Keep attachment",
       "mediaImage": "Image",
       "mediaVideo": "Video",
-      "mediaFile": "File"
+      "mediaFile": "File",
+      "selectedFileLabel": "Selected file"
     },
     "cancel": {
       "heading": "Cancel request",

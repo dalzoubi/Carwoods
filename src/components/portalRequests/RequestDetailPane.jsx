@@ -27,9 +27,11 @@ import {
   useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
 import InlineActionStatus from '../InlineActionStatus';
+import { AttachmentUploadControl } from '..';
 import { RequestStatus, Role } from '../../domain/constants.js';
 import { normalizeRole } from '../../portalUtils';
 import { getStatusChipSx } from './requestChipStyles';
@@ -1251,7 +1253,17 @@ const RequestDetailPane = ({
           >
             <Stack spacing={0.75}>
               {attachments.length === 0 && (
-                <Typography color="text.secondary">{t('portalRequests.attachments.empty')}</Typography>
+                <Box
+                  sx={(theme) => ({
+                    border: '1px dashed',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    p: 1.25,
+                    backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.2 : 0.7),
+                  })}
+                >
+                  <Typography color="text.secondary">{t('portalRequests.attachments.empty')}</Typography>
+                </Box>
               )}
               {attachments.map((att) => (
                 <Box
@@ -1334,7 +1346,9 @@ const RequestDetailPane = ({
               ))}
             </Stack>
           </Box>
-          <Box
+          <AttachmentUploadControl
+            instructions={t('portalRequests.attachments.instructions')}
+            isDropActive={isAttachmentDropActive}
             onDragOver={(event) => {
               event.preventDefault();
               setIsAttachmentDropActive(true);
@@ -1346,36 +1360,50 @@ const RequestDetailPane = ({
               const file = event.dataTransfer?.files?.[0];
               if (file) onAttachmentChange({ target: { files: [file] } });
             }}
-            sx={(theme) => ({
-              border: '1px dashed',
-              borderColor: isAttachmentDropActive ? 'primary.main' : 'divider',
-              borderRadius: 1.25,
-              p: 1.25,
-              backgroundColor: isAttachmentDropActive
-                ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.08)
-                : 'transparent',
-            })}
-          >
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { xs: 'stretch', sm: 'center' } }}>
+            chooseButtonLabel={t('portalRequests.actions.chooseFile')}
+            inputKey={attachmentInputKey}
+            accept="image/*,video/*"
+            onFileChange={onAttachmentChange}
+            selectedContent={attachmentFile ? (
+              <Box
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                  px: 1.25,
+                  py: 0.75,
+                  minWidth: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.75,
+                }}
+              >
+                <AttachFileIcon sx={{ fontSize: 18, color: 'text.secondary', flexShrink: 0 }} />
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                >
+                  {t('portalRequests.attachments.selectedFileLabel')}: {attachmentFile.name} ({formatBytesToMbLabel(attachmentFile.size)})
+                </Typography>
+              </Box>
+            ) : null}
+            trailingAction={(
               <Button
-                variant="outlined"
-                component="label"
-                type="button"
+                type="submit"
+                variant="contained"
+                disabled={!attachmentFile || attachmentStatus === 'saving'}
+                startIcon={attachmentStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
                 sx={{ minHeight: 40, width: { xs: '100%', sm: 'auto' } }}
               >
-                {t('portalRequests.actions.chooseFile')}
-                <input key={attachmentInputKey} type="file" hidden accept="image/*,video/*" onChange={onAttachmentChange} />
+                {attachmentStatus === 'saving'
+                  ? t('portalRequests.actions.saving')
+                  : attachmentStatus === 'error'
+                    ? t('portalRequests.attachments.retryUpload')
+                    : t('portalRequests.actions.attachFile')}
               </Button>
-              <Typography variant="caption" color="text.secondary">
-                {t('portalRequests.attachments.instructions')}
-              </Typography>
-            </Stack>
-          </Box>
-          {attachmentFile && (
-            <Typography color="text.secondary">
-              {attachmentFile.name} ({formatBytesToMbLabel(attachmentFile.size)})
-            </Typography>
-          )}
+            )}
+          />
           {attachmentStatus === 'saving' && (
             <Stack spacing={0.5}>
               <LinearProgress
@@ -1397,19 +1425,6 @@ const RequestDetailPane = ({
             sx={{ flexWrap: 'wrap', rowGap: 1, alignItems: { xs: 'stretch', sm: 'center' } }}
           >
             <InlineActionStatus message={attachmentDeleteStatusMessage || attachmentStatusMessage} />
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={!attachmentFile || attachmentStatus === 'saving'}
-              startIcon={attachmentStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
-              sx={{ minHeight: 40, width: { xs: '100%', sm: 'auto' } }}
-            >
-              {attachmentStatus === 'saving'
-                ? t('portalRequests.actions.saving')
-                : attachmentStatus === 'error'
-                  ? t('portalRequests.attachments.retryUpload')
-                  : t('portalRequests.actions.attachFile')}
-            </Button>
           </Stack>
         </Stack>
       </SectionCard>

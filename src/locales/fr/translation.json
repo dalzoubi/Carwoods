@@ -939,7 +939,8 @@
       "deleteConfirmNo": "Conserver la piece jointe",
       "mediaImage": "Image",
       "mediaVideo": "Video",
-      "mediaFile": "Fichier"
+      "mediaFile": "Fichier",
+      "selectedFileLabel": "Fichier selectionne"
     },
     "cancel": {
       "heading": "Annuler la demande",

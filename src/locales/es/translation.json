@@ -939,7 +939,8 @@
       "deleteConfirmNo": "Conservar adjunto",
       "mediaImage": "Imagen",
       "mediaVideo": "Video",
-      "mediaFile": "Archivo"
+      "mediaFile": "Archivo",
+      "selectedFileLabel": "Archivo seleccionado"
     },
     "cancel": {
       "heading": "Cancelar solicitud",

@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Button, IconButton, Link, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
 import InlineActionStatus from '../InlineActionStatus';
+import { AttachmentUploadControl } from '..';
 
 const TenantRequestForm = ({
   tenantForm,
@@ -25,6 +27,7 @@ const TenantRequestForm = ({
   framed = true,
 }) => {
   const { t } = useTranslation();
+  const [isDropActive, setIsDropActive] = useState(false);
   const mailSubject = encodeURIComponent('Issues creating a maintenance request via carwoods.com');
   const contactHref = lookupContact?.email
     ? `mailto:${lookupContact.email}?subject=${mailSubject}`
@@ -140,37 +143,61 @@ const TenantRequestForm = ({
           <Typography variant="body2" color="text.secondary">
             {t('portalRequests.create.attachmentsLabel')}
           </Typography>
-          {createAttachmentFiles && createAttachmentFiles.length > 0 && (
-            <Stack spacing={0.5}>
-              {createAttachmentFiles.map((file, index) => (
-                <Stack key={index} direction="row" alignItems="center" spacing={0.5}>
-                  <Typography variant="body2" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {file.name}
-                  </Typography>
-                  <Tooltip title={t('portalRequests.create.removeAttachment')}>
-                    <IconButton
-                      type="button"
-                      size="small"
-                      onClick={() => onRemoveCreateAttachment(index)}
-                      aria-label={t('portalRequests.create.removeAttachment')}
-                      disabled={disabled}
+          <AttachmentUploadControl
+            instructions={t('portalRequests.attachments.instructions')}
+            isDropActive={isDropActive}
+            onDragOver={(event) => {
+              event.preventDefault();
+              setIsDropActive(true);
+            }}
+            onDragLeave={() => setIsDropActive(false)}
+            onDrop={(event) => {
+              event.preventDefault();
+              setIsDropActive(false);
+              const files = event.dataTransfer?.files;
+              if (files && files.length > 0) {
+                onCreateAttachmentChange({ target: { files } });
+              }
+            }}
+            chooseButtonLabel={t('portalRequests.actions.chooseFile')}
+            multiple
+            accept="image/*,video/*"
+            onFileChange={onCreateAttachmentChange}
+            chooseDisabled={disabled}
+            selectedContent={createAttachmentFiles && createAttachmentFiles.length > 0 ? (
+              <Stack spacing={0.5} sx={{ minWidth: 0 }}>
+                {createAttachmentFiles.map((file, index) => (
+                  <Stack
+                    key={`${file.name}-${index}`}
+                    direction="row"
+                    alignItems="center"
+                    spacing={0.75}
+                    sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, px: 1, py: 0.5, minWidth: 0 }}
+                  >
+                    <AttachFileIcon sx={{ fontSize: 16, color: 'text.secondary', flexShrink: 0 }} />
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                     >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                </Stack>
-              ))}
-            </Stack>
-          )}
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { xs: 'stretch', sm: 'center' } }}>
-            <Button variant="outlined" component="label" type="button" disabled={disabled} size="small">
-              {t('portalRequests.actions.chooseFile')}
-              <input type="file" hidden multiple accept="image/*,video/*" onChange={onCreateAttachmentChange} />
-            </Button>
-            <Typography variant="caption" color="text.secondary">
-              {t('portalRequests.attachments.instructions')}
-            </Typography>
-          </Stack>
+                      {t('portalRequests.attachments.selectedFileLabel')}: {file.name}
+                    </Typography>
+                    <Tooltip title={t('portalRequests.create.removeAttachment')}>
+                      <IconButton
+                        type="button"
+                        size="small"
+                        onClick={() => onRemoveCreateAttachment(index)}
+                        aria-label={t('portalRequests.create.removeAttachment')}
+                        disabled={disabled}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                ))}
+              </Stack>
+            ) : null}
+          />
         </Stack>
         <Stack
           direction="row"

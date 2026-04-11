@@ -939,7 +939,8 @@
       "deleteConfirmNo": "الإبقاء على المرفق",
       "mediaImage": "صورة",
       "mediaVideo": "فيديو",
-      "mediaFile": "ملف"
+      "mediaFile": "ملف",
+      "selectedFileLabel": "الملف المحدد"
     },
     "cancel": {
       "heading": "إلغاء الطلب",
