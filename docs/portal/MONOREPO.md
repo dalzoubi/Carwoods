@@ -22,7 +22,7 @@ The **Vite + React** marketing site and (later) portal client code currently liv
 | Path | Purpose |
 |------|---------|
 | `infra/azure/` | Bicep (or future Terraform) — **resource group `carwoods.com`** |
-| `infra/db/migrations/` | Azure SQL (T-SQL) migration SQL (source of truth until a runner is wired) |
+| `infra/db/migrations/` | Azure SQL (T-SQL) migration SQL (source of truth, applied locally via `npm --prefix apps/api run db:migrate:local`) |
 
 ## Documentation
 

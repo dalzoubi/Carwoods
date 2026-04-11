@@ -13,7 +13,9 @@ WHERE cc.parent_object_id = OBJECT_ID('users')
 
 IF @constraintName IS NOT NULL
 BEGIN
-  EXEC(N'ALTER TABLE users DROP CONSTRAINT ' + QUOTENAME(@constraintName) + ';');
+  DECLARE @dropSql NVARCHAR(400);
+  SET @dropSql = N'ALTER TABLE users DROP CONSTRAINT [' + REPLACE(@constraintName, N']', N']]') + N'];';
+  EXEC sp_executesql @dropSql;
 END
 
 -- Recreate a deterministic role check constraint name.

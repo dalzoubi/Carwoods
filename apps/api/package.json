@@ -10,6 +10,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "watch": "tsc -p tsconfig.json --watch",
+    "db:migrate:local": "node scripts/runMigrations.mjs",
     "start": "func start",
     "test": "npm run build && node --test test/**/*.test.mjs"
   },

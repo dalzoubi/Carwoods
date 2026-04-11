@@ -386,6 +386,17 @@ Invoke-Step -Message "Ensuring separate local env files" -Action {
     Ensure-LocalEnvFiles
 }
 
+if (-not $SkipMigrations) {
+    Invoke-Step -Message "Applying API database migrations" -Action {
+        npm --prefix $apiDir run db:migrate:local
+        if ($LASTEXITCODE -ne 0) {
+            throw "Database migration runner failed."
+        }
+    }
+} else {
+    Write-Host "Skipping migrations." -ForegroundColor Yellow
+}
+
 Invoke-Step -Message "Starting API and SPA dev servers in separate windows" -Action {
     Start-DevWindows
 }
