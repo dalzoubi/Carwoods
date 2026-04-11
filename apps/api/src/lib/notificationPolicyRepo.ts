@@ -1,4 +1,8 @@
 import type { PoolClient, QueryResult } from './db.js';
+import {
+  normalizeQuietHoursPreference,
+  type QuietHoursPreference,
+} from './notificationQuietHours.js';
 
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
 
@@ -11,6 +15,9 @@ export type UserNotificationPreferenceRow = {
   in_app_enabled: boolean;
   sms_enabled: boolean;
   sms_opt_in: boolean;
+  quiet_hours_timezone: string | null;
+  quiet_hours_start_minute: number | null;
+  quiet_hours_end_minute: number | null;
   created_at: Date;
   updated_at: Date;
 };
@@ -69,13 +76,16 @@ export async function ensureUserNotificationPreference(
        INSERT (user_id, email_enabled, in_app_enabled, sms_enabled, sms_opt_in)
        VALUES ($1, 1, 1, 0, 0)
      OUTPUT INSERTED.user_id, INSERTED.email_enabled, INSERTED.in_app_enabled, INSERTED.sms_enabled,
-            INSERTED.sms_opt_in, INSERTED.created_at, INSERTED.updated_at;`,
+            INSERTED.sms_opt_in, INSERTED.quiet_hours_timezone, INSERTED.quiet_hours_start_minute,
+            INSERTED.quiet_hours_end_minute, INSERTED.created_at, INSERTED.updated_at;`,
     [userId]
   );
   if (upsert.rows[0]) return upsert.rows[0];
 
   const existing = await client.query<UserNotificationPreferenceRow>(
-    `SELECT user_id, email_enabled, in_app_enabled, sms_enabled, sms_opt_in, created_at, updated_at
+    `SELECT user_id, email_enabled, in_app_enabled, sms_enabled, sms_opt_in,
+            quiet_hours_timezone, quiet_hours_start_minute, quiet_hours_end_minute,
+            created_at, updated_at
      FROM user_notification_preferences
      WHERE user_id = $1`,
     [userId]
@@ -91,18 +101,22 @@ export async function updateUserNotificationPreference(
     inAppEnabled?: boolean;
     smsEnabled?: boolean;
     smsOptIn?: boolean;
+    /** When set (including explicit nulls), replaces all three quiet-hour columns. */
+    quietHours?: {
+      timezone: string | null;
+      startMinute: number | null;
+      endMinute: number | null;
+    };
   }
 ): Promise<UserNotificationPreferenceRow> {
   await ensureUserNotificationPreference(client, params.userId);
-  const r = await client.query<UserNotificationPreferenceRow>(
+  await client.query(
     `UPDATE user_notification_preferences
         SET email_enabled = COALESCE($2, email_enabled),
             in_app_enabled = COALESCE($3, in_app_enabled),
             sms_enabled = COALESCE($4, sms_enabled),
             sms_opt_in = COALESCE($5, sms_opt_in),
             updated_at = SYSDATETIMEOFFSET()
-     OUTPUT INSERTED.user_id, INSERTED.email_enabled, INSERTED.in_app_enabled, INSERTED.sms_enabled,
-            INSERTED.sms_opt_in, INSERTED.created_at, INSERTED.updated_at
      WHERE user_id = $1`,
     [
       params.userId,
@@ -112,7 +126,49 @@ export async function updateUserNotificationPreference(
       toNullableBit(params.smsOptIn),
     ]
   );
-  return r.rows[0]!;
+  if (params.quietHours !== undefined) {
+    const qh = params.quietHours;
+    await client.query(
+      `UPDATE user_notification_preferences
+          SET quiet_hours_timezone = $2,
+              quiet_hours_start_minute = $3,
+              quiet_hours_end_minute = $4,
+              updated_at = SYSDATETIMEOFFSET()
+       WHERE user_id = $1`,
+      [params.userId, qh.timezone ?? null, qh.startMinute ?? null, qh.endMinute ?? null]
+    );
+  }
+  const out = await client.query<UserNotificationPreferenceRow>(
+    `SELECT user_id, email_enabled, in_app_enabled, sms_enabled, sms_opt_in,
+            quiet_hours_timezone, quiet_hours_start_minute, quiet_hours_end_minute,
+            created_at, updated_at
+     FROM user_notification_preferences
+     WHERE user_id = $1`,
+    [params.userId]
+  );
+  return out.rows[0]!;
+}
+
+export async function getUserQuietHoursPreference(
+  client: Queryable,
+  userId: string
+): Promise<QuietHoursPreference> {
+  const r = await client.query<{
+    quiet_hours_timezone: string | null;
+    quiet_hours_start_minute: number | null;
+    quiet_hours_end_minute: number | null;
+  }>(
+    `SELECT quiet_hours_timezone, quiet_hours_start_minute, quiet_hours_end_minute
+     FROM user_notification_preferences
+     WHERE user_id = $1`,
+    [userId]
+  );
+  const row = r.rows[0];
+  return normalizeQuietHoursPreference({
+    timezone: row?.quiet_hours_timezone ?? null,
+    startMinute: row?.quiet_hours_start_minute ?? null,
+    endMinute: row?.quiet_hours_end_minute ?? null,
+  });
 }
 
 export async function listNotificationScopeOverrides(

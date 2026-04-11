@@ -27,12 +27,14 @@ import {
   createRequestAttachmentShareLink,
 } from '../../lib/portalApiClient';
 import { RequestStatus } from '../../domain/constants.js';
+import { FALLBACK_MAX_IMAGE_BYTES } from '../../attachmentUploadLimits.js';
 const MESSAGE_POLL_INTERVAL_MS = 15000;
 const MESSAGE_SUCCESS_AUTO_DISMISS_MS = 5000;
 const ELSA_DECISION_ACTION_SUCCESS_AUTO_DISMISS_MS = 5000;
 const IS_DEV = import.meta.env.DEV;
 
-const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+/** Matches global attachment max image default until portal loads limits from API per-request. */
+const MAX_PHOTO_BYTES = FALLBACK_MAX_IMAGE_BYTES;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 const MAX_ATTACHMENTS = 3;
 const MAX_VIDEO_DURATION_SECONDS = 10;

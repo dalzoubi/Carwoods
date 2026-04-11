@@ -8,7 +8,6 @@ import {
   Card,
   CardContent,
   Chip,
-  CircularProgress,
   Paper,
   Skeleton,
   Snackbar,
@@ -30,6 +29,7 @@ import { RequestStatus, Role } from '../domain/constants.js';
 import { withDarkPath } from '../routePaths';
 import { fetchRequests } from '../lib/portalApiClient';
 import PortalRefreshButton from './PortalRefreshButton';
+import PortalUserAvatar from './PortalUserAvatar';
 
 export function statusColor(statusCode) {
   const s = String(statusCode ?? '').toUpperCase();
@@ -252,13 +252,21 @@ const PortalDashboard = () => {
 
       <Stack spacing={3}>
         {/* Welcome */}
-        <Box>
-          <Typography variant="h4" component="h1" fontWeight={700} gutterBottom>
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: 'wrap' }}>
+          <Typography variant="h4" component="h1" fontWeight={700} sx={{ flex: '1 1 auto', minWidth: 0 }}>
             {firstName
               ? t('portalDashboard.welcomeBack', { name: firstName })
               : t('portalDashboard.welcomeGeneric')}
           </Typography>
-        </Box>
+          {showDashboard && (
+            <PortalUserAvatar
+              meData={meData}
+              firstName={meData?.user?.first_name}
+              lastName={meData?.user?.last_name}
+              size={48}
+            />
+          )}
+        </Stack>
 
         {showDashboard && (
           <>

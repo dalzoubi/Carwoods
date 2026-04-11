@@ -9,6 +9,7 @@ export type UserRow = {
   first_name: string | null;
   last_name: string | null;
   phone: string | null;
+  profile_photo_storage_path: string | null;
   role: string;
   status: string;
 };
@@ -48,7 +49,7 @@ export async function findUserBySubject(
   externalAuthOid: string
 ): Promise<UserRow | null> {
   const r = await client.query<UserRow>(
-    `SELECT id, external_auth_oid, email, first_name, last_name, phone, role, status
+    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status
      FROM users WHERE external_auth_oid = $1`,
     [externalAuthOid]
   );
@@ -61,7 +62,7 @@ export async function findUserByEmail(
 ): Promise<UserRow | null> {
   const normalized = normalizeEmail(email);
   const r = await client.query<UserRow>(
-    `SELECT id, external_auth_oid, email, first_name, last_name, phone, role, status
+    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status
      FROM users
      WHERE LOWER(email) = $1`,
     [normalized]
@@ -106,7 +107,7 @@ export async function upsertLandlordUserByEmail(
               updated_at = GETUTCDATE()
         OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
                INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
-               INSERTED.role, INSERTED.status
+               INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status
         WHERE id = $1`,
       [existing.id, firstName, lastName, placeholderExternalAuthOidForLandlordEmail(normalizedEmail)]
     );
@@ -120,7 +121,7 @@ export async function upsertLandlordUserByEmail(
     `INSERT INTO users (id, external_auth_oid, email, first_name, last_name, role, status)
      OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
             INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
-            INSERTED.role, INSERTED.status
+            INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status
      VALUES (NEWID(), $1, $2, $3, $4, '${Role.LANDLORD}', 'ACTIVE')`,
     [placeholderExternalAuthOidForLandlordEmail(normalizedEmail), normalizedEmail, firstName, lastName]
   );
@@ -137,7 +138,7 @@ export async function listLandlords(
 ): Promise<UserRow[]> {
   if (options?.includeInactive) {
     const r = await client.query<UserRow>(
-      `SELECT id, external_auth_oid, email, first_name, last_name, phone, role, status
+      `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status
        FROM users
        WHERE role = '${Role.LANDLORD}'
        ORDER BY status DESC, last_name ASC, first_name ASC, email ASC`
@@ -145,7 +146,7 @@ export async function listLandlords(
     return r.rows;
   }
   const r = await client.query<UserRow>(
-    `SELECT id, external_auth_oid, email, first_name, last_name, phone, role, status
+    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status
      FROM users
      WHERE role = '${Role.LANDLORD}'
        AND status = 'ACTIVE'
@@ -166,7 +167,7 @@ export async function setLandlordActiveStatus(
             updated_at = GETUTCDATE()
       OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
              INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
-             INSERTED.role, INSERTED.status
+             INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status
       WHERE id = $1
         AND role = '${Role.LANDLORD}'`,
     [id, nextStatus]
@@ -179,7 +180,7 @@ export async function findUserById(
   id: string
 ): Promise<UserRow | null> {
   const r = await client.query<UserRow>(
-    `SELECT id, external_auth_oid, email, first_name, last_name, phone, role, status
+    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status
      FROM users WHERE id = $1`,
     [id]
   );
@@ -258,6 +259,28 @@ export async function findUserByClaims(
   return findUserBySubject(client, claims.sub);
 }
 
+export type AdminNotificationRecipientRow = {
+  user_id: string;
+  email: string | null;
+  phone: string | null;
+  role: string;
+};
+
+/**
+ * Active portal admins eligible for operational / security alerts.
+ */
+export async function listActiveAdminNotificationRecipients(
+  client: Queryable
+): Promise<AdminNotificationRecipientRow[]> {
+  const r = await client.query<AdminNotificationRecipientRow>(
+    `SELECT id AS user_id, email, phone, role
+     FROM users
+     WHERE UPPER(role) = '${Role.ADMIN}'
+       AND UPPER(status) IN ('ACTIVE', 'INVITED')`
+  );
+  return r.rows;
+}
+
 export async function updateUserProfile(
   client: Queryable,
   userId: string,
@@ -281,7 +304,7 @@ export async function updateUserProfile(
             updated_at = GETUTCDATE()
       OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
              INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
-             INSERTED.role, INSERTED.status
+             INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status
       WHERE id = $1
         AND (
           LOWER(email) <> $2
@@ -326,8 +349,26 @@ export async function ensureManagementUser(
        VALUES (NEWID(), $1, $2, $3, $4, $5, 'ACTIVE')
      OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
             INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
-            INSERTED.role, INSERTED.status;`,
+            INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status;`,
     [sub, email, firstName, lastName, role]
   );
   return r.rows[0]!;
+}
+
+export async function updateUserProfilePhotoPath(
+  client: Queryable,
+  userId: string,
+  storagePath: string | null
+): Promise<UserRow | null> {
+  const r = await client.query<UserRow>(
+    `UPDATE users
+        SET profile_photo_storage_path = $2,
+            updated_at = GETUTCDATE()
+      OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
+             INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
+             INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status
+      WHERE id = $1`,
+    [userId, storagePath]
+  );
+  return r.rows[0] ?? null;
 }

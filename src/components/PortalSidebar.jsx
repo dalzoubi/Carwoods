@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Role } from '../domain/constants.js';
 import {
-  Avatar,
   Box,
   Button,
   Chip,
@@ -36,6 +35,7 @@ import { usePortalAuth } from '../PortalAuthContext';
 import { isGuestRole, normalizeRole, resolveDisplayName, resolveRole } from '../portalUtils';
 import { stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
 import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
+import PortalUserAvatar from './PortalUserAvatar';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
 export const SIDEBAR_WIDTH = 260;
@@ -47,16 +47,6 @@ function portalRoleLabel(role, t) {
   if (n === Role.LANDLORD) return t('portalHeader.roles.landlord');
   if (n === Role.TENANT) return t('portalHeader.roles.tenant');
   return t('portalHeader.roles.unknown');
-}
-
-function userInitials(meData) {
-  const first = (meData?.user?.first_name ?? '').trim();
-  const last = (meData?.user?.last_name ?? '').trim();
-  const f = first.charAt(0).toUpperCase();
-  const l = last.charAt(0).toUpperCase();
-  if (f && l) return `${f}${l}`;
-  if (f) return f;
-  return '?';
 }
 
 const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarToggle }) => {
@@ -71,7 +61,6 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
   const isGuest = isGuestRole(normalized);
   const displayName = resolveDisplayName(meData, account, t('portalHeader.notSignedIn'));
   const roleLabel = portalRoleLabel(role, t);
-  const initials = userInitials(meData);
   const roleResolved = isAuthenticated && meStatus !== 'loading';
 
   const normalizedPath = stripDarkPreviewPrefix(pathname);
@@ -239,31 +228,18 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
         <Box sx={{ p: collapsed && !isMobile ? 1.5 : 2 }}>
           {meStatus === 'loading' ? (
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5, justifyContent: collapsed && !isMobile ? 'center' : 'flex-start' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, flexShrink: 0 }}>
-                <CircularProgress size={24} />
-              </Box>
               {(!collapsed || isMobile) && (
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Skeleton variant="text" width="70%" height={20} />
                   <Skeleton variant="rounded" width={60} height={20} sx={{ mt: 0.5 }} />
                 </Box>
               )}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, flexShrink: 0 }}>
+                <CircularProgress size={24} />
+              </Box>
             </Stack>
           ) : (
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5, justifyContent: collapsed && !isMobile ? 'center' : 'flex-start' }}>
-              <Tooltip title={t('portalLayout.sidebar.profile')} arrow>
-                <IconButton
-                  component={RouterLink}
-                  to={withDarkPath(pathname, '/portal/profile')}
-                  type="button"
-                  size="small"
-                  aria-label={t('portalLayout.sidebar.profile')}
-                >
-                  <Avatar sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: '0.875rem' }}>
-                    {initials}
-                  </Avatar>
-                </IconButton>
-              </Tooltip>
               {(!collapsed || isMobile) && (
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography variant="body2" noWrap fontWeight={600}>
@@ -278,6 +254,22 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
                   />
                 </Box>
               )}
+              <Tooltip title={t('portalLayout.sidebar.profile')} arrow>
+                <IconButton
+                  component={RouterLink}
+                  to={withDarkPath(pathname, '/portal/profile')}
+                  type="button"
+                  size="small"
+                  aria-label={t('portalLayout.sidebar.profile')}
+                >
+                  <PortalUserAvatar
+                    meData={meData}
+                    firstName={meData?.user?.first_name}
+                    lastName={meData?.user?.last_name}
+                    size={36}
+                  />
+                </IconButton>
+              </Tooltip>
             </Stack>
           )}
           

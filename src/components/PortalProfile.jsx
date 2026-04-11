@@ -1,8 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import {
-  Avatar,
   Box,
   Button,
   Dialog,
@@ -18,12 +17,22 @@ import {
   Typography,
 } from '@mui/material';
 import { usePortalAuth } from '../PortalAuthContext';
-import { emailFromAccount, isGuestRole, resolveRole } from '../portalUtils';
+import { emailFromAccount, isGuestRole, profilePhotoUrlFromMeData, resolveRole } from '../portalUtils';
 import { validatePersonBasics, validatePersonField } from '../portalPersonValidation';
-import { patchProfile } from '../lib/portalApiClient';
+import {
+  patchProfile,
+  postProfilePhotoUploadIntent,
+  finalizeProfilePhoto,
+  deleteProfilePhoto,
+  putBlobToStorage,
+} from '../lib/portalApiClient';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
+import PortalUserAvatar from './PortalUserAvatar';
+import ProfilePhotoEditorDialog from './ProfilePhotoEditorDialog';
 import StatusAlertSlot from './StatusAlertSlot';
+import { PROFILE_PHOTO_OUTPUT_MAX_BYTES } from '../profilePhotoConstants.js';
+import { maxImageBytesFromMeData, maxImageMbForDisplay } from '../attachmentUploadLimits.js';
 
 function validateProfileForm(form, t) {
   return validatePersonBasics(form, t, {
@@ -53,12 +62,14 @@ function validateProfileFieldSingle(field, value, t, options = {}) {
   });
 }
 
-function userInitials(firstName, lastName) {
-  const f = (firstName || '').trim().charAt(0).toUpperCase();
-  const l = (lastName || '').trim().charAt(0).toUpperCase();
-  if (f && l) return `${f}${l}`;
-  if (f) return f;
-  return '?';
+function profilePhotoErrorMessage(code, t, pickMaxMb) {
+  const c = typeof code === 'string' ? code : '';
+  const maxMb = pickMaxMb ?? maxImageMbForDisplay(maxImageBytesFromMeData(undefined));
+  if (c === 'invalid_profile_photo_content_type') return t('portalProfile.photoErrors.invalidType');
+  if (c === 'profile_photo_too_large') return t('portalProfile.photoErrors.tooLarge', { maxMb });
+  if (c === 'attachment_config_missing') return t('portalProfile.photoErrors.attachmentConfigUnavailable');
+  if (c === 'storage_not_configured') return t('portalProfile.photoErrors.storageUnavailable');
+  return t('portalProfile.photoErrors.uploadFailed');
 }
 
 const PortalProfile = () => {
@@ -88,6 +99,10 @@ const PortalProfile = () => {
   const [saveError, setSaveError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [smsOptInConfirmOpen, setSmsOptInConfirmOpen] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoEditorOpen, setPhotoEditorOpen] = useState(false);
+  const [pendingPhotoFile, setPendingPhotoFile] = useState(null);
+  const fileInputRef = useRef(null);
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
   const initialForm = useMemo(
@@ -287,7 +302,87 @@ const PortalProfile = () => {
   const isProfileDataUnavailable = isAuthenticated && meStatus === 'ok' && !meData?.user;
   const formDisabled =
     !isAuthenticated || isGuest || !baseUrl || isProfileDataUnavailable || saveStatus === 'saving';
-  const initials = userInitials(form.firstName, form.lastName);
+  const hasProfilePhoto = Boolean(profilePhotoUrlFromMeData(meData));
+  const profilePhotoPickMaxBytes = maxImageBytesFromMeData(meData);
+  const profilePhotoPickMaxMb = maxImageMbForDisplay(profilePhotoPickMaxBytes);
+
+  const pickProfilePhoto = () => {
+    fileInputRef.current?.click();
+  };
+
+  const onProfilePhotoSelected = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file || formDisabled || photoBusy) return;
+    if (file.size > profilePhotoPickMaxBytes) {
+      showFeedback(t('portalProfile.photoErrors.sourceTooLarge', { maxMb: profilePhotoPickMaxMb }), 'error');
+      return;
+    }
+    const ct = (file.type || '').trim().toLowerCase();
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(ct)) {
+      showFeedback(t('portalProfile.photoErrors.invalidType'), 'error');
+      return;
+    }
+    setPendingPhotoFile(file);
+    setPhotoEditorOpen(true);
+  };
+
+  const closePhotoEditor = () => {
+    setPhotoEditorOpen(false);
+    setPendingPhotoFile(null);
+  };
+
+  const uploadProfilePhotoBlob = async (blob) => {
+    if (blob.size > PROFILE_PHOTO_OUTPUT_MAX_BYTES) {
+      showFeedback(t('portalProfile.photoErrors.outputTooLarge'), 'error');
+      throw new Error('profile_photo_output_too_large');
+    }
+    const outFile = new File([blob], 'profile-photo.jpg', { type: 'image/jpeg' });
+    setPhotoBusy(true);
+    try {
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      const intent = await postProfilePhotoUploadIntent(baseUrl, token, {
+        emailHint,
+        content_type: 'image/jpeg',
+        file_size_bytes: outFile.size,
+        filename: outFile.name,
+      });
+      await putBlobToStorage(intent.upload_url, outFile);
+      await finalizeProfilePhoto(baseUrl, token, {
+        emailHint,
+        storage_path: intent.storage_path,
+        content_type: 'image/jpeg',
+        file_size_bytes: outFile.size,
+      });
+      refreshMe();
+      showFeedback(t('portalProfile.photoSaved'), 'success');
+    } catch (error) {
+      handleApiForbidden(error);
+      const code = error && typeof error === 'object' && 'code' in error ? error.code : '';
+      showFeedback(profilePhotoErrorMessage(code, t, profilePhotoPickMaxMb), 'error');
+      throw error;
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
+
+  const removeProfilePhoto = async () => {
+    if (formDisabled || photoBusy || !hasProfilePhoto) return;
+    setPhotoBusy(true);
+    try {
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      await deleteProfilePhoto(baseUrl, token, { emailHint });
+      refreshMe();
+      showFeedback(t('portalProfile.photoRemoved'), 'success');
+    } catch (error) {
+      handleApiForbidden(error);
+      showFeedback(t('portalProfile.photoErrors.uploadFailed'), 'error');
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
 
   return (
     <Box>
@@ -297,18 +392,55 @@ const PortalProfile = () => {
       </Helmet>
 
       <Stack spacing={3}>
-        {/* Header with avatar */}
-        <Stack direction="row" spacing={2} alignItems="center">
-          <Avatar sx={{ width: 56, height: 56, bgcolor: 'primary.main', fontSize: '1.25rem' }}>
-            {isLoading ? '' : initials}
-          </Avatar>
-          <Box>
+        {/* Heading and photo: title first in reading order, avatar after */}
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: 'wrap' }}>
+          <Box sx={{ flex: '1 1 200px', minWidth: 0 }}>
             <Typography variant="h5" component="h2" fontWeight={700}>
               {t('portalProfile.heading')}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {t('portalProfile.intro')}
             </Typography>
+            {!isLoading && !isGuest && baseUrl && !isProfileDataUnavailable && (
+              <Stack direction="row" spacing={1} sx={{ mt: 1.5, flexWrap: 'wrap', gap: 1 }}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{ display: 'none' }}
+                  aria-hidden
+                  onChange={onProfilePhotoSelected}
+                />
+                <Button
+                  type="button"
+                  variant="outlined"
+                  size="small"
+                  disabled={formDisabled || photoBusy}
+                  onClick={pickProfilePhoto}
+                  sx={{ textTransform: 'none' }}
+                >
+                  {photoBusy ? t('portalProfile.photoUploading') : t('portalProfile.changePhoto')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="text"
+                  size="small"
+                  disabled={formDisabled || photoBusy || !hasProfilePhoto}
+                  onClick={removeProfilePhoto}
+                  sx={{ textTransform: 'none' }}
+                >
+                  {t('portalProfile.removePhoto')}
+                </Button>
+              </Stack>
+            )}
+          </Box>
+          <Box sx={{ flexShrink: 0 }}>
+            <PortalUserAvatar
+              meData={meData}
+              firstName={form.firstName}
+              lastName={form.lastName}
+              size={96}
+            />
           </Box>
         </Stack>
 
@@ -325,6 +457,7 @@ const PortalProfile = () => {
         <Paper
           variant="outlined"
           component="form"
+          noValidate
           onSubmit={onSubmit}
           sx={{ p: 3, borderRadius: 2 }}
         >
@@ -386,6 +519,7 @@ const PortalProfile = () => {
                   onBlur={onBlur('phone')}
                   autoComplete="tel"
                   type="tel"
+                  required={Boolean(form.notificationsSmsEnabled)}
                   error={Boolean(fieldErrors.phone)}
                   helperText={fieldErrors.phone || ' '}
                   disabled={formDisabled}
@@ -469,6 +603,13 @@ const PortalProfile = () => {
         </DialogActions>
       </Dialog>
       <PortalFeedbackSnackbar feedback={feedback} onClose={closeFeedback} />
+
+      <ProfilePhotoEditorDialog
+        open={photoEditorOpen}
+        file={pendingPhotoFile}
+        onClose={closePhotoEditor}
+        onSave={uploadProfilePhotoBlob}
+      />
     </Box>
   );
 };

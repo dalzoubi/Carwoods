@@ -16,6 +16,7 @@ test('ensureManagementUser normalizes claim email to lowercase', async () => {
           first_name: 'Agent',
           last_name: 'User',
           phone: null,
+          profile_photo_storage_path: null,
           role: 'ADMIN',
           status: 'ACTIVE',
         }],

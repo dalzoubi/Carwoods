@@ -759,6 +759,29 @@
     "saved": "Profil mis a jour avec succes.",
     "guestBlocked": "Les comptes invites ne peuvent pas modifier le profil.",
     "dataUnavailable": "Nous n'avons pas pu charger les donnees de votre profil depuis la base de donnees. Actualisez la page et reessayez.",
+    "changePhoto": "Changer la photo",
+    "removePhoto": "Supprimer la photo",
+    "photoUploading": "Envoi en cours…",
+    "photoSaved": "Photo de profil mise a jour.",
+    "photoRemoved": "Photo de profil supprimee.",
+    "photoPreview": {
+      "title": "Ajuster la photo de profil",
+      "hint": "Faites glisser la photo pour la repositionner. Utilisez le curseur ou les boutons pour zoomer. Le cercle montre le rendu final.",
+      "zoom": "Zoom",
+      "zoomIn": "Zoom avant",
+      "zoomOut": "Zoom arriere",
+      "cancel": "Annuler",
+      "save": "Enregistrer la photo"
+    },
+    "photoErrors": {
+      "invalidType": "Choisissez une image JPEG, PNG ou WebP.",
+      "sourceTooLarge": "Choisissez une image de {{maxMb}} Mo ou moins.",
+      "tooLarge": "L'image doit faire {{maxMb}} Mo ou moins.",
+      "attachmentConfigUnavailable": "Les limites de telechargement ne sont pas disponibles. Reessayez plus tard ou contactez le support.",
+      "outputTooLarge": "Impossible de reduire suffisamment la photo. Essayez une image plus simple.",
+      "storageUnavailable": "Le stockage des photos n'est pas configure. Reessayez plus tard.",
+      "uploadFailed": "Impossible de mettre a jour votre photo. Reessayez."
+    },
     "fields": {
       "email": "E-mail",
       "firstName": "Prenom",

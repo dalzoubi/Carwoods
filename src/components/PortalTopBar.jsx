@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
   AppBar,
-  Avatar,
   Badge,
   Box,
   Chip,
@@ -12,6 +11,7 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  Stack,
   Toolbar,
   Tooltip,
   Typography,
@@ -35,6 +35,7 @@ import { FEATURE_DARK_THEME, NOTIFICATIONS_POLL_INTERVAL_MS } from '../featureFl
 import { isGuestRole, normalizeRole, resolveDisplayName, resolveRole } from '../portalUtils';
 import { Role } from '../domain/constants.js';
 import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
+import PortalUserAvatar from './PortalUserAvatar';
 import { fetchNotifications, markNotificationRead } from '../lib/portalApiClient';
 
 const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
@@ -56,16 +57,6 @@ function usePageTitle(t) {
     '/portal/status': t('portalLayout.sidebar.status'),
   };
   return titles[normalized] || t('portalLayout.sidebar.dashboard');
-}
-
-function userInitials(meData) {
-  const first = (meData?.user?.first_name ?? '').trim();
-  const last = (meData?.user?.last_name ?? '').trim();
-  const f = first.charAt(0).toUpperCase();
-  const l = last.charAt(0).toUpperCase();
-  if (f && l) return `${f}${l}`;
-  if (f) return f;
-  return '?';
 }
 
 function portalRoleLabel(role, t) {
@@ -90,7 +81,6 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
     baseUrl,
     handleApiForbidden,
   } = usePortalAuth();
-  const initials = userInitials(meData);
   const meLoading = isAuthenticated && meStatus === 'loading';
   const pageTitle = usePageTitle(t);
 
@@ -345,11 +335,12 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
                   aria-label={t('portalLayout.topBar.accountMenu')}
                   sx={{ marginInlineStart: 0.5 }}
                 >
-                  <Avatar
-                    sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: '0.875rem' }}
-                  >
-                    {initials}
-                  </Avatar>
+                  <PortalUserAvatar
+                    meData={meData}
+                    firstName={meData?.user?.first_name}
+                    lastName={meData?.user?.last_name}
+                    size={36}
+                  />
                 </IconButton>
               </Tooltip>
             )
@@ -515,16 +506,26 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
         MenuListProps={{ 'aria-labelledby': 'portal-topbar-account-button' }}
       >
         <Box sx={{ px: 2, pt: 1.5, pb: 1 }}>
-          <Typography variant="body2" fontWeight={600} noWrap>
-            {displayName}
-          </Typography>
-          <Chip
-            label={roleLabel}
-            size="small"
-            color="primary"
-            variant="outlined"
-            sx={{ height: 20, fontSize: '0.7rem', mt: 0.5 }}
-          />
+          <Stack direction="row" spacing={1.5} alignItems="flex-start">
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="body2" fontWeight={600} noWrap>
+                {displayName}
+              </Typography>
+              <Chip
+                label={roleLabel}
+                size="small"
+                color="primary"
+                variant="outlined"
+                sx={{ height: 20, fontSize: '0.7rem', mt: 0.5 }}
+              />
+            </Box>
+            <PortalUserAvatar
+              meData={meData}
+              firstName={meData?.user?.first_name}
+              lastName={meData?.user?.last_name}
+              size={36}
+            />
+          </Stack>
         </Box>
         <Divider />
         <MenuItem

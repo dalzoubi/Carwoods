@@ -560,6 +560,74 @@ export async function patchProfile(baseUrl, accessToken, payload) {
 }
 
 // ---------------------------------------------------------------------------
+// POST /api/portal/profile/photo/upload-intent
+// POST /api/portal/profile/photo/finalize
+// DELETE /api/portal/profile/photo
+// ---------------------------------------------------------------------------
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ emailHint?: string, content_type: string, file_size_bytes: number, filename?: string }} payload
+ * @returns {Promise<{ upload_url: string, storage_path: string, expires_in_seconds: number }>}
+ */
+export async function postProfilePhotoUploadIntent(baseUrl, accessToken, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(buildUrl(baseUrl, '/api/portal/profile/photo/upload-intent'), {
+    method: 'POST',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ emailHint?: string, storage_path: string, content_type: string, file_size_bytes: number }} payload
+ * @returns {Promise<object>}
+ */
+export async function finalizeProfilePhoto(baseUrl, accessToken, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(buildUrl(baseUrl, '/api/portal/profile/photo/finalize'), {
+    method: 'POST',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ emailHint?: string }} [params]
+ * @returns {Promise<object>}
+ */
+export async function deleteProfilePhoto(baseUrl, accessToken, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(buildUrl(baseUrl, '/api/portal/profile/photo'), {
+    method: 'DELETE',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
 // GET /api/portal/notifications
 // PATCH /api/portal/notifications/:id
 // ---------------------------------------------------------------------------

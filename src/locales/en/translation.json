@@ -759,6 +759,29 @@
     "saved": "Profile updated successfully.",
     "guestBlocked": "Guest accounts cannot edit profile details.",
     "dataUnavailable": "We could not load your profile data from the database. Please refresh and try again.",
+    "changePhoto": "Change photo",
+    "removePhoto": "Remove photo",
+    "photoUploading": "Uploading…",
+    "photoSaved": "Profile photo updated.",
+    "photoRemoved": "Profile photo removed.",
+    "photoPreview": {
+      "title": "Adjust profile photo",
+      "hint": "Drag the photo to reposition it. Use the slider or buttons to zoom in or out. The circle shows how your picture will appear.",
+      "zoom": "Zoom",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "cancel": "Cancel",
+      "save": "Save photo"
+    },
+    "photoErrors": {
+      "invalidType": "Choose a JPEG, PNG, or WebP image.",
+      "sourceTooLarge": "Choose an image that is {{maxMb}} MB or smaller.",
+      "tooLarge": "Image must be {{maxMb}} MB or smaller.",
+      "attachmentConfigUnavailable": "Upload limits are not available. Try again later or contact support.",
+      "outputTooLarge": "We could not shrink the photo enough. Try a simpler image.",
+      "storageUnavailable": "Photo storage is not configured. Try again later.",
+      "uploadFailed": "Could not update your photo. Please try again."
+    },
     "fields": {
       "email": "Email",
       "firstName": "First name",

@@ -7,7 +7,9 @@ import {
 import { getPool } from '../lib/db.js';
 import { jsonResponse, mapDomainError, requirePortalUser } from '../lib/managementRequest.js';
 
+import { clampQuietHoursMinuteOfDay } from '../lib/notificationQuietHours.js';
 import { updateProfile } from '../useCases/users/updateProfile.js';
+import { addProfilePhotoReadUrl } from '../lib/userProfilePhotoUrl.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
   if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>;
@@ -20,6 +22,14 @@ function str(v: unknown): string | undefined {
 
 function bool(v: unknown): boolean | undefined {
   return typeof v === 'boolean' ? v : undefined;
+}
+
+function minuteOrUndef(v: unknown): number | null | undefined {
+  if (v === undefined) return undefined;
+  if (v === null) return null;
+  const n = Number(v);
+  if (!Number.isFinite(n)) return undefined;
+  return clampQuietHoursMinuteOfDay(Math.floor(n));
 }
 
 async function portalProfileHandler(
@@ -58,11 +68,21 @@ async function portalProfileHandler(
         const inAppEnabled = bool(raw.in_app_enabled);
         const smsEnabled = bool(raw.sms_enabled);
         const smsOptIn = bool(raw.sms_opt_in);
+        const qhRaw = asRecord(raw.quiet_hours);
+        const hasQuietHours = Object.prototype.hasOwnProperty.call(raw, 'quiet_hours');
+        const quietHours = hasQuietHours
+          ? {
+              timezone: str(qhRaw.timezone) ?? null,
+              startMinute: minuteOrUndef(qhRaw.start_minute),
+              endMinute: minuteOrUndef(qhRaw.end_minute),
+            }
+          : undefined;
         if (
           emailEnabled === undefined
           && inAppEnabled === undefined
           && smsEnabled === undefined
           && smsOptIn === undefined
+          && !hasQuietHours
         ) {
           return undefined;
         }
@@ -71,11 +91,12 @@ async function portalProfileHandler(
           inAppEnabled,
           smsEnabled,
           smsOptIn,
+          quietHours,
         };
       })(),
     });
     return jsonResponse(200, headers, {
-      user: result.user,
+      user: addProfilePhotoReadUrl(result.user),
       notification_preferences: result.notificationPreferences,
     });
   } catch (e) {

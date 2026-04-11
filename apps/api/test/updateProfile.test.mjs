@@ -12,6 +12,7 @@ function makeUserRow(overrides = {}) {
     first_name: null,
     last_name: null,
     phone: null,
+    profile_photo_storage_path: null,
     role: 'TENANT',
     status: 'ACTIVE',
     ...overrides,

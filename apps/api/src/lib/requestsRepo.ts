@@ -1,5 +1,6 @@
 import type { PoolClient, QueryResult } from './db.js';
 import { Role } from '../domain/constants.js';
+import { profilePhotoReadUrlFromStoragePath } from './userProfilePhotoUrl.js';
 
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
 
@@ -31,6 +32,9 @@ export type RequestRow = {
   vendor_contact_phone: string | null;
   submitted_by_display_name: string | null;
   submitted_by_role: string | null;
+  submitted_by_first_name: string | null;
+  submitted_by_last_name: string | null;
+  submitted_by_profile_photo_url: string | null;
   emergency_disclaimer_acknowledged: boolean;
   created_at: Date;
   updated_at: Date;
@@ -45,6 +49,9 @@ export type RequestMessageRow = {
   sender_user_id: string;
   sender_display_name: string | null;
   sender_role: string | null;
+  sender_first_name: string | null;
+  sender_last_name: string | null;
+  sender_profile_photo_url: string | null;
   body: string;
   is_internal: boolean;
   source: string;
@@ -98,6 +105,32 @@ export type RequestNotificationScope = {
   request_id: string;
   property_id: string | null;
 };
+
+type RequestRowQuery = Omit<RequestRow, 'submitted_by_profile_photo_url'> & {
+  submitted_by_profile_photo_storage_path: string | null;
+};
+
+function mapRequestRow(row: RequestRowQuery): RequestRow {
+  const { submitted_by_profile_photo_storage_path, ...base } = row;
+  return {
+    ...base,
+    submitted_by_profile_photo_url: profilePhotoReadUrlFromStoragePath(
+      submitted_by_profile_photo_storage_path
+    ),
+  };
+}
+
+type RequestMessageRowQuery = Omit<RequestMessageRow, 'sender_profile_photo_url'> & {
+  sender_profile_photo_storage_path: string | null;
+};
+
+function mapRequestMessageRow(row: RequestMessageRowQuery): RequestMessageRow {
+  const { sender_profile_photo_storage_path, ...base } = row;
+  return {
+    ...base,
+    sender_profile_photo_url: profilePhotoReadUrlFromStoragePath(sender_profile_photo_storage_path),
+  };
+}
 
 export async function findStatusIdByCode(client: Queryable, code: string): Promise<string | null> {
   const r = await client.query<{ id: string }>(
@@ -245,7 +278,7 @@ export async function listRequestsForTenant(
   client: Queryable,
   tenantUserId: string
 ): Promise<RequestRow[]> {
-  const r = await client.query<RequestRow>(
+  const r = await client.query<RequestRowQuery>(
     `SELECT mr.id, mr.property_id, mr.lease_id, p.created_by AS landlord_user_id,
             mr.submitted_by_user_id, mr.assigned_vendor_id,
             mr.category_id, sc.code AS category_code, sc.name AS category_name,
@@ -261,6 +294,9 @@ export async function listRequestsForTenant(
               ELSE LTRIM(RTRIM(ISNULL(su.first_name, '') + ' ' + ISNULL(su.last_name, '')))
             END AS submitted_by_display_name,
             su.role AS submitted_by_role,
+            su.first_name AS submitted_by_first_name,
+            su.last_name AS submitted_by_last_name,
+            su.profile_photo_storage_path AS submitted_by_profile_photo_storage_path,
             mr.emergency_disclaimer_acknowledged, mr.created_at, mr.updated_at,
             mr.completed_at, mr.closed_at, mr.deleted_at
      FROM maintenance_requests mr
@@ -276,11 +312,11 @@ export async function listRequestsForTenant(
      ORDER BY mr.updated_at DESC`,
     [tenantUserId]
   );
-  return r.rows;
+  return r.rows.map(mapRequestRow);
 }
 
 export async function listRequestsForManagement(client: Queryable): Promise<RequestRow[]> {
-  const r = await client.query<RequestRow>(
+  const r = await client.query<RequestRowQuery>(
     `SELECT mr.id, mr.property_id, mr.lease_id, p.created_by AS landlord_user_id,
             mr.submitted_by_user_id, mr.assigned_vendor_id,
             mr.category_id, sc.code AS category_code, sc.name AS category_name,
@@ -296,6 +332,9 @@ export async function listRequestsForManagement(client: Queryable): Promise<Requ
               ELSE LTRIM(RTRIM(ISNULL(su.first_name, '') + ' ' + ISNULL(su.last_name, '')))
             END AS submitted_by_display_name,
             su.role AS submitted_by_role,
+            su.first_name AS submitted_by_first_name,
+            su.last_name AS submitted_by_last_name,
+            su.profile_photo_storage_path AS submitted_by_profile_photo_storage_path,
             mr.emergency_disclaimer_acknowledged, mr.created_at, mr.updated_at,
             mr.completed_at, mr.closed_at, mr.deleted_at
      FROM maintenance_requests mr
@@ -307,11 +346,11 @@ export async function listRequestsForManagement(client: Queryable): Promise<Requ
      WHERE mr.deleted_at IS NULL
      ORDER BY mr.updated_at DESC`
   );
-  return r.rows;
+  return r.rows.map(mapRequestRow);
 }
 
 export async function getRequestById(client: Queryable, id: string): Promise<RequestRow | null> {
-  const r = await client.query<RequestRow>(
+  const r = await client.query<RequestRowQuery>(
     `SELECT mr.id, mr.property_id, mr.lease_id, mr.submitted_by_user_id, mr.assigned_vendor_id,
             mr.category_id, sc.code AS category_code, sc.name AS category_name,
             mr.priority_id, rp.code AS priority_code, rp.name AS priority_name,
@@ -326,6 +365,9 @@ export async function getRequestById(client: Queryable, id: string): Promise<Req
               ELSE LTRIM(RTRIM(ISNULL(su.first_name, '') + ' ' + ISNULL(su.last_name, '')))
             END AS submitted_by_display_name,
             su.role AS submitted_by_role,
+            su.first_name AS submitted_by_first_name,
+            su.last_name AS submitted_by_last_name,
+            su.profile_photo_storage_path AS submitted_by_profile_photo_storage_path,
             mr.emergency_disclaimer_acknowledged, mr.created_at, mr.updated_at,
             mr.completed_at, mr.closed_at, mr.deleted_at
      FROM maintenance_requests mr
@@ -336,7 +378,8 @@ export async function getRequestById(client: Queryable, id: string): Promise<Req
      WHERE mr.id = $1 AND mr.deleted_at IS NULL`,
     [id]
   );
-  return r.rows[0] ?? null;
+  const row = r.rows[0];
+  return row ? mapRequestRow(row) : null;
 }
 
 export async function tenantCanAccessRequest(
@@ -371,7 +414,7 @@ export async function insertMaintenanceRequest(
     emergencyAcknowledged: boolean;
   }
 ): Promise<RequestRow> {
-  const r = await client.query<RequestRow>(
+  const r = await client.query<RequestRowQuery>(
     `INSERT INTO maintenance_requests (
        id, property_id, lease_id, submitted_by_user_id, category_id, priority_id, current_status_id,
        title, description, emergency_disclaimer_acknowledged
@@ -386,6 +429,8 @@ export async function insertMaintenanceRequest(
             INSERTED.vendor_contact_name, INSERTED.vendor_contact_phone,
             INSERTED.emergency_disclaimer_acknowledged,
             NULL AS submitted_by_display_name, NULL AS submitted_by_role,
+            NULL AS submitted_by_first_name, NULL AS submitted_by_last_name,
+            NULL AS submitted_by_profile_photo_storage_path,
             INSERTED.created_at, INSERTED.updated_at, INSERTED.completed_at, INSERTED.closed_at,
             INSERTED.deleted_at
      VALUES (NEWID(), $1, $2, $3, $4, $5, $6, $7, $8, $9)`,
@@ -401,7 +446,7 @@ export async function insertMaintenanceRequest(
       params.emergencyAcknowledged ? 1 : 0,
     ]
   );
-  return r.rows[0]!;
+  return mapRequestRow(r.rows[0]!);
 }
 
 export async function updateRequestManagementFields(
@@ -435,7 +480,7 @@ export async function updateRequestManagementFields(
   const internalNotes =
     patch.internalNotes !== undefined ? patch.internalNotes : cur.internal_notes;
 
-  const r = await client.query<RequestRow>(
+  const r = await client.query<RequestRowQuery>(
     `UPDATE maintenance_requests
        SET current_status_id = $2,
            priority_id = $3,
@@ -457,6 +502,8 @@ export async function updateRequestManagementFields(
             INSERTED.vendor_contact_name, INSERTED.vendor_contact_phone,
             INSERTED.emergency_disclaimer_acknowledged,
             NULL AS submitted_by_display_name, NULL AS submitted_by_role,
+            NULL AS submitted_by_first_name, NULL AS submitted_by_last_name,
+            NULL AS submitted_by_profile_photo_storage_path,
             INSERTED.created_at, INSERTED.updated_at, INSERTED.completed_at, INSERTED.closed_at,
             INSERTED.deleted_at
      WHERE id = $1 AND deleted_at IS NULL`,
@@ -473,7 +520,8 @@ export async function updateRequestManagementFields(
       internalNotes,
     ]
   );
-  return r.rows[0] ?? null;
+  const row = r.rows[0];
+  return row ? mapRequestRow(row) : null;
 }
 
 export async function insertRequestStatusHistory(
@@ -511,12 +559,11 @@ export async function insertRequestMessage(
     source?: string;
   }
 ): Promise<RequestMessageRow> {
-  const r = await client.query<RequestMessageRow>(
+  const r = await client.query<{ id: string }>(
     `INSERT INTO request_messages (
        id, request_id, sender_user_id, body, is_internal, source
      )
-     OUTPUT INSERTED.id, INSERTED.request_id, INSERTED.sender_user_id, INSERTED.body,
-            INSERTED.is_internal, INSERTED.source, INSERTED.created_at, INSERTED.updated_at
+     OUTPUT INSERTED.id
      VALUES (NEWID(), $1, $2, $3, $4, $5)`,
     [
       params.requestId,
@@ -526,7 +573,15 @@ export async function insertRequestMessage(
       params.source ?? 'PORTAL',
     ]
   );
-  return r.rows[0]!;
+  const id = r.rows[0]?.id;
+  if (!id) {
+    throw new Error('insert_request_message_failed');
+  }
+  const full = await getRequestMessageById(client, params.requestId, id);
+  if (!full) {
+    throw new Error('insert_request_message_load_failed');
+  }
+  return full;
 }
 
 export async function listRequestMessages(
@@ -534,13 +589,16 @@ export async function listRequestMessages(
   requestId: string,
   includeInternal: boolean
 ): Promise<RequestMessageRow[]> {
-  const r = await client.query<RequestMessageRow>(
+  const r = await client.query<RequestMessageRowQuery>(
     `SELECT rm.id, rm.request_id, rm.sender_user_id,
             CASE
               WHEN LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, ''))) = '' THEN u.email
               ELSE LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, '')))
             END AS sender_display_name,
             u.role AS sender_role,
+            u.first_name AS sender_first_name,
+            u.last_name AS sender_last_name,
+            u.profile_photo_storage_path AS sender_profile_photo_storage_path,
             rm.body, rm.is_internal, rm.source, rm.created_at, rm.updated_at
      FROM request_messages rm
      LEFT JOIN users u ON u.id = rm.sender_user_id
@@ -549,7 +607,7 @@ export async function listRequestMessages(
      ORDER BY rm.created_at ASC`,
     [requestId, includeInternal ? 1 : 0]
   );
-  return r.rows;
+  return r.rows.map(mapRequestMessageRow);
 }
 
 export async function getRequestMessageById(
@@ -557,13 +615,16 @@ export async function getRequestMessageById(
   requestId: string,
   messageId: string
 ): Promise<RequestMessageRow | null> {
-  const r = await client.query<RequestMessageRow>(
+  const r = await client.query<RequestMessageRowQuery>(
     `SELECT TOP 1 rm.id, rm.request_id, rm.sender_user_id,
             CASE
               WHEN LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, ''))) = '' THEN u.email
               ELSE LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, '')))
             END AS sender_display_name,
             u.role AS sender_role,
+            u.first_name AS sender_first_name,
+            u.last_name AS sender_last_name,
+            u.profile_photo_storage_path AS sender_profile_photo_storage_path,
             rm.body, rm.is_internal, rm.source, rm.created_at, rm.updated_at
      FROM request_messages rm
      LEFT JOIN users u ON u.id = rm.sender_user_id
@@ -571,7 +632,8 @@ export async function getRequestMessageById(
        AND rm.id = $2`,
     [requestId, messageId]
   );
-  return r.rows[0] ?? null;
+  const row = r.rows[0];
+  return row ? mapRequestMessageRow(row) : null;
 }
 
 export async function isMessageReferencedByElsaDecision(
@@ -605,16 +667,19 @@ export async function deleteRequestMessageById(
   requestId: string,
   messageId: string
 ): Promise<RequestMessageRow | null> {
-  const r = await client.query<RequestMessageRow>(
+  const r = await client.query<RequestMessageRowQuery>(
     `DELETE FROM request_messages
      OUTPUT DELETED.id, DELETED.request_id, DELETED.sender_user_id,
             NULL AS sender_display_name, NULL AS sender_role,
+            NULL AS sender_first_name, NULL AS sender_last_name,
+            NULL AS sender_profile_photo_storage_path,
             DELETED.body, DELETED.is_internal, DELETED.source, DELETED.created_at, DELETED.updated_at
      WHERE request_id = $1
        AND id = $2`,
     [requestId, messageId]
   );
-  return r.rows[0] ?? null;
+  const row = r.rows[0];
+  return row ? mapRequestMessageRow(row) : null;
 }
 
 export async function countRequestAttachments(
@@ -790,5 +855,32 @@ export async function getRequestNotificationScope(
     [requestId]
   );
   return r.rows[0] ?? null;
+}
+
+export async function getRequestMessageSnippetById(
+  client: Queryable,
+  messageId: string
+): Promise<{ body: string; request_id: string } | null> {
+  const r = await client.query<{ body: string; request_id: string }>(
+    `SELECT TOP 1 body, request_id
+     FROM request_messages
+     WHERE id = $1`,
+    [messageId]
+  );
+  return r.rows[0] ?? null;
+}
+
+export async function getPriorityIdByCode(
+  client: Queryable,
+  code: string
+): Promise<string | null> {
+  const r = await client.query<{ id: string }>(
+    `SELECT TOP 1 id
+     FROM request_priorities
+     WHERE LOWER(code) = LOWER($1)
+       AND active = 1`,
+    [code]
+  );
+  return r.rows[0]?.id ?? null;
 }
 

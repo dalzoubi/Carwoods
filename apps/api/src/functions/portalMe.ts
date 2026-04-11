@@ -13,6 +13,8 @@ import {
   authConfigured,
 } from '../lib/jwtVerify.js';
 import { findUserByClaims } from '../lib/usersRepo.js';
+import { getGlobalAttachmentUploadConfigCached } from '../lib/attachmentUploadConfigRepo.js';
+import { addProfilePhotoReadUrl } from '../lib/userProfilePhotoUrl.js';
 import { ensureUserNotificationPreference } from '../lib/notificationPolicyRepo.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 import { withRateLimit } from '../lib/rateLimiter.js';
@@ -25,6 +27,7 @@ type PortalMeDeps = {
   authConfigured: typeof authConfigured;
   findUserByClaims: typeof findUserByClaims;
   ensureUserNotificationPreference: typeof ensureUserNotificationPreference;
+  getGlobalAttachmentUploadConfigCached: typeof getGlobalAttachmentUploadConfigCached;
 };
 
 const DEFAULT_PORTAL_ME_DEPS: PortalMeDeps = {
@@ -34,6 +37,7 @@ const DEFAULT_PORTAL_ME_DEPS: PortalMeDeps = {
   authConfigured,
   findUserByClaims,
   ensureUserNotificationPreference,
+  getGlobalAttachmentUploadConfigCached,
 };
 
 export async function portalMeHandler(
@@ -164,6 +168,21 @@ export async function portalMeHandler(
     userId: user.id,
   });
 
+  let attachment_upload_limits: { max_image_bytes: number } | null = null;
+  if (deps.hasDatabaseUrl()) {
+    try {
+      const pool = deps.getPool();
+      const cfg = await deps.getGlobalAttachmentUploadConfigCached(pool);
+      if (cfg) {
+        attachment_upload_limits = { max_image_bytes: cfg.max_image_bytes };
+      }
+    } catch (error) {
+      logWarn(context, 'portal.me.attachment_limits.failed', {
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
   return {
     status: 200,
     headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
@@ -172,8 +191,9 @@ export async function portalMeHandler(
       oid: claims.oid ?? null,
       email: primaryEmailFromClaims(claims) ?? null,
       role: user.role,
+      attachment_upload_limits,
       user: {
-        ...user,
+        ...addProfilePhotoReadUrl(user),
         notification_preferences: notificationPreferences,
       },
     },

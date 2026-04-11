@@ -32,6 +32,26 @@ function normalizeRow(row: PortalNotificationRow): PortalNotificationRow {
   };
 }
 
+/**
+ * True if this user already has an in-app row for this outbox (retry / partial-dispatch safety).
+ * Matches metadata_json.outbox_id set during dispatch.
+ */
+export async function portalNotificationExistsForOutboxRecipient(
+  client: PoolClient,
+  params: { userId: string; outboxId: string }
+): Promise<boolean> {
+  const r = await client.query<{ count_value: number }>(
+    `SELECT COUNT(*) AS count_value
+     FROM portal_notifications
+     WHERE user_id = $1
+       AND ISJSON(metadata_json) = 1
+       AND LOWER(LTRIM(RTRIM(JSON_VALUE(metadata_json, '$.outbox_id'))))
+         = LOWER(LTRIM(RTRIM(CAST($2 AS NVARCHAR(64)))))`,
+    [params.userId, params.outboxId]
+  );
+  return Number(r.rows[0]?.count_value ?? 0) > 0;
+}
+
 export async function createPortalNotification(
   client: PoolClient,
   params: {

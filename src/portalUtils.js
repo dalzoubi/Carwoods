@@ -70,3 +70,18 @@ export function isGuestRole(role) {
     && normalized !== Role.ADMIN
     && normalized !== Role.AI_AGENT;
 }
+
+/** Initials for portal avatars (me payload or form fields). */
+export function portalUserInitials(firstName, lastName) {
+  const f = String(firstName ?? '').trim().charAt(0).toUpperCase();
+  const l = String(lastName ?? '').trim().charAt(0).toUpperCase();
+  if (f && l) return `${f}${l}`;
+  if (f) return f;
+  return '?';
+}
+
+/** Profile photo URL from GET /api/portal/me (or PATCH profile) when present. */
+export function profilePhotoUrlFromMeData(meData) {
+  const url = meData?.user?.profile_photo_url;
+  return typeof url === 'string' && url.trim() ? url.trim() : '';
+}

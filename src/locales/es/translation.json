@@ -759,6 +759,29 @@
     "saved": "Perfil actualizado correctamente.",
     "guestBlocked": "Las cuentas de invitado no pueden editar el perfil.",
     "dataUnavailable": "No pudimos cargar los datos de tu perfil desde la base de datos. Actualiza la página e inténtalo de nuevo.",
+    "changePhoto": "Cambiar foto",
+    "removePhoto": "Quitar foto",
+    "photoUploading": "Subiendo…",
+    "photoSaved": "Foto de perfil actualizada.",
+    "photoRemoved": "Foto de perfil eliminada.",
+    "photoPreview": {
+      "title": "Ajustar foto de perfil",
+      "hint": "Arrastra la foto para recolocarla. Usa el control o los botones para acercar o alejar. El círculo muestra cómo se verá tu imagen.",
+      "zoom": "Zoom",
+      "zoomIn": "Acercar",
+      "zoomOut": "Alejar",
+      "cancel": "Cancelar",
+      "save": "Guardar foto"
+    },
+    "photoErrors": {
+      "invalidType": "Elige una imagen JPEG, PNG o WebP.",
+      "sourceTooLarge": "Elige una imagen de {{maxMb}} MB o menos.",
+      "tooLarge": "La imagen debe pesar {{maxMb}} MB o menos.",
+      "attachmentConfigUnavailable": "Los límites de carga no están disponibles. Inténtalo más tarde o contacta con soporte.",
+      "outputTooLarge": "No pudimos reducir la foto lo suficiente. Prueba con una imagen más simple.",
+      "storageUnavailable": "El almacenamiento de fotos no está configurado. Inténtalo más tarde.",
+      "uploadFailed": "No se pudo actualizar tu foto. Inténtalo de nuevo."
+    },
     "fields": {
       "email": "Correo electrónico",
       "firstName": "Nombre",

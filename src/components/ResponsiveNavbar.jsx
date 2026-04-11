@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
     AppBar,
-    Avatar,
     Badge,
     Toolbar,
     IconButton,
@@ -22,6 +21,7 @@ import {
     Typography,
     Box,
     Tooltip,
+    Stack,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown';
@@ -47,6 +47,7 @@ import { isGuestRole, normalizeRole, resolveDisplayName, resolveRole } from '../
 import { useTranslation } from 'react-i18next';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
+import PortalUserAvatar from './PortalUserAvatar';
 import { Role } from '../domain/constants.js';
 import { fetchNotifications, markNotificationRead } from '../lib/portalApiClient';
 
@@ -126,16 +127,6 @@ function portalRoleLabel(role, t) {
     return t('portalHeader.roles.unknown');
 }
 
-function userInitials(meData) {
-    const first = (meData?.user?.first_name ?? '').trim();
-    const last = (meData?.user?.last_name ?? '').trim();
-    const f = first.charAt(0).toUpperCase();
-    const l = last.charAt(0).toUpperCase();
-    if (f && l) return `${f}${l}`;
-    if (f) return f;
-    return '?';
-}
-
 const ResponsiveNavbar = () => {
     const appBarRef = useRef(null);
     const navigate = useNavigate();
@@ -191,7 +182,6 @@ const ResponsiveNavbar = () => {
     const roleResolved = isAuthenticated && meStatus !== 'loading';
     const isGuestAccount = roleResolved && isGuestRole(normalizedPortalRole);
     const meLoading = isAuthenticated && meStatus === 'loading';
-    const initials = userInitials(meData);
     const portalLinkTo = '/portal';
 
     const menuHorizontalOrigin = muiTheme.direction === 'rtl' ? 'right' : 'left';
@@ -570,11 +560,12 @@ const ResponsiveNavbar = () => {
                             aria-label={`${t('portalHeader.status.signedIn')} - ${portalAccountName}`}
                             sx={{ marginInlineStart: 0.5, p: 0 }}
                         >
-                            <Avatar
-                                sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: '0.875rem' }}
-                            >
-                                {initials}
-                            </Avatar>
+                            <PortalUserAvatar
+                                meData={meData}
+                                firstName={meData?.user?.first_name}
+                                lastName={meData?.user?.last_name}
+                                size={36}
+                            />
                         </IconButton>
                     </Tooltip>
                 )
@@ -1257,16 +1248,26 @@ const ResponsiveNavbar = () => {
                 }}
             >
                 <Box sx={{ px: 2, pt: 1.5, pb: 1 }}>
-                    <Typography variant="body2" fontWeight={600} noWrap>
-                        {portalAccountName}
-                    </Typography>
-                    <Chip
-                        label={currentPortalRoleLabel}
-                        size="small"
-                        color="primary"
-                        variant="outlined"
-                        sx={{ height: 20, fontSize: '0.7rem', mt: 0.5 }}
-                    />
+                    <Stack direction="row" spacing={1.5} alignItems="flex-start">
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography variant="body2" fontWeight={600} noWrap>
+                                {portalAccountName}
+                            </Typography>
+                            <Chip
+                                label={currentPortalRoleLabel}
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                                sx={{ height: 20, fontSize: '0.7rem', mt: 0.5 }}
+                            />
+                        </Box>
+                        <PortalUserAvatar
+                            meData={meData}
+                            firstName={meData?.user?.first_name}
+                            lastName={meData?.user?.last_name}
+                            size={36}
+                        />
+                    </Stack>
                 </Box>
                 <Divider />
                 <MenuItem

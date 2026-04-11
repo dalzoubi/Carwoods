@@ -15,6 +15,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
 import PortalRefreshButton from '../PortalRefreshButton';
+import PortalUserAvatar from '../PortalUserAvatar';
 import { RequestStatus, Role } from '../../domain/constants';
 import { normalizeRole } from '../../portalUtils';
 import { getStatusChipSx } from './requestChipStyles';
@@ -294,8 +295,17 @@ const RequestListPane = ({
                         </Stack>
                         {isManagement && (
                           <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexWrap: 'wrap' }}>
-                            <Typography variant="caption" color="text.secondary">
-                              {t('portalRequests.labels.reportedBy')}: {requesterName(item, t)}
+                            <Typography variant="caption" color="text.secondary" component="span">
+                              {t('portalRequests.labels.reportedBy')}:
+                            </Typography>
+                            <PortalUserAvatar
+                              photoUrl={item.submitted_by_profile_photo_url ?? ''}
+                              firstName={item.submitted_by_first_name ?? ''}
+                              lastName={item.submitted_by_last_name ?? ''}
+                              size={24}
+                            />
+                            <Typography variant="caption" color="text.secondary" component="span">
+                              {requesterName(item, t)}
                             </Typography>
                             <Chip
                               label={roleLabel(item.submitted_by_role, t)}

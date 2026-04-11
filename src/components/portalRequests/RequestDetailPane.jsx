@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Avatar,
   Box,
   Button,
   Chip,
@@ -34,12 +35,14 @@ import CloseIcon from '@mui/icons-material/Close';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import DownloadIcon from '@mui/icons-material/Download';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
 import InlineActionStatus from '../InlineActionStatus';
 import PortalConfirmDialog from '../PortalConfirmDialog';
+import PortalUserAvatar from '../PortalUserAvatar';
 import { AttachmentUploadControl } from '..';
 import { RequestStatus, Role } from '../../domain/constants.js';
 import { normalizeRole } from '../../portalUtils';
@@ -169,17 +172,32 @@ function NameWithRole({
   roleLabelOverride = '',
   chipColor = 'primary',
   chipVariant = 'outlined',
+  avatar = null,
+  roleChipTooltip = '',
 }) {
+  const chipLabel = roleLabelOverride || roleLabel(role, t);
+  const chip = (
+    <Chip
+      label={chipLabel}
+      size="small"
+      color={chipColor}
+      variant={chipVariant}
+      sx={{ height: 20, fontSize: '0.7rem' }}
+    />
+  );
   return (
     <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexWrap: 'wrap' }}>
+      {avatar}
       <Typography sx={{ fontWeight: 600 }}>{name}</Typography>
-      <Chip
-        label={roleLabelOverride || roleLabel(role, t)}
-        size="small"
-        color={chipColor}
-        variant={chipVariant}
-        sx={{ height: 20, fontSize: '0.7rem' }}
-      />
+      {roleChipTooltip ? (
+        <Tooltip title={roleChipTooltip}>
+          <Box component="span" sx={{ display: 'inline-flex', maxWidth: '100%' }}>
+            {chip}
+          </Box>
+        </Tooltip>
+      ) : (
+        chip
+      )}
     </Stack>
   );
 }
@@ -227,6 +245,9 @@ const sectionHeadingSx = {
   letterSpacing: 0.1,
   mb: { xs: 0.25, sm: 0 },
 };
+
+/** Left column width for request message thread (aligned name + date beside avatar). */
+const MESSAGE_THREAD_AVATAR_PX = 48;
 
 function formatBytesToMbLabel(bytes) {
   const numeric = Number(bytes);
@@ -773,6 +794,14 @@ const RequestDetailPane = ({
                   label={`${t('portalRequests.labels.reportedBy')}:`}
                   value={(
                     <NameWithRole
+                      avatar={(
+                        <PortalUserAvatar
+                          photoUrl={requestDetail.submitted_by_profile_photo_url ?? ''}
+                          firstName={requestDetail.submitted_by_first_name ?? ''}
+                          lastName={requestDetail.submitted_by_last_name ?? ''}
+                          size={28}
+                        />
+                      )}
                       name={displayNameWithFallback({
                         displayName: requestDetail.submitted_by_display_name,
                         userId: requestDetail.submitted_by_user_id,
@@ -1041,7 +1070,19 @@ const RequestDetailPane = ({
       {isManagement && (
         <SectionCard>
           <Stack spacing={1.5}>
-            <Typography variant="h3" sx={sectionHeadingSx}>
+            <Typography
+              variant="h3"
+              sx={{
+                ...sectionHeadingSx,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}
+            >
+              <SmartToyIcon
+                sx={{ fontSize: '1.35rem', color: 'secondary.main', flexShrink: 0 }}
+                aria-hidden
+              />
               {t('portalRequests.elsa.heading')}
             </Typography>
             <Box
@@ -1106,8 +1147,18 @@ const RequestDetailPane = ({
                 })}
               >
                 <Stack spacing={1}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', width: '100%' }}>
+                    <SmartToyIcon
+                      sx={{
+                        fontSize: 24,
+                        color: 'secondary.main',
+                        flexShrink: 0,
+                        alignSelf: { xs: 'flex-start', sm: 'center' },
+                        mt: { xs: 0.2, sm: 0 },
+                      }}
+                      aria-hidden
+                    />
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', flex: 1, minWidth: 0 }}>
                       <Chip
                         size="small"
                         label={decision.policy_decision === 'SEND_AUTOMATICALLY'
@@ -1146,7 +1197,12 @@ const RequestDetailPane = ({
                       <Typography
                         variant="caption"
                         color="text.secondary"
-                        sx={{ marginInlineStart: 'auto', whiteSpace: 'nowrap' }}
+                        sx={{
+                          flexShrink: 0,
+                          marginInlineStart: 'auto',
+                          whiteSpace: 'nowrap',
+                          alignSelf: { xs: 'flex-start', sm: 'center' },
+                        }}
                       >
                         {t('portalRequests.elsa.generatedAt')}: {formatDateTime(decision.created_at)}
                       </Typography>
@@ -1297,66 +1353,116 @@ const RequestDetailPane = ({
                     Elsa auto-sent messages are persisted with source=SYSTEM.
                     Render a stable assistant identity regardless of actor user metadata.
                   */}
-                  <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexWrap: 'wrap' }}>
-                    {msg.is_internal && (
-                      <Chip
-                        size="small"
-                        color="warning"
-                        variant="filled"
-                        label={t('portalRequests.messages.internalTag')}
-                        sx={{
-                          height: 20,
-                          fontSize: '0.7rem',
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                          letterSpacing: 0.3,
-                        }}
-                      />
-                    )}
-                    {(() => {
-                      const isElsaAutoMessage = msg.source === 'SYSTEM' || msg.source === 'ELSA_AUTO_SENT';
-                      const senderName = isElsaAutoMessage
-                        ? t('portalRequests.messages.elsaName')
-                        : displayNameWithFallback({
-                          displayName: msg.sender_display_name,
-                          email: msg.sender_email,
-                          userId: msg.sender_user_id,
-                        }, t('portalRequests.messages.senderUnknown'));
-                      return (
-                        <NameWithRole
-                          name={senderName}
-                          role={msg.sender_role}
-                          t={t}
-                          roleLabelOverride={isElsaAutoMessage ? t('portalRequests.messages.aiAssistantRole') : ''}
-                          chipColor={isElsaAutoMessage ? 'secondary' : 'primary'}
-                          chipVariant={isElsaAutoMessage ? 'filled' : 'outlined'}
-                        />
-                      );
-                    })()}
-                  </Stack>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
-                    {formatDateTime(msg.created_at)}
-                  </Typography>
-                  {msg.source === 'SYSTEM' && (
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                      {t('portalRequests.elsa.timeline.autoSentByElsa')}
-                    </Typography>
-                  )}
-                  <Typography color="text.secondary">{msg.body}</Typography>
-                  {isAdmin && (
-                    <Stack direction="row" justifyContent="flex-end" sx={{ mt: 0.75 }}>
-                      <Button
-                        type="button"
-                        size="small"
-                        color="error"
-                        onClick={() => setDeleteDialogMessage(msg)}
-                        disabled={messageDeleteStatus === 'saving'}
-                        sx={{ minHeight: 32 }}
-                      >
-                        {t('portalRequests.messages.deleteAction')}
-                      </Button>
-                    </Stack>
-                  )}
+                  {(() => {
+                    const isElsaAutoMessage = msg.source === 'SYSTEM' || msg.source === 'ELSA_AUTO_SENT';
+                    const senderName = isElsaAutoMessage
+                      ? t('portalRequests.messages.elsaName')
+                      : displayNameWithFallback({
+                        displayName: msg.sender_display_name,
+                        email: msg.sender_email,
+                        userId: msg.sender_user_id,
+                      }, t('portalRequests.messages.senderUnknown'));
+                    return (
+                      <Stack spacing={0.75} sx={{ width: '100%' }}>
+                        <Stack direction="row" alignItems="flex-start" spacing={1.25} sx={{ width: '100%' }}>
+                          <Box sx={{ flexShrink: 0, width: MESSAGE_THREAD_AVATAR_PX, display: 'flex', justifyContent: 'center' }}>
+                            {isElsaAutoMessage ? (
+                              <Avatar
+                                variant="circular"
+                                sx={{
+                                  width: MESSAGE_THREAD_AVATAR_PX,
+                                  height: MESSAGE_THREAD_AVATAR_PX,
+                                  bgcolor: 'secondary.main',
+                                  color: 'secondary.contrastText',
+                                }}
+                                aria-hidden
+                              >
+                                <SmartToyIcon sx={{ fontSize: MESSAGE_THREAD_AVATAR_PX * 0.55 }} aria-hidden />
+                              </Avatar>
+                            ) : (
+                              <PortalUserAvatar
+                                photoUrl={msg.sender_profile_photo_url ?? ''}
+                                firstName={msg.sender_first_name ?? ''}
+                                lastName={msg.sender_last_name ?? ''}
+                                size={MESSAGE_THREAD_AVATAR_PX}
+                              />
+                            )}
+                          </Box>
+                          <Stack spacing={0.75} sx={{ flex: 1, minWidth: 0, alignItems: 'stretch' }}>
+                            <Stack
+                              direction="row"
+                              alignItems="flex-start"
+                              justifyContent="space-between"
+                              spacing={1}
+                            >
+                              <Stack spacing={0.35} sx={{ alignItems: 'flex-start', flex: 1, minWidth: 0 }}>
+                                <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexWrap: 'wrap' }}>
+                                  {msg.is_internal && (
+                                    <Chip
+                                      size="small"
+                                      color="warning"
+                                      variant="filled"
+                                      label={t('portalRequests.messages.internalTag')}
+                                      sx={{
+                                        height: 20,
+                                        fontSize: '0.7rem',
+                                        fontWeight: 700,
+                                        textTransform: 'uppercase',
+                                        letterSpacing: 0.3,
+                                      }}
+                                    />
+                                  )}
+                                  <NameWithRole
+                                    name={senderName}
+                                    role={msg.sender_role}
+                                    t={t}
+                                    roleLabelOverride={isElsaAutoMessage ? t('portalRequests.messages.aiAssistantRole') : ''}
+                                    chipColor={isElsaAutoMessage ? 'secondary' : 'primary'}
+                                    chipVariant={isElsaAutoMessage ? 'filled' : 'outlined'}
+                                    roleChipTooltip={
+                                      isElsaAutoMessage
+                                        ? t('portalRequests.elsa.timeline.autoSentByElsa')
+                                        : ''
+                                    }
+                                  />
+                                </Stack>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                  {formatDateTime(msg.created_at)}
+                                </Typography>
+                              </Stack>
+                              {isAdmin && (
+                                <Tooltip title={t('portalRequests.messages.deleteAction')}>
+                                  <Box component="span" sx={{ flexShrink: 0, lineHeight: 0 }}>
+                                    <IconButton
+                                      type="button"
+                                      size="small"
+                                      color="error"
+                                      onClick={() => setDeleteDialogMessage(msg)}
+                                      disabled={messageDeleteStatus === 'saving'}
+                                      aria-label={t('portalRequests.messages.deleteAction')}
+                                    >
+                                      <DeleteOutlineIcon fontSize="small" />
+                                    </IconButton>
+                                  </Box>
+                                </Tooltip>
+                              )}
+                            </Stack>
+                          </Stack>
+                        </Stack>
+                        <Typography
+                          color="text.secondary"
+                          sx={{
+                            width: '100%',
+                            maxWidth: '100%',
+                            wordBreak: 'break-word',
+                            whiteSpace: 'pre-wrap',
+                          }}
+                        >
+                          {msg.body}
+                        </Typography>
+                      </Stack>
+                    );
+                  })()}
                 </Box>
               ))}
             </Stack>

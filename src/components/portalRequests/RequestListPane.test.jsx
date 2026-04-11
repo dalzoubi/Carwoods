@@ -82,7 +82,8 @@ describe('RequestListPane', () => {
     });
 
     expect(screen.getByText('Emergency')).toBeInTheDocument();
-    expect(screen.getByText('Reported by: Jane Tenant')).toBeInTheDocument();
+    expect(screen.getByText((content, el) => el?.textContent === 'Reported by:')).toBeInTheDocument();
+    expect(screen.getByText('Jane Tenant')).toBeInTheDocument();
     expect(screen.getByText('Tenant')).toBeInTheDocument();
     expect(screen.getByText(/Updated:/)).toBeInTheDocument();
   });

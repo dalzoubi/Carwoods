@@ -22,6 +22,7 @@ import { suggestReply } from './aiMaintenanceReplyService.js';
 import { getLlmClient } from '../../lib/llmClientFactory.js';
 import { evaluatePolicy } from './autoSendPolicyEngine.js';
 import { ElsaPolicyDecision, parseElsaSuggestion } from './elsaTypes.js';
+import { applyWaitingOnTenantAfterElsaTenantMessage } from './applyWaitingOnTenantAfterElsaMessage.js';
 
 export type ProcessElsaAutoResponseInput = {
   requestId: string | undefined;
@@ -273,6 +274,10 @@ export async function processElsaAutoResponse(
           source: 'ELSA_AUTO_SENT',
         },
       });
+      await applyWaitingOnTenantAfterElsaTenantMessage(
+        client as Parameters<typeof applyWaitingOnTenantAfterElsaTenantMessage>[0],
+        { requestId: input.requestId, actorUserId: input.actorUserId }
+      );
       log('info', 'elsa.process.auto_send.sent', {
         requestId: input.requestId,
         sentMessageId,

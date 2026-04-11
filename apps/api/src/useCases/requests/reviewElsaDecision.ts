@@ -8,6 +8,7 @@ import {
   type ElsaDecisionRow,
 } from '../../lib/elsaRepo.js';
 import { getRequestById, insertRequestMessage } from '../../lib/requestsRepo.js';
+import { applyWaitingOnTenantAfterElsaTenantMessage } from './applyWaitingOnTenantAfterElsaMessage.js';
 
 export type ReviewElsaDecisionInput = {
   requestId: string;
@@ -79,6 +80,10 @@ export async function reviewElsaDecision(
         source: 'SYSTEM',
       });
       sentMessageId = message.id;
+      await applyWaitingOnTenantAfterElsaTenantMessage(
+        client as Parameters<typeof applyWaitingOnTenantAfterElsaTenantMessage>[0],
+        { requestId: input.requestId, actorUserId: input.actorUserId }
+      );
     }
 
     const reviewStatus = input.action === 'DISMISS' ? 'DISMISSED' : 'RESOLVED';
