@@ -23,12 +23,16 @@ export type ReviewElsaDecisionOutput = {
 };
 
 function extractTenantReply(decision: ElsaDecisionRow): string {
-  const normalized = String(decision.normalized_tenant_reply ?? '').trim();
-  if (normalized) return normalized;
+  const storedReply = typeof decision.tenant_reply_draft === 'string'
+    ? decision.tenant_reply_draft
+    : '';
+  if (storedReply) return storedReply;
   if (!decision.suggestion_json) return '';
   try {
     const parsed = JSON.parse(decision.suggestion_json);
-    const draft = parsed && typeof parsed === 'object' ? String(parsed.tenantReplyDraft ?? '').trim() : '';
+    const draft = parsed && typeof parsed === 'object'
+      ? (typeof parsed.tenantReplyDraft === 'string' ? parsed.tenantReplyDraft : '')
+      : '';
     return draft;
   } catch {
     return '';

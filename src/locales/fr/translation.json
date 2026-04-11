@@ -793,6 +793,10 @@
       "scheduledFor": "Planifié pour",
       "scheduledFrom": "Planifié à partir de",
       "scheduledTo": "Planifié jusqu'à",
+      "scheduledWindow": "Plage horaire prévue",
+      "scheduleStartsAt": "Débute à {{date}}",
+      "scheduleUntil": "Jusqu'à {{date}}",
+      "notScheduled": "Non planifié",
       "vendorName": "Nom du prestataire",
       "vendorPhone": "Téléphone du prestataire"
     },
@@ -801,6 +805,8 @@
       "newRequest": "Nouvelle demande",
       "create": "Soumettre la demande",
       "updateRequest": "Mettre a jour la demande",
+      "showDetails": "Afficher les details",
+      "hideDetails": "Masquer les details",
       "saveChanges": "Enregistrer les modifications",
       "sendMessage": "Envoyer le message",
       "chooseFile": "Choisir un fichier",
@@ -960,7 +966,7 @@
       "resolved": "Resolue",
       "actions": {
         "copyToMessage": "Utiliser dans la zone de message",
-        "sendAndResolve": "Envoyer le brouillon et resoudre",
+        "sendAndResolve": "Envoyer via l'IA",
         "markResolved": "Marquer comme resolue",
         "dismiss": "Ignorer"
       },
@@ -1084,6 +1090,8 @@
       "emergencyTemplateEnabled": "Enable emergency template",
       "confidenceThreshold": "Auto-send confidence threshold",
       "confidenceHelp": "Use a value between 0 and 1.",
+      "similarReplyThreshold": "Seuil de suppression des reponses similaires",
+      "similarReplyThresholdHelp": "Utilisez une valeur entre 0 et 1. Des valeurs plus elevees exigent des formulations plus proches pour supprimer l'auto-envoi.",
       "maxQuestions": "Maximum AI follow-up questions",
       "maxSteps": "Maximum AI workflow steps",
       "allowedCategories": "Allowed categories (one per line or comma-separated)",

@@ -235,6 +235,10 @@ async function landlordElsaSettings(
       b.elsa_auto_send_confidence_threshold !== undefined
         ? Number(b.elsa_auto_send_confidence_threshold)
         : undefined,
+    elsa_similar_reply_threshold:
+      b.elsa_similar_reply_threshold !== undefined
+        ? Number(b.elsa_similar_reply_threshold)
+        : undefined,
     elsa_allowed_categories: listStrings(b.elsa_allowed_categories),
     elsa_allowed_priorities: listStrings(b.elsa_allowed_priorities),
     elsa_blocked_keywords: listStrings(b.elsa_blocked_keywords),
@@ -429,11 +433,13 @@ async function landlordProcessElsa(
   }
   const b = asRecord(body);
   const weatherSeverity = str(b.weather_severity) as 'NORMAL' | 'DANGEROUS_HEAT' | 'DANGEROUS_COLD' | undefined;
+  const forceReview = bool(b.force_review);
   const result = await processElsaAutoResponse(getPool(), {
     requestId,
     actorUserId: ctx.user.id,
     actorRole: ctx.role,
     triggeringEvent: 'MANUAL_REVIEW_ACTION',
+    forceReview: forceReview === undefined ? true : forceReview,
     weatherSeverity,
     logger: context,
   });

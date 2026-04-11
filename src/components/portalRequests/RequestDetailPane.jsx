@@ -6,6 +6,7 @@ import {
   Chip,
   Checkbox,
   CircularProgress,
+  Collapse,
   Dialog,
   DialogActions,
   DialogContent,
@@ -47,6 +48,21 @@ function formatDateTime(value) {
   return date.toLocaleString();
 }
 
+function formatScheduleWindow(requestDetail, t) {
+  const scheduledStart = requestDetail?.scheduled_from || requestDetail?.scheduled_for;
+  const scheduledEnd = requestDetail?.scheduled_to;
+  if (scheduledStart && scheduledEnd) {
+    return `${formatDateTime(scheduledStart)} - ${formatDateTime(scheduledEnd)}`;
+  }
+  if (scheduledStart) {
+    return t('portalRequests.labels.scheduleStartsAt', { date: formatDateTime(scheduledStart) });
+  }
+  if (scheduledEnd) {
+    return t('portalRequests.labels.scheduleUntil', { date: formatDateTime(scheduledEnd) });
+  }
+  return t('portalRequests.labels.notScheduled');
+}
+
 function formatAuditValue(value) {
   if (value === null || value === undefined) return '-';
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
@@ -71,10 +87,10 @@ function getConfidenceLevel(confidenceValue) {
 }
 
 function extractPlannedReply(decision) {
-  const normalizedReply = typeof decision?.normalized_tenant_reply === 'string'
-    ? decision.normalized_tenant_reply.trim()
+  const plannedReply = typeof decision?.tenant_reply_draft === 'string'
+    ? decision.tenant_reply_draft
     : '';
-  if (normalizedReply) return normalizedReply;
+  if (plannedReply) return plannedReply;
 
   const suggestionJson = typeof decision?.suggestion_json === 'string'
     ? decision.suggestion_json.trim()
@@ -83,7 +99,7 @@ function extractPlannedReply(decision) {
 
   try {
     const parsed = JSON.parse(suggestionJson);
-    return typeof parsed?.tenantReplyDraft === 'string' ? parsed.tenantReplyDraft.trim() : '';
+    return typeof parsed?.tenantReplyDraft === 'string' ? parsed.tenantReplyDraft : '';
   } catch {
     return '';
   }
@@ -127,6 +143,50 @@ function NameWithRole({
     </Stack>
   );
 }
+
+function DetailRow({ label, value }) {
+  return (
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', sm: '11rem 1fr' },
+        gap: 0.75,
+        alignItems: 'start',
+        py: { xs: 0.35, sm: 0.25 },
+      }}
+    >
+      <Typography variant="body2" color="text.secondary" sx={{ lineHeight: { xs: 1.55, sm: 1.45 } }}>
+        {label}
+      </Typography>
+      <Box sx={{ minWidth: 0, lineHeight: { xs: 1.55, sm: 1.45 } }}>{value}</Box>
+    </Box>
+  );
+}
+
+function SectionCard({ children, sx = {}, ...boxProps }) {
+  return (
+    <Box
+      {...boxProps}
+      sx={(theme) => ({
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 1.75,
+        p: { xs: 2, sm: 2.25 },
+        backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.5 : 0.85),
+        ...sx,
+      })}
+    >
+      {children}
+    </Box>
+  );
+}
+
+const sectionHeadingSx = {
+  fontSize: '1.1rem',
+  lineHeight: { xs: 1.35, sm: 1.3 },
+  letterSpacing: 0.1,
+  mb: { xs: 0.25, sm: 0 },
+};
 
 const RequestDetailPane = ({
   requestDetail,
@@ -181,6 +241,7 @@ const RequestDetailPane = ({
   const [attachmentInputKey, setAttachmentInputKey] = useState(0);
   const [pendingElsaAction, setPendingElsaAction] = useState(null);
   const [copyDismissDecision, setCopyDismissDecision] = useState(null);
+  const [detailsExpanded, setDetailsExpanded] = useState(false);
   const managementStatusMessage = managementUpdateStatus === 'error'
     ? { severity: 'error', text: managementUpdateError || t('portalRequests.errors.saveFailed') }
     : null;
@@ -243,6 +304,7 @@ const RequestDetailPane = ({
   useEffect(() => {
     if (!requestDetail) return;
     setActiveTab('details');
+    setDetailsExpanded(false);
   }, [requestDetail]);
   useEffect(() => {
     if (attachmentStatus !== 'success') return;
@@ -390,8 +452,8 @@ const RequestDetailPane = ({
         </Box>
       ) : (
         <>
-      <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 2 }}>
-        <Stack spacing={1}>
+      <SectionCard>
+        <Stack spacing={1.5}>
           <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} sx={{ flexWrap: 'wrap' }}>
             <Typography sx={{ fontWeight: 700 }}>{requestDetail.title}</Typography>
             {isManagement && (
@@ -401,62 +463,95 @@ const RequestDetailPane = ({
                 size="small"
                 onClick={() => setManagementDialogOpen(true)}
                 disabled={managementUpdateStatus === 'saving'}
+                sx={{ minHeight: 36 }}
               >
                 {t('portalRequests.actions.updateRequest')}
               </Button>
             )}
           </Stack>
           <Typography color="text.secondary">{requestDetail.description}</Typography>
-          <Typography variant="body2" color="text.secondary">
-            {t('portalRequests.labels.requestId')}: {requestDetail.id}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {t('portalRequests.labels.status')}: {requestDetail.status_name || requestDetail.status_code || '-'}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {t('portalRequests.labels.createdAt')}: {formatDateTime(requestDetail.created_at)}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {t('portalRequests.labels.updatedAt')}: {formatDateTime(requestDetail.updated_at)}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {t('portalRequests.labels.category')}: {requestDetail.category_name || requestDetail.category_code || '-'}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {t('portalRequests.labels.priority')}: {requestDetail.priority_name || requestDetail.priority_code || '-'}
-          </Typography>
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap' }}>
-            <Typography variant="body2" color="text.secondary">
-              {t('portalRequests.labels.reportedBy')}:
-            </Typography>
-            <NameWithRole
-              name={displayNameWithFallback({
-                displayName: requestDetail.submitted_by_display_name,
-                userId: requestDetail.submitted_by_user_id,
-              }, t('portalRequests.messages.senderUnknown'))}
-              role={requestDetail.submitted_by_role}
-              t={t}
-            />
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={1}
+            justifyContent="space-between"
+            alignItems={{ xs: 'stretch', sm: 'center' }}
+          >
+            <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap' }}>
+              <Chip size="small" label={requestDetail.status_name || requestDetail.status_code || '-'} color="info" variant="outlined" />
+              <Chip size="small" label={requestDetail.category_name || requestDetail.category_code || '-'} variant="outlined" />
+              <Chip size="small" label={requestDetail.priority_name || requestDetail.priority_code || '-'} color="warning" variant="outlined" />
+            </Stack>
+            <Button
+              type="button"
+              size="small"
+              variant="text"
+              onClick={() => setDetailsExpanded((value) => !value)}
+              aria-expanded={detailsExpanded}
+              sx={{ alignSelf: { xs: 'flex-start', sm: 'center' } }}
+            >
+              {detailsExpanded
+                ? t('portalRequests.actions.hideDetails')
+                : t('portalRequests.actions.showDetails')}
+            </Button>
           </Stack>
-          <Typography variant="body2" color="text.secondary">
-            {t('portalRequests.labels.scheduledFrom')}: {formatDateTime(requestDetail.scheduled_from || requestDetail.scheduled_for)}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {t('portalRequests.labels.scheduledTo')}: {formatDateTime(requestDetail.scheduled_to)}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {t('portalRequests.labels.vendorName')}: {requestDetail.vendor_contact_name || '-'}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {t('portalRequests.labels.vendorPhone')}: {requestDetail.vendor_contact_phone || '-'}
-          </Typography>
+          <Collapse in={detailsExpanded} unmountOnExit>
+            <Box
+              sx={(theme) => ({
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1.25,
+                p: 1.5,
+                backgroundColor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.1 : 0.03),
+              })}
+            >
+              <Stack spacing={1.25}>
+                <DetailRow
+                  label={`${t('portalRequests.labels.requestId')}:`}
+                  value={<Typography variant="body2">{requestDetail.id}</Typography>}
+                />
+                <DetailRow
+                  label={`${t('portalRequests.labels.reportedBy')}:`}
+                  value={(
+                    <NameWithRole
+                      name={displayNameWithFallback({
+                        displayName: requestDetail.submitted_by_display_name,
+                        userId: requestDetail.submitted_by_user_id,
+                      }, t('portalRequests.messages.senderUnknown'))}
+                      role={requestDetail.submitted_by_role}
+                      t={t}
+                    />
+                  )}
+                />
+                <DetailRow
+                  label={`${t('portalRequests.labels.scheduledWindow')}:`}
+                  value={<Typography variant="body2">{formatScheduleWindow(requestDetail, t)}</Typography>}
+                />
+                <DetailRow
+                  label={`${t('portalRequests.labels.vendorName')}:`}
+                  value={<Typography variant="body2">{requestDetail.vendor_contact_name || '-'}</Typography>}
+                />
+                <DetailRow
+                  label={`${t('portalRequests.labels.vendorPhone')}:`}
+                  value={<Typography variant="body2">{requestDetail.vendor_contact_phone || '-'}</Typography>}
+                />
+                <DetailRow
+                  label={`${t('portalRequests.labels.createdAt')}:`}
+                  value={<Typography variant="body2">{formatDateTime(requestDetail.created_at)}</Typography>}
+                />
+                <DetailRow
+                  label={`${t('portalRequests.labels.updatedAt')}:`}
+                  value={<Typography variant="body2">{formatDateTime(requestDetail.updated_at)}</Typography>}
+                />
+              </Stack>
+            </Box>
+          </Collapse>
         </Stack>
-      </Box>
+      </SectionCard>
 
       {!isManagement && CANCELLABLE_STATUS_CODES.has((requestDetail.status_code || '').toUpperCase()) && (
-        <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 2 }}>
+        <SectionCard>
           <Stack spacing={1.5}>
-            <Typography variant="h3" sx={{ fontSize: '1.1rem' }}>
+            <Typography variant="h3" sx={sectionHeadingSx}>
               {t('portalRequests.cancel.heading')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
@@ -470,6 +565,7 @@ const RequestDetailPane = ({
                 disabled={cancelStatus === 'saving'}
                 onClick={() => setCancelDialogOpen(true)}
                 startIcon={cancelStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
+                sx={{ minHeight: 40 }}
               >
                 {cancelStatus === 'saving'
                   ? t('portalRequests.actions.saving')
@@ -477,7 +573,7 @@ const RequestDetailPane = ({
               </Button>
             </Stack>
           </Stack>
-        </Box>
+        </SectionCard>
       )}
 
       <Dialog open={cancelDialogOpen} onClose={() => setCancelDialogOpen(false)}>
@@ -657,9 +753,9 @@ const RequestDetailPane = ({
       )}
 
       {isManagement && (
-        <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 2 }}>
+        <SectionCard>
           <Stack spacing={1.5}>
-            <Typography variant="h3" sx={{ fontSize: '1.1rem' }}>
+            <Typography variant="h3" sx={sectionHeadingSx}>
               {t('portalRequests.elsa.heading')}
             </Typography>
             <FormControlLabel
@@ -671,13 +767,18 @@ const RequestDetailPane = ({
               )}
               label={t('portalRequests.elsa.autoRespondToggle')}
             />
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={1}
+              sx={{ flexWrap: 'wrap', alignItems: { xs: 'stretch', sm: 'center' } }}
+            >
               <Button
                 type="button"
                 variant="outlined"
                 onClick={onRunElsa}
                 disabled={elsaDecisionStatus === 'loading'}
                 startIcon={elsaDecisionStatus === 'loading' ? <CircularProgress size={16} /> : null}
+                sx={{ minHeight: 40, width: { xs: '100%', sm: 'auto' } }}
               >
                 {elsaDecisionStatus === 'loading'
                   ? t('portalRequests.elsa.running')
@@ -697,7 +798,16 @@ const RequestDetailPane = ({
                 const canUseSuggestedReply = shouldOfferManualAction(decision, plannedReply);
                 const canDismissSuggestion = shouldOfferDismissAction(decision);
                 return (
-              <Box key={decision.id} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1 }}>
+              <Box
+                key={decision.id}
+                sx={(theme) => ({
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1.25,
+                  p: 1.25,
+                  backgroundColor: alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.1 : 0.04),
+                })}
+              >
                 <Stack spacing={0.5}>
                   <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
                     <Chip
@@ -750,13 +860,29 @@ const RequestDetailPane = ({
                     </Typography>
                   )}
                   {canUseSuggestedReply && (
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mt: 0.5 }}>
+                    <Stack
+                      direction={{ xs: 'column', sm: 'row' }}
+                      spacing={1}
+                      sx={{ flexWrap: 'wrap', mt: 0.5, alignItems: { xs: 'stretch', sm: 'center' } }}
+                    >
+                      <Button
+                        type="button"
+                        size="small"
+                        variant="contained"
+                        onClick={() => handleReviewElsaDecision(decision.id, 'SEND_AND_RESOLVE')}
+                        disabled={elsaDecisionActionStatus === 'saving'}
+                        startIcon={isElsaActionSaving(decision.id, 'SEND_AND_RESOLVE') ? <CircularProgress size={14} color="inherit" /> : null}
+                        sx={{ minHeight: 36, width: { xs: '100%', sm: 'auto' } }}
+                      >
+                        {t('portalRequests.elsa.actions.sendAndResolve')}
+                      </Button>
                       <Button
                         type="button"
                         size="small"
                         variant="outlined"
                         onClick={() => handleUseSuggestedReply(decision, plannedReply)}
                         disabled={elsaDecisionActionStatus === 'saving'}
+                        sx={{ minHeight: 36, width: { xs: '100%', sm: 'auto' } }}
                       >
                         {t('portalRequests.elsa.actions.copyToMessage')}
                       </Button>
@@ -769,6 +895,7 @@ const RequestDetailPane = ({
                           onClick={() => handleReviewElsaDecision(decision.id, 'DISMISS')}
                           disabled={elsaDecisionActionStatus === 'saving'}
                           startIcon={isElsaActionSaving(decision.id, 'DISMISS') ? <CircularProgress size={14} color="inherit" /> : null}
+                          sx={{ minHeight: 36, width: { xs: '100%', sm: 'auto' } }}
                         >
                           {t('portalRequests.elsa.actions.dismiss')}
                         </Button>
@@ -776,7 +903,11 @@ const RequestDetailPane = ({
                     </Stack>
                   )}
                   {!canUseSuggestedReply && canDismissSuggestion && (
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mt: 0.5 }}>
+                    <Stack
+                      direction={{ xs: 'column', sm: 'row' }}
+                      spacing={1}
+                      sx={{ flexWrap: 'wrap', mt: 0.5, alignItems: { xs: 'stretch', sm: 'center' } }}
+                    >
                       <Button
                         type="button"
                         size="small"
@@ -785,23 +916,18 @@ const RequestDetailPane = ({
                         onClick={() => handleReviewElsaDecision(decision.id, 'DISMISS')}
                         disabled={elsaDecisionActionStatus === 'saving'}
                         startIcon={isElsaActionSaving(decision.id, 'DISMISS') ? <CircularProgress size={14} color="inherit" /> : null}
+                        sx={{ minHeight: 36, width: { xs: '100%', sm: 'auto' } }}
                       >
                         {t('portalRequests.elsa.actions.dismiss')}
                       </Button>
                     </Stack>
                   )}
                   {decision.policy_decision === 'HOLD_FOR_REVIEW' && !decision.reviewed_at && (
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mt: 0.5 }}>
-                      <Button
-                        type="button"
-                        size="small"
-                        variant="contained"
-                        onClick={() => handleReviewElsaDecision(decision.id, 'SEND_AND_RESOLVE')}
-                        disabled={elsaDecisionActionStatus === 'saving'}
-                        startIcon={isElsaActionSaving(decision.id, 'SEND_AND_RESOLVE') ? <CircularProgress size={14} color="inherit" /> : null}
-                      >
-                        {t('portalRequests.elsa.actions.sendAndResolve')}
-                      </Button>
+                    <Stack
+                      direction={{ xs: 'column', sm: 'row' }}
+                      spacing={1}
+                      sx={{ flexWrap: 'wrap', mt: 0.5, alignItems: { xs: 'stretch', sm: 'center' } }}
+                    >
                       <Button
                         type="button"
                         size="small"
@@ -809,6 +935,7 @@ const RequestDetailPane = ({
                         onClick={() => handleReviewElsaDecision(decision.id, 'MARK_RESOLVED')}
                         disabled={elsaDecisionActionStatus === 'saving'}
                         startIcon={isElsaActionSaving(decision.id, 'MARK_RESOLVED') ? <CircularProgress size={14} color="inherit" /> : null}
+                        sx={{ minHeight: 36, width: { xs: '100%', sm: 'auto' } }}
                       >
                         {t('portalRequests.elsa.actions.markResolved')}
                       </Button>
@@ -826,19 +953,26 @@ const RequestDetailPane = ({
             );
             })}
           </Stack>
-        </Box>
+        </SectionCard>
       )}
 
-      <Box
+      <SectionCard
         component="form"
         onSubmit={onMessageSubmit}
-        sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 2 }}
       >
         <Stack spacing={1.5}>
-          <Typography variant="h3" sx={{ fontSize: '1.1rem' }}>
+          <Typography variant="h3" sx={sectionHeadingSx}>
             {t('portalRequests.messages.heading')}
           </Typography>
-          <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1.5 }}>
+          <Box
+            sx={(theme) => ({
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 1.25,
+              p: 1.5,
+              backgroundColor: alpha(theme.palette.background.default, theme.palette.mode === 'dark' ? 0.32 : 0.65),
+            })}
+          >
             <Stack spacing={1}>
               {threadMessages.length === 0 && (
                 <Typography color="text.secondary">{t('portalRequests.messages.empty')}</Typography>
@@ -847,11 +981,9 @@ const RequestDetailPane = ({
                 <Box
                   key={msg.id}
                   sx={(theme) => ({
-                    borderBottom: '1px solid',
+                    border: '1px solid',
                     borderColor: msg.is_internal ? 'warning.main' : 'divider',
-                    pb: 1,
-                    px: 1,
-                    pt: 1,
+                    p: 1,
                     borderRadius: 1,
                     backgroundColor: msg.is_internal
                       ? alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.22 : 0.12)
@@ -916,6 +1048,7 @@ const RequestDetailPane = ({
                         color="error"
                         onClick={() => setDeleteDialogMessage(msg)}
                         disabled={messageDeleteStatus === 'saving'}
+                        sx={{ minHeight: 32 }}
                       >
                         {t('portalRequests.messages.deleteAction')}
                       </Button>
@@ -974,11 +1107,11 @@ const RequestDetailPane = ({
             />
           )}
           <Stack
-            direction="row"
+            direction={{ xs: 'column', sm: 'row' }}
             alignItems="center"
             justifyContent="space-between"
             spacing={1}
-            sx={{ flexWrap: 'wrap', rowGap: 1 }}
+            sx={{ flexWrap: 'wrap', rowGap: 1, alignItems: { xs: 'stretch', sm: 'center' } }}
           >
             <InlineActionStatus message={messageDeleteStatusMessage || messageStatusMessage} />
             <Button
@@ -986,6 +1119,7 @@ const RequestDetailPane = ({
               variant="contained"
               disabled={messageStatus === 'saving'}
               startIcon={messageStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
+              sx={{ minHeight: 40, width: { xs: '100%', sm: 'auto' } }}
             >
               {messageStatus === 'saving'
                 ? t('portalRequests.actions.saving')
@@ -993,18 +1127,25 @@ const RequestDetailPane = ({
             </Button>
           </Stack>
         </Stack>
-      </Box>
+      </SectionCard>
 
-      <Box
+      <SectionCard
         component="form"
         onSubmit={onAttachmentSubmit}
-        sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 2 }}
       >
         <Stack spacing={1.5}>
-          <Typography variant="h3" sx={{ fontSize: '1.1rem' }}>
+          <Typography variant="h3" sx={sectionHeadingSx}>
             {t('portalRequests.attachments.heading')}
           </Typography>
-          <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1.5 }}>
+          <Box
+            sx={(theme) => ({
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 1.25,
+              p: 1.5,
+              backgroundColor: alpha(theme.palette.background.default, theme.palette.mode === 'dark' ? 0.32 : 0.65),
+            })}
+          >
             <Stack spacing={0.75}>
               {attachments.length === 0 && (
                 <Typography color="text.secondary">{t('portalRequests.attachments.empty')}</Typography>
@@ -1037,7 +1178,12 @@ const RequestDetailPane = ({
               ))}
             </Stack>
           </Box>
-          <Button variant="outlined" component="label" type="button">
+          <Button
+            variant="outlined"
+            component="label"
+            type="button"
+            sx={{ minHeight: 40, width: { xs: '100%', sm: 'auto' } }}
+          >
             {t('portalRequests.actions.chooseFile')}
             <input key={attachmentInputKey} type="file" hidden onChange={onAttachmentChange} />
           </Button>
@@ -1060,11 +1206,11 @@ const RequestDetailPane = ({
             </Stack>
           )}
           <Stack
-            direction="row"
+            direction={{ xs: 'column', sm: 'row' }}
             alignItems="center"
             justifyContent="space-between"
             spacing={1}
-            sx={{ flexWrap: 'wrap', rowGap: 1 }}
+            sx={{ flexWrap: 'wrap', rowGap: 1, alignItems: { xs: 'stretch', sm: 'center' } }}
           >
             <InlineActionStatus message={attachmentStatusMessage} />
             <Button
@@ -1072,6 +1218,7 @@ const RequestDetailPane = ({
               variant="contained"
               disabled={!attachmentFile || attachmentStatus === 'saving'}
               startIcon={attachmentStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
+              sx={{ minHeight: 40, width: { xs: '100%', sm: 'auto' } }}
             >
               {attachmentStatus === 'saving'
                 ? t('portalRequests.actions.saving')
@@ -1079,7 +1226,7 @@ const RequestDetailPane = ({
             </Button>
           </Stack>
         </Stack>
-      </Box>
+      </SectionCard>
         </>
       )}
       </>

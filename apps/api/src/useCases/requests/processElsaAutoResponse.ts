@@ -1,5 +1,5 @@
 import { forbidden, notFound, validationError } from '../../domain/errors.js';
-import { hasAiAgentAccess, hasLandlordAccess } from '../../domain/constants.js';
+import { hasAiAgentAccess, hasLandlordAccess, Role } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
 import { writeAudit } from '../../lib/auditRepo.js';
 import {
@@ -21,7 +21,6 @@ import { enqueueNotification } from '../../lib/notificationRepo.js';
 import { suggestReply } from './aiMaintenanceReplyService.js';
 import { getLlmClient } from '../../lib/llmClientFactory.js';
 import { evaluatePolicy } from './autoSendPolicyEngine.js';
-import { normalizeTenantReply } from './elsaTemplateNormalizer.js';
 import { ElsaPolicyDecision, parseElsaSuggestion } from './elsaTypes.js';
 
 export type ProcessElsaAutoResponseInput = {
@@ -29,6 +28,7 @@ export type ProcessElsaAutoResponseInput = {
   actorUserId: string;
   actorRole: string;
   triggeringEvent?: string;
+  forceReview?: boolean;
   weatherSeverity?: 'NORMAL' | 'DANGEROUS_HEAT' | 'DANGEROUS_COLD';
   logger?: {
     info?: (message: string) => void;
@@ -45,8 +45,14 @@ export type ProcessElsaAutoResponseOutput = {
   suggestion: unknown;
   policyFlags: string[];
   reasons: string[];
-  normalizedReply: string;
+  tenantReplyDraft: string;
 };
+
+function normalizeForExactMatch(value: string): string {
+  return String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 export async function processElsaAutoResponse(
   db: TransactionPool,
@@ -131,7 +137,7 @@ export async function processElsaAutoResponse(
       suggestion: {
         mode: 'NEED_MORE_INFO',
         deliveryDecision: 'ADMIN_REVIEW_REQUIRED',
-        tenantReplyDraft: 'Thanks for your request. A team member will review and follow up shortly.',
+        tenantReplyDraft: 'We received your request. A team member will review it and follow up shortly.',
         internalSummary: 'suggestReply threw an unexpected error. Held for review.',
         recommendedNextAction: 'Review and respond manually.',
         missingInformation: [],
@@ -150,7 +156,7 @@ export async function processElsaAutoResponse(
   const suggestion = validated ?? {
     mode: 'NEED_MORE_INFO',
     deliveryDecision: 'ADMIN_REVIEW_REQUIRED',
-    tenantReplyDraft: 'Thanks for your request. A team member will review and follow up shortly.',
+    tenantReplyDraft: 'We received your request. A team member will review it and follow up shortly.',
     internalSummary: 'Model output failed schema validation. Held for review.',
     recommendedNextAction: 'Admin review required due to schema mismatch.',
     missingInformation: [],
@@ -199,7 +205,42 @@ export async function processElsaAutoResponse(
     policyFlags: [...baseEvaluation.policyFlags],
     reasons: [...baseEvaluation.reasons],
   };
-  const normalizedReply = normalizeTenantReply(suggestion, evaluation);
+  if (input.forceReview && evaluation.policyDecision === ElsaPolicyDecision.SEND_AUTOMATICALLY) {
+    evaluation.policyDecision = ElsaPolicyDecision.HOLD_FOR_REVIEW;
+    if (!evaluation.policyFlags.includes('MANUAL_REVIEW_REQUIRED')) {
+      evaluation.policyFlags.push('MANUAL_REVIEW_REQUIRED');
+    }
+    evaluation.reasons.push('Manual review required for this run');
+  }
+  const tenantReplyDraft = suggestion.tenantReplyDraft;
+  if (evaluation.policyDecision === ElsaPolicyDecision.SEND_AUTOMATICALLY) {
+    const normalizedCandidate = normalizeForExactMatch(tenantReplyDraft);
+    const similarPriorMessage = [...messages]
+      .reverse()
+      .find((msg) => {
+        if (msg.is_internal) return false;
+        if (String(msg.sender_role || '').trim().toUpperCase() === Role.TENANT) return false;
+        const source = String(msg.source || '').trim().toUpperCase();
+        const isAutomatedSource = source === 'SYSTEM' || source === 'ELSA_AUTO_SENT';
+        const isManagementSender =
+          hasAiAgentAccess(String(msg.sender_role || '')) || hasLandlordAccess(String(msg.sender_role || ''));
+        if (!isAutomatedSource && !isManagementSender) return false;
+        return normalizeForExactMatch(msg.body) === normalizedCandidate;
+      });
+
+    if (similarPriorMessage) {
+      evaluation.policyDecision = ElsaPolicyDecision.HOLD_FOR_REVIEW;
+      if (!evaluation.policyFlags.includes('SIMILAR_RESPONSE_PREVIOUSLY_SENT')) {
+        evaluation.policyFlags.push('SIMILAR_RESPONSE_PREVIOUSLY_SENT');
+      }
+      evaluation.reasons.push('Similar tenant-facing response was already sent earlier');
+      log('info', 'elsa.process.auto_send.suppressed_similar_prior_reply', {
+        requestId: input.requestId,
+        priorMessageId: similarPriorMessage.id,
+        matchType: 'exact_normalized',
+      });
+    }
+  }
   log('info', 'elsa.process.policy.evaluated', {
     requestId: input.requestId,
     policyDecision: evaluation.policyDecision,
@@ -216,7 +257,7 @@ export async function processElsaAutoResponse(
       const sentMessage = await insertRequestMessage(client as Parameters<typeof insertRequestMessage>[0], {
         requestId: input.requestId,
         senderUserId: input.actorUserId,
-        body: normalizedReply,
+        body: tenantReplyDraft,
         isInternal: false,
         source: 'SYSTEM',
       });
@@ -265,7 +306,7 @@ export async function processElsaAutoResponse(
       policyDecision: evaluation.policyDecision,
       confidence: suggestion.confidence,
       suggestionJson: suggestion,
-      normalizedTenantReply: normalizedReply,
+      tenantReplyDraft,
       internalSummary: suggestion.internalSummary,
       recommendedNextAction: suggestion.recommendedNextAction,
       dispatchSummary: suggestion.dispatchSummary,
@@ -310,7 +351,7 @@ export async function processElsaAutoResponse(
       suggestion,
       policyFlags: Array.from(new Set([...(suggestion.policyFlags ?? []), ...evaluation.policyFlags])),
       reasons: evaluation.reasons,
-      normalizedReply,
+      tenantReplyDraft,
     };
   } catch (error) {
     await client.query('ROLLBACK');

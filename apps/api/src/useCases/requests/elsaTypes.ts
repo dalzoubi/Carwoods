@@ -76,7 +76,7 @@ export function parseElsaSuggestion(raw: unknown): ElsaSuggestion | null {
   return {
     mode: mode as ElsaResponseMode,
     deliveryDecision: deliveryDecision as ElsaDeliveryDecision,
-    tenantReplyDraft: row.tenantReplyDraft.trim(),
+    tenantReplyDraft: row.tenantReplyDraft,
     internalSummary: row.internalSummary.trim(),
     recommendedNextAction: row.recommendedNextAction.trim(),
     missingInformation: row.missingInformation.map((item) => item.trim()).filter(Boolean),

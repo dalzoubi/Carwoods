@@ -35,6 +35,7 @@ const EMPTY_FORM = {
   elsa_enabled: false,
   elsa_auto_send_enabled: false,
   elsa_auto_send_confidence_threshold: '',
+  elsa_similar_reply_threshold: '',
   elsa_max_questions: '',
   elsa_max_steps: '',
   elsa_emergency_template_enabled: false,
@@ -78,6 +79,7 @@ function toForm(settings) {
     elsa_enabled: Boolean(settings?.elsa_enabled),
     elsa_auto_send_enabled: Boolean(settings?.elsa_auto_send_enabled),
     elsa_auto_send_confidence_threshold: settings?.elsa_auto_send_confidence_threshold ?? '',
+    elsa_similar_reply_threshold: settings?.elsa_similar_reply_threshold ?? '',
     elsa_max_questions: settings?.elsa_max_questions ?? '',
     elsa_max_steps: settings?.elsa_max_steps ?? '',
     elsa_emergency_template_enabled: Boolean(settings?.elsa_emergency_template_enabled),
@@ -186,6 +188,8 @@ const PortalAdminAiConfig = () => {
   const hasGlobalValidationError = useMemo(() => {
     const confidence = toNullableNumber(form.elsa_auto_send_confidence_threshold);
     if (confidence !== null && (confidence < 0 || confidence > 1)) return true;
+    const similarReplyThreshold = toNullableNumber(form.elsa_similar_reply_threshold);
+    if (similarReplyThreshold !== null && (similarReplyThreshold < 0 || similarReplyThreshold > 1)) return true;
     const maxQuestions = toNullableNumber(form.elsa_max_questions);
     if (maxQuestions !== null && maxQuestions < 0) return true;
     const maxSteps = toNullableNumber(form.elsa_max_steps);
@@ -205,6 +209,7 @@ const PortalAdminAiConfig = () => {
         elsa_enabled: Boolean(form.elsa_enabled),
         elsa_auto_send_enabled: Boolean(form.elsa_auto_send_enabled),
         elsa_auto_send_confidence_threshold: toNullableNumber(form.elsa_auto_send_confidence_threshold),
+        elsa_similar_reply_threshold: toNullableNumber(form.elsa_similar_reply_threshold),
         elsa_allowed_categories: splitList(form.elsa_allowed_categories),
         elsa_allowed_priorities: splitList(form.elsa_allowed_priorities),
         elsa_blocked_keywords: splitList(form.elsa_blocked_keywords),
@@ -344,6 +349,18 @@ const PortalAdminAiConfig = () => {
                 && (toNullableNumber(form.elsa_auto_send_confidence_threshold) < 0
                   || toNullableNumber(form.elsa_auto_send_confidence_threshold) > 1)}
               helperText={t('portalAdminAiConfig.global.confidenceHelp')}
+            />
+            <TextField
+              label={t('portalAdminAiConfig.global.similarReplyThreshold')}
+              value={form.elsa_similar_reply_threshold}
+              onChange={onField('elsa_similar_reply_threshold')}
+              disabled={!canUseModule || globalStatus === 'saving'}
+              type="number"
+              inputProps={{ min: 0, max: 1, step: 0.01 }}
+              error={toNullableNumber(form.elsa_similar_reply_threshold) !== null
+                && (toNullableNumber(form.elsa_similar_reply_threshold) < 0
+                  || toNullableNumber(form.elsa_similar_reply_threshold) > 1)}
+              helperText={t('portalAdminAiConfig.global.similarReplyThresholdHelp')}
             />
             <TextField
               label={t('portalAdminAiConfig.global.maxQuestions')}

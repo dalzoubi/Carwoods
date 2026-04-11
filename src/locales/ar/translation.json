@@ -793,6 +793,10 @@
       "scheduledFor": "موعد الحضور المتوقع",
       "scheduledFrom": "موعد البدء المتوقع",
       "scheduledTo": "موعد الانتهاء المتوقع",
+      "scheduledWindow": "نافذة الموعد",
+      "scheduleStartsAt": "يبدأ عند {{date}}",
+      "scheduleUntil": "حتى {{date}}",
+      "notScheduled": "غير مجدول",
       "vendorName": "اسم المورّد",
       "vendorPhone": "هاتف المورّد"
     },
@@ -801,6 +805,8 @@
       "newRequest": "طلب جديد",
       "create": "إرسال الطلب",
       "updateRequest": "تحديث الطلب",
+      "showDetails": "إظهار التفاصيل",
+      "hideDetails": "إخفاء التفاصيل",
       "saveChanges": "حفظ التحديثات",
       "sendMessage": "إرسال رسالة",
       "chooseFile": "اختيار ملف",
@@ -960,7 +966,7 @@
       "resolved": "تم الحل",
       "actions": {
         "copyToMessage": "استخدام في مربع الرسالة",
-        "sendAndResolve": "إرسال المسودة وحلّها",
+        "sendAndResolve": "إرسال عبر الذكاء الاصطناعي",
         "markResolved": "تحديد كمحلولة",
         "dismiss": "تجاهل"
       },
@@ -1084,6 +1090,8 @@
       "emergencyTemplateEnabled": "Enable emergency template",
       "confidenceThreshold": "Auto-send confidence threshold",
       "confidenceHelp": "Use a value between 0 and 1.",
+      "similarReplyThreshold": "عتبة منع الردود المتشابهة",
+      "similarReplyThresholdHelp": "استخدم قيمة بين 0 و1. القيم الأعلى تتطلب تشابها أكبر قبل منع الإرسال التلقائي.",
       "maxQuestions": "Maximum AI follow-up questions",
       "maxSteps": "Maximum AI workflow steps",
       "allowedCategories": "Allowed categories (one per line or comma-separated)",

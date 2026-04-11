@@ -99,7 +99,7 @@ describe('RequestDetailPane', () => {
           provider_used: 'remote',
           model_name: 'gemini-2.5-flash',
           confidence: 0.92,
-          normalized_tenant_reply: 'Please share a photo so we can schedule service.',
+          tenant_reply_draft: 'Please share a photo so we can schedule service.',
           internal_summary: 'Need one more detail from tenant.',
           recommended_next_action: 'Ask for photo.',
           reviewed_at: null,
@@ -129,7 +129,7 @@ describe('RequestDetailPane', () => {
           policy_decision: 'SEND_AUTOMATICALLY',
           mode: 'ESCALATE_TO_VENDOR',
           confidence: 0.84,
-          normalized_tenant_reply: 'We have dispatched a vendor.',
+          tenant_reply_draft: 'We have dispatched a vendor.',
           internal_summary: 'Vendor dispatch required.',
           recommended_next_action: 'Confirm visit window.',
           reviewed_at: null,
@@ -156,7 +156,7 @@ describe('RequestDetailPane', () => {
           policy_decision: 'BLOCK_AND_ALERT_ADMIN',
           mode: 'EMERGENCY_ESCALATION',
           confidence: 0.91,
-          normalized_tenant_reply: 'Please leave the area and call the gas utility immediately.',
+          tenant_reply_draft: 'Please leave the area and call the gas utility immediately.',
           internal_summary: 'Potential gas outage and safety risk.',
           recommended_next_action: 'Contact gas utility and dispatch emergency vendor.',
           reviewed_at: null,
@@ -171,7 +171,7 @@ describe('RequestDetailPane', () => {
     );
 
     expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Use in message box' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Use in Message Box' }));
 
     expect(setMessageForm).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('heading', { name: 'Suggested message copied' })).toBeInTheDocument();
@@ -188,7 +188,7 @@ describe('RequestDetailPane', () => {
           policy_decision: 'HOLD_FOR_REVIEW',
           mode: 'NEED_MORE_INFO',
           confidence: 0.88,
-          normalized_tenant_reply: 'Please share a photo of the issue.',
+          tenant_reply_draft: 'Please share a photo of the issue.',
           internal_summary: 'Need visual confirmation.',
           recommended_next_action: 'Collect photo before dispatching.',
           reviewed_at: null,
@@ -202,10 +202,25 @@ describe('RequestDetailPane', () => {
       </WithAppTheme>
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Use in message box' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Use in Message Box' }));
     fireEvent.click(screen.getByRole('button', { name: 'Dismiss suggestion' }));
 
     expect(onReviewElsaDecision).toHaveBeenCalledWith('decision-hold-1', 'DISMISS');
+  });
+
+  it('runs AI suggestion without opening a confirmation dialog', () => {
+    const onRunElsa = vi.fn();
+    const props = makeProps({ onRunElsa });
+
+    render(
+      <WithAppTheme>
+        <RequestDetailPane {...props} />
+      </WithAppTheme>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Get AI suggestion' }));
+    expect(onRunElsa).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('heading', { name: 'AI suggestion ready' })).not.toBeInTheDocument();
   });
 
   it('opens update dialog from request card and submits management form', () => {
@@ -223,5 +238,43 @@ describe('RequestDetailPane', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Save updates' }));
     expect(onUpdateRequest).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders scheduled time window as a single range value', () => {
+    const scheduledFrom = '2026-04-10T18:00:00Z';
+    const scheduledTo = '2026-04-10T20:00:00Z';
+    const props = makeProps({
+      requestDetail: {
+        ...makeProps().requestDetail,
+        scheduled_from: scheduledFrom,
+        scheduled_to: scheduledTo,
+      },
+    });
+
+    const expectedWindow = `${new Date(scheduledFrom).toLocaleString()} - ${new Date(scheduledTo).toLocaleString()}`;
+
+    render(
+      <WithAppTheme>
+        <RequestDetailPane {...props} />
+      </WithAppTheme>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show details' }));
+    expect(screen.getByText('Scheduled window:')).toBeInTheDocument();
+    expect(screen.getByText(expectedWindow)).toBeInTheDocument();
+  });
+
+  it('shows not scheduled when no schedule window exists', () => {
+    const props = makeProps();
+
+    render(
+      <WithAppTheme>
+        <RequestDetailPane {...props} />
+      </WithAppTheme>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show details' }));
+    expect(screen.getByText('Scheduled window:')).toBeInTheDocument();
+    expect(screen.getByText('Not scheduled')).toBeInTheDocument();
   });
 });

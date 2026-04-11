@@ -37,7 +37,7 @@ export type AiMaintenanceReplyResult = {
   promptVersion: string;
 };
 
-const PROMPT_VERSION = 'elsa-guardrails-v4-remote';
+const PROMPT_VERSION = 'elsa-guardrails-v5-pure-ai';
 
 // ── Logger helper ─────────────────────────────────────────────────────────────
 
@@ -91,9 +91,17 @@ function buildPrompt(context: AiMaintenanceReplyContext): string {
     '}',
     '',
     'Rules:',
+    '- tenantReplyDraft is the exact tenant-facing message that will be sent. Write it as a complete, ready-to-send response.',
     '- tenantReplyDraft must be concise, empathetic, and safe. No legal advice. No liability admissions.',
+    '- Do not rely on missingInformation or safeTroubleshootingSteps arrays to carry the actual reply. Weave required details naturally into tenantReplyDraft.',
+    '- Avoid canned openings. Do not start with "Thanks for reporting this" or close variants unless absolutely required by context.',
     '- Do NOT make scheduling promises unless scheduled_from or scheduled_to is already set in the request.',
-    '- The full non-internal conversation history is included below. Read every prior management message. If a prior management message is similar or identical to what you would write, produce something meaningfully different — ask for one new concrete detail, acknowledge a new symptom, or give a short progress update. Never repeat what was already sent.',
+    '- The full non-internal conversation history is included below. Read every prior management message.',
+    '- You MUST NOT produce a tenantReplyDraft that is substantially similar to any prior management message. If overlap exists, acknowledge progress, ask for one new concrete detail, or provide a meaningful status update. Repetition will be blocked.',
+    '- If mode=NEED_MORE_INFO, ask for missing details naturally in tenantReplyDraft.',
+    '- If mode=SAFE_BASIC_TROUBLESHOOTING, include safe troubleshooting guidance naturally in tenantReplyDraft.',
+    '- If mode=DUPLICATE_OR_ALREADY_IN_PROGRESS, acknowledge the duplicate and redirect tenant to the active thread in tenantReplyDraft.',
+    '- If mode=ESCALATE_TO_VENDOR, explain that the request is under review and next steps will follow in tenantReplyDraft.',
     '- Set mode=EMERGENCY_ESCALATION and deliveryDecision=ADMIN_REVIEW_REQUIRED for any gas, fire, smoke, flooding, sparking, sewage, or carbon monoxide signal.',
     '- confidence must be a float between 0.0 and 1.0. Only use >= 0.78 for clearly safe, low-risk informational replies.',
     '- policyFlags: include EMERGENCY_SIGNAL_GAS, EMERGENCY_SIGNAL_SMOKE, etc. when applicable.',
@@ -137,7 +145,7 @@ function buildUnavailableSuggestion(reason: string): ElsaSuggestion {
   return {
     mode: 'NEED_MORE_INFO',
     deliveryDecision: ElsaDeliveryDecision.ADMIN_REVIEW_REQUIRED,
-    tenantReplyDraft: 'Thanks for your request. A team member will review and follow up shortly.',
+    tenantReplyDraft: 'We received your request. A team member will review it and follow up shortly.',
     internalSummary: reason,
     recommendedNextAction: 'Review and respond manually.',
     missingInformation: [],

@@ -811,13 +811,18 @@ export function usePortalRequests({
     try {
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
-      await processElsaRequest(baseUrl, token, selectedRequestId, { emailHint });
+      const result = await processElsaRequest(baseUrl, token, selectedRequestId, {
+        emailHint,
+        force_review: true,
+      });
       await loadRequestDetails(selectedRequestId);
       await loadElsaContext(selectedRequestId);
+      return result;
     } catch (error) {
       handleApiForbidden(error);
       setElsaDecisionStatus('error');
       setElsaDecisionError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
+      return null;
     }
   };
 

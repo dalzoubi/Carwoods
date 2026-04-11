@@ -793,6 +793,10 @@
       "scheduledFor": "Programado para",
       "scheduledFrom": "Programado desde",
       "scheduledTo": "Programado hasta",
+      "scheduledWindow": "Ventana programada",
+      "scheduleStartsAt": "Inicia a las {{date}}",
+      "scheduleUntil": "Hasta las {{date}}",
+      "notScheduled": "Sin programación",
       "vendorName": "Nombre del proveedor",
       "vendorPhone": "Teléfono del proveedor"
     },
@@ -801,6 +805,8 @@
       "newRequest": "Nueva solicitud",
       "create": "Enviar solicitud",
       "updateRequest": "Actualizar solicitud",
+      "showDetails": "Mostrar detalles",
+      "hideDetails": "Ocultar detalles",
       "saveChanges": "Guardar cambios",
       "sendMessage": "Enviar mensaje",
       "chooseFile": "Elegir archivo",
@@ -960,7 +966,7 @@
       "resolved": "Resuelto",
       "actions": {
         "copyToMessage": "Usar en el cuadro de mensaje",
-        "sendAndResolve": "Enviar borrador y resolver",
+        "sendAndResolve": "Enviar con IA",
         "markResolved": "Marcar como resuelto",
         "dismiss": "Descartar"
       },
@@ -1084,6 +1090,8 @@
       "emergencyTemplateEnabled": "Enable emergency template",
       "confidenceThreshold": "Auto-send confidence threshold",
       "confidenceHelp": "Use a value between 0 and 1.",
+      "similarReplyThreshold": "Umbral para suprimir respuestas similares",
+      "similarReplyThresholdHelp": "Usa un valor entre 0 y 1. Valores más altos requieren texto más parecido para suprimir el autoenvío.",
       "maxQuestions": "Maximum AI follow-up questions",
       "maxSteps": "Maximum AI workflow steps",
       "allowedCategories": "Allowed categories (one per line or comma-separated)",

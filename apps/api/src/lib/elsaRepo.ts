@@ -6,6 +6,7 @@ export type ElsaSettings = {
   elsa_enabled: boolean;
   elsa_auto_send_enabled: boolean;
   elsa_auto_send_confidence_threshold: number;
+  elsa_similar_reply_threshold: number;
   elsa_allowed_categories: string[];
   elsa_allowed_priorities: string[];
   elsa_blocked_keywords: string[];
@@ -28,7 +29,7 @@ export type ElsaDecisionRow = {
   policy_decision: string;
   confidence: number | null;
   suggestion_json: string | null;
-  normalized_tenant_reply: string | null;
+  tenant_reply_draft: string | null;
   internal_summary: string | null;
   recommended_next_action: string | null;
   dispatch_summary: string | null;
@@ -66,6 +67,7 @@ const DEFAULT_SETTINGS: ElsaSettings = {
   elsa_enabled: true,
   elsa_auto_send_enabled: false,
   elsa_auto_send_confidence_threshold: 0.78,
+  elsa_similar_reply_threshold: 0.86,
   elsa_allowed_categories: ['plumbing', 'hvac', 'electrical', 'appliances', 'general'],
   elsa_allowed_priorities: ['routine', 'urgent'],
   elsa_blocked_keywords: ['injury', 'lawsuit', 'attorney', 'reimbursement', 'liability', 'claim'],
@@ -124,6 +126,10 @@ export async function getElsaSettings(client: Queryable): Promise<ElsaSettings> 
     elsa_auto_send_confidence_threshold: parseNumber(
       map.get('elsa_auto_send_confidence_threshold') ?? null,
       DEFAULT_SETTINGS.elsa_auto_send_confidence_threshold
+    ),
+    elsa_similar_reply_threshold: parseNumber(
+      map.get('elsa_similar_reply_threshold') ?? null,
+      DEFAULT_SETTINGS.elsa_similar_reply_threshold
     ),
     elsa_allowed_categories: parseJsonArray(
       map.get('elsa_allowed_categories') ?? null,
@@ -354,7 +360,7 @@ export async function createElsaDecision(
     policyDecision: string;
     confidence: number | null;
     suggestionJson: unknown;
-    normalizedTenantReply: string | null;
+    tenantReplyDraft: string | null;
     internalSummary: string | null;
     recommendedNextAction: string | null;
     dispatchSummary: string | null;
@@ -368,7 +374,7 @@ export async function createElsaDecision(
     `DECLARE @inserted TABLE (id UNIQUEIDENTIFIER);
      INSERT INTO elsa_decisions (
        id, request_id, triggering_event, triggering_user_id, model_name, provider_used, prompt_version,
-       mode, delivery_decision, policy_decision, confidence, suggestion_json, normalized_tenant_reply,
+       mode, delivery_decision, policy_decision, confidence, suggestion_json, tenant_reply_draft,
        internal_summary, recommended_next_action, dispatch_summary, policy_flags_json,
        auto_send_rationale, sent_message_id, sent_at
      )
@@ -387,7 +393,7 @@ export async function createElsaDecision(
       params.policyDecision,
       params.confidence,
       JSON.stringify(params.suggestionJson ?? null),
-      params.normalizedTenantReply,
+      params.tenantReplyDraft,
       params.internalSummary,
       params.recommendedNextAction,
       params.dispatchSummary,
@@ -410,7 +416,7 @@ export async function listElsaDecisionsForRequest(
     `SELECT TOP (${safeLimit})
        id, request_id, triggering_event, model_name, provider_used, prompt_version,
        mode, delivery_decision, policy_decision, confidence, suggestion_json,
-       normalized_tenant_reply, internal_summary, recommended_next_action, dispatch_summary,
+       tenant_reply_draft, internal_summary, recommended_next_action, dispatch_summary,
        policy_flags_json, auto_send_rationale, sent_message_id, sent_at,
        review_status, review_action, reviewed_by_user_id, reviewed_at, created_at
      FROM elsa_decisions
@@ -430,7 +436,7 @@ export async function getElsaDecisionForRequest(
     `SELECT TOP 1
        id, request_id, triggering_event, model_name, provider_used, prompt_version,
        mode, delivery_decision, policy_decision, confidence, suggestion_json,
-       normalized_tenant_reply, internal_summary, recommended_next_action, dispatch_summary,
+       tenant_reply_draft, internal_summary, recommended_next_action, dispatch_summary,
        policy_flags_json, auto_send_rationale, sent_message_id, sent_at,
        review_status, review_action, reviewed_by_user_id, reviewed_at, created_at
      FROM elsa_decisions
@@ -460,7 +466,7 @@ export async function markElsaDecisionReviewed(
      OUTPUT INSERTED.id, INSERTED.request_id, INSERTED.triggering_event, INSERTED.model_name,
             INSERTED.provider_used, INSERTED.prompt_version, INSERTED.mode, INSERTED.delivery_decision,
             INSERTED.policy_decision, INSERTED.confidence, INSERTED.suggestion_json,
-            INSERTED.normalized_tenant_reply, INSERTED.internal_summary, INSERTED.recommended_next_action,
+           INSERTED.tenant_reply_draft, INSERTED.internal_summary, INSERTED.recommended_next_action,
             INSERTED.dispatch_summary, INSERTED.policy_flags_json, INSERTED.auto_send_rationale,
             INSERTED.sent_message_id, INSERTED.sent_at, INSERTED.review_status, INSERTED.review_action,
             CONVERT(NVARCHAR(36), INSERTED.reviewed_by_user_id) AS reviewed_by_user_id,
