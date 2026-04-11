@@ -103,5 +103,14 @@ describe('RequestListPane', () => {
     const older = screen.getByRole('button', { name: /Older ticket/i });
     expect(newer.compareDocumentPosition(older) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
+
+  it('does not show empty state pill when there are no requests', () => {
+    renderPane({
+      requests: [],
+      requestsStatus: 'ok',
+    });
+
+    expect(screen.queryByText('No requests found for this account.')).not.toBeInTheDocument();
+  });
 });
 

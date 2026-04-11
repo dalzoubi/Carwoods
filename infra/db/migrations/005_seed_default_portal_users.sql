@@ -3,9 +3,7 @@
 
 MERGE dbo.users AS target
 USING (VALUES
-  ('dennis@carwoods.com', 'ADMIN',    'ACTIVE'),
-  ('denisyz@gmail.com',   'LANDLORD', 'ACTIVE'),
-  ('dsaz1900@gmail.com',  'TENANT',   'ACTIVE')
+  ('dennis@carwoods.com', 'ADMIN', 'ACTIVE')
 ) AS src (email, role, status)
   ON LOWER(target.email) = src.email
 WHEN MATCHED THEN

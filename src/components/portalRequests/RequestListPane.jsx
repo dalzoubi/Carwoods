@@ -125,9 +125,6 @@ const RequestListPane = ({
     : requestsStatus === 'error'
       ? { severity: 'error', text: requestsError || t('portalRequests.errors.loadFailed') }
       : null;
-  const emptyStatusMessage = requestsStatus === 'ok' && sortedRequests.length === 0
-    ? { severity: 'info', text: t('portalRequests.list.empty') }
-    : null;
 
   return (
     <Stack spacing={2}>
@@ -199,8 +196,6 @@ const RequestListPane = ({
           <MenuItem value={RequestStatus.CANCELLED}>{t('portalRequests.statuses.CANCELLED')}</MenuItem>
         </Select>
       </Stack>
-      <StatusAlertSlot message={emptyStatusMessage} />
-
       {sortedRequests.length > 0 && (
         <Box sx={{ minWidth: { md: 320 }, border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
           <List dense disablePadding>

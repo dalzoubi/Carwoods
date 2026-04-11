@@ -276,7 +276,7 @@ const PortalDashboard = () => {
                 {!isManagement && (
                   <Button
                     component={RouterLink}
-                    to={withDarkPath(pathname, '/portal/requests')}
+                    to={withDarkPath(pathname, '/portal/requests?create=1')}
                     type="button"
                     variant="contained"
                     startIcon={<Build />}

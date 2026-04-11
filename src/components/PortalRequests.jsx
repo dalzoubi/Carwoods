@@ -6,7 +6,6 @@ import {
   Button,
   CircularProgress,
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
   Paper,
@@ -35,7 +34,9 @@ const PortalRequests = () => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const location = useLocation();
-  const selectedRequestFromUrl = new URLSearchParams(location.search).get('id') || '';
+  const searchParams = new URLSearchParams(location.search);
+  const selectedRequestFromUrl = searchParams.get('id') || '';
+  const createFromUrl = searchParams.get('create') === '1';
   const listPaneRef = useRef(null);
   const detailPaneRef = useRef(null);
   const {
@@ -149,7 +150,7 @@ const PortalRequests = () => {
     : null;
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
-  const [createOpen, setCreateOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(createFromUrl);
   const [landlords, setLandlords] = useState([]);
   const [landlordsStatus, setLandlordsStatus] = useState('idle');
   const [selectedLandlordId, setSelectedLandlordId] = useState('');
@@ -349,20 +350,12 @@ const PortalRequests = () => {
                 createAttachmentFiles={createAttachmentFiles}
                 onCreateAttachmentChange={onCreateAttachmentChange}
                 onRemoveCreateAttachment={onRemoveCreateAttachment}
+                onCancel={() => setCreateOpen(false)}
                 disabled={!isAuthenticated || !baseUrl || tenantCreateStatus === 'saving' || isGuest}
                 hideHeading
                 framed={false}
               />
               </DialogContent>
-              <DialogActions>
-                <Button
-                  type="button"
-                  onClick={() => setCreateOpen(false)}
-                  disabled={tenantCreateStatus === 'saving'}
-                >
-                  {t('portalRequests.actions.close')}
-                </Button>
-              </DialogActions>
             </Dialog>
           </Box>
         )}

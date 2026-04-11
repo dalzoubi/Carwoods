@@ -17,6 +17,7 @@ const TenantRequestForm = ({
   lookupContact,
   onTenantField,
   onCreateRequest,
+  onCancel,
   tenantCreateStatus,
   tenantCreateError,
   createAttachmentFiles,
@@ -207,11 +208,16 @@ const TenantRequestForm = ({
           sx={{ flexWrap: 'wrap', rowGap: 1 }}
         >
           <InlineActionStatus message={createStatusMessage} />
-          <Button type="submit" variant="contained" disabled={disabled || lookupsUnavailable}>
-            {tenantCreateStatus === 'saving'
-              ? t('portalRequests.actions.saving')
-              : t('portalRequests.actions.create')}
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button type="button" variant="text" onClick={onCancel} disabled={disabled}>
+              {t('portalRequests.actions.cancel')}
+            </Button>
+            <Button type="submit" variant="contained" disabled={disabled || lookupsUnavailable}>
+              {tenantCreateStatus === 'saving'
+                ? t('portalRequests.actions.saving')
+                : t('portalRequests.actions.create')}
+            </Button>
+          </Stack>
         </Stack>
       </Stack>
     </Box>

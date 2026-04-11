@@ -820,6 +820,7 @@
       "exportingCsv": "جارٍ التصدير…",
       "cancelRequest": "إلغاء الطلب",
       "close": "إغلاق",
+      "cancel": "إلغاء",
       "saving": "جارٍ الحفظ…"
     },
     "errors": {
