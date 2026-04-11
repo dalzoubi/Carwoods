@@ -14,6 +14,8 @@ Property management and rentals in Houston and beyond. Tenant selection criteria
 
 Monorepo workspaces: `apps/api` (Azure Functions, TypeScript), `packages/domain`, `packages/config`. Documentation: **`docs/portal/`**. Database migrations: **`infra/db/migrations/`**. Azure Bicep: **`infra/azure/`** (deploy into resource group **`carwoods.com`**). CI: **`.github/workflows/azure-infrastructure.yml`** (Bicep) and **`.github/workflows/azure-functions-deploy.yml`** (API code) — see **`infra/azure/README.md`** for OIDC, secrets, variables, and post-deploy steps.
 
+Manual Azure setup quick checklist: **`docs/portal/AZURE_MANUAL_SETUP_CHECKLIST.md`**.
+
 ```bash
 npm install
 npm run build:api

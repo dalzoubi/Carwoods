@@ -1392,6 +1392,11 @@
     "actions": {
       "signIn": "تسجيل الدخول",
       "signOut": "تسجيل الخروج"
+    },
+    "notifications": {
+      "title": "الإشعارات",
+      "empty": "لا توجد إشعارات بعد.",
+      "unreadCount": "{{count}} غير مقروءة"
     }
   },
   "portalLayout": {

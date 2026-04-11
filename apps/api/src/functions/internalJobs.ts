@@ -11,6 +11,7 @@ import {
   markNotificationFailed,
   markNotificationSent,
 } from '../lib/notificationRepo.js';
+import { dispatchOutboxNotification } from '../lib/notificationDispatch.js';
 import { writeAudit } from '../lib/auditRepo.js';
 import { logInfo, logWarn } from '../lib/serverLogger.js';
 import { listAttachmentBlobPaths, deleteAttachmentBlobIfExists } from '../lib/requestAttachmentStorage.js';
@@ -31,15 +32,16 @@ async function processNotificationOutbox(
 
   let sent = 0;
   let failed = 0;
+  let inAppCreated = 0;
+  let queuedDeliveries = 0;
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     for (const row of pending) {
       try {
-        // Placeholder sender: mark as sent if payload exists; keeps retry semantics in DB.
-        if (!row.payload) {
-          throw new Error('missing_payload');
-        }
+        const dispatch = await dispatchOutboxNotification(client, row);
+        inAppCreated += dispatch.createdInApp;
+        queuedDeliveries += dispatch.queuedDeliveries;
         await markNotificationSent(client, row.id);
         sent += 1;
       } catch (error) {
@@ -57,7 +59,7 @@ async function processNotificationOutbox(
       entityId: '00000000-0000-0000-0000-000000000000',
       action: 'PROCESS_BATCH',
       before: null,
-      after: { attempted: pending.length, sent, failed },
+      after: { attempted: pending.length, sent, failed, in_app_created: inAppCreated, queued_deliveries: queuedDeliveries },
     });
     await client.query('COMMIT');
   } catch (error) {
@@ -70,6 +72,8 @@ async function processNotificationOutbox(
     attempted: pending.length,
     sent,
     failed,
+    in_app_created: inAppCreated,
+    queued_deliveries: queuedDeliveries,
   });
 }
 

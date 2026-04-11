@@ -14,6 +14,17 @@ export type NotificationOutboxRow = {
   processed_at: Date | null;
 };
 
+export type NotificationDeliveryRow = {
+  id: string;
+  outbox_id: string | null;
+  recipient_email: string;
+  template_id: string | null;
+  status: 'QUEUED' | 'SENT' | 'FAILED';
+  provider_message_id: string | null;
+  error: string | null;
+  created_at: Date;
+};
+
 export async function enqueueNotification(
   client: PoolClient,
   params: {
@@ -74,5 +85,35 @@ export async function markNotificationFailed(
       WHERE id = $1`,
     [id, errorMessage.slice(0, 2000)]
   );
+}
+
+export async function insertNotificationDelivery(
+  client: PoolClient,
+  params: {
+    outboxId: string | null;
+    recipientTarget: string;
+    templateId: string | null;
+    status: 'QUEUED' | 'SENT' | 'FAILED';
+    providerMessageId?: string | null;
+    error?: string | null;
+  }
+): Promise<NotificationDeliveryRow> {
+  const r = await client.query<NotificationDeliveryRow>(
+    `INSERT INTO notification_deliveries (
+       id, outbox_id, recipient_email, template_id, status, provider_message_id, error
+     )
+     OUTPUT INSERTED.id, INSERTED.outbox_id, INSERTED.recipient_email, INSERTED.template_id,
+            INSERTED.status, INSERTED.provider_message_id, INSERTED.error, INSERTED.created_at
+     VALUES (NEWID(), $1, $2, $3, $4, $5, $6)`,
+    [
+      params.outboxId,
+      params.recipientTarget,
+      params.templateId,
+      params.status,
+      params.providerMessageId ?? null,
+      params.error ?? null,
+    ]
+  );
+  return r.rows[0]!;
 }
 

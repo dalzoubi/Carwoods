@@ -26,9 +26,10 @@ The template is **scoped to an existing or new resource group** (`carwoods.com`)
 | **Azure SQL logical server** (`sqlServerName`) | SQL Server 2022, TLS 1.2, public access enabled, firewall open to Azure services. |
 | **Azure SQL database** (`sqlDatabaseName`) | **Basic** tier, 5 DTUs, 2 GiB max. ~$5/month. Collation `SQL_Latin1_General_CP1_CI_AS`. Database `carwoods_portal_prod` (override via Bicep param). |
 | **Firewall rule** `AllowAzureServices`     | `0.0.0.0`–`0.0.0.0` so **Azure services** (including this Function App's outbound IPs) can connect. |
+| **Azure Communication Services** (`communicationServiceName`) | Optional. Created when GitHub variable `AZURE_COMMUNICATION_SERVICE_NAME` is set. Workflow also syncs `ACS_CONNECTION_STRING` + `ACS_ENDPOINT` app settings onto the Function App. |
 
 
-**Not in Bicep yet** (Portal or future Bicep): Blob containers for uploads, Azure Communication Services, Key Vault references, Application Insights wiring, custom domains, VNet integration for SQL.
+**Not in Bicep yet** (Portal or future Bicep): Blob containers for uploads, Key Vault references, Application Insights wiring, custom domains, VNet integration for SQL.
 
 **Important:** This workflow only provisions the **shell** (hosting + storage + database). Deploying **your compiled** `apps/api` code is a separate step (`func azure functionapp publish`, GitHub Actions deploy job, or VS Code — document that in portal docs when you add it).
 
@@ -169,6 +170,9 @@ Open the **Variables** tab → **New repository variable**.
 | `AZURE_FUNCTION_APP_NAME`    | **Globally unique** in Azure. Letters, numbers, hyphens; see [naming rules](https://learn.microsoft.com/azure/azure-resource-manager/management/resource-name-rules#microsoftwebsites). | `carwoods-api-a7b2` |
 | `AZURE_STORAGE_ACCOUNT_NAME` | **Globally unique**, **3–24** chars, **lowercase letters and numbers only** (no hyphens).                                                                                               | `carwoodssitea7b2`  |
 | `AZURE_SQL_SERVER_NAME`      | **Globally unique** DNS name for the Azure SQL logical server. **1–63** chars, **lowercase** letters, numbers, hyphens; cannot start or end with a hyphen.                              | `carwoods-api-sql`  |
+| `AZURE_COMMUNICATION_SERVICE_NAME` | **Optional.** Globally unique ACS resource name. When set, infra workflow provisions ACS and writes `ACS_CONNECTION_STRING` + `ACS_ENDPOINT` into Function App settings. | `carwoods-acs-prod` |
+| `AZURE_ACS_USE_MANAGED_IDENTITY` | **Optional.** Set to `true` to configure Function App with `ACS_AUTH_MODE=managed_identity` and grant the Function App identity access to ACS at resource scope. If unset/`false`, workflow configures connection-string mode. | `true` |
+| `AZURE_ACS_CHANNELS` | **Optional (MI mode).** ACS channels to grant least-privilege sender roles for: `email`, `sms`, or `both` (default). | `both` |
 | `AZURE_LOCATION`             | **Recommended.** Set to `eastus2` so push-triggered runs use the same region as your resource group. If unset, the workflow defaults to `eastus2`. | `eastus2`           |
 | `AZURE_SQL_ADMIN_USER`       | **Optional.** Admin login used by the SQL migrations workflow. If unset, defaults to `carwoodsadmin` (the Bicep param default). Only needed if you deployed with a custom `sqlAdminUser`. | `carwoodsadmin`     |
 | `AZURE_SQL_DATABASE_NAME`    | **Optional.** Database name used by the SQL migrations workflow. If unset, defaults to `carwoods_portal_prod` (the Bicep param default). | `carwoods_portal_prod`   |
@@ -394,6 +398,9 @@ done
 | Variable | `AZURE_FUNCTION_APP_NAME`                 |
 | Variable | `AZURE_STORAGE_ACCOUNT_NAME`              |
 | Variable | `AZURE_SQL_SERVER_NAME`                   |
+| Variable | `AZURE_COMMUNICATION_SERVICE_NAME` (optional; enables ACS provisioning + app setting sync) |
+| Variable | `AZURE_ACS_USE_MANAGED_IDENTITY` (optional; set `true` for MI auth mode) |
+| Variable | `AZURE_ACS_CHANNELS` (optional; `email`, `sms`, or `both` when MI mode is enabled) |
 | Variable | `AZURE_LOCATION` (recommended: `eastus2`) |
 | Variable | `AZURE_SQL_ADMIN_USER` (optional: defaults to `carwoodsadmin`) |
 | Variable | `AZURE_SQL_DATABASE_NAME` (optional: defaults to `carwoods_portal_prod`) |

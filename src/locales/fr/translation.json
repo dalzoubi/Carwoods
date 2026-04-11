@@ -1392,6 +1392,11 @@
     "actions": {
       "signIn": "Se connecter",
       "signOut": "Se déconnecter"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "empty": "Aucune notification pour le moment.",
+      "unreadCount": "{{count}} non lues"
     }
   },
   "portalLayout": {

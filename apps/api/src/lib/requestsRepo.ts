@@ -85,6 +85,15 @@ export type TenantLandlordContact = {
   email: string;
 };
 
+export type RequestNotificationRecipient = {
+  user_id: string;
+  email: string;
+  phone: string | null;
+  role: string;
+  is_request_submitter: boolean;
+  is_management: boolean;
+};
+
 export async function findStatusIdByCode(client: Queryable, code: string): Promise<string | null> {
   const r = await client.query<{ id: string }>(
     `SELECT id
@@ -712,5 +721,55 @@ export async function deleteRequestAttachmentById(
     [requestId, attachmentId]
   );
   return r.rows[0] ?? null;
+}
+
+export async function listRequestNotificationRecipients(
+  client: Queryable,
+  requestId: string
+): Promise<RequestNotificationRecipient[]> {
+  const r = await client.query<RequestNotificationRecipient>(
+    `SELECT DISTINCT
+        u.id AS user_id,
+        u.email,
+        u.phone,
+        u.role,
+        CASE WHEN u.id = mr.submitted_by_user_id THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END AS is_request_submitter,
+        CASE
+          WHEN UPPER(u.role) IN ('${Role.ADMIN}', '${Role.LANDLORD}', '${Role.AI_AGENT}')
+            THEN CAST(1 AS BIT)
+          ELSE CAST(0 AS BIT)
+        END AS is_management
+     FROM maintenance_requests mr
+     JOIN users tenant ON tenant.id = mr.submitted_by_user_id
+     LEFT JOIN properties p ON p.id = mr.property_id
+     LEFT JOIN users owner_u ON owner_u.id = p.created_by
+     JOIN users u ON u.id IN (
+        mr.submitted_by_user_id,
+        ISNULL(owner_u.id, mr.submitted_by_user_id)
+     )
+     WHERE mr.id = $1
+       AND mr.deleted_at IS NULL
+
+     UNION
+
+     SELECT
+        admin_u.id AS user_id,
+        admin_u.email,
+        admin_u.phone,
+        admin_u.role,
+        CAST(0 AS BIT) AS is_request_submitter,
+        CAST(1 AS BIT) AS is_management
+     FROM users admin_u
+     WHERE UPPER(admin_u.role) = '${Role.ADMIN}'
+       AND UPPER(admin_u.status) IN ('ACTIVE', 'INVITED')
+       AND EXISTS (
+         SELECT 1
+         FROM maintenance_requests mr_exists
+         WHERE mr_exists.id = $1
+           AND mr_exists.deleted_at IS NULL
+       )`,
+    [requestId]
+  );
+  return r.rows;
 }
 

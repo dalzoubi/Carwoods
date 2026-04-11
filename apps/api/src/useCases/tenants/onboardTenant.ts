@@ -18,6 +18,7 @@ import {
 import { insertLease, linkLeaseTenant, type LeaseRowFull } from '../../lib/leasesRepo.js';
 import { getPropertyByIdForActor } from '../../lib/propertiesRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
+import { enqueueNotification } from '../../lib/notificationRepo.js';
 import { validateTenantOnboard } from '../../domain/tenantValidation.js';
 import {
   forbidden,
@@ -152,6 +153,30 @@ export async function onboardTenant(
       action: 'CREATE',
       before: null,
       after: lease,
+    });
+
+    await enqueueNotification(client as Parameters<typeof enqueueNotification>[0], {
+      eventTypeCode: 'ACCOUNT_ONBOARDED_WELCOME',
+      payload: {
+        user_id: tenantResult.user.id,
+        email: tenantResult.user.email,
+        phone: tenantResult.user.phone,
+        role: tenantResult.user.role,
+        lease_id: lease.id,
+        property_id: input.propertyId,
+      },
+      idempotencyKey: `onboard-welcome:${tenantResult.user.id}:${lease.id}`,
+    });
+
+    await enqueueNotification(client as Parameters<typeof enqueueNotification>[0], {
+      eventTypeCode: 'ACCOUNT_EMAIL_VERIFICATION',
+      payload: {
+        user_id: tenantResult.user.id,
+        email: tenantResult.user.email,
+        phone: tenantResult.user.phone,
+        role: tenantResult.user.role,
+      },
+      idempotencyKey: `onboard-email-verification:${tenantResult.user.id}:${lease.id}`,
     });
 
     await client.query('COMMIT');

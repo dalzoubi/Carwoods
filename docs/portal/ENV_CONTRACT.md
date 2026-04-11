@@ -2,12 +2,15 @@
 
 Values are **names only**; store secrets in Azure Key Vault or Function App settings, not in the repo.
 
+Manual Azure setup checklist: `docs/portal/AZURE_MANUAL_SETUP_CHECKLIST.md`.
+
 ## Resource group (mandatory convention)
 
 
 | Name                   | Description                                                                        |
 | ---------------------- | ---------------------------------------------------------------------------------- |
 | `AZURE_RESOURCE_GROUP` | Must be **`carwoods.com`** for this project. CI/deploy scripts should assert this. |
+| `AZURE_ACS_CHANNELS`   | Optional GitHub Actions variable used in ACS managed-identity mode to select RBAC channel scope: `email`, `sms`, or `both` (default). |
 
 
 ## Azure Functions (`apps/api`)
@@ -20,7 +23,9 @@ Values are **names only**; store secrets in Azure Key Vault or Function App sett
 | `DATABASE_URL`                                    | Yes         | Azure SQL ADO.NET connection string set by Bicep (Server=<host>,1433;Database=<db>;User Id=<user>;Password=<pass>;Encrypt=yes;TrustServerCertificate=no)             |
 | `BLOB_CONNECTION_STRING` or managed identity vars | Yes         | Blob access for SAS generation                        |
 | `BLOB_ACCOUNT_URL`                                | If using MI | `https://{account}.blob.core.windows.net`             |
-| `ACS_CONNECTION_STRING` or ACS + MI               | Yes (email) | Azure Communication Services                          |
+| `ACS_CONNECTION_STRING` or ACS + MI               | Yes (email) | Azure Communication Services connection details       |
+| `ACS_ENDPOINT`                                    | Recommended | ACS endpoint/host used by SDK clients; set automatically by infra workflow when ACS is provisioned |
+| `ACS_AUTH_MODE`                                   | Recommended | `connection_string` (default workflow behavior) or `managed_identity` when `AZURE_ACS_USE_MANAGED_IDENTITY=true` |
 | `GEMINI_API_KEY`                                  | Yes (AI)    | Backend only; never in Vite env                       |
 | `LLM_TIMEOUT_MS`                                  | No          | Per-attempt HTTP timeout in ms. Default: `15000`      |
 | `LLM_MAX_PRIMARY_ATTEMPTS`                        | No          | Max retries on primary model. Default: `3`            |
@@ -57,6 +62,7 @@ Values are **names only**; store secrets in Azure Key Vault or Function App sett
 | `VITE_FIREBASE_PROJECT_ID`  | Firebase project ID; should match API `FIREBASE_PROJECT_ID` |
 | `VITE_FEATURE_APPLY_API` | When **not** `false`, and `VITE_API_BASE_URL` is set, `/apply` uses `GET /api/public/apply-properties` first; falls back to the generated file on error or empty API response. |
 | `VITE_FEATURE_APPLY_DUAL_SOURCE` | Dev only: set to `false` to disable console compare of API vs generated tiles. |
+| `VITE_NOTIFICATIONS_POLL_MS` | Optional notification poll cadence in ms for signed-in users (main site + portal headers). Default `60000`; clamped to min `10000`, max `300000`. |
 
 
 **Never** set `GEMINI_API_KEY`, `DATABASE_URL`, `BLOB_`* secrets, or ACS secrets in `VITE_*`.

@@ -1392,6 +1392,11 @@
     "actions": {
       "signIn": "Iniciar sesión",
       "signOut": "Cerrar sesión"
+    },
+    "notifications": {
+      "title": "Notificaciones",
+      "empty": "Aún no hay notificaciones.",
+      "unreadCount": "{{count}} sin leer"
     }
   },
   "portalLayout": {

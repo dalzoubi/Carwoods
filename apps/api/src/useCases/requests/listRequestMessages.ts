@@ -10,6 +10,7 @@ import {
   tenantCanAccessRequest,
   type RequestMessageRow,
 } from '../../lib/requestsRepo.js';
+import { markPortalNotificationsReadForRequest } from '../../lib/notificationCenterRepo.js';
 import { forbidden, notFound, validationError } from '../../domain/errors.js';
 import { validateRequestId } from '../../domain/requestValidation.js';
 import { Role, hasLandlordAccess } from '../../domain/constants.js';
@@ -46,5 +47,9 @@ export async function listRequestMessages(
   }
 
   const messages = await listMsgs(db, requestId, isManagement);
+  await markPortalNotificationsReadForRequest(db, {
+    userId: input.actorUserId,
+    requestId,
+  });
   return { messages };
 }

@@ -29,7 +29,14 @@ param sqlAdminPassword string
 @description('Database name on the logical SQL server.')
 param sqlDatabaseName string = 'carwoods_portal_prod'
 
+@description('Globally unique Azure Communication Services name. Leave empty to skip ACS provisioning.')
+param communicationServiceName string = 'carwoods_portal_acs'
+
+@description('ACS data location (for example: UnitedStates).')
+param communicationDataLocation string = 'UnitedStates'
+
 var hostingPlanName = '${functionAppName}-plan'
+var deployCommunicationService = !empty(trim(communicationServiceName))
 
 // mssql connection string accepted by the tedious driver via the DATABASE_URL env var.
 // Format: Server=<fqdn>,1433;Database=<db>;User Id=<user>;Password=<pass>;Encrypt=yes;TrustServerCertificate=no
@@ -86,6 +93,14 @@ resource sqlFirewallAzure 'Microsoft.Sql/servers/firewallRules@2023-08-01-previe
   properties: {
     startIpAddress: '0.0.0.0'
     endIpAddress: '0.0.0.0'
+  }
+}
+
+resource communicationService 'Microsoft.Communication/communicationServices@2023-04-01' = if (deployCommunicationService) {
+  name: communicationServiceName
+  location: 'global'
+  properties: {
+    dataLocation: communicationDataLocation
   }
 }
 
@@ -158,3 +173,5 @@ output principalId string = reference(resourceId('Microsoft.Web/sites', function
 output sqlServerNameOut string = sqlServer.name
 output sqlServerFqdn string = sqlServer.properties.fullyQualifiedDomainName
 output sqlDatabaseNameOut string = sqlDatabaseName
+output communicationServiceNameOut string = deployCommunicationService ? communicationService.name : ''
+output communicationServiceEndpoint string = deployCommunicationService ? communicationService!.properties.hostName : ''

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   AppBar,
   Avatar,
+  Badge,
   Box,
   Chip,
   CircularProgress,
@@ -16,6 +17,7 @@ import {
   Typography,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import NotificationsNone from '@mui/icons-material/NotificationsNone';
 import SettingsBrightness from '@mui/icons-material/SettingsBrightness';
 import LightMode from '@mui/icons-material/LightMode';
 import DarkMode from '@mui/icons-material/DarkMode';
@@ -29,10 +31,11 @@ import { usePortalAuth } from '../PortalAuthContext';
 import { isDarkPreviewRoute, stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
 import { useThemeMode } from '../ThemeModeContext';
 import { useLanguage } from '../LanguageContext';
-import { FEATURE_DARK_THEME } from '../featureFlags';
+import { FEATURE_DARK_THEME, NOTIFICATIONS_POLL_INTERVAL_MS } from '../featureFlags';
 import { isGuestRole, normalizeRole, resolveDisplayName, resolveRole } from '../portalUtils';
 import { Role } from '../domain/constants.js';
 import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
+import { fetchNotifications, markNotificationRead } from '../lib/portalApiClient';
 
 function usePageTitle(t) {
   const { pathname } = useLocation();
@@ -74,7 +77,16 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { isAuthenticated, account, meData, meStatus, signOut } = usePortalAuth();
+  const {
+    isAuthenticated,
+    account,
+    meData,
+    meStatus,
+    signOut,
+    getAccessToken,
+    baseUrl,
+    handleApiForbidden,
+  } = usePortalAuth();
   const initials = userInitials(meData);
   const meLoading = isAuthenticated && meStatus === 'loading';
   const pageTitle = usePageTitle(t);
@@ -103,8 +115,30 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
 
   const [appearanceAnchor, setAppearanceAnchor] = useState(null);
   const [languageAnchor, setLanguageAnchor] = useState(null);
+  const [notificationsAnchor, setNotificationsAnchor] = useState(null);
   const [accountAnchor, setAccountAnchor] = useState(null);
   const [signOutOpen, setSignOutOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+
+  const loadNotifications = React.useCallback(async () => {
+    if (!isAuthenticated || !baseUrl) return;
+    setNotificationsLoading(true);
+    try {
+      const token = await getAccessToken();
+      const payload = await fetchNotifications(baseUrl, token, {
+        emailHint: account?.username || undefined,
+        limit: 20,
+      });
+      setNotifications(Array.isArray(payload?.notifications) ? payload.notifications : []);
+      setUnreadCount(Number(payload?.unread_count ?? 0));
+    } catch (error) {
+      handleApiForbidden?.(error);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  }, [account?.username, baseUrl, getAccessToken, handleApiForbidden, isAuthenticated]);
 
   const handleAppearanceOpen = (e) => {
     setLanguageAnchor(null);
@@ -115,14 +149,25 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
 
   const handleLanguageOpen = (e) => {
     setAppearanceAnchor(null);
+    setNotificationsAnchor(null);
     setAccountAnchor(null);
     setLanguageAnchor(e.currentTarget);
   };
   const handleLanguageClose = () => setLanguageAnchor(null);
 
+  const handleNotificationsOpen = (e) => {
+    setAppearanceAnchor(null);
+    setLanguageAnchor(null);
+    setAccountAnchor(null);
+    setNotificationsAnchor(e.currentTarget);
+    void loadNotifications();
+  };
+  const handleNotificationsClose = () => setNotificationsAnchor(null);
+
   const handleAccountOpen = (e) => {
     setAppearanceAnchor(null);
     setLanguageAnchor(null);
+    setNotificationsAnchor(null);
     setAccountAnchor(e.currentTarget);
   };
   const handleAccountClose = () => setAccountAnchor(null);
@@ -131,6 +176,48 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
     setSignOutOpen(false);
     await signOut();
   };
+
+  const handleNotificationClick = async (notification) => {
+    if (!baseUrl) return;
+    try {
+      const token = await getAccessToken();
+      const response = await markNotificationRead(baseUrl, token, notification.id, {
+        emailHint: account?.username || undefined,
+      });
+      if (typeof response?.unread_count === 'number') {
+        setUnreadCount(response.unread_count);
+      } else {
+        setUnreadCount((value) => Math.max(0, value - 1));
+      }
+      setNotifications((items) => items.map((item) => (
+        item.id === notification.id ? { ...item, read_at: item.read_at || new Date().toISOString() } : item
+      )));
+    } catch (error) {
+      handleApiForbidden?.(error);
+    } finally {
+      if (notification.deep_link) {
+        navigate(withDarkPath(pathname, notification.deep_link));
+      }
+      handleNotificationsClose();
+    }
+  };
+
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
+    void loadNotifications();
+  }, [isAuthenticated, loadNotifications]);
+
+  React.useEffect(() => {
+    if (!isAuthenticated) return undefined;
+    const timerId = window.setInterval(() => {
+      void loadNotifications();
+    }, NOTIFICATIONS_POLL_INTERVAL_MS);
+    return () => window.clearInterval(timerId);
+  }, [isAuthenticated, loadNotifications]);
 
   return (
     <AppBar
@@ -193,6 +280,29 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
               <LanguageIcon fontSize="small" />
             </IconButton>
           </Tooltip>
+
+          {isAuthenticated && (
+            <Tooltip title={t('portalHeader.notifications.title')} arrow>
+              <IconButton
+                type="button"
+                size="small"
+                id="portal-notifications-button"
+                onClick={handleNotificationsOpen}
+                aria-haspopup="true"
+                aria-expanded={Boolean(notificationsAnchor)}
+                aria-controls={notificationsAnchor ? 'portal-notifications-menu' : undefined}
+                aria-label={t('portalHeader.notifications.title')}
+              >
+                <Badge
+                  color="error"
+                  badgeContent={unreadCount > 99 ? '99+' : unreadCount}
+                  invisible={unreadCount <= 0}
+                >
+                  <NotificationsNone fontSize="small" />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+          )}
 
           {isAuthenticated && (
             meLoading ? (
@@ -329,6 +439,54 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
         <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', color: 'text.secondary', maxWidth: 260 }}>
           {t('languagePreference.browserLanguageHint')}
         </Typography>
+      </Menu>
+
+      {/* Notifications menu */}
+      <Menu
+        id="portal-notifications-menu"
+        anchorEl={notificationsAnchor}
+        open={Boolean(notificationsAnchor)}
+        onClose={handleNotificationsClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        slotProps={{ paper: { sx: { backgroundImage: 'none', minWidth: 320, maxWidth: 420 } } }}
+        MenuListProps={{ 'aria-labelledby': 'portal-notifications-button' }}
+      >
+        <Box sx={{ px: 2, py: 1 }}>
+          <Typography variant="subtitle2">{t('portalHeader.notifications.title')}</Typography>
+          <Typography variant="caption" color="text.secondary">
+            {t('portalHeader.notifications.unreadCount', { count: unreadCount })}
+          </Typography>
+        </Box>
+        <Divider />
+        {notificationsLoading ? (
+          <Box sx={{ px: 2, py: 2, display: 'flex', justifyContent: 'center' }}>
+            <CircularProgress size={18} />
+          </Box>
+        ) : notifications.length === 0 ? (
+          <Box sx={{ px: 2, py: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              {t('portalHeader.notifications.empty')}
+            </Typography>
+          </Box>
+        ) : notifications.map((notification) => (
+          <MenuItem
+            key={notification.id}
+            onClick={() => { void handleNotificationClick(notification); }}
+            sx={{
+              alignItems: 'flex-start',
+              backgroundColor: notification.read_at ? 'transparent' : 'action.hover',
+              whiteSpace: 'normal',
+            }}
+          >
+            <ListItemText
+              primary={notification.title}
+              secondary={notification.body}
+              primaryTypographyProps={{ variant: 'body2', fontWeight: notification.read_at ? 500 : 700 }}
+              secondaryTypographyProps={{ variant: 'caption' }}
+            />
+          </MenuItem>
+        ))}
       </Menu>
 
       {/* Account menu */}

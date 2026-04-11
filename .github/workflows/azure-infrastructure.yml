@@ -42,6 +42,9 @@ jobs:
     outputs:
       sql_fqdn: ${{ steps.outputs.outputs.sql_fqdn }}
       sql_database: ${{ steps.outputs.outputs.sql_database }}
+      acs_name: ${{ steps.outputs.outputs.acs_name }}
+      acs_endpoint: ${{ steps.outputs.outputs.acs_endpoint }}
+      function_principal_id: ${{ steps.outputs.outputs.function_principal_id }}
       # true when this run actually deployed (not a dry-run)
       deployed: ${{ steps.outputs.outputs.deployed }}
 
@@ -79,6 +82,8 @@ jobs:
           FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
           STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
           SQL_SERVER_NAME: ${{ vars.AZURE_SQL_SERVER_NAME }}
+          ACS_NAME: ${{ vars.AZURE_COMMUNICATION_SERVICE_NAME }}
+          ACS_USE_MI: ${{ vars.AZURE_ACS_USE_MANAGED_IDENTITY }}
           SQL_ADMIN_PASSWORD: ${{ secrets.AZURE_SQL_ADMIN_PASSWORD }}
         run: |
           if [ -z "$FUNCTION_APP_NAME" ] || [ -z "$STORAGE_ACCOUNT_NAME" ]; then
@@ -93,6 +98,12 @@ jobs:
             echo "::error::Set GitHub repository Secret AZURE_SQL_ADMIN_PASSWORD (Azure SQL admin password; min 8 chars, must include uppercase, lowercase, digit, special — see infra/azure/README.md)."
             exit 1
           fi
+          if [ -z "$ACS_NAME" ]; then
+            echo "::notice::AZURE_COMMUNICATION_SERVICE_NAME not set. ACS provisioning will be skipped."
+          fi
+          if [ -z "$ACS_USE_MI" ]; then
+            echo "::notice::AZURE_ACS_USE_MANAGED_IDENTITY not set. Defaulting to connection-string ACS auth mode."
+          fi
 
       - name: Azure login (OIDC)
         uses: azure/login@v2
@@ -100,6 +111,11 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Ensure Azure CLI communication extension
+        run: |
+          az config set extension.use_dynamic_install=yes_without_prompt
+          az extension add --name communication --upgrade
 
       - name: Ensure resource group exists
         run: |
@@ -128,6 +144,7 @@ jobs:
           FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
           STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
           SQL_SERVER_NAME: ${{ vars.AZURE_SQL_SERVER_NAME }}
+          ACS_NAME: ${{ vars.AZURE_COMMUNICATION_SERVICE_NAME }}
           SQL_ADMIN_PASSWORD: ${{ secrets.AZURE_SQL_ADMIN_PASSWORD }}
         run: |
           az deployment group what-if \
@@ -137,6 +154,7 @@ jobs:
               functionAppName="$FUNCTION_APP_NAME" \
               storageAccountName="$STORAGE_ACCOUNT_NAME" \
               sqlServerName="$SQL_SERVER_NAME" \
+              communicationServiceName="$ACS_NAME" \
               sqlAdminPassword="$SQL_ADMIN_PASSWORD" \
               adoptExistingFunctionApp="${{ steps.detect_app.outputs.adopt_existing }}"
 
@@ -146,6 +164,7 @@ jobs:
           FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
           STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
           SQL_SERVER_NAME: ${{ vars.AZURE_SQL_SERVER_NAME }}
+          ACS_NAME: ${{ vars.AZURE_COMMUNICATION_SERVICE_NAME }}
           SQL_ADMIN_PASSWORD: ${{ secrets.AZURE_SQL_ADMIN_PASSWORD }}
         run: |
           az deployment group create \
@@ -156,6 +175,7 @@ jobs:
               functionAppName="$FUNCTION_APP_NAME" \
               storageAccountName="$STORAGE_ACCOUNT_NAME" \
               sqlServerName="$SQL_SERVER_NAME" \
+              communicationServiceName="$ACS_NAME" \
               sqlAdminPassword="$SQL_ADMIN_PASSWORD" \
               adoptExistingFunctionApp="${{ steps.detect_app.outputs.adopt_existing }}" \
             --output none
@@ -172,7 +192,109 @@ jobs:
           echo "$DEPLOY_JSON"
           SQL_FQDN=$(echo "$DEPLOY_JSON" | jq -r '.sqlServerFqdn.value')
           SQL_DB=$(echo "$DEPLOY_JSON" | jq -r '.sqlDatabaseNameOut.value')
+          ACS_NAME=$(echo "$DEPLOY_JSON" | jq -r '.communicationServiceNameOut.value')
+          ACS_ENDPOINT=$(echo "$DEPLOY_JSON" | jq -r '.communicationServiceEndpoint.value')
+          FUNCTION_PRINCIPAL_ID=$(echo "$DEPLOY_JSON" | jq -r '.principalId.value')
           echo "sql_fqdn=$SQL_FQDN" >> "$GITHUB_OUTPUT"
           echo "sql_database=$SQL_DB" >> "$GITHUB_OUTPUT"
+          echo "acs_name=$ACS_NAME" >> "$GITHUB_OUTPUT"
+          echo "acs_endpoint=$ACS_ENDPOINT" >> "$GITHUB_OUTPUT"
+          echo "function_principal_id=$FUNCTION_PRINCIPAL_ID" >> "$GITHUB_OUTPUT"
           echo "deployed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Configure Function App ACS settings
+        if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true') && vars.AZURE_COMMUNICATION_SERVICE_NAME != '' }}
+        env:
+          FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
+          ACS_NAME: ${{ vars.AZURE_COMMUNICATION_SERVICE_NAME }}
+          ACS_USE_MI: ${{ vars.AZURE_ACS_USE_MANAGED_IDENTITY }}
+        run: |
+          ACS_ENDPOINT=$(az communication show \
+            --name "$ACS_NAME" \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --query hostName -o tsv)
+
+          if [ "${ACS_USE_MI}" = "true" ]; then
+            az functionapp config appsettings set \
+              --name "$FUNCTION_APP_NAME" \
+              --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+              --settings \
+                ACS_AUTH_MODE="managed_identity" \
+                ACS_ENDPOINT="$ACS_ENDPOINT" \
+              --output none
+          else
+            ACS_CONNECTION_STRING=$(az communication list-key \
+              --name "$ACS_NAME" \
+              --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+              --query primaryConnectionString -o tsv)
+
+            az functionapp config appsettings set \
+              --name "$FUNCTION_APP_NAME" \
+              --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+              --settings \
+                ACS_AUTH_MODE="connection_string" \
+                ACS_CONNECTION_STRING="$ACS_CONNECTION_STRING" \
+                ACS_ENDPOINT="$ACS_ENDPOINT" \
+              --output none
+          fi
+
+      - name: Grant Function App managed identity access to ACS
+        if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true') && vars.AZURE_COMMUNICATION_SERVICE_NAME != '' && vars.AZURE_ACS_USE_MANAGED_IDENTITY == 'true' }}
+        env:
+          FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
+          ACS_NAME: ${{ vars.AZURE_COMMUNICATION_SERVICE_NAME }}
+          FUNCTION_PRINCIPAL_ID: ${{ steps.outputs.outputs.function_principal_id }}
+          ACS_CHANNELS: ${{ vars.AZURE_ACS_CHANNELS }}
+        run: |
+          ACS_SCOPE=$(az communication show \
+            --name "$ACS_NAME" \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --query id -o tsv)
+
+          PRINCIPAL_ID="$FUNCTION_PRINCIPAL_ID"
+          if [ -z "$PRINCIPAL_ID" ] || [ "$PRINCIPAL_ID" = "null" ]; then
+            PRINCIPAL_ID=$(az functionapp identity show \
+              --name "$FUNCTION_APP_NAME" \
+              --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+              --query principalId -o tsv)
+          fi
+
+          CHANNELS=$(echo "${ACS_CHANNELS:-both}" | tr '[:upper:]' '[:lower:]')
+          declare -a ROLE_NAMES=()
+
+          case "$CHANNELS" in
+            email)
+              ROLE_NAMES=("Azure Communication Service Email Sender")
+              ;;
+            sms)
+              ROLE_NAMES=("Azure Communication Service SMS Sender")
+              ;;
+            both)
+              ROLE_NAMES=(
+                "Azure Communication Service Email Sender"
+                "Azure Communication Service SMS Sender"
+              )
+              ;;
+            *)
+              echo "::error::Invalid AZURE_ACS_CHANNELS value '$CHANNELS'. Allowed values: email, sms, both."
+              exit 1
+              ;;
+          esac
+
+          for ROLE_NAME in "${ROLE_NAMES[@]}"; do
+            EXISTING_ASSIGNMENT_COUNT=$(az role assignment list \
+              --assignee-object-id "$PRINCIPAL_ID" \
+              --assignee-principal-type ServicePrincipal \
+              --scope "$ACS_SCOPE" \
+              --query "length([?roleDefinitionName=='$ROLE_NAME'])" -o tsv)
+
+            if [ "$EXISTING_ASSIGNMENT_COUNT" = "0" ]; then
+              az role assignment create \
+                --assignee-object-id "$PRINCIPAL_ID" \
+                --assignee-principal-type ServicePrincipal \
+                --scope "$ACS_SCOPE" \
+                --role "$ROLE_NAME" \
+                --output none
+            fi
+          done
 

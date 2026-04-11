@@ -10,6 +10,7 @@ import './functions/landlordLeaseTenants.js';
 import './functions/landlordTenants.js';
 import './functions/portalRequests.js';
 import './functions/portalProfile.js';
+import './functions/portalNotifications.js';
 import './functions/landlordRequests.js';
 import './functions/internalJobs.js';
 import './functions/adminLandlordInvites.js';

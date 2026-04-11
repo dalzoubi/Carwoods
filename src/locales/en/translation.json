@@ -1392,6 +1392,11 @@
     "actions": {
       "signIn": "Sign in",
       "signOut": "Sign out"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "empty": "No notifications yet.",
+      "unreadCount": "{{count}} unread"
     }
   },
   "portalLayout": {

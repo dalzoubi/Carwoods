@@ -560,6 +560,58 @@ export async function patchProfile(baseUrl, accessToken, payload) {
 }
 
 // ---------------------------------------------------------------------------
+// GET /api/portal/notifications
+// PATCH /api/portal/notifications/:id
+// ---------------------------------------------------------------------------
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ emailHint?: string, limit?: number }} [params]
+ * @returns {Promise<object>}
+ */
+export async function fetchNotifications(baseUrl, accessToken, params) {
+  const emailHint = params?.emailHint;
+  const limitValue = Number.isFinite(Number(params?.limit)) ? Number(params.limit) : 20;
+  const path = `/api/portal/notifications?limit=${encodeURIComponent(String(limitValue))}`;
+  const res = await fetch(buildUrl(baseUrl, path), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} notificationId
+ * @param {{ emailHint?: string }} [params]
+ * @returns {Promise<object>}
+ */
+export async function markNotificationRead(baseUrl, accessToken, notificationId, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/notifications/${encodeURIComponent(notificationId)}`),
+    {
+      method: 'PATCH',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify({ read: true }),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
 // PATCH /api/portal/admin/landlords/:id
 // PATCH /api/landlord/requests/:id
 // ---------------------------------------------------------------------------
