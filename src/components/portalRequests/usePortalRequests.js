@@ -23,37 +23,53 @@ import {
   fetchRequestAudit,
   fetchRequestMessages,
   deleteRequestMessage,
+  deleteRequestAttachment,
 } from '../../lib/portalApiClient';
 import { RequestStatus } from '../../domain/constants.js';
 const MESSAGE_POLL_INTERVAL_MS = 15000;
 const MESSAGE_SUCCESS_AUTO_DISMISS_MS = 5000;
 const ELSA_DECISION_ACTION_SUCCESS_AUTO_DISMISS_MS = 5000;
 
-const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
-const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
-const MAX_FILE_BYTES = 25 * 1024 * 1024;
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+const MAX_ATTACHMENTS = 3;
+const MAX_VIDEO_DURATION_SECONDS = 10;
 const PHOTO_MIME_PREFIXES = ['image/'];
 const VIDEO_MIME_PREFIXES = ['video/'];
-const FILE_MIME_ALLOWED = [
-  'application/pdf',
-  'text/plain',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-];
 
 function detectMediaType(contentType) {
   const mime = (contentType || '').trim().toLowerCase();
   if (!mime) return null;
   if (PHOTO_MIME_PREFIXES.some((prefix) => mime.startsWith(prefix))) return 'PHOTO';
   if (VIDEO_MIME_PREFIXES.some((prefix) => mime.startsWith(prefix))) return 'VIDEO';
-  if (FILE_MIME_ALLOWED.includes(mime)) return 'FILE';
   return null;
 }
 
 function maxBytesForMediaType(mediaType) {
   if (mediaType === 'PHOTO') return MAX_PHOTO_BYTES;
-  if (mediaType === 'VIDEO') return MAX_VIDEO_BYTES;
-  return MAX_FILE_BYTES;
+  return MAX_VIDEO_BYTES;
+}
+
+function loadVideoDurationSeconds(file) {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      const duration = Number(video.duration);
+      URL.revokeObjectURL(objectUrl);
+      if (Number.isFinite(duration) && duration >= 0) {
+        resolve(duration);
+      } else {
+        reject(new Error('invalid_video_duration'));
+      }
+    };
+    video.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('invalid_video_duration'));
+    };
+    video.src = objectUrl;
+  });
 }
 
 function extractErrorMessage(error, t, fallbackKey) {
@@ -136,6 +152,8 @@ export function usePortalRequests({
   const [attachmentStatus, setAttachmentStatus] = useState('idle');
   const [attachmentError, setAttachmentError] = useState('');
   const [attachmentUploadProgress, setAttachmentUploadProgress] = useState(0);
+  const [attachmentDeleteStatus, setAttachmentDeleteStatus] = useState('idle');
+  const [attachmentDeleteError, setAttachmentDeleteError] = useState('');
 
   const [exportStatus, setExportStatus] = useState('idle');
   const [exportError, setExportError] = useState('');
@@ -342,6 +360,8 @@ export function usePortalRequests({
     setAttachmentError('');
     setAttachmentUploadProgress(0);
     setAttachmentFile(null);
+    setAttachmentDeleteStatus('idle');
+    setAttachmentDeleteError('');
     setMessageForm({ body: '', is_internal: false });
     setElsaDecisionStatus('idle');
     setElsaDecisionError('');
@@ -518,11 +538,60 @@ export function usePortalRequests({
     setTenantCreateError('');
   };
 
-  const onCreateAttachmentChange = (event) => {
+  const validateAttachmentCandidate = async (file, existingCount) => {
+    if (!file) return { ok: false, errorKey: 'portalRequests.errors.unsupportedFileType' };
+    if (existingCount >= MAX_ATTACHMENTS) {
+      return { ok: false, errorKey: 'portalRequests.errors.attachmentLimitExceeded' };
+    }
+    const contentType = file.type || 'application/octet-stream';
+    const mediaType = detectMediaType(contentType);
+    if (!mediaType) return { ok: false, errorKey: 'portalRequests.errors.unsupportedFileType' };
+    const maxBytes = maxBytesForMediaType(mediaType);
+    if (file.size > maxBytes) {
+      return {
+        ok: false,
+        errorMessage: t('portalRequests.errors.fileTooLarge', {
+          maxMb: Math.round(maxBytes / (1024 * 1024)),
+        }),
+      };
+    }
+    if (mediaType === 'VIDEO') {
+      try {
+        const durationSeconds = await loadVideoDurationSeconds(file);
+        if (durationSeconds > MAX_VIDEO_DURATION_SECONDS) {
+          return {
+            ok: false,
+            errorMessage: t('portalRequests.errors.videoTooLong', { maxSeconds: MAX_VIDEO_DURATION_SECONDS }),
+          };
+        }
+      } catch {
+        return { ok: false, errorKey: 'portalRequests.errors.videoMetadataFailed' };
+      }
+    }
+    return { ok: true };
+  };
+
+  const onCreateAttachmentChange = async (event) => {
     const files = Array.from(event.target.files || []);
-    setCreateAttachmentFiles((prev) => [...prev, ...files]);
-    setTenantCreateStatus('idle');
-    setTenantCreateError('');
+    if (files.length === 0) return;
+    let nextFiles = [...createAttachmentFiles];
+    let validationError = '';
+    for (const file of files) {
+      const validation = await validateAttachmentCandidate(file, nextFiles.length);
+      if (validation.ok) {
+        nextFiles = [...nextFiles, file];
+      } else {
+        validationError = `${file.name}: ${validation.errorMessage || t(validation.errorKey)}`;
+      }
+    }
+    setCreateAttachmentFiles(nextFiles);
+    if (validationError) {
+      setTenantCreateStatus('error');
+      setTenantCreateError(validationError);
+    } else {
+      setTenantCreateStatus('idle');
+      setTenantCreateError('');
+    }
   };
 
   const onRemoveCreateAttachment = (index) => {
@@ -532,6 +601,11 @@ export function usePortalRequests({
   const onCreateRequest = async (event) => {
     event.preventDefault();
     if (!baseUrl || !tenantDefaults) return;
+    if (createAttachmentFiles.length > MAX_ATTACHMENTS) {
+      setTenantCreateStatus('error');
+      setTenantCreateError(t('portalRequests.errors.attachmentLimitExceeded'));
+      return;
+    }
     setTenantCreateStatus('saving');
     setTenantCreateError('');
     try {
@@ -712,24 +786,13 @@ export function usePortalRequests({
   const onAttachmentSubmit = async (event) => {
     event.preventDefault();
     if (!baseUrl || !selectedRequestId || !attachmentFile) return;
-
+    const validation = await validateAttachmentCandidate(attachmentFile, attachments.length);
+    if (!validation.ok) {
+      setAttachmentStatus('error');
+      setAttachmentError(validation.errorMessage || t(validation.errorKey));
+      return;
+    }
     const contentType = attachmentFile.type || 'application/octet-stream';
-    const mediaType = detectMediaType(contentType);
-    if (!mediaType) {
-      setAttachmentStatus('error');
-      setAttachmentError(t('portalRequests.errors.unsupportedFileType'));
-      return;
-    }
-    const maxBytes = maxBytesForMediaType(mediaType);
-    if (attachmentFile.size > maxBytes) {
-      setAttachmentStatus('error');
-      setAttachmentError(
-        t('portalRequests.errors.fileTooLarge', {
-          maxMb: Math.round(maxBytes / (1024 * 1024)),
-        })
-      );
-      return;
-    }
 
     setAttachmentStatus('saving');
     setAttachmentError('');
@@ -767,6 +830,23 @@ export function usePortalRequests({
       handleApiForbidden(error);
       setAttachmentStatus('error');
       setAttachmentError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
+    }
+  };
+
+  const onDeleteAttachment = async (attachmentId) => {
+    if (!baseUrl || !selectedRequestId || !attachmentId) return;
+    setAttachmentDeleteStatus('saving');
+    setAttachmentDeleteError('');
+    try {
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      await deleteRequestAttachment(baseUrl, token, selectedRequestId, attachmentId, { emailHint });
+      await loadRequestDetails(selectedRequestId, { showLoadingState: false });
+      setAttachmentDeleteStatus('success');
+    } catch (error) {
+      handleApiForbidden(error);
+      setAttachmentDeleteStatus('error');
+      setAttachmentDeleteError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
     }
   };
 
@@ -955,6 +1035,8 @@ export function usePortalRequests({
     attachmentStatus,
     attachmentError,
     attachmentUploadProgress,
+    attachmentDeleteStatus,
+    attachmentDeleteError,
     exportStatus,
     exportError,
     auditEvents,
@@ -983,6 +1065,7 @@ export function usePortalRequests({
     onDeleteMessage,
     onAttachmentChange,
     onAttachmentSubmit,
+    onDeleteAttachment,
     onExportCsv,
     onSetElsaAutoRespond,
     onRunElsa,

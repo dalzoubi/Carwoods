@@ -22,6 +22,7 @@ import { deleteRequestMessage } from '../useCases/requests/deleteRequestMessage.
 import { requestUploadIntent } from '../useCases/requests/requestUploadIntent.js';
 import { finalizeRequestAttachment } from '../useCases/requests/finalizeRequestAttachment.js';
 import { listRequestAttachments } from '../useCases/requests/listRequestAttachments.js';
+import { deleteRequestAttachment } from '../useCases/requests/deleteRequestAttachment.js';
 
 const MESSAGE_BODY_MAX_BYTES = 512 * 1024;
 
@@ -456,6 +457,34 @@ async function portalRequestAttachmentsList(
   }
 }
 
+async function portalRequestAttachmentItem(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requirePortalUser(request, context);
+  if (!gate.ok) return gate.response;
+  const { user, headers } = gate.ctx;
+  const role = String(user.role ?? '').toUpperCase() as PortalRole;
+
+  if (request.method !== 'DELETE') {
+    return jsonResponse(405, headers, { error: 'method_not_allowed' });
+  }
+
+  try {
+    const result = await deleteRequestAttachment(getPool(), {
+      requestId: request.params.id,
+      attachmentId: request.params.attachmentId,
+      actorUserId: user.id,
+      actorRole: role,
+    });
+    return jsonResponse(200, headers, { attachment: result.attachment });
+  } catch (e) {
+    const mapped = mapDomainError(e, headers);
+    if (mapped) return mapped;
+    throw e;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Azure Function registrations
 // ---------------------------------------------------------------------------
@@ -514,4 +543,11 @@ app.http('portalRequestAttachmentsList', {
   authLevel: 'anonymous',
   route: 'portal/requests/{id}/attachments',
   handler: withRateLimit(portalRequestAttachmentsList),
+});
+
+app.http('portalRequestAttachmentItem', {
+  methods: ['DELETE', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'portal/requests/{id}/attachments/{attachmentId}',
+  handler: withRateLimit(portalRequestAttachmentItem),
 });

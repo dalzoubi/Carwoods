@@ -56,11 +56,13 @@ export type RequestAttachmentRow = {
   id: string;
   request_id: string;
   uploaded_by_user_id: string;
+  uploaded_by_display_name: string | null;
+  uploaded_by_role: string | null;
   storage_path: string;
   original_filename: string;
   content_type: string;
   file_size_bytes: number;
-  media_type: 'PHOTO' | 'VIDEO' | 'FILE';
+  media_type: 'PHOTO' | 'VIDEO';
   created_at: Date;
 };
 
@@ -601,24 +603,17 @@ export async function deleteRequestMessageById(
   return r.rows[0] ?? null;
 }
 
-export async function countRequestAttachmentMedia(
+export async function countRequestAttachments(
   client: Queryable,
   requestId: string
-): Promise<{ photos: number; videos: number }> {
-  const r = await client.query<{ media_type: string; count_value: number }>(
-    `SELECT media_type, COUNT(*) AS count_value
+): Promise<number> {
+  const r = await client.query<{ count_value: number }>(
+    `SELECT COUNT(*) AS count_value
      FROM request_attachments
-     WHERE request_id = $1
-     GROUP BY media_type`,
+     WHERE request_id = $1`,
     [requestId]
   );
-  let photos = 0;
-  let videos = 0;
-  for (const row of r.rows) {
-    if (row.media_type === 'PHOTO') photos = Number(row.count_value ?? 0);
-    if (row.media_type === 'VIDEO') videos = Number(row.count_value ?? 0);
-  }
-  return { photos, videos };
+  return Number(r.rows[0]?.count_value ?? 0);
 }
 
 export async function insertRequestAttachment(
@@ -630,7 +625,7 @@ export async function insertRequestAttachment(
     originalFilename: string;
     contentType: string;
     fileSizeBytes: number;
-    mediaType: 'PHOTO' | 'VIDEO' | 'FILE';
+    mediaType: 'PHOTO' | 'VIDEO';
   }
 ): Promise<RequestAttachmentRow> {
   const r = await client.query<RequestAttachmentRow>(
@@ -638,9 +633,10 @@ export async function insertRequestAttachment(
        id, request_id, uploaded_by_user_id, storage_path, original_filename,
        content_type, file_size_bytes, media_type
      )
-     OUTPUT INSERTED.id, INSERTED.request_id, INSERTED.uploaded_by_user_id, INSERTED.storage_path,
-            INSERTED.original_filename, INSERTED.content_type, INSERTED.file_size_bytes,
-            INSERTED.media_type, INSERTED.created_at
+     OUTPUT INSERTED.id, INSERTED.request_id, INSERTED.uploaded_by_user_id,
+            NULL AS uploaded_by_display_name, NULL AS uploaded_by_role,
+            INSERTED.storage_path, INSERTED.original_filename, INSERTED.content_type,
+            INSERTED.file_size_bytes, INSERTED.media_type, INSERTED.created_at
      VALUES (NEWID(), $1, $2, $3, $4, $5, $6, $7)`,
     [
       params.requestId,
@@ -660,13 +656,61 @@ export async function listRequestAttachments(
   requestId: string
 ): Promise<RequestAttachmentRow[]> {
   const r = await client.query<RequestAttachmentRow>(
-    `SELECT id, request_id, uploaded_by_user_id, storage_path, original_filename,
-            content_type, file_size_bytes, media_type, created_at
-     FROM request_attachments
+    `SELECT ra.id, ra.request_id, ra.uploaded_by_user_id,
+            CASE
+              WHEN LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, ''))) = '' THEN u.email
+              ELSE LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, '')))
+            END AS uploaded_by_display_name,
+            u.role AS uploaded_by_role,
+            ra.storage_path, ra.original_filename, ra.content_type, ra.file_size_bytes,
+            ra.media_type, ra.created_at
+     FROM request_attachments ra
+     LEFT JOIN users u ON u.id = ra.uploaded_by_user_id
      WHERE request_id = $1
      ORDER BY created_at ASC`,
     [requestId]
   );
   return r.rows;
+}
+
+export async function getRequestAttachmentById(
+  client: Queryable,
+  requestId: string,
+  attachmentId: string
+): Promise<RequestAttachmentRow | null> {
+  const r = await client.query<RequestAttachmentRow>(
+    `SELECT TOP 1 ra.id, ra.request_id, ra.uploaded_by_user_id,
+            CASE
+              WHEN LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, ''))) = '' THEN u.email
+              ELSE LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, '')))
+            END AS uploaded_by_display_name,
+            u.role AS uploaded_by_role,
+            ra.storage_path, ra.original_filename, ra.content_type, ra.file_size_bytes,
+            ra.media_type, ra.created_at
+     FROM request_attachments ra
+     LEFT JOIN users u ON u.id = ra.uploaded_by_user_id
+     WHERE ra.request_id = $1
+       AND ra.id = $2`,
+    [requestId, attachmentId]
+  );
+  return r.rows[0] ?? null;
+}
+
+export async function deleteRequestAttachmentById(
+  client: PoolClient,
+  requestId: string,
+  attachmentId: string
+): Promise<RequestAttachmentRow | null> {
+  const r = await client.query<RequestAttachmentRow>(
+    `DELETE FROM request_attachments
+     OUTPUT DELETED.id, DELETED.request_id, DELETED.uploaded_by_user_id,
+            NULL AS uploaded_by_display_name, NULL AS uploaded_by_role,
+            DELETED.storage_path, DELETED.original_filename, DELETED.content_type,
+            DELETED.file_size_bytes, DELETED.media_type, DELETED.created_at
+     WHERE request_id = $1
+       AND id = $2`,
+    [requestId, attachmentId]
+  );
+  return r.rows[0] ?? null;
 }
 

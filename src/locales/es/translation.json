@@ -833,8 +833,11 @@
       "saveFailed": "No se pudieron guardar los cambios.",
       "messageProtected": "No se puede eliminar este mensaje porque está referenciado por el historial de Elsa.",
       "uploadIntentMissingPath": "La intención de carga no devolvió una ruta de almacenamiento.",
-      "unsupportedFileType": "Tipo de archivo no admitido. Permitidos: imágenes, vídeos, PDF, Word o texto plano.",
-      "fileTooLarge": "El archivo supera el límite de {{maxMb}} MB para este tipo."
+      "unsupportedFileType": "Tipo de archivo no admitido. Solo se permiten imágenes y videos.",
+      "fileTooLarge": "El archivo supera el límite de {{maxMb}} MB para este tipo.",
+      "attachmentLimitExceeded": "Puedes subir hasta 3 adjuntos por solicitud.",
+      "videoTooLong": "La duración del video supera el límite de {{maxSeconds}} segundos.",
+      "videoMetadataFailed": "No pudimos leer la duración del video. Prueba con otro archivo."
     },
     "list": {
       "heading": "Lista de solicitudes",
@@ -921,8 +924,20 @@
       "heading": "Archivos adjuntos",
       "empty": "Aún no hay adjuntos.",
       "saved": "Metadatos del adjunto guardados.",
+      "deleted": "Adjunto eliminado.",
       "uploadProgress": "Progreso de carga: {{percent}}%",
-      "unavailable": "La descarga no está disponible en este momento."
+      "unavailable": "La descarga no está disponible en este momento.",
+      "instructions": "Hasta 3 archivos en total. Imágenes <= 10 MB. Videos <= 50 MB y <= 10 segundos. Se admite arrastrar y soltar.",
+      "download": "Descargar",
+      "retryUpload": "Reintentar carga",
+      "deleteAction": "Eliminar adjunto",
+      "deleteConfirmTitle": "¿Eliminar este adjunto?",
+      "deleteConfirmBody": "Esto elimina permanentemente el adjunto de la solicitud.",
+      "deleteConfirmYes": "Eliminar",
+      "deleteConfirmNo": "Conservar adjunto",
+      "mediaImage": "Imagen",
+      "mediaVideo": "Video",
+      "mediaFile": "Archivo"
     },
     "cancel": {
       "heading": "Cancelar solicitud",

@@ -833,8 +833,11 @@
       "saveFailed": "Unable to save changes.",
       "messageProtected": "This message cannot be deleted because it is referenced by Elsa history.",
       "uploadIntentMissingPath": "Upload intent did not return a storage path.",
-      "unsupportedFileType": "File type not supported. Allowed: images, videos, PDF, Word, or plain text.",
-      "fileTooLarge": "File exceeds the {{maxMb}} MB limit for this type."
+      "unsupportedFileType": "File type not supported. Allowed: images and videos only.",
+      "fileTooLarge": "File exceeds the {{maxMb}} MB limit for this type.",
+      "attachmentLimitExceeded": "You can upload up to 3 attachments per request.",
+      "videoTooLong": "Video duration exceeds the {{maxSeconds}} second limit.",
+      "videoMetadataFailed": "We could not read this video's duration. Try another file."
     },
     "list": {
       "heading": "Request list",
@@ -921,8 +924,20 @@
       "heading": "Attachments",
       "empty": "No attachments yet.",
       "saved": "Attachment metadata saved.",
+      "deleted": "Attachment deleted.",
       "uploadProgress": "Upload progress: {{percent}}%",
-      "unavailable": "Download currently unavailable."
+      "unavailable": "Download currently unavailable.",
+      "instructions": "Up to 3 files total. Images <= 10 MB. Videos <= 50 MB and <= 10 seconds. Drag and drop is supported.",
+      "download": "Download",
+      "retryUpload": "Retry upload",
+      "deleteAction": "Delete attachment",
+      "deleteConfirmTitle": "Delete this attachment?",
+      "deleteConfirmBody": "This permanently removes the attachment from the request.",
+      "deleteConfirmYes": "Delete",
+      "deleteConfirmNo": "Keep attachment",
+      "mediaImage": "Image",
+      "mediaVideo": "Video",
+      "mediaFile": "File"
     },
     "cancel": {
       "heading": "Cancel request",

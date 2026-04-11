@@ -89,6 +89,8 @@ const PortalRequests = () => {
     attachmentStatus,
     attachmentError,
     attachmentUploadProgress,
+    attachmentDeleteStatus,
+    attachmentDeleteError,
     exportStatus,
     exportError,
     auditEvents,
@@ -118,6 +120,7 @@ const PortalRequests = () => {
     onDeleteMessage,
     onAttachmentChange,
     onAttachmentSubmit,
+    onDeleteAttachment,
     onExportCsv,
     onSetElsaAutoRespond,
     onRunElsa,
@@ -213,6 +216,9 @@ const PortalRequests = () => {
   React.useEffect(() => {
     if (attachmentStatus === 'success') showFeedback(t('portalRequests.attachments.saved'));
   }, [attachmentStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (attachmentDeleteStatus === 'success') showFeedback(t('portalRequests.attachments.deleted'));
+  }, [attachmentDeleteStatus, showFeedback, t]);
   React.useEffect(() => {
     if (elsaDecisionActionStatus === 'success') showFeedback(t('portalRequests.elsa.reviewActionSaved'));
   }, [elsaDecisionActionStatus, showFeedback, t]);
@@ -418,6 +424,10 @@ const PortalRequests = () => {
                 attachmentStatus={attachmentStatus}
                 attachmentError={attachmentError}
                 attachmentUploadProgress={attachmentUploadProgress}
+                attachmentDeleteStatus={attachmentDeleteStatus}
+                attachmentDeleteError={attachmentDeleteError}
+                onDeleteAttachment={onDeleteAttachment}
+                currentUserId={meData?.user?.id || ''}
                 auditEvents={auditEvents}
                 auditStatus={auditStatus}
                 auditError={auditError}

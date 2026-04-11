@@ -8,7 +8,7 @@
  */
 
 import {
-  countRequestAttachmentMedia,
+  countRequestAttachments,
   insertRequestAttachment,
   tenantCanAccessRequest,
   type RequestAttachmentRow,
@@ -17,8 +17,7 @@ import { enqueueNotification } from '../../lib/notificationRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
 import {
   detectMediaType,
-  MAX_REQUEST_PHOTOS,
-  MAX_REQUEST_VIDEOS,
+  MAX_REQUEST_ATTACHMENTS,
   maxBytesForMediaType,
   validateFinalizeUpload,
   validateRequestId,
@@ -80,12 +79,9 @@ export async function finalizeRequestAttachment(
   }
 
   const mediaType = detectMediaType(input.contentType!)! as UploadMediaType;
-  const counts = await countRequestAttachmentMedia(db, requestId);
-  if (mediaType === 'PHOTO' && counts.photos >= MAX_REQUEST_PHOTOS) {
-    throw Object.assign(validationError('photo_limit_exceeded'), { max: MAX_REQUEST_PHOTOS });
-  }
-  if (mediaType === 'VIDEO' && counts.videos >= MAX_REQUEST_VIDEOS) {
-    throw Object.assign(validationError('video_limit_exceeded'), { max: MAX_REQUEST_VIDEOS });
+  const attachmentsCount = await countRequestAttachments(db, requestId);
+  if (attachmentsCount >= MAX_REQUEST_ATTACHMENTS) {
+    throw Object.assign(validationError('attachment_limit_exceeded'), { max: MAX_REQUEST_ATTACHMENTS });
   }
 
   const client = await db.connect();

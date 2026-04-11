@@ -162,10 +162,15 @@ const TenantRequestForm = ({
               ))}
             </Stack>
           )}
-          <Button variant="outlined" component="label" type="button" disabled={disabled} size="small">
-            {t('portalRequests.actions.chooseFile')}
-            <input type="file" hidden multiple onChange={onCreateAttachmentChange} />
-          </Button>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { xs: 'stretch', sm: 'center' } }}>
+            <Button variant="outlined" component="label" type="button" disabled={disabled} size="small">
+              {t('portalRequests.actions.chooseFile')}
+              <input type="file" hidden multiple accept="image/*,video/*" onChange={onCreateAttachmentChange} />
+            </Button>
+            <Typography variant="caption" color="text.secondary">
+              {t('portalRequests.attachments.instructions')}
+            </Typography>
+          </Stack>
         </Stack>
         <Stack
           direction="row"

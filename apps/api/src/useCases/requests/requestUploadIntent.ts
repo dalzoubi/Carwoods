@@ -8,13 +8,12 @@
  */
 
 import {
-  countRequestAttachmentMedia,
+  countRequestAttachments,
   tenantCanAccessRequest,
 } from '../../lib/requestsRepo.js';
 import {
   detectMediaType,
-  MAX_REQUEST_PHOTOS,
-  MAX_REQUEST_VIDEOS,
+  MAX_REQUEST_ATTACHMENTS,
   maxBytesForMediaType,
   validateUploadFile,
   validateRequestId,
@@ -81,12 +80,9 @@ export async function requestUploadIntent(
   }
 
   const mediaType = detectMediaType(input.contentType!)!;
-  const counts = await countRequestAttachmentMedia(db, requestId);
-  if (mediaType === 'PHOTO' && counts.photos >= MAX_REQUEST_PHOTOS) {
-    throw Object.assign(validationError('photo_limit_exceeded'), { max: MAX_REQUEST_PHOTOS });
-  }
-  if (mediaType === 'VIDEO' && counts.videos >= MAX_REQUEST_VIDEOS) {
-    throw Object.assign(validationError('video_limit_exceeded'), { max: MAX_REQUEST_VIDEOS });
+  const attachmentsCount = await countRequestAttachments(db, requestId);
+  if (attachmentsCount >= MAX_REQUEST_ATTACHMENTS) {
+    throw Object.assign(validationError('attachment_limit_exceeded'), { max: MAX_REQUEST_ATTACHMENTS });
   }
 
   const safeFileName = input.filename!.replace(/[^a-zA-Z0-9._-]/g, '_');

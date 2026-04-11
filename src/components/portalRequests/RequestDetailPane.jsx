@@ -241,6 +241,10 @@ const RequestDetailPane = ({
   attachmentStatus,
   attachmentError,
   attachmentUploadProgress,
+  attachmentDeleteStatus,
+  attachmentDeleteError,
+  onDeleteAttachment,
+  currentUserId,
   auditEvents,
   auditStatus,
   auditError,
@@ -268,6 +272,8 @@ const RequestDetailPane = ({
   const [pendingElsaAction, setPendingElsaAction] = useState(null);
   const [copyDismissDecision, setCopyDismissDecision] = useState(null);
   const [detailsExpanded, setDetailsExpanded] = useState(false);
+  const [attachmentDeleteDialog, setAttachmentDeleteDialog] = useState(null);
+  const [isAttachmentDropActive, setIsAttachmentDropActive] = useState(false);
   const managementStatusMessage = managementUpdateStatus === 'error'
     ? { severity: 'error', text: managementUpdateError || t('portalRequests.errors.saveFailed') }
     : null;
@@ -279,6 +285,9 @@ const RequestDetailPane = ({
     : null;
   const attachmentStatusMessage = attachmentStatus === 'error'
     ? { severity: 'error', text: attachmentError || t('portalRequests.errors.saveFailed') }
+    : null;
+  const attachmentDeleteStatusMessage = attachmentDeleteStatus === 'error'
+    ? { severity: 'error', text: attachmentDeleteError || t('portalRequests.errors.saveFailed') }
     : null;
   const parsedAudits = useMemo(
     () => (Array.isArray(auditEvents) ? auditEvents : []).map((event) => {
@@ -366,6 +375,21 @@ const RequestDetailPane = ({
     elsaDecisionActionStatus === 'saving'
     && pendingElsaAction?.decisionId === decisionId
     && pendingElsaAction?.action === action
+  );
+  const canDeleteAttachment = (attachment) => (
+    isManagement || isAdmin || attachment?.uploaded_by_user_id === currentUserId
+  );
+  const attachmentMediaLabel = (mediaType) => (
+    mediaType === 'PHOTO'
+      ? t('portalRequests.attachments.mediaImage')
+      : mediaType === 'VIDEO'
+        ? t('portalRequests.attachments.mediaVideo')
+        : t('portalRequests.attachments.mediaFile')
+  );
+  const uploaderLabel = (attachment) => (
+    attachment?.uploaded_by_display_name
+    || attachment?.uploaded_by_user_id
+    || t('portalRequests.messages.senderUnknown')
   );
 
   return (
@@ -1206,42 +1230,123 @@ const RequestDetailPane = ({
                 <Typography color="text.secondary">{t('portalRequests.attachments.empty')}</Typography>
               )}
               {attachments.map((att) => (
-                <Box key={att.id}>
-                  {att.file_url ? (
-                    <Button
-                      component="a"
-                      href={att.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      size="small"
-                      sx={{ textTransform: 'none', p: 0, minWidth: 0 }}
-                    >
-                      {att.original_filename}
-                    </Button>
-                  ) : (
-                    <Box>
-                      <Typography variant="body2">{att.original_filename}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {t('portalRequests.attachments.unavailable')}
-                      </Typography>
-                    </Box>
-                  )}
-                  <Typography variant="caption" color="text.secondary">
-                    {att.media_type}
-                  </Typography>
+                <Box
+                  key={att.id}
+                  sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1.25 }}
+                >
+                  <Stack spacing={0.75}>
+                    {att.file_url && att.media_type === 'PHOTO' && (
+                      <Box
+                        component="img"
+                        src={att.file_url}
+                        alt={att.original_filename}
+                        sx={{
+                          width: '100%',
+                          maxHeight: 220,
+                          objectFit: 'cover',
+                          borderRadius: 1,
+                          border: '1px solid',
+                          borderColor: 'divider',
+                        }}
+                      />
+                    )}
+                    {att.file_url && att.media_type === 'VIDEO' && (
+                      <Box
+                        component="video"
+                        controls
+                        preload="metadata"
+                        src={att.file_url}
+                        sx={{
+                          width: '100%',
+                          maxHeight: 260,
+                          borderRadius: 1,
+                          border: '1px solid',
+                          borderColor: 'divider',
+                        }}
+                      />
+                    )}
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { xs: 'stretch', sm: 'center' } }}>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {att.original_filename}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {attachmentMediaLabel(att.media_type)} · {uploaderLabel(att)} · {formatDateTime(att.created_at)}
+                        </Typography>
+                      </Box>
+                      <Stack direction="row" spacing={1}>
+                        {att.file_url ? (
+                          <Button
+                            component="a"
+                            href={att.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            size="small"
+                            sx={{ textTransform: 'none' }}
+                          >
+                            {t('portalRequests.attachments.download')}
+                          </Button>
+                        ) : (
+                          <Typography variant="caption" color="text.secondary">
+                            {t('portalRequests.attachments.unavailable')}
+                          </Typography>
+                        )}
+                        {canDeleteAttachment(att) && (
+                          <Button
+                            type="button"
+                            size="small"
+                            color="error"
+                            onClick={() => setAttachmentDeleteDialog(att)}
+                            disabled={attachmentDeleteStatus === 'saving'}
+                            sx={{ textTransform: 'none' }}
+                          >
+                            {t('portalRequests.attachments.deleteAction')}
+                          </Button>
+                        )}
+                      </Stack>
+                    </Stack>
+                  </Stack>
                 </Box>
               ))}
             </Stack>
           </Box>
-          <Button
-            variant="outlined"
-            component="label"
-            type="button"
-            sx={{ minHeight: 40, width: { xs: '100%', sm: 'auto' } }}
+          <Box
+            onDragOver={(event) => {
+              event.preventDefault();
+              setIsAttachmentDropActive(true);
+            }}
+            onDragLeave={() => setIsAttachmentDropActive(false)}
+            onDrop={(event) => {
+              event.preventDefault();
+              setIsAttachmentDropActive(false);
+              const file = event.dataTransfer?.files?.[0];
+              if (file) onAttachmentChange({ target: { files: [file] } });
+            }}
+            sx={(theme) => ({
+              border: '1px dashed',
+              borderColor: isAttachmentDropActive ? 'primary.main' : 'divider',
+              borderRadius: 1.25,
+              p: 1.25,
+              backgroundColor: isAttachmentDropActive
+                ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.08)
+                : 'transparent',
+            })}
           >
-            {t('portalRequests.actions.chooseFile')}
-            <input key={attachmentInputKey} type="file" hidden onChange={onAttachmentChange} />
-          </Button>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { xs: 'stretch', sm: 'center' } }}>
+              <Button
+                variant="outlined"
+                component="label"
+                type="button"
+                sx={{ minHeight: 40, width: { xs: '100%', sm: 'auto' } }}
+              >
+                {t('portalRequests.actions.chooseFile')}
+                <input key={attachmentInputKey} type="file" hidden accept="image/*,video/*" onChange={onAttachmentChange} />
+              </Button>
+              <Typography variant="caption" color="text.secondary">
+                {t('portalRequests.attachments.instructions')}
+              </Typography>
+            </Stack>
+          </Box>
           {attachmentFile && (
             <Typography color="text.secondary">
               {attachmentFile.name} ({attachmentFile.size} bytes)
@@ -1267,7 +1372,7 @@ const RequestDetailPane = ({
             spacing={1}
             sx={{ flexWrap: 'wrap', rowGap: 1, alignItems: { xs: 'stretch', sm: 'center' } }}
           >
-            <InlineActionStatus message={attachmentStatusMessage} />
+            <InlineActionStatus message={attachmentDeleteStatusMessage || attachmentStatusMessage} />
             <Button
               type="submit"
               variant="contained"
@@ -1277,11 +1382,39 @@ const RequestDetailPane = ({
             >
               {attachmentStatus === 'saving'
                 ? t('portalRequests.actions.saving')
-                : t('portalRequests.actions.attachFile')}
+                : attachmentStatus === 'error'
+                  ? t('portalRequests.attachments.retryUpload')
+                  : t('portalRequests.actions.attachFile')}
             </Button>
           </Stack>
         </Stack>
       </SectionCard>
+      <Dialog open={Boolean(attachmentDeleteDialog)} onClose={() => setAttachmentDeleteDialog(null)}>
+        <DialogTitle>{t('portalRequests.attachments.deleteConfirmTitle')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {t('portalRequests.attachments.deleteConfirmBody')}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button type="button" onClick={() => setAttachmentDeleteDialog(null)}>
+            {t('portalRequests.attachments.deleteConfirmNo')}
+          </Button>
+          <Button
+            type="button"
+            color="error"
+            variant="contained"
+            disabled={attachmentDeleteStatus === 'saving'}
+            onClick={async () => {
+              const attachmentId = attachmentDeleteDialog?.id;
+              setAttachmentDeleteDialog(null);
+              if (attachmentId) await onDeleteAttachment(attachmentId);
+            }}
+          >
+            {t('portalRequests.attachments.deleteConfirmYes')}
+          </Button>
+        </DialogActions>
+      </Dialog>
         </>
       )}
       </>

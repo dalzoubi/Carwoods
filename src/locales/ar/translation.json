@@ -833,8 +833,11 @@
       "saveFailed": "تعذر حفظ التغييرات.",
       "messageProtected": "لا يمكن حذف هذه الرسالة لأنها مرتبطة بسجل إلسا.",
       "uploadIntentMissingPath": "نية الرفع لم تُرجع مسار تخزين.",
-      "unsupportedFileType": "نوع الملف غير مدعوم. المسموح به: صور، فيديو، PDF، Word أو نص عادي.",
-      "fileTooLarge": "حجم الملف يتجاوز حد {{maxMb}} ميغابايت لهذا النوع."
+      "unsupportedFileType": "نوع الملف غير مدعوم. المسموح به الصور ومقاطع الفيديو فقط.",
+      "fileTooLarge": "حجم الملف يتجاوز حد {{maxMb}} ميغابايت لهذا النوع.",
+      "attachmentLimitExceeded": "يمكنك رفع حتى 3 مرفقات لكل طلب.",
+      "videoTooLong": "مدة الفيديو تتجاوز الحد الأقصى {{maxSeconds}} ثوانٍ.",
+      "videoMetadataFailed": "تعذر قراءة مدة هذا الفيديو. جرّب ملفًا آخر."
     },
     "list": {
       "heading": "قائمة الطلبات",
@@ -921,8 +924,20 @@
       "heading": "المرفقات",
       "empty": "لا توجد مرفقات بعد.",
       "saved": "تم حفظ بيانات المرفق.",
+      "deleted": "تم حذف المرفق.",
       "uploadProgress": "تقدم الرفع: {{percent}}%",
-      "unavailable": "التنزيل غير متاح حالياً."
+      "unavailable": "التنزيل غير متاح حالياً.",
+      "instructions": "حتى 3 ملفات إجمالاً. الصور <= 10 MB. الفيديو <= 50 MB وبحد أقصى 10 ثوانٍ. السحب والإفلات مدعوم.",
+      "download": "تنزيل",
+      "retryUpload": "إعادة المحاولة",
+      "deleteAction": "حذف المرفق",
+      "deleteConfirmTitle": "هل تريد حذف هذا المرفق؟",
+      "deleteConfirmBody": "سيؤدي هذا إلى إزالة المرفق نهائيًا من الطلب.",
+      "deleteConfirmYes": "حذف",
+      "deleteConfirmNo": "الإبقاء على المرفق",
+      "mediaImage": "صورة",
+      "mediaVideo": "فيديو",
+      "mediaFile": "ملف"
     },
     "cancel": {
       "heading": "إلغاء الطلب",

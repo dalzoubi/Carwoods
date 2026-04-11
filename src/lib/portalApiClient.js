@@ -429,6 +429,36 @@ export async function finalizeUpload(baseUrl, accessToken, requestId, payload) {
   return res.json();
 }
 
+/**
+ * Delete an attachment by id.
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} requestId
+ * @param {string} attachmentId
+ * @param {{ emailHint?: string }} [params]
+ * @returns {Promise<object>}
+ */
+export async function deleteRequestAttachment(baseUrl, accessToken, requestId, attachmentId, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(
+      baseUrl,
+      `/api/portal/requests/${encodeURIComponent(requestId)}/attachments/${encodeURIComponent(attachmentId)}`
+    ),
+    {
+      method: 'DELETE',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
 // ---------------------------------------------------------------------------
 // GET /api/portal/request-lookups
 // ---------------------------------------------------------------------------
