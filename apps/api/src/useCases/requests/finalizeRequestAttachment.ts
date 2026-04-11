@@ -13,16 +13,19 @@ import {
   tenantCanAccessRequest,
   type RequestAttachmentRow,
 } from '../../lib/requestsRepo.js';
+import {
+  findRequestLandlordUserId,
+  getGlobalAttachmentUploadConfig,
+  getLandlordAttachmentUploadOverride,
+} from '../../lib/attachmentUploadConfigRepo.js';
 import { enqueueNotification } from '../../lib/notificationRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
 import {
   detectMediaType,
-  MAX_REQUEST_ATTACHMENTS,
-  maxBytesForMediaType,
-  validateFinalizeUpload,
   validateRequestId,
   type UploadMediaType,
 } from '../../domain/requestValidation.js';
+import { extensionFromFilename, mimeMatchesAllowed } from '../../domain/attachmentUploadConfig.js';
 import { forbidden, notFound, validationError } from '../../domain/errors.js';
 import { Role, hasLandlordAccess } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
@@ -35,6 +38,7 @@ export type FinalizeRequestAttachmentInput = {
   filename: string | undefined;
   contentType: string | undefined;
   fileSizeBytes: number;
+  fileDurationSeconds?: number;
 };
 
 export type FinalizeRequestAttachmentOutput = {
@@ -61,27 +65,52 @@ export async function finalizeRequestAttachment(
     if (!allowed) throw notFound();
   }
 
-  const finalizeValidation = validateFinalizeUpload({
-    storagePath: input.storagePath,
-    filename: input.filename,
-    contentType: input.contentType,
-    fileSizeBytes: input.fileSizeBytes,
-  });
-  if (!finalizeValidation.valid) {
-    if (finalizeValidation.message === 'file_too_large' && input.contentType) {
-      const mediaType = detectMediaType(input.contentType);
-      if (mediaType) {
-        const maxBytes = maxBytesForMediaType(mediaType);
-        throw Object.assign(validationError('file_too_large'), { max_bytes: maxBytes });
-      }
-    }
-    throw validationError(finalizeValidation.message);
+  if (
+    !input.storagePath
+    || !input.filename
+    || !input.contentType
+    || !Number.isFinite(input.fileSizeBytes)
+    || input.fileSizeBytes <= 0
+  ) {
+    throw validationError('missing_or_invalid_file_fields');
   }
 
-  const mediaType = detectMediaType(input.contentType!)! as UploadMediaType;
+  const mediaType = detectMediaType(input.contentType) as UploadMediaType | null;
+  if (!mediaType) throw validationError('unsupported_mime_type');
+  const globalConfig = await getGlobalAttachmentUploadConfig(db);
+  if (!globalConfig) throw validationError('attachment_config_missing');
+  const landlordUserId = await findRequestLandlordUserId(db, requestId);
+  const landlordOverride = landlordUserId
+    ? await getLandlordAttachmentUploadOverride(db, landlordUserId)
+    : null;
+  const effectiveConfig = landlordOverride ?? globalConfig;
+
+  const extension = extensionFromFilename(input.filename);
+  if (!mimeMatchesAllowed(input.contentType, effectiveConfig.allowed_mime_types)) {
+    throw validationError('unsupported_mime_type');
+  }
+  if (extension && !effectiveConfig.allowed_extensions.includes(extension)) {
+    throw validationError('unsupported_file_extension');
+  }
+  const maxBytes = mediaType === 'PHOTO'
+    ? effectiveConfig.max_image_bytes
+    : effectiveConfig.max_video_bytes;
+  if (input.fileSizeBytes > maxBytes) {
+    throw Object.assign(validationError('file_too_large'), { max_bytes: maxBytes });
+  }
+  if (
+    mediaType === 'VIDEO'
+    && Number.isFinite(input.fileDurationSeconds)
+    && Number(input.fileDurationSeconds) > effectiveConfig.max_video_duration_seconds
+  ) {
+    throw Object.assign(validationError('video_too_long'), {
+      max_seconds: effectiveConfig.max_video_duration_seconds,
+    });
+  }
+
   const attachmentsCount = await countRequestAttachments(db, requestId);
-  if (attachmentsCount >= MAX_REQUEST_ATTACHMENTS) {
-    throw Object.assign(validationError('attachment_limit_exceeded'), { max: MAX_REQUEST_ATTACHMENTS });
+  if (attachmentsCount >= effectiveConfig.max_attachments) {
+    throw Object.assign(validationError('attachment_limit_exceeded'), { max: effectiveConfig.max_attachments });
   }
 
   const client = await db.connect();

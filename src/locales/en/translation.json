@@ -1079,7 +1079,8 @@
     "tabsLabel": "Configuration tabs",
     "tabs": {
       "policies": "AI Policies",
-      "agents": "Agents"
+      "agents": "Agents",
+      "attachments": "Attachments"
     }
   },
   "portalAdminAiConfig": {
@@ -1172,6 +1173,55 @@
       "primaryModel": "Primary model",
       "fallbackAgent": "Fallback agent name",
       "fallbackModel": "Fallback model"
+    }
+  },
+  "portalAdminAttachmentConfig": {
+    "heading": "Attachment Configuration",
+    "intro": "Manage upload limits and attachment security defaults. Changes apply to new uploads only.",
+    "actions": {
+      "saveGlobal": "Save global defaults",
+      "saveOverride": "Save landlord override",
+      "clearOverride": "Clear override"
+    },
+    "messages": {
+      "saved": "Attachment configuration saved."
+    },
+    "errors": {
+      "apiUnavailable": "Set VITE_API_BASE_URL to enable attachment configuration.",
+      "signInRequired": "Sign in before using attachment configuration.",
+      "adminOnly": "Only admin accounts can manage attachment configuration.",
+      "loadFailed": "Unable to load attachment configuration.",
+      "saveFailed": "Unable to save attachment configuration."
+    },
+    "global": {
+      "heading": "Global defaults"
+    },
+    "overrides": {
+      "heading": "Per-landlord overrides",
+      "landlord": "Landlord"
+    },
+    "fields": {
+      "maxAttachments": "Max attachments per request",
+      "maxImageBytes": "Max image bytes",
+      "maxVideoBytes": "Max video bytes",
+      "maxVideoDurationSeconds": "Max video duration (seconds)",
+      "allowedMimeTypes": "Allowed MIME types (one per line)",
+      "allowedExtensions": "Allowed file extensions (one per line)",
+      "shareEnabled": "Share links enabled",
+      "shareExpirySeconds": "Share-link expiry (seconds)",
+      "malwareScanRequired": "Malware scan required"
+    },
+    "common": {
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "required": "Required",
+      "optional": "Optional"
+    },
+    "confirm": {
+      "title": "Confirm configuration change",
+      "body": "Save this attachment configuration change? This action will be recorded in audit logs.",
+      "cancel": "Cancel",
+      "confirm": "Confirm"
     }
   },
   "portalAdminProperties": {

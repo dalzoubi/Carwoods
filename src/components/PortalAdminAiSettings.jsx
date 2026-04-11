@@ -4,6 +4,7 @@ import { Box, Paper, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import PortalAdminAiConfig from './PortalAdminAiConfig';
 import PortalAdminAiAgents from './PortalAdminAiAgents';
+import PortalAdminAttachmentConfig from './PortalAdminAttachmentConfig';
 
 const PortalAdminAiSettings = () => {
   const { t } = useTranslation();
@@ -25,13 +26,18 @@ const PortalAdminAiSettings = () => {
             value={tab}
             onChange={(_, nextTab) => setTab(nextTab)}
             aria-label={t('portalAdminConfigurations.tabsLabel')}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
           >
             <Tab label={t('portalAdminConfigurations.tabs.policies')} />
             <Tab label={t('portalAdminConfigurations.tabs.agents')} />
+            <Tab label={t('portalAdminConfigurations.tabs.attachments')} />
           </Tabs>
         </Paper>
         {tab === 0 && <PortalAdminAiConfig />}
         {tab === 1 && <PortalAdminAiAgents />}
+        {tab === 2 && <PortalAdminAttachmentConfig />}
       </Stack>
     </Box>
   );

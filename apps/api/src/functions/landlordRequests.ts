@@ -5,8 +5,18 @@ import {
   type InvocationContext,
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
-import { jsonResponse, mapDomainError, requireLandlordOrAdmin } from '../lib/managementRequest.js';
+import { jsonResponse, mapDomainError, requireAdmin, requireLandlordOrAdmin } from '../lib/managementRequest.js';
 import { logError, logWarn } from '../lib/serverLogger.js';
+import { writeAudit } from '../lib/auditRepo.js';
+import {
+  deleteLandlordAttachmentUploadOverride,
+  getGlobalAttachmentUploadConfig,
+  getLandlordAttachmentUploadOverride,
+  listLandlordAttachmentUploadOverrides,
+  upsertGlobalAttachmentUploadConfig,
+  upsertLandlordAttachmentUploadConfig,
+} from '../lib/attachmentUploadConfigRepo.js';
+import { normalizeList, validateAttachmentUploadConfigInput } from '../domain/attachmentUploadConfig.js';
 
 import { listRequests } from '../useCases/requests/listRequests.js';
 import { getRequest } from '../useCases/requests/getRequest.js';
@@ -53,6 +63,21 @@ function listStrings(v: unknown): string[] | undefined {
   if (!Array.isArray(v)) return undefined;
   const items = v.map((item) => String(item ?? '').trim()).filter(Boolean);
   return items;
+}
+
+function asAttachmentConfigInput(body: Record<string, unknown>) {
+  const parseIntSafe = (value: unknown) => Number.parseInt(String(value ?? ''), 10);
+  return {
+    max_attachments: parseIntSafe(body.max_attachments),
+    max_image_bytes: parseIntSafe(body.max_image_bytes),
+    max_video_bytes: parseIntSafe(body.max_video_bytes),
+    max_video_duration_seconds: parseIntSafe(body.max_video_duration_seconds),
+    allowed_mime_types: normalizeList(body.allowed_mime_types),
+    allowed_extensions: normalizeList(body.allowed_extensions),
+    share_enabled: Boolean(body.share_enabled),
+    share_expiry_seconds: parseIntSafe(body.share_expiry_seconds),
+    malware_scan_required: Boolean(body.malware_scan_required),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -536,6 +561,164 @@ async function landlordExportRequestsCsv(
   }
 }
 
+async function landlordAttachmentConfigCollection(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+
+  if (request.method === 'GET') {
+    try {
+      const global = await getGlobalAttachmentUploadConfig(getPool());
+      const overrides = await listLandlordAttachmentUploadOverrides(getPool());
+      return jsonResponse(200, ctx.headers, { global, overrides });
+    } catch (e) {
+      const mapped = mapDomainError(e, ctx.headers);
+      if (mapped) return mapped;
+      throw e;
+    }
+  }
+
+  if (request.method !== 'PATCH') {
+    return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+  }
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
+  }
+  const b = asRecord(body);
+  const configInput = asAttachmentConfigInput(b);
+  try {
+    validateAttachmentUploadConfigInput(configInput);
+    const client = await getPool().connect();
+    try {
+      await client.query('BEGIN');
+      const before = await getGlobalAttachmentUploadConfig(client);
+      const updated = await upsertGlobalAttachmentUploadConfig(client, ctx.user.id, configInput);
+      await writeAudit(client, {
+        actorUserId: ctx.user.id,
+        entityType: 'ATTACHMENT_UPLOAD_CONFIG',
+        entityId: updated.id,
+        action: 'UPDATE_GLOBAL',
+        before,
+        after: updated,
+      });
+      await client.query('COMMIT');
+      return jsonResponse(200, ctx.headers, { global: updated });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  } catch (e) {
+    const mapped = mapDomainError(e, ctx.headers);
+    if (mapped) return mapped;
+    throw e;
+  }
+}
+
+async function landlordAttachmentConfigLandlordItem(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  const landlordUserId = str(request.params.landlordUserId);
+  if (!landlordUserId) return jsonResponse(400, ctx.headers, { error: 'missing_landlord_id' });
+
+  if (request.method === 'DELETE') {
+    try {
+      const client = await getPool().connect();
+      try {
+        await client.query('BEGIN');
+        const before = await getLandlordAttachmentUploadOverride(client, landlordUserId);
+        if (!before) {
+          await client.query('ROLLBACK');
+          return jsonResponse(404, ctx.headers, { error: 'not_found' });
+        }
+        const deleted = await deleteLandlordAttachmentUploadOverride(client, landlordUserId);
+        if (!deleted) {
+          await client.query('ROLLBACK');
+          return jsonResponse(404, ctx.headers, { error: 'not_found' });
+        }
+        await writeAudit(client, {
+          actorUserId: ctx.user.id,
+          entityType: 'ATTACHMENT_UPLOAD_CONFIG',
+          entityId: deleted.id,
+          action: 'DELETE_LANDLORD_OVERRIDE',
+          before,
+          after: null,
+        });
+        await client.query('COMMIT');
+        return jsonResponse(200, ctx.headers, { deleted });
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
+    } catch (e) {
+      const mapped = mapDomainError(e, ctx.headers);
+      if (mapped) return mapped;
+      throw e;
+    }
+  }
+
+  if (request.method !== 'PATCH') {
+    return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+  }
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
+  }
+  const b = asRecord(body);
+  const configInput = asAttachmentConfigInput(b);
+
+  try {
+    validateAttachmentUploadConfigInput(configInput);
+    const client = await getPool().connect();
+    try {
+      await client.query('BEGIN');
+      const before = await getLandlordAttachmentUploadOverride(client, landlordUserId);
+      const updated = await upsertLandlordAttachmentUploadConfig(
+        client,
+        landlordUserId,
+        ctx.user.id,
+        configInput
+      );
+      await writeAudit(client, {
+        actorUserId: ctx.user.id,
+        entityType: 'ATTACHMENT_UPLOAD_CONFIG',
+        entityId: updated.id,
+        action: 'UPSERT_LANDLORD_OVERRIDE',
+        before,
+        after: updated,
+      });
+      await client.query('COMMIT');
+      return jsonResponse(200, ctx.headers, { override: updated });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  } catch (e) {
+    const mapped = mapDomainError(e, ctx.headers);
+    if (mapped) return mapped;
+    throw e;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Azure Function registrations
 // ---------------------------------------------------------------------------
@@ -622,4 +805,18 @@ app.http('landlordRequestsCsvExport', {
   authLevel: 'anonymous',
   route: 'landlord/exports/requests.csv',
   handler: landlordExportRequestsCsv,
+});
+
+app.http('landlordAttachmentConfigCollection', {
+  methods: ['GET', 'PATCH', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'landlord/attachments/config',
+  handler: landlordAttachmentConfigCollection,
+});
+
+app.http('landlordAttachmentConfigLandlordItem', {
+  methods: ['PATCH', 'DELETE', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'landlord/attachments/config/landlords/{landlordUserId}',
+  handler: landlordAttachmentConfigLandlordItem,
 });

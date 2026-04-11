@@ -55,12 +55,16 @@ export async function deleteRequestAttachment(
   const client = await db.connect();
   try {
     await client.query('BEGIN');
-    const deleted = await deleteRequestAttachmentById(client, requestId, input.attachmentId);
+    const deleted = await deleteRequestAttachmentById(
+      client as Parameters<typeof deleteRequestAttachmentById>[0],
+      requestId,
+      input.attachmentId
+    );
     if (!deleted) {
       await client.query('ROLLBACK');
       throw notFound();
     }
-    await writeAudit(client, {
+    await writeAudit(client as Parameters<typeof writeAudit>[0], {
       actorUserId: input.actorUserId,
       entityType: 'REQUEST_ATTACHMENT',
       entityId: deleted.id,

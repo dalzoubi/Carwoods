@@ -747,6 +747,70 @@ export async function patchElsaPropertyPolicy(baseUrl, accessToken, propertyId, 
   return res.json();
 }
 
+export async function fetchAttachmentUploadConfig(baseUrl, accessToken, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(buildUrl(baseUrl, '/api/landlord/attachments/config'), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function patchAttachmentUploadGlobalConfig(baseUrl, accessToken, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(buildUrl(baseUrl, '/api/landlord/attachments/config'), {
+    method: 'PATCH',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function patchAttachmentUploadLandlordConfig(baseUrl, accessToken, landlordUserId, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/attachments/config/landlords/${encodeURIComponent(landlordUserId)}`),
+    {
+      method: 'PATCH',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function deleteAttachmentUploadLandlordConfig(baseUrl, accessToken, landlordUserId, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/attachments/config/landlords/${encodeURIComponent(landlordUserId)}`),
+    {
+      method: 'DELETE',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
 // ---------------------------------------------------------------------------
 // GET /api/landlord/exports/requests.csv
 // ---------------------------------------------------------------------------

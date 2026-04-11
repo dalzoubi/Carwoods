@@ -1079,7 +1079,8 @@
     "tabsLabel": "Pestañas de configuración",
     "tabs": {
       "policies": "Políticas de IA",
-      "agents": "Agentes"
+      "agents": "Agentes",
+      "attachments": "Adjuntos"
     }
   },
   "portalAdminAiConfig": {
@@ -1172,6 +1173,55 @@
       "primaryModel": "Modelo primario",
       "fallbackAgent": "Nombre del agente de respaldo",
       "fallbackModel": "Modelo de respaldo"
+    }
+  },
+  "portalAdminAttachmentConfig": {
+    "heading": "Configuración de adjuntos",
+    "intro": "Administra límites de carga y valores de seguridad para adjuntos. Los cambios aplican solo a nuevas cargas.",
+    "actions": {
+      "saveGlobal": "Guardar valores globales",
+      "saveOverride": "Guardar anulación del propietario",
+      "clearOverride": "Quitar anulación"
+    },
+    "messages": {
+      "saved": "Configuración de adjuntos guardada."
+    },
+    "errors": {
+      "apiUnavailable": "Configura VITE_API_BASE_URL para habilitar la configuración de adjuntos.",
+      "signInRequired": "Inicia sesión antes de usar la configuración de adjuntos.",
+      "adminOnly": "Solo las cuentas admin pueden gestionar la configuración de adjuntos.",
+      "loadFailed": "No se pudo cargar la configuración de adjuntos.",
+      "saveFailed": "No se pudo guardar la configuración de adjuntos."
+    },
+    "global": {
+      "heading": "Valores globales"
+    },
+    "overrides": {
+      "heading": "Anulaciones por propietario",
+      "landlord": "Propietario"
+    },
+    "fields": {
+      "maxAttachments": "Máximo de adjuntos por solicitud",
+      "maxImageBytes": "Tamaño máximo de imagen (bytes)",
+      "maxVideoBytes": "Tamaño máximo de video (bytes)",
+      "maxVideoDurationSeconds": "Duración máxima de video (segundos)",
+      "allowedMimeTypes": "Tipos MIME permitidos (uno por línea)",
+      "allowedExtensions": "Extensiones permitidas (una por línea)",
+      "shareEnabled": "Enlaces compartidos habilitados",
+      "shareExpirySeconds": "Expiración del enlace compartido (segundos)",
+      "malwareScanRequired": "Escaneo de malware requerido"
+    },
+    "common": {
+      "enabled": "Habilitado",
+      "disabled": "Deshabilitado",
+      "required": "Requerido",
+      "optional": "Opcional"
+    },
+    "confirm": {
+      "title": "Confirmar cambio de configuración",
+      "body": "¿Guardar este cambio de configuración de adjuntos? Esta acción se registrará en auditoría.",
+      "cancel": "Cancelar",
+      "confirm": "Confirmar"
     }
   },
   "portalAdminProperties": {

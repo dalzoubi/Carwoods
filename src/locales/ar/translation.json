@@ -1079,7 +1079,8 @@
     "tabsLabel": "علامات تبويب الإعدادات",
     "tabs": {
       "policies": "سياسات الذكاء الاصطناعي",
-      "agents": "الوكلاء"
+      "agents": "الوكلاء",
+      "attachments": "المرفقات"
     }
   },
   "portalAdminAiConfig": {
@@ -1172,6 +1173,55 @@
       "primaryModel": "النموذج الأساسي",
       "fallbackAgent": "اسم وكيل النسخ الاحتياطي",
       "fallbackModel": "نموذج النسخ الاحتياطي"
+    }
+  },
+  "portalAdminAttachmentConfig": {
+    "heading": "إعدادات المرفقات",
+    "intro": "إدارة حدود الرفع وإعدادات أمان المرفقات. تطبق التغييرات على الرفعات الجديدة فقط.",
+    "actions": {
+      "saveGlobal": "حفظ الإعدادات العامة",
+      "saveOverride": "حفظ تجاوز المالك",
+      "clearOverride": "إزالة التجاوز"
+    },
+    "messages": {
+      "saved": "تم حفظ إعدادات المرفقات."
+    },
+    "errors": {
+      "apiUnavailable": "قم بتعيين VITE_API_BASE_URL لتفعيل إعدادات المرفقات.",
+      "signInRequired": "سجّل الدخول قبل استخدام إعدادات المرفقات.",
+      "adminOnly": "فقط حسابات الإدارة يمكنها إدارة إعدادات المرفقات.",
+      "loadFailed": "تعذر تحميل إعدادات المرفقات.",
+      "saveFailed": "تعذر حفظ إعدادات المرفقات."
+    },
+    "global": {
+      "heading": "الإعدادات العامة"
+    },
+    "overrides": {
+      "heading": "تجاوزات لكل مالك",
+      "landlord": "المالك"
+    },
+    "fields": {
+      "maxAttachments": "الحد الأقصى للمرفقات لكل طلب",
+      "maxImageBytes": "الحد الأقصى لحجم الصورة (بايت)",
+      "maxVideoBytes": "الحد الأقصى لحجم الفيديو (بايت)",
+      "maxVideoDurationSeconds": "الحد الأقصى لمدة الفيديو (ثوانٍ)",
+      "allowedMimeTypes": "أنواع MIME المسموح بها (سطر لكل نوع)",
+      "allowedExtensions": "الامتدادات المسموح بها (سطر لكل امتداد)",
+      "shareEnabled": "تفعيل روابط المشاركة",
+      "shareExpirySeconds": "انتهاء صلاحية رابط المشاركة (ثوانٍ)",
+      "malwareScanRequired": "فحص البرمجيات الضارة مطلوب"
+    },
+    "common": {
+      "enabled": "مفعّل",
+      "disabled": "معطّل",
+      "required": "مطلوب",
+      "optional": "اختياري"
+    },
+    "confirm": {
+      "title": "تأكيد تغيير الإعداد",
+      "body": "هل تريد حفظ هذا التغيير في إعدادات المرفقات؟ سيتم تسجيل هذا الإجراء في سجل التدقيق.",
+      "cancel": "إلغاء",
+      "confirm": "تأكيد"
     }
   },
   "portalAdminProperties": {

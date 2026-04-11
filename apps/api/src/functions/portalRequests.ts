@@ -329,6 +329,9 @@ async function portalRequestUploadIntent(
       filename: str(b.filename),
       contentType: str(b.content_type),
       fileSizeBytes: Number(b.file_size_bytes ?? 0),
+      fileDurationSeconds: Number.isFinite(Number(b.file_duration_seconds))
+        ? Number(b.file_duration_seconds)
+        : undefined,
     });
     logInfo(context, 'portal.requests.upload_intent.created', {
       requestId: request.params.id,
@@ -388,6 +391,9 @@ async function portalRequestAttachmentFinalize(
       filename: str(b.filename),
       contentType: str(b.content_type),
       fileSizeBytes: Number(b.file_size_bytes ?? 0),
+      fileDurationSeconds: Number.isFinite(Number(b.file_duration_seconds))
+        ? Number(b.file_duration_seconds)
+        : undefined,
     });
     logInfo(context, 'portal.requests.attachments.finalize.success', {
       userId: user.id,

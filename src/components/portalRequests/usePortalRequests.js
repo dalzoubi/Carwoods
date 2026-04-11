@@ -624,12 +624,21 @@ export function usePortalRequests({
           const contentType = file.type || 'application/octet-stream';
           const mediaType = detectMediaType(contentType);
           if (!mediaType) continue;
+          let fileDurationSeconds = undefined;
+          if (mediaType === 'VIDEO') {
+            try {
+              fileDurationSeconds = await loadVideoDurationSeconds(file);
+            } catch {
+              fileDurationSeconds = undefined;
+            }
+          }
           try {
             const intentPayload = await requestUploadIntent(baseUrl, token, newRequestId, {
               emailHint,
               filename: file.name,
               content_type: contentType,
               file_size_bytes: file.size,
+              file_duration_seconds: fileDurationSeconds,
             });
             const storagePath = intentPayload?.upload?.storage_path;
             const uploadUrl = intentPayload?.upload?.upload_url;
@@ -641,6 +650,7 @@ export function usePortalRequests({
               filename: file.name,
               content_type: contentType,
               file_size_bytes: file.size,
+              file_duration_seconds: fileDurationSeconds,
             });
           } catch {
             // attachment upload failures are non-fatal; request was already created
@@ -793,6 +803,15 @@ export function usePortalRequests({
       return;
     }
     const contentType = attachmentFile.type || 'application/octet-stream';
+    const mediaType = detectMediaType(contentType);
+    let fileDurationSeconds = undefined;
+    if (mediaType === 'VIDEO') {
+      try {
+        fileDurationSeconds = await loadVideoDurationSeconds(attachmentFile);
+      } catch {
+        fileDurationSeconds = undefined;
+      }
+    }
 
     setAttachmentStatus('saving');
     setAttachmentError('');
@@ -805,6 +824,7 @@ export function usePortalRequests({
         filename: attachmentFile.name,
         content_type: contentType,
         file_size_bytes: attachmentFile.size,
+        file_duration_seconds: fileDurationSeconds,
       };
       const intentPayload = await requestUploadIntent(baseUrl, token, selectedRequestId, filePayload);
       const storagePath = intentPayload?.upload?.storage_path;
@@ -821,6 +841,7 @@ export function usePortalRequests({
         filename: attachmentFile.name,
         content_type: contentType,
         file_size_bytes: attachmentFile.size,
+        file_duration_seconds: fileDurationSeconds,
       });
       setAttachmentFile(null);
       setAttachmentUploadProgress(100);

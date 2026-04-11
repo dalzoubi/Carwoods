@@ -1079,7 +1079,8 @@
     "tabsLabel": "Onglets de configuration",
     "tabs": {
       "policies": "Politiques IA",
-      "agents": "Agents"
+      "agents": "Agents",
+      "attachments": "Pieces jointes"
     }
   },
   "portalAdminAiConfig": {
@@ -1172,6 +1173,55 @@
       "primaryModel": "Modèle principal",
       "fallbackAgent": "Nom de l'agent de secours",
       "fallbackModel": "Modèle de secours"
+    }
+  },
+  "portalAdminAttachmentConfig": {
+    "heading": "Configuration des pieces jointes",
+    "intro": "Gerez les limites d'upload et les valeurs de securite des pieces jointes. Les changements s'appliquent uniquement aux nouveaux uploads.",
+    "actions": {
+      "saveGlobal": "Enregistrer les valeurs globales",
+      "saveOverride": "Enregistrer la surcharge proprietaire",
+      "clearOverride": "Supprimer la surcharge"
+    },
+    "messages": {
+      "saved": "Configuration des pieces jointes enregistree."
+    },
+    "errors": {
+      "apiUnavailable": "Definissez VITE_API_BASE_URL pour activer la configuration des pieces jointes.",
+      "signInRequired": "Connectez-vous avant d'utiliser la configuration des pieces jointes.",
+      "adminOnly": "Seuls les comptes admin peuvent gerer la configuration des pieces jointes.",
+      "loadFailed": "Impossible de charger la configuration des pieces jointes.",
+      "saveFailed": "Impossible d'enregistrer la configuration des pieces jointes."
+    },
+    "global": {
+      "heading": "Valeurs globales"
+    },
+    "overrides": {
+      "heading": "Surcharges par proprietaire",
+      "landlord": "Proprietaire"
+    },
+    "fields": {
+      "maxAttachments": "Nombre max de pieces jointes par demande",
+      "maxImageBytes": "Taille max image (octets)",
+      "maxVideoBytes": "Taille max video (octets)",
+      "maxVideoDurationSeconds": "Duree max video (secondes)",
+      "allowedMimeTypes": "Types MIME autorises (un par ligne)",
+      "allowedExtensions": "Extensions autorisees (une par ligne)",
+      "shareEnabled": "Liens de partage actives",
+      "shareExpirySeconds": "Expiration du lien de partage (secondes)",
+      "malwareScanRequired": "Analyse malware requise"
+    },
+    "common": {
+      "enabled": "Active",
+      "disabled": "Desactive",
+      "required": "Requis",
+      "optional": "Optionnel"
+    },
+    "confirm": {
+      "title": "Confirmer le changement",
+      "body": "Enregistrer cette modification de configuration des pieces jointes ? Cette action sera tracee dans les journaux d'audit.",
+      "cancel": "Annuler",
+      "confirm": "Confirmer"
     }
   },
   "portalAdminProperties": {

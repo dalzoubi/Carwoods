@@ -12,13 +12,20 @@ import {
   tenantCanAccessRequest,
 } from '../../lib/requestsRepo.js';
 import {
+  findRequestLandlordUserId,
+  getGlobalAttachmentUploadConfig,
+  getLandlordAttachmentUploadOverride,
+} from '../../lib/attachmentUploadConfigRepo.js';
+import {
   detectMediaType,
-  MAX_REQUEST_ATTACHMENTS,
-  maxBytesForMediaType,
-  validateUploadFile,
   validateRequestId,
   type UploadMediaType,
 } from '../../domain/requestValidation.js';
+import {
+  ATTACHMENT_CONFIG_RANGES,
+  extensionFromFilename,
+  mimeMatchesAllowed,
+} from '../../domain/attachmentUploadConfig.js';
 import { forbidden, notFound, unprocessable, validationError } from '../../domain/errors.js';
 import { Role, hasLandlordAccess } from '../../domain/constants.js';
 import type { Queryable } from '../types.js';
@@ -36,6 +43,7 @@ export type RequestUploadIntentInput = {
   filename: string | undefined;
   contentType: string | undefined;
   fileSizeBytes: number;
+  fileDurationSeconds?: number;
 };
 
 export type RequestUploadIntentOutput = {
@@ -65,24 +73,46 @@ export async function requestUploadIntent(
     if (!allowed) throw notFound();
   }
 
-  const uploadValidation = validateUploadFile({
-    filename: input.filename,
-    contentType: input.contentType,
-    fileSizeBytes: input.fileSizeBytes,
-  });
-  if (!uploadValidation.valid) {
-    if (uploadValidation.message === 'file_too_large') {
-      const mediaType = detectMediaType(input.contentType!)!;
-      const maxBytes = maxBytesForMediaType(mediaType);
-      throw Object.assign(validationError('file_too_large'), { max_bytes: maxBytes });
-    }
-    throw validationError(uploadValidation.message);
+  if (!input.filename || !input.contentType || !Number.isFinite(input.fileSizeBytes) || input.fileSizeBytes <= 0) {
+    throw validationError('missing_or_invalid_file_fields');
+  }
+  const mediaType = detectMediaType(input.contentType);
+  if (!mediaType) throw validationError('unsupported_mime_type');
+
+  const globalConfig = await getGlobalAttachmentUploadConfig(db);
+  if (!globalConfig) throw unprocessable('attachment_config_missing');
+  const landlordUserId = await findRequestLandlordUserId(db, requestId);
+  const landlordOverride = landlordUserId
+    ? await getLandlordAttachmentUploadOverride(db, landlordUserId)
+    : null;
+  const effectiveConfig = landlordOverride ?? globalConfig;
+
+  const extension = extensionFromFilename(input.filename);
+  if (!mimeMatchesAllowed(input.contentType, effectiveConfig.allowed_mime_types)) {
+    throw validationError('unsupported_mime_type');
+  }
+  if (extension && !effectiveConfig.allowed_extensions.includes(extension)) {
+    throw validationError('unsupported_file_extension');
+  }
+  const maxBytes = mediaType === 'PHOTO'
+    ? effectiveConfig.max_image_bytes
+    : effectiveConfig.max_video_bytes;
+  if (input.fileSizeBytes > maxBytes) {
+    throw Object.assign(validationError('file_too_large'), { max_bytes: maxBytes });
+  }
+  if (
+    mediaType === 'VIDEO'
+    && Number.isFinite(input.fileDurationSeconds)
+    && Number(input.fileDurationSeconds) > effectiveConfig.max_video_duration_seconds
+  ) {
+    throw Object.assign(validationError('video_too_long'), {
+      max_seconds: effectiveConfig.max_video_duration_seconds,
+    });
   }
 
-  const mediaType = detectMediaType(input.contentType!)!;
   const attachmentsCount = await countRequestAttachments(db, requestId);
-  if (attachmentsCount >= MAX_REQUEST_ATTACHMENTS) {
-    throw Object.assign(validationError('attachment_limit_exceeded'), { max: MAX_REQUEST_ATTACHMENTS });
+  if (attachmentsCount >= effectiveConfig.max_attachments) {
+    throw Object.assign(validationError('attachment_limit_exceeded'), { max: effectiveConfig.max_attachments });
   }
 
   const safeFileName = input.filename!.replace(/[^a-zA-Z0-9._-]/g, '_');
@@ -120,5 +150,9 @@ export async function requestUploadIntent(
     .map((segment) => encodeURIComponent(segment))
     .join('/')}?${sasToken}`;
 
-  return { upload_url, storage_path, media_type: mediaType, expires_in_seconds: 300 };
+  const expiresInSeconds = Math.min(
+    Math.max(300, effectiveConfig.share_expiry_seconds),
+    ATTACHMENT_CONFIG_RANGES.shareExpirySeconds.max
+  );
+  return { upload_url, storage_path, media_type: mediaType, expires_in_seconds: expiresInSeconds };
 }
