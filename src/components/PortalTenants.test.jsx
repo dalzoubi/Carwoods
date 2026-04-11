@@ -111,14 +111,16 @@ describe('PortalTenants', () => {
     await i18n.changeLanguage('en');
   });
 
-  it('renders page heading and intro', () => {
+  it('renders page heading and intro', async () => {
     render(<WithAppTheme><PortalTenants /></WithAppTheme>);
+    await waitFor(() => expect(portalApiClient.fetchTenants).toHaveBeenCalled());
     expect(screen.getByText('Tenants')).toBeInTheDocument();
     expect(screen.getByText(/onboard tenants/i)).toBeInTheDocument();
   });
 
-  it('renders the Onboard Tenant button', () => {
+  it('renders the Onboard Tenant button', async () => {
     render(<WithAppTheme><PortalTenants /></WithAppTheme>);
+    await waitFor(() => expect(portalApiClient.fetchTenants).toHaveBeenCalled());
     expect(screen.getByRole('button', { name: /onboard tenant/i })).toBeInTheDocument();
   });
 

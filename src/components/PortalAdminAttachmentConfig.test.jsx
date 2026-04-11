@@ -162,7 +162,8 @@ describe('PortalAdminAttachmentConfig', () => {
       );
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /clear/i }));
+    const clearOverrideButton = await screen.findByRole('button', { name: /clear override/i });
+    fireEvent.click(clearOverrideButton);
     fireEvent.click(await screen.findByRole('button', { name: /^confirm$/i }));
 
     await waitFor(() => {
