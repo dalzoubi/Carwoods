@@ -154,8 +154,6 @@ export function usePortalRequests({
   const [attachmentUploadProgress, setAttachmentUploadProgress] = useState(0);
   const [attachmentDeleteStatus, setAttachmentDeleteStatus] = useState('idle');
   const [attachmentDeleteError, setAttachmentDeleteError] = useState('');
-  const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
-  const [attachmentDialogMessage, setAttachmentDialogMessage] = useState('');
 
   const [exportStatus, setExportStatus] = useState('idle');
   const [exportError, setExportError] = useState('');
@@ -364,8 +362,6 @@ export function usePortalRequests({
     setAttachmentFile(null);
     setAttachmentDeleteStatus('idle');
     setAttachmentDeleteError('');
-    setAttachmentDialogOpen(false);
-    setAttachmentDialogMessage('');
     setMessageForm({ body: '', is_internal: false });
     setElsaDecisionStatus('idle');
     setElsaDecisionError('');
@@ -855,18 +851,11 @@ export function usePortalRequests({
       handleApiForbidden(error);
       setAttachmentStatus('error');
       if (error && typeof error === 'object' && error.status === 422 && error.code === 'storage_not_configured') {
-        setAttachmentError('');
-        setAttachmentDialogMessage(t('portalRequests.errors.attachmentStorageUnavailable'));
-        setAttachmentDialogOpen(true);
+        setAttachmentError(t('portalRequests.errors.attachmentStorageUnavailable'));
       } else {
         setAttachmentError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
       }
     }
-  };
-
-  const dismissAttachmentDialog = () => {
-    setAttachmentDialogOpen(false);
-    setAttachmentDialogMessage('');
   };
 
   const onDeleteAttachment = async (attachmentId) => {
@@ -1073,8 +1062,6 @@ export function usePortalRequests({
     attachmentUploadProgress,
     attachmentDeleteStatus,
     attachmentDeleteError,
-    attachmentDialogOpen,
-    attachmentDialogMessage,
     exportStatus,
     exportError,
     auditEvents,
@@ -1104,7 +1091,6 @@ export function usePortalRequests({
     onAttachmentChange,
     onAttachmentSubmit,
     onDeleteAttachment,
-    dismissAttachmentDialog,
     onExportCsv,
     onSetElsaAutoRespond,
     onRunElsa,

@@ -91,8 +91,6 @@ const PortalRequests = () => {
     attachmentUploadProgress,
     attachmentDeleteStatus,
     attachmentDeleteError,
-    attachmentDialogOpen,
-    attachmentDialogMessage,
     exportStatus,
     exportError,
     auditEvents,
@@ -123,7 +121,6 @@ const PortalRequests = () => {
     onAttachmentChange,
     onAttachmentSubmit,
     onDeleteAttachment,
-    dismissAttachmentDialog,
     onExportCsv,
     onSetElsaAutoRespond,
     onRunElsa,
@@ -219,6 +216,14 @@ const PortalRequests = () => {
   React.useEffect(() => {
     if (attachmentStatus === 'success') showFeedback(t('portalRequests.attachments.saved'));
   }, [attachmentStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (
+      attachmentStatus === 'error'
+      && attachmentError === t('portalRequests.errors.attachmentStorageUnavailable')
+    ) {
+      showFeedback(attachmentError, 'error');
+    }
+  }, [attachmentError, attachmentStatus, showFeedback, t]);
   React.useEffect(() => {
     if (attachmentDeleteStatus === 'success') showFeedback(t('portalRequests.attachments.deleted'));
   }, [attachmentDeleteStatus, showFeedback, t]);
@@ -430,9 +435,6 @@ const PortalRequests = () => {
                 attachmentDeleteStatus={attachmentDeleteStatus}
                 attachmentDeleteError={attachmentDeleteError}
                 onDeleteAttachment={onDeleteAttachment}
-                attachmentDialogOpen={attachmentDialogOpen}
-                attachmentDialogMessage={attachmentDialogMessage}
-                dismissAttachmentDialog={dismissAttachmentDialog}
                 currentUserId={meData?.user?.id || ''}
                 auditEvents={auditEvents}
                 auditStatus={auditStatus}

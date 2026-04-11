@@ -198,6 +198,50 @@ describe('usePortalRequests', () => {
     expect(result.current.attachmentError).toBe('portalRequests.errors.uploadIntentMissingPath');
   });
 
+  it('shows storage not configured as inline attachment error message', async () => {
+    global.fetch
+      .mockResolvedValueOnce(
+        jsonResponse({
+          requests: [{ id: 'req-22', title: 'Ceiling leak', current_status_id: 'NOT_STARTED' }],
+        })
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ categories: [], priorities: [], tenant_defaults: null, landlord_contact: null })
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          request: {
+            id: 'req-22',
+            title: 'Ceiling leak',
+            description: 'Leak near hallway',
+            current_status_id: 'NOT_STARTED',
+          },
+        })
+      )
+      .mockResolvedValueOnce(jsonResponse({ messages: [] }))
+      .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(jsonResponse({ error: 'storage_not_configured' }, 422));
+
+    const params = baseParams();
+    const { result } = renderHook(() => usePortalRequests(params));
+
+    await waitFor(() => {
+      expect(result.current.requestsStatus).toBe('ok');
+    });
+
+    const file = new File(['file-bytes'], 'photo.jpg', { type: 'image/jpeg' });
+    await act(async () => {
+      result.current.onAttachmentChange({ target: { files: [file] } });
+    });
+
+    await act(async () => {
+      await result.current.onAttachmentSubmit({ preventDefault() {} });
+    });
+
+    expect(result.current.attachmentStatus).toBe('error');
+    expect(result.current.attachmentError).toBe('portalRequests.errors.attachmentStorageUnavailable');
+  });
+
   it('rejects unsupported file types with a client-side error before calling the API', async () => {
     global.fetch
       .mockResolvedValueOnce(

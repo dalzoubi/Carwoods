@@ -251,9 +251,6 @@ const RequestDetailPane = ({
   attachmentDeleteStatus,
   attachmentDeleteError,
   onDeleteAttachment,
-  attachmentDialogOpen,
-  attachmentDialogMessage,
-  dismissAttachmentDialog,
   currentUserId,
   auditEvents,
   auditStatus,
@@ -294,7 +291,9 @@ const RequestDetailPane = ({
     ? { severity: 'error', text: messageDeleteError || t('portalRequests.errors.saveFailed') }
     : null;
   const attachmentStatusMessage = attachmentStatus === 'error'
-    ? { severity: 'error', text: attachmentError || t('portalRequests.errors.saveFailed') }
+    && attachmentError
+    && attachmentError !== t('portalRequests.errors.attachmentStorageUnavailable')
+    ? { severity: 'error', text: attachmentError }
     : null;
   const attachmentDeleteStatusMessage = attachmentDeleteStatus === 'error'
     ? { severity: 'error', text: attachmentDeleteError || t('portalRequests.errors.saveFailed') }
@@ -1430,19 +1429,6 @@ const RequestDetailPane = ({
             }}
           >
             {t('portalRequests.attachments.deleteConfirmYes')}
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={attachmentDialogOpen} onClose={dismissAttachmentDialog}>
-        <DialogTitle>{t('portalRequests.attachments.errorDialogTitle')}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {attachmentDialogMessage || t('portalRequests.errors.saveFailed')}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button type="button" onClick={dismissAttachmentDialog}>
-            {t('portalRequests.actions.close')}
           </Button>
         </DialogActions>
       </Dialog>
