@@ -949,6 +949,7 @@
       "model": "Modelo",
       "nextAction": "Recomendado",
       "plannedReply": "Mensaje para el inquilino",
+      "generatedAt": "Generado",
       "modes": {
         "needMoreInfo": "Falta información",
         "basicTroubleshooting": "Solución básica",

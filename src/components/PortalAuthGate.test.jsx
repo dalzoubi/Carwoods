@@ -75,6 +75,7 @@ describe('PortalAuthGate', () => {
     authState.authStatus = 'authenticated';
     authState.isAuthenticated = true;
     authState.meStatus = 'loading';
+    authState.meData = null;
 
     render(
       <WithAppTheme>
@@ -87,6 +88,30 @@ describe('PortalAuthGate', () => {
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
     expect(screen.queryByText('Portal Content')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /sign in/i })).not.toBeInTheDocument();
+  });
+
+  it('keeps rendering children during authenticated background /me refresh', () => {
+    authState.authStatus = 'authenticated';
+    authState.isAuthenticated = true;
+    authState.meStatus = 'loading';
+    authState.meData = {
+      user: {
+        id: 'u1',
+        role: 'TENANT',
+        status: 'ACTIVE',
+      },
+    };
+
+    render(
+      <WithAppTheme>
+        <PortalAuthGate>
+          <div>Portal Content</div>
+        </PortalAuthGate>
+      </WithAppTheme>
+    );
+
+    expect(screen.getByText('Portal Content')).toBeInTheDocument();
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
 
   it('shows PortalLoginLanding when unauthenticated (after initializing completes)', () => {

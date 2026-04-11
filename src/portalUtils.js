@@ -65,5 +65,8 @@ export function resolveDisplayName(meData, account, fallback) {
 
 export function isGuestRole(role) {
   const normalized = normalizeRole(role);
-  return normalized !== Role.TENANT && normalized !== Role.LANDLORD && normalized !== Role.ADMIN;
+  return normalized !== Role.TENANT
+    && normalized !== Role.LANDLORD
+    && normalized !== Role.ADMIN
+    && normalized !== Role.AI_AGENT;
 }

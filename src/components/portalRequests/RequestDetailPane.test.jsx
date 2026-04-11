@@ -95,6 +95,7 @@ describe('RequestDetailPane', () => {
         {
           id: 'decision-1',
           policy_decision: 'HOLD_FOR_REVIEW',
+          created_at: '2026-04-08T11:15:00Z',
           mode: 'NEED_MORE_INFO',
           provider_used: 'remote',
           model_name: 'gemini-2.5-flash',
@@ -116,7 +117,9 @@ describe('RequestDetailPane', () => {
     expect(screen.getByText('AI Assistant')).toBeInTheDocument();
     expect(screen.getByText('Needs more info')).toBeInTheDocument();
     expect(screen.getByText('High confidence')).toBeInTheDocument();
-    expect(screen.getByText('Message to tenant: Please share a photo so we can schedule service.')).toBeInTheDocument();
+    expect(screen.getByText('Message to tenant')).toBeInTheDocument();
+    expect(screen.getByText('Please share a photo so we can schedule service.')).toBeInTheDocument();
+    expect(screen.getByText(`Generated: ${new Date('2026-04-08T11:15:00Z').toLocaleString()}`)).toBeInTheDocument();
     expect(screen.queryByText('Provider: remote')).not.toBeInTheDocument();
     expect(screen.queryByText('Model: gemini-2.5-flash')).not.toBeInTheDocument();
   });

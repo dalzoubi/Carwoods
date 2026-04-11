@@ -216,9 +216,12 @@ export function usePortalRequests({
     return isManagement ? '/api/landlord/requests' : '/api/portal/requests';
   }, [baseUrl, isManagement]);
 
-  const loadRequestDetails = async (requestId) => {
+  const loadRequestDetails = async (requestId, options = {}) => {
+    const { showLoadingState = true } = options;
     if (!requestId || !baseUrl) return;
-    setDetailStatus('loading');
+    if (showLoadingState) {
+      setDetailStatus('loading');
+    }
     setDetailError('');
     try {
       const token = await getAccessToken();
@@ -259,10 +262,17 @@ export function usePortalRequests({
     }
   };
 
-  const loadRequests = async (opts = { keepSelection: true }) => {
+  const loadRequests = async (opts = {}) => {
+    const {
+      keepSelection = true,
+      showLoadingState = true,
+      showDetailLoadingState = true,
+    } = opts;
     if (!baseUrl || !isAuthenticated || isGuest || meStatus !== 'ok') return;
     if (!listPath) return;
-    setRequestsStatus('loading');
+    if (showLoadingState) {
+      setRequestsStatus('loading');
+    }
     setRequestsError('');
     try {
       const token = await getAccessToken();
@@ -272,7 +282,7 @@ export function usePortalRequests({
       setRequests(nextRequests);
       setRequestsStatus('ok');
 
-      const nextSelected = opts.keepSelection
+      const nextSelected = keepSelection
         ? (
             nextRequests.some((request) => request.id === selectedRequestId)
               ? selectedRequestId
@@ -284,7 +294,7 @@ export function usePortalRequests({
       setSelectedRequestId(nextSelected);
       if (nextSelected) {
         try {
-          await loadRequestDetails(nextSelected);
+          await loadRequestDetails(nextSelected, { showLoadingState: showDetailLoadingState });
           await loadAuditForRequest(nextSelected);
           await loadElsaContext(nextSelected);
         } catch (error) {
@@ -566,7 +576,7 @@ export function usePortalRequests({
       setTenantCreateStatus('success');
       setTenantForm((prev) => ({ ...prev, title: '', description: '' }));
       setCreateAttachmentFiles([]);
-      await loadRequests({ keepSelection: false });
+      await loadRequests({ keepSelection: false, showLoadingState: false, showDetailLoadingState: false });
     } catch (error) {
       handleApiForbidden(error);
       setTenantCreateStatus('error');
@@ -582,7 +592,7 @@ export function usePortalRequests({
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
       await cancelRequest(baseUrl, token, selectedRequestId, { emailHint });
-      await loadRequests({ keepSelection: true });
+      await loadRequests({ keepSelection: true, showLoadingState: false, showDetailLoadingState: false });
       setCancelStatus('success');
     } catch (error) {
       handleApiForbidden(error);
@@ -638,7 +648,7 @@ export function usePortalRequests({
         `/api/landlord/requests/${encodeURIComponent(selectedRequestId)}`,
         { emailHint, ...body }
       );
-      await loadRequests({ keepSelection: true });
+      await loadRequests({ keepSelection: true, showLoadingState: false, showDetailLoadingState: false });
       setManagementUpdateStatus('success');
     } catch (error) {
       handleApiForbidden(error);
@@ -661,7 +671,7 @@ export function usePortalRequests({
         is_internal: isManagement ? Boolean(messageForm.is_internal) : false,
       });
       setMessageForm({ body: '', is_internal: false });
-      await loadRequestDetails(selectedRequestId);
+      await loadRequestDetails(selectedRequestId, { showLoadingState: false });
       setMessageStatus('success');
     } catch (error) {
       handleApiForbidden(error);
@@ -678,7 +688,7 @@ export function usePortalRequests({
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
       await deleteRequestMessage(baseUrl, token, selectedRequestId, messageId, { emailHint });
-      await loadRequestDetails(selectedRequestId);
+      await loadRequestDetails(selectedRequestId, { showLoadingState: false });
       setMessageDeleteStatus('success');
     } catch (error) {
       handleApiForbidden(error);
@@ -751,7 +761,7 @@ export function usePortalRequests({
       });
       setAttachmentFile(null);
       setAttachmentUploadProgress(100);
-      await loadRequestDetails(selectedRequestId);
+      await loadRequestDetails(selectedRequestId, { showLoadingState: false });
       setAttachmentStatus('success');
     } catch (error) {
       handleApiForbidden(error);
@@ -815,7 +825,7 @@ export function usePortalRequests({
         emailHint,
         force_review: true,
       });
-      await loadRequestDetails(selectedRequestId);
+      await loadRequestDetails(selectedRequestId, { showLoadingState: false });
       await loadElsaContext(selectedRequestId);
       return result;
     } catch (error) {
@@ -837,7 +847,7 @@ export function usePortalRequests({
         emailHint,
         action,
       });
-      await loadRequestDetails(selectedRequestId);
+      await loadRequestDetails(selectedRequestId, { showLoadingState: false });
       await loadElsaContext(selectedRequestId);
       setElsaDecisionActionStatus('success');
     } catch (error) {

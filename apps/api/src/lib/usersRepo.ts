@@ -43,31 +43,6 @@ function normalizePhone(value: string | null | undefined): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function deriveNamesFromClaims(claims: AccessTokenClaims): { firstName: string | null; lastName: string | null } {
-  const firstName = normalizeNamePart(claims.given_name);
-  const lastName = normalizeNamePart(claims.family_name);
-  if (firstName || lastName) {
-    return { firstName, lastName };
-  }
-
-  const displayName = normalizeNamePart(claims.name);
-  if (!displayName) {
-    return { firstName: null, lastName: null };
-  }
-
-  const parts = displayName.split(/\s+/).filter(Boolean);
-  if (parts.length === 0) {
-    return { firstName: null, lastName: null };
-  }
-  if (parts.length === 1) {
-    return { firstName: parts[0], lastName: null };
-  }
-  return {
-    firstName: parts[0],
-    lastName: parts.slice(1).join(' '),
-  };
-}
-
 export async function findUserBySubject(
   client: Queryable,
   externalAuthOid: string
@@ -231,26 +206,6 @@ export async function linkSubjectToUser(
   );
 }
 
-export async function syncUserProfileFromClaims(
-  client: Queryable,
-  userId: string,
-  claims: AccessTokenClaims
-): Promise<void> {
-  const { firstName, lastName } = deriveNamesFromClaims(claims);
-  if (!firstName && !lastName) {
-    return;
-  }
-
-  await client.query(
-    `UPDATE users
-        SET first_name = COALESCE(NULLIF($2, ''), first_name),
-            last_name = COALESCE(NULLIF($3, ''), last_name),
-            updated_at = GETUTCDATE()
-      WHERE id = $1`,
-    [userId, firstName, lastName]
-  );
-}
-
 export async function findUserByClaims(
   client: Queryable,
   claims: AccessTokenClaims,
@@ -266,8 +221,7 @@ export async function findUserByClaims(
   for (const subject of subjectCandidates) {
     const bySubject = await findUserBySubject(client, subject);
     if (bySubject) {
-      await syncUserProfileFromClaims(client, bySubject.id, claims);
-      return findUserBySubject(client, subject);
+      return bySubject;
     }
   }
 
@@ -297,7 +251,6 @@ export async function findUserByClaims(
           { userId: byEmail.id, email, subject: preferredSubject }
         );
       }
-      await syncUserProfileFromClaims(client, byEmail.id, claims);
       return findUserById(client, byEmail.id);
     }
   }

@@ -949,6 +949,7 @@
       "model": "النموذج",
       "nextAction": "الموصى به",
       "plannedReply": "الرسالة إلى المستأجر",
+      "generatedAt": "تم الإنشاء",
       "modes": {
         "needMoreInfo": "معلومات إضافية مطلوبة",
         "basicTroubleshooting": "استكشاف أعطال أساسي",

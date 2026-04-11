@@ -62,7 +62,6 @@ const PortalProfile = () => {
     meStatus,
     getAccessToken,
     handleApiForbidden,
-    refreshMe,
   } = usePortalAuth();
   const role = resolveRole(meData, account);
   const [form, setForm] = useState({
@@ -104,7 +103,6 @@ const PortalProfile = () => {
   useEffect(() => {
     if (saveStatus === 'success') {
       showFeedback(t('portalProfile.saved'));
-      setSaveStatus('idle');
     }
   }, [saveStatus, showFeedback, t]);
 
@@ -145,15 +143,23 @@ const PortalProfile = () => {
       }
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
-      await patchProfile(baseUrl, token, {
+      const payload = await patchProfile(baseUrl, token, {
         emailHint,
         email: form.email,
         first_name: form.firstName,
         last_name: form.lastName,
         phone: form.phone,
       });
+      const savedUser = payload && typeof payload === 'object' ? payload.user : null;
+      if (savedUser && typeof savedUser === 'object') {
+        setForm({
+          email: typeof savedUser.email === 'string' ? savedUser.email : form.email,
+          firstName: typeof savedUser.first_name === 'string' ? savedUser.first_name : form.firstName,
+          lastName: typeof savedUser.last_name === 'string' ? savedUser.last_name : form.lastName,
+          phone: typeof savedUser.phone === 'string' ? savedUser.phone : '',
+        });
+      }
       setSaveStatus('success');
-      refreshMe();
     } catch (error) {
       handleApiForbidden(error);
       setSaveStatus('error');

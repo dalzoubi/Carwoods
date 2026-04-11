@@ -2,6 +2,45 @@
 
 Use this as the authoritative product + technical brief. **Do not expose storage credentials, AI keys, or Entra secrets in the browser.**
 
+## Delivery method (spec-driven development required)
+
+All future work should follow **spec-driven development**. Treat this as mandatory process, not optional guidance.
+
+### Required execution order for every non-trivial task
+
+1. **Spec first (before implementation):**
+   - Create or update a task spec in `docs/specs/`.
+   - Start from `docs/specs/SPEC_TEMPLATE.md`.
+   - Spec must include: context/problem, scope, out-of-scope, user stories, constraints, assumptions, and risks.
+2. **Define acceptance criteria:**
+   - Write testable criteria in "Given / When / Then" style where possible.
+   - Include UI, API, RBAC/security, i18n, RTL, dark mode, and print expectations when relevant.
+3. **Define validation plan:**
+   - List exact checks (unit/integration/manual) and commands to run.
+   - Map each acceptance criterion to at least one validation step.
+4. **Implement against the spec:**
+   - Keep changes within approved scope.
+   - If new requirements appear, update the spec first, then continue implementation.
+5. **Close with traceability:**
+   - Record what changed, what was tested, results, and any known gaps.
+   - Confirm each acceptance criterion is met (or explicitly deferred with reason).
+
+### Spec quality bar
+
+- Specs must be concrete enough that another engineer can implement without guessing.
+- Avoid vague criteria ("looks good", "works better"); use measurable outcomes.
+- Include rollback/mitigation notes for risky changes.
+- Include dependencies and sequencing for multi-phase work.
+
+### PR and review expectations
+
+- PR description must link the spec file and summarize scope boundaries.
+- Review should validate:
+  - implementation matches spec,
+  - tests cover acceptance criteria,
+  - no out-of-scope drift.
+- If behavior changes but spec was not updated, treat as incomplete and update spec before merge.
+
 ## Product
 
 - **Public marketing site** remains on Vite + React (current repo).

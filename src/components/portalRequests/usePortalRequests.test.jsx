@@ -12,6 +12,16 @@ function jsonResponse(payload, status = 200) {
   };
 }
 
+function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
 function baseParams(overrides = {}) {
   return {
     baseUrl: 'https://api.example.com',
@@ -383,6 +393,57 @@ describe('usePortalRequests', () => {
     expect(result.current.messageStatus).toBe('success');
     expect(result.current.messageForm.body).toBe('');
     expect(result.current.threadMessages).toHaveLength(1);
+  });
+
+  it('does not flip detailStatus to loading during message submit refresh', async () => {
+    const delayedDetail = deferred();
+    global.fetch
+      .mockResolvedValueOnce(jsonResponse({ requests: [{ id: 'req-msg2', title: 'Noise', status_code: 'NOT_STARTED' }] }))
+      .mockResolvedValueOnce(
+        jsonResponse({ categories: [], priorities: [], tenant_defaults: null, landlord_contact: null })
+      )
+      .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-msg2', title: 'Noise', status_code: 'NOT_STARTED' } }))
+      .mockResolvedValueOnce(jsonResponse({ messages: [] }))
+      .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(jsonResponse({ settings: {}, request: { auto_respond_enabled: false } }))
+      .mockResolvedValueOnce(jsonResponse({ decisions: [] }))
+      .mockResolvedValueOnce(jsonResponse({ ok: true }))
+      .mockImplementationOnce(() => delayedDetail.promise)
+      .mockResolvedValueOnce(jsonResponse({
+        messages: [{ id: 'msg-new', sender_display_name: 'Manager', body: 'Thanks', is_internal: false }],
+      }))
+      .mockResolvedValueOnce(jsonResponse({ attachments: [] }));
+
+    const params = baseParams({
+      isManagement: true,
+      account: { idTokenClaims: { email: 'landlord@example.com' } },
+    });
+    const { result } = renderHook(() => usePortalRequests(params));
+
+    await waitFor(() => expect(result.current.selectedRequestId).toBe('req-msg2'));
+    expect(result.current.detailStatus).toBe('ok');
+
+    await act(async () => {
+      result.current.setMessageForm({ body: 'Please update me', is_internal: false });
+    });
+
+    let submitPromise;
+    await act(async () => {
+      submitPromise = result.current.onMessageSubmit({ preventDefault() {} });
+    });
+
+    await waitFor(() => {
+      expect(result.current.messageStatus).toBe('saving');
+    });
+    expect(result.current.detailStatus).toBe('ok');
+
+    delayedDetail.resolve(jsonResponse({ request: { id: 'req-msg2', title: 'Noise', status_code: 'NOT_STARTED' } }));
+    await act(async () => {
+      await submitPromise;
+    });
+
+    expect(result.current.messageStatus).toBe('success');
+    expect(result.current.detailStatus).toBe('ok');
   });
 
   it('resets transient per-request state when selected request changes', async () => {

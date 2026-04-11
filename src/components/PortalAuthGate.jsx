@@ -4,7 +4,7 @@ import PortalLoginLanding from './PortalLoginLanding';
 import PortalLoadingScreen from './PortalLoadingScreen';
 
 const PortalAuthGate = ({ children }) => {
-  const { authStatus, isAuthenticated, meStatus } = usePortalAuth();
+  const { authStatus, isAuthenticated, meStatus, meData } = usePortalAuth();
 
   // While Firebase Auth is initializing or sign-in is in progress,
   // show a neutral loading screen — NOT the login page.
@@ -12,8 +12,9 @@ const PortalAuthGate = ({ children }) => {
     return <PortalLoadingScreen />;
   }
 
-  // After sign-in, wait for /me to complete before showing portal content.
-  if (isAuthenticated && meStatus === 'loading') {
+  // After sign-in, wait for the first /me response before showing portal content.
+  // Background refreshes should not blank the app once user data already exists.
+  if (isAuthenticated && meStatus === 'loading' && !meData) {
     return <PortalLoadingScreen />;
   }
 

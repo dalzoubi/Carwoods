@@ -949,6 +949,7 @@
       "model": "Model",
       "nextAction": "Recommended",
       "plannedReply": "Message to tenant",
+      "generatedAt": "Generated",
       "modes": {
         "needMoreInfo": "Needs more info",
         "basicTroubleshooting": "Basic troubleshooting",
