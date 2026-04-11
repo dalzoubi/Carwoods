@@ -12,13 +12,15 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import Refresh from '@mui/icons-material/Refresh';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { emailFromAccount, normalizeRole, resolveRole } from '../portalUtils';
 import { Role } from '../domain/constants.js';
 import { fetchElsaSettings, patchElsaSettings } from '../lib/portalApiClient';
 import StatusAlertSlot from './StatusAlertSlot';
+import PortalRefreshButton from './PortalRefreshButton';
+
+const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 
 function errorMessage(error) {
   const code = error && typeof error === 'object' && typeof error.code === 'string'
@@ -86,7 +88,16 @@ const PortalAdminAiAgents = () => {
   }, [load]);
 
   const enabledAgents = useMemo(
-    () => agents.filter((agent) => Boolean(agent?.enabled)),
+    () =>
+      agents
+        .filter((agent) => Boolean(agent?.enabled))
+        .sort((a, b) => {
+          const aName = String(a?.display_name ?? '').trim();
+          const bName = String(b?.display_name ?? '').trim();
+          const byName = collator.compare(aName, bName);
+          if (byName !== 0) return byName;
+          return collator.compare(String(a?.id ?? ''), String(b?.id ?? ''));
+        }),
     [agents]
   );
 
@@ -131,16 +142,12 @@ const PortalAdminAiAgents = () => {
             </Typography>
             <Typography color="text.secondary">{t('portalAdminAiAgents.intro')}</Typography>
           </Box>
-          <Button
-            type="button"
-            size="small"
-            variant="outlined"
+          <PortalRefreshButton
+            label={t('portalAdminAiAgents.actions.refresh')}
             onClick={() => void load()}
-            disabled={!canUseModule || loadStatus === 'loading'}
-            startIcon={loadStatus === 'loading' ? <CircularProgress size={16} /> : <Refresh fontSize="small" />}
-          >
-            {t('portalAdminAiAgents.actions.refresh')}
-          </Button>
+            disabled={!canUseModule}
+            loading={loadStatus === 'loading'}
+          />
         </Stack>
 
         <StatusAlertSlot

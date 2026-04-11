@@ -117,6 +117,8 @@
     "useBody": "Usamos la información para responder consultas, procesar solicitudes, brindar servicios de administración de propiedades y cumplir con las obligaciones legales. No vendemos su información personal.",
     "thirdPartyHeading": "Terceros",
     "thirdPartyBody": "Nuestro sitio puede enlazar a servicios externos (p. ej., Texas Real Estate Commission, HAR.com). No somos responsables de sus prácticas de privacidad. Revise sus políticas antes de compartir información.",
+    "notificationsHeading": "Preferencias de notificaciones y avisos obligatorios",
+    "notificationsBody": "Puede controlar muchas configuraciones de notificación del portal en su perfil, incluidas las preferencias de correo electrónico, en la aplicación y SMS. Los avisos de seguridad y cumplimiento pueden seguir enviándose cuando lo exijan la ley, las políticas o la protección de la cuenta.",
     "contactHeading": "Contacto",
     "contactBody": "Para preguntas relacionadas con la privacidad o para solicitar acceso a su información, contáctenos a través de nuestra página de",
     "contactLink": "Contáctenos",
@@ -144,6 +146,8 @@
     "legalNoticeBody": "La información de este sitio se proporciona únicamente con fines informativos generales y no constituye asesoría legal, fiscal, contable ni de inversión. Debe consultar a profesionales calificados para recibir asesoría específica para su situación.",
     "changesHeading": "Cambios a estos Términos",
     "changesBody": "Podemos actualizar estos Términos de vez en cuando. Los Términos actualizados entran en vigor cuando se publican en esta página. Su uso continuo del sitio después de las actualizaciones significa que acepta los Términos revisados.",
+    "notificationsHeading": "Notificaciones y consentimiento",
+    "notificationsBody": "Al usar las funciones de mensajería del portal, acepta recibir notificaciones de servicio relacionadas con la incorporación y la actividad de mantenimiento según sus preferencias de perfil. El envío por SMS requiere consentimiento explícito. Las notificaciones de seguridad y cumplimiento pueden enviarse independientemente de las preferencias opcionales de canal.",
     "contactHeading": "Contacto",
     "contactBody": "Si tiene preguntas sobre estos Términos, contáctenos a través de nuestra página de",
     "contactLink": "Contáctenos",
@@ -759,7 +763,18 @@
       "email": "Correo electrónico",
       "firstName": "Nombre",
       "lastName": "Apellido",
-      "phone": "Número de teléfono"
+      "phone": "Número de teléfono",
+      "notificationsHeading": "Preferencias de notificación",
+      "notificationsEmail": "Notificaciones por correo electrónico",
+      "notificationsInApp": "Notificaciones en la aplicación",
+      "notificationsSms": "Notificaciones por SMS (acepto explícitamente recibir notificaciones por SMS)",
+      "notificationsSmsOptIn": "Acepto explícitamente recibir notificaciones por SMS"
+    },
+    "smsOptInConfirm": {
+      "title": "Confirmar suscripción a notificaciones por SMS",
+      "body": "¿Confirma que acepta explícitamente recibir notificaciones por SMS sobre actividad del portal?",
+      "cancel": "Cancelar",
+      "confirm": "Sí, acepto"
     },
     "actions": {
       "save": "Guardar perfil",
@@ -773,8 +788,61 @@
       "lastNameRequired": "El apellido es obligatorio.",
       "emailInvalid": "Ingresa un correo electrónico válido.",
       "emailExists": "Ese correo electrónico ya está en uso por otro usuario. Por favor.",
+      "phoneRequiredForSms": "El número de teléfono móvil es obligatorio cuando las notificaciones SMS están habilitadas.",
       "phoneInvalid": "Ingresa un número de teléfono válido.",
       "unknown": "No se pudo actualizar el perfil."
+    }
+  },
+  "portalNotificationPolicies": {
+    "heading": "Políticas de notificación",
+    "intro": "Administra anulaciones de notificaciones por propiedad y por solicitud para usuarios.",
+    "scope": {
+      "heading": "Alcance",
+      "scopeType": "Tipo de alcance",
+      "property": "Propiedad",
+      "request": "Solicitud",
+      "selectProperty": "Seleccionar propiedad",
+      "selectRequest": "Seleccionar solicitud",
+      "currentScope": "ID de alcance actual: {{scopeId}}"
+    },
+    "overrides": {
+      "heading": "Anulaciones existentes",
+      "empty": "No se encontraron anulaciones para este alcance.",
+      "user": "Usuario"
+    },
+    "form": {
+      "heading": "Crear o actualizar anulación",
+      "userId": "Usuario objetivo",
+      "userOptionsEmpty": "No se encontraron usuarios para el alcance seleccionado.",
+      "eventCategory": "Categoría de evento",
+      "email": "Canal de correo electrónico",
+      "inApp": "Canal en la aplicación",
+      "sms": "Canal SMS",
+      "smsOptIn": "Consentimiento SMS",
+      "active": "Estado de la anulación",
+      "activeEnabled": "Activa",
+      "activeDisabled": "Inactiva",
+      "overrideReason": "Razón de la anulación",
+      "mode": {
+        "inherit": "Heredar",
+        "enabled": "Habilitado",
+        "disabled": "Deshabilitado"
+      }
+    },
+    "actions": {
+      "refresh": "Actualizar",
+      "save": "Guardar anulación",
+      "saving": "Guardando..."
+    },
+    "messages": {
+      "saved": "Anulación de notificación guardada."
+    },
+    "errors": {
+      "signInRequired": "Inicia sesión antes de administrar políticas de notificación.",
+      "apiUnavailable": "Configura VITE_API_BASE_URL para habilitar la gestión de políticas de notificación.",
+      "loadFailed": "No se pudieron cargar los datos del alcance.",
+      "loadPoliciesFailed": "No se pudieron cargar las anulaciones de notificación.",
+      "saveFailed": "No se pudo guardar la anulación de notificación."
     }
   },
   "portalRequests": {
@@ -1111,7 +1179,8 @@
     "tabs": {
       "policies": "Políticas de IA",
       "agents": "Agentes",
-      "attachments": "Adjuntos"
+      "attachments": "Adjuntos",
+      "notifications": "Políticas de notificaciones"
     }
   },
   "portalAdminAiConfig": {
@@ -1407,6 +1476,7 @@
       "adminLandlords": "Propietarios",
       "adminConfigurations": "Configuraciones",
       "adminAiConfig": "Configuración de IA",
+      "notificationPolicies": "Políticas de notificación",
       "properties": "Propiedades",
       "status": "Estado del sistema",
       "collapse": "Contraer barra lateral",

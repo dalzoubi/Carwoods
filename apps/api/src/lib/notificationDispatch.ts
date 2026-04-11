@@ -5,7 +5,12 @@ import {
   type PortalNotificationRow,
 } from './notificationCenterRepo.js';
 import { insertNotificationDelivery, type NotificationOutboxRow } from './notificationRepo.js';
-import { listRequestNotificationRecipients, type RequestNotificationRecipient } from './requestsRepo.js';
+import {
+  getRequestNotificationScope,
+  listRequestNotificationRecipients,
+  type RequestNotificationRecipient,
+} from './requestsRepo.js';
+import { resolveNotificationPolicy } from './notificationPolicyRepo.js';
 import { Role } from '../domain/constants.js';
 
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
@@ -197,9 +202,10 @@ async function enqueueChannelDeliveries(
   client: PoolClient,
   outboxId: string,
   recipient: DispatchRecipient,
-  templateId: string
+  templateId: string,
+  channels: { emailEnabled: boolean; smsEnabled: boolean }
 ): Promise<void> {
-  if (recipient.email) {
+  if (channels.emailEnabled && recipient.email) {
     await insertNotificationDelivery(client, {
       outboxId,
       recipientTarget: recipient.email,
@@ -207,7 +213,7 @@ async function enqueueChannelDeliveries(
       status: 'QUEUED',
     });
   }
-  if (recipient.phone) {
+  if (channels.smsEnabled && recipient.phone) {
     await insertNotificationDelivery(client, {
       outboxId,
       recipientTarget: recipient.phone,
@@ -226,33 +232,49 @@ export async function dispatchOutboxNotification(
     await resolveRecipientsForEvent(client, row.event_type_code, payload)
   );
   const content = buildNotificationContent(row.event_type_code, payload);
+  let requestScope: { request_id: string; property_id: string | null } | null = null;
+  if (content.requestId) {
+    requestScope = await getRequestNotificationScope(client, content.requestId);
+  }
 
   let createdInApp = 0;
   let queuedDeliveries = 0;
 
   for (const recipient of recipients) {
-    const created: PortalNotificationRow = await createPortalNotification(client, {
+    const channels = await resolveNotificationPolicy(client, {
       userId: recipient.userId,
       eventTypeCode: row.event_type_code,
-      title: content.title,
-      body: content.body,
-      deepLink: content.deepLink,
-      requestId: content.requestId,
-      metadata: {
-        ...content.metadata,
-        outbox_id: row.id,
-        role: recipient.role,
-      },
+      requestId: requestScope?.request_id ?? content.requestId ?? null,
+      propertyId: requestScope?.property_id ?? asString(payload.property_id),
     });
-    if (created.id) {
-      createdInApp += 1;
+
+    if (channels.inAppEnabled) {
+      const created: PortalNotificationRow = await createPortalNotification(client, {
+        userId: recipient.userId,
+        eventTypeCode: row.event_type_code,
+        title: content.title,
+        body: content.body,
+        deepLink: content.deepLink,
+        requestId: content.requestId,
+        metadata: {
+          ...content.metadata,
+          outbox_id: row.id,
+          role: recipient.role,
+        },
+      });
+      if (created.id) {
+        createdInApp += 1;
+      }
     }
 
     const before = await client.query<{ count_value: number }>(
       `SELECT COUNT(*) AS count_value FROM notification_deliveries WHERE outbox_id = $1`,
       [row.id]
     );
-    await enqueueChannelDeliveries(client, row.id, recipient, row.event_type_code);
+    await enqueueChannelDeliveries(client, row.id, recipient, row.event_type_code, {
+      emailEnabled: channels.emailEnabled,
+      smsEnabled: channels.smsEnabled,
+    });
     const after = await client.query<{ count_value: number }>(
       `SELECT COUNT(*) AS count_value FROM notification_deliveries WHERE outbox_id = $1`,
       [row.id]

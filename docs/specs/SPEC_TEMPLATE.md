@@ -69,11 +69,18 @@ Write criteria in testable form. Prefer Given / When / Then.
 - Risk:
   - Mitigation:
 
-## 9) Rollback plan
+## 9) Logging and observability (required)
+
+- New structured logs to add (event names + key fields):
+- Error logs (include failure path, scope identifiers, actor identifiers):
+- Client-side diagnostics needed (if UI/state-heavy flow):
+- Dashboards/queries to validate after release:
+
+## 10) Rollback plan
 
 - If deployment fails/regresses:
 
-## 10) Traceability and completion
+## 11) Traceability and completion
 
 - Files changed:
 - Tests run and results:

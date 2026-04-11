@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet';
 import {
   Box,
   Button,
-  CircularProgress,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -19,7 +19,6 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import BlockIcon from '@mui/icons-material/Block';
 import EditIcon from '@mui/icons-material/Edit';
-import Refresh from '@mui/icons-material/Refresh';
 import ReplayIcon from '@mui/icons-material/Replay';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -31,6 +30,9 @@ import PortalConfirmDialog from './PortalConfirmDialog';
 import StatusAlertSlot from './StatusAlertSlot';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
+import PortalRefreshButton from './PortalRefreshButton';
+
+const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 
 function toFriendlyErrorMessage(t, fallbackKey) {
   return t(fallbackKey);
@@ -40,6 +42,10 @@ function displayName(landlord) {
   const first = String(landlord.first_name ?? '').trim();
   const last = String(landlord.last_name ?? '').trim();
   return `${first} ${last}`.trim() || '—';
+}
+
+function isActiveStatus(status) {
+  return String(status ?? '').toUpperCase() === 'ACTIVE';
 }
 
 const PortalAdminLandlords = () => {
@@ -67,6 +73,15 @@ const PortalAdminLandlords = () => {
   const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
   const [landlordsState, setLandlordsState] = useState({ status: 'idle', detail: '', landlords: [] });
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
+  const sortedLandlords = useMemo(
+    () =>
+      [...landlordsState.landlords].sort((a, b) => {
+        const byName = collator.compare(displayName(a), displayName(b));
+        if (byName !== 0) return byName;
+        return collator.compare(String(a?.email ?? ''), String(b?.email ?? ''));
+      }),
+    [landlordsState.landlords]
+  );
 
   // Confirmation dialog for toggle active/inactive
   const [confirmDialog, setConfirmDialog] = useState({ open: false, landlordId: null, activate: false, name: '' });
@@ -379,21 +394,12 @@ const PortalAdminLandlords = () => {
                   label={t('portalAdminLandlords.list.showInactive')}
                   sx={{ mr: 0 }}
                 />
-                <Button
-                  type="button"
-                  size="small"
-                  variant="outlined"
-                  disabled={!canUseModule || landlordsState.status === 'loading'}
+                <PortalRefreshButton
+                  label={t('portalAdminLandlords.list.refreshLandlordList')}
                   onClick={() => void loadLandlords()}
-                  startIcon={
-                    landlordsState.status === 'loading'
-                      ? <CircularProgress size={16} />
-                      : <Refresh fontSize="small" />
-                  }
-                  sx={{ textTransform: 'none' }}
-                >
-                  {t('portalAdminLandlords.list.refreshLandlordList')}
-                </Button>
+                  disabled={!canUseModule}
+                  loading={landlordsState.status === 'loading'}
+                />
               </Stack>
             </Stack>
             {landlordsState.status === 'loading' && landlordsState.landlords.length === 0 && (
@@ -407,7 +413,7 @@ const PortalAdminLandlords = () => {
             {landlordsState.status !== 'loading' && landlordsState.landlords.length === 0 && (
               <Typography color="text.secondary">{t('portalAdminLandlords.list.empty')}</Typography>
             )}
-            {landlordsState.landlords.map((landlord) => (
+            {sortedLandlords.map((landlord) => (
               <Box
                 key={landlord.id}
                 sx={{
@@ -420,13 +426,18 @@ const PortalAdminLandlords = () => {
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Stack spacing={0.5}>
+                      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                        <Typography sx={{ fontWeight: 600 }}>{displayName(landlord)}</Typography>
+                        <Chip
+                          label={isActiveStatus(landlord.status)
+                            ? t('portalTenants.status.active')
+                            : t('portalTenants.status.disabled')}
+                          size="small"
+                          color={isActiveStatus(landlord.status) ? 'success' : 'default'}
+                          variant={isActiveStatus(landlord.status) ? 'filled' : 'outlined'}
+                        />
+                      </Stack>
                       <Typography sx={{ fontWeight: 600 }}>{landlord.email}</Typography>
-                      <Typography color="text.secondary">
-                        {t('portalAdminLandlords.list.name')}: {displayName(landlord)}
-                      </Typography>
-                      <Typography color="text.secondary">
-                        {t('portalAdminLandlords.list.status')}: {landlord.status}
-                      </Typography>
                     </Stack>
                   </Box>
                   <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end', flexShrink: 0 }}>

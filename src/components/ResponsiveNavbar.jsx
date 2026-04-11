@@ -360,12 +360,12 @@ const ResponsiveNavbar = () => {
             setNotifications((items) => items.map((item) => (
                 item.id === notification.id ? { ...item, read_at: item.read_at || new Date().toISOString() } : item
             )));
-        } catch (error) {
-            handleApiForbidden?.(error);
-        } finally {
             if (notification.deep_link) {
                 navigate(withDarkPath(pathname, notification.deep_link));
             }
+        } catch (error) {
+            handleApiForbidden?.(error);
+        } finally {
             handleNotificationsClose();
         }
     };

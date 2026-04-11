@@ -7,6 +7,11 @@
  */
 
 import { findUserByEmail, updateUserProfile, type UserRow } from '../../lib/usersRepo.js';
+import {
+  ensureUserNotificationPreference,
+  updateUserNotificationPreference,
+  type UserNotificationPreferenceRow,
+} from '../../lib/notificationPolicyRepo.js';
 import { validateProfileUpdate } from '../../domain/userValidation.js';
 import { conflictError, notFound, validationError } from '../../domain/errors.js';
 import type { Queryable } from '../types.js';
@@ -17,16 +22,30 @@ export type UpdateProfileInput = {
   firstName?: string | null;
   lastName?: string | null;
   phone?: string | null;
+  notificationPreferences?: {
+    emailEnabled?: boolean;
+    inAppEnabled?: boolean;
+    smsEnabled?: boolean;
+    smsOptIn?: boolean;
+  };
 };
 
 export type UpdateProfileOutput = {
   user: UserRow;
+  notificationPreferences: UserNotificationPreferenceRow;
 };
 
 export async function updateProfile(
   db: Queryable,
   input: UpdateProfileInput
 ): Promise<UpdateProfileOutput> {
+  const smsEnabled = Boolean(input.notificationPreferences?.smsEnabled);
+  const smsOptIn = Boolean(input.notificationPreferences?.smsOptIn);
+  const normalizedPhone = String(input.phone ?? '').trim();
+  if ((smsEnabled || smsOptIn) && !normalizedPhone) {
+    throw validationError('sms_phone_required');
+  }
+
   const validation = validateProfileUpdate({
     email: input.email,
     firstName: input.firstName ?? undefined,
@@ -58,5 +77,14 @@ export async function updateProfile(
   }
 
   if (!updated) throw notFound();
-  return { user: updated };
+  const notificationPreferences = input.notificationPreferences
+    ? await updateUserNotificationPreference(db, {
+      userId: input.actorUserId,
+      emailEnabled: input.notificationPreferences.emailEnabled,
+      inAppEnabled: input.notificationPreferences.inAppEnabled,
+      smsEnabled: input.notificationPreferences.smsEnabled,
+      smsOptIn: input.notificationPreferences.smsOptIn,
+    })
+    : await ensureUserNotificationPreference(db, input.actorUserId);
+  return { user: updated, notificationPreferences };
 }

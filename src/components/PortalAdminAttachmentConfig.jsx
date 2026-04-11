@@ -14,7 +14,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import Refresh from '@mui/icons-material/Refresh';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { emailFromAccount, normalizeRole, resolveRole } from '../portalUtils';
@@ -27,7 +26,9 @@ import {
   patchAttachmentUploadLandlordConfig,
 } from '../lib/portalApiClient';
 import StatusAlertSlot from './StatusAlertSlot';
+import PortalRefreshButton from './PortalRefreshButton';
 
+const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 const BYTES_PER_MB = 1024 * 1024;
 
 const EMPTY_FORM = {
@@ -108,6 +109,15 @@ const PortalAdminAttachmentConfig = () => {
     () => overrides.find((row) => row.landlord_user_id === selectedLandlordId) || null,
     [overrides, selectedLandlordId]
   );
+  const sortedLandlords = useMemo(
+    () =>
+      [...landlords].sort((a, b) => {
+        const aLabel = String(a?.name ?? a?.email ?? a?.id ?? '').trim();
+        const bLabel = String(b?.name ?? b?.email ?? b?.id ?? '').trim();
+        return collator.compare(aLabel, bLabel);
+      }),
+    [landlords]
+  );
 
   const load = useCallback(async () => {
     if (!canUseModule || !baseUrl) {
@@ -128,8 +138,13 @@ const PortalAdminAttachmentConfig = () => {
       const nextOverrides = Array.isArray(configPayload?.overrides) ? configPayload.overrides : [];
       setOverrides(nextOverrides);
       const landlordRows = Array.isArray(landlordsPayload?.landlords) ? landlordsPayload.landlords : [];
-      setLandlords(landlordRows);
-      const firstLandlordId = landlordRows[0]?.id || '';
+      const sortedRows = [...landlordRows].sort((a, b) => {
+        const aLabel = String(a?.name ?? a?.email ?? a?.id ?? '').trim();
+        const bLabel = String(b?.name ?? b?.email ?? b?.id ?? '').trim();
+        return collator.compare(aLabel, bLabel);
+      });
+      setLandlords(sortedRows);
+      const firstLandlordId = sortedRows[0]?.id || '';
       setSelectedLandlordId((prev) => prev || firstLandlordId);
       setStatus('ok');
     } catch (loadError) {
@@ -224,16 +239,12 @@ const PortalAdminAttachmentConfig = () => {
             </Typography>
             <Typography color="text.secondary">{t('portalAdminAttachmentConfig.intro')}</Typography>
           </Box>
-          <Button
-            type="button"
-            size="small"
-            variant="outlined"
+          <PortalRefreshButton
+            label={t('portalAdminAttachmentConfig.actions.refresh')}
             onClick={() => void load()}
-            disabled={!canUseModule || status === 'loading'}
-            startIcon={status === 'loading' ? <CircularProgress size={16} /> : <Refresh fontSize="small" />}
-          >
-            {t('portalAdminAttachmentConfig.actions.refresh')}
-          </Button>
+            disabled={!canUseModule}
+            loading={status === 'loading'}
+          />
         </Stack>
         <StatusAlertSlot
           message={!baseUrl ? { severity: 'warning', text: t('portalAdminAttachmentConfig.errors.apiUnavailable') } : null}
@@ -316,7 +327,7 @@ const PortalAdminAttachmentConfig = () => {
               value={selectedLandlordId}
               onChange={(event) => setSelectedLandlordId(event.target.value)}
             >
-              {landlords.map((landlord) => (
+              {sortedLandlords.map((landlord) => (
                 <MenuItem key={landlord.id} value={landlord.id}>
                   {landlord.name || landlord.email || landlord.id}
                 </MenuItem>

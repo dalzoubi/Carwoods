@@ -94,6 +94,11 @@ export type RequestNotificationRecipient = {
   is_management: boolean;
 };
 
+export type RequestNotificationScope = {
+  request_id: string;
+  property_id: string | null;
+};
+
 export async function findStatusIdByCode(client: Queryable, code: string): Promise<string | null> {
   const r = await client.query<{ id: string }>(
     `SELECT id
@@ -771,5 +776,19 @@ export async function listRequestNotificationRecipients(
     [requestId]
   );
   return r.rows;
+}
+
+export async function getRequestNotificationScope(
+  client: Queryable,
+  requestId: string
+): Promise<RequestNotificationScope | null> {
+  const r = await client.query<RequestNotificationScope>(
+    `SELECT TOP 1 id AS request_id, property_id
+     FROM maintenance_requests
+     WHERE id = $1
+       AND deleted_at IS NULL`,
+    [requestId]
+  );
+  return r.rows[0] ?? null;
 }
 

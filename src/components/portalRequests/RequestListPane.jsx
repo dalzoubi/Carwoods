@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
-  Button,
   Chip,
+  Button,
   List,
   ListItemButton,
   ListItemText,
@@ -12,10 +12,9 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import Refresh from '@mui/icons-material/Refresh';
-import CircularProgress from '@mui/material/CircularProgress';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
+import PortalRefreshButton from '../PortalRefreshButton';
 import { RequestStatus, Role } from '../../domain/constants';
 import { normalizeRole } from '../../portalUtils';
 import { getStatusChipSx } from './requestChipStyles';
@@ -78,6 +77,34 @@ function formatUpdatedAt(item) {
   return date.toLocaleString();
 }
 
+const OPEN_STATUS_CODES = new Set([RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED]);
+const IN_PROGRESS_STATUS_CODES = new Set([
+  RequestStatus.SCHEDULED,
+  RequestStatus.WAITING_ON_TENANT,
+  RequestStatus.WAITING_ON_VENDOR,
+]);
+const RESOLVED_STATUS_CODES = new Set([RequestStatus.COMPLETE, RequestStatus.CANCELLED]);
+const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+
+const SUPPORTED_FILTERS = new Set([
+  'all',
+  'open',
+  'inProgress',
+  'resolved',
+  RequestStatus.NOT_STARTED,
+  RequestStatus.ACKNOWLEDGED,
+  RequestStatus.SCHEDULED,
+  RequestStatus.WAITING_ON_TENANT,
+  RequestStatus.WAITING_ON_VENDOR,
+  RequestStatus.COMPLETE,
+  RequestStatus.CANCELLED,
+]);
+
+function normalizeStatusFilter(value) {
+  const raw = String(value ?? '').trim();
+  return SUPPORTED_FILTERS.has(raw) ? raw : 'all';
+}
+
 const RequestListPane = ({
   requests,
   requestsStatus,
@@ -92,10 +119,16 @@ const RequestListPane = ({
   landlordsStatus = 'idle',
   selectedLandlordId = '',
   onSelectLandlord,
+  initialStatusFilter = 'all',
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState(() => normalizeStatusFilter(initialStatusFilter));
+
+  useEffect(() => {
+    setStatusFilter(normalizeStatusFilter(initialStatusFilter));
+  }, [initialStatusFilter]);
+
   const landlordFilteredRequests = useMemo(() => {
     if (!isAdmin || !selectedLandlordId) return requests;
     return requests.filter((request) => {
@@ -111,6 +144,15 @@ const RequestListPane = ({
   }, [isAdmin, requests, selectedLandlordId]);
   const filteredRequests = useMemo(() => {
     if (statusFilter === 'all') return landlordFilteredRequests;
+    if (statusFilter === 'open') {
+      return landlordFilteredRequests.filter((request) => OPEN_STATUS_CODES.has(String(request.status_code || '').toUpperCase()));
+    }
+    if (statusFilter === 'inProgress') {
+      return landlordFilteredRequests.filter((request) => IN_PROGRESS_STATUS_CODES.has(String(request.status_code || '').toUpperCase()));
+    }
+    if (statusFilter === 'resolved') {
+      return landlordFilteredRequests.filter((request) => RESOLVED_STATUS_CODES.has(String(request.status_code || '').toUpperCase()));
+    }
     return landlordFilteredRequests.filter((request) => {
       const statusCode = String(request.status_code || '').toUpperCase();
       return statusCode === statusFilter;
@@ -119,6 +161,19 @@ const RequestListPane = ({
   const sortedRequests = useMemo(
     () => [...filteredRequests].sort((a, b) => updatedAtMs(b) - updatedAtMs(a)),
     [filteredRequests]
+  );
+  const sortedLandlords = useMemo(
+    () =>
+      [...landlords].sort((a, b) => {
+        const aFirst = String(a?.first_name ?? '').trim();
+        const aLast = String(a?.last_name ?? '').trim();
+        const aName = `${aFirst} ${aLast}`.trim() || String(a?.email ?? '').trim();
+        const bFirst = String(b?.first_name ?? '').trim();
+        const bLast = String(b?.last_name ?? '').trim();
+        const bName = `${bFirst} ${bLast}`.trim() || String(b?.email ?? '').trim();
+        return collator.compare(aName, bName);
+      }),
+    [landlords]
   );
   const listStatusMessage = requestsStatus === 'loading'
     ? { severity: 'info', text: t('portalRequests.loading') }
@@ -132,17 +187,12 @@ const RequestListPane = ({
         <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
           {t('portalRequests.list.heading')}
         </Typography>
-        <Button
-          type="button"
-          size="small"
-          variant="outlined"
+        <PortalRefreshButton
+          label={t('portalRequests.actions.reload')}
           onClick={onReload}
           disabled={reloadDisabled}
-          startIcon={requestsStatus === 'loading' ? <CircularProgress size={16} /> : <Refresh fontSize="small" />}
-          sx={{ textTransform: 'none' }}
-        >
-          {t('portalRequests.actions.reload')}
-        </Button>
+          loading={requestsStatus === 'loading'}
+        />
       </Stack>
       <StatusAlertSlot message={listStatusMessage} />
       {isAdmin && (
@@ -161,7 +211,7 @@ const RequestListPane = ({
             sx={{ maxWidth: 320 }}
           >
             <MenuItem value="">{t('portalRequests.list.landlordFilter.all')}</MenuItem>
-            {landlords.map((landlord) => {
+            {sortedLandlords.map((landlord) => {
               const first = String(landlord.first_name ?? '').trim();
               const last = String(landlord.last_name ?? '').trim();
               const name = `${first} ${last}`.trim() || String(landlord.email ?? '').trim();
@@ -187,6 +237,9 @@ const RequestListPane = ({
           sx={{ maxWidth: 260 }}
         >
           <MenuItem value="all">{t('portalRequests.list.filters.all')}</MenuItem>
+          <MenuItem value="open">{t('portalRequests.list.filters.open')}</MenuItem>
+          <MenuItem value="inProgress">{t('portalRequests.list.filters.inProgress')}</MenuItem>
+          <MenuItem value="resolved">{t('portalRequests.list.filters.resolved')}</MenuItem>
           <MenuItem value={RequestStatus.NOT_STARTED}>{t('portalRequests.statuses.NOT_STARTED')}</MenuItem>
           <MenuItem value={RequestStatus.ACKNOWLEDGED}>{t('portalRequests.statuses.ACKNOWLEDGED')}</MenuItem>
           <MenuItem value={RequestStatus.SCHEDULED}>{t('portalRequests.statuses.SCHEDULED')}</MenuItem>

@@ -16,7 +16,6 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import Refresh from '@mui/icons-material/Refresh';
 import TuneIcon from '@mui/icons-material/Tune';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -30,6 +29,9 @@ import {
   patchElsaSettings,
 } from '../lib/portalApiClient';
 import StatusAlertSlot from './StatusAlertSlot';
+import PortalRefreshButton from './PortalRefreshButton';
+
+const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 
 const EMPTY_FORM = {
   elsa_enabled: false,
@@ -138,22 +140,31 @@ const PortalAdminAiConfig = () => {
       const categories = Array.isArray(payload?.categories) ? payload.categories : [];
       const priorities = Array.isArray(payload?.priorities) ? payload.priorities : [];
       const properties = Array.isArray(payload?.properties) ? payload.properties : [];
+      const sortedCategories = [...categories].sort((a, b) =>
+        collator.compare(String(a?.category_code ?? ''), String(b?.category_code ?? ''))
+      );
+      const sortedPriorities = [...priorities].sort((a, b) =>
+        collator.compare(String(a?.priority_code ?? ''), String(b?.priority_code ?? ''))
+      );
+      const sortedProperties = [...properties].sort((a, b) =>
+        collator.compare(String(a?.property_id ?? ''), String(b?.property_id ?? ''))
+      );
       setForm(toForm(payload?.settings ?? null));
       setCategoryPolicies(
-        categories.map((row) => ({
+        sortedCategories.map((row) => ({
           category_code: String(row?.category_code ?? ''),
           auto_send_enabled: Boolean(row?.auto_send_enabled),
         }))
       );
       setPriorityPolicies(
-        priorities.map((row) => ({
+        sortedPriorities.map((row) => ({
           priority_code: String(row?.priority_code ?? ''),
           auto_send_enabled: Boolean(row?.auto_send_enabled),
           require_admin_review: Boolean(row?.require_admin_review),
         }))
       );
       setPropertyPolicies(
-        properties.map((row) => ({
+        sortedProperties.map((row) => ({
           property_id: String(row?.property_id ?? ''),
           auto_send_enabled_override:
             row?.auto_send_enabled_override === null
@@ -301,16 +312,12 @@ const PortalAdminAiConfig = () => {
             </Typography>
             <Typography color="text.secondary">{t('portalAdminAiConfig.intro')}</Typography>
           </Box>
-          <Button
-            type="button"
-            size="small"
-            variant="outlined"
+          <PortalRefreshButton
+            label={t('portalAdminAiConfig.actions.refresh')}
             onClick={() => void load()}
-            disabled={!canUseModule || loadStatus === 'loading'}
-            startIcon={loadStatus === 'loading' ? <CircularProgress size={16} /> : <Refresh fontSize="small" />}
-          >
-            {t('portalAdminAiConfig.actions.refresh')}
-          </Button>
+            disabled={!canUseModule}
+            loading={loadStatus === 'loading'}
+          />
         </Stack>
 
         <StatusAlertSlot

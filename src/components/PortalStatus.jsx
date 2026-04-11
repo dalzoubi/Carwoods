@@ -11,7 +11,6 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import Refresh from '@mui/icons-material/Refresh';
 import HealthAndSafety from '@mui/icons-material/HealthAndSafety';
 import ManageSearch from '@mui/icons-material/ManageSearch';
 import { VITE_API_BASE_URL_RESOLVED } from '../featureFlags';
@@ -20,6 +19,7 @@ import { emailFromAccount, firstNonEmpty, resolveRole } from '../portalUtils';
 import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
 import { fetchHealth as apiFetchHealth } from '../lib/portalApiClient';
 import StatusAlertSlot from './StatusAlertSlot';
+import PortalRefreshButton from './PortalRefreshButton';
 
 function statusColor(status) {
   if (status === 'ok') return 'success';
@@ -177,21 +177,12 @@ const PortalStatus = () => {
               <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
                 {t('portalSetup.sessionHeading')}
               </Typography>
-              <Button
-                type="button"
-                size="small"
-                variant="outlined"
+              <PortalRefreshButton
+                label={t('portalSetup.actions.refreshSession')}
                 onClick={refreshMe}
-                disabled={!isAuthenticated || meStatus === 'loading'}
-                startIcon={
-                  meStatus === 'loading'
-                    ? <CircularProgress size={16} />
-                    : <Refresh fontSize="small" />
-                }
-                sx={{ textTransform: 'none' }}
-              >
-                {t('portalSetup.actions.refreshSession')}
-              </Button>
+                disabled={!isAuthenticated}
+                loading={meStatus === 'loading'}
+              />
             </Stack>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
               <Chip

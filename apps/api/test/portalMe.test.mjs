@@ -37,6 +37,7 @@ test('portalMe returns 503 when user lookup throws', async () => {
     getPool: () => ({}),
     verifyAccessToken: async () => ({ sub: 'sub-1', oid: 'oid-1' }),
     authConfigured: () => true,
+    ensureUserNotificationPreference: async () => null,
     findUserByClaims: async () => {
       throw new Error('db temporarily unavailable');
     },
@@ -55,6 +56,7 @@ test('portalMe returns 403 no_portal_access when user is not found', async () =>
     getPool: () => ({}),
     verifyAccessToken: async () => ({ sub: 'sub-2', oid: 'oid-2' }),
     authConfigured: () => true,
+    ensureUserNotificationPreference: async () => null,
     findUserByClaims: async () => null,
   });
 
@@ -71,6 +73,15 @@ test('portalMe allows AI_AGENT role', async () => {
     getPool: () => ({}),
     verifyAccessToken: async () => ({ sub: 'sub-3', oid: 'oid-3', email: 'ai@example.com' }),
     authConfigured: () => true,
+    ensureUserNotificationPreference: async () => ({
+      user_id: '00000000-0000-0000-0000-000000000000',
+      email_enabled: true,
+      in_app_enabled: true,
+      sms_enabled: false,
+      sms_opt_in: false,
+      created_at: new Date(),
+      updated_at: new Date(),
+    }),
     findUserByClaims: async () => ({
       id: '00000000-0000-0000-0000-000000000000',
       external_auth_oid: 'system:elsa:auto-responder',

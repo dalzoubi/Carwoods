@@ -13,6 +13,7 @@ import {
   authConfigured,
 } from '../lib/jwtVerify.js';
 import { findUserByClaims } from '../lib/usersRepo.js';
+import { ensureUserNotificationPreference } from '../lib/notificationPolicyRepo.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 import { withRateLimit } from '../lib/rateLimiter.js';
 import { Role } from '../domain/constants.js';
@@ -23,6 +24,7 @@ type PortalMeDeps = {
   verifyAccessToken: typeof verifyAccessToken;
   authConfigured: typeof authConfigured;
   findUserByClaims: typeof findUserByClaims;
+  ensureUserNotificationPreference: typeof ensureUserNotificationPreference;
 };
 
 const DEFAULT_PORTAL_ME_DEPS: PortalMeDeps = {
@@ -31,6 +33,7 @@ const DEFAULT_PORTAL_ME_DEPS: PortalMeDeps = {
   verifyAccessToken,
   authConfigured,
   findUserByClaims,
+  ensureUserNotificationPreference,
 };
 
 export async function portalMeHandler(
@@ -87,11 +90,15 @@ export async function portalMeHandler(
   const emailHint = request.headers.get('x-email-hint')?.trim() || undefined;
 
   let user: Awaited<ReturnType<typeof findUserByClaims>> = null;
+  let notificationPreferences: Awaited<ReturnType<typeof ensureUserNotificationPreference>> | null = null;
   let userLookupFailed = false;
   if (deps.hasDatabaseUrl()) {
     try {
       const pool = deps.getPool();
       user = await deps.findUserByClaims(pool, claims, { emailHint, logger: context });
+      if (user) {
+        notificationPreferences = await deps.ensureUserNotificationPreference(pool, user.id);
+      }
     } catch (error) {
       userLookupFailed = true;
       logError(context, 'portal.me.user_lookup.error', {
@@ -165,7 +172,10 @@ export async function portalMeHandler(
       oid: claims.oid ?? null,
       email: primaryEmailFromClaims(claims) ?? null,
       role: user.role,
-      user,
+      user: {
+        ...user,
+        notification_preferences: notificationPreferences,
+      },
     },
   };
 }

@@ -76,3 +76,34 @@ test('updateProfile maps DB unique-email race condition to conflict', async () =
     }
   );
 });
+
+test('updateProfile requires phone when SMS notifications are enabled', async () => {
+  const db = {
+    async query(sql) {
+      if (/FROM users\s+WHERE LOWER\(email\) = \$1/i.test(sql)) {
+        return { rows: [makeUserRow({ id: 'actor-user', email: 'self@example.com' })], rowCount: 1 };
+      }
+      throw new Error(`Unexpected query execution: ${sql}`);
+    },
+  };
+
+  await assert.rejects(
+    updateProfile(db, {
+      actorUserId: 'actor-user',
+      email: 'self@example.com',
+      firstName: 'Test',
+      lastName: 'User',
+      phone: null,
+      notificationPreferences: {
+        smsEnabled: true,
+        smsOptIn: true,
+      },
+    }),
+    (error) => {
+      assert.ok(error instanceof DomainError);
+      assert.equal(error.code, 'VALIDATION');
+      assert.equal(error.message, 'sms_phone_required');
+      return true;
+    }
+  );
+});

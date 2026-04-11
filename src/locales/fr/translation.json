@@ -117,6 +117,8 @@
     "useBody": "Nous utilisons les informations pour répondre aux demandes, traiter les candidatures, fournir des services de gestion immobilière et respecter les obligations légales. Nous ne vendons pas vos informations personnelles.",
     "thirdPartyHeading": "Tiers",
     "thirdPartyBody": "Notre site peut renvoyer à des services externes (p. ex., Texas Real Estate Commission, HAR.com). Nous ne sommes pas responsables de leurs pratiques en matière de confidentialité. Veuillez consulter leurs politiques avant de partager des informations.",
+    "notificationsHeading": "Préférences de notification et avis obligatoires",
+    "notificationsBody": "Vous pouvez contrôler de nombreux paramètres de notification du portail dans votre profil, y compris les préférences e-mail, in-app et SMS. Les avis de sécurité et de conformité peuvent tout de même être envoyés lorsqu'ils sont requis par la loi, la politique ou la protection du compte.",
     "contactHeading": "Contact",
     "contactBody": "Pour les questions liées à la confidentialité ou pour demander l'accès à vos informations, contactez-nous via notre page",
     "contactLink": "Contactez-nous",
@@ -144,6 +146,8 @@
     "legalNoticeBody": "Les informations de ce site sont fournies uniquement à titre informatif général et ne constituent pas un conseil juridique, fiscal, comptable ou d'investissement. Vous devez consulter des professionnels qualifiés pour obtenir des conseils adaptés à votre situation.",
     "changesHeading": "Modifications de ces Conditions",
     "changesBody": "Nous pouvons mettre à jour ces Conditions de temps à autre. Les Conditions mises à jour prennent effet dès leur publication sur cette page. Votre utilisation continue du site après publication signifie que vous acceptez les Conditions révisées.",
+    "notificationsHeading": "Notifications et consentement",
+    "notificationsBody": "En utilisant les fonctionnalités de messagerie du portail, vous acceptez de recevoir des notifications de service liées à l'onboarding et à l'activité de maintenance selon vos préférences de profil. L'envoi de SMS nécessite un consentement explicite. Les notifications de sécurité et de conformité peuvent être envoyées indépendamment des préférences de canal facultatives.",
     "contactHeading": "Contact",
     "contactBody": "Si vous avez des questions sur ces Conditions, veuillez nous contacter via notre page",
     "contactLink": "Contactez-nous",
@@ -759,7 +763,18 @@
       "email": "E-mail",
       "firstName": "Prenom",
       "lastName": "Nom",
-      "phone": "Numero de telephone"
+      "phone": "Numero de telephone",
+      "notificationsHeading": "Preferences de notification",
+      "notificationsEmail": "Notifications par e-mail",
+      "notificationsInApp": "Notifications dans l'application",
+      "notificationsSms": "Notifications SMS (j'accepte explicitement de recevoir des notifications SMS)",
+      "notificationsSmsOptIn": "J'accepte explicitement de recevoir des notifications SMS"
+    },
+    "smsOptInConfirm": {
+      "title": "Confirmer l'opt-in SMS",
+      "body": "Confirmez-vous que vous acceptez explicitement de recevoir des notifications SMS liees a l'activite du portail ?",
+      "cancel": "Annuler",
+      "confirm": "Oui, j'accepte"
     },
     "actions": {
       "save": "Enregistrer le profil",
@@ -773,8 +788,61 @@
       "lastNameRequired": "Le nom est obligatoire.",
       "emailInvalid": "Saisissez une adresse e-mail valide.",
       "emailExists": "Cette adresse e-mail est deja utilisee par un autre utilisateur.",
+      "phoneRequiredForSms": "Le numero de mobile est obligatoire lorsque les notifications SMS sont activees.",
       "phoneInvalid": "Saisissez un numero de telephone valide.",
       "unknown": "Impossible de mettre a jour le profil."
+    }
+  },
+  "portalNotificationPolicies": {
+    "heading": "Politiques de notification",
+    "intro": "Gérez les dérogations de notification par propriété et par demande pour les utilisateurs.",
+    "scope": {
+      "heading": "Portée",
+      "scopeType": "Type de portée",
+      "property": "Propriété",
+      "request": "Demande",
+      "selectProperty": "Sélectionner une propriété",
+      "selectRequest": "Sélectionner une demande",
+      "currentScope": "ID de portée actuel : {{scopeId}}"
+    },
+    "overrides": {
+      "heading": "Dérogations existantes",
+      "empty": "Aucune dérogation trouvée pour cette portée.",
+      "user": "Utilisateur"
+    },
+    "form": {
+      "heading": "Créer ou mettre à jour une dérogation",
+      "userId": "Utilisateur cible",
+      "userOptionsEmpty": "Aucun utilisateur trouve pour la portee selectionnee.",
+      "eventCategory": "Catégorie d'événement",
+      "email": "Canal e-mail",
+      "inApp": "Canal in-app",
+      "sms": "Canal SMS",
+      "smsOptIn": "Consentement SMS",
+      "active": "Statut de la dérogation",
+      "activeEnabled": "Active",
+      "activeDisabled": "Inactive",
+      "overrideReason": "Raison de la dérogation",
+      "mode": {
+        "inherit": "Hériter",
+        "enabled": "Activé",
+        "disabled": "Désactivé"
+      }
+    },
+    "actions": {
+      "refresh": "Actualiser",
+      "save": "Enregistrer la dérogation",
+      "saving": "Enregistrement..."
+    },
+    "messages": {
+      "saved": "Dérogation de notification enregistrée."
+    },
+    "errors": {
+      "signInRequired": "Connectez-vous avant de gérer les politiques de notification.",
+      "apiUnavailable": "Configurez VITE_API_BASE_URL pour activer la gestion des politiques de notification.",
+      "loadFailed": "Impossible de charger les données de portée.",
+      "loadPoliciesFailed": "Impossible de charger les dérogations de notification.",
+      "saveFailed": "Impossible d'enregistrer la dérogation de notification."
     }
   },
   "portalRequests": {
@@ -1111,7 +1179,8 @@
     "tabs": {
       "policies": "Politiques IA",
       "agents": "Agents",
-      "attachments": "Pieces jointes"
+      "attachments": "Pieces jointes",
+      "notifications": "Politiques de notifications"
     }
   },
   "portalAdminAiConfig": {
@@ -1407,6 +1476,7 @@
       "adminLandlords": "Propriétaires",
       "adminConfigurations": "Configurations",
       "adminAiConfig": "Configuration IA",
+      "notificationPolicies": "Politiques de notification",
       "properties": "Propriétés",
       "status": "État du système",
       "collapse": "Réduire la barre latérale",

@@ -40,6 +40,7 @@ const PortalRequests = () => {
   const searchParams = new URLSearchParams(location.search);
   const selectedRequestFromUrl = searchParams.get('id') || '';
   const createFromUrl = searchParams.get('create') === '1';
+  const statusFilterFromUrl = searchParams.get('status') || 'all';
   const listPaneRef = useRef(null);
   const detailPaneRef = useRef(null);
   const {
@@ -444,6 +445,7 @@ const PortalRequests = () => {
               requests={requests}
               requestsStatus={requestsStatus}
               requestsError={requestsError}
+              initialStatusFilter={statusFilterFromUrl}
               selectedRequestId={selectedRequestId}
               onSelectRequest={async (id) => {
                 setSelectedRequestId(id);

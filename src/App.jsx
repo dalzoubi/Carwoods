@@ -105,8 +105,16 @@ function PortalRoutes() {
                 }
             />
             <Route
+                path="/portal/notifications"
+                element={
+                    <PortalRouteGuard allowedRoles={[Role.LANDLORD, Role.ADMIN]}>
+                        <Navigate to="/portal/admin/config?tab=notifications" replace />
+                    </PortalRouteGuard>
+                }
+            />
+            <Route
                 path="/portal/admin"
-                element={<Navigate to="/portal/admin/landlords" replace />}
+                element={<Navigate to="/portal/admin/config" replace />}
             />
             <Route
                 path="/portal/admin/landlords"
@@ -123,7 +131,7 @@ function PortalRoutes() {
             <Route
                 path="/portal/admin/config"
                 element={
-                    <PortalRouteGuard allowedRoles={[Role.ADMIN]}>
+                    <PortalRouteGuard allowedRoles={[Role.LANDLORD, Role.ADMIN]}>
                         <PortalAdminAiSettings />
                     </PortalRouteGuard>
                 }

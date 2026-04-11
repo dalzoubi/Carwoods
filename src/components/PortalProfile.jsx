@@ -5,9 +5,15 @@ import {
   Avatar,
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
   Paper,
   Skeleton,
   Stack,
+  Switch,
   TextField,
   Typography,
 } from '@mui/material';
@@ -26,20 +32,24 @@ function validateProfileForm(form, t) {
       lastNameRequired: 'portalProfile.errors.lastNameRequired',
       emailRequired: 'portalProfile.errors.emailInvalid',
       emailInvalid: 'portalProfile.errors.emailInvalid',
+      phoneRequired: 'portalProfile.errors.phoneRequiredForSms',
       phoneInvalid: 'portalProfile.errors.phoneInvalid',
     },
+    requirePhone: Boolean(form?.notificationsSmsEnabled),
   });
 }
 
-function validateProfileFieldSingle(field, value, t) {
+function validateProfileFieldSingle(field, value, t, options = {}) {
   return validatePersonField(field, value, t, {
     keys: {
       firstNameRequired: 'portalProfile.errors.firstNameRequired',
       lastNameRequired: 'portalProfile.errors.lastNameRequired',
       emailRequired: 'portalProfile.errors.emailInvalid',
       emailInvalid: 'portalProfile.errors.emailInvalid',
+      phoneRequired: 'portalProfile.errors.phoneRequiredForSms',
       phoneInvalid: 'portalProfile.errors.phoneInvalid',
     },
+    requirePhone: Boolean(options.requirePhone),
   });
 }
 
@@ -69,10 +79,15 @@ const PortalProfile = () => {
     firstName: '',
     lastName: '',
     phone: '',
+    notificationsEmailEnabled: true,
+    notificationsInAppEnabled: true,
+    notificationsSmsEnabled: false,
+    notificationsSmsOptIn: false,
   });
   const [saveStatus, setSaveStatus] = useState('idle');
   const [saveError, setSaveError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [smsOptInConfirmOpen, setSmsOptInConfirmOpen] = useState(false);
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
   const initialForm = useMemo(
@@ -81,6 +96,14 @@ const PortalProfile = () => {
       firstName: meData?.user?.first_name ?? '',
       lastName: meData?.user?.last_name ?? '',
       phone: meData?.user?.phone ?? '',
+      notificationsEmailEnabled: meData?.user?.notification_preferences?.email_enabled ?? true,
+      notificationsInAppEnabled: meData?.user?.notification_preferences?.in_app_enabled ?? true,
+      notificationsSmsEnabled:
+        Boolean(meData?.user?.notification_preferences?.sms_enabled)
+        && Boolean(meData?.user?.notification_preferences?.sms_opt_in),
+      notificationsSmsOptIn:
+        Boolean(meData?.user?.notification_preferences?.sms_enabled)
+        && Boolean(meData?.user?.notification_preferences?.sms_opt_in),
     }),
     [meData]
   );
@@ -89,7 +112,11 @@ const PortalProfile = () => {
       form.email !== initialForm.email
       || form.firstName !== initialForm.firstName
       || form.lastName !== initialForm.lastName
-      || form.phone !== initialForm.phone,
+      || form.phone !== initialForm.phone
+      || form.notificationsEmailEnabled !== initialForm.notificationsEmailEnabled
+      || form.notificationsInAppEnabled !== initialForm.notificationsInAppEnabled
+      || form.notificationsSmsEnabled !== initialForm.notificationsSmsEnabled
+      || form.notificationsSmsOptIn !== initialForm.notificationsSmsOptIn,
     [form, initialForm]
   );
 
@@ -116,8 +143,43 @@ const PortalProfile = () => {
     setSaveError('');
   };
   const onBlur = (field) => (event) => {
-    const message = validateProfileFieldSingle(field, event.target.value, t);
+    const message = validateProfileFieldSingle(field, event.target.value, t, {
+      requirePhone: Boolean(form.notificationsSmsEnabled),
+    });
     setFieldErrors((prev) => ({ ...prev, [field]: message }));
+  };
+  const onToggle = (field) => (event) => {
+    if (field === 'notificationsSmsEnabled') {
+      const checked = event.target.checked;
+      if (checked) {
+        setSmsOptInConfirmOpen(true);
+      } else {
+        setForm((prev) => ({
+          ...prev,
+          notificationsSmsEnabled: false,
+          notificationsSmsOptIn: false,
+        }));
+      }
+      setSaveStatus('idle');
+      setSaveError('');
+      return;
+    }
+    setForm((prev) => ({ ...prev, [field]: event.target.checked }));
+    setSaveStatus('idle');
+    setSaveError('');
+  };
+  const confirmSmsOptIn = () => {
+    setForm((prev) => ({
+      ...prev,
+      notificationsSmsEnabled: true,
+      notificationsSmsOptIn: true,
+    }));
+    setSaveStatus('idle');
+    setSaveError('');
+    setSmsOptInConfirmOpen(false);
+  };
+  const cancelSmsOptIn = () => {
+    setSmsOptInConfirmOpen(false);
   };
 
   const onSubmit = async (event) => {
@@ -152,14 +214,39 @@ const PortalProfile = () => {
         first_name: form.firstName,
         last_name: form.lastName,
         phone: form.phone,
+        notification_preferences: {
+          email_enabled: form.notificationsEmailEnabled,
+          in_app_enabled: form.notificationsInAppEnabled,
+          sms_enabled: form.notificationsSmsEnabled,
+          sms_opt_in: form.notificationsSmsOptIn,
+        },
       });
       const savedUser = payload && typeof payload === 'object' ? payload.user : null;
+      const savedPreferences = payload && typeof payload === 'object'
+        ? payload.notification_preferences
+        : null;
       if (savedUser && typeof savedUser === 'object') {
         setForm({
           email: typeof savedUser.email === 'string' ? savedUser.email : form.email,
           firstName: typeof savedUser.first_name === 'string' ? savedUser.first_name : form.firstName,
           lastName: typeof savedUser.last_name === 'string' ? savedUser.last_name : form.lastName,
           phone: typeof savedUser.phone === 'string' ? savedUser.phone : '',
+          notificationsEmailEnabled:
+            typeof savedPreferences?.email_enabled === 'boolean'
+              ? savedPreferences.email_enabled
+              : form.notificationsEmailEnabled,
+          notificationsInAppEnabled:
+            typeof savedPreferences?.in_app_enabled === 'boolean'
+              ? savedPreferences.in_app_enabled
+              : form.notificationsInAppEnabled,
+          notificationsSmsEnabled:
+            typeof savedPreferences?.sms_enabled === 'boolean'
+              ? savedPreferences.sms_enabled
+              : form.notificationsSmsEnabled,
+          notificationsSmsOptIn:
+            typeof savedPreferences?.sms_opt_in === 'boolean'
+              ? savedPreferences.sms_opt_in
+              : form.notificationsSmsOptIn,
         });
       }
       setSaveStatus('success');
@@ -170,13 +257,23 @@ const PortalProfile = () => {
         error
         && typeof error === 'object'
         && 'code' in error
-        && error.code === 'email_already_in_use'
       ) {
-        setFieldErrors({});
-        setSaveStatus('idle');
-        setSaveError('');
-        showFeedback(t('portalProfile.errors.emailExists'), 'error');
-        return;
+        if (error.code === 'email_already_in_use') {
+          setFieldErrors({});
+          setSaveStatus('idle');
+          setSaveError('');
+          showFeedback(t('portalProfile.errors.emailExists'), 'error');
+          return;
+        }
+        if (error.code === 'sms_phone_required') {
+          setFieldErrors((prev) => ({
+            ...prev,
+            phone: t('portalProfile.errors.phoneRequiredForSms'),
+          }));
+          setSaveStatus('error');
+          setSaveError(t('portalProfile.errors.phoneRequiredForSms'));
+          return;
+        }
       }
       setSaveStatus('error');
       setSaveError(t('portalProfile.errors.unknown'));
@@ -293,6 +390,41 @@ const PortalProfile = () => {
                   helperText={fieldErrors.phone || ' '}
                   disabled={formDisabled}
                 />
+                <Stack spacing={0.5}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    {t('portalProfile.fields.notificationsHeading')}
+                  </Typography>
+                  <FormControlLabel
+                    control={(
+                      <Switch
+                        checked={Boolean(form.notificationsEmailEnabled)}
+                        onChange={onToggle('notificationsEmailEnabled')}
+                        disabled={formDisabled}
+                      />
+                    )}
+                    label={t('portalProfile.fields.notificationsEmail')}
+                  />
+                  <FormControlLabel
+                    control={(
+                      <Switch
+                        checked={Boolean(form.notificationsInAppEnabled)}
+                        onChange={onToggle('notificationsInAppEnabled')}
+                        disabled={formDisabled}
+                      />
+                    )}
+                    label={t('portalProfile.fields.notificationsInApp')}
+                  />
+                  <FormControlLabel
+                    control={(
+                      <Switch
+                        checked={Boolean(form.notificationsSmsEnabled)}
+                        onChange={onToggle('notificationsSmsEnabled')}
+                        disabled={formDisabled}
+                      />
+                    )}
+                    label={t('portalProfile.fields.notificationsSms')}
+                  />
+                </Stack>
                 <Stack
                   direction="row"
                   alignItems="center"
@@ -314,6 +446,28 @@ const PortalProfile = () => {
           </Stack>
         </Paper>
       </Stack>
+      <Dialog
+        open={smsOptInConfirmOpen}
+        onClose={cancelSmsOptIn}
+        aria-labelledby="portal-profile-sms-optin-title"
+      >
+        <DialogTitle id="portal-profile-sms-optin-title">
+          {t('portalProfile.smsOptInConfirm.title')}
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            {t('portalProfile.smsOptInConfirm.body')}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button type="button" onClick={cancelSmsOptIn}>
+            {t('portalProfile.smsOptInConfirm.cancel')}
+          </Button>
+          <Button type="button" variant="contained" onClick={confirmSmsOptIn}>
+            {t('portalProfile.smsOptInConfirm.confirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
       <PortalFeedbackSnackbar feedback={feedback} onClose={closeFeedback} />
     </Box>
   );

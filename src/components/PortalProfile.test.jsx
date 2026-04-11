@@ -108,7 +108,7 @@ describe('PortalProfile', () => {
   it('sends lowercase email when saving profile', async () => {
     render(<WithAppTheme><PortalProfile /></WithAppTheme>);
 
-    const emailInput = screen.getByLabelText(/email/i);
+    const emailInput = screen.getByRole('textbox', { name: /email/i });
     const saveButton = screen.getByRole('button', { name: /save profile/i });
 
     fireEvent.change(emailInput, { target: { value: 'AGENT+UPPER@CARWOODS.COM' } });
@@ -135,7 +135,7 @@ describe('PortalProfile', () => {
     render(<WithAppTheme><PortalProfile /></WithAppTheme>);
 
     const firstNameInput = screen.getByLabelText(/first name/i);
-    const emailInput = screen.getByLabelText(/email/i);
+    const emailInput = screen.getByRole('textbox', { name: /email/i });
     const saveButton = screen.getByRole('button', { name: /save profile/i });
 
     fireEvent.change(firstNameInput, { target: { value: 'Updated' } });
@@ -152,5 +152,60 @@ describe('PortalProfile', () => {
       expect(emailInput).toHaveValue('taken@carwoods.com');
       expect(screen.queryByText(/HTTP 409 \(email_already_in_use\)/i)).not.toBeInTheDocument();
     });
+  });
+
+  it('asks for SMS opt-in confirmation before enabling SMS notifications', async () => {
+    render(<WithAppTheme><PortalProfile /></WithAppTheme>);
+
+    const smsSwitch = screen.getByRole('checkbox', { name: /sms notifications/i });
+    expect(smsSwitch).not.toBeChecked();
+
+    fireEvent.click(smsSwitch);
+
+    expect(
+      await screen.findByText(/confirm sms notification opt-in/i)
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /yes, i opt in/i }));
+
+    expect(smsSwitch).toBeChecked();
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /save profile/i }));
+
+    await waitFor(() => {
+      expect(portalApiClient.patchProfile).toHaveBeenCalledWith(
+        'https://api.carwoods.com',
+        'mock-token',
+        expect.objectContaining({
+          notification_preferences: expect.objectContaining({
+            sms_enabled: true,
+            sms_opt_in: true,
+          }),
+        })
+      );
+    });
+  });
+
+  it('requires mobile phone when SMS notifications are enabled', async () => {
+    render(<WithAppTheme><PortalProfile /></WithAppTheme>);
+
+    const phoneInput = screen.getByLabelText(/phone number/i);
+    fireEvent.change(phoneInput, { target: { value: '' } });
+    fireEvent.blur(phoneInput);
+
+    const smsSwitch = screen.getByRole('checkbox', { name: /sms notifications/i });
+    fireEvent.click(smsSwitch);
+    fireEvent.click(await screen.findByRole('button', { name: /yes, i opt in/i }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /save profile/i }));
+
+    expect(
+      await screen.findByText(/mobile phone is required when sms notifications are enabled\./i)
+    ).toBeInTheDocument();
+    expect(portalApiClient.patchProfile).not.toHaveBeenCalled();
   });
 });

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import {
   Box,
@@ -30,7 +30,6 @@ import Edit from '@mui/icons-material/Edit';
 import Delete from '@mui/icons-material/Delete';
 import Add from '@mui/icons-material/Add';
 import Sync from '@mui/icons-material/Sync';
-import Refresh from '@mui/icons-material/Refresh';
 import Close from '@mui/icons-material/Close';
 import Home from '@mui/icons-material/Home';
 import { useTranslation } from 'react-i18next';
@@ -50,8 +49,11 @@ import {
   apiPropertyToDisplay,
 } from '../lib/propertiesApiClient';
 import StatusAlertSlot from './StatusAlertSlot';
+import PortalRefreshButton from './PortalRefreshButton';
 import { listingFromHarPreviewPayload, parseHarInput } from '../portalHarPreviewParse';
 import { fetchElsaSettings, fetchHarPreview, fetchLandlords, patchElsaPropertyPolicy } from '../lib/portalApiClient';
+
+const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 
 const EMPTY_FORM = {
   harId: '',
@@ -656,6 +658,30 @@ const PortalAdminProperties = () => {
     if (visibilityFilter === 'deleted' && !property.deletedAt) return false;
     return true;
   });
+  const sortedFilteredProperties = useMemo(
+    () =>
+      [...filteredProperties].sort((a, b) => {
+        const byAddress = collator.compare(String(a?.addressLine ?? ''), String(b?.addressLine ?? ''));
+        if (byAddress !== 0) return byAddress;
+        const byCityStateZip = collator.compare(String(a?.cityStateZip ?? ''), String(b?.cityStateZip ?? ''));
+        if (byCityStateZip !== 0) return byCityStateZip;
+        return collator.compare(String(a?.id ?? ''), String(b?.id ?? ''));
+      }),
+    [filteredProperties]
+  );
+  const sortedLandlords = useMemo(
+    () =>
+      [...landlords].sort((a, b) => {
+        const aFirst = String(a?.first_name ?? '').trim();
+        const aLast = String(a?.last_name ?? '').trim();
+        const bFirst = String(b?.first_name ?? '').trim();
+        const bLast = String(b?.last_name ?? '').trim();
+        const aName = `${aFirst} ${aLast}`.trim() || String(a?.email ?? '').trim();
+        const bName = `${bFirst} ${bLast}`.trim() || String(b?.email ?? '').trim();
+        return collator.compare(aName, bName);
+      }),
+    [landlords]
+  );
 
   return (
     <Box sx={{ py: 4 }}>
@@ -753,17 +779,12 @@ const PortalAdminProperties = () => {
             <Typography variant="h6" fontWeight={600}>
               {t('portalAdminProperties.grid.heading')}
             </Typography>
-            <Button
-              type="button"
-              size="small"
-              variant="outlined"
-              disabled={listLoading || !canManage}
+            <PortalRefreshButton
+              label={t('portalAdminProperties.grid.refreshButton')}
               onClick={() => void refresh()}
-              startIcon={listLoading ? <CircularProgress size={16} /> : <Refresh fontSize="small" />}
-              sx={{ textTransform: 'none' }}
-            >
-              {t('portalAdminProperties.grid.refreshButton')}
-            </Button>
+              disabled={!canManage}
+              loading={listLoading}
+            />
           </Stack>
 
           {listLoading && properties.length === 0 ? (
@@ -773,13 +794,13 @@ const PortalAdminProperties = () => {
                 {t('portalAdminProperties.grid.loading')}
               </Typography>
             </Box>
-          ) : filteredProperties.length === 0 ? (
+          ) : sortedFilteredProperties.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
               {t('portalAdminProperties.grid.empty')}
             </Typography>
           ) : (
             <Grid container spacing={2}>
-              {filteredProperties.map((property) => (
+              {sortedFilteredProperties.map((property) => (
                 <Grid item xs={12} sm={6} md={4} key={property.id}>
                   <PropertyCard
                     property={property}
@@ -916,7 +937,7 @@ const PortalAdminProperties = () => {
                     }
                   >
                     <MenuItem value="">{t('portalAdminProperties.form.landlordSelect')}</MenuItem>
-                    {landlords.map((landlord) => {
+                    {sortedLandlords.map((landlord) => {
                       const first = String(landlord.first_name ?? '').trim();
                       const last = String(landlord.last_name ?? '').trim();
                       const name = `${first} ${last}`.trim() || String(landlord.email ?? '').trim();

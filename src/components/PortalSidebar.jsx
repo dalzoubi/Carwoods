@@ -78,9 +78,13 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
 
   const navItems = [
     { key: 'dashboard', to: '/portal', label: t('portalLayout.sidebar.dashboard'), icon: <Dashboard />, exact: true },
-    ...(normalized === Role.ADMIN
+    ...(roleResolved && (normalized === Role.ADMIN || normalized === Role.LANDLORD)
       ? [
           { key: 'admin-config', to: '/portal/admin/config', label: t('portalLayout.sidebar.adminConfigurations'), icon: <Settings /> },
+        ]
+      : []),
+    ...(normalized === Role.ADMIN
+      ? [
           { key: 'admin', to: '/portal/admin/landlords', label: t('portalLayout.sidebar.adminLandlords'), icon: <SupervisorAccount /> },
         ]
       : []),

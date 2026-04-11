@@ -45,6 +45,7 @@ import { RequestStatus, Role } from '../../domain/constants.js';
 import { normalizeRole } from '../../portalUtils';
 import { getStatusChipSx } from './requestChipStyles';
 
+const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 const CANCELLABLE_STATUS_CODES = new Set([RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED]);
 const ELSA_MODE_LABEL_KEYS = {
   NEED_MORE_INFO: 'portalRequests.elsa.modes.needMoreInfo',
@@ -80,6 +81,11 @@ function formatDateTime(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
   return date.toLocaleString();
+}
+
+function timestampMs(value) {
+  const ms = value ? new Date(value).getTime() : 0;
+  return Number.isFinite(ms) ? ms : 0;
 }
 
 function formatScheduleWindow(requestDetail, t) {
@@ -322,6 +328,57 @@ const RequestDetailPane = ({
     : attachmentShareState.status === 'success'
       ? { severity: 'success', text: attachmentShareState.message || t('portalRequests.attachments.shareCopied') }
       : null;
+  const sortedManagementStatusOptions = useMemo(
+    () =>
+      [...(managementStatusOptions || [])].sort((a, b) => {
+        const aCode = String(a ?? '');
+        const bCode = String(b ?? '');
+        const aLabel = t(`portalRequests.statuses.${aCode.toUpperCase()}`, { defaultValue: aCode });
+        const bLabel = t(`portalRequests.statuses.${bCode.toUpperCase()}`, { defaultValue: bCode });
+        return collator.compare(aLabel, bLabel);
+      }),
+    [managementStatusOptions, t]
+  );
+  const sortedManagementPriorityOptions = useMemo(
+    () =>
+      [...(managementPriorityOptions || [])].sort((a, b) =>
+        collator.compare(String(a?.name ?? a?.code ?? ''), String(b?.name ?? b?.code ?? ''))
+      ),
+    [managementPriorityOptions]
+  );
+  const sortedThreadMessages = useMemo(
+    () =>
+      [...threadMessages].sort((a, b) => {
+        const byCreated = timestampMs(a?.created_at) - timestampMs(b?.created_at);
+        if (byCreated !== 0) return byCreated;
+        return collator.compare(String(a?.id ?? ''), String(b?.id ?? ''));
+      }),
+    [threadMessages]
+  );
+  const sortedAttachments = useMemo(
+    () =>
+      [...attachments].sort((a, b) => {
+        const byCreated = timestampMs(a?.created_at) - timestampMs(b?.created_at);
+        if (byCreated !== 0) return byCreated;
+        return collator.compare(String(a?.id ?? ''), String(b?.id ?? ''));
+      }),
+    [attachments]
+  );
+  const sortedElsaDecisions = useMemo(
+    () =>
+      [...(elsaDecisions || [])]
+        .sort((a, b) => {
+          const byCreated = timestampMs(b?.created_at) - timestampMs(a?.created_at);
+          if (byCreated !== 0) return byCreated;
+          return collator.compare(String(a?.id ?? ''), String(b?.id ?? ''));
+        })
+        .filter((decision) => (
+          (decision.policy_decision !== 'HOLD_FOR_REVIEW' || !decision.reviewed_at)
+          && String(decision.review_status || '').toUpperCase() !== 'DISMISSED'
+        ))
+        .slice(0, 3),
+    [elsaDecisions]
+  );
   const parsedAudits = useMemo(
     () => (Array.isArray(auditEvents) ? auditEvents : []).map((event) => {
       const parseJsonSafe = (raw) => {
@@ -365,6 +422,10 @@ const RequestDetailPane = ({
           return [...keys].filter((key) => JSON.stringify(beforeObj[key]) !== JSON.stringify(afterObj[key]));
         })(),
       };
+    }).sort((a, b) => {
+      const byCreated = timestampMs(b?.created_at) - timestampMs(a?.created_at);
+      if (byCreated !== 0) return byCreated;
+      return collator.compare(String(a?.id ?? ''), String(b?.id ?? ''));
     }),
     [auditEvents]
   );
@@ -870,7 +931,7 @@ const RequestDetailPane = ({
                     <MenuItem value="">
                       {t('portalRequests.management.selectStatusCode')}
                     </MenuItem>
-                    {(managementStatusOptions || []).map((statusCode) => (
+                    {sortedManagementStatusOptions.map((statusCode) => (
                       <MenuItem key={statusCode} value={statusCode}>
                         {t(`portalRequests.statuses.${String(statusCode || '').toUpperCase()}`, { defaultValue: statusCode })}
                       </MenuItem>
@@ -887,7 +948,7 @@ const RequestDetailPane = ({
                     disabled={managementUpdateStatus === 'saving'}
                   >
                     <MenuItem value="">{t('portalRequests.management.selectPriorityCode')}</MenuItem>
-                    {(managementPriorityOptions || []).map((priority) => (
+                    {sortedManagementPriorityOptions.map((priority) => (
                       <MenuItem key={priority.code} value={priority.code}>
                         {priority.name}
                       </MenuItem>
@@ -1027,13 +1088,7 @@ const RequestDetailPane = ({
             <StatusAlertSlot
               message={elsaDecisionError ? { severity: 'error', text: elsaDecisionError } : null}
             />
-            {(elsaDecisions || [])
-              .filter((decision) => (
-                (decision.policy_decision !== 'HOLD_FOR_REVIEW' || !decision.reviewed_at)
-                && String(decision.review_status || '').toUpperCase() !== 'DISMISSED'
-              ))
-              .slice(0, 3)
-              .map((decision) => {
+            {sortedElsaDecisions.map((decision) => {
                 const plannedReply = extractPlannedReply(decision);
                 const canUseSuggestedReply = shouldOfferManualAction(decision, plannedReply);
                 const canDismissSuggestion = shouldOfferDismissAction(decision);
@@ -1222,10 +1277,10 @@ const RequestDetailPane = ({
             })}
           >
             <Stack spacing={1}>
-              {threadMessages.length === 0 && (
+              {sortedThreadMessages.length === 0 && (
                 <Typography color="text.secondary">{t('portalRequests.messages.empty')}</Typography>
               )}
-              {threadMessages.map((msg) => (
+              {sortedThreadMessages.map((msg) => (
                 <Box
                   key={msg.id}
                   sx={(theme) => ({
@@ -1395,7 +1450,7 @@ const RequestDetailPane = ({
             })}
           >
             <Stack spacing={0.75}>
-              {attachments.length === 0 && (
+              {sortedAttachments.length === 0 && (
                 <Box
                   sx={(theme) => ({
                     border: '1px dashed',
@@ -1408,7 +1463,7 @@ const RequestDetailPane = ({
                   <Typography color="text.secondary">{t('portalRequests.attachments.empty')}</Typography>
                 </Box>
               )}
-              {attachments.map((att) => (
+              {sortedAttachments.map((att) => (
                 <Box
                   key={att.id}
                   sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1.25 }}

@@ -117,6 +117,8 @@
     "useBody": "We use information to respond to inquiries, process applications, provide property management services, and comply with legal obligations. We do not sell your personal information.",
     "thirdPartyHeading": "Third Parties",
     "thirdPartyBody": "Our site may link to external services (e.g., Texas Real Estate Commission, HAR.com). We are not responsible for their privacy practices. Please review their policies before sharing information.",
+    "notificationsHeading": "Notification Preferences and Mandatory Notices",
+    "notificationsBody": "You may control many portal notification settings in your profile, including email, in-app, and SMS preferences. Security and compliance notices may still be sent when required by law, policy, or account protection needs.",
     "contactHeading": "Contact",
     "contactBody": "For privacy-related questions or to request access to your information, contact us through our",
     "contactLink": "Contact Us",
@@ -144,6 +146,8 @@
     "legalNoticeBody": "Information on this site is provided for general informational purposes only and is not legal, tax, accounting, or investment advice. You should consult qualified professionals for advice specific to your situation.",
     "changesHeading": "Changes to These Terms",
     "changesBody": "We may update these Terms from time to time. Updated Terms are effective when posted on this page. Your continued use of the site after updates means you accept the revised Terms.",
+    "notificationsHeading": "Notifications and Consent",
+    "notificationsBody": "By using portal messaging features, you agree to receive service notifications related to onboarding and maintenance activity according to your profile preferences. SMS delivery requires explicit opt-in. Security and compliance notifications may be sent regardless of optional channel preferences.",
     "contactHeading": "Contact",
     "contactBody": "If you have questions about these Terms, please contact us through our",
     "contactLink": "Contact Us",
@@ -759,7 +763,18 @@
       "email": "Email",
       "firstName": "First name",
       "lastName": "Last name",
-      "phone": "Phone number"
+      "phone": "Phone number",
+      "notificationsHeading": "Notification preferences",
+      "notificationsEmail": "Email notifications",
+      "notificationsInApp": "In-app notifications",
+      "notificationsSms": "SMS notifications (I explicitly opt in to SMS notifications)",
+      "notificationsSmsOptIn": "I explicitly opt in to SMS notifications"
+    },
+    "smsOptInConfirm": {
+      "title": "Confirm SMS notification opt-in",
+      "body": "Do you affirm that you explicitly opt in to SMS notifications for portal activity?",
+      "cancel": "Cancel",
+      "confirm": "Yes, I opt in"
     },
     "actions": {
       "save": "Save profile",
@@ -773,8 +788,61 @@
       "lastNameRequired": "Last name is required.",
       "emailInvalid": "Enter a valid email address.",
       "emailExists": "That email is already in use by another user.",
+      "phoneRequiredForSms": "Mobile phone is required when SMS notifications are enabled.",
       "phoneInvalid": "Enter a valid phone number.",
       "unknown": "Unable to update profile."
+    }
+  },
+  "portalNotificationPolicies": {
+    "heading": "Notification Policies",
+    "intro": "Manage per-property and per-request notification overrides for users.",
+    "scope": {
+      "heading": "Scope",
+      "scopeType": "Scope type",
+      "property": "Property",
+      "request": "Request",
+      "selectProperty": "Select property",
+      "selectRequest": "Select request",
+      "currentScope": "Current scope ID: {{scopeId}}"
+    },
+    "overrides": {
+      "heading": "Existing overrides",
+      "empty": "No overrides found for this scope.",
+      "user": "User"
+    },
+    "form": {
+      "heading": "Create or update override",
+      "userId": "Target user",
+      "userOptionsEmpty": "No users found for the selected scope.",
+      "eventCategory": "Event category",
+      "email": "Email channel",
+      "inApp": "In-app channel",
+      "sms": "SMS channel",
+      "smsOptIn": "SMS opt-in",
+      "active": "Override status",
+      "activeEnabled": "Active",
+      "activeDisabled": "Inactive",
+      "overrideReason": "Override reason",
+      "mode": {
+        "inherit": "Inherit",
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      }
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "save": "Save override",
+      "saving": "Saving..."
+    },
+    "messages": {
+      "saved": "Notification override saved."
+    },
+    "errors": {
+      "signInRequired": "Sign in before managing notification policies.",
+      "apiUnavailable": "Set VITE_API_BASE_URL to enable notification policy management.",
+      "loadFailed": "Unable to load scope data.",
+      "loadPoliciesFailed": "Unable to load notification overrides.",
+      "saveFailed": "Unable to save notification override."
     }
   },
   "portalRequests": {
@@ -1111,7 +1179,8 @@
     "tabs": {
       "policies": "AI Policies",
       "agents": "Agents",
-      "attachments": "Attachments"
+      "attachments": "Attachments",
+      "notifications": "Notification Policies"
     }
   },
   "portalAdminAiConfig": {
@@ -1407,6 +1476,7 @@
       "adminLandlords": "Landlords",
       "adminConfigurations": "Configurations",
       "adminAiConfig": "AI Configuration",
+      "notificationPolicies": "Notification Policies",
       "properties": "Properties",
       "tenants": "Tenants",
       "status": "System Status",

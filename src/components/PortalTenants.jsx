@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import {
   Box,
@@ -28,7 +28,6 @@ import Edit from '@mui/icons-material/Edit';
 import Block from '@mui/icons-material/Block';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
-import Refresh from '@mui/icons-material/Refresh';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { Role } from '../domain/constants.js';
@@ -50,6 +49,7 @@ import InlineActionStatus from './InlineActionStatus';
 import StatusAlertSlot from './StatusAlertSlot';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
+import PortalRefreshButton from './PortalRefreshButton';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -74,6 +74,28 @@ function propertyLabel(p) {
 
 function isActiveStatus(status) {
   return String(status ?? '').toUpperCase() === 'ACTIVE';
+}
+
+const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+
+function sortByPropertyLabel(items) {
+  return [...items].sort((a, b) => collator.compare(propertyLabel(a), propertyLabel(b)));
+}
+
+function sortByLandlordLabel(items) {
+  return [...items].sort((a, b) => {
+    const aLabel = `${displayName(a)} ${String(a?.email ?? '').trim()}`.trim();
+    const bLabel = `${displayName(b)} ${String(b?.email ?? '').trim()}`.trim();
+    return collator.compare(aLabel, bLabel);
+  });
+}
+
+function sortByTenantLabel(items) {
+  return [...items].sort((a, b) => {
+    const aLabel = `${displayName(a)} ${String(a?.email ?? '').trim()}`.trim();
+    const bLabel = `${displayName(b)} ${String(b?.email ?? '').trim()}`.trim();
+    return collator.compare(aLabel, bLabel);
+  });
 }
 
 function normalizeTenantRows(rows) {
@@ -190,6 +212,7 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
   const submitStatusMessage = submitState.status === 'error'
     ? { severity: 'error', text: submitState.detail }
     : null;
+  const sortedProperties = useMemo(() => sortByPropertyLabel(properties), [properties]);
 
   useEffect(() => {
     if (open && lease) {
@@ -279,7 +302,7 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
               <MenuItem value="" disabled>
                 {t('portalTenants.form.selectProperty')}
               </MenuItem>
-              {properties.map((p) => (
+              {sortedProperties.map((p) => (
                 <MenuItem key={p.id} value={p.id}>
                   {propertyLabel(p)}
                 </MenuItem>
@@ -501,6 +524,7 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
   const submitStatusMessage = submitState.status === 'error'
     ? { severity: 'error', text: submitState.detail }
     : null;
+  const sortedProperties = useMemo(() => sortByPropertyLabel(properties), [properties]);
 
   useEffect(() => {
     if (open) {
@@ -585,7 +609,7 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
               <MenuItem value="" disabled>
                 {t('portalTenants.form.selectProperty')}
               </MenuItem>
-              {properties.map((p) => (
+              {sortedProperties.map((p) => (
                 <MenuItem key={p.id} value={p.id}>
                   {propertyLabel(p)}
                 </MenuItem>
@@ -781,9 +805,13 @@ function EditTenantDialog({
     }
   };
 
-  const availableProperties = isAdmin
-    ? properties.filter((p) => p.landlord_user_id === form.landlord_id || p.created_by === form.landlord_id)
-    : properties;
+  const sortedLandlords = useMemo(() => sortByLandlordLabel(landlords), [landlords]);
+  const availableProperties = useMemo(() => {
+    const rows = isAdmin
+      ? properties.filter((p) => p.landlord_user_id === form.landlord_id || p.created_by === form.landlord_id)
+      : properties;
+    return sortByPropertyLabel(rows);
+  }, [form.landlord_id, isAdmin, properties]);
 
   return (
     <Dialog open={open} onClose={handleAttemptClose} maxWidth="sm" fullWidth>
@@ -865,7 +893,7 @@ function EditTenantDialog({
                   <MenuItem value="" disabled>
                     {t('portalTenants.form.selectLandlord')}
                   </MenuItem>
-                  {landlords.map((l) => (
+                  {sortedLandlords.map((l) => (
                     <MenuItem key={l.id} value={l.id}>
                       {displayName(l)} — {l.email}
                     </MenuItem>
@@ -960,6 +988,17 @@ function TenantRow({
   const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
   const emailHint = meData?.user?.email ?? account?.username ?? '';
   const isActive = isActiveStatus(tenant.status);
+  const sortedLeases = useMemo(
+    () =>
+      [...leasesState.leases].sort((a, b) => {
+        const aStart = String(a?.start_date ?? '');
+        const bStart = String(b?.start_date ?? '');
+        const byStart = bStart.localeCompare(aStart);
+        if (byStart !== 0) return byStart;
+        return collator.compare(String(a?.id ?? ''), String(b?.id ?? ''));
+      }),
+    [leasesState.leases]
+  );
 
   const loadLeases = useCallback(async () => {
     if (!baseUrl) return;
@@ -1145,7 +1184,7 @@ function TenantRow({
                 {t('portalTenants.lease.empty')}
               </Typography>
             )}
-            {leasesState.leases.map((lease) => (
+            {sortedLeases.map((lease) => (
               <LeaseRow
                 key={lease.id}
                 lease={lease}
@@ -1324,9 +1363,13 @@ function OnboardTenantDialog({
     }
   };
 
-  const availableProperties = isAdmin
-    ? properties.filter((p) => p.landlord_user_id === form.landlord_id || p.created_by === form.landlord_id)
-    : properties;
+  const sortedLandlords = useMemo(() => sortByLandlordLabel(landlords), [landlords]);
+  const availableProperties = useMemo(() => {
+    const rows = isAdmin
+      ? properties.filter((p) => p.landlord_user_id === form.landlord_id || p.created_by === form.landlord_id)
+      : properties;
+    return sortByPropertyLabel(rows);
+  }, [form.landlord_id, isAdmin, properties]);
 
   return (
     <Dialog open={open} onClose={handleAttemptClose} maxWidth="sm" fullWidth>
@@ -1420,7 +1463,7 @@ function OnboardTenantDialog({
                   <MenuItem value="" disabled>
                     {t('portalTenants.form.selectLandlord')}
                   </MenuItem>
-                  {landlords.map((l) => (
+                  {sortedLandlords.map((l) => (
                     <MenuItem key={l.id} value={l.id}>
                       {displayName(l)} — {l.email}
                     </MenuItem>
@@ -1572,6 +1615,9 @@ const PortalTenants = () => {
   const [onboardOpen, setOnboardOpen] = useState(false);
   const [actionState, setActionState] = useState({ status: 'idle', detail: '' });
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
+  const sortedLandlords = useMemo(() => sortByLandlordLabel(landlords), [landlords]);
+  const sortedProperties = useMemo(() => sortByPropertyLabel(properties), [properties]);
+  const sortedTenants = useMemo(() => sortByTenantLabel(tenantsState.tenants), [tenantsState.tenants]);
 
   const emailHint = meData?.user?.email ?? account?.username ?? '';
 
@@ -1750,7 +1796,7 @@ const PortalTenants = () => {
                 <MenuItem value="">
                   {t('portalTenants.adminFilter.allLandlords')}
                 </MenuItem>
-                {landlords.map((l) => (
+                {sortedLandlords.map((l) => (
                   <MenuItem key={l.id} value={l.id}>
                     {displayName(l)} — {l.email}
                   </MenuItem>
@@ -1775,21 +1821,12 @@ const PortalTenants = () => {
               <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
                 {t('portalTenants.list.heading')}
               </Typography>
-              <Button
-                type="button"
-                size="small"
-                variant="outlined"
+              <PortalRefreshButton
+                label={t('portalTenants.actions.refresh')}
                 onClick={() => void loadTenants()}
-                disabled={!canUseModule || tenantsState.status === 'loading'}
-                startIcon={
-                  tenantsState.status === 'loading'
-                    ? <CircularProgress size={16} />
-                    : <Refresh fontSize="small" />
-                }
-                sx={{ textTransform: 'none' }}
-              >
-                {t('portalTenants.actions.refresh')}
-              </Button>
+                disabled={!canUseModule}
+                loading={tenantsState.status === 'loading'}
+              />
             </Stack>
 
             {tenantsState.status === 'loading' && tenantsState.tenants.length === 0 && (
@@ -1808,12 +1845,12 @@ const PortalTenants = () => {
             {tenantsState.status === 'ok' && tenantsState.tenants.length === 0 && (
               <Typography color="text.secondary">{t('portalTenants.list.empty')}</Typography>
             )}
-            {tenantsState.tenants.map((tenant, index) => (
+            {sortedTenants.map((tenant, index) => (
               <TenantRow
                 key={tenantRowKey(tenant, index)}
                 tenant={tenant}
-                properties={properties}
-                landlords={landlords}
+                properties={sortedProperties}
+                landlords={sortedLandlords}
                 isAdmin={isAdmin}
                 onToggleAccess={handleToggleAccess}
                 onDeleteTenant={handleDeleteTenant}
@@ -1830,8 +1867,8 @@ const PortalTenants = () => {
         open={onboardOpen}
         onClose={() => setOnboardOpen(false)}
         onSaved={handleOnboarded}
-        properties={properties}
-        landlords={landlords}
+        properties={sortedProperties}
+        landlords={sortedLandlords}
         isAdmin={isAdmin}
         selectedLandlordId={selectedLandlordId}
         onLandlordChange={setSelectedLandlordId}

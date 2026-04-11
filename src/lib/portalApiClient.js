@@ -864,6 +864,43 @@ export async function fetchAttachmentUploadConfig(baseUrl, accessToken, params) 
   return res.json();
 }
 
+export async function fetchNotificationPolicies(baseUrl, accessToken, params) {
+  const emailHint = params?.emailHint;
+  const query = new URLSearchParams();
+  query.set('scope_type', String(params?.scopeType || 'PROPERTY').toUpperCase());
+  query.set('scope_id', String(params?.scopeId || ''));
+  if (params?.userId) query.set('user_id', params.userId);
+  if (params?.eventCategory) query.set('event_category', String(params.eventCategory).toUpperCase());
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/notifications/policies?${query.toString()}`),
+    {
+      method: 'GET',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function patchNotificationPolicy(baseUrl, accessToken, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(buildUrl(baseUrl, '/api/landlord/notifications/policies'), {
+    method: 'PATCH',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
 export async function patchAttachmentUploadGlobalConfig(baseUrl, accessToken, payload) {
   const { emailHint, ...body } = payload;
   const res = await fetch(buildUrl(baseUrl, '/api/landlord/attachments/config'), {

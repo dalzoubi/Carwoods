@@ -3,29 +3,37 @@ import { Helmet } from 'react-helmet';
 import { Box, Paper, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
+import { usePortalAuth } from '../PortalAuthContext';
+import { normalizeRole, resolveRole } from '../portalUtils';
+import { Role } from '../domain/constants';
 import PortalAdminAiConfig from './PortalAdminAiConfig';
 import PortalAdminAiAgents from './PortalAdminAiAgents';
 import PortalAdminAttachmentConfig from './PortalAdminAttachmentConfig';
+import PortalNotificationPolicies from './PortalNotificationPolicies';
 
-const TAB_SLUGS = ['policies', 'agents', 'attachments'];
-
-function tabIndexFromSlug(rawSlug) {
+function tabIndexFromSlug(rawSlug, tabSlugs) {
   const normalized = String(rawSlug || '').trim().toLowerCase();
-  const index = TAB_SLUGS.indexOf(normalized);
+  const index = tabSlugs.indexOf(normalized);
   return index >= 0 ? index : 0;
 }
 
 const PortalAdminAiSettings = () => {
   const { t } = useTranslation();
+  const { account, meData } = usePortalAuth();
+  const role = normalizeRole(resolveRole(meData, account));
+  const isLandlord = role === Role.LANDLORD;
+  const tabSlugs = isLandlord
+    ? ['notifications']
+    : ['policies', 'agents', 'attachments', 'notifications'];
   const [searchParams, setSearchParams] = useSearchParams();
   const tabSlug = searchParams.get('tab');
-  const tab = tabIndexFromSlug(tabSlug);
+  const tab = tabIndexFromSlug(tabSlug, tabSlugs);
 
   const onTabChange = React.useCallback((_, nextTab) => {
     const nextParams = new URLSearchParams(searchParams);
-    nextParams.set('tab', TAB_SLUGS[nextTab] || TAB_SLUGS[0]);
+    nextParams.set('tab', tabSlugs[nextTab] || tabSlugs[0]);
     setSearchParams(nextParams, { replace: true });
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, tabSlugs]);
 
   return (
     <Box sx={{ py: 4 }}>
@@ -47,14 +55,16 @@ const PortalAdminAiSettings = () => {
             scrollButtons="auto"
             allowScrollButtonsMobile
           >
-            <Tab label={t('portalAdminConfigurations.tabs.policies')} />
-            <Tab label={t('portalAdminConfigurations.tabs.agents')} />
-            <Tab label={t('portalAdminConfigurations.tabs.attachments')} />
+            {!isLandlord && <Tab label={t('portalAdminConfigurations.tabs.policies')} />}
+            {!isLandlord && <Tab label={t('portalAdminConfigurations.tabs.agents')} />}
+            {!isLandlord && <Tab label={t('portalAdminConfigurations.tabs.attachments')} />}
+            <Tab label={t('portalAdminConfigurations.tabs.notifications')} />
           </Tabs>
         </Paper>
-        {tab === 0 && <PortalAdminAiConfig />}
-        {tab === 1 && <PortalAdminAiAgents />}
-        {tab === 2 && <PortalAdminAttachmentConfig />}
+        {tabSlugs[tab] === 'policies' && <PortalAdminAiConfig />}
+        {tabSlugs[tab] === 'agents' && <PortalAdminAiAgents />}
+        {tabSlugs[tab] === 'attachments' && <PortalAdminAttachmentConfig />}
+        {tabSlugs[tab] === 'notifications' && <PortalNotificationPolicies />}
       </Stack>
     </Box>
   );

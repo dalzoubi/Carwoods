@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   AppBar,
   Avatar,
@@ -37,6 +37,8 @@ import { Role } from '../domain/constants.js';
 import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
 import { fetchNotifications, markNotificationRead } from '../lib/portalApiClient';
 
+const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+
 function usePageTitle(t) {
   const { pathname } = useLocation();
   const normalized = stripDarkPreviewPrefix(pathname);
@@ -49,6 +51,7 @@ function usePageTitle(t) {
     '/portal/admin/landlords': t('portalLayout.sidebar.adminLandlords'),
     '/portal/admin/ai': t('portalLayout.sidebar.adminConfigurations'),
     '/portal/admin/config': t('portalLayout.sidebar.adminConfigurations'),
+    '/portal/notifications': t('portalLayout.sidebar.notificationPolicies'),
     '/portal/properties': t('portalLayout.sidebar.properties'),
     '/portal/status': t('portalLayout.sidebar.status'),
   };
@@ -121,6 +124,17 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const sortedNotifications = useMemo(
+    () =>
+      [...notifications].sort((a, b) => {
+        const aMs = a?.created_at ? new Date(a.created_at).getTime() : 0;
+        const bMs = b?.created_at ? new Date(b.created_at).getTime() : 0;
+        const byCreated = (Number.isFinite(bMs) ? bMs : 0) - (Number.isFinite(aMs) ? aMs : 0);
+        if (byCreated !== 0) return byCreated;
+        return collator.compare(String(a?.id ?? ''), String(b?.id ?? ''));
+      }),
+    [notifications]
+  );
 
   const loadNotifications = React.useCallback(async () => {
     if (!isAuthenticated || !baseUrl) return;
@@ -192,12 +206,12 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
       setNotifications((items) => items.map((item) => (
         item.id === notification.id ? { ...item, read_at: item.read_at || new Date().toISOString() } : item
       )));
-    } catch (error) {
-      handleApiForbidden?.(error);
-    } finally {
       if (notification.deep_link) {
         navigate(withDarkPath(pathname, notification.deep_link));
       }
+    } catch (error) {
+      handleApiForbidden?.(error);
+    } finally {
       handleNotificationsClose();
     }
   };
@@ -463,13 +477,13 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
           <Box sx={{ px: 2, py: 2, display: 'flex', justifyContent: 'center' }}>
             <CircularProgress size={18} />
           </Box>
-        ) : notifications.length === 0 ? (
+        ) : sortedNotifications.length === 0 ? (
           <Box sx={{ px: 2, py: 2 }}>
             <Typography variant="body2" color="text.secondary">
               {t('portalHeader.notifications.empty')}
             </Typography>
           </Box>
-        ) : notifications.map((notification) => (
+        ) : sortedNotifications.map((notification) => (
           <MenuItem
             key={notification.id}
             onClick={() => { void handleNotificationClick(notification); }}

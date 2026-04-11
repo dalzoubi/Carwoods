@@ -21,7 +21,6 @@ import Assignment from '@mui/icons-material/Assignment';
 import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
 import HomeWork from '@mui/icons-material/HomeWork';
 import ArrowForward from '@mui/icons-material/ArrowForward';
-import Refresh from '@mui/icons-material/Refresh';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { alpha } from '@mui/material/styles';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -30,6 +29,7 @@ import { isGuestRole, normalizeRole, resolveRole, emailFromAccount } from '../po
 import { RequestStatus, Role } from '../domain/constants.js';
 import { withDarkPath } from '../routePaths';
 import { fetchRequests } from '../lib/portalApiClient';
+import PortalRefreshButton from './PortalRefreshButton';
 
 export function statusColor(statusCode) {
   const s = String(statusCode ?? '').toUpperCase();
@@ -138,15 +138,29 @@ export function priorityTone(req) {
   };
 }
 
-const StatCard = ({ label, value, loading }) => (
+const StatCard = ({ label, value, loading, to }) => (
   <Paper
     variant="outlined"
+    component={to ? RouterLink : 'div'}
+    {...(to ? { to } : {})}
     sx={{
       flex: '1 1 0',
       minWidth: 120,
       p: 2.5,
       textAlign: 'center',
       borderRadius: 2,
+      textDecoration: 'none',
+      color: 'inherit',
+      transition: 'border-color 0.2s, box-shadow 0.2s',
+      ...(to
+        ? {
+            cursor: 'pointer',
+            '&:hover': {
+              borderColor: 'primary.main',
+              boxShadow: 1,
+            },
+          }
+        : {}),
     }}
   >
     {loading ? (
@@ -254,16 +268,23 @@ const PortalDashboard = () => {
                 label={t('portalDashboard.stats.open')}
                 value={stats.open}
                 loading={reqStatus === 'loading'}
+                to={stats.open > 0 ? withDarkPath(pathname, '/portal/requests?status=open') : undefined}
               />
               <StatCard
                 label={t('portalDashboard.stats.inProgress')}
                 value={stats.inProgress}
                 loading={reqStatus === 'loading'}
+                to={
+                  stats.inProgress > 0
+                    ? withDarkPath(pathname, '/portal/requests?status=inProgress')
+                    : undefined
+                }
               />
               <StatCard
                 label={t('portalDashboard.stats.resolved')}
                 value={stats.resolved}
                 loading={reqStatus === 'loading'}
+                to={stats.resolved > 0 ? withDarkPath(pathname, '/portal/requests?status=resolved') : undefined}
               />
             </Stack>
 
@@ -339,17 +360,11 @@ const PortalDashboard = () => {
                   {t('portalDashboard.recentRequests.heading')}
                 </Typography>
                 <Stack direction="row" spacing={1} alignItems="center">
-                  <Button
-                    type="button"
-                    size="small"
-                    variant="outlined"
+                  <PortalRefreshButton
+                    label={t('portalDashboard.actions.refresh')}
                     onClick={() => void loadRequests()}
-                    disabled={reqStatus === 'loading'}
-                    startIcon={reqStatus === 'loading' ? <CircularProgress size={14} /> : <Refresh />}
-                    sx={{ textTransform: 'none' }}
-                  >
-                    {t('portalDashboard.actions.refresh')}
-                  </Button>
+                    loading={reqStatus === 'loading'}
+                  />
                   {requests.length > 0 && (
                     <Button
                       component={RouterLink}

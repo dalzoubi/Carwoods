@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Box, Button, IconButton, Link, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
 import InlineActionStatus from '../InlineActionStatus';
 import { AttachmentUploadControl } from '..';
+
+const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 
 const TenantRequestForm = ({
   tenantForm,
@@ -56,6 +58,20 @@ const TenantRequestForm = ({
       }
       : null;
   const lookupsUnavailable = lookupsStatus !== 'ok' || categoryOptions.length === 0 || priorityOptions.length === 0;
+  const sortedCategoryOptions = useMemo(
+    () =>
+      [...categoryOptions].sort((a, b) =>
+        collator.compare(String(a?.name ?? a?.code ?? ''), String(b?.name ?? b?.code ?? ''))
+      ),
+    [categoryOptions]
+  );
+  const sortedPriorityOptions = useMemo(
+    () =>
+      [...priorityOptions].sort((a, b) =>
+        collator.compare(String(a?.name ?? a?.code ?? ''), String(b?.name ?? b?.code ?? ''))
+      ),
+    [priorityOptions]
+  );
 
   return (
     <Box
@@ -104,7 +120,7 @@ const TenantRequestForm = ({
           required
           disabled={disabled || lookupsUnavailable}
         >
-          {categoryOptions.map((option) => (
+          {sortedCategoryOptions.map((option) => (
             <MenuItem key={option.code} value={option.code}>
               {option.name}
             </MenuItem>
@@ -118,7 +134,7 @@ const TenantRequestForm = ({
           required
           disabled={disabled || lookupsUnavailable}
         >
-          {priorityOptions.map((option) => (
+          {sortedPriorityOptions.map((option) => (
             <MenuItem key={option.code} value={option.code}>
               {option.name}
             </MenuItem>

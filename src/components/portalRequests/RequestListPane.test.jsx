@@ -81,7 +81,7 @@ describe('RequestListPane', () => {
       ],
     });
 
-    expect(screen.getByText('Priority: Emergency')).toBeInTheDocument();
+    expect(screen.getByText('Emergency')).toBeInTheDocument();
     expect(screen.getByText('Reported by: Jane Tenant')).toBeInTheDocument();
     expect(screen.getByText('Tenant')).toBeInTheDocument();
     expect(screen.getByText(/Updated:/)).toBeInTheDocument();
@@ -111,6 +111,21 @@ describe('RequestListPane', () => {
     });
 
     expect(screen.queryByText('No requests found for this account.')).not.toBeInTheDocument();
+  });
+
+  it('applies grouped status filter from dashboard query param', () => {
+    renderPane({
+      initialStatusFilter: 'resolved',
+      requests: [
+        makeRequest('r1', 'Completed request', 'COMPLETE'),
+        makeRequest('r2', 'Cancelled request', 'CANCELLED'),
+        makeRequest('r3', 'Open request', 'NOT_STARTED'),
+      ],
+    });
+
+    expect(screen.getByText('Completed request')).toBeInTheDocument();
+    expect(screen.getByText('Cancelled request')).toBeInTheDocument();
+    expect(screen.queryByText('Open request')).not.toBeInTheDocument();
   });
 });
 

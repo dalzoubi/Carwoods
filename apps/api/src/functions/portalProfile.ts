@@ -18,6 +18,10 @@ function str(v: unknown): string | undefined {
   return typeof v === 'string' ? v.trim() : undefined;
 }
 
+function bool(v: unknown): boolean | undefined {
+  return typeof v === 'boolean' ? v : undefined;
+}
+
 async function portalProfileHandler(
   request: HttpRequest,
   context: InvocationContext
@@ -48,8 +52,32 @@ async function portalProfileHandler(
       firstName: str(payload.first_name) ?? null,
       lastName: str(payload.last_name) ?? null,
       phone: str(payload.phone) ?? null,
+      notificationPreferences: (() => {
+        const raw = asRecord(payload.notification_preferences);
+        const emailEnabled = bool(raw.email_enabled);
+        const inAppEnabled = bool(raw.in_app_enabled);
+        const smsEnabled = bool(raw.sms_enabled);
+        const smsOptIn = bool(raw.sms_opt_in);
+        if (
+          emailEnabled === undefined
+          && inAppEnabled === undefined
+          && smsEnabled === undefined
+          && smsOptIn === undefined
+        ) {
+          return undefined;
+        }
+        return {
+          emailEnabled,
+          inAppEnabled,
+          smsEnabled,
+          smsOptIn,
+        };
+      })(),
     });
-    return jsonResponse(200, headers, { user: result.user });
+    return jsonResponse(200, headers, {
+      user: result.user,
+      notification_preferences: result.notificationPreferences,
+    });
   } catch (e) {
     const mapped = mapDomainError(e, headers);
     if (mapped) return mapped;
