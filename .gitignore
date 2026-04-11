@@ -37,3 +37,4 @@ packages/config/node_modules/
 apps/api/node_modules/
 packages/domain/node_modules/
 packages/domain/node_modules/
+.claude/worktrees/
