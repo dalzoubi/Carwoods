@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import {
-  Alert,
   Box,
   Button,
   CircularProgress,
@@ -46,6 +45,7 @@ import {
 } from '../lib/portalApiClient';
 import PortalConfirmDialog from './PortalConfirmDialog';
 import InlineActionStatus from './InlineActionStatus';
+import StatusAlertSlot from './StatusAlertSlot';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 
@@ -1017,11 +1017,12 @@ function TenantRow({
               </Stack>
             )}
             {leasesState.status === 'error' && (
-              <Alert severity="error" action={
+              <>
+                <StatusAlertSlot
+                  message={{ severity: 'error', text: t('portalTenants.errors.loadLeasesFailed') }}
+                />
                 <Button size="small" onClick={loadLeases}>{t('portalTenants.actions.retry')}</Button>
-              }>
-                {t('portalTenants.errors.loadLeasesFailed')}
-              </Alert>
+              </>
             )}
             {leasesState.status === 'ok' && leasesState.leases.length === 0 && (
               <Typography variant="body2" color="text.secondary">
@@ -1563,16 +1564,18 @@ const PortalTenants = () => {
 
         {/* Alerts */}
         {!baseUrl && (
-          <Alert severity="warning">{t('portalTenants.errors.apiUnavailable')}</Alert>
+          <StatusAlertSlot
+            message={{ severity: 'warning', text: t('portalTenants.errors.apiUnavailable') }}
+          />
         )}
         {accessDenied && (
-          <Alert severity="error">{t('portalTenants.errors.accessDenied')}</Alert>
+          <StatusAlertSlot message={{ severity: 'error', text: t('portalTenants.errors.accessDenied') }} />
         )}
-        {actionState.status === 'error' && (
-          <Alert severity="error" onClose={() => setActionState({ status: 'idle', detail: '' })}>
-            {actionState.detail}
-          </Alert>
-        )}
+        <StatusAlertSlot
+          message={actionState.status === 'error'
+            ? { severity: 'error', text: actionState.detail }
+            : null}
+        />
 
         {/* Admin landlord selector */}
         {isAdmin && (
@@ -1649,9 +1652,11 @@ const PortalTenants = () => {
                 </Typography>
               </Stack>
             )}
-            {tenantsState.status === 'error' && (
-              <Alert severity="error">{tenantsState.detail ?? t('portalTenants.errors.loadFailed')}</Alert>
-            )}
+            <StatusAlertSlot
+              message={tenantsState.status === 'error'
+                ? { severity: 'error', text: tenantsState.detail ?? t('portalTenants.errors.loadFailed') }
+                : null}
+            />
             {tenantsState.status === 'ok' && tenantsState.tenants.length === 0 && (
               <Typography color="text.secondary">{t('portalTenants.list.empty')}</Typography>
             )}

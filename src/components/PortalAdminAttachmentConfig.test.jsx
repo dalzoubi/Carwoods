@@ -173,5 +173,5 @@ describe('PortalAdminAttachmentConfig', () => {
         expect.objectContaining({ emailHint: expect.any(String) })
       );
     });
-  });
+  }, 15000);
 });

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import {
-  Alert,
   Box,
   Button,
   CircularProgress,
@@ -20,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { withDarkPath } from '../routePaths';
 import carwoodsLogo from '../assets/carwoods-logo.png';
+import StatusAlertSlot from './StatusAlertSlot';
 
 const featureItems = [
   { key: 'requests', icon: <Build sx={{ fontSize: 28 }} /> },
@@ -104,23 +104,17 @@ const PortalLoginLanding = () => {
 
           <Divider flexItem />
 
-          {isAccountDisabled && (
-            <Alert severity="error" sx={{ width: '100%' }}>
-              {t('portalLogin.accountDisabled')}
-            </Alert>
-          )}
+          <StatusAlertSlot
+            message={isAccountDisabled ? { severity: 'error', text: t('portalLogin.accountDisabled') } : null}
+          />
 
-          {isNoPortalAccess && (
-            <Alert severity="warning" sx={{ width: '100%' }}>
-              {t('portalLogin.noPortalAccess')}
-            </Alert>
-          )}
+          <StatusAlertSlot
+            message={isNoPortalAccess ? { severity: 'warning', text: t('portalLogin.noPortalAccess') } : null}
+          />
 
-          {isUnconfigured && (
-            <Alert severity="warning" sx={{ width: '100%' }}>
-              {t('portalLogin.configWarning')}
-            </Alert>
-          )}
+          <StatusAlertSlot
+            message={isUnconfigured ? { severity: 'warning', text: t('portalLogin.configWarning') } : null}
+          />
 
           {isLoading && (
             <Stack spacing={1.5} alignItems="center" sx={{ py: 1 }}>

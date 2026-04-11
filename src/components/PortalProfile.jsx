@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import {
-  Alert,
   Avatar,
   Box,
   Button,
@@ -16,9 +15,9 @@ import { usePortalAuth } from '../PortalAuthContext';
 import { emailFromAccount, isGuestRole, resolveRole } from '../portalUtils';
 import { validatePersonBasics, validatePersonField } from '../portalPersonValidation';
 import { patchProfile } from '../lib/portalApiClient';
-import InlineActionStatus from './InlineActionStatus';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
+import StatusAlertSlot from './StatusAlertSlot';
 
 function validateProfileForm(form, t) {
   return validatePersonBasics(form, t, {
@@ -75,9 +74,6 @@ const PortalProfile = () => {
   const [saveError, setSaveError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
-  const saveStatusMessage = saveStatus === 'error'
-    ? { severity: 'error', text: saveError || t('portalProfile.errors.unknown') }
-    : null;
 
   const initialForm = useMemo(
     () => ({
@@ -106,6 +102,11 @@ const PortalProfile = () => {
       showFeedback(t('portalProfile.saved'));
     }
   }, [saveStatus, showFeedback, t]);
+  useEffect(() => {
+    if (saveStatus === 'error') {
+      showFeedback(saveError || t('portalProfile.errors.unknown'), 'error');
+    }
+  }, [saveError, saveStatus, showFeedback, t]);
 
   const onChange = (field) => (event) => {
     const value = event.target.value;
@@ -188,7 +189,8 @@ const PortalProfile = () => {
     }
   };
 
-  const isLoading = isAuthenticated && meStatus === 'loading';
+  // Keep existing profile content visible during background /me refreshes.
+  const isLoading = isAuthenticated && meStatus === 'loading' && !meData?.user;
   const roleResolved = isAuthenticated && meStatus !== 'loading';
   const isGuest = roleResolved && isGuestRole(role);
   const isProfileDataUnavailable = isAuthenticated && meStatus === 'ok' && !meData?.user;
@@ -219,11 +221,15 @@ const PortalProfile = () => {
           </Box>
         </Stack>
 
-        {!isAuthenticated && <Alert severity="warning">{t('portalProfile.errors.signInRequired')}</Alert>}
-        {!baseUrl && <Alert severity="warning">{t('portalProfile.errors.apiUnavailable')}</Alert>}
-        {isProfileDataUnavailable && (
-          <Alert severity="warning">{t('portalProfile.dataUnavailable')}</Alert>
-        )}
+        <StatusAlertSlot
+          message={!isAuthenticated ? { severity: 'warning', text: t('portalProfile.errors.signInRequired') } : null}
+        />
+        <StatusAlertSlot
+          message={!baseUrl ? { severity: 'warning', text: t('portalProfile.errors.apiUnavailable') } : null}
+        />
+        <StatusAlertSlot
+          message={isProfileDataUnavailable ? { severity: 'warning', text: t('portalProfile.dataUnavailable') } : null}
+        />
 
         <Paper
           variant="outlined"
@@ -232,9 +238,9 @@ const PortalProfile = () => {
           sx={{ p: 3, borderRadius: 2 }}
         >
           <Stack spacing={2.5}>
-            {isGuest && (
-              <Alert severity="warning">{t('portalProfile.guestBlocked')}</Alert>
-            )}
+            <StatusAlertSlot
+              message={isGuest ? { severity: 'warning', text: t('portalProfile.guestBlocked') } : null}
+            />
             {isLoading ? (
               <Stack spacing={2}>
                 <Skeleton variant="rounded" height={56} />
@@ -296,11 +302,10 @@ const PortalProfile = () => {
                 <Stack
                   direction="row"
                   alignItems="center"
-                  justifyContent="space-between"
+                  justifyContent="flex-end"
                   spacing={1}
                   sx={{ flexWrap: 'wrap', rowGap: 1 }}
                 >
-                  <InlineActionStatus message={saveStatusMessage} />
                   <Button
                     type="submit"
                     variant="contained"

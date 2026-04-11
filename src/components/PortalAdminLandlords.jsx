@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import {
-  Alert,
   Box,
   Button,
   CircularProgress,
@@ -21,7 +20,7 @@ import { validatePersonBasics, validatePersonField } from '../portalPersonValida
 import { resolveRole, normalizeRole } from '../portalUtils';
 import { fetchLandlords, createLandlord, patchResource } from '../lib/portalApiClient';
 import PortalConfirmDialog from './PortalConfirmDialog';
-import InlineActionStatus from './InlineActionStatus';
+import StatusAlertSlot from './StatusAlertSlot';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 
@@ -100,14 +99,22 @@ const PortalAdminLandlords = () => {
     [form, t]
   );
   const isFormValid = Object.keys(formErrors).length === 0;
-  const submitStatusMessage = submitState.status === 'error'
-    ? { severity: 'error', text: submitState.detail }
-    : null;
   useEffect(() => {
     if (submitState.status !== 'ok' || !submitState.detail) return;
     showFeedback(submitState.detail, 'success');
     setSubmitState({ status: 'idle', detail: '' });
   }, [showFeedback, submitState]);
+  useEffect(() => {
+    if (submitState.status === 'error' && submitState.detail) {
+      showFeedback(submitState.detail, 'error');
+      setSubmitState((prev) => (prev.status === 'error' ? { status: 'idle', detail: '' } : prev));
+    }
+  }, [showFeedback, submitState]);
+  useEffect(() => {
+    if (landlordsState.status === 'error' && landlordsState.detail) {
+      showFeedback(landlordsState.detail, 'error');
+    }
+  }, [landlordsState.detail, landlordsState.status, showFeedback]);
 
   const onToggleActive = async (landlordId, active) => {
     if (!canUseModule || !baseUrl) return;
@@ -227,12 +234,14 @@ const PortalAdminLandlords = () => {
         </Typography>
         <Typography color="text.secondary">{t('portalAdminLandlords.intro')}</Typography>
 
-        {!baseUrl && <Alert severity="warning">{t('portalAdminLandlords.errors.apiUnavailable')}</Alert>}
-        {!isAuthenticated && (
-          <Alert severity="warning">{t('portalAdminLandlords.errors.signInRequired')}</Alert>
-        )}
+        <StatusAlertSlot
+          message={!baseUrl ? { severity: 'warning', text: t('portalAdminLandlords.errors.apiUnavailable') } : null}
+        />
+        <StatusAlertSlot
+          message={!isAuthenticated ? { severity: 'warning', text: t('portalAdminLandlords.errors.signInRequired') } : null}
+        />
         {isAuthenticated && meStatus !== 'loading' && !isAdmin && (
-          <Alert severity="error">{t('portalAdminLandlords.errors.adminOnly')}</Alert>
+          <StatusAlertSlot message={{ severity: 'error', text: t('portalAdminLandlords.errors.adminOnly') }} />
         )}
 
         <Box>
@@ -299,11 +308,10 @@ const PortalAdminLandlords = () => {
                 <Stack
                   direction="row"
                   alignItems="center"
-                  justifyContent="space-between"
+                  justifyContent="flex-end"
                   spacing={1.25}
                   sx={{ flexWrap: 'wrap', rowGap: 1 }}
                 >
-                  <InlineActionStatus message={submitStatusMessage} />
                   <Button
                     type="submit"
                     variant="contained"
@@ -366,7 +374,11 @@ const PortalAdminLandlords = () => {
             {landlordsState.status === 'loading' && landlordsState.landlords.length === 0 && (
               <Typography color="text.secondary">{t('portalAdminLandlords.list.loading')}</Typography>
             )}
-            {landlordsState.status === 'error' && <Alert severity="error">{landlordsState.detail}</Alert>}
+            <StatusAlertSlot
+              message={landlordsState.status === 'error'
+                ? { severity: 'error', text: landlordsState.detail }
+                : null}
+            />
             {landlordsState.status !== 'loading' && landlordsState.landlords.length === 0 && (
               <Typography color="text.secondary">{t('portalAdminLandlords.list.empty')}</Typography>
             )}

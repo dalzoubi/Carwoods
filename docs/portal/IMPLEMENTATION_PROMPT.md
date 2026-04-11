@@ -122,7 +122,7 @@ The portal is a **dedicated application shell**, not a marketing page. All `/por
 
 - **Surfaces**: `Paper variant="outlined"` for cards and panels (not raw `Box` with border).
 - **Status**: `Chip` with semantic `color` (`warning`, `info`, `success`).
-- **Feedback**: `Snackbar` for success toasts, `Alert` for inline errors.
+- **Feedback (base instruction)**: use top `Snackbar` feedback for **all success and error outcomes** in portal flows. Reuse `usePortalFeedback()` + `PortalFeedbackSnackbar`; avoid new inline error/success alerts unless explicitly approved as a UX exception.
 - **User identity**: `Avatar` with initials, `Chip` for role badges.
 - **Empty states**: always descriptive text, never blank.
 

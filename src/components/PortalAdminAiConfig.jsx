@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Alert,
   Box,
   Button,
   Chip,
@@ -30,6 +29,7 @@ import {
   patchElsaPropertyPolicy,
   patchElsaSettings,
 } from '../lib/portalApiClient';
+import StatusAlertSlot from './StatusAlertSlot';
 
 const EMPTY_FORM = {
   elsa_enabled: false,
@@ -313,10 +313,22 @@ const PortalAdminAiConfig = () => {
           </Button>
         </Stack>
 
-        {!baseUrl && <Alert severity="warning">{t('portalAdminAiConfig.errors.apiUnavailable')}</Alert>}
-        {!isAuthenticated && <Alert severity="warning">{t('portalAdminAiConfig.errors.signInRequired')}</Alert>}
-        {isAuthenticated && !isAdmin && <Alert severity="error">{t('portalAdminAiConfig.errors.adminOnly')}</Alert>}
-        {loadStatus === 'error' && <Alert severity="error">{loadError || t('portalAdminAiConfig.errors.loadFailed')}</Alert>}
+        <StatusAlertSlot
+          message={!baseUrl ? { severity: 'warning', text: t('portalAdminAiConfig.errors.apiUnavailable') } : null}
+        />
+        <StatusAlertSlot
+          message={!isAuthenticated ? { severity: 'warning', text: t('portalAdminAiConfig.errors.signInRequired') } : null}
+        />
+        <StatusAlertSlot
+          message={isAuthenticated && !isAdmin
+            ? { severity: 'error', text: t('portalAdminAiConfig.errors.adminOnly') }
+            : null}
+        />
+        <StatusAlertSlot
+          message={loadStatus === 'error'
+            ? { severity: 'error', text: loadError || t('portalAdminAiConfig.errors.loadFailed') }
+            : null}
+        />
 
         <Paper variant="outlined" sx={{ p: 2 }}>
           <Stack spacing={1.5}>
@@ -430,8 +442,16 @@ const PortalAdminAiConfig = () => {
                   : t('portalAdminAiConfig.actions.saveGlobal')}
               </Button>
             </Stack>
-            {globalStatus === 'ok' && <Alert severity="success">{globalMessage}</Alert>}
-            {globalStatus === 'error' && <Alert severity="error">{globalMessage || t('portalAdminAiConfig.errors.saveFailed')}</Alert>}
+            <StatusAlertSlot
+              message={globalStatus === 'ok'
+                ? { severity: 'success', text: globalMessage }
+                : null}
+            />
+            <StatusAlertSlot
+              message={globalStatus === 'error'
+                ? { severity: 'error', text: globalMessage || t('portalAdminAiConfig.errors.saveFailed') }
+                : null}
+            />
           </Stack>
         </Paper>
 

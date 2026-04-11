@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import {
-  Alert,
   Box,
   Button,
   Card,
@@ -49,6 +48,7 @@ import {
   restorePropertyApi,
   apiPropertyToDisplay,
 } from '../lib/propertiesApiClient';
+import StatusAlertSlot from './StatusAlertSlot';
 import { listingFromHarPreviewPayload, parseHarInput } from '../portalHarPreviewParse';
 import { fetchElsaSettings, fetchHarPreview, fetchLandlords, patchElsaPropertyPolicy } from '../lib/portalApiClient';
 
@@ -647,12 +647,16 @@ const PortalAdminProperties = () => {
         </Box>
 
         {!isAuthenticated && (
-          <Alert severity="warning">{t('portalAdminProperties.errors.signInRequired')}</Alert>
+          <StatusAlertSlot
+            message={{ severity: 'warning', text: t('portalAdminProperties.errors.signInRequired') }}
+          />
         )}
         {isAuthenticated && meStatus !== 'loading' && !canManage && (
-          <Alert severity="error">{t('portalAdminProperties.errors.landlordOrAdminOnly')}</Alert>
+          <StatusAlertSlot
+            message={{ severity: 'error', text: t('portalAdminProperties.errors.landlordOrAdminOnly') }}
+          />
         )}
-        {listError && <Alert severity="error">{listError}</Alert>}
+        <StatusAlertSlot message={listError ? { severity: 'error', text: listError } : null} />
 
         <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
           <Button
@@ -822,14 +826,11 @@ const PortalAdminProperties = () => {
                     : t('portalAdminProperties.harSearch.searchButton')}
                 </Button>
               </Stack>
-              {harMessage && (
-                <Alert
-                  severity={harStatus === 'found' ? 'success' : 'warning'}
-                  sx={{ mt: 1.5 }}
-                >
-                  {harMessage}
-                </Alert>
-              )}
+              <StatusAlertSlot
+                message={harMessage
+                  ? { severity: harStatus === 'found' ? 'success' : 'warning', text: harMessage }
+                  : null}
+              />
             </Paper>
 
             <Paper
@@ -1030,7 +1031,7 @@ const PortalAdminProperties = () => {
               label={t('portalAdminProperties.form.showOnApplyPage')}
             />
 
-            {submitError && <Alert severity="error">{submitError}</Alert>}
+            <StatusAlertSlot message={submitError ? { severity: 'error', text: submitError } : null} />
 
             <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
               <Button

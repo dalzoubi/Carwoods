@@ -97,6 +97,14 @@ describe('PortalProfile', () => {
     expect(await screen.findByText(/profile updated successfully/i)).toBeInTheDocument();
   });
 
+  it('keeps form visible while profile refresh is loading with cached data', () => {
+    mockAuthState.meStatus = 'loading';
+    render(<WithAppTheme><PortalProfile /></WithAppTheme>);
+
+    expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+  });
+
   it('sends lowercase email when saving profile', async () => {
     render(<WithAppTheme><PortalProfile /></WithAppTheme>);
 
@@ -136,7 +144,7 @@ describe('PortalProfile', () => {
 
     expect(
       await screen.findByText(
-        /that email is already in use by another user, please chose another email and try again\./i
+        /that email is already in use by another user\./i
       )
     ).toBeInTheDocument();
     await waitFor(() => {

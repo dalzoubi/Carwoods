@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Alert,
   Box,
   Button,
   CircularProgress,
@@ -19,6 +18,7 @@ import { usePortalAuth } from '../PortalAuthContext';
 import { emailFromAccount, normalizeRole, resolveRole } from '../portalUtils';
 import { Role } from '../domain/constants.js';
 import { fetchElsaSettings, patchElsaSettings } from '../lib/portalApiClient';
+import StatusAlertSlot from './StatusAlertSlot';
 
 function errorMessage(error) {
   if (error && typeof error === 'object' && typeof error.message === 'string') {
@@ -143,10 +143,22 @@ const PortalAdminAiAgents = () => {
           </Button>
         </Stack>
 
-        {!baseUrl && <Alert severity="warning">{t('portalAdminAiAgents.errors.apiUnavailable')}</Alert>}
-        {!isAuthenticated && <Alert severity="warning">{t('portalAdminAiAgents.errors.signInRequired')}</Alert>}
-        {isAuthenticated && !isAdmin && <Alert severity="error">{t('portalAdminAiAgents.errors.adminOnly')}</Alert>}
-        {loadStatus === 'error' && <Alert severity="error">{loadError || t('portalAdminAiAgents.errors.loadFailed')}</Alert>}
+        <StatusAlertSlot
+          message={!baseUrl ? { severity: 'warning', text: t('portalAdminAiAgents.errors.apiUnavailable') } : null}
+        />
+        <StatusAlertSlot
+          message={!isAuthenticated ? { severity: 'warning', text: t('portalAdminAiAgents.errors.signInRequired') } : null}
+        />
+        <StatusAlertSlot
+          message={isAuthenticated && !isAdmin
+            ? { severity: 'error', text: t('portalAdminAiAgents.errors.adminOnly') }
+            : null}
+        />
+        <StatusAlertSlot
+          message={loadStatus === 'error'
+            ? { severity: 'error', text: loadError || t('portalAdminAiAgents.errors.loadFailed') }
+            : null}
+        />
 
         <Paper variant="outlined" sx={{ p: 2 }}>
           <Stack spacing={1.5}>
@@ -220,8 +232,16 @@ const PortalAdminAiAgents = () => {
                   : t('portalAdminAiAgents.actions.saveRouting')}
               </Button>
             </Stack>
-            {saveStatus === 'ok' && <Alert severity="success">{saveMessage}</Alert>}
-            {saveStatus === 'error' && <Alert severity="error">{saveMessage || t('portalAdminAiAgents.errors.saveFailed')}</Alert>}
+            <StatusAlertSlot
+              message={saveStatus === 'ok'
+                ? { severity: 'success', text: saveMessage }
+                : null}
+            />
+            <StatusAlertSlot
+              message={saveStatus === 'error'
+                ? { severity: 'error', text: saveMessage || t('portalAdminAiAgents.errors.saveFailed') }
+                : null}
+            />
           </Stack>
         </Paper>
 

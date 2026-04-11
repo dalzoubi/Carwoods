@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Alert,
   Box,
   Button,
   Chip,
@@ -425,7 +424,9 @@ const RequestDetailPane = ({
         </Stack>
       )}
       {detailStatus === 'error' && (
-        <Alert severity="error">{detailError || t('portalRequests.errors.loadFailed')}</Alert>
+        <StatusAlertSlot
+          message={{ severity: 'error', text: detailError || t('portalRequests.errors.loadFailed') }}
+        />
       )}
       {!requestDetail && detailStatus !== 'loading' && (
         <Typography color="text.secondary">{t('portalRequests.list.selectPrompt')}</Typography>
@@ -456,7 +457,9 @@ const RequestDetailPane = ({
               </Stack>
             )}
             {auditStatus === 'error' && (
-              <Alert severity="error">{auditError || t('portalRequests.errors.loadFailed')}</Alert>
+              <StatusAlertSlot
+                message={{ severity: 'error', text: auditError || t('portalRequests.errors.loadFailed') }}
+              />
             )}
             {auditStatus !== 'loading' && parsedAudits.length === 0 && (
               <Typography color="text.secondary">{t('portalRequests.audit.empty')}</Typography>
@@ -873,8 +876,12 @@ const RequestDetailPane = ({
                 </Button>
               </Stack>
             </Box>
-            {elsaSettingsError && <Alert severity="error">{elsaSettingsError}</Alert>}
-            {elsaDecisionError && <Alert severity="error">{elsaDecisionError}</Alert>}
+            <StatusAlertSlot
+              message={elsaSettingsError ? { severity: 'error', text: elsaSettingsError } : null}
+            />
+            <StatusAlertSlot
+              message={elsaDecisionError ? { severity: 'error', text: elsaDecisionError } : null}
+            />
             {(elsaDecisions || [])
               .filter((decision) => (
                 (decision.policy_decision !== 'HOLD_FOR_REVIEW' || !decision.reviewed_at)

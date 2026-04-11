@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Alert,
   Box,
   Button,
   CircularProgress,
@@ -27,6 +26,7 @@ import {
   patchAttachmentUploadGlobalConfig,
   patchAttachmentUploadLandlordConfig,
 } from '../lib/portalApiClient';
+import StatusAlertSlot from './StatusAlertSlot';
 
 const BYTES_PER_MB = 1024 * 1024;
 
@@ -231,12 +231,32 @@ const PortalAdminAttachmentConfig = () => {
             {t('portalAdminAttachmentConfig.actions.refresh')}
           </Button>
         </Stack>
-        {!baseUrl && <Alert severity="warning">{t('portalAdminAttachmentConfig.errors.apiUnavailable')}</Alert>}
-        {!isAuthenticated && <Alert severity="warning">{t('portalAdminAttachmentConfig.errors.signInRequired')}</Alert>}
-        {isAuthenticated && !isAdmin && <Alert severity="error">{t('portalAdminAttachmentConfig.errors.adminOnly')}</Alert>}
-        {status === 'error' && <Alert severity="error">{error || t('portalAdminAttachmentConfig.errors.loadFailed')}</Alert>}
-        {saveStatus === 'ok' && <Alert severity="success">{t('portalAdminAttachmentConfig.messages.saved')}</Alert>}
-        {saveStatus === 'error' && <Alert severity="error">{error || t('portalAdminAttachmentConfig.errors.saveFailed')}</Alert>}
+        <StatusAlertSlot
+          message={!baseUrl ? { severity: 'warning', text: t('portalAdminAttachmentConfig.errors.apiUnavailable') } : null}
+        />
+        <StatusAlertSlot
+          message={!isAuthenticated ? { severity: 'warning', text: t('portalAdminAttachmentConfig.errors.signInRequired') } : null}
+        />
+        <StatusAlertSlot
+          message={isAuthenticated && !isAdmin
+            ? { severity: 'error', text: t('portalAdminAttachmentConfig.errors.adminOnly') }
+            : null}
+        />
+        <StatusAlertSlot
+          message={status === 'error'
+            ? { severity: 'error', text: error || t('portalAdminAttachmentConfig.errors.loadFailed') }
+            : null}
+        />
+        <StatusAlertSlot
+          message={saveStatus === 'ok'
+            ? { severity: 'success', text: t('portalAdminAttachmentConfig.messages.saved') }
+            : null}
+        />
+        <StatusAlertSlot
+          message={saveStatus === 'error'
+            ? { severity: 'error', text: error || t('portalAdminAttachmentConfig.errors.saveFailed') }
+            : null}
+        />
 
         <Paper variant="outlined" sx={{ p: 2 }}>
           <Stack spacing={1.25}>

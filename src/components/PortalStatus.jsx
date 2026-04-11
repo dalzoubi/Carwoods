@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import {
-  Alert,
   Box,
   Button,
   CircularProgress,
@@ -20,6 +19,7 @@ import { usePortalAuth } from '../PortalAuthContext';
 import { emailFromAccount, firstNonEmpty, resolveRole } from '../portalUtils';
 import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
 import { fetchHealth as apiFetchHealth } from '../lib/portalApiClient';
+import StatusAlertSlot from './StatusAlertSlot';
 
 function statusColor(status) {
   if (status === 'ok') return 'success';
@@ -115,9 +115,9 @@ const PortalStatus = () => {
         </Typography>
         <Typography color="text.secondary">{t('portalStatus.intro')}</Typography>
 
-        {!baseUrl && (
-          <Alert severity="warning">{t('portalSetup.apiBaseMissing')}</Alert>
-        )}
+        <StatusAlertSlot
+          message={!baseUrl ? { severity: 'warning', text: t('portalSetup.apiBaseMissing') } : null}
+        />
 
         <Box
           sx={{

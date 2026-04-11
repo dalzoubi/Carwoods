@@ -2,7 +2,6 @@ import React, { useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import {
-  Alert,
   Box,
   Button,
   CircularProgress,
@@ -217,14 +216,6 @@ const PortalRequests = () => {
     if (attachmentStatus === 'success') showFeedback(t('portalRequests.attachments.saved'));
   }, [attachmentStatus, showFeedback, t]);
   React.useEffect(() => {
-    if (
-      attachmentStatus === 'error'
-      && attachmentError === t('portalRequests.errors.attachmentStorageUnavailable')
-    ) {
-      showFeedback(attachmentError, 'error');
-    }
-  }, [attachmentError, attachmentStatus, showFeedback, t]);
-  React.useEffect(() => {
     if (attachmentDeleteStatus === 'success') showFeedback(t('portalRequests.attachments.deleted'));
   }, [attachmentDeleteStatus, showFeedback, t]);
   React.useEffect(() => {
@@ -233,6 +224,45 @@ const PortalRequests = () => {
   React.useEffect(() => {
     if (exportStatus === 'ok') showFeedback(t('portalRequests.exportSuccess'));
   }, [exportStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (requestsStatus === 'error') showFeedback(requestsError || t('portalRequests.errors.loadFailed'), 'error');
+  }, [requestsError, requestsStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (detailStatus === 'error') showFeedback(detailError || t('portalRequests.errors.loadFailed'), 'error');
+  }, [detailError, detailStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (tenantCreateStatus === 'error') showFeedback(tenantCreateError || t('portalRequests.errors.saveFailed'), 'error');
+  }, [tenantCreateError, tenantCreateStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (managementUpdateStatus === 'error') showFeedback(managementUpdateError || t('portalRequests.errors.saveFailed'), 'error');
+  }, [managementUpdateError, managementUpdateStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (messageStatus === 'error') showFeedback(messageError || t('portalRequests.errors.saveFailed'), 'error');
+  }, [messageError, messageStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (messageDeleteStatus === 'error') showFeedback(messageDeleteError || t('portalRequests.errors.saveFailed'), 'error');
+  }, [messageDeleteError, messageDeleteStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (attachmentStatus === 'error') showFeedback(attachmentError || t('portalRequests.errors.saveFailed'), 'error');
+  }, [attachmentError, attachmentStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (attachmentDeleteStatus === 'error') showFeedback(attachmentDeleteError || t('portalRequests.errors.saveFailed'), 'error');
+  }, [attachmentDeleteError, attachmentDeleteStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (cancelStatus === 'error') showFeedback(cancelError || t('portalRequests.errors.saveFailed'), 'error');
+  }, [cancelError, cancelStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (auditStatus === 'error') showFeedback(auditError || t('portalRequests.errors.loadFailed'), 'error');
+  }, [auditError, auditStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (elsaSettingsError) showFeedback(elsaSettingsError, 'error');
+  }, [elsaSettingsError, showFeedback]);
+  React.useEffect(() => {
+    if (elsaDecisionStatus === 'error') showFeedback(elsaDecisionError || t('portalRequests.errors.saveFailed'), 'error');
+  }, [elsaDecisionError, elsaDecisionStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (exportStatus === 'error') showFeedback(exportError || t('portalRequests.errors.loadFailed'), 'error');
+  }, [exportError, exportStatus, showFeedback, t]);
 
   return (
     <Box>
@@ -268,10 +298,18 @@ const PortalRequests = () => {
           )}
         </Stack>
 
-        {!baseUrl && <Alert severity="warning">{t('portalRequests.errors.apiUnavailable')}</Alert>}
-        {!isAuthenticated && <Alert severity="warning">{t('portalRequests.errors.signInRequired')}</Alert>}
+        <StatusAlertSlot
+          message={!baseUrl ? { severity: 'warning', text: t('portalRequests.errors.apiUnavailable') } : null}
+        />
+        <StatusAlertSlot
+          message={!isAuthenticated ? { severity: 'warning', text: t('portalRequests.errors.signInRequired') } : null}
+        />
         <StatusAlertSlot message={portalStateMessage} />
-        {exportStatus === 'error' && <Alert severity="error">{exportError || t('portalRequests.errors.loadFailed')}</Alert>}
+        <StatusAlertSlot
+          message={exportStatus === 'error'
+            ? { severity: 'error', text: exportError || t('portalRequests.errors.loadFailed') }
+            : null}
+        />
 
         {!isManagement && (
           <Box>

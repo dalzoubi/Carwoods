@@ -24,6 +24,7 @@ Use this template for every non-trivial change before implementation.
 
 - Technical constraints:
 - Product/design constraints:
+- Feedback UX constraint (required): user-visible success and error outcomes use top snackbar-style feedback (`usePortalFeedback` + `PortalFeedbackSnackbar`) unless a documented exception is approved.
 - Security/privacy constraints:
 - Assumptions:
 

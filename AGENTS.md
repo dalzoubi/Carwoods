@@ -206,6 +206,13 @@ The tenant portal (`/portal/*`) has its own dedicated layout separate from the m
 - **Status chips**: use MUI `Chip` with semantic `color` (`warning` for open, `info` for in-progress, `success` for resolved).
 - **Empty states**: always show descriptive text, never a blank area.
 
+### Portal feedback pattern (base instruction)
+
+- **Use top snackbar-style feedback for all user-visible success and error outcomes** in portal flows.
+- Reuse the shared pattern: `usePortalFeedback()` + `PortalFeedbackSnackbar`.
+- Do not introduce new inline success/error `Alert` or `InlineActionStatus` for actionable outcomes unless explicitly requested for a specific UX exception.
+- When migrating existing flows, preserve localized messages and keep behavior consistent across create/update/delete/upload actions.
+
 ### Do not
 
 - Hard-code hex colors in portal components — use MUI theme tokens.
