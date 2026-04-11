@@ -754,6 +754,7 @@
     "loading": "Loading your profile…",
     "saved": "Profile updated successfully.",
     "guestBlocked": "Guest accounts cannot edit profile details.",
+    "dataUnavailable": "We could not load your profile data from the database. Please refresh and try again.",
     "fields": {
       "email": "Email",
       "firstName": "First name",
@@ -771,6 +772,7 @@
       "firstNameRequired": "First name is required.",
       "lastNameRequired": "Last name is required.",
       "emailInvalid": "Enter a valid email address.",
+      "emailExists": "That email is already in use by another user.",
       "phoneInvalid": "Enter a valid phone number.",
       "unknown": "Unable to update profile."
     }

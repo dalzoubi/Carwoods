@@ -754,6 +754,7 @@
     "loading": "Chargement de votre profil…",
     "saved": "Profil mis a jour avec succes.",
     "guestBlocked": "Les comptes invites ne peuvent pas modifier le profil.",
+    "dataUnavailable": "Nous n'avons pas pu charger les donnees de votre profil depuis la base de donnees. Actualisez la page et reessayez.",
     "fields": {
       "email": "E-mail",
       "firstName": "Prenom",
@@ -771,6 +772,7 @@
       "firstNameRequired": "Le prenom est obligatoire.",
       "lastNameRequired": "Le nom est obligatoire.",
       "emailInvalid": "Saisissez une adresse e-mail valide.",
+      "emailExists": "Cette adresse e-mail est deja utilisee par un autre utilisateur.",
       "phoneInvalid": "Saisissez un numero de telephone valide.",
       "unknown": "Impossible de mettre a jour le profil."
     }

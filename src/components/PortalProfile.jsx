@@ -62,6 +62,7 @@ const PortalProfile = () => {
     meStatus,
     getAccessToken,
     handleApiForbidden,
+    refreshMe,
   } = usePortalAuth();
   const role = resolveRole(meData, account);
   const [form, setForm] = useState({
@@ -80,12 +81,12 @@ const PortalProfile = () => {
 
   const initialForm = useMemo(
     () => ({
-      email: meData?.user?.email ?? meData?.email ?? emailFromAccount(account) ?? '',
+      email: meData?.user?.email ?? '',
       firstName: meData?.user?.first_name ?? '',
       lastName: meData?.user?.last_name ?? '',
       phone: meData?.user?.phone ?? '',
     }),
-    [account, meData]
+    [meData]
   );
   const hasChanges = useMemo(
     () =>
@@ -143,9 +144,10 @@ const PortalProfile = () => {
       }
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
+      const normalizedEmail = form.email.trim().toLowerCase();
       const payload = await patchProfile(baseUrl, token, {
         emailHint,
-        email: form.email,
+        email: normalizedEmail,
         first_name: form.firstName,
         last_name: form.lastName,
         phone: form.phone,
@@ -160,8 +162,21 @@ const PortalProfile = () => {
         });
       }
       setSaveStatus('success');
+      refreshMe();
     } catch (error) {
       handleApiForbidden(error);
+      if (
+        error
+        && typeof error === 'object'
+        && 'code' in error
+        && error.code === 'email_already_in_use'
+      ) {
+        setFieldErrors({});
+        setSaveStatus('idle');
+        setSaveError('');
+        showFeedback(t('portalProfile.errors.emailExists'), 'error');
+        return;
+      }
       setSaveStatus('error');
       const msg =
         error && typeof error === 'object' && typeof error.message === 'string'
@@ -176,7 +191,9 @@ const PortalProfile = () => {
   const isLoading = isAuthenticated && meStatus === 'loading';
   const roleResolved = isAuthenticated && meStatus !== 'loading';
   const isGuest = roleResolved && isGuestRole(role);
-  const formDisabled = !isAuthenticated || isGuest || !baseUrl || saveStatus === 'saving';
+  const isProfileDataUnavailable = isAuthenticated && meStatus === 'ok' && !meData?.user;
+  const formDisabled =
+    !isAuthenticated || isGuest || !baseUrl || isProfileDataUnavailable || saveStatus === 'saving';
   const initials = userInitials(form.firstName, form.lastName);
 
   return (
@@ -204,6 +221,9 @@ const PortalProfile = () => {
 
         {!isAuthenticated && <Alert severity="warning">{t('portalProfile.errors.signInRequired')}</Alert>}
         {!baseUrl && <Alert severity="warning">{t('portalProfile.errors.apiUnavailable')}</Alert>}
+        {isProfileDataUnavailable && (
+          <Alert severity="warning">{t('portalProfile.dataUnavailable')}</Alert>
+        )}
 
         <Paper
           variant="outlined"

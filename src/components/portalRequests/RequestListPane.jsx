@@ -10,32 +10,15 @@ import {
   Select,
   Stack,
   Typography,
+  useTheme,
 } from '@mui/material';
-import { alpha } from '@mui/material/styles';
 import Refresh from '@mui/icons-material/Refresh';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
 import { RequestStatus, Role } from '../../domain/constants';
 import { normalizeRole } from '../../portalUtils';
-
-function statusColor(statusCode) {
-  const normalized = String(statusCode || '').toUpperCase();
-  if ([RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED].includes(normalized)) {
-    return 'warning';
-  }
-  if (
-    [RequestStatus.SCHEDULED, RequestStatus.WAITING_ON_TENANT, RequestStatus.WAITING_ON_VENDOR].includes(
-      normalized
-    )
-  ) {
-    return 'info';
-  }
-  if ([RequestStatus.CANCELLED, RequestStatus.COMPLETE].includes(normalized)) {
-    return 'success';
-  }
-  return 'default';
-}
+import { getStatusChipSx } from './requestChipStyles';
 
 function roleLabel(roleValue, t) {
   const role = normalizeRole(roleValue);
@@ -55,31 +38,15 @@ function toPriorityCode(priorityCode, priorityName) {
 function priorityTone(item) {
   const code = toPriorityCode(item?.priority_code, item?.priority_name);
   if (code === 'EMERGENCY') {
-    return {
-      chipColor: 'error',
-      borderColor: 'error.main',
-      bgColor: (theme) => alpha(theme.palette.error.main, 0.08),
-    };
+    return { chipColor: 'error' };
   }
   if (code === 'URGENT') {
-    return {
-      chipColor: 'warning',
-      borderColor: 'warning.main',
-      bgColor: (theme) => alpha(theme.palette.warning.main, 0.08),
-    };
+    return { chipColor: 'warning' };
   }
   if (code === 'ROUTINE') {
-    return {
-      chipColor: 'info',
-      borderColor: 'info.main',
-      bgColor: (theme) => alpha(theme.palette.info.main, 0.06),
-    };
+    return { chipColor: 'info' };
   }
-  return {
-    chipColor: 'default',
-    borderColor: 'divider',
-    bgColor: 'transparent',
-  };
+  return { chipColor: 'default' };
 }
 
 function requesterName(item, t) {
@@ -127,6 +94,7 @@ const RequestListPane = ({
   onSelectLandlord,
 }) => {
   const { t } = useTranslation();
+  const theme = useTheme();
   const [statusFilter, setStatusFilter] = useState('all');
   const landlordFilteredRequests = useMemo(() => {
     if (!isAdmin || !selectedLandlordId) return requests;
@@ -245,15 +213,15 @@ const RequestListPane = ({
                   onClick={() => onSelectRequest(item.id)}
                   sx={{
                     alignItems: 'flex-start',
-                    borderInlineStartWidth: 4,
-                    borderInlineStartStyle: 'solid',
-                    borderInlineStartColor: tone.borderColor,
-                    bgcolor: tone.bgColor,
+                    bgcolor: 'transparent',
+                    '&:hover': {
+                      bgcolor: 'transparent',
+                    },
                     '&.Mui-selected': {
-                      bgcolor: tone.bgColor,
+                      bgcolor: 'transparent',
                     },
                     '&.Mui-selected:hover': {
-                      bgcolor: tone.bgColor,
+                      bgcolor: 'transparent',
                     },
                   }}
                 >
@@ -265,15 +233,15 @@ const RequestListPane = ({
                         <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexWrap: 'wrap' }}>
                           <Chip
                             size="small"
-                            label={`${t('portalRequests.labels.priority')}: ${item.priority_name || item.priority_code || '-'}`}
+                            label={item.priority_name || item.priority_code || '-'}
                             color={tone.chipColor}
                             variant={tone.chipColor === 'default' ? 'outlined' : 'filled'}
                           />
                           <Chip
                             size="small"
-                            label={`${t('portalRequests.labels.status')}: ${item.status_name || item.status_code || '-'}`}
-                            color={statusColor(item.status_code)}
-                            variant="outlined"
+                            label={item.status_name || item.status_code || '-'}
+                            variant="filled"
+                            sx={getStatusChipSx(item.status_code, theme)}
                           />
                         </Stack>
                         {isManagement && (

@@ -96,4 +96,53 @@ describe('PortalProfile', () => {
     });
     expect(await screen.findByText(/profile updated successfully/i)).toBeInTheDocument();
   });
+
+  it('sends lowercase email when saving profile', async () => {
+    render(<WithAppTheme><PortalProfile /></WithAppTheme>);
+
+    const emailInput = screen.getByLabelText(/email/i);
+    const saveButton = screen.getByRole('button', { name: /save profile/i });
+
+    fireEvent.change(emailInput, { target: { value: 'AGENT+UPPER@CARWOODS.COM' } });
+    fireEvent.click(saveButton);
+
+    await waitFor(() => {
+      expect(portalApiClient.patchProfile).toHaveBeenCalledWith(
+        'https://api.carwoods.com',
+        'mock-token',
+        expect.objectContaining({
+          email: 'agent+upper@carwoods.com',
+        })
+      );
+    });
+  });
+
+  it('shows friendly duplicate-email message and keeps typed email', async () => {
+    portalApiClient.patchProfile.mockRejectedValue({
+      status: 409,
+      code: 'email_already_in_use',
+      message: 'HTTP 409 (email_already_in_use)',
+    });
+
+    render(<WithAppTheme><PortalProfile /></WithAppTheme>);
+
+    const firstNameInput = screen.getByLabelText(/first name/i);
+    const emailInput = screen.getByLabelText(/email/i);
+    const saveButton = screen.getByRole('button', { name: /save profile/i });
+
+    fireEvent.change(firstNameInput, { target: { value: 'Updated' } });
+    fireEvent.change(emailInput, { target: { value: 'taken@carwoods.com' } });
+    fireEvent.click(saveButton);
+
+    expect(
+      await screen.findByText(
+        /that email is already in use by another user, please chose another email and try again\./i
+      )
+    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(firstNameInput).toHaveValue('Updated');
+      expect(emailInput).toHaveValue('taken@carwoods.com');
+      expect(screen.queryByText(/HTTP 409 \(email_already_in_use\)/i)).not.toBeInTheDocument();
+    });
+  });
 });

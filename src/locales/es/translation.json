@@ -754,6 +754,7 @@
     "loading": "Cargando tu perfil…",
     "saved": "Perfil actualizado correctamente.",
     "guestBlocked": "Las cuentas de invitado no pueden editar el perfil.",
+    "dataUnavailable": "No pudimos cargar los datos de tu perfil desde la base de datos. Actualiza la página e inténtalo de nuevo.",
     "fields": {
       "email": "Correo electrónico",
       "firstName": "Nombre",
@@ -771,6 +772,7 @@
       "firstNameRequired": "El nombre es obligatorio.",
       "lastNameRequired": "El apellido es obligatorio.",
       "emailInvalid": "Ingresa un correo electrónico válido.",
+      "emailExists": "Ese correo electrónico ya está en uso por otro usuario. Por favor.",
       "phoneInvalid": "Ingresa un número de teléfono válido.",
       "unknown": "No se pudo actualizar el perfil."
     }

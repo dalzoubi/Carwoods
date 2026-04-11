@@ -25,6 +25,7 @@ import {
   Stack,
   TextField,
   Typography,
+  useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
@@ -32,6 +33,7 @@ import StatusAlertSlot from '../StatusAlertSlot';
 import InlineActionStatus from '../InlineActionStatus';
 import { RequestStatus, Role } from '../../domain/constants.js';
 import { normalizeRole } from '../../portalUtils';
+import { getStatusChipSx } from './requestChipStyles';
 
 const CANCELLABLE_STATUS_CODES = new Set([RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED]);
 const ELSA_MODE_LABEL_KEYS = {
@@ -41,6 +43,27 @@ const ELSA_MODE_LABEL_KEYS = {
   EMERGENCY_ESCALATION: 'portalRequests.elsa.modes.emergency',
   DUPLICATE_OR_ALREADY_IN_PROGRESS: 'portalRequests.elsa.modes.duplicateOrInProgress',
 };
+
+function toPriorityCode(priorityCode, priorityName) {
+  const fromCode = String(priorityCode ?? '').trim().toUpperCase();
+  if (fromCode) return fromCode;
+  const fromName = String(priorityName ?? '').trim().toUpperCase().replace(/\s+/g, '_');
+  return fromName;
+}
+
+function priorityTone(requestDetail) {
+  const code = toPriorityCode(requestDetail?.priority_code, requestDetail?.priority_name);
+  if (code === 'EMERGENCY') {
+    return { chipColor: 'error' };
+  }
+  if (code === 'URGENT') {
+    return { chipColor: 'warning' };
+  }
+  if (code === 'ROUTINE') {
+    return { chipColor: 'info' };
+  }
+  return { chipColor: 'default' };
+}
 
 function formatDateTime(value) {
   if (!value) return '-';
@@ -235,6 +258,8 @@ const RequestDetailPane = ({
   cancelError,
 }) => {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const requestPriorityTone = useMemo(() => priorityTone(requestDetail), [requestDetail]);
   const [activeTab, setActiveTab] = useState('details');
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [managementDialogOpen, setManagementDialogOpen] = useState(false);
@@ -478,9 +503,19 @@ const RequestDetailPane = ({
             alignItems={{ xs: 'stretch', sm: 'center' }}
           >
             <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap' }}>
-              <Chip size="small" label={requestDetail.status_name || requestDetail.status_code || '-'} color="info" variant="outlined" />
+              <Chip
+                size="small"
+                label={requestDetail.status_name || requestDetail.status_code || '-'}
+                variant="filled"
+                sx={getStatusChipSx(requestDetail.status_code, theme)}
+              />
               <Chip size="small" label={requestDetail.category_name || requestDetail.category_code || '-'} variant="outlined" />
-              <Chip size="small" label={requestDetail.priority_name || requestDetail.priority_code || '-'} color="warning" variant="outlined" />
+              <Chip
+                size="small"
+                label={requestDetail.priority_name || requestDetail.priority_code || '-'}
+                color={requestPriorityTone.chipColor}
+                variant={requestPriorityTone.chipColor === 'default' ? 'outlined' : 'filled'}
+              />
             </Stack>
             <Button
               type="button"

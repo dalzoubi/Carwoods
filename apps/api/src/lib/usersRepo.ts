@@ -304,7 +304,7 @@ export async function ensureManagementUser(
   claims: AccessTokenClaims,
   role: UserRoleType
 ): Promise<UserRow> {
-  const email = primaryEmailFromClaims(claims) ?? 'user@unknown';
+  const email = normalizeEmail(primaryEmailFromClaims(claims) ?? 'user@unknown');
   const sub = claims.sub;
   const firstName = claims.given_name ?? null;
   const lastName = claims.family_name ?? null;
