@@ -942,7 +942,8 @@
       "mediaImage": "Image",
       "mediaVideo": "Video",
       "mediaFile": "Fichier",
-      "selectedFileLabel": "Fichier selectionne"
+      "selectedFileLabel": "Fichier selectionne",
+      "debugIdLabel": "ID de debogage"
     },
     "cancel": {
       "heading": "Annuler la demande",

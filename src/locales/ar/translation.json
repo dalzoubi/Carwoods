@@ -942,7 +942,8 @@
       "mediaImage": "صورة",
       "mediaVideo": "فيديو",
       "mediaFile": "ملف",
-      "selectedFileLabel": "الملف المحدد"
+      "selectedFileLabel": "الملف المحدد",
+      "debugIdLabel": "معرّف التصحيح"
     },
     "cancel": {
       "heading": "إلغاء الطلب",

@@ -127,7 +127,22 @@ async function portalRequestLookups(
     return jsonResponse(200, headers, result);
   } catch (e) {
     const mapped = mapDomainError(e, headers);
-    if (mapped) return mapped;
+    if (mapped) {
+      const err = e as { status?: number; code?: string };
+      logWarn(context, 'portal.requests.upload_intent.failed', {
+        requestId: request.params.id,
+        userId: user.id,
+        status: typeof err?.status === 'number' ? err.status : undefined,
+        code: typeof err?.code === 'string' ? err.code : undefined,
+        message: e instanceof Error ? e.message : 'unknown_error',
+      });
+      return mapped;
+    }
+    logError(context, 'portal.requests.upload_intent.error', {
+      requestId: request.params.id,
+      userId: user.id,
+      message: e instanceof Error ? e.message : 'unknown_error',
+    });
     throw e;
   }
 }

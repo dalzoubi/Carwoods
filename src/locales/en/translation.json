@@ -942,7 +942,8 @@
       "mediaImage": "Image",
       "mediaVideo": "Video",
       "mediaFile": "File",
-      "selectedFileLabel": "Selected file"
+      "selectedFileLabel": "Selected file",
+      "debugIdLabel": "Debug ID"
     },
     "cancel": {
       "heading": "Cancel request",

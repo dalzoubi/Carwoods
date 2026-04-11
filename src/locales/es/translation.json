@@ -942,7 +942,8 @@
       "mediaImage": "Imagen",
       "mediaVideo": "Video",
       "mediaFile": "Archivo",
-      "selectedFileLabel": "Archivo seleccionado"
+      "selectedFileLabel": "Archivo seleccionado",
+      "debugIdLabel": "ID de depuracion"
     },
     "cancel": {
       "heading": "Cancelar solicitud",

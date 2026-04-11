@@ -29,6 +29,7 @@ import { RequestStatus } from '../../domain/constants.js';
 const MESSAGE_POLL_INTERVAL_MS = 15000;
 const MESSAGE_SUCCESS_AUTO_DISMISS_MS = 5000;
 const ELSA_DECISION_ACTION_SUCCESS_AUTO_DISMISS_MS = 5000;
+const IS_DEV = import.meta.env.DEV;
 
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
@@ -78,6 +79,9 @@ function extractErrorMessage(error, t, fallbackKey) {
 
 function logAttachmentUploadFailure(error, context) {
   const errorDetails = error && typeof error === 'object' ? error.details : undefined;
+  const rawError = error instanceof Error
+    ? { name: error.name, message: error.message, stack: error.stack }
+    : error;
   // Keep logs structured and sanitized to diagnose blob/CORS/SAS issues.
   console.error('portal.requests.attachments.upload.failed', {
     ...context,
@@ -85,7 +89,15 @@ function logAttachmentUploadFailure(error, context) {
     code: error && typeof error === 'object' ? error.code : undefined,
     message: error && typeof error === 'object' ? error.message : undefined,
     details: errorDetails,
+    rawError,
   });
+}
+
+function createUploadDebugId() {
+  if (!IS_DEV) return '';
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const randomPart = Math.random().toString(36).slice(2, 7).toUpperCase();
+  return `UP-${timestamp}-${randomPart}`;
 }
 
 function formatDateTimeLocalValue(value) {
@@ -160,6 +172,7 @@ export function usePortalRequests({
   const [attachmentStatus, setAttachmentStatus] = useState('idle');
   const [attachmentError, setAttachmentError] = useState('');
   const [attachmentUploadProgress, setAttachmentUploadProgress] = useState(0);
+  const [attachmentErrorDebugId, setAttachmentErrorDebugId] = useState('');
   const [attachmentDeleteStatus, setAttachmentDeleteStatus] = useState('idle');
   const [attachmentDeleteError, setAttachmentDeleteError] = useState('');
 
@@ -370,6 +383,7 @@ export function usePortalRequests({
     setAttachmentFile(null);
     setAttachmentDeleteStatus('idle');
     setAttachmentDeleteError('');
+    setAttachmentErrorDebugId('');
     setMessageForm({ body: '', is_internal: false });
     setElsaDecisionStatus('idle');
     setElsaDecisionError('');
@@ -798,6 +812,7 @@ export function usePortalRequests({
     setAttachmentFile(file);
     setAttachmentStatus('idle');
     setAttachmentError('');
+    setAttachmentErrorDebugId('');
     setAttachmentUploadProgress(0);
   };
 
@@ -805,6 +820,7 @@ export function usePortalRequests({
     setAttachmentFile(null);
     setAttachmentStatus('idle');
     setAttachmentError('');
+    setAttachmentErrorDebugId('');
     setAttachmentUploadProgress(0);
   };
 
@@ -830,6 +846,7 @@ export function usePortalRequests({
 
     setAttachmentStatus('saving');
     setAttachmentError('');
+    setAttachmentErrorDebugId('');
     setAttachmentUploadProgress(0);
     try {
       const token = await getAccessToken();
@@ -860,20 +877,25 @@ export function usePortalRequests({
       });
       setAttachmentFile(null);
       setAttachmentUploadProgress(100);
+      setAttachmentErrorDebugId('');
       await loadRequestDetails(selectedRequestId, { showLoadingState: false });
       setAttachmentStatus('success');
     } catch (error) {
+      const debugId = createUploadDebugId();
       handleApiForbidden(error);
       setAttachmentStatus('error');
+      setAttachmentErrorDebugId(debugId);
+      logAttachmentUploadFailure(error, {
+        requestId: selectedRequestId,
+        fileName: attachmentFile?.name,
+        fileSizeBytes: attachmentFile?.size,
+        contentType,
+        stage: 'request_detail_upload',
+        debugId,
+      });
       if (error && typeof error === 'object' && error.status === 422 && error.code === 'storage_not_configured') {
         setAttachmentError(t('portalRequests.errors.attachmentStorageUnavailable'));
       } else if (error && typeof error === 'object' && error.code === 'blob_upload_failed') {
-        logAttachmentUploadFailure(error, {
-          requestId: selectedRequestId,
-          fileName: attachmentFile?.name,
-          fileSizeBytes: attachmentFile?.size,
-          contentType,
-        });
         setAttachmentError(t('portalRequests.errors.attachmentUploadFailed'));
       } else {
         setAttachmentError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
@@ -1082,6 +1104,7 @@ export function usePortalRequests({
     attachmentFile,
     attachmentStatus,
     attachmentError,
+    attachmentErrorDebugId,
     attachmentUploadProgress,
     attachmentDeleteStatus,
     attachmentDeleteError,

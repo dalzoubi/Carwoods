@@ -251,6 +251,7 @@ const RequestDetailPane = ({
   attachmentFile,
   attachmentStatus,
   attachmentError,
+  attachmentErrorDebugId,
   attachmentUploadProgress,
   attachmentDeleteStatus,
   attachmentDeleteError,
@@ -274,6 +275,7 @@ const RequestDetailPane = ({
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
+  const isDev = import.meta.env.DEV;
   const requestPriorityTone = useMemo(() => priorityTone(requestDetail), [requestDetail]);
   const [activeTab, setActiveTab] = useState('details');
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -1442,6 +1444,11 @@ const RequestDetailPane = ({
             sx={{ flexWrap: 'wrap', rowGap: 1, alignItems: { xs: 'stretch', sm: 'center' } }}
           >
             <InlineActionStatus message={attachmentDeleteStatusMessage || attachmentStatusMessage} />
+            {isDev && attachmentStatus === 'error' && attachmentErrorDebugId ? (
+              <Typography variant="caption" color="text.secondary">
+                {t('portalRequests.attachments.debugIdLabel')}: {attachmentErrorDebugId}
+              </Typography>
+            ) : null}
           </Stack>
         </Stack>
       </SectionCard>
