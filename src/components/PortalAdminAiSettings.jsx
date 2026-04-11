@@ -2,13 +2,30 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 import { Box, Paper, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import PortalAdminAiConfig from './PortalAdminAiConfig';
 import PortalAdminAiAgents from './PortalAdminAiAgents';
 import PortalAdminAttachmentConfig from './PortalAdminAttachmentConfig';
 
+const TAB_SLUGS = ['policies', 'agents', 'attachments'];
+
+function tabIndexFromSlug(rawSlug) {
+  const normalized = String(rawSlug || '').trim().toLowerCase();
+  const index = TAB_SLUGS.indexOf(normalized);
+  return index >= 0 ? index : 0;
+}
+
 const PortalAdminAiSettings = () => {
   const { t } = useTranslation();
-  const [tab, setTab] = React.useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabSlug = searchParams.get('tab');
+  const tab = tabIndexFromSlug(tabSlug);
+
+  const onTabChange = React.useCallback((_, nextTab) => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('tab', TAB_SLUGS[nextTab] || TAB_SLUGS[0]);
+    setSearchParams(nextParams, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   return (
     <Box sx={{ py: 4 }}>
@@ -24,7 +41,7 @@ const PortalAdminAiSettings = () => {
         <Paper variant="outlined" sx={{ p: 1 }}>
           <Tabs
             value={tab}
-            onChange={(_, nextTab) => setTab(nextTab)}
+            onChange={onTabChange}
             aria-label={t('portalAdminConfigurations.tabsLabel')}
             variant="scrollable"
             scrollButtons="auto"

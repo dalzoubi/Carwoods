@@ -212,6 +212,13 @@ const sectionHeadingSx = {
   mb: { xs: 0.25, sm: 0 },
 };
 
+function formatBytesToMbLabel(bytes) {
+  const numeric = Number(bytes);
+  if (!Number.isFinite(numeric) || numeric <= 0) return '0 MB';
+  const mb = numeric / (1024 * 1024);
+  return `${mb.toFixed(mb >= 10 ? 1 : 2)} MB`;
+}
+
 const RequestDetailPane = ({
   requestDetail,
   detailStatus,
@@ -244,6 +251,9 @@ const RequestDetailPane = ({
   attachmentDeleteStatus,
   attachmentDeleteError,
   onDeleteAttachment,
+  attachmentDialogOpen,
+  attachmentDialogMessage,
+  dismissAttachmentDialog,
   currentUserId,
   auditEvents,
   auditStatus,
@@ -391,6 +401,14 @@ const RequestDetailPane = ({
     || attachment?.uploaded_by_user_id
     || t('portalRequests.messages.senderUnknown')
   );
+  const attachmentMetaLabel = (attachment) => {
+    const details = [attachmentMediaLabel(attachment?.media_type)];
+    if (Number.isFinite(Number(attachment?.file_size_bytes))) {
+      details.push(formatBytesToMbLabel(attachment.file_size_bytes));
+    }
+    details.push(uploaderLabel(attachment), formatDateTime(attachment?.created_at));
+    return details.join(' · ');
+  };
 
   return (
     <Stack spacing={2} sx={{ flex: 1 }}>
@@ -1271,7 +1289,7 @@ const RequestDetailPane = ({
                           {att.original_filename}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {attachmentMediaLabel(att.media_type)} · {uploaderLabel(att)} · {formatDateTime(att.created_at)}
+                          {attachmentMetaLabel(att)}
                         </Typography>
                       </Box>
                       <Stack direction="row" spacing={1}>
@@ -1349,7 +1367,7 @@ const RequestDetailPane = ({
           </Box>
           {attachmentFile && (
             <Typography color="text.secondary">
-              {attachmentFile.name} ({attachmentFile.size} bytes)
+              {attachmentFile.name} ({formatBytesToMbLabel(attachmentFile.size)})
             </Typography>
           )}
           {attachmentStatus === 'saving' && (
@@ -1412,6 +1430,19 @@ const RequestDetailPane = ({
             }}
           >
             {t('portalRequests.attachments.deleteConfirmYes')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={attachmentDialogOpen} onClose={dismissAttachmentDialog}>
+        <DialogTitle>{t('portalRequests.attachments.errorDialogTitle')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {attachmentDialogMessage || t('portalRequests.errors.saveFailed')}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button type="button" onClick={dismissAttachmentDialog}>
+            {t('portalRequests.actions.close')}
           </Button>
         </DialogActions>
       </Dialog>

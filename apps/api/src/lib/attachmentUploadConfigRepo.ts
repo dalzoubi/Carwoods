@@ -3,6 +3,8 @@ import type { AttachmentUploadConfig, AttachmentUploadConfigInput } from '../dom
 
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
 
+const ATTACHMENT_CONFIG_CACHE_TTL_MS = 60 * 60 * 1000;
+
 type AttachmentUploadConfigRow = {
   id: string;
   scope_type: 'GLOBAL' | 'LANDLORD';
@@ -49,6 +51,28 @@ function mapRow(row: AttachmentUploadConfigRow): AttachmentUploadConfig {
   };
 }
 
+type CacheEntry<T> = {
+  value: T;
+  expiresAtMs: number;
+};
+
+let globalConfigCache: CacheEntry<AttachmentUploadConfig | null> | null = null;
+const landlordOverrideCache = new Map<string, CacheEntry<AttachmentUploadConfig | null>>();
+
+function cloneConfig(config: AttachmentUploadConfig | null): AttachmentUploadConfig | null {
+  if (!config) return null;
+  return {
+    ...config,
+    allowed_mime_types: [...config.allowed_mime_types],
+    allowed_extensions: [...config.allowed_extensions],
+    updated_at: new Date(config.updated_at),
+  };
+}
+
+function isCacheFresh(entry: CacheEntry<unknown> | null | undefined): boolean {
+  return Boolean(entry && entry.expiresAtMs > Date.now());
+}
+
 export async function getGlobalAttachmentUploadConfig(client: Queryable): Promise<AttachmentUploadConfig | null> {
   const r = await client.query<AttachmentUploadConfigRow>(
     `SELECT TOP 1
@@ -70,6 +94,20 @@ export async function getGlobalAttachmentUploadConfig(client: Queryable): Promis
      WHERE scope_type = 'GLOBAL'`
   );
   return r.rows[0] ? mapRow(r.rows[0]) : null;
+}
+
+export async function getGlobalAttachmentUploadConfigCached(
+  client: Queryable
+): Promise<AttachmentUploadConfig | null> {
+  if (isCacheFresh(globalConfigCache)) {
+    return cloneConfig(globalConfigCache!.value);
+  }
+  const loaded = await getGlobalAttachmentUploadConfig(client);
+  globalConfigCache = {
+    value: cloneConfig(loaded),
+    expiresAtMs: Date.now() + ATTACHMENT_CONFIG_CACHE_TTL_MS,
+  };
+  return cloneConfig(loaded);
 }
 
 export async function listLandlordAttachmentUploadOverrides(
@@ -134,6 +172,28 @@ export async function getLandlordAttachmentUploadOverride(
     [landlordUserId]
   );
   return r.rows[0] ? mapRow(r.rows[0]) : null;
+}
+
+export async function getLandlordAttachmentUploadOverrideCached(
+  client: Queryable,
+  landlordUserId: string
+): Promise<AttachmentUploadConfig | null> {
+  const cacheKey = String(landlordUserId || '').trim().toLowerCase();
+  const cached = landlordOverrideCache.get(cacheKey);
+  if (isCacheFresh(cached)) {
+    return cloneConfig(cached!.value);
+  }
+  const loaded = await getLandlordAttachmentUploadOverride(client, landlordUserId);
+  landlordOverrideCache.set(cacheKey, {
+    value: cloneConfig(loaded),
+    expiresAtMs: Date.now() + ATTACHMENT_CONFIG_CACHE_TTL_MS,
+  });
+  return cloneConfig(loaded);
+}
+
+export function invalidateAttachmentUploadConfigCache(): void {
+  globalConfigCache = null;
+  landlordOverrideCache.clear();
 }
 
 export async function upsertGlobalAttachmentUploadConfig(

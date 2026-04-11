@@ -12,6 +12,7 @@ import {
   deleteLandlordAttachmentUploadOverride,
   getGlobalAttachmentUploadConfig,
   getLandlordAttachmentUploadOverride,
+  invalidateAttachmentUploadConfigCache,
   listLandlordAttachmentUploadOverrides,
   upsertGlobalAttachmentUploadConfig,
   upsertLandlordAttachmentUploadConfig,
@@ -609,6 +610,7 @@ async function landlordAttachmentConfigCollection(
         after: updated,
       });
       await client.query('COMMIT');
+      invalidateAttachmentUploadConfigCache();
       return jsonResponse(200, ctx.headers, { global: updated });
     } catch (error) {
       await client.query('ROLLBACK');
@@ -657,6 +659,7 @@ async function landlordAttachmentConfigLandlordItem(
           after: null,
         });
         await client.query('COMMIT');
+        invalidateAttachmentUploadConfigCache();
         return jsonResponse(200, ctx.headers, { deleted });
       } catch (error) {
         await client.query('ROLLBACK');
@@ -705,6 +708,7 @@ async function landlordAttachmentConfigLandlordItem(
         after: updated,
       });
       await client.query('COMMIT');
+      invalidateAttachmentUploadConfigCache();
       return jsonResponse(200, ctx.headers, { override: updated });
     } catch (error) {
       await client.query('ROLLBACK');

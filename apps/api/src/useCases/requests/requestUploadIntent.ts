@@ -13,8 +13,8 @@ import {
 } from '../../lib/requestsRepo.js';
 import {
   findRequestLandlordUserId,
-  getGlobalAttachmentUploadConfig,
-  getLandlordAttachmentUploadOverride,
+  getGlobalAttachmentUploadConfigCached,
+  getLandlordAttachmentUploadOverrideCached,
 } from '../../lib/attachmentUploadConfigRepo.js';
 import {
   detectMediaType,
@@ -79,11 +79,11 @@ export async function requestUploadIntent(
   const mediaType = detectMediaType(input.contentType);
   if (!mediaType) throw validationError('unsupported_mime_type');
 
-  const globalConfig = await getGlobalAttachmentUploadConfig(db);
+  const globalConfig = await getGlobalAttachmentUploadConfigCached(db);
   if (!globalConfig) throw unprocessable('attachment_config_missing');
   const landlordUserId = await findRequestLandlordUserId(db, requestId);
   const landlordOverride = landlordUserId
-    ? await getLandlordAttachmentUploadOverride(db, landlordUserId)
+    ? await getLandlordAttachmentUploadOverrideCached(db, landlordUserId)
     : null;
   const effectiveConfig = landlordOverride ?? globalConfig;
 

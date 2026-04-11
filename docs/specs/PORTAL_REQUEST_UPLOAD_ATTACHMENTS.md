@@ -8,6 +8,7 @@
   - `docs/specs/SPEC_TEMPLATE.md`
   - `docs/specs/EXAMPLE_PORTAL_REQUESTS_STATUS_FILTER.md`
   - `docs/portal/IMPLEMENTATION_PROMPT.md`
+  - `AGENTS.md` (workspace base rules/prompt)
 
 ## 2) Scope
 
@@ -135,10 +136,13 @@
 ## 6) Validation plan
 
 - Automated checks (include exact commands):
+  - Base-prompt compliance gate: implementation and validation must follow `AGENTS.md` + `docs/portal/IMPLEMENTATION_PROMPT.md` constraints (i18n, RTL, theme, security, and testing standards).
   - `npx vitest run`
   - `npx eslint src/`
   - Add API/unit/integration tests for attachment validation, permission enforcement, and signed-link expiry behavior in relevant portal/API packages.
 - Feature tests to add/update:
+  - `src/components/PortalAdminAttachmentConfig.test.jsx` for attachments config UI behavior (render, refresh, confirm-save, override save/clear).
+  - `apps/api/test/attachmentUploadConfigCache.test.mjs` for 60-minute attachment-config cache behavior and invalidation.
   - Upload success tests (create flow and detail flow).
   - File limit validation tests (count, size, duration, MIME).
   - Delete permission tests (tenant own-only, landlord/admin any).
@@ -238,4 +242,5 @@
 - Follow-ups (if any):
   - Decide concrete share-link TTL defaults and revocation strategy.
   - Confirm malware scan package/service choice and operational cost guardrails.
+  - Enforce in future specs: no implementation starts until required test files and exact validation commands are listed.
 

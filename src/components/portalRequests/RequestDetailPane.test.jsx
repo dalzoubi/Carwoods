@@ -68,6 +68,9 @@ function makeProps(overrides = {}) {
     attachmentDeleteStatus: 'idle',
     attachmentDeleteError: '',
     onDeleteAttachment: async () => {},
+    attachmentDialogOpen: false,
+    attachmentDialogMessage: '',
+    dismissAttachmentDialog: () => {},
     currentUserId: 'tenant-1',
     auditEvents: [],
     auditStatus: 'idle',
@@ -283,5 +286,29 @@ describe('RequestDetailPane', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Show details' }));
     expect(screen.getByText('Scheduled window:')).toBeInTheDocument();
     expect(screen.getByText('Not scheduled')).toBeInTheDocument();
+  });
+
+  it('shows attachment row size in MB', () => {
+    const props = makeProps({
+      attachments: [
+        {
+          id: 'att-1',
+          media_type: 'PHOTO',
+          file_size_bytes: 5 * 1024 * 1024,
+          original_filename: 'leak.jpg',
+          uploaded_by_display_name: 'Tenant One',
+          created_at: '2026-04-10T10:00:00Z',
+          file_url: '',
+        },
+      ],
+    });
+
+    render(
+      <WithAppTheme>
+        <RequestDetailPane {...props} />
+      </WithAppTheme>
+    );
+
+    expect(screen.getByText(/Image · 5\.00 MB · Tenant One/i)).toBeInTheDocument();
   });
 });

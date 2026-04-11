@@ -7,6 +7,9 @@ Use this template for every non-trivial change before implementation.
 - Problem statement:
 - Why now:
 - Related docs/issues/links:
+- Base prompt/rules to follow (required):
+  - `AGENTS.md` (workspace rules)
+  - `docs/portal/IMPLEMENTATION_PROMPT.md` (or feature-area equivalent)
 
 ## 2) Scope
 
@@ -39,9 +42,14 @@ Write criteria in testable form. Prefer Given / When / Then.
 ## 6) Validation plan
 
 - Automated checks (include exact commands):
+  - Base-prompt compliance check (required): confirm implementation and validation follow the listed base rules/prompts.
   - `npx vitest run`
   - `npx eslint src/`
   - (add feature-specific checks)
+- Required test plan details (required):
+  - New tests to add (exact file paths):
+  - Existing tests to update (exact file paths):
+  - Acceptance criteria to test mapping (AC -> test file/test case):
 - Manual checks:
   - Light mode
   - Dark mode
@@ -68,6 +76,9 @@ Write criteria in testable form. Prefer Given / When / Then.
 
 - Files changed:
 - Tests run and results:
+- Base-prompt compliance status:
+  - `AGENTS.md` constraints: met / deferred (reason)
+  - Feature implementation prompt constraints: met / deferred (reason)
 - Acceptance criteria status:
   - AC-1: met / deferred (reason)
   - AC-2: met / deferred (reason)

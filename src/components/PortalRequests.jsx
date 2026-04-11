@@ -91,6 +91,8 @@ const PortalRequests = () => {
     attachmentUploadProgress,
     attachmentDeleteStatus,
     attachmentDeleteError,
+    attachmentDialogOpen,
+    attachmentDialogMessage,
     exportStatus,
     exportError,
     auditEvents,
@@ -121,6 +123,7 @@ const PortalRequests = () => {
     onAttachmentChange,
     onAttachmentSubmit,
     onDeleteAttachment,
+    dismissAttachmentDialog,
     onExportCsv,
     onSetElsaAutoRespond,
     onRunElsa,
@@ -427,6 +430,9 @@ const PortalRequests = () => {
                 attachmentDeleteStatus={attachmentDeleteStatus}
                 attachmentDeleteError={attachmentDeleteError}
                 onDeleteAttachment={onDeleteAttachment}
+                attachmentDialogOpen={attachmentDialogOpen}
+                attachmentDialogMessage={attachmentDialogMessage}
+                dismissAttachmentDialog={dismissAttachmentDialog}
                 currentUserId={meData?.user?.id || ''}
                 auditEvents={auditEvents}
                 auditStatus={auditStatus}

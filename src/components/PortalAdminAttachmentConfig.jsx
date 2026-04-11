@@ -15,6 +15,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import Refresh from '@mui/icons-material/Refresh';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { emailFromAccount, normalizeRole, resolveRole } from '../portalUtils';
@@ -27,10 +28,12 @@ import {
   patchAttachmentUploadLandlordConfig,
 } from '../lib/portalApiClient';
 
+const BYTES_PER_MB = 1024 * 1024;
+
 const EMPTY_FORM = {
   max_attachments: 3,
-  max_image_bytes: 10 * 1024 * 1024,
-  max_video_bytes: 50 * 1024 * 1024,
+  max_image_mb: 10,
+  max_video_mb: 50,
   max_video_duration_seconds: 10,
   allowed_mime_types: 'image/*\nvideo/*',
   allowed_extensions: 'jpg\njpeg\npng\ngif\nwebp\nmp4\nmov\nwebm',
@@ -50,8 +53,8 @@ function formFromConfig(config) {
   if (!config) return { ...EMPTY_FORM };
   return {
     max_attachments: config.max_attachments ?? EMPTY_FORM.max_attachments,
-    max_image_bytes: config.max_image_bytes ?? EMPTY_FORM.max_image_bytes,
-    max_video_bytes: config.max_video_bytes ?? EMPTY_FORM.max_video_bytes,
+    max_image_mb: Math.max(1, Math.round(((config.max_image_bytes ?? (EMPTY_FORM.max_image_mb * BYTES_PER_MB)) / BYTES_PER_MB) * 100) / 100),
+    max_video_mb: Math.max(1, Math.round(((config.max_video_bytes ?? (EMPTY_FORM.max_video_mb * BYTES_PER_MB)) / BYTES_PER_MB) * 100) / 100),
     max_video_duration_seconds:
       config.max_video_duration_seconds ?? EMPTY_FORM.max_video_duration_seconds,
     allowed_mime_types: Array.isArray(config.allowed_mime_types)
@@ -69,8 +72,8 @@ function formFromConfig(config) {
 function payloadFromForm(form) {
   return {
     max_attachments: Number(form.max_attachments),
-    max_image_bytes: Number(form.max_image_bytes),
-    max_video_bytes: Number(form.max_video_bytes),
+    max_image_bytes: Math.round(Number(form.max_image_mb) * BYTES_PER_MB),
+    max_video_bytes: Math.round(Number(form.max_video_mb) * BYTES_PER_MB),
     max_video_duration_seconds: Number(form.max_video_duration_seconds),
     allowed_mime_types: listFromMultiline(form.allowed_mime_types),
     allowed_extensions: listFromMultiline(form.allowed_extensions),
@@ -210,12 +213,24 @@ const PortalAdminAttachmentConfig = () => {
   return (
     <Paper variant="outlined" sx={{ p: 2.5 }}>
       <Stack spacing={2}>
-        <Box>
-          <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
-            {t('portalAdminAttachmentConfig.heading')}
-          </Typography>
-          <Typography color="text.secondary">{t('portalAdminAttachmentConfig.intro')}</Typography>
-        </Box>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ gap: 1 }}>
+          <Box>
+            <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
+              {t('portalAdminAttachmentConfig.heading')}
+            </Typography>
+            <Typography color="text.secondary">{t('portalAdminAttachmentConfig.intro')}</Typography>
+          </Box>
+          <Button
+            type="button"
+            size="small"
+            variant="outlined"
+            onClick={() => void load()}
+            disabled={!canUseModule || status === 'loading'}
+            startIcon={status === 'loading' ? <CircularProgress size={16} /> : <Refresh fontSize="small" />}
+          >
+            {t('portalAdminAttachmentConfig.actions.refresh')}
+          </Button>
+        </Stack>
         {!baseUrl && <Alert severity="warning">{t('portalAdminAttachmentConfig.errors.apiUnavailable')}</Alert>}
         {!isAuthenticated && <Alert severity="warning">{t('portalAdminAttachmentConfig.errors.signInRequired')}</Alert>}
         {isAuthenticated && !isAdmin && <Alert severity="error">{t('portalAdminAttachmentConfig.errors.adminOnly')}</Alert>}
@@ -229,8 +244,8 @@ const PortalAdminAttachmentConfig = () => {
               {t('portalAdminAttachmentConfig.global.heading')}
             </Typography>
             <TextField label={t('portalAdminAttachmentConfig.fields.maxAttachments')} type="number" value={globalForm.max_attachments} onChange={onGlobalField('max_attachments')} />
-            <TextField label={t('portalAdminAttachmentConfig.fields.maxImageBytes')} type="number" value={globalForm.max_image_bytes} onChange={onGlobalField('max_image_bytes')} />
-            <TextField label={t('portalAdminAttachmentConfig.fields.maxVideoBytes')} type="number" value={globalForm.max_video_bytes} onChange={onGlobalField('max_video_bytes')} />
+            <TextField label={t('portalAdminAttachmentConfig.fields.maxImageBytes')} type="number" value={globalForm.max_image_mb} onChange={onGlobalField('max_image_mb')} />
+            <TextField label={t('portalAdminAttachmentConfig.fields.maxVideoBytes')} type="number" value={globalForm.max_video_mb} onChange={onGlobalField('max_video_mb')} />
             <TextField label={t('portalAdminAttachmentConfig.fields.maxVideoDurationSeconds')} type="number" value={globalForm.max_video_duration_seconds} onChange={onGlobalField('max_video_duration_seconds')} />
             <TextField label={t('portalAdminAttachmentConfig.fields.allowedMimeTypes')} multiline minRows={2} value={globalForm.allowed_mime_types} onChange={onGlobalField('allowed_mime_types')} />
             <TextField label={t('portalAdminAttachmentConfig.fields.allowedExtensions')} multiline minRows={2} value={globalForm.allowed_extensions} onChange={onGlobalField('allowed_extensions')} />
@@ -286,8 +301,8 @@ const PortalAdminAttachmentConfig = () => {
             {selectedLandlordId && (
               <>
                 <TextField label={t('portalAdminAttachmentConfig.fields.maxAttachments')} type="number" value={landlordForm.max_attachments} onChange={onLandlordField('max_attachments')} />
-                <TextField label={t('portalAdminAttachmentConfig.fields.maxImageBytes')} type="number" value={landlordForm.max_image_bytes} onChange={onLandlordField('max_image_bytes')} />
-                <TextField label={t('portalAdminAttachmentConfig.fields.maxVideoBytes')} type="number" value={landlordForm.max_video_bytes} onChange={onLandlordField('max_video_bytes')} />
+                <TextField label={t('portalAdminAttachmentConfig.fields.maxImageBytes')} type="number" value={landlordForm.max_image_mb} onChange={onLandlordField('max_image_mb')} />
+                <TextField label={t('portalAdminAttachmentConfig.fields.maxVideoBytes')} type="number" value={landlordForm.max_video_mb} onChange={onLandlordField('max_video_mb')} />
                 <TextField label={t('portalAdminAttachmentConfig.fields.maxVideoDurationSeconds')} type="number" value={landlordForm.max_video_duration_seconds} onChange={onLandlordField('max_video_duration_seconds')} />
                 <TextField label={t('portalAdminAttachmentConfig.fields.allowedMimeTypes')} multiline minRows={2} value={landlordForm.allowed_mime_types} onChange={onLandlordField('allowed_mime_types')} />
                 <TextField label={t('portalAdminAttachmentConfig.fields.allowedExtensions')} multiline minRows={2} value={landlordForm.allowed_extensions} onChange={onLandlordField('allowed_extensions')} />

@@ -831,6 +831,7 @@
       "landlordFallbackName": "tu propietario",
       "loadFailed": "No se pudieron cargar las solicitudes.",
       "saveFailed": "No se pudieron guardar los cambios.",
+      "attachmentStorageUnavailable": "La carga de adjuntos no está disponible temporalmente. Inténtalo más tarde o contacta soporte.",
       "messageProtected": "No se puede eliminar este mensaje porque está referenciado por el historial de Elsa.",
       "uploadIntentMissingPath": "La intención de carga no devolvió una ruta de almacenamiento.",
       "unsupportedFileType": "Tipo de archivo no admitido. Solo se permiten imágenes y videos.",
@@ -930,6 +931,7 @@
       "instructions": "Hasta 3 archivos en total. Imágenes <= 10 MB. Videos <= 50 MB y <= 10 segundos. Se admite arrastrar y soltar.",
       "download": "Descargar",
       "retryUpload": "Reintentar carga",
+      "errorDialogTitle": "Carga de adjuntos no disponible",
       "deleteAction": "Eliminar adjunto",
       "deleteConfirmTitle": "¿Eliminar este adjunto?",
       "deleteConfirmBody": "Esto elimina permanentemente el adjunto de la solicitud.",
@@ -1179,6 +1181,7 @@
     "heading": "Configuración de adjuntos",
     "intro": "Administra límites de carga y valores de seguridad para adjuntos. Los cambios aplican solo a nuevas cargas.",
     "actions": {
+      "refresh": "Actualizar",
       "saveGlobal": "Guardar valores globales",
       "saveOverride": "Guardar anulación del propietario",
       "clearOverride": "Quitar anulación"
@@ -1202,8 +1205,8 @@
     },
     "fields": {
       "maxAttachments": "Máximo de adjuntos por solicitud",
-      "maxImageBytes": "Tamaño máximo de imagen (bytes)",
-      "maxVideoBytes": "Tamaño máximo de video (bytes)",
+      "maxImageBytes": "Tamaño máximo de imagen (MB)",
+      "maxVideoBytes": "Tamaño máximo de video (MB)",
       "maxVideoDurationSeconds": "Duración máxima de video (segundos)",
       "allowedMimeTypes": "Tipos MIME permitidos (uno por línea)",
       "allowedExtensions": "Extensiones permitidas (una por línea)",

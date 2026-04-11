@@ -831,6 +831,7 @@
       "landlordFallbackName": "votre proprietaire",
       "loadFailed": "Impossible de charger les demandes.",
       "saveFailed": "Impossible d'enregistrer les modifications.",
+      "attachmentStorageUnavailable": "Le televersement des pieces jointes est temporairement indisponible. Reessayez plus tard ou contactez le support.",
       "messageProtected": "Ce message ne peut pas être supprimé car il est référencé par l'historique Elsa.",
       "uploadIntentMissingPath": "L'intention d'upload n'a pas retourne de chemin de stockage.",
       "unsupportedFileType": "Type de fichier non pris en charge. Seules les images et les vidéos sont autorisées.",
@@ -930,6 +931,7 @@
       "instructions": "Jusqu'a 3 fichiers au total. Images <= 10 Mo. Videos <= 50 Mo et <= 10 secondes. Le glisser-deposer est pris en charge.",
       "download": "Telecharger",
       "retryUpload": "Reessayer l'envoi",
+      "errorDialogTitle": "Upload de piece jointe indisponible",
       "deleteAction": "Supprimer la piece jointe",
       "deleteConfirmTitle": "Supprimer cette piece jointe ?",
       "deleteConfirmBody": "Cela supprime definitivement la piece jointe de la demande.",
@@ -1179,6 +1181,7 @@
     "heading": "Configuration des pieces jointes",
     "intro": "Gerez les limites d'upload et les valeurs de securite des pieces jointes. Les changements s'appliquent uniquement aux nouveaux uploads.",
     "actions": {
+      "refresh": "Actualiser",
       "saveGlobal": "Enregistrer les valeurs globales",
       "saveOverride": "Enregistrer la surcharge proprietaire",
       "clearOverride": "Supprimer la surcharge"
@@ -1202,8 +1205,8 @@
     },
     "fields": {
       "maxAttachments": "Nombre max de pieces jointes par demande",
-      "maxImageBytes": "Taille max image (octets)",
-      "maxVideoBytes": "Taille max video (octets)",
+      "maxImageBytes": "Taille max image (MB)",
+      "maxVideoBytes": "Taille max video (MB)",
       "maxVideoDurationSeconds": "Duree max video (secondes)",
       "allowedMimeTypes": "Types MIME autorises (un par ligne)",
       "allowedExtensions": "Extensions autorisees (une par ligne)",

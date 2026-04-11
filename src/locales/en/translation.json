@@ -831,6 +831,7 @@
       "landlordFallbackName": "your property manager",
       "loadFailed": "Unable to load request data.",
       "saveFailed": "Unable to save changes.",
+      "attachmentStorageUnavailable": "Attachment uploads are temporarily unavailable. Please try again later or contact support.",
       "messageProtected": "This message cannot be deleted because it is referenced by Elsa history.",
       "uploadIntentMissingPath": "Upload intent did not return a storage path.",
       "unsupportedFileType": "File type not supported. Allowed: images and videos only.",
@@ -930,6 +931,7 @@
       "instructions": "Up to 3 files total. Images <= 10 MB. Videos <= 50 MB and <= 10 seconds. Drag and drop is supported.",
       "download": "Download",
       "retryUpload": "Retry upload",
+      "errorDialogTitle": "Attachment upload unavailable",
       "deleteAction": "Delete attachment",
       "deleteConfirmTitle": "Delete this attachment?",
       "deleteConfirmBody": "This permanently removes the attachment from the request.",
@@ -1179,6 +1181,7 @@
     "heading": "Attachment Configuration",
     "intro": "Manage upload limits and attachment security defaults. Changes apply to new uploads only.",
     "actions": {
+      "refresh": "Refresh",
       "saveGlobal": "Save global defaults",
       "saveOverride": "Save landlord override",
       "clearOverride": "Clear override"
@@ -1202,8 +1205,8 @@
     },
     "fields": {
       "maxAttachments": "Max attachments per request",
-      "maxImageBytes": "Max image bytes",
-      "maxVideoBytes": "Max video bytes",
+      "maxImageBytes": "Max image size (MB)",
+      "maxVideoBytes": "Max video size (MB)",
       "maxVideoDurationSeconds": "Max video duration (seconds)",
       "allowedMimeTypes": "Allowed MIME types (one per line)",
       "allowedExtensions": "Allowed file extensions (one per line)",
