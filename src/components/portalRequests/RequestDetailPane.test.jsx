@@ -297,6 +297,7 @@ describe('RequestDetailPane', () => {
           file_size_bytes: 5 * 1024 * 1024,
           original_filename: 'leak.jpg',
           uploaded_by_display_name: 'Tenant One',
+          uploaded_by_role: 'TENANT',
           created_at: '2026-04-10T10:00:00Z',
           file_url: '',
         },
@@ -309,7 +310,9 @@ describe('RequestDetailPane', () => {
       </WithAppTheme>
     );
 
-    expect(screen.getByText(/Image · 5\.00 MB · Tenant One/i)).toBeInTheDocument();
+    expect(screen.getByText(/Image · 5\.00 MB/i)).toBeInTheDocument();
+    expect(screen.getByText('Tenant One')).toBeInTheDocument();
+    expect(screen.getByText('Tenant')).toBeInTheDocument();
   });
 
   it('opens full image preview dialog when thumbnail is clicked', () => {
@@ -336,6 +339,44 @@ describe('RequestDetailPane', () => {
     fireEvent.click(screen.getByLabelText('Preview: full-leak.jpg'));
     expect(screen.getByRole('heading', { name: 'full-leak.jpg' })).toBeInTheDocument();
     expect(screen.getAllByAltText('full-leak.jpg').length).toBeGreaterThan(1);
+  });
+
+  it('shows copy-link actions for each attachment and in preview dialog', () => {
+    const props = makeProps({
+      attachments: [
+        {
+          id: 'att-copy-1',
+          media_type: 'PHOTO',
+          file_size_bytes: 1024,
+          original_filename: 'copy-photo.jpg',
+          uploaded_by_display_name: 'Tenant One',
+          created_at: '2026-04-10T10:00:00Z',
+          file_url: 'https://example.com/copy-photo.jpg',
+        },
+        {
+          id: 'att-copy-2',
+          media_type: 'PHOTO',
+          file_size_bytes: 2048,
+          original_filename: 'copy-photo-2.jpg',
+          uploaded_by_display_name: 'Tenant One',
+          created_at: '2026-04-10T10:01:00Z',
+          file_url: 'https://example.com/copy-photo-2.jpg',
+        },
+      ],
+    });
+
+    render(
+      <WithAppTheme>
+        <RequestDetailPane {...props} />
+      </WithAppTheme>
+    );
+
+    expect(screen.getByRole('button', { name: 'Copy link for copy-photo.jpg' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Copy link for copy-photo-2.jpg' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Preview: copy-photo.jpg'));
+    expect(screen.getByRole('button', { name: 'Copy link for copy-photo.jpg' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Download/i })).toBeInTheDocument();
   });
 
   it('navigates between image and video attachments in preview dialog', () => {

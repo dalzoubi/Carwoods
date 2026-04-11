@@ -4,15 +4,23 @@ import {
   Box,
   Button,
   CircularProgress,
-  Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControlLabel,
+  IconButton,
   Switch,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import BlockIcon from '@mui/icons-material/Block';
+import EditIcon from '@mui/icons-material/Edit';
 import Refresh from '@mui/icons-material/Refresh';
+import ReplayIcon from '@mui/icons-material/Replay';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { Role } from '../domain/constants.js';
@@ -49,9 +57,12 @@ const PortalAdminLandlords = () => {
   const isAdmin = role === Role.ADMIN;
   const canUseModule = isAuthenticated && isAdmin && Boolean(baseUrl);
 
-  const [createOpen, setCreateOpen] = useState(false);
-  const [form, setForm] = useState({ email: '', firstName: '', lastName: '' });
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [form, setForm] = useState({ email: '', firstName: '', lastName: '', phone: '' });
   const [fieldErrors, setFieldErrors] = useState({});
+  const [editingLandlordId, setEditingLandlordId] = useState(null);
+  const [editForm, setEditForm] = useState({ email: '', firstName: '', lastName: '', phone: '' });
+  const [editFieldErrors, setEditFieldErrors] = useState({});
   const [showInactive, setShowInactive] = useState(false);
   const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
   const [landlordsState, setLandlordsState] = useState({ status: 'idle', detail: '', landlords: [] });
@@ -98,6 +109,19 @@ const PortalAdminLandlords = () => {
     [form, t]
   );
   const isFormValid = Object.keys(formErrors).length === 0;
+  const editFormErrors = useMemo(
+    () =>
+      validatePersonBasics(editForm, t, {
+        keys: {
+          firstNameRequired: 'portalAdminLandlords.errors.firstNameRequired',
+          lastNameRequired: 'portalAdminLandlords.errors.lastNameRequired',
+          emailRequired: 'portalAdminLandlords.errors.emailRequired',
+          emailInvalid: 'portalAdminLandlords.errors.emailInvalid',
+        },
+      }),
+    [editForm, t]
+  );
+  const isEditFormValid = Object.keys(editFormErrors).length === 0;
   useEffect(() => {
     if (submitState.status !== 'ok' || !submitState.detail) return;
     showFeedback(submitState.detail, 'success');
@@ -176,6 +200,88 @@ const PortalAdminLandlords = () => {
     setFieldErrors((prev) => ({ ...prev, [field]: message }));
   };
 
+  const beginEdit = (landlord) => {
+    setEditingLandlordId(landlord.id);
+    setEditForm({
+      email: String(landlord.email ?? ''),
+      firstName: String(landlord.first_name ?? ''),
+      lastName: String(landlord.last_name ?? ''),
+      phone: String(landlord.phone ?? ''),
+    });
+    setEditFieldErrors({});
+  };
+
+  const cancelEdit = () => {
+    setEditingLandlordId(null);
+    setEditForm({ email: '', firstName: '', lastName: '', phone: '' });
+    setEditFieldErrors({});
+  };
+
+  const closeCreateDialog = () => {
+    setCreateDialogOpen(false);
+    setFieldErrors({});
+    setForm({ email: '', firstName: '', lastName: '', phone: '' });
+  };
+
+  const onEditChange = (field) => (event) => {
+    const value = event.target.value;
+    setEditForm((prev) => ({ ...prev, [field]: value }));
+    setEditFieldErrors((prev) => ({ ...prev, [field]: '' }));
+    if (submitState.status !== 'saving') {
+      setSubmitState({ status: 'idle', detail: '' });
+    }
+  };
+
+  const onEditBlur = (field) => (event) => {
+    const message = validatePersonField(field, event.target.value, t, {
+      keys: {
+        firstNameRequired: 'portalAdminLandlords.errors.firstNameRequired',
+        lastNameRequired: 'portalAdminLandlords.errors.lastNameRequired',
+        emailRequired: 'portalAdminLandlords.errors.emailRequired',
+        emailInvalid: 'portalAdminLandlords.errors.emailInvalid',
+      },
+    });
+    setEditFieldErrors((prev) => ({ ...prev, [field]: message }));
+  };
+
+  const onEditSubmit = async (event) => {
+    event.preventDefault();
+    if (!canUseModule || !baseUrl || !editingLandlordId) return;
+    if (!isEditFormValid) {
+      setEditFieldErrors(editFormErrors);
+      setSubmitState({
+        status: 'error',
+        detail: t('portalAdminLandlords.errors.validation'),
+      });
+      return;
+    }
+    setSubmitState({ status: 'saving', detail: '' });
+    try {
+      const accessToken = await getAccessToken();
+      await patchResource(
+        baseUrl,
+        accessToken,
+        `/api/portal/admin/landlords/${editingLandlordId}`,
+        {
+          email: editForm.email.trim().toLowerCase(),
+          first_name: editForm.firstName.trim(),
+          last_name: editForm.lastName.trim(),
+          phone: editForm.phone.trim() || null,
+        }
+      );
+      setSubmitState({
+        status: 'ok',
+        detail: t('portalAdminLandlords.messages.landlordUpdated'),
+      });
+      cancelEdit();
+      void loadLandlords();
+    } catch (error) {
+      handleApiForbidden(error);
+      const detail = toFriendlyErrorMessage(t, 'portalAdminLandlords.errors.saveFailed');
+      setSubmitState({ status: 'error', detail });
+    }
+  };
+
   const onSubmit = async (event) => {
     event.preventDefault();
     if (!canUseModule || !baseUrl) return;
@@ -195,14 +301,15 @@ const PortalAdminLandlords = () => {
         email,
         first_name: form.firstName.trim(),
         last_name: form.lastName.trim(),
+        phone: form.phone.trim() || null,
       });
       setSubmitState({
         status: 'ok',
         detail: t('portalAdminLandlords.messages.landlordSaved'),
       });
       setFieldErrors({});
-      setForm({ email: '', firstName: '', lastName: '' });
-      setCreateOpen(false);
+      setForm({ email: '', firstName: '', lastName: '', phone: '' });
+      setCreateDialogOpen(false);
       void loadLandlords();
     } catch (error) {
       handleApiForbidden(error);
@@ -236,84 +343,13 @@ const PortalAdminLandlords = () => {
         <Box>
           <Button
             type="button"
-            variant={createOpen ? 'outlined' : 'contained'}
+            variant="contained"
             startIcon={<AddIcon />}
             disabled={!canUseModule}
-            onClick={() => setCreateOpen((prev) => !prev)}
-            sx={{ mb: createOpen ? 1 : 0 }}
+            onClick={() => setCreateDialogOpen(true)}
           >
-            {createOpen
-              ? t('portalAdminLandlords.form.hideForm')
-              : t('portalAdminLandlords.form.showForm')}
+            {t('portalAdminLandlords.form.showForm')}
           </Button>
-          <Collapse in={createOpen} unmountOnExit>
-            <Box
-              component="form"
-              onSubmit={onSubmit}
-              sx={{
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 2,
-                p: 2.5,
-                backgroundColor: 'background.paper',
-              }}
-            >
-              <Stack spacing={1.5}>
-                <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
-                  {t('portalAdminLandlords.form.heading')}
-                </Typography>
-                <TextField
-                  label={t('portalAdminLandlords.form.email')}
-                  value={form.email}
-                  onChange={onChange('email')}
-                  onBlur={onBlur('email')}
-                  required
-                  type="email"
-                  autoComplete="email"
-                  error={Boolean(fieldErrors.email)}
-                  helperText={fieldErrors.email || ' '}
-                  fullWidth
-                />
-                <TextField
-                  label={t('portalAdminLandlords.form.firstName')}
-                  value={form.firstName}
-                  onChange={onChange('firstName')}
-                  onBlur={onBlur('firstName')}
-                  required
-                  error={Boolean(fieldErrors.firstName)}
-                  helperText={fieldErrors.firstName || ' '}
-                  fullWidth
-                />
-                <TextField
-                  label={t('portalAdminLandlords.form.lastName')}
-                  value={form.lastName}
-                  onChange={onChange('lastName')}
-                  onBlur={onBlur('lastName')}
-                  required
-                  error={Boolean(fieldErrors.lastName)}
-                  helperText={fieldErrors.lastName || ' '}
-                  fullWidth
-                />
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  justifyContent="flex-end"
-                  spacing={1.25}
-                  sx={{ flexWrap: 'wrap', rowGap: 1 }}
-                >
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    disabled={!canUseModule || submitState.status === 'saving' || !isFormValid}
-                  >
-                    {submitState.status === 'saving'
-                      ? t('portalAdminLandlords.form.sending')
-                      : t('portalAdminLandlords.form.saveLandlord')}
-                  </Button>
-                </Stack>
-              </Stack>
-            </Box>
-          </Collapse>
         </Box>
 
         <Box
@@ -381,36 +417,59 @@ const PortalAdminLandlords = () => {
                   p: 1.5,
                 }}
               >
-                <Stack spacing={0.5}>
-                  <Typography sx={{ fontWeight: 600 }}>{landlord.email}</Typography>
-                  <Typography color="text.secondary">
-                    {t('portalAdminLandlords.list.name')}: {displayName(landlord)}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    {t('portalAdminLandlords.list.status')}: {landlord.status}
-                  </Typography>
-                  <Stack direction="row" spacing={1} sx={{ pt: 0.5 }}>
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Stack spacing={0.5}>
+                      <Typography sx={{ fontWeight: 600 }}>{landlord.email}</Typography>
+                      <Typography color="text.secondary">
+                        {t('portalAdminLandlords.list.name')}: {displayName(landlord)}
+                      </Typography>
+                      <Typography color="text.secondary">
+                        {t('portalAdminLandlords.list.status')}: {landlord.status}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                  <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end', flexShrink: 0 }}>
+                    <IconButton
+                      type="button"
+                      size="small"
+                      onClick={() => beginEdit(landlord)}
+                      aria-label={t('portalAdminLandlords.actions.edit')}
+                      disabled={!canUseModule || submitState.status === 'saving'}
+                      color="primary"
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
                     {String(landlord.status ?? '').toUpperCase() === 'DISABLED' ? (
-                      <Button
-                        type="button"
-                        size="small"
-                        variant="outlined"
-                        onClick={() => openConfirmDialog(landlord, true)}
-                        disabled={!canUseModule || submitState.status === 'saving'}
-                      >
-                        {t('portalAdminLandlords.actions.reactivate')}
-                      </Button>
+                      <Tooltip title={t('portalAdminLandlords.actions.reactivate')}>
+                        <span>
+                          <IconButton
+                            type="button"
+                            size="small"
+                            color="primary"
+                            onClick={() => openConfirmDialog(landlord, true)}
+                            aria-label={t('portalAdminLandlords.actions.reactivate')}
+                            disabled={!canUseModule || submitState.status === 'saving'}
+                          >
+                            <ReplayIcon fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
                     ) : (
-                      <Button
-                        type="button"
-                        size="small"
-                        color="warning"
-                        variant="outlined"
-                        onClick={() => openConfirmDialog(landlord, false)}
-                        disabled={!canUseModule || submitState.status === 'saving'}
-                      >
-                        {t('portalAdminLandlords.actions.deactivate')}
-                      </Button>
+                      <Tooltip title={t('portalAdminLandlords.actions.deactivate')}>
+                        <span>
+                          <IconButton
+                            type="button"
+                            size="small"
+                            color="warning"
+                            onClick={() => openConfirmDialog(landlord, false)}
+                            aria-label={t('portalAdminLandlords.actions.deactivate')}
+                            disabled={!canUseModule || submitState.status === 'saving'}
+                          >
+                            <BlockIcon fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
                     )}
                   </Stack>
                 </Stack>
@@ -442,6 +501,148 @@ const PortalAdminLandlords = () => {
         cancelLabel={t('portalAdminLandlords.actions.cancel')}
         confirmColor={confirmDialog.activate ? 'primary' : 'warning'}
       />
+      <Dialog
+        open={createDialogOpen}
+        onClose={submitState.status === 'saving' ? undefined : closeCreateDialog}
+        fullWidth
+        maxWidth="sm"
+      >
+        <Box component="form" onSubmit={onSubmit}>
+          <DialogTitle>{t('portalAdminLandlords.form.heading')}</DialogTitle>
+          <DialogContent dividers>
+            <Stack spacing={1.25}>
+              <TextField
+                label={t('portalAdminLandlords.form.email')}
+                value={form.email}
+                onChange={onChange('email')}
+                onBlur={onBlur('email')}
+                required
+                type="email"
+                autoComplete="email"
+                error={Boolean(fieldErrors.email)}
+                helperText={fieldErrors.email || ' '}
+                fullWidth
+              />
+              <TextField
+                label={t('portalAdminLandlords.form.firstName')}
+                value={form.firstName}
+                onChange={onChange('firstName')}
+                onBlur={onBlur('firstName')}
+                required
+                error={Boolean(fieldErrors.firstName)}
+                helperText={fieldErrors.firstName || ' '}
+                fullWidth
+              />
+              <TextField
+                label={t('portalAdminLandlords.form.lastName')}
+                value={form.lastName}
+                onChange={onChange('lastName')}
+                onBlur={onBlur('lastName')}
+                required
+                error={Boolean(fieldErrors.lastName)}
+                helperText={fieldErrors.lastName || ' '}
+                fullWidth
+              />
+              <TextField
+                label={t('portalAdminLandlords.form.phone')}
+                value={form.phone}
+                onChange={onChange('phone')}
+                fullWidth
+                autoComplete="tel"
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              type="button"
+              onClick={closeCreateDialog}
+              disabled={submitState.status === 'saving'}
+            >
+              {t('portalAdminLandlords.actions.cancel')}
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={!canUseModule || submitState.status === 'saving' || !isFormValid}
+            >
+              {submitState.status === 'saving'
+                ? t('portalAdminLandlords.form.sending')
+                : t('portalAdminLandlords.form.saveLandlord')}
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
+      <Dialog
+        open={Boolean(editingLandlordId)}
+        onClose={submitState.status === 'saving' ? undefined : cancelEdit}
+        fullWidth
+        maxWidth="sm"
+      >
+        <Box component="form" onSubmit={onEditSubmit}>
+          <DialogTitle>{t('portalAdminLandlords.form.editHeading')}</DialogTitle>
+          <DialogContent dividers>
+            <Stack spacing={1.25}>
+              <TextField
+                label={t('portalAdminLandlords.form.email')}
+                value={editForm.email}
+                onChange={onEditChange('email')}
+                onBlur={onEditBlur('email')}
+                required
+                type="email"
+                autoComplete="email"
+                error={Boolean(editFieldErrors.email)}
+                helperText={editFieldErrors.email || ' '}
+                fullWidth
+              />
+              <TextField
+                label={t('portalAdminLandlords.form.firstName')}
+                value={editForm.firstName}
+                onChange={onEditChange('firstName')}
+                onBlur={onEditBlur('firstName')}
+                required
+                error={Boolean(editFieldErrors.firstName)}
+                helperText={editFieldErrors.firstName || ' '}
+                fullWidth
+              />
+              <TextField
+                label={t('portalAdminLandlords.form.lastName')}
+                value={editForm.lastName}
+                onChange={onEditChange('lastName')}
+                onBlur={onEditBlur('lastName')}
+                required
+                error={Boolean(editFieldErrors.lastName)}
+                helperText={editFieldErrors.lastName || ' '}
+                fullWidth
+              />
+              <TextField
+                label={t('portalAdminLandlords.form.phone')}
+                value={editForm.phone}
+                onChange={onEditChange('phone')}
+                fullWidth
+                autoComplete="tel"
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              type="button"
+              onClick={cancelEdit}
+              disabled={submitState.status === 'saving'}
+            >
+              {t('portalAdminLandlords.actions.cancel')}
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={!canUseModule || submitState.status === 'saving' || !isEditFormValid}
+            >
+              {submitState.status === 'saving'
+                ? t('portalAdminLandlords.form.sending')
+                : t('portalAdminLandlords.actions.saveChanges')}
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
       <PortalFeedbackSnackbar feedback={feedback} onClose={closeFeedback} />
     </Box>
   );

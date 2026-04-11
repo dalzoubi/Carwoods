@@ -39,6 +39,7 @@ import { normalizeRole, resolveRole } from '../portalUtils';
 import { Role } from '../domain/constants.js';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
+import PortalConfirmDialog from './PortalConfirmDialog';
 import {
   listPropertiesApi,
   createPropertyApi,
@@ -293,6 +294,7 @@ const PortalAdminProperties = () => {
 
   const [submitStatus, setSubmitStatus] = useState('idle'); // idle | saving | error
   const [submitError, setSubmitError] = useState('');
+  const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
   const [landlords, setLandlords] = useState([]);
   const [landlordsStatus, setLandlordsStatus] = useState('idle'); // idle | loading | ok | error
 
@@ -306,6 +308,7 @@ const PortalAdminProperties = () => {
   const [elsaPropertyPolicyById, setElsaPropertyPolicyById] = useState({});
   const [elsaPolicyTargetId, setElsaPolicyTargetId] = useState('');
   const fileInputRef = useRef(null);
+  const formBaselineRef = useRef({ form: EMPTY_FORM, harSearchId: '' });
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
   const getAccessTokenRef = useRef(getAccessToken);
@@ -395,13 +398,31 @@ const PortalAdminProperties = () => {
     setHarMessage('');
     setSubmitStatus('idle');
     setSubmitError('');
+    setDiscardDialogOpen(false);
+  };
+
+  const hasUnsavedChanges = formOpen && (
+    JSON.stringify(form) !== JSON.stringify(formBaselineRef.current.form)
+    || harSearchId !== formBaselineRef.current.harSearchId
+  );
+
+  const handleAttemptCloseForm = () => {
+    if (submitStatus === 'saving') return;
+    if (hasUnsavedChanges) {
+      setDiscardDialogOpen(true);
+      return;
+    }
+    resetForm();
   };
 
   const handleEdit = (property) => {
-    setForm(propertyToForm(property));
+    const nextForm = propertyToForm(property);
+    setForm(nextForm);
     setEditingId(property.id);
     setFormOpen(true);
-    setHarSearchId(property.harId ?? '');
+    const nextHarSearchId = property.harId ?? '';
+    setHarSearchId(nextHarSearchId);
+    formBaselineRef.current = { form: nextForm, harSearchId: nextHarSearchId };
     setHarStatus('idle');
     setHarMessage('');
     setFieldErrors({});
@@ -673,9 +694,11 @@ const PortalAdminProperties = () => {
             disabled={!canManage}
             onClick={() => {
               setEditingId(null);
-              setForm({ ...EMPTY_FORM });
+              const nextForm = { ...EMPTY_FORM };
+              setForm(nextForm);
               setFieldErrors({});
               setHarSearchId('');
+              formBaselineRef.current = { form: nextForm, harSearchId: '' };
               setHarStatus('idle');
               setHarMessage('');
               setSubmitStatus('idle');
@@ -782,13 +805,24 @@ const PortalAdminProperties = () => {
 
       <Dialog
         open={formOpen}
-        onClose={resetForm}
+        onClose={handleAttemptCloseForm}
         maxWidth="lg"
         fullWidth
         slotProps={{ paper: { sx: { backgroundImage: 'none' } } }}
       >
-        <DialogTitle>
-          {editingId ? t('portalAdminProperties.form.editDialogTitle') : t('portalAdminProperties.form.addDialogTitle')}
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+          <Typography component="span">
+            {editingId ? t('portalAdminProperties.form.editDialogTitle') : t('portalAdminProperties.form.addDialogTitle')}
+          </Typography>
+          <IconButton
+            type="button"
+            size="small"
+            onClick={handleAttemptCloseForm}
+            disabled={submitStatus === 'saving'}
+            aria-label={t('portalDialogs.closeForm')}
+          >
+            <Close fontSize="small" />
+          </IconButton>
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
@@ -1056,7 +1090,7 @@ const PortalAdminProperties = () => {
               <Button
                 type="button"
                 variant="outlined"
-                onClick={resetForm}
+                onClick={handleAttemptCloseForm}
               >
                 {t('portalAdminProperties.form.cancel')}
               </Button>
@@ -1066,6 +1100,19 @@ const PortalAdminProperties = () => {
           </Stack>
         </DialogContent>
       </Dialog>
+      <PortalConfirmDialog
+        open={discardDialogOpen}
+        onClose={() => setDiscardDialogOpen(false)}
+        onConfirm={() => {
+          setDiscardDialogOpen(false);
+          resetForm();
+        }}
+        title={t('portalDialogs.unsavedChanges.title')}
+        body={t('portalDialogs.unsavedChanges.body')}
+        confirmLabel={t('portalDialogs.unsavedChanges.discard')}
+        cancelLabel={t('portalDialogs.unsavedChanges.keepEditing')}
+        confirmColor="warning"
+      />
 
       {/* Delete Confirmation Dialog */}
       <Dialog

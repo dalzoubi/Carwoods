@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -15,6 +15,7 @@ import {
   FormControlLabel,
   FormControl,
   InputLabel,
+  IconButton,
   MenuItem,
   Select,
   Switch,
@@ -30,9 +31,15 @@ import {
 import { alpha } from '@mui/material/styles';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import CloseIcon from '@mui/icons-material/Close';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import DownloadIcon from '@mui/icons-material/Download';
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
 import InlineActionStatus from '../InlineActionStatus';
+import PortalConfirmDialog from '../PortalConfirmDialog';
 import { AttachmentUploadControl } from '..';
 import { RequestStatus, Role } from '../../domain/constants.js';
 import { normalizeRole } from '../../portalUtils';
@@ -290,6 +297,8 @@ const RequestDetailPane = ({
   const [attachmentDeleteDialog, setAttachmentDeleteDialog] = useState(null);
   const [isAttachmentDropActive, setIsAttachmentDropActive] = useState(false);
   const [mediaPreviewIndex, setMediaPreviewIndex] = useState(-1);
+  const [managementDiscardOpen, setManagementDiscardOpen] = useState(false);
+  const managementBaselineRef = useRef('');
   const [attachmentShareState, setAttachmentShareState] = useState({ status: 'idle', message: '', attachmentId: '' });
   const managementStatusMessage = managementUpdateStatus === 'error'
     ? { severity: 'error', text: managementUpdateError || t('portalRequests.errors.saveFailed') }
@@ -420,7 +429,7 @@ const RequestDetailPane = ({
     if (Number.isFinite(Number(attachment?.file_size_bytes))) {
       details.push(formatBytesToMbLabel(attachment.file_size_bytes));
     }
-    details.push(uploaderLabel(attachment), formatDateTime(attachment?.created_at));
+    details.push(formatDateTime(attachment?.created_at));
     return details.join(' · ');
   };
   const previewableAttachments = useMemo(
@@ -435,6 +444,36 @@ const RequestDetailPane = ({
     : null;
   const canPreviewPrevious = mediaPreviewIndex > 0;
   const canPreviewNext = mediaPreviewIndex >= 0 && mediaPreviewIndex < previewableAttachments.length - 1;
+  const copyTextWithFallback = async (text, promptMessage) => {
+    const fallbackCopy = () => {
+      window.prompt(promptMessage, text);
+      return false;
+    };
+    let copied = false;
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        copied = true;
+      } else {
+        copied = fallbackCopy();
+      }
+    } catch {
+      copied = fallbackCopy();
+    }
+    return copied;
+  };
+  const handleCopyAttachmentLink = async (attachment) => {
+    const fileUrl = attachment?.file_url;
+    if (!fileUrl) return;
+    const copied = await copyTextWithFallback(fileUrl, t('portalRequests.attachments.linkPrompt'));
+    setAttachmentShareState({
+      status: 'success',
+      message: copied
+        ? t('portalRequests.attachments.linkCopied')
+        : t('portalRequests.attachments.linkPromptFallback'),
+      attachmentId: attachment?.id || '',
+    });
+  };
   const handleShareAttachment = async (attachmentId) => {
     if (!attachmentId || !onShareAttachment) return;
     setAttachmentShareState({ status: 'saving', message: '', attachmentId });
@@ -447,21 +486,7 @@ const RequestDetailPane = ({
       });
       return;
     }
-    const fallbackCopy = () => {
-      window.prompt(t('portalRequests.attachments.sharePrompt'), result.shareUrl);
-      return false;
-    };
-    let copied = false;
-    try {
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(result.shareUrl);
-        copied = true;
-      } else {
-        copied = fallbackCopy();
-      }
-    } catch {
-      copied = fallbackCopy();
-    }
+    const copied = await copyTextWithFallback(result.shareUrl, t('portalRequests.attachments.sharePrompt'));
     setAttachmentShareState({
       status: copied ? 'success' : 'success',
       message: copied
@@ -484,6 +509,22 @@ const RequestDetailPane = ({
   };
   const closeMediaPreview = () => {
     setMediaPreviewIndex(-1);
+  };
+  const managementSnapshot = JSON.stringify(managementForm || {});
+  const hasManagementUnsavedChanges = managementDialogOpen
+    && managementBaselineRef.current
+    && managementSnapshot !== managementBaselineRef.current;
+  const openManagementDialog = () => {
+    managementBaselineRef.current = managementSnapshot;
+    setManagementDialogOpen(true);
+  };
+  const attemptCloseManagementDialog = () => {
+    if (managementUpdateStatus === 'saving') return;
+    if (hasManagementUnsavedChanges) {
+      setManagementDiscardOpen(true);
+      return;
+    }
+    setManagementDialogOpen(false);
   };
 
   return (
@@ -609,7 +650,7 @@ const RequestDetailPane = ({
                 type="button"
                 variant="outlined"
                 size="small"
-                onClick={() => setManagementDialogOpen(true)}
+                onClick={openManagementDialog}
                 disabled={managementUpdateStatus === 'saving'}
                 sx={{ minHeight: 36 }}
               >
@@ -793,18 +834,30 @@ const RequestDetailPane = ({
       </Dialog>
 
       {isManagement && (
-        <Dialog
-          open={managementDialogOpen}
-          onClose={() => {
-            if (managementUpdateStatus !== 'saving') setManagementDialogOpen(false);
-          }}
-          fullWidth
-          maxWidth="sm"
-        >
-          <DialogTitle>{t('portalRequests.management.dialogTitle')}</DialogTitle>
-          <DialogContent dividers>
-            <Box component="form" id="management-update-form" onSubmit={onUpdateRequest}>
-              <Stack spacing={1.5}>
+        <>
+          <Dialog
+            open={managementDialogOpen}
+            onClose={() => {
+              attemptCloseManagementDialog();
+            }}
+            fullWidth
+            maxWidth="sm"
+          >
+            <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+              <Typography component="span">{t('portalRequests.management.dialogTitle')}</Typography>
+              <IconButton
+                type="button"
+                size="small"
+                onClick={attemptCloseManagementDialog}
+                disabled={managementUpdateStatus === 'saving'}
+                aria-label={t('portalDialogs.closeForm')}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent dividers>
+              <Box component="form" id="management-update-form" onSubmit={onUpdateRequest}>
+                <Stack spacing={1.5}>
                 <FormControl>
                   <InputLabel id="management-status-code-label">{t('portalRequests.management.statusCode')}</InputLabel>
                   <Select
@@ -883,31 +936,45 @@ const RequestDetailPane = ({
                   minRows={3}
                   disabled={managementUpdateStatus === 'saving'}
                 />
-                <InlineActionStatus message={managementStatusMessage} />
-              </Stack>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              type="button"
-              onClick={() => setManagementDialogOpen(false)}
-              disabled={managementUpdateStatus === 'saving'}
-            >
-              {t('portalRequests.actions.close')}
-            </Button>
-            <Button
-              type="submit"
-              form="management-update-form"
-              variant="contained"
-              disabled={managementUpdateStatus === 'saving'}
-              startIcon={managementUpdateStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
-            >
-              {managementUpdateStatus === 'saving'
-                ? t('portalRequests.actions.saving')
-                : t('portalRequests.actions.saveChanges')}
-            </Button>
-          </DialogActions>
-        </Dialog>
+                  <InlineActionStatus message={managementStatusMessage} />
+                </Stack>
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button
+                type="button"
+                onClick={attemptCloseManagementDialog}
+                disabled={managementUpdateStatus === 'saving'}
+              >
+                {t('portalRequests.actions.close')}
+              </Button>
+              <Button
+                type="submit"
+                form="management-update-form"
+                variant="contained"
+                disabled={managementUpdateStatus === 'saving'}
+                startIcon={managementUpdateStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
+              >
+                {managementUpdateStatus === 'saving'
+                  ? t('portalRequests.actions.saving')
+                  : t('portalRequests.actions.saveChanges')}
+              </Button>
+            </DialogActions>
+          </Dialog>
+          <PortalConfirmDialog
+            open={managementDiscardOpen}
+            onClose={() => setManagementDiscardOpen(false)}
+            onConfirm={() => {
+              setManagementDiscardOpen(false);
+              setManagementDialogOpen(false);
+            }}
+            title={t('portalDialogs.unsavedChanges.title')}
+            body={t('portalDialogs.unsavedChanges.body')}
+            confirmLabel={t('portalDialogs.unsavedChanges.discard')}
+            cancelLabel={t('portalDialogs.unsavedChanges.keepEditing')}
+            confirmColor="warning"
+          />
+        </>
       )}
 
       {isManagement && (
@@ -1399,33 +1466,83 @@ const RequestDetailPane = ({
                         }}
                       />
                     )}
-                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { xs: 'stretch', sm: 'center' } }}>
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                        <Typography
+                          variant="body2"
+                          sx={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}
+                        >
                           {att.original_filename}
                         </Typography>
+                        <Stack direction="row" spacing={0.5} sx={{ marginInlineStart: 'auto', flexShrink: 0 }}>
+                          {att.file_url && (
+                            <Tooltip title={t('portalRequests.attachments.download')}>
+                              <IconButton
+                                component="a"
+                                href={att.file_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                size="small"
+                                aria-label={`${t('portalRequests.attachments.download')}: ${att.original_filename}`}
+                              >
+                                <DownloadIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          {att.file_url && (
+                            <Tooltip title={t('portalRequests.attachments.copyLink')}>
+                              <span>
+                                <IconButton
+                                  type="button"
+                                  size="small"
+                                  onClick={() => handleCopyAttachmentLink(att)}
+                                  aria-label={t('portalRequests.attachments.copyLinkAria', { filename: att.original_filename })}
+                                >
+                                  <ContentCopyIcon fontSize="small" />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                          )}
+                          {canDeleteAttachment(att) && (
+                            <Tooltip title={t('portalRequests.attachments.deleteAction')}>
+                              <span>
+                                <IconButton
+                                  type="button"
+                                  size="small"
+                                  color="error"
+                                  onClick={() => setAttachmentDeleteDialog(att)}
+                                  disabled={attachmentDeleteStatus === 'saving'}
+                                  aria-label={t('portalRequests.attachments.deleteAction')}
+                                >
+                                  <DeleteOutlineIcon fontSize="small" />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                          )}
+                        </Stack>
+                      </Stack>
+                      <Typography variant="caption" color="text.secondary">
+                        {attachmentMetaLabel(att)}
+                      </Typography>
+                      <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexWrap: 'wrap' }}>
                         <Typography variant="caption" color="text.secondary">
-                          {attachmentMetaLabel(att)}
+                          {uploaderLabel(att)}
                         </Typography>
-                      </Box>
-                      <Stack direction="row" spacing={1}>
-                        {att.file_url ? (
-                          <Button
-                            component="a"
-                            href={att.file_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            size="small"
-                            sx={{ textTransform: 'none' }}
-                          >
-                            {t('portalRequests.attachments.download')}
-                          </Button>
-                        ) : (
-                          <Typography variant="caption" color="text.secondary">
-                            {t('portalRequests.attachments.unavailable')}
-                          </Typography>
-                        )}
-                        {isManagement && (
+                        <Chip
+                          label={roleLabel(att?.uploaded_by_role, t)}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                          sx={{ height: 20, fontSize: '0.7rem' }}
+                        />
+                      </Stack>
+                      {!att.file_url && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                          {t('portalRequests.attachments.unavailable')}
+                        </Typography>
+                      )}
+                      {isManagement && (
+                        <Stack direction="row" justifyContent="flex-end" sx={{ mt: 0.5 }}>
                           <Button
                             type="button"
                             size="small"
@@ -1438,31 +1555,9 @@ const RequestDetailPane = ({
                               ? t('portalRequests.actions.saving')
                               : t('portalRequests.attachments.share')}
                           </Button>
-                        )}
-                        {(att.media_type === 'PHOTO' || att.media_type === 'VIDEO') && att.file_url && (
-                          <Button
-                            type="button"
-                            size="small"
-                            onClick={() => openMediaPreview(att.id)}
-                            sx={{ textTransform: 'none' }}
-                          >
-                            {t('portalRequests.attachments.preview')}
-                          </Button>
-                        )}
-                        {canDeleteAttachment(att) && (
-                          <Button
-                            type="button"
-                            size="small"
-                            color="error"
-                            onClick={() => setAttachmentDeleteDialog(att)}
-                            disabled={attachmentDeleteStatus === 'saving'}
-                            sx={{ textTransform: 'none' }}
-                          >
-                            {t('portalRequests.attachments.deleteAction')}
-                          </Button>
-                        )}
-                      </Stack>
-                    </Stack>
+                        </Stack>
+                      )}
+                    </Box>
                   </Stack>
                 </Box>
               ))}
@@ -1612,7 +1707,19 @@ const RequestDetailPane = ({
         fullWidth
         maxWidth="lg"
       >
-        <DialogTitle>{activePreviewAttachment?.original_filename || t('portalRequests.attachments.heading')}</DialogTitle>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+          <Typography component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {activePreviewAttachment?.original_filename || t('portalRequests.attachments.heading')}
+          </Typography>
+          <IconButton
+            type="button"
+            onClick={closeMediaPreview}
+            aria-label={t('portalRequests.actions.close')}
+            size="small"
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
         <DialogContent dividers>
           {activePreviewAttachment?.file_url && activePreviewAttachment.media_type === 'PHOTO' && (
             <Box
@@ -1651,15 +1758,75 @@ const RequestDetailPane = ({
               count: previewableAttachments.length,
             })}
           </Typography>
-          <Button type="button" disabled={!canPreviewPrevious} onClick={() => setMediaPreviewIndex((value) => value - 1)}>
-            {t('portalRequests.attachments.previous')}
-          </Button>
-          <Button type="button" disabled={!canPreviewNext} onClick={() => setMediaPreviewIndex((value) => value + 1)}>
-            {t('portalRequests.attachments.next')}
-          </Button>
-          <Button type="button" onClick={closeMediaPreview}>
-            {t('portalRequests.actions.close')}
-          </Button>
+          {activePreviewAttachment?.file_url && (
+            <>
+              <Tooltip title={t('portalRequests.attachments.download')}>
+                <IconButton
+                  component="a"
+                  href={activePreviewAttachment.file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${t('portalRequests.attachments.download')}: ${activePreviewAttachment.original_filename}`}
+                  size="small"
+                >
+                  <DownloadIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('portalRequests.attachments.copyLink')}>
+                <IconButton
+                  type="button"
+                  onClick={() => handleCopyAttachmentLink(activePreviewAttachment)}
+                  aria-label={t('portalRequests.attachments.copyLinkAria', {
+                    filename: activePreviewAttachment.original_filename,
+                  })}
+                >
+                  <ContentCopyIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              {canDeleteAttachment(activePreviewAttachment) && (
+                <Tooltip title={t('portalRequests.attachments.deleteAction')}>
+                  <span>
+                    <IconButton
+                      type="button"
+                      color="error"
+                      onClick={() => setAttachmentDeleteDialog(activePreviewAttachment)}
+                      disabled={attachmentDeleteStatus === 'saving'}
+                      aria-label={t('portalRequests.attachments.deleteAction')}
+                      size="small"
+                    >
+                      <DeleteOutlineIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              )}
+            </>
+          )}
+          <Tooltip title={t('portalRequests.attachments.previous')}>
+            <span>
+              <IconButton
+                type="button"
+                disabled={!canPreviewPrevious}
+                onClick={() => setMediaPreviewIndex((value) => value - 1)}
+                aria-label={t('portalRequests.attachments.previous')}
+                size="small"
+              >
+                <NavigateBeforeIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title={t('portalRequests.attachments.next')}>
+            <span>
+              <IconButton
+                type="button"
+                disabled={!canPreviewNext}
+                onClick={() => setMediaPreviewIndex((value) => value + 1)}
+                aria-label={t('portalRequests.attachments.next')}
+                size="small"
+              >
+                <NavigateNextIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
         </DialogActions>
       </Dialog>
         </>

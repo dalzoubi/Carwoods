@@ -938,6 +938,11 @@
       "previous": "السابق",
       "next": "التالي",
       "previewPosition": "{{index}} من {{count}}",
+      "copyLink": "نسخ الرابط",
+      "copyLinkAria": "نسخ رابط {{filename}}",
+      "linkCopied": "تم نسخ رابط المرفق إلى الحافظة.",
+      "linkPrompt": "انسخ رابط هذا المرفق:",
+      "linkPromptFallback": "رابط المرفق جاهز. انسخه من مربع الحوار.",
       "shareCopied": "تم نسخ رابط المشاركة إلى الحافظة.",
       "shareUnavailable": "تعذر إنشاء رابط مشاركة الآن.",
       "sharePrompt": "انسخ وشارك هذا الرابط المؤقت:",
@@ -1049,11 +1054,14 @@
       "email": "بريد المالك الإلكتروني",
       "firstName": "الاسم الأول",
       "lastName": "اسم العائلة",
+      "phone": "الهاتف (اختياري)",
       "saveLandlord": "حفظ المالك",
+      "editHeading": "تعديل المالك",
       "sending": "جارٍ الحفظ…"
     },
     "messages": {
       "landlordSaved": "تم حفظ المالك بنجاح.",
+      "landlordUpdated": "تم تحديث المالك بنجاح.",
       "deactivated": "تم تعطيل المالك.",
       "reactivated": "تمت إعادة تفعيل المالك."
     },
@@ -1067,6 +1075,8 @@
       "status": "حالة المستخدم"
     },
     "actions": {
+      "edit": "تعديل",
+      "saveChanges": "حفظ التغييرات",
       "deactivate": "تعطيل",
       "reactivate": "إعادة التفعيل",
       "cancel": "إلغاء"
@@ -1084,6 +1094,8 @@
       "signInRequired": "سجل الدخول قبل استخدام هذه الوحدة.",
       "adminOnly": "هذه الوحدة متاحة لحسابات الإدارة فقط.",
       "validation": "يرجى تصحيح الحقول المظللة.",
+      "loadFailed": "تعذر تحميل قائمة الملاك.",
+      "saveFailed": "تعذر حفظ تغييرات المالك.",
       "emailRequired": "البريد الإلكتروني مطلوب.",
       "emailInvalid": "أدخل عنوان بريد إلكتروني صالحًا.",
       "firstNameRequired": "الاسم الأول مطلوب.",
@@ -1579,6 +1591,15 @@
       "propertyRequired": "يُرجى اختيار عقار.",
       "startDateRequired": "تاريخ بدء عقد الإيجار مطلوب.",
       "endDateBeforeStart": "يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء."
+    }
+  },
+  "portalDialogs": {
+    "closeForm": "إغلاق النموذج",
+    "unsavedChanges": {
+      "title": "تجاهل التغييرات؟",
+      "body": "لديك تغييرات غير محفوظة. إذا أغلقت الآن، فستفقد هذه التغييرات.",
+      "discard": "تجاهل التغييرات",
+      "keepEditing": "متابعة التحرير"
     }
   },
   "skipToMain": "الانتقال إلى المحتوى الرئيسي",

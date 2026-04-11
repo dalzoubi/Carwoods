@@ -938,6 +938,11 @@
       "previous": "Previous",
       "next": "Next",
       "previewPosition": "{{index}} of {{count}}",
+      "copyLink": "Copy link",
+      "copyLinkAria": "Copy link for {{filename}}",
+      "linkCopied": "Attachment link copied to clipboard.",
+      "linkPrompt": "Copy this attachment link:",
+      "linkPromptFallback": "Attachment link ready. Copy it from the prompt.",
       "shareCopied": "Share link copied to clipboard.",
       "shareUnavailable": "Unable to create a share link right now.",
       "sharePrompt": "Copy and share this temporary link:",
@@ -1049,11 +1054,14 @@
       "email": "Landlord email",
       "firstName": "First name",
       "lastName": "Last name",
+      "phone": "Phone (optional)",
       "saveLandlord": "Save landlord",
+      "editHeading": "Edit landlord",
       "sending": "Saving…"
     },
     "messages": {
       "landlordSaved": "Landlord saved successfully.",
+      "landlordUpdated": "Landlord updated successfully.",
       "deactivated": "Landlord deactivated.",
       "reactivated": "Landlord reactivated."
     },
@@ -1067,6 +1075,8 @@
       "status": "User status"
     },
     "actions": {
+      "edit": "Edit",
+      "saveChanges": "Save changes",
       "deactivate": "Deactivate",
       "reactivate": "Reactivate",
       "cancel": "Cancel"
@@ -1084,6 +1094,8 @@
       "signInRequired": "Sign in before managing landlords.",
       "adminOnly": "Only admin accounts can use this module.",
       "validation": "Please fix the highlighted fields.",
+      "loadFailed": "Unable to load landlords.",
+      "saveFailed": "Unable to save landlord changes.",
       "emailRequired": "Email is required.",
       "emailInvalid": "Enter a valid email address.",
       "firstNameRequired": "First name is required.",
@@ -1580,6 +1592,15 @@
       "propertyRequired": "Please select a property.",
       "startDateRequired": "Lease start date is required.",
       "endDateBeforeStart": "End date must be after start date."
+    }
+  },
+  "portalDialogs": {
+    "closeForm": "Close form",
+    "unsavedChanges": {
+      "title": "Discard changes?",
+      "body": "You have unsaved changes. If you close now, your edits will be lost.",
+      "discard": "Discard changes",
+      "keepEditing": "Keep editing"
     }
   },
   "skipToMain": "Skip to main content",

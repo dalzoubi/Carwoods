@@ -544,7 +544,7 @@ describe('PortalTenants', () => {
     fireEvent.click(saveBtn);
 
     await waitFor(() => {
-      expect(within(dialog).getByText(/server_error/i)).toBeInTheDocument();
+      expect(within(dialog).getByText(/unable to save tenant changes/i)).toBeInTheDocument();
     });
   });
 

@@ -938,6 +938,11 @@
       "previous": "Anterior",
       "next": "Siguiente",
       "previewPosition": "{{index}} de {{count}}",
+      "copyLink": "Copiar enlace",
+      "copyLinkAria": "Copiar enlace de {{filename}}",
+      "linkCopied": "Enlace del adjunto copiado al portapapeles.",
+      "linkPrompt": "Copia este enlace del adjunto:",
+      "linkPromptFallback": "Enlace del adjunto listo. Cópialo desde el cuadro.",
       "shareCopied": "Enlace compartido copiado al portapapeles.",
       "shareUnavailable": "No se puede crear un enlace compartido ahora.",
       "sharePrompt": "Copia y comparte este enlace temporal:",
@@ -1049,11 +1054,14 @@
       "email": "Correo del propietario",
       "firstName": "Nombre",
       "lastName": "Apellido",
+      "phone": "Teléfono (opcional)",
       "saveLandlord": "Guardar propietario",
+      "editHeading": "Editar propietario",
       "sending": "Guardando…"
     },
     "messages": {
       "landlordSaved": "Propietario guardado correctamente.",
+      "landlordUpdated": "Propietario actualizado correctamente.",
       "deactivated": "Propietario desactivado.",
       "reactivated": "Propietario reactivado."
     },
@@ -1067,6 +1075,8 @@
       "status": "Estado del usuario"
     },
     "actions": {
+      "edit": "Editar",
+      "saveChanges": "Guardar cambios",
       "deactivate": "Desactivar",
       "reactivate": "Reactivar",
       "cancel": "Cancelar"
@@ -1084,6 +1094,8 @@
       "signInRequired": "Inicia sesión antes de usar este módulo.",
       "adminOnly": "Solo cuentas admin pueden usar este módulo.",
       "validation": "Corrige los campos resaltados.",
+      "loadFailed": "No se pudo cargar la lista de propietarios.",
+      "saveFailed": "No se pudieron guardar los cambios del propietario.",
       "emailRequired": "El correo es obligatorio.",
       "emailInvalid": "Ingresa un correo electrónico válido.",
       "firstNameRequired": "El nombre es obligatorio.",
@@ -1579,6 +1591,15 @@
       "propertyRequired": "Por favor selecciona una propiedad.",
       "startDateRequired": "La fecha de inicio del contrato es obligatoria.",
       "endDateBeforeStart": "La fecha de fin debe ser posterior a la fecha de inicio."
+    }
+  },
+  "portalDialogs": {
+    "closeForm": "Cerrar formulario",
+    "unsavedChanges": {
+      "title": "¿Descartar cambios?",
+      "body": "Tienes cambios sin guardar. Si cierras ahora, se perderán.",
+      "discard": "Descartar cambios",
+      "keepEditing": "Seguir editando"
     }
   },
   "skipToMain": "Saltar al contenido principal",

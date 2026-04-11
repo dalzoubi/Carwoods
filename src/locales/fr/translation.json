@@ -938,6 +938,11 @@
       "previous": "Precedent",
       "next": "Suivant",
       "previewPosition": "{{index}} sur {{count}}",
+      "copyLink": "Copier le lien",
+      "copyLinkAria": "Copier le lien pour {{filename}}",
+      "linkCopied": "Lien de la piece jointe copie dans le presse-papiers.",
+      "linkPrompt": "Copiez ce lien de piece jointe :",
+      "linkPromptFallback": "Lien de la piece jointe pret. Copiez-le depuis l'invite.",
       "shareCopied": "Lien de partage copie dans le presse-papiers.",
       "shareUnavailable": "Impossible de creer un lien de partage pour le moment.",
       "sharePrompt": "Copiez et partagez ce lien temporaire :",
@@ -1049,11 +1054,14 @@
       "email": "E-mail du propriétaire",
       "firstName": "Prénom",
       "lastName": "Nom",
+      "phone": "Téléphone (optionnel)",
       "saveLandlord": "Enregistrer le propriétaire",
+      "editHeading": "Modifier le propriétaire",
       "sending": "Enregistrement…"
     },
     "messages": {
       "landlordSaved": "Propriétaire enregistré avec succès.",
+      "landlordUpdated": "Propriétaire mis à jour avec succès.",
       "deactivated": "Propriétaire désactivé.",
       "reactivated": "Propriétaire réactivé."
     },
@@ -1067,6 +1075,8 @@
       "status": "Statut utilisateur"
     },
     "actions": {
+      "edit": "Modifier",
+      "saveChanges": "Enregistrer les modifications",
       "deactivate": "Désactiver",
       "reactivate": "Réactiver",
       "cancel": "Annuler"
@@ -1084,6 +1094,8 @@
       "signInRequired": "Connectez-vous avant d'utiliser ce module.",
       "adminOnly": "Seuls les comptes admin peuvent utiliser ce module.",
       "validation": "Corrigez les champs en surbrillance.",
+      "loadFailed": "Impossible de charger la liste des propriétaires.",
+      "saveFailed": "Impossible d'enregistrer les modifications du propriétaire.",
       "emailRequired": "L'e-mail est obligatoire.",
       "emailInvalid": "Saisissez une adresse e-mail valide.",
       "firstNameRequired": "Le prénom est obligatoire.",
@@ -1579,6 +1591,15 @@
       "propertyRequired": "Veuillez sélectionner une propriété.",
       "startDateRequired": "La date de début du bail est obligatoire.",
       "endDateBeforeStart": "La date de fin doit être postérieure à la date de début."
+    }
+  },
+  "portalDialogs": {
+    "closeForm": "Fermer le formulaire",
+    "unsavedChanges": {
+      "title": "Ignorer les modifications ?",
+      "body": "Vous avez des modifications non enregistrées. Si vous fermez maintenant, elles seront perdues.",
+      "discard": "Ignorer les modifications",
+      "keepEditing": "Continuer la modification"
     }
   },
   "skipToMain": "Aller au contenu principal",

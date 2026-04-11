@@ -22,8 +22,10 @@ import {
   Typography,
 } from '@mui/material';
 import Add from '@mui/icons-material/Add';
+import Close from '@mui/icons-material/Close';
 import Delete from '@mui/icons-material/Delete';
 import Edit from '@mui/icons-material/Edit';
+import Block from '@mui/icons-material/Block';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import Refresh from '@mui/icons-material/Refresh';
@@ -109,6 +111,23 @@ function tenantRowKey(tenant, index) {
   return `tenant-row:${index}`;
 }
 
+function DialogTitleWithClose({ title, onClose, closeLabel, disabled = false }) {
+  return (
+    <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+      <Typography component="span">{title}</Typography>
+      <IconButton
+        type="button"
+        onClick={onClose}
+        disabled={disabled}
+        aria-label={closeLabel}
+        size="small"
+      >
+        <Close fontSize="small" />
+      </IconButton>
+    </DialogTitle>
+  );
+}
+
 function toDatePart(dateStr) {
   if (!dateStr) return '';
   // The mssql driver returns DATE columns as JS Date objects, which JSON-serialize
@@ -164,6 +183,8 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
   });
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
+  const [initialForm, setInitialForm] = useState(EMPTY_LEASE_FORM);
+  const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
   const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
   const emailHint = meData?.user?.email ?? account?.username ?? '';
   const submitStatusMessage = submitState.status === 'error'
@@ -172,17 +193,29 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
 
   useEffect(() => {
     if (open && lease) {
-      setForm({
+      const nextForm = {
         property_id: lease.property_id ?? '',
         start_date: toDatePart(lease.start_date),
         end_date: toDatePart(lease.end_date),
         month_to_month: Boolean(lease.month_to_month),
         notes: lease.notes ?? '',
-      });
+      };
+      setForm(nextForm);
+      setInitialForm(nextForm);
       setFieldErrors({});
       setSubmitState({ status: 'idle', detail: '' });
+      setDiscardDialogOpen(false);
     }
   }, [open, lease]);
+  const hasUnsavedChanges = JSON.stringify(form) !== JSON.stringify(initialForm);
+  const handleAttemptClose = () => {
+    if (submitState.status === 'saving') return;
+    if (hasUnsavedChanges) {
+      setDiscardDialogOpen(true);
+      return;
+    }
+    onClose();
+  };
 
   const onChange = (field) => (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -225,8 +258,13 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{t('portalTenants.editLeaseDialog.title')}</DialogTitle>
+    <Dialog open={open} onClose={handleAttemptClose} maxWidth="sm" fullWidth>
+      <DialogTitleWithClose
+        title={t('portalTenants.editLeaseDialog.title')}
+        onClose={handleAttemptClose}
+        closeLabel={t('portalDialogs.closeForm')}
+        disabled={submitState.status === 'saving'}
+      />
       <Box component="form" onSubmit={onSubmit}>
         <DialogContent>
           <Stack spacing={2}>
@@ -295,7 +333,7 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
         </DialogContent>
         <DialogActions>
           <InlineActionStatus message={submitStatusMessage} />
-          <Button type="button" onClick={onClose} disabled={submitState.status === 'saving'}>
+          <Button type="button" onClick={handleAttemptClose} disabled={submitState.status === 'saving'}>
             {t('portalTenants.actions.cancel')}
           </Button>
           <Button
@@ -309,6 +347,19 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
           </Button>
         </DialogActions>
       </Box>
+      <PortalConfirmDialog
+        open={discardDialogOpen}
+        onClose={() => setDiscardDialogOpen(false)}
+        onConfirm={() => {
+          setDiscardDialogOpen(false);
+          onClose();
+        }}
+        title={t('portalDialogs.unsavedChanges.title')}
+        body={t('portalDialogs.unsavedChanges.body')}
+        confirmLabel={t('portalDialogs.unsavedChanges.discard')}
+        cancelLabel={t('portalDialogs.unsavedChanges.keepEditing')}
+        confirmColor="warning"
+      />
     </Dialog>
   );
 }
@@ -443,6 +494,8 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
   const [form, setForm] = useState(EMPTY_LEASE_FORM);
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
+  const [initialForm, setInitialForm] = useState(EMPTY_LEASE_FORM);
+  const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
   const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
   const emailHint = meData?.user?.email ?? account?.username ?? '';
   const submitStatusMessage = submitState.status === 'error'
@@ -452,10 +505,21 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
   useEffect(() => {
     if (open) {
       setForm(EMPTY_LEASE_FORM);
+      setInitialForm(EMPTY_LEASE_FORM);
       setFieldErrors({});
       setSubmitState({ status: 'idle', detail: '' });
+      setDiscardDialogOpen(false);
     }
   }, [open]);
+  const hasUnsavedChanges = JSON.stringify(form) !== JSON.stringify(initialForm);
+  const handleAttemptClose = () => {
+    if (submitState.status === 'saving') return;
+    if (hasUnsavedChanges) {
+      setDiscardDialogOpen(true);
+      return;
+    }
+    onClose();
+  };
 
   const onChange = (field) => (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -500,8 +564,13 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{t('portalTenants.addLeaseDialog.title')}</DialogTitle>
+    <Dialog open={open} onClose={handleAttemptClose} maxWidth="sm" fullWidth>
+      <DialogTitleWithClose
+        title={t('portalTenants.addLeaseDialog.title')}
+        onClose={handleAttemptClose}
+        closeLabel={t('portalDialogs.closeForm')}
+        disabled={submitState.status === 'saving'}
+      />
       <Box component="form" onSubmit={onSubmit}>
         <DialogContent>
           <Stack spacing={2}>
@@ -575,7 +644,7 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
         </DialogContent>
         <DialogActions>
           <InlineActionStatus message={submitStatusMessage} />
-          <Button type="button" onClick={onClose} disabled={submitState.status === 'saving'}>
+          <Button type="button" onClick={handleAttemptClose} disabled={submitState.status === 'saving'}>
             {t('portalTenants.actions.cancel')}
           </Button>
           <Button
@@ -589,6 +658,19 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
           </Button>
         </DialogActions>
       </Box>
+      <PortalConfirmDialog
+        open={discardDialogOpen}
+        onClose={() => setDiscardDialogOpen(false)}
+        onConfirm={() => {
+          setDiscardDialogOpen(false);
+          onClose();
+        }}
+        title={t('portalDialogs.unsavedChanges.title')}
+        body={t('portalDialogs.unsavedChanges.body')}
+        confirmLabel={t('portalDialogs.unsavedChanges.discard')}
+        cancelLabel={t('portalDialogs.unsavedChanges.keepEditing')}
+        confirmColor="warning"
+      />
     </Dialog>
   );
 }
@@ -619,6 +701,8 @@ function EditTenantDialog({
   const [form, setForm] = useState(EMPTY_EDIT_TENANT_FORM);
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
+  const [initialForm, setInitialForm] = useState(EMPTY_EDIT_TENANT_FORM);
+  const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
   const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
   const emailHint = meData?.user?.email ?? account?.username ?? '';
   const submitStatusMessage = submitState.status === 'error'
@@ -627,18 +711,30 @@ function EditTenantDialog({
 
   useEffect(() => {
     if (open && tenant) {
-      setForm({
+      const nextForm = {
         email: String(tenant.email ?? ''),
         firstName: String(tenant.first_name ?? ''),
         lastName: String(tenant.last_name ?? ''),
         phone: String(tenant.phone ?? ''),
         landlord_id: String(tenant.landlord_id ?? ''),
         property_id: String(tenant.property_id ?? ''),
-      });
+      };
+      setForm(nextForm);
+      setInitialForm(nextForm);
       setFieldErrors({});
       setSubmitState({ status: 'idle', detail: '' });
+      setDiscardDialogOpen(false);
     }
   }, [open, tenant]);
+  const hasUnsavedChanges = JSON.stringify(form) !== JSON.stringify(initialForm);
+  const handleAttemptClose = () => {
+    if (submitState.status === 'saving') return;
+    if (hasUnsavedChanges) {
+      setDiscardDialogOpen(true);
+      return;
+    }
+    onClose();
+  };
 
   const onChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -690,8 +786,13 @@ function EditTenantDialog({
     : properties;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{t('portalTenants.editTenantDialog.title')}</DialogTitle>
+    <Dialog open={open} onClose={handleAttemptClose} maxWidth="sm" fullWidth>
+      <DialogTitleWithClose
+        title={t('portalTenants.editTenantDialog.title')}
+        onClose={handleAttemptClose}
+        closeLabel={t('portalDialogs.closeForm')}
+        disabled={submitState.status === 'saving'}
+      />
       <Box component="form" onSubmit={onSubmit}>
         <DialogContent>
           <Stack spacing={2}>
@@ -804,7 +905,7 @@ function EditTenantDialog({
         </DialogContent>
         <DialogActions>
           <InlineActionStatus message={submitStatusMessage} />
-          <Button type="button" onClick={onClose} disabled={submitState.status === 'saving'}>
+          <Button type="button" onClick={handleAttemptClose} disabled={submitState.status === 'saving'}>
             {t('portalTenants.actions.cancel')}
           </Button>
           <Button
@@ -818,6 +919,19 @@ function EditTenantDialog({
           </Button>
         </DialogActions>
       </Box>
+      <PortalConfirmDialog
+        open={discardDialogOpen}
+        onClose={() => setDiscardDialogOpen(false)}
+        onConfirm={() => {
+          setDiscardDialogOpen(false);
+          onClose();
+        }}
+        title={t('portalDialogs.unsavedChanges.title')}
+        body={t('portalDialogs.unsavedChanges.body')}
+        confirmLabel={t('portalDialogs.unsavedChanges.discard')}
+        cancelLabel={t('portalDialogs.unsavedChanges.keepEditing')}
+        confirmColor="warning"
+      />
     </Dialog>
   );
 }
@@ -941,15 +1055,17 @@ function TenantRow({
             </IconButton>
           </Tooltip>
           {isActive ? (
-            <Button
-              type="button"
-              size="small"
-              color="warning"
-              variant="outlined"
-              onClick={() => setDisableConfirmOpen(true)}
-            >
-              {t('portalTenants.actions.disable')}
-            </Button>
+            <Tooltip title={t('portalTenants.actions.disable')}>
+              <IconButton
+                type="button"
+                size="small"
+                color="warning"
+                onClick={() => setDisableConfirmOpen(true)}
+                aria-label={t('portalTenants.actions.disable')}
+              >
+                <Block fontSize="small" />
+              </IconButton>
+            </Tooltip>
           ) : (
             <Button
               type="button"
@@ -1122,6 +1238,8 @@ function OnboardTenantDialog({
   const [form, setForm] = useState(EMPTY_ONBOARD_FORM);
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
+  const [initialForm, setInitialForm] = useState(EMPTY_ONBOARD_FORM);
+  const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
   const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
   const emailHint = meData?.user?.email ?? account?.username ?? '';
   const submitStatusMessage = submitState.status === 'error'
@@ -1130,14 +1248,26 @@ function OnboardTenantDialog({
 
   useEffect(() => {
     if (open) {
-      setForm({
+      const nextForm = {
         ...EMPTY_ONBOARD_FORM,
         landlord_id: isAdmin ? selectedLandlordId : '',
-      });
+      };
+      setForm(nextForm);
+      setInitialForm(nextForm);
       setFieldErrors({});
       setSubmitState({ status: 'idle', detail: '' });
+      setDiscardDialogOpen(false);
     }
   }, [open, isAdmin, selectedLandlordId]);
+  const hasUnsavedChanges = JSON.stringify(form) !== JSON.stringify(initialForm);
+  const handleAttemptClose = () => {
+    if (submitState.status === 'saving') return;
+    if (hasUnsavedChanges) {
+      setDiscardDialogOpen(true);
+      return;
+    }
+    onClose();
+  };
 
   const onChange = (field) => (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -1199,8 +1329,13 @@ function OnboardTenantDialog({
     : properties;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{t('portalTenants.onboardDialog.title')}</DialogTitle>
+    <Dialog open={open} onClose={handleAttemptClose} maxWidth="sm" fullWidth>
+      <DialogTitleWithClose
+        title={t('portalTenants.onboardDialog.title')}
+        onClose={handleAttemptClose}
+        closeLabel={t('portalDialogs.closeForm')}
+        disabled={submitState.status === 'saving'}
+      />
       <Box component="form" onSubmit={onSubmit}>
         <DialogContent>
           <Stack spacing={2}>
@@ -1371,7 +1506,7 @@ function OnboardTenantDialog({
         </DialogContent>
         <DialogActions>
           <InlineActionStatus message={submitStatusMessage} />
-          <Button type="button" onClick={onClose} disabled={submitState.status === 'saving'}>
+          <Button type="button" onClick={handleAttemptClose} disabled={submitState.status === 'saving'}>
             {t('portalTenants.actions.cancel')}
           </Button>
           <Button
@@ -1385,6 +1520,19 @@ function OnboardTenantDialog({
           </Button>
         </DialogActions>
       </Box>
+      <PortalConfirmDialog
+        open={discardDialogOpen}
+        onClose={() => setDiscardDialogOpen(false)}
+        onConfirm={() => {
+          setDiscardDialogOpen(false);
+          onClose();
+        }}
+        title={t('portalDialogs.unsavedChanges.title')}
+        body={t('portalDialogs.unsavedChanges.body')}
+        confirmLabel={t('portalDialogs.unsavedChanges.discard')}
+        cancelLabel={t('portalDialogs.unsavedChanges.keepEditing')}
+        confirmColor="warning"
+      />
     </Dialog>
   );
 }

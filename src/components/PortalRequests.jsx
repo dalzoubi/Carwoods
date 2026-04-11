@@ -8,6 +8,7 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  IconButton,
   Paper,
   Stack,
   Typography,
@@ -15,6 +16,7 @@ import {
   useTheme,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import Close from '@mui/icons-material/Close';
 import { useLocation } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
 import { hasLandlordAccess } from '../domain/roleUtils.js';
@@ -27,6 +29,7 @@ import { usePortalRequests } from './portalRequests/usePortalRequests';
 import StatusAlertSlot from './StatusAlertSlot';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
+import PortalConfirmDialog from './PortalConfirmDialog';
 import { fetchLandlords } from '../lib/portalApiClient';
 
 const PortalRequests = () => {
@@ -155,6 +158,8 @@ const PortalRequests = () => {
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
   const [createOpen, setCreateOpen] = useState(createFromUrl);
+  const createBaselineRef = useRef('');
+  const [discardCreateOpen, setDiscardCreateOpen] = useState(false);
   const [landlords, setLandlords] = useState([]);
   const [landlordsStatus, setLandlordsStatus] = useState('idle');
   const [selectedLandlordId, setSelectedLandlordId] = useState('');
@@ -204,6 +209,32 @@ const PortalRequests = () => {
   React.useEffect(() => {
     if (tenantCreateStatus === 'success') setCreateOpen(false);
   }, [tenantCreateStatus]);
+  const createDraftSnapshot = JSON.stringify({
+    category_code: tenantForm.category_code,
+    priority_code: tenantForm.priority_code,
+    title: tenantForm.title,
+    description: tenantForm.description,
+    attachments: (createAttachmentFiles || []).map((file) => `${file.name}:${file.size}`),
+  });
+  const hasCreateUnsavedChanges = createOpen && createDraftSnapshot !== createBaselineRef.current;
+  React.useEffect(() => {
+    if (!createOpen) return;
+    if (!createBaselineRef.current) {
+      createBaselineRef.current = createDraftSnapshot;
+    }
+  }, [createDraftSnapshot, createOpen]);
+  const openCreateDialog = () => {
+    createBaselineRef.current = createDraftSnapshot;
+    setCreateOpen(true);
+  };
+  const attemptCloseCreateDialog = () => {
+    if (tenantCreateStatus === 'saving') return;
+    if (hasCreateUnsavedChanges) {
+      setDiscardCreateOpen(true);
+      return;
+    }
+    setCreateOpen(false);
+  };
   React.useEffect(() => {
     if (tenantCreateStatus === 'success') showFeedback(t('portalRequests.create.saved'));
   }, [showFeedback, t, tenantCreateStatus]);
@@ -327,20 +358,29 @@ const PortalRequests = () => {
               type="button"
               variant="contained"
               startIcon={<AddIcon />}
-              onClick={() => setCreateOpen(true)}
+              onClick={openCreateDialog}
               disabled={!isAuthenticated || !baseUrl || isGuest}
             >
               {t('portalRequests.actions.newRequest')}
             </Button>
             <Dialog
               open={createOpen}
-              onClose={() => {
-                if (tenantCreateStatus !== 'saving') setCreateOpen(false);
-              }}
+              onClose={attemptCloseCreateDialog}
               fullWidth
               maxWidth="md"
             >
-              <DialogTitle>{t('portalRequests.create.heading')}</DialogTitle>
+              <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                <Typography component="span">{t('portalRequests.create.heading')}</Typography>
+                <IconButton
+                  type="button"
+                  size="small"
+                  onClick={attemptCloseCreateDialog}
+                  disabled={tenantCreateStatus === 'saving'}
+                  aria-label={t('portalDialogs.closeForm')}
+                >
+                  <Close fontSize="small" />
+                </IconButton>
+              </DialogTitle>
               <DialogContent dividers>
               <TenantRequestForm
                 tenantForm={tenantForm}
@@ -357,13 +397,26 @@ const PortalRequests = () => {
                 createAttachmentFiles={createAttachmentFiles}
                 onCreateAttachmentChange={onCreateAttachmentChange}
                 onRemoveCreateAttachment={onRemoveCreateAttachment}
-                onCancel={() => setCreateOpen(false)}
+                onCancel={attemptCloseCreateDialog}
                 disabled={!isAuthenticated || !baseUrl || tenantCreateStatus === 'saving' || isGuest}
                 hideHeading
                 framed={false}
               />
               </DialogContent>
             </Dialog>
+            <PortalConfirmDialog
+              open={discardCreateOpen}
+              onClose={() => setDiscardCreateOpen(false)}
+              onConfirm={() => {
+                setDiscardCreateOpen(false);
+                setCreateOpen(false);
+              }}
+              title={t('portalDialogs.unsavedChanges.title')}
+              body={t('portalDialogs.unsavedChanges.body')}
+              confirmLabel={t('portalDialogs.unsavedChanges.discard')}
+              cancelLabel={t('portalDialogs.unsavedChanges.keepEditing')}
+              confirmColor="warning"
+            />
           </Box>
         )}
 
