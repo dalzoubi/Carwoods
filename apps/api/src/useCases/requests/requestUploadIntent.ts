@@ -26,15 +26,11 @@ import {
   extensionFromFilename,
   mimeMatchesAllowed,
 } from '../../domain/attachmentUploadConfig.js';
+import { validateVideoDurationSeconds } from '../../domain/requestAttachmentPolicy.js';
 import { forbidden, notFound, unprocessable, validationError } from '../../domain/errors.js';
 import { Role, hasLandlordAccess } from '../../domain/constants.js';
 import type { Queryable } from '../types.js';
-import {
-  BlobSASPermissions,
-  SASProtocol,
-  StorageSharedKeyCredential,
-  generateBlobSASQueryParameters,
-} from '@azure/storage-blob';
+import { buildAttachmentUploadUrl } from '../../lib/requestAttachmentStorage.js';
 
 export type RequestUploadIntentInput = {
   requestId: string | undefined;
@@ -100,15 +96,11 @@ export async function requestUploadIntent(
   if (input.fileSizeBytes > maxBytes) {
     throw Object.assign(validationError('file_too_large'), { max_bytes: maxBytes });
   }
-  if (
-    mediaType === 'VIDEO'
-    && Number.isFinite(input.fileDurationSeconds)
-    && Number(input.fileDurationSeconds) > effectiveConfig.max_video_duration_seconds
-  ) {
-    throw Object.assign(validationError('video_too_long'), {
-      max_seconds: effectiveConfig.max_video_duration_seconds,
-    });
-  }
+  validateVideoDurationSeconds(
+    mediaType,
+    input.fileDurationSeconds,
+    effectiveConfig.max_video_duration_seconds
+  );
 
   const attachmentsCount = await countRequestAttachments(db, requestId);
   if (attachmentsCount >= effectiveConfig.max_attachments) {
@@ -117,42 +109,14 @@ export async function requestUploadIntent(
 
   const safeFileName = input.filename!.replace(/[^a-zA-Z0-9._-]/g, '_');
   const storage_path = `${requestId}/${Date.now()}-${safeFileName}`;
-  const storageAccountName = process.env.AZURE_STORAGE_ACCOUNT_NAME?.trim();
-  const storageContainerName = process.env.AZURE_STORAGE_CONTAINER_NAME?.trim();
-  const storageAccountKey = process.env.AZURE_STORAGE_ACCOUNT_KEY?.trim();
-
-  if (!storageAccountName || !storageContainerName || !storageAccountKey) {
+  const uploadUrl = buildAttachmentUploadUrl(storage_path, input.contentType!, 300);
+  if (!uploadUrl) {
     throw unprocessable('storage_not_configured');
   }
-
-  const now = new Date();
-  const expiresOn = new Date(now.getTime() + 300 * 1000);
-  const sharedKeyCredential = new StorageSharedKeyCredential(
-    storageAccountName,
-    storageAccountKey
-  );
-  const sasToken = generateBlobSASQueryParameters(
-    {
-      containerName: storageContainerName,
-      blobName: storage_path,
-      permissions: BlobSASPermissions.parse('cw'),
-      startsOn: now,
-      expiresOn,
-      protocol: SASProtocol.Https,
-      contentType: input.contentType!,
-    },
-    sharedKeyCredential
-  ).toString();
-  const upload_url = `https://${storageAccountName}.blob.core.windows.net/${encodeURIComponent(
-    storageContainerName
-  )}/${storage_path
-    .split('/')
-    .map((segment) => encodeURIComponent(segment))
-    .join('/')}?${sasToken}`;
 
   const expiresInSeconds = Math.min(
     Math.max(300, effectiveConfig.share_expiry_seconds),
     ATTACHMENT_CONFIG_RANGES.shareExpirySeconds.max
   );
-  return { upload_url, storage_path, media_type: mediaType, expires_in_seconds: expiresInSeconds };
+  return { upload_url: uploadUrl, storage_path, media_type: mediaType, expires_in_seconds: expiresInSeconds };
 }

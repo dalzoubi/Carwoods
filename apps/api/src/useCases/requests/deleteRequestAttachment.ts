@@ -5,6 +5,7 @@ import {
   tenantCanAccessRequest,
 } from '../../lib/requestsRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
+import { deleteAttachmentBlobIfExists } from '../../lib/requestAttachmentStorage.js';
 import { forbidden, notFound, validationError } from '../../domain/errors.js';
 import { Role, hasLandlordAccess } from '../../domain/constants.js';
 import { isValidUuid } from '../../domain/validation.js';
@@ -73,6 +74,11 @@ export async function deleteRequestAttachment(
       after: null,
     });
     await client.query('COMMIT');
+    try {
+      await deleteAttachmentBlobIfExists(existingAttachment.storage_path);
+    } catch {
+      // Non-fatal: DB delete succeeded; orphan cleanup job will reconcile storage drift.
+    }
     return { attachment: deleted };
   } catch (error) {
     await client.query('ROLLBACK');

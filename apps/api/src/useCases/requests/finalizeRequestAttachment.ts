@@ -26,6 +26,7 @@ import {
   type UploadMediaType,
 } from '../../domain/requestValidation.js';
 import { extensionFromFilename, mimeMatchesAllowed } from '../../domain/attachmentUploadConfig.js';
+import { validateVideoDurationSeconds } from '../../domain/requestAttachmentPolicy.js';
 import { forbidden, notFound, validationError } from '../../domain/errors.js';
 import { Role, hasLandlordAccess } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
@@ -98,15 +99,11 @@ export async function finalizeRequestAttachment(
   if (input.fileSizeBytes > maxBytes) {
     throw Object.assign(validationError('file_too_large'), { max_bytes: maxBytes });
   }
-  if (
-    mediaType === 'VIDEO'
-    && Number.isFinite(input.fileDurationSeconds)
-    && Number(input.fileDurationSeconds) > effectiveConfig.max_video_duration_seconds
-  ) {
-    throw Object.assign(validationError('video_too_long'), {
-      max_seconds: effectiveConfig.max_video_duration_seconds,
-    });
-  }
+  validateVideoDurationSeconds(
+    mediaType,
+    input.fileDurationSeconds,
+    effectiveConfig.max_video_duration_seconds
+  );
 
   const attachmentsCount = await countRequestAttachments(db, requestId);
   if (attachmentsCount >= effectiveConfig.max_attachments) {

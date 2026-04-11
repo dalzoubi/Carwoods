@@ -24,6 +24,7 @@ import {
   fetchRequestMessages,
   deleteRequestMessage,
   deleteRequestAttachment,
+  createRequestAttachmentShareLink,
 } from '../../lib/portalApiClient';
 import { RequestStatus } from '../../domain/constants.js';
 const MESSAGE_POLL_INTERVAL_MS = 15000;
@@ -175,6 +176,8 @@ export function usePortalRequests({
   const [attachmentErrorDebugId, setAttachmentErrorDebugId] = useState('');
   const [attachmentDeleteStatus, setAttachmentDeleteStatus] = useState('idle');
   const [attachmentDeleteError, setAttachmentDeleteError] = useState('');
+  const [attachmentShareStatus, setAttachmentShareStatus] = useState('idle');
+  const [attachmentShareError, setAttachmentShareError] = useState('');
 
   const [exportStatus, setExportStatus] = useState('idle');
   const [exportError, setExportError] = useState('');
@@ -383,6 +386,8 @@ export function usePortalRequests({
     setAttachmentFile(null);
     setAttachmentDeleteStatus('idle');
     setAttachmentDeleteError('');
+    setAttachmentShareStatus('idle');
+    setAttachmentShareError('');
     setAttachmentErrorDebugId('');
     setMessageForm({ body: '', is_internal: false });
     setElsaDecisionStatus('idle');
@@ -861,7 +866,11 @@ export function usePortalRequests({
       const intentPayload = await requestUploadIntent(baseUrl, token, selectedRequestId, filePayload);
       const storagePath = intentPayload?.upload?.storage_path;
       const uploadUrl = intentPayload?.upload?.upload_url;
-      if (!storagePath || !uploadUrl) throw new Error(t('portalRequests.errors.uploadIntentMissingPath'));
+      if (!storagePath || !uploadUrl) {
+        const missingPathError = new Error(t('portalRequests.errors.uploadIntentMissingPath'));
+        missingPathError.code = 'upload_intent_missing_path';
+        throw missingPathError;
+      }
 
       await putBlobToStorage(uploadUrl, attachmentFile, (progress) => {
         setAttachmentUploadProgress(progress);
@@ -895,6 +904,8 @@ export function usePortalRequests({
       });
       if (error && typeof error === 'object' && error.status === 422 && error.code === 'storage_not_configured') {
         setAttachmentError(t('portalRequests.errors.attachmentStorageUnavailable'));
+      } else if (error && typeof error === 'object' && error.code === 'upload_intent_missing_path') {
+        setAttachmentError(t('portalRequests.errors.uploadIntentMissingPath'));
       } else if (error && typeof error === 'object' && error.code === 'blob_upload_failed') {
         setAttachmentError(t('portalRequests.errors.attachmentUploadFailed'));
       } else {
@@ -917,6 +928,37 @@ export function usePortalRequests({
       handleApiForbidden(error);
       setAttachmentDeleteStatus('error');
       setAttachmentDeleteError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
+    }
+  };
+
+  const onShareAttachment = async (attachmentId) => {
+    if (!baseUrl || !selectedRequestId || !attachmentId || !isManagement) return null;
+    setAttachmentShareStatus('saving');
+    setAttachmentShareError('');
+    try {
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      const payload = await createRequestAttachmentShareLink(
+        baseUrl,
+        token,
+        selectedRequestId,
+        attachmentId,
+        { emailHint }
+      );
+      const shareUrl = payload?.share?.share_url;
+      if (!shareUrl) {
+        throw new Error('missing_share_url');
+      }
+      setAttachmentShareStatus('success');
+      return {
+        shareUrl,
+        expiresAt: payload?.share?.expires_at || '',
+      };
+    } catch (error) {
+      handleApiForbidden(error);
+      setAttachmentShareStatus('error');
+      setAttachmentShareError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
+      return null;
     }
   };
 
@@ -1108,6 +1150,8 @@ export function usePortalRequests({
     attachmentUploadProgress,
     attachmentDeleteStatus,
     attachmentDeleteError,
+    attachmentShareStatus,
+    attachmentShareError,
     exportStatus,
     exportError,
     auditEvents,
@@ -1138,6 +1182,7 @@ export function usePortalRequests({
     onClearAttachmentFile,
     onAttachmentSubmit,
     onDeleteAttachment,
+    onShareAttachment,
     onExportCsv,
     onSetElsaAutoRespond,
     onRunElsa,

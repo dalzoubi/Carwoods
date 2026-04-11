@@ -474,6 +474,42 @@ export async function deleteRequestAttachment(baseUrl, accessToken, requestId, a
   return res.json();
 }
 
+/**
+ * Generate an expiring share link for an attachment (management roles).
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} requestId
+ * @param {string} attachmentId
+ * @param {{ emailHint?: string }} [params]
+ * @returns {Promise<object>}
+ */
+export async function createRequestAttachmentShareLink(
+  baseUrl,
+  accessToken,
+  requestId,
+  attachmentId,
+  params
+) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(
+      baseUrl,
+      `/api/portal/requests/${encodeURIComponent(requestId)}/attachments/${encodeURIComponent(attachmentId)}/share`
+    ),
+    {
+      method: 'POST',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
 // ---------------------------------------------------------------------------
 // GET /api/portal/request-lookups
 // ---------------------------------------------------------------------------

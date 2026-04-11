@@ -256,6 +256,7 @@ const RequestDetailPane = ({
   attachmentDeleteStatus,
   attachmentDeleteError,
   onDeleteAttachment,
+  onShareAttachment,
   currentUserId,
   auditEvents,
   auditStatus,
@@ -287,6 +288,8 @@ const RequestDetailPane = ({
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [attachmentDeleteDialog, setAttachmentDeleteDialog] = useState(null);
   const [isAttachmentDropActive, setIsAttachmentDropActive] = useState(false);
+  const [mediaPreviewIndex, setMediaPreviewIndex] = useState(-1);
+  const [attachmentShareState, setAttachmentShareState] = useState({ status: 'idle', message: '', attachmentId: '' });
   const managementStatusMessage = managementUpdateStatus === 'error'
     ? { severity: 'error', text: managementUpdateError || t('portalRequests.errors.saveFailed') }
     : null;
@@ -304,6 +307,11 @@ const RequestDetailPane = ({
   const attachmentDeleteStatusMessage = attachmentDeleteStatus === 'error'
     ? { severity: 'error', text: attachmentDeleteError || t('portalRequests.errors.saveFailed') }
     : null;
+  const attachmentShareStatusMessage = attachmentShareState.status === 'error'
+    ? { severity: 'error', text: attachmentShareState.message || t('portalRequests.errors.saveFailed') }
+    : attachmentShareState.status === 'success'
+      ? { severity: 'success', text: attachmentShareState.message || t('portalRequests.attachments.shareCopied') }
+      : null;
   const parsedAudits = useMemo(
     () => (Array.isArray(auditEvents) ? auditEvents : []).map((event) => {
       const parseJsonSafe = (raw) => {
@@ -413,6 +421,68 @@ const RequestDetailPane = ({
     }
     details.push(uploaderLabel(attachment), formatDateTime(attachment?.created_at));
     return details.join(' · ');
+  };
+  const previewableAttachments = useMemo(
+    () => attachments.filter((attachment) => (
+      Boolean(attachment?.file_url)
+      && (attachment?.media_type === 'PHOTO' || attachment?.media_type === 'VIDEO')
+    )),
+    [attachments]
+  );
+  const activePreviewAttachment = mediaPreviewIndex >= 0
+    ? previewableAttachments[mediaPreviewIndex] ?? null
+    : null;
+  const canPreviewPrevious = mediaPreviewIndex > 0;
+  const canPreviewNext = mediaPreviewIndex >= 0 && mediaPreviewIndex < previewableAttachments.length - 1;
+  const handleShareAttachment = async (attachmentId) => {
+    if (!attachmentId || !onShareAttachment) return;
+    setAttachmentShareState({ status: 'saving', message: '', attachmentId });
+    const result = await onShareAttachment(attachmentId);
+    if (!result?.shareUrl) {
+      setAttachmentShareState({
+        status: 'error',
+        message: t('portalRequests.attachments.shareUnavailable'),
+        attachmentId,
+      });
+      return;
+    }
+    const fallbackCopy = () => {
+      window.prompt(t('portalRequests.attachments.sharePrompt'), result.shareUrl);
+      return false;
+    };
+    let copied = false;
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(result.shareUrl);
+        copied = true;
+      } else {
+        copied = fallbackCopy();
+      }
+    } catch {
+      copied = fallbackCopy();
+    }
+    setAttachmentShareState({
+      status: copied ? 'success' : 'success',
+      message: copied
+        ? t('portalRequests.attachments.shareCopied')
+        : t('portalRequests.attachments.sharePromptFallback'),
+      attachmentId,
+    });
+  };
+  useEffect(() => {
+    if (!activePreviewAttachment) return;
+    const nextIndex = previewableAttachments.findIndex(
+      (attachment) => attachment.id === activePreviewAttachment.id
+    );
+    setMediaPreviewIndex(nextIndex);
+  }, [activePreviewAttachment, previewableAttachments]);
+  const openMediaPreview = (attachmentId) => {
+    const nextIndex = previewableAttachments.findIndex((attachment) => attachment.id === attachmentId);
+    if (nextIndex < 0) return;
+    setMediaPreviewIndex(nextIndex);
+  };
+  const closeMediaPreview = () => {
+    setMediaPreviewIndex(-1);
   };
 
   return (
@@ -1278,18 +1348,39 @@ const RequestDetailPane = ({
                   <Stack spacing={0.75}>
                     {att.file_url && att.media_type === 'PHOTO' && (
                       <Box
-                        component="img"
-                        src={att.file_url}
-                        alt={att.original_filename}
-                        sx={{
-                          width: '100%',
-                          maxHeight: 220,
-                          objectFit: 'cover',
-                          borderRadius: 1,
-                          border: '1px solid',
-                          borderColor: 'divider',
+                        component="button"
+                        type="button"
+                        onClick={() => openMediaPreview(att.id)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            openMediaPreview(att.id);
+                          }
                         }}
-                      />
+                        aria-label={`${t('portalRequests.attachments.preview')}: ${att.original_filename}`}
+                        sx={{
+                          p: 0,
+                          border: 'none',
+                          background: 'transparent',
+                          width: '100%',
+                          textAlign: 'inherit',
+                          cursor: 'zoom-in',
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          src={att.file_url}
+                          alt={att.original_filename}
+                          sx={{
+                            width: '100%',
+                            maxHeight: 220,
+                            objectFit: 'cover',
+                            borderRadius: 1,
+                            border: '1px solid',
+                            borderColor: 'divider',
+                          }}
+                        />
+                      </Box>
                     )}
                     {att.file_url && att.media_type === 'VIDEO' && (
                       <Box
@@ -1331,6 +1422,30 @@ const RequestDetailPane = ({
                           <Typography variant="caption" color="text.secondary">
                             {t('portalRequests.attachments.unavailable')}
                           </Typography>
+                        )}
+                        {isManagement && (
+                          <Button
+                            type="button"
+                            size="small"
+                            onClick={() => handleShareAttachment(att.id)}
+                            disabled={attachmentShareState.status === 'saving'}
+                            sx={{ textTransform: 'none' }}
+                          >
+                            {attachmentShareState.status === 'saving'
+                              && attachmentShareState.attachmentId === att.id
+                              ? t('portalRequests.actions.saving')
+                              : t('portalRequests.attachments.share')}
+                          </Button>
+                        )}
+                        {(att.media_type === 'PHOTO' || att.media_type === 'VIDEO') && att.file_url && (
+                          <Button
+                            type="button"
+                            size="small"
+                            onClick={() => openMediaPreview(att.id)}
+                            sx={{ textTransform: 'none' }}
+                          >
+                            {t('portalRequests.attachments.preview')}
+                          </Button>
                         )}
                         {canDeleteAttachment(att) && (
                           <Button
@@ -1443,7 +1558,13 @@ const RequestDetailPane = ({
             spacing={1}
             sx={{ flexWrap: 'wrap', rowGap: 1, alignItems: { xs: 'stretch', sm: 'center' } }}
           >
-            <InlineActionStatus message={attachmentDeleteStatusMessage || attachmentStatusMessage} />
+            <InlineActionStatus
+              message={
+                attachmentDeleteStatusMessage
+                || attachmentStatusMessage
+                || attachmentShareStatusMessage
+              }
+            />
             {isDev && attachmentStatus === 'error' && attachmentErrorDebugId ? (
               <Typography variant="caption" color="text.secondary">
                 {t('portalRequests.attachments.debugIdLabel')}: {attachmentErrorDebugId}
@@ -1475,6 +1596,61 @@ const RequestDetailPane = ({
             }}
           >
             {t('portalRequests.attachments.deleteConfirmYes')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={Boolean(activePreviewAttachment)}
+        onClose={closeMediaPreview}
+        fullWidth
+        maxWidth="lg"
+      >
+        <DialogTitle>{activePreviewAttachment?.original_filename || t('portalRequests.attachments.heading')}</DialogTitle>
+        <DialogContent dividers>
+          {activePreviewAttachment?.file_url && activePreviewAttachment.media_type === 'PHOTO' && (
+            <Box
+              component="img"
+              src={activePreviewAttachment.file_url}
+              alt={activePreviewAttachment.original_filename}
+              sx={{
+                width: '100%',
+                maxHeight: '75vh',
+                objectFit: 'contain',
+                display: 'block',
+                marginInline: 'auto',
+              }}
+            />
+          )}
+          {activePreviewAttachment?.file_url && activePreviewAttachment.media_type === 'VIDEO' && (
+            <Box
+              component="video"
+              controls
+              preload="metadata"
+              src={activePreviewAttachment.file_url}
+              sx={{
+                width: '100%',
+                maxHeight: '75vh',
+                display: 'block',
+                marginInline: 'auto',
+              }}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Typography variant="caption" color="text.secondary" sx={{ marginInlineEnd: 'auto', px: 1 }}>
+            {t('portalRequests.attachments.previewPosition', {
+              index: Math.max(1, mediaPreviewIndex + 1),
+              count: previewableAttachments.length,
+            })}
+          </Typography>
+          <Button type="button" disabled={!canPreviewPrevious} onClick={() => setMediaPreviewIndex((value) => value - 1)}>
+            {t('portalRequests.attachments.previous')}
+          </Button>
+          <Button type="button" disabled={!canPreviewNext} onClick={() => setMediaPreviewIndex((value) => value + 1)}>
+            {t('portalRequests.attachments.next')}
+          </Button>
+          <Button type="button" onClick={closeMediaPreview}>
+            {t('portalRequests.actions.close')}
           </Button>
         </DialogActions>
       </Dialog>

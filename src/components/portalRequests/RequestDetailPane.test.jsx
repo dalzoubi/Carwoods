@@ -311,4 +311,72 @@ describe('RequestDetailPane', () => {
 
     expect(screen.getByText(/Image · 5\.00 MB · Tenant One/i)).toBeInTheDocument();
   });
+
+  it('opens full image preview dialog when thumbnail is clicked', () => {
+    const props = makeProps({
+      attachments: [
+        {
+          id: 'att-preview-1',
+          media_type: 'PHOTO',
+          file_size_bytes: 1024,
+          original_filename: 'full-leak.jpg',
+          uploaded_by_display_name: 'Tenant One',
+          created_at: '2026-04-10T10:00:00Z',
+          file_url: 'https://example.com/full-leak.jpg',
+        },
+      ],
+    });
+
+    render(
+      <WithAppTheme>
+        <RequestDetailPane {...props} />
+      </WithAppTheme>
+    );
+
+    fireEvent.click(screen.getByLabelText('Preview: full-leak.jpg'));
+    expect(screen.getByRole('heading', { name: 'full-leak.jpg' })).toBeInTheDocument();
+    expect(screen.getAllByAltText('full-leak.jpg').length).toBeGreaterThan(1);
+  });
+
+  it('navigates between image and video attachments in preview dialog', () => {
+    const props = makeProps({
+      attachments: [
+        {
+          id: 'att-media-1',
+          media_type: 'PHOTO',
+          file_size_bytes: 1024,
+          original_filename: 'photo-one.jpg',
+          uploaded_by_display_name: 'Tenant One',
+          created_at: '2026-04-10T10:00:00Z',
+          file_url: 'https://example.com/photo-one.jpg',
+        },
+        {
+          id: 'att-media-2',
+          media_type: 'VIDEO',
+          file_size_bytes: 2048,
+          original_filename: 'video-one.mp4',
+          uploaded_by_display_name: 'Tenant One',
+          created_at: '2026-04-10T10:01:00Z',
+          file_url: 'https://example.com/video-one.mp4',
+        },
+      ],
+    });
+
+    render(
+      <WithAppTheme>
+        <RequestDetailPane {...props} />
+      </WithAppTheme>
+    );
+
+    fireEvent.click(screen.getByLabelText('Preview: photo-one.jpg'));
+    expect(screen.getByRole('heading', { name: 'photo-one.jpg' })).toBeInTheDocument();
+    expect(screen.getByText('1 of 2')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByRole('heading', { name: 'video-one.mp4' })).toBeInTheDocument();
+    expect(screen.getByText('2 of 2')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Previous' }));
+    expect(screen.getByRole('heading', { name: 'photo-one.jpg' })).toBeInTheDocument();
+  });
 });

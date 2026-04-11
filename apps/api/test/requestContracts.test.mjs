@@ -32,11 +32,10 @@ test('AI_AGENT cannot create requests or post internal notes directly', () => {
 test('upload media detection and byte ceilings', () => {
   assert.equal(detectMediaType('image/jpeg'), 'PHOTO');
   assert.equal(detectMediaType('video/mp4'), 'VIDEO');
-  assert.equal(detectMediaType('application/pdf'), 'FILE');
+  assert.equal(detectMediaType('application/pdf'), null);
   assert.equal(detectMediaType('application/zip'), null);
 
-  assert.equal(maxBytesForMediaType('PHOTO'), 8 * 1024 * 1024);
-  assert.equal(maxBytesForMediaType('VIDEO'), 100 * 1024 * 1024);
-  assert.equal(maxBytesForMediaType('FILE'), 25 * 1024 * 1024);
+  assert.equal(maxBytesForMediaType('PHOTO'), 10 * 1024 * 1024);
+  assert.equal(maxBytesForMediaType('VIDEO'), 50 * 1024 * 1024);
 });
 

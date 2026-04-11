@@ -23,6 +23,7 @@ import { requestUploadIntent } from '../useCases/requests/requestUploadIntent.js
 import { finalizeRequestAttachment } from '../useCases/requests/finalizeRequestAttachment.js';
 import { listRequestAttachments } from '../useCases/requests/listRequestAttachments.js';
 import { deleteRequestAttachment } from '../useCases/requests/deleteRequestAttachment.js';
+import { createRequestAttachmentShareLink } from '../useCases/requests/createRequestAttachmentShareLink.js';
 
 const MESSAGE_BODY_MAX_BYTES = 512 * 1024;
 
@@ -506,6 +507,34 @@ async function portalRequestAttachmentItem(
   }
 }
 
+async function portalRequestAttachmentShare(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requirePortalUser(request, context);
+  if (!gate.ok) return gate.response;
+  const { user, headers } = gate.ctx;
+  const role = String(user.role ?? '').toUpperCase() as PortalRole;
+
+  if (request.method !== 'POST') {
+    return jsonResponse(405, headers, { error: 'method_not_allowed' });
+  }
+
+  try {
+    const result = await createRequestAttachmentShareLink(getPool(), {
+      requestId: request.params.id,
+      attachmentId: request.params.attachmentId,
+      actorUserId: user.id,
+      actorRole: role,
+    });
+    return jsonResponse(200, headers, { share: result });
+  } catch (e) {
+    const mapped = mapDomainError(e, headers);
+    if (mapped) return mapped;
+    throw e;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Azure Function registrations
 // ---------------------------------------------------------------------------
@@ -571,4 +600,11 @@ app.http('portalRequestAttachmentItem', {
   authLevel: 'anonymous',
   route: 'portal/requests/{id}/attachments/{attachmentId}',
   handler: withRateLimit(portalRequestAttachmentItem),
+});
+
+app.http('portalRequestAttachmentShare', {
+  methods: ['POST', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'portal/requests/{id}/attachments/{attachmentId}/share',
+  handler: withRateLimit(portalRequestAttachmentShare),
 });

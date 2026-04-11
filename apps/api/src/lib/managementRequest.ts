@@ -167,10 +167,11 @@ export function mapDomainError(
   headers: Record<string, string>
 ): HttpResponseInit | null {
   if (!isDomainError(error)) return null;
-  const e = error as DomainError & { max_bytes?: number; max?: number };
+  const e = error as DomainError & { max_bytes?: number; max?: number; max_seconds?: number };
   const extraFields: Record<string, unknown> = {};
   if (e.max_bytes !== undefined) extraFields.max_bytes = e.max_bytes;
   if (e.max !== undefined) extraFields.max = e.max;
+  if (e.max_seconds !== undefined) extraFields.max_seconds = e.max_seconds;
 
   switch (e.code) {
     case 'NOT_FOUND':

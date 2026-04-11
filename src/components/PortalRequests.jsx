@@ -92,6 +92,8 @@ const PortalRequests = () => {
     attachmentUploadProgress,
     attachmentDeleteStatus,
     attachmentDeleteError,
+    attachmentShareStatus,
+    attachmentShareError,
     exportStatus,
     exportError,
     auditEvents,
@@ -123,6 +125,7 @@ const PortalRequests = () => {
     onClearAttachmentFile,
     onAttachmentSubmit,
     onDeleteAttachment,
+    onShareAttachment,
     onExportCsv,
     onSetElsaAutoRespond,
     onRunElsa,
@@ -251,6 +254,9 @@ const PortalRequests = () => {
   React.useEffect(() => {
     if (attachmentDeleteStatus === 'error') showFeedback(attachmentDeleteError || t('portalRequests.errors.saveFailed'), 'error');
   }, [attachmentDeleteError, attachmentDeleteStatus, showFeedback, t]);
+  React.useEffect(() => {
+    if (attachmentShareStatus === 'error') showFeedback(attachmentShareError || t('portalRequests.errors.saveFailed'), 'error');
+  }, [attachmentShareError, attachmentShareStatus, showFeedback, t]);
   React.useEffect(() => {
     if (cancelStatus === 'error') showFeedback(cancelError || t('portalRequests.errors.saveFailed'), 'error');
   }, [cancelError, cancelStatus, showFeedback, t]);
@@ -470,6 +476,7 @@ const PortalRequests = () => {
                 attachmentDeleteStatus={attachmentDeleteStatus}
                 attachmentDeleteError={attachmentDeleteError}
                 onDeleteAttachment={onDeleteAttachment}
+                onShareAttachment={onShareAttachment}
                 currentUserId={meData?.user?.id || ''}
                 auditEvents={auditEvents}
                 auditStatus={auditStatus}
