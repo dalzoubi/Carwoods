@@ -28,9 +28,9 @@ async function readErrorBody(res) {
   return code;
 }
 
-function apiError(status, code) {
+function apiError(status, code, details) {
   const message = code ? `HTTP ${status} (${code})` : `HTTP ${status}`;
-  return { status, code, message };
+  return details ? { status, code, message, details } : { status, code, message };
 }
 
 function jsonHeaders(accessToken, emailHint) {
@@ -373,6 +373,14 @@ export async function cancelRequest(baseUrl, accessToken, requestId, params) {
  * @returns {Promise<void>}
  */
 export async function putBlobToStorage(uploadUrl, file, onProgress) {
+  const uploadTarget = (() => {
+    try {
+      const parsed = new URL(uploadUrl);
+      return `${parsed.origin}${parsed.pathname}`;
+    } catch {
+      return 'invalid_upload_url';
+    }
+  })();
   await new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('PUT', uploadUrl);
@@ -388,9 +396,16 @@ export async function putBlobToStorage(uploadUrl, file, onProgress) {
         resolve();
         return;
       }
-      reject(apiError(xhr.status || 500, 'blob_upload_failed'));
+      reject(apiError(xhr.status || 500, 'blob_upload_failed', {
+        uploadTarget,
+        statusText: xhr.statusText || '',
+        responseSnippet: String(xhr.responseText || '').slice(0, 300),
+      }));
     };
-    xhr.onerror = () => reject(apiError(500, 'blob_upload_failed'));
+    xhr.onerror = () => reject(apiError(500, 'blob_upload_failed', {
+      uploadTarget,
+      reason: 'network_error',
+    }));
     xhr.send(file);
   });
 }

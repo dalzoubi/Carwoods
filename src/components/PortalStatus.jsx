@@ -41,12 +41,11 @@ const PortalStatus = () => {
   const [signOutConfirmOpen, setSignOutConfirmOpen] = useState(false);
   const {
     authStatus,
-    authError,
     account,
     isAuthenticated,
     meStatus,
     meData,
-    meError,
+    meErrorStatus,
     signOut,
     refreshMe,
   } = usePortalAuth();
@@ -95,9 +94,7 @@ const PortalStatus = () => {
       const detail =
         error && typeof error === 'object' && typeof error.status === 'number'
           ? t('portalSetup.errors.httpStatus', { status: error.status })
-          : error instanceof Error
-            ? error.message
-            : t('portalSetup.errors.unknown');
+          : t('portalSetup.errors.unknown');
       setHealth({ state: 'error', detail });
     }
   };
@@ -208,7 +205,7 @@ const PortalStatus = () => {
                     subject: displayName,
                   })
                   : authStatus === 'error'
-                    ? authError || t('portalSetup.errors.unknown')
+                    ? t('portalSetup.errors.unknown')
                     : t('portalSetup.sessionNotSaved')}
               </Typography>
             </Stack>
@@ -352,7 +349,13 @@ const PortalStatus = () => {
                   {effectiveRole}
                 </Typography>
               )}
-              {meStatus === 'error' && <Typography>{meError || t('portalSetup.errors.unknown')}</Typography>}
+              {meStatus === 'error' && (
+                <Typography>
+                  {typeof meErrorStatus === 'number'
+                    ? t('portalSetup.errors.httpStatus', { status: meErrorStatus })
+                    : t('portalSetup.errors.unknown')}
+                </Typography>
+              )}
             </Stack>
           </Stack>
         </Box>

@@ -118,6 +118,7 @@ const PortalRequests = () => {
     onMessageSubmit,
     onDeleteMessage,
     onAttachmentChange,
+    onClearAttachmentFile,
     onAttachmentSubmit,
     onDeleteAttachment,
     onExportCsv,
@@ -465,6 +466,7 @@ const PortalRequests = () => {
                 onDeleteMessage={onDeleteMessage}
                 attachments={attachments}
                 onAttachmentChange={onAttachmentChange}
+                onClearAttachmentFile={onClearAttachmentFile}
                 onAttachmentSubmit={onAttachmentSubmit}
                 attachmentFile={attachmentFile}
                 attachmentStatus={attachmentStatus}

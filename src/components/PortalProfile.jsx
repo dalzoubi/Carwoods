@@ -179,13 +179,7 @@ const PortalProfile = () => {
         return;
       }
       setSaveStatus('error');
-      const msg =
-        error && typeof error === 'object' && typeof error.message === 'string'
-          ? error.message
-          : error instanceof Error
-            ? error.message
-            : t('portalProfile.errors.unknown');
-      setSaveError(msg);
+      setSaveError(t('portalProfile.errors.unknown'));
     }
   };
 

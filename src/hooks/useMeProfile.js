@@ -21,6 +21,19 @@ export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, ref
   const [meErrorStatus, setMeErrorStatus] = useState(null);
   const [meErrorCode, setMeErrorCode] = useState(null);
 
+  const buildSafeMeErrorMessage = useCallback((error) => {
+    const status = error && typeof error === 'object' && typeof error.status === 'number'
+      ? error.status
+      : null;
+    const code = error && typeof error === 'object' && typeof error.code === 'string' && error.code
+      ? error.code
+      : '';
+    if (typeof status === 'number') {
+      return code ? `HTTP ${status} (${code})` : `HTTP ${status}`;
+    }
+    return code || 'request_failed';
+  }, []);
+
   const clearMe = useCallback(() => {
     setMeStatus('idle');
     setMeData(null);
@@ -51,13 +64,7 @@ export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, ref
         if (controller.signal.aborted) return;
         setMeStatus('error');
         setMeData(null);
-        setMeError(
-          error && typeof error === 'object' && 'message' in error
-            ? error.message
-            : error instanceof Error
-              ? error.message
-              : 'request_failed'
-        );
+        setMeError(buildSafeMeErrorMessage(error));
         setMeErrorStatus(
           error && typeof error === 'object' && typeof error.status === 'number'
             ? error.status
@@ -73,7 +80,7 @@ export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, ref
 
     run();
     return () => controller.abort();
-  }, [account, authStatus, baseUrl, clearMe, getAccessToken, refreshTick]);
+  }, [account, authStatus, baseUrl, buildSafeMeErrorMessage, clearMe, getAccessToken, refreshTick]);
 
   return { meStatus, meData, meError, meErrorStatus, meErrorCode };
 }

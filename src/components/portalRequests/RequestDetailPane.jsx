@@ -23,11 +23,13 @@ import {
   Tabs,
   Stack,
   TextField,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
+import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
 import InlineActionStatus from '../InlineActionStatus';
@@ -244,6 +246,7 @@ const RequestDetailPane = ({
   onDeleteMessage,
   attachments,
   onAttachmentChange,
+  onClearAttachmentFile,
   onAttachmentSubmit,
   attachmentFile,
   attachmentStatus,
@@ -1386,6 +1389,20 @@ const RequestDetailPane = ({
                 >
                   {t('portalRequests.attachments.selectedFileLabel')}: {attachmentFile.name} ({formatBytesToMbLabel(attachmentFile.size)})
                 </Typography>
+                <Tooltip title={t('portalRequests.create.removeAttachment')}>
+                  <Button
+                    type="button"
+                    size="small"
+                    onClick={() => {
+                      onClearAttachmentFile();
+                      setAttachmentInputKey((value) => value + 1);
+                    }}
+                    aria-label={t('portalRequests.create.removeAttachment')}
+                    sx={{ minWidth: 'auto', px: 1 }}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </Button>
+                </Tooltip>
               </Box>
             ) : null}
             trailingAction={(

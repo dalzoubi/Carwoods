@@ -337,10 +337,11 @@ const PortalAdminProperties = () => {
       if (signal?.aborted) return;
       setProperties(rows.map(apiPropertyToDisplay));
       setElsaPropertyPolicyById(policyMap);
-    } catch (err) {
+    } catch {
       if (signal?.aborted) return;
-      const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
-      setListError(tRef.current('portalAdminProperties.errors.loadFailed', { error: msg }));
+      setListError(tRef.current('portalAdminProperties.errors.loadFailed', {
+        error: tRef.current('portalSetup.errors.unknown'),
+      }));
     } finally {
       if (!signal?.aborted) setListLoading(false);
     }
@@ -433,10 +434,11 @@ const PortalAdminProperties = () => {
       setDeleteStatus('idle');
       showFeedback(t('portalAdminProperties.messages.deleted'), 'info');
       void refresh();
-    } catch (err) {
-      const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
+    } catch {
       setDeleteStatus('error');
-      showFeedback(t('portalAdminProperties.errors.deleteFailed', { error: msg }), 'error');
+      showFeedback(t('portalAdminProperties.errors.deleteFailed', {
+        error: t('portalSetup.errors.unknown'),
+      }), 'error');
     }
   };
 
@@ -450,10 +452,11 @@ const PortalAdminProperties = () => {
       setRestoreStatus('idle');
       showFeedback(t('portalAdminProperties.messages.restored'));
       void refresh();
-    } catch (err) {
-      const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
+    } catch {
       setRestoreStatus('error');
-      showFeedback(t('portalAdminProperties.errors.restoreFailed', { error: msg }), 'error');
+      showFeedback(t('portalAdminProperties.errors.restoreFailed', {
+        error: t('portalSetup.errors.unknown'),
+      }), 'error');
     }
   };
 
@@ -469,10 +472,11 @@ const PortalAdminProperties = () => {
       setVisibleToggleStatus('idle');
       showFeedback(t('portalAdminProperties.messages.visibilityUpdated'));
       void refresh();
-    } catch (err) {
-      const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
+    } catch {
       setVisibleToggleStatus('error');
-      showFeedback(t('portalAdminProperties.errors.visibilityFailed', { error: msg }), 'error');
+      showFeedback(t('portalAdminProperties.errors.visibilityFailed', {
+        error: t('portalSetup.errors.unknown'),
+      }), 'error');
     }
   };
 
@@ -484,9 +488,10 @@ const PortalAdminProperties = () => {
       await patchPropertyApi(baseUrl, token, property.id, { refresh_har: true });
       showFeedback(t('portalAdminProperties.messages.harSynced'));
       void refresh();
-    } catch (err) {
-      const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
-      showFeedback(t('portalAdminProperties.errors.syncHarFailed', { error: msg }), 'error');
+    } catch {
+      showFeedback(t('portalAdminProperties.errors.syncHarFailed', {
+        error: t('portalSetup.errors.unknown'),
+      }), 'error');
     } finally {
       setSyncHarTargetId('');
     }
@@ -504,9 +509,10 @@ const PortalAdminProperties = () => {
       });
       setElsaPropertyPolicyById((prev) => ({ ...prev, [property.id]: !current }));
       showFeedback(t('portalAdminProperties.messages.elsaPolicyUpdated'));
-    } catch (err) {
-      const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
-      showFeedback(t('portalAdminProperties.errors.elsaPolicyFailed', { error: msg }), 'error');
+    } catch {
+      showFeedback(t('portalAdminProperties.errors.elsaPolicyFailed', {
+        error: t('portalSetup.errors.unknown'),
+      }), 'error');
     } finally {
       setElsaPolicyTargetId('');
     }
@@ -615,10 +621,11 @@ const PortalAdminProperties = () => {
       }
       resetForm();
       void refresh();
-    } catch (err) {
-      const msg = err?.code ? `${err.status} (${err.code})` : String(err?.message ?? err);
+    } catch {
       setSubmitStatus('error');
-      setSubmitError(t('portalAdminProperties.errors.saveFailed', { error: msg }));
+      setSubmitError(t('portalAdminProperties.errors.saveFailed', {
+        error: t('portalSetup.errors.unknown'),
+      }));
     }
   };
 

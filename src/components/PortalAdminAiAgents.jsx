@@ -21,11 +21,11 @@ import { fetchElsaSettings, patchElsaSettings } from '../lib/portalApiClient';
 import StatusAlertSlot from './StatusAlertSlot';
 
 function errorMessage(error) {
-  if (error && typeof error === 'object' && typeof error.message === 'string') {
-    return error.message;
-  }
-  if (error instanceof Error) return error.message;
-  return 'request_failed';
+  const code = error && typeof error === 'object' && typeof error.code === 'string'
+    ? error.code
+    : '';
+  if (code === 'forbidden') return 'portalAdminAiAgents.errors.adminOnly';
+  return 'portalAdminAiAgents.errors.loadFailed';
 }
 
 const PortalAdminAiAgents = () => {
@@ -77,9 +77,9 @@ const PortalAdminAiAgents = () => {
     } catch (error) {
       handleApiForbidden(error);
       setLoadStatus('error');
-      setLoadError(errorMessage(error));
+      setLoadError(t(errorMessage(error)));
     }
-  }, [account, baseUrl, canUseModule, getAccessToken, handleApiForbidden]);
+  }, [account, baseUrl, canUseModule, getAccessToken, handleApiForbidden, t]);
 
   useEffect(() => {
     void load();
@@ -117,7 +117,7 @@ const PortalAdminAiAgents = () => {
     } catch (error) {
       handleApiForbidden(error);
       setSaveStatus('error');
-      setSaveMessage(errorMessage(error));
+      setSaveMessage(t('portalAdminAiAgents.errors.saveFailed'));
     }
   };
 

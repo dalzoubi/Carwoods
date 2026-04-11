@@ -59,11 +59,11 @@ function joinList(value) {
 }
 
 function errorMessage(error) {
-  if (error && typeof error === 'object' && typeof error.message === 'string') {
-    return error.message;
-  }
-  if (error instanceof Error) return error.message;
-  return 'request_failed';
+  const code = error && typeof error === 'object' && typeof error.code === 'string'
+    ? error.code
+    : '';
+  if (code === 'forbidden') return 'portalAdminAiConfig.errors.adminOnly';
+  return 'portalAdminAiConfig.errors.loadFailed';
 }
 
 function toNullableNumber(value) {
@@ -168,9 +168,9 @@ const PortalAdminAiConfig = () => {
     } catch (error) {
       handleApiForbidden(error);
       setLoadStatus('error');
-      setLoadError(errorMessage(error));
+      setLoadError(t(errorMessage(error)));
     }
-  }, [account, baseUrl, canUseModule, getAccessToken, handleApiForbidden]);
+  }, [account, baseUrl, canUseModule, getAccessToken, handleApiForbidden, t]);
 
   useEffect(() => {
     void load();
@@ -225,7 +225,7 @@ const PortalAdminAiConfig = () => {
     } catch (error) {
       handleApiForbidden(error);
       setGlobalStatus('error');
-      setGlobalMessage(errorMessage(error));
+      setGlobalMessage(t('portalAdminAiConfig.errors.saveFailed'));
     }
   };
 
@@ -242,7 +242,7 @@ const PortalAdminAiConfig = () => {
       await load();
     } catch (error) {
       handleApiForbidden(error);
-      setLoadError(errorMessage(error));
+      setLoadError(t('portalAdminAiConfig.errors.saveFailed'));
     } finally {
       setCategorySaving('');
     }
@@ -262,7 +262,7 @@ const PortalAdminAiConfig = () => {
       await load();
     } catch (error) {
       handleApiForbidden(error);
-      setLoadError(errorMessage(error));
+      setLoadError(t('portalAdminAiConfig.errors.saveFailed'));
     } finally {
       setPrioritySaving('');
     }
@@ -285,7 +285,7 @@ const PortalAdminAiConfig = () => {
       await load();
     } catch (error) {
       handleApiForbidden(error);
-      setLoadError(errorMessage(error));
+      setLoadError(t('portalAdminAiConfig.errors.saveFailed'));
     } finally {
       setPropertySaving('');
     }

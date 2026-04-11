@@ -131,7 +131,7 @@ function tenantApiErrorMessage(error, t) {
     case 'active_lease_not_found':
       return t('portalTenants.errors.activeLeaseRequiredForReassign');
     default:
-      return error?.message ?? 'request_failed';
+      return t('portalTenants.errors.saveFailed');
   }
 }
 
@@ -219,7 +219,7 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
       setSubmitState({ status: 'ok', detail: '' });
       onSaved();
     } catch (error) {
-      const detail = error?.message ?? 'request_failed';
+      const detail = tenantApiErrorMessage(error, t);
       setSubmitState({ status: 'error', detail });
     }
   };
@@ -340,7 +340,7 @@ function LeaseRow({ lease, properties, onLeaseUpdated, t }) {
       setDeleteState({ status: 'idle', detail: '' });
       onLeaseUpdated();
     } catch (error) {
-      setDeleteState({ status: 'error', detail: error?.message ?? 'request_failed' });
+      setDeleteState({ status: 'error', detail: tenantApiErrorMessage(error, t) });
     }
   };
 
@@ -494,7 +494,7 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
       setSubmitState({ status: 'ok', detail: '' });
       onSaved();
     } catch (error) {
-      const detail = error?.message ?? 'request_failed';
+      const detail = tenantApiErrorMessage(error, t);
       setSubmitState({ status: 'error', detail });
     }
   };
@@ -1469,10 +1469,10 @@ const PortalTenants = () => {
       });
     } catch (e) {
       handleApiForbidden(e);
-      const detail = e?.message ?? 'request_failed';
+      const detail = t('portalTenants.errors.loadFailed');
       setTenantsState({ status: 'error', tenants: [], detail });
     }
-  }, [baseUrl, canUseModule, getAccessToken, emailHint, isAdmin, selectedLandlordId, handleApiForbidden]);
+  }, [baseUrl, canUseModule, getAccessToken, emailHint, isAdmin, selectedLandlordId, handleApiForbidden, t]);
 
   useEffect(() => {
     void loadLandlords();
@@ -1498,7 +1498,7 @@ const PortalTenants = () => {
       void loadTenants();
     } catch (e) {
       handleApiForbidden(e);
-      setActionState({ status: 'error', detail: e?.message ?? 'request_failed' });
+      setActionState({ status: 'error', detail: tenantApiErrorMessage(e, t) });
     }
   };
 
@@ -1515,7 +1515,7 @@ const PortalTenants = () => {
       void loadTenants();
     } catch (e) {
       handleApiForbidden(e);
-      setActionState({ status: 'error', detail: e?.message ?? 'request_failed' });
+      setActionState({ status: 'error', detail: tenantApiErrorMessage(e, t) });
     }
   };
 

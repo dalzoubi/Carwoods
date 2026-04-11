@@ -83,6 +83,10 @@ function payloadFromForm(form) {
   };
 }
 
+function toFriendlyErrorMessage(t, fallbackKey) {
+  return t(fallbackKey);
+}
+
 const PortalAdminAttachmentConfig = () => {
   const { t } = useTranslation();
   const { baseUrl, isAuthenticated, account, meData, getAccessToken, handleApiForbidden } = usePortalAuth();
@@ -131,7 +135,7 @@ const PortalAdminAttachmentConfig = () => {
     } catch (loadError) {
       handleApiForbidden(loadError);
       setStatus('error');
-      setError(loadError?.message || t('portalAdminAttachmentConfig.errors.loadFailed'));
+      setError(toFriendlyErrorMessage(t, 'portalAdminAttachmentConfig.errors.loadFailed'));
     }
   }, [account, baseUrl, canUseModule, getAccessToken, handleApiForbidden, t]);
 
@@ -169,7 +173,7 @@ const PortalAdminAttachmentConfig = () => {
     } catch (saveError) {
       handleApiForbidden(saveError);
       setSaveStatus('error');
-      setError(saveError?.message || t('portalAdminAttachmentConfig.errors.saveFailed'));
+      setError(toFriendlyErrorMessage(t, 'portalAdminAttachmentConfig.errors.saveFailed'));
     }
   };
 
@@ -189,7 +193,7 @@ const PortalAdminAttachmentConfig = () => {
     } catch (saveError) {
       handleApiForbidden(saveError);
       setSaveStatus('error');
-      setError(saveError?.message || t('portalAdminAttachmentConfig.errors.saveFailed'));
+      setError(toFriendlyErrorMessage(t, 'portalAdminAttachmentConfig.errors.saveFailed'));
     }
   };
 
@@ -206,7 +210,7 @@ const PortalAdminAttachmentConfig = () => {
     } catch (deleteError) {
       handleApiForbidden(deleteError);
       setSaveStatus('error');
-      setError(deleteError?.message || t('portalAdminAttachmentConfig.errors.saveFailed'));
+      setError(toFriendlyErrorMessage(t, 'portalAdminAttachmentConfig.errors.saveFailed'));
     }
   };
 

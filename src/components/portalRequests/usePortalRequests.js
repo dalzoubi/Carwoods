@@ -73,11 +73,19 @@ function loadVideoDurationSeconds(file) {
 }
 
 function extractErrorMessage(error, t, fallbackKey) {
-  if (error && typeof error === 'object' && typeof error.message === 'string') {
-    return error.message;
-  }
-  if (error instanceof Error) return error.message;
   return t(fallbackKey);
+}
+
+function logAttachmentUploadFailure(error, context) {
+  const errorDetails = error && typeof error === 'object' ? error.details : undefined;
+  // Keep logs structured and sanitized to diagnose blob/CORS/SAS issues.
+  console.error('portal.requests.attachments.upload.failed', {
+    ...context,
+    status: error && typeof error === 'object' ? error.status : undefined,
+    code: error && typeof error === 'object' ? error.code : undefined,
+    message: error && typeof error === 'object' ? error.message : undefined,
+    details: errorDetails,
+  });
 }
 
 function formatDateTimeLocalValue(value) {
@@ -793,6 +801,13 @@ export function usePortalRequests({
     setAttachmentUploadProgress(0);
   };
 
+  const onClearAttachmentFile = () => {
+    setAttachmentFile(null);
+    setAttachmentStatus('idle');
+    setAttachmentError('');
+    setAttachmentUploadProgress(0);
+  };
+
   const onAttachmentSubmit = async (event) => {
     event.preventDefault();
     if (!baseUrl || !selectedRequestId || !attachmentFile) return;
@@ -852,6 +867,14 @@ export function usePortalRequests({
       setAttachmentStatus('error');
       if (error && typeof error === 'object' && error.status === 422 && error.code === 'storage_not_configured') {
         setAttachmentError(t('portalRequests.errors.attachmentStorageUnavailable'));
+      } else if (error && typeof error === 'object' && error.code === 'blob_upload_failed') {
+        logAttachmentUploadFailure(error, {
+          requestId: selectedRequestId,
+          fileName: attachmentFile?.name,
+          fileSizeBytes: attachmentFile?.size,
+          contentType,
+        });
+        setAttachmentError(t('portalRequests.errors.attachmentUploadFailed'));
       } else {
         setAttachmentError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
       }
@@ -1089,6 +1112,7 @@ export function usePortalRequests({
     onMessageSubmit,
     onDeleteMessage,
     onAttachmentChange,
+    onClearAttachmentFile,
     onAttachmentSubmit,
     onDeleteAttachment,
     onExportCsv,

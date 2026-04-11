@@ -45,6 +45,13 @@ const DEV_AUTH_VALUE = PORTAL_DEV_AUTH
     }
   : null;
 
+function toSafeAuthErrorCode(error, fallbackCode) {
+  if (error && typeof error === 'object' && typeof error.code === 'string' && error.code.trim()) {
+    return error.code.trim();
+  }
+  return fallbackCode;
+}
+
 function RealPortalAuthProvider({ children }) {
   const [authStatus, setAuthStatus] = useState(
     FIREBASE_AUTH_CONFIGURED ? 'initializing' : 'unconfigured'
@@ -100,7 +107,7 @@ function RealPortalAuthProvider({ children }) {
       return true;
     } catch (error) {
       setAuthStatus('error');
-      setAuthError(error instanceof Error ? error.message : 'auth_failed');
+      setAuthError(toSafeAuthErrorCode(error, 'auth_failed'));
       return false;
     }
   }, [applyAccountChooserPrompt, toPortalAccount]);
@@ -189,7 +196,7 @@ function RealPortalAuthProvider({ children }) {
         setFirebaseUser(null);
         setAccount(null);
         setAuthStatus('error');
-        setAuthError(error instanceof Error ? error.message : 'auth_init_failed');
+        setAuthError(toSafeAuthErrorCode(error, 'auth_init_failed'));
       }
     );
     return () => unsubscribe();

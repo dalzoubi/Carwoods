@@ -24,6 +24,10 @@ import StatusAlertSlot from './StatusAlertSlot';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 
+function toFriendlyErrorMessage(t, fallbackKey) {
+  return t(fallbackKey);
+}
+
 function displayName(landlord) {
   const first = String(landlord.first_name ?? '').trim();
   const last = String(landlord.last_name ?? '').trim();
@@ -72,12 +76,7 @@ const PortalAdminLandlords = () => {
       });
     } catch (error) {
       handleApiForbidden(error);
-      const detail =
-        error && typeof error === 'object' && typeof error.message === 'string'
-          ? error.message
-          : error instanceof Error
-            ? error.message
-            : 'request_failed';
+      const detail = toFriendlyErrorMessage(t, 'portalAdminLandlords.errors.loadFailed');
       setLandlordsState({ status: 'error', detail, landlords: [] });
     }
   }, [baseUrl, canUseModule, getAccessToken, handleApiForbidden, showInactive]);
@@ -136,12 +135,7 @@ const PortalAdminLandlords = () => {
       void loadLandlords();
     } catch (error) {
       handleApiForbidden(error);
-      const detail =
-        error && typeof error === 'object' && typeof error.message === 'string'
-          ? error.message
-          : error instanceof Error
-            ? error.message
-            : 'request_failed';
+      const detail = toFriendlyErrorMessage(t, 'portalAdminLandlords.errors.saveFailed');
       setSubmitState({ status: 'error', detail });
     }
   };
@@ -212,12 +206,7 @@ const PortalAdminLandlords = () => {
       void loadLandlords();
     } catch (error) {
       handleApiForbidden(error);
-      const detail =
-        error && typeof error === 'object' && typeof error.message === 'string'
-          ? error.message
-          : error instanceof Error
-            ? error.message
-            : 'request_failed';
+      const detail = toFriendlyErrorMessage(t, 'portalAdminLandlords.errors.saveFailed');
       setSubmitState({ status: 'error', detail });
     }
   };
