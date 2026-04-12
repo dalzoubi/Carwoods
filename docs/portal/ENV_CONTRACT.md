@@ -39,6 +39,12 @@ Manual Azure setup checklist: `docs/portal/AZURE_MANUAL_SETUP_CHECKLIST.md`.
 | `FIREBASE_PROJECT_ID`                             | Yes         | Firebase project ID used as JWT audience and issuer suffix |
 | `FIREBASE_OPENID_METADATA_URL`                    | No          | Full OpenID metadata URL override; if unset, defaults to `https://securetoken.google.com/{FIREBASE_PROJECT_ID}/.well-known/openid-configuration` |
 | `CORS_ALLOWED_ORIGINS`                            | Recommended | Comma-separated origins for browser calls (public + portal + admin). Supports `*` patterns (e.g. Vercel previews). Defaults include localhost + carwoods.com if unset. |
+| `PORTAL_LINK_SIGNING_SECRET`                      | Recommended | HMAC secret for signed attachment deep links and reply-to tokens (≥16 chars). Falls back to `NOTIFICATION_LINK_SIGNING_SECRET`, then a dev-only default. |
+| `INBOUND_EMAIL_INGEST_SECRET`                     | For inbound reply | Shared secret; HTTP handler requires header `x-carwoods-email-ingest-secret`. |
+| `INBOUND_EMAIL_REPLY_LOCAL_PREFIX`                | No          | Plus-address local-part prefix before the signed token (default `cwreply`). Example recipient: `cwreply+<token>@yourdomain`. |
+| `NOTIFICATION_OUTBOX_TIMER_DISABLED`              | No          | When `true`, disables the Azure Functions timer that drains `notification_outbox` (in-app rows are created during drain). Use HTTP `POST /api/internal/jobs/process-notifications` manually if disabled. |
+| `NOTIFICATION_OUTBOX_TIMER_CRON`                | No          | NCRONTAB schedule for the outbox timer. Default `0 */1 * * * *` (every minute at second 0). |
+| `NOTIFICATION_OUTBOX_TIMER_BATCH_LIMIT`         | No          | Max outbox rows processed per timer tick. Default `25`. |
 
 
 ## Feature flags (API or shared config)

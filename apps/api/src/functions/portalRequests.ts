@@ -24,6 +24,7 @@ import { finalizeRequestAttachment } from '../useCases/requests/finalizeRequestA
 import { listRequestAttachments } from '../useCases/requests/listRequestAttachments.js';
 import { deleteRequestAttachment } from '../useCases/requests/deleteRequestAttachment.js';
 import { createRequestAttachmentShareLink } from '../useCases/requests/createRequestAttachmentShareLink.js';
+import { downloadRequestAttachmentFile } from '../useCases/requests/downloadRequestAttachmentFile.js';
 
 const MESSAGE_BODY_MAX_BYTES = 512 * 1024;
 
@@ -522,6 +523,59 @@ async function portalRequestAttachmentItem(
   }
 }
 
+async function portalRequestAttachmentFileDownload(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requirePortalUser(request, context);
+  if (!gate.ok) return gate.response;
+  const { user, headers } = gate.ctx;
+  const role = String(user.role ?? '').toUpperCase() as PortalRole;
+
+  if (request.method !== 'GET') {
+    return jsonResponse(405, headers, { error: 'method_not_allowed' });
+  }
+
+  const atoken = request.query.get('atoken')?.trim();
+  try {
+    const result = await downloadRequestAttachmentFile(getPool(), {
+      requestId: request.params.id,
+      attachmentId: request.params.attachmentId,
+      accessToken: atoken,
+      actorUserId: user.id,
+      actorRole: role,
+    });
+    const safeFilename = encodeURIComponent(result.filename).replace(/['()*]/g, '_');
+    logInfo(context, 'portal.requests.attachments.file.success', {
+      userId: user.id,
+      requestId: request.params.id,
+      attachmentId: request.params.attachmentId,
+    });
+    return {
+      status: 200,
+      headers: {
+        ...headers,
+        'Content-Type': result.contentType,
+        'Content-Disposition': `inline; filename="${safeFilename}"`,
+      },
+      body: result.buffer,
+    };
+  } catch (e) {
+    if (e instanceof Error && e.message === 'attachment_too_large_for_download') {
+      return jsonResponse(413, headers, { error: 'attachment_too_large' });
+    }
+    const mapped = mapDomainError(e, headers);
+    if (mapped) return mapped;
+    logError(context, 'portal.requests.attachments.file.error', {
+      userId: user.id,
+      requestId: request.params.id,
+      attachmentId: request.params.attachmentId,
+      message: e instanceof Error ? e.message : 'unknown_error',
+    });
+    throw e;
+  }
+}
+
 async function portalRequestAttachmentShare(
   request: HttpRequest,
   context: InvocationContext
@@ -646,4 +700,11 @@ app.http('portalRequestAttachmentShare', {
   authLevel: 'anonymous',
   route: 'portal/requests/{id}/attachments/{attachmentId}/share',
   handler: withRateLimit(portalRequestAttachmentShare),
+});
+
+app.http('portalRequestAttachmentFileDownload', {
+  methods: ['GET', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'portal/requests/{id}/attachments/{attachmentId}/file',
+  handler: withRateLimit(portalRequestAttachmentFileDownload),
 });

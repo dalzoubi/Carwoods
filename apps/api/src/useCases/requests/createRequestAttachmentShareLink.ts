@@ -5,7 +5,7 @@ import {
 } from '../../lib/attachmentUploadConfigRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
 import { getRequestAttachmentById } from '../../lib/requestsRepo.js';
-import { buildAttachmentReadUrl } from '../../lib/requestAttachmentStorage.js';
+import { signAttachmentAccessToken } from '../../lib/secureSignedToken.js';
 import { Role, hasLandlordAccess } from '../../domain/constants.js';
 import { forbidden, notFound, validationError } from '../../domain/errors.js';
 import { validateRequestId } from '../../domain/requestValidation.js';
@@ -23,7 +23,9 @@ export type CreateRequestAttachmentShareLinkInput = {
 };
 
 export type CreateRequestAttachmentShareLinkOutput = {
-  share_url: string;
+  /** Path-only deep link; prepend SPA origin for emails. */
+  portal_path: string;
+  access_token: string;
   expires_at: string;
   expires_in_seconds: number;
 };
@@ -61,15 +63,26 @@ export async function createRequestAttachmentShareLink(
     throw validationError('attachment_share_disabled');
   }
 
-  const expiresInSeconds = Math.min(
+  const rawExpiry = Math.min(
     Math.max(ATTACHMENT_CONFIG_RANGES.shareExpirySeconds.min, effectiveConfig.share_expiry_seconds),
     ATTACHMENT_CONFIG_RANGES.shareExpirySeconds.max
   );
-  const shareUrl = buildAttachmentReadUrl(attachment.storage_path, expiresInSeconds);
-  if (!shareUrl) {
-    throw validationError('storage_not_configured');
-  }
-  const expiresAt = new Date(Date.now() + expiresInSeconds * 1000).toISOString();
+  /** Phase 4: notification-style links capped at 24h (spec). */
+  const PHASE4_MAX_SEC = 86400;
+  const expiresInSeconds = Math.min(PHASE4_MAX_SEC, rawExpiry);
+  const expiresAtEpochSec = Math.floor(Date.now() / 1000) + expiresInSeconds;
+  const accessToken = signAttachmentAccessToken({
+    requestId,
+    attachmentId: attachment.id,
+    expiresAtEpochSec,
+  });
+  const expiresAt = new Date(expiresAtEpochSec * 1000).toISOString();
+  const q = new URLSearchParams({
+    id: requestId,
+    attachment: attachment.id,
+    atoken: accessToken,
+  });
+  const portalPath = `/portal/requests?${q.toString()}`;
 
   const client = await db.connect();
   try {
@@ -85,6 +98,7 @@ export async function createRequestAttachmentShareLink(
         attachment_id: attachment.id,
         expires_at: expiresAt,
         expires_in_seconds: expiresInSeconds,
+        secure_portal_link: true,
       },
     });
     await client.query('COMMIT');
@@ -96,7 +110,8 @@ export async function createRequestAttachmentShareLink(
   }
 
   return {
-    share_url: shareUrl,
+    portal_path: portalPath,
+    access_token: accessToken,
     expires_at: expiresAt,
     expires_in_seconds: expiresInSeconds,
   };

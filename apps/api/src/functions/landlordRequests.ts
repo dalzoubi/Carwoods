@@ -24,6 +24,7 @@ import { getRequest } from '../useCases/requests/getRequest.js';
 import { updateRequestStatus } from '../useCases/requests/updateRequestStatus.js';
 import { exportRequestsCsv } from '../useCases/requests/exportRequestsCsv.js';
 import { listRequestAudit } from '../useCases/requests/listRequestAudit.js';
+import { listNotificationMetrics } from '../useCases/requests/listNotificationMetrics.js';
 import { processElsaAutoResponse } from '../useCases/requests/processElsaAutoResponse.js';
 import { reviewElsaDecision } from '../useCases/requests/reviewElsaDecision.js';
 import {
@@ -184,6 +185,33 @@ async function landlordRequestItem(
   }
 }
 
+async function landlordNotificationMetrics(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireLandlordOrAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  if (request.method !== 'GET') {
+    return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+  }
+  try {
+    const result = await listNotificationMetrics(getPool(), {
+      actorRole: ctx.role,
+      actorUserId: ctx.user.id,
+    });
+    return jsonResponse(200, ctx.headers, { metrics: result });
+  } catch (e) {
+    const mapped = mapDomainError(e, ctx.headers);
+    if (mapped) return mapped;
+    logError(context, 'landlord.notification_metrics.error', {
+      userId: ctx.user.id,
+      message: e instanceof Error ? e.message : 'unknown_error',
+    });
+    throw e;
+  }
+}
+
 async function landlordRequestAudit(
   request: HttpRequest,
   context: InvocationContext
@@ -199,6 +227,7 @@ async function landlordRequestAudit(
     const result = await listRequestAudit(getPool(), {
       requestId,
       actorRole: ctx.role,
+      actorUserId: ctx.user.id,
     });
     return jsonResponse(200, ctx.headers, { audits: result.audits });
   } catch (e) {
@@ -746,6 +775,13 @@ app.http('landlordRequestAudit', {
   authLevel: 'anonymous',
   route: 'landlord/requests/{id}/audit',
   handler: landlordRequestAudit,
+});
+
+app.http('landlordNotificationMetrics', {
+  methods: ['GET', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'landlord/notification-metrics',
+  handler: landlordNotificationMetrics,
 });
 
 app.http('landlordElsaSettings', {

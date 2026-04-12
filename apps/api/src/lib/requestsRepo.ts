@@ -400,6 +400,24 @@ export async function tenantCanAccessRequest(
   return r.rows.length > 0;
 }
 
+/** Property manager (landlord) scope: request's property was created by this landlord user. */
+export async function landlordOwnsRequestProperty(
+  client: Queryable,
+  requestId: string,
+  landlordUserId: string
+): Promise<boolean> {
+  const r = await client.query<{ ok: number }>(
+    `SELECT TOP 1 1 AS ok
+     FROM maintenance_requests mr
+     INNER JOIN properties p ON p.id = mr.property_id
+     WHERE mr.id = $1
+       AND mr.deleted_at IS NULL
+       AND p.created_by = $2`,
+    [requestId, landlordUserId]
+  );
+  return r.rows.length > 0;
+}
+
 export async function insertMaintenanceRequest(
   client: PoolClient,
   params: {

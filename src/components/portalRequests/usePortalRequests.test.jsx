@@ -153,6 +153,54 @@ describe('usePortalRequests', () => {
     expect(result.current.auditEvents[0].id).toBe('aud-1');
   });
 
+  it('loads request audit events for landlord (property-scoped) users', async () => {
+    global.fetch
+      .mockResolvedValueOnce(
+        jsonResponse({
+          requests: [{ id: 'req-l1', title: 'Landlord audit', current_status_id: 'NOT_STARTED' }],
+        })
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ categories: [], priorities: [], tenant_defaults: null, landlord_contact: null })
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          request: {
+            id: 'req-l1',
+            title: 'Landlord audit',
+            description: 'Test',
+            current_status_id: 'NOT_STARTED',
+          },
+        })
+      )
+      .mockResolvedValueOnce(jsonResponse({ messages: [] }))
+      .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(
+        jsonResponse({
+          audits: [{ id: 'aud-l1', action: 'UPDATE', entity_id: 'req-l1' }],
+        })
+      )
+      .mockResolvedValueOnce(jsonResponse({ settings: {}, request: { auto_respond_enabled: false } }))
+      .mockResolvedValueOnce(jsonResponse({ decisions: [] }));
+
+    const params = baseParams({
+      isManagement: true,
+      isAdmin: false,
+      account: { idTokenClaims: { email: 'landlord@example.com' } },
+    });
+    const { result } = renderHook(() => usePortalRequests(params));
+
+    await waitFor(() => {
+      expect(result.current.requestsStatus).toBe('ok');
+    });
+    await waitFor(() => {
+      expect(result.current.auditStatus).toBe('ok');
+    });
+
+    expect(result.current.auditEvents).toHaveLength(1);
+    expect(result.current.auditEvents[0].id).toBe('aud-l1');
+  });
+
   it('surfaces upload intent contract error when storage_path is missing', async () => {
     global.fetch
       .mockResolvedValueOnce(
@@ -328,6 +376,7 @@ describe('usePortalRequests', () => {
       .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-c1', title: 'Leak', status_code: 'NOT_STARTED' } }))
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(jsonResponse({ audits: [] }))
       .mockResolvedValueOnce(jsonResponse({ settings: {}, request: { auto_respond_enabled: false } }))
       .mockResolvedValueOnce(jsonResponse({ decisions: [] }))
       .mockResolvedValueOnce(jsonResponse({ ok: true }))
@@ -335,6 +384,7 @@ describe('usePortalRequests', () => {
       .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-c1', title: 'Leak', status_code: 'CANCELLED' } }))
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(jsonResponse({ audits: [] }))
       .mockResolvedValueOnce(jsonResponse({ settings: {}, request: { auto_respond_enabled: false } }))
       .mockResolvedValueOnce(jsonResponse({ decisions: [] }));
 
@@ -365,6 +415,7 @@ describe('usePortalRequests', () => {
       .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-m1', title: 'AC', status_code: 'NOT_STARTED' } }))
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(jsonResponse({ audits: [] }))
       .mockResolvedValueOnce(jsonResponse({ settings: {}, request: { auto_respond_enabled: false } }))
       .mockResolvedValueOnce(jsonResponse({ decisions: [] }))
       .mockResolvedValueOnce(jsonResponse({ ok: true }))
@@ -372,6 +423,7 @@ describe('usePortalRequests', () => {
       .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-m1', title: 'AC', status_code: 'WAITING_ON_VENDOR' } }))
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(jsonResponse({ audits: [] }))
       .mockResolvedValueOnce(jsonResponse({ settings: {}, request: { auto_respond_enabled: false } }))
       .mockResolvedValueOnce(jsonResponse({ decisions: [] }));
 
@@ -411,6 +463,7 @@ describe('usePortalRequests', () => {
       .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-msg1', title: 'Noise', status_code: 'NOT_STARTED' } }))
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(jsonResponse({ audits: [] }))
       .mockResolvedValueOnce(jsonResponse({ settings: {}, request: { auto_respond_enabled: false } }))
       .mockResolvedValueOnce(jsonResponse({ decisions: [] }))
       .mockResolvedValueOnce(jsonResponse({ ok: true }))
@@ -449,6 +502,7 @@ describe('usePortalRequests', () => {
       .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-msg2', title: 'Noise', status_code: 'NOT_STARTED' } }))
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
+      .mockResolvedValueOnce(jsonResponse({ audits: [] }))
       .mockResolvedValueOnce(jsonResponse({ settings: {}, request: { auto_respond_enabled: false } }))
       .mockResolvedValueOnce(jsonResponse({ decisions: [] }))
       .mockResolvedValueOnce(jsonResponse({ ok: true }))

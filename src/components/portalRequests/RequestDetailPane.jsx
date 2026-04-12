@@ -634,7 +634,7 @@ const RequestDetailPane = ({
       )}
       {requestDetail && (
         <>
-      {isAdmin && (
+      {isManagement && (
         <Tabs
           value={activeTab}
           onChange={(_, value) => setActiveTab(value)}
@@ -645,7 +645,7 @@ const RequestDetailPane = ({
         </Tabs>
       )}
 
-      {isAdmin && activeTab === 'audit' ? (
+      {isManagement && activeTab === 'audit' ? (
         <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 2 }}>
           <Stack spacing={1.5}>
             <Typography variant="h3" sx={{ fontSize: '1.1rem' }}>

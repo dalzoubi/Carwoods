@@ -1038,6 +1038,7 @@
       "shareUnavailable": "Unable to create a share link right now.",
       "sharePrompt": "Copy and share this temporary link:",
       "sharePromptFallback": "Share link generated. Copy it from the prompt.",
+      "deepLinkOpenFailed": "We could not open that attachment link. Sign in with an account that can access this request and try again.",
       "retryUpload": "Retry upload",
       "retryingHint": "Connection is unstable. Retry {{attempt}} of {{maxAttempts}}…",
       "retryRecoveredHint": "Upload succeeded after {{attempts}} attempts.",

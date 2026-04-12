@@ -1038,6 +1038,7 @@
       "shareUnavailable": "No se puede crear un enlace compartido ahora.",
       "sharePrompt": "Copia y comparte este enlace temporal:",
       "sharePromptFallback": "Enlace compartido generado. Copialo desde el cuadro.",
+      "deepLinkOpenFailed": "No pudimos abrir ese enlace del adjunto. Inicia sesión con una cuenta que pueda acceder a esta solicitud e inténtalo de nuevo.",
       "retryUpload": "Reintentar carga",
       "retryingHint": "La conexión es inestable. Reintento {{attempt}} de {{maxAttempts}}…",
       "retryRecoveredHint": "La carga se completó después de {{attempts}} intentos.",

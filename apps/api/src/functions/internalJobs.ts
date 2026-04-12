@@ -3,27 +3,49 @@ import {
   type HttpRequest,
   type HttpResponseInit,
   type InvocationContext,
+  type Timer,
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
 import { jsonResponse, requireLandlordOrAdmin } from '../lib/managementRequest.js';
-import {
-  listPendingNotifications,
-  markNotificationFailed,
-  markNotificationSent,
-  notificationOutboxMaxAttempts,
-  enqueueSecurityDeliveryFailureAlert,
-  setNotificationOutboxAdminAlertSent,
-} from '../lib/notificationRepo.js';
-import { dispatchOutboxNotification } from '../lib/notificationDispatch.js';
-import { writeAudit } from '../lib/auditRepo.js';
 import { logInfo, logWarn } from '../lib/serverLogger.js';
 import { listAttachmentBlobPaths, deleteAttachmentBlobIfExists } from '../lib/requestAttachmentStorage.js';
-import {
-  runMaintenanceNotificationAiPhase,
-  applyAiUrgencyOverrideIfNeeded,
-  persistNotificationAiSignalRow,
-  isMaintenanceNotificationEventType,
-} from '../lib/notificationAiEnrichment.js';
+import { writeAudit } from '../lib/auditRepo.js';
+import { processNotificationOutboxBatch } from '../lib/processNotificationOutboxBatch.js';
+
+const SYSTEM_TIMER_ACTOR_ID = '00000000-0000-0000-0000-000000000000';
+
+function notificationOutboxTimerDisabled(): boolean {
+  return String(process.env.NOTIFICATION_OUTBOX_TIMER_DISABLED ?? '').trim().toLowerCase() === 'true';
+}
+
+function notificationOutboxTimerSchedule(): string {
+  const raw = process.env.NOTIFICATION_OUTBOX_TIMER_CRON?.trim();
+  return raw && raw.length > 0 ? raw : '0 */1 * * * *';
+}
+
+function notificationOutboxTimerBatchLimit(): number {
+  const n = parseInt(process.env.NOTIFICATION_OUTBOX_TIMER_BATCH_LIMIT ?? '25', 10);
+  return Number.isFinite(n) ? n : 25;
+}
+
+async function notificationOutboxOnTimer(_timer: Timer, context: InvocationContext): Promise<void> {
+  if (notificationOutboxTimerDisabled()) {
+    return;
+  }
+  try {
+    const result = await processNotificationOutboxBatch(context, {
+      limit: notificationOutboxTimerBatchLimit(),
+      auditActorUserId: SYSTEM_TIMER_ACTOR_ID,
+    });
+    if (result.attempted > 0) {
+      logInfo(context, 'notifications.timer.batch_complete', result);
+    }
+  } catch (error) {
+    logWarn(context, 'notifications.timer.batch_failed', {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
 
 async function processNotificationOutbox(
   request: HttpRequest,
@@ -35,134 +57,17 @@ async function processNotificationOutbox(
   if (request.method !== 'POST') {
     return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
   }
-  const pool = getPool();
   const limit = Number(request.query.get('limit') ?? 25);
-  const maxAttempts = notificationOutboxMaxAttempts();
-  const pending = await listPendingNotifications(pool, Number.isFinite(limit) ? limit : 25, maxAttempts);
-
-  let sent = 0;
-  let failed = 0;
-  let inAppCreated = 0;
-  let queuedDeliveries = 0;
-  const clock = { now: new Date() };
-
-  for (const row of pending) {
-    let aiBundle = null as Awaited<ReturnType<typeof runMaintenanceNotificationAiPhase>>;
-    try {
-      if (isMaintenanceNotificationEventType(row.event_type_code)) {
-        aiBundle = await runMaintenanceNotificationAiPhase(pool, row);
-      }
-    } catch (e) {
-      logWarn(context, 'notifications.ai_enrichment.failed_open', {
-        outboxId: row.id,
-        message: e instanceof Error ? e.message : String(e),
-      });
-      aiBundle = null;
-    }
-
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-      let priorityApplied = false;
-      if (aiBundle) {
-        priorityApplied = await applyAiUrgencyOverrideIfNeeded(client, aiBundle, row.id);
-        await persistNotificationAiSignalRow(client, {
-          outboxId: row.id,
-          bundle: aiBundle,
-          priorityOverrideApplied: priorityApplied,
-        });
-      }
-
-      const dispatch = await dispatchOutboxNotification(client, row, aiBundle, clock);
-      inAppCreated += dispatch.createdInApp;
-      queuedDeliveries += dispatch.queuedDeliveries;
-      await markNotificationSent(client, row.id);
-      await writeAudit(client, {
-        actorUserId: ctx.user.id,
-        entityType: 'NOTIFICATION_OUTBOX',
-        entityId: row.id,
-        action: 'DISPATCHED',
-        before: null,
-        after: {
-          event_type_code: row.event_type_code,
-          in_app_created: dispatch.createdInApp,
-          queued_deliveries: dispatch.queuedDeliveries,
-        },
-      });
-      await client.query('COMMIT');
-      sent += 1;
-    } catch (error) {
-      await client.query('ROLLBACK');
-      failed += 1;
-      const failClient = await pool.connect();
-      try {
-        await failClient.query('BEGIN');
-        const failResult = await markNotificationFailed(
-          failClient,
-          row.id,
-          error instanceof Error ? error.message : 'send_failed'
-        );
-        if (failResult?.onboardingFailureAlertNeeded) {
-          await enqueueSecurityDeliveryFailureAlert(failClient, {
-            failedOutboxId: row.id,
-            failedEventTypeCode: failResult.eventTypeCode,
-            attempts: failResult.newAttempts,
-            lastError: error instanceof Error ? error.message : 'send_failed',
-          });
-          await setNotificationOutboxAdminAlertSent(failClient, row.id);
-        }
-        await writeAudit(failClient, {
-          actorUserId: ctx.user.id,
-          entityType: 'NOTIFICATION_OUTBOX',
-          entityId: row.id,
-          action: 'DISPATCH_FAILED',
-          before: null,
-          after: {
-            attempts: failResult?.newAttempts ?? null,
-            error: error instanceof Error ? error.message : 'send_failed',
-            onboarding_alert: Boolean(failResult?.onboardingFailureAlertNeeded),
-          },
-        });
-        await failClient.query('COMMIT');
-      } catch (inner) {
-        await failClient.query('ROLLBACK');
-        logWarn(context, 'notifications.mark_failed.error', {
-          outboxId: row.id,
-          message: inner instanceof Error ? inner.message : String(inner),
-        });
-      } finally {
-        failClient.release();
-      }
-    } finally {
-      client.release();
-    }
-  }
-
-  const summaryClient = await pool.connect();
-  try {
-    await summaryClient.query('BEGIN');
-    await writeAudit(summaryClient, {
-      actorUserId: ctx.user.id,
-      entityType: 'NOTIFICATION_OUTBOX',
-      entityId: '00000000-0000-0000-0000-000000000000',
-      action: 'PROCESS_BATCH',
-      before: null,
-      after: { attempted: pending.length, sent, failed, in_app_created: inAppCreated, queued_deliveries: queuedDeliveries },
-    });
-    await summaryClient.query('COMMIT');
-  } catch (error) {
-    await summaryClient.query('ROLLBACK');
-    throw error;
-  } finally {
-    summaryClient.release();
-  }
-
+  const result = await processNotificationOutboxBatch(context, {
+    limit: Number.isFinite(limit) ? limit : 25,
+    auditActorUserId: ctx.user.id,
+  });
   return jsonResponse(200, ctx.headers, {
-    attempted: pending.length,
-    sent,
-    failed,
-    in_app_created: inAppCreated,
-    queued_deliveries: queuedDeliveries,
+    attempted: result.attempted,
+    sent: result.sent,
+    failed: result.failed,
+    in_app_created: result.in_app_created,
+    queued_deliveries: result.queued_deliveries,
   });
 }
 
@@ -302,6 +207,11 @@ app.http('internalNotificationsProcess', {
   authLevel: 'anonymous',
   route: 'internal/jobs/process-notifications',
   handler: processNotificationOutbox,
+});
+
+app.timer('notificationOutboxTimer', {
+  schedule: notificationOutboxTimerSchedule(),
+  handler: notificationOutboxOnTimer,
 });
 
 app.http('internalRevokeExpiredLeases', {

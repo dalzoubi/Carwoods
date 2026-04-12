@@ -39,6 +39,12 @@ const PortalRequests = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const selectedRequestFromUrl = searchParams.get('id') || '';
+  const attachmentFromUrl = searchParams.get('attachment') || '';
+  const attachmentTokenFromUrl = searchParams.get('atoken') || '';
+  const secureAttachmentDeepLink =
+    attachmentFromUrl && attachmentTokenFromUrl
+      ? { attachmentId: attachmentFromUrl, accessToken: attachmentTokenFromUrl }
+      : null;
   const createFromUrl = searchParams.get('create') === '1';
   const statusFilterFromUrl = searchParams.get('status') || 'all';
   const listPaneRef = useRef(null);
@@ -147,6 +153,7 @@ const PortalRequests = () => {
     handleApiForbidden,
     t,
     initialSelectedRequestId: selectedRequestFromUrl,
+    secureAttachmentDeepLink,
   });
 
   const portalStateMessage = isAuthenticated

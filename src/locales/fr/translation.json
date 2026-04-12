@@ -1038,6 +1038,7 @@
       "shareUnavailable": "Impossible de creer un lien de partage pour le moment.",
       "sharePrompt": "Copiez et partagez ce lien temporaire :",
       "sharePromptFallback": "Lien de partage genere. Copiez-le depuis l'invite.",
+      "deepLinkOpenFailed": "Impossible d'ouvrir ce lien de piece jointe. Connectez-vous avec un compte autorise sur cette demande et reessayez.",
       "retryUpload": "Reessayer l'envoi",
       "retryingHint": "Connexion instable. Nouvelle tentative {{attempt}} sur {{maxAttempts}}…",
       "retryRecoveredHint": "Televersement reussi apres {{attempts}} tentatives.",

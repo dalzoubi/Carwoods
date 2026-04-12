@@ -81,6 +81,33 @@ export function buildAttachmentUploadUrl(
   return `${toBlobBaseUrl(config, storagePath)}?${sasToken}`;
 }
 
+const MAX_DOWNLOAD_BYTES = 60 * 1024 * 1024;
+
+export async function downloadAttachmentBuffer(storagePath: string): Promise<Buffer | null> {
+  const config = getStorageConfig();
+  if (!config) return null;
+  const accountUrl = `https://${config.accountName}.blob.core.windows.net`;
+  const credential = new StorageSharedKeyCredential(config.accountName, config.accountKey);
+  const serviceClient = new BlobServiceClient(accountUrl, credential);
+  const containerClient = serviceClient.getContainerClient(config.containerName);
+  const blockBlobClient = containerClient.getBlockBlobClient(storagePath);
+  try {
+    const props = await blockBlobClient.getProperties();
+    const size = typeof props.contentLength === 'number' ? props.contentLength : 0;
+    if (size > MAX_DOWNLOAD_BYTES) {
+      throw new Error('attachment_too_large_for_download');
+    }
+    const buf = await blockBlobClient.downloadToBuffer();
+    if (buf.length > MAX_DOWNLOAD_BYTES) {
+      throw new Error('attachment_too_large_for_download');
+    }
+    return buf;
+  } catch (e) {
+    if (e instanceof Error && e.message === 'attachment_too_large_for_download') throw e;
+    return null;
+  }
+}
+
 export async function deleteAttachmentBlobIfExists(storagePath: string): Promise<void> {
   const config = getStorageConfig();
   if (!config) return;

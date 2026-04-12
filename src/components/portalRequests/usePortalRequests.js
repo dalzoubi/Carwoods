@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { emailFromAccount } from '../../portalUtils';
 import {
   fetchRequestDetail,
@@ -25,6 +25,7 @@ import {
   deleteRequestMessage,
   deleteRequestAttachment,
   createRequestAttachmentShareLink,
+  fetchRequestAttachmentFileWithToken,
 } from '../../lib/portalApiClient';
 import { RequestStatus } from '../../domain/constants.js';
 import { FALLBACK_MAX_IMAGE_BYTES } from '../../attachmentUploadLimits.js';
@@ -145,6 +146,7 @@ export function usePortalRequests({
   handleApiForbidden,
   t,
   initialSelectedRequestId = '',
+  secureAttachmentDeepLink = null,
 }) {
   const [requestsStatus, setRequestsStatus] = useState('idle');
   const [requestsError, setRequestsError] = useState('');
@@ -203,6 +205,7 @@ export function usePortalRequests({
   const [attachmentShareStatus, setAttachmentShareStatus] = useState('idle');
   const [attachmentShareError, setAttachmentShareError] = useState('');
   const [attachmentRetryHint, setAttachmentRetryHint] = useState('');
+  const secureLinkConsumedRef = useRef('');
 
   const [exportStatus, setExportStatus] = useState('idle');
   const [exportError, setExportError] = useState('');
@@ -228,7 +231,7 @@ export function usePortalRequests({
   ]);
 
   const loadAuditForRequest = async (requestId) => {
-    if (!requestId || !baseUrl || !isAdmin) {
+    if (!requestId || !baseUrl || !isManagement) {
       setAuditEvents([]);
       setAuditStatus('idle');
       setAuditError('');
@@ -394,6 +397,59 @@ export function usePortalRequests({
     loadRequests({ keepSelection: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseUrl, isAuthenticated, isGuest, meStatus, listPath, initialSelectedRequestId]);
+
+  useEffect(() => {
+    const link = secureAttachmentDeepLink;
+    const rid = String(initialSelectedRequestId || selectedRequestId || '').trim();
+    if (!link?.attachmentId || !link?.accessToken || !rid) return;
+    if (!baseUrl || !isAuthenticated || isGuest || meStatus !== 'ok') return;
+    if (detailStatus !== 'ok' || !requestDetail || String(requestDetail.id) !== rid) return;
+
+    const key = `${rid}:${link.attachmentId}:${link.accessToken}`;
+    if (secureLinkConsumedRef.current === key) return;
+    secureLinkConsumedRef.current = key;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = await getAccessToken();
+        const emailHint = emailFromAccount(account);
+        const blob = await fetchRequestAttachmentFileWithToken(
+          baseUrl,
+          token,
+          rid,
+          link.attachmentId,
+          link.accessToken,
+          { emailHint }
+        );
+        if (cancelled) return;
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank', 'noopener,noreferrer');
+        window.setTimeout(() => URL.revokeObjectURL(url), 120000);
+      } catch (error) {
+        if (cancelled) return;
+        handleApiForbidden(error);
+        setAttachmentShareError(t('portalRequests.attachments.deepLinkOpenFailed'));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    secureAttachmentDeepLink,
+    baseUrl,
+    isAuthenticated,
+    isGuest,
+    meStatus,
+    detailStatus,
+    requestDetail,
+    initialSelectedRequestId,
+    selectedRequestId,
+    getAccessToken,
+    account,
+    handleApiForbidden,
+    t,
+  ]);
 
   useEffect(() => {
     if (!selectedRequestId) return;
@@ -1019,7 +1075,14 @@ export function usePortalRequests({
         attachmentId,
         { emailHint }
       );
-      const shareUrl = payload?.share?.share_url;
+      const portalPath = payload?.share?.portal_path;
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const shareUrl =
+        typeof portalPath === 'string' && portalPath.startsWith('http')
+          ? portalPath
+          : typeof portalPath === 'string' && portalPath.startsWith('/')
+            ? `${origin}${portalPath}`
+            : '';
       if (!shareUrl) {
         throw new Error('missing_share_url');
       }

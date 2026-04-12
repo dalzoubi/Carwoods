@@ -510,6 +510,45 @@ export async function createRequestAttachmentShareLink(
   return res.json();
 }
 
+/**
+ * Download attachment bytes using signed portal link token (requires portal auth).
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} requestId
+ * @param {string} attachmentId
+ * @param {string} atoken
+ * @param {{ emailHint?: string }} [params]
+ * @returns {Promise<Blob>}
+ */
+export async function fetchRequestAttachmentFileWithToken(
+  baseUrl,
+  accessToken,
+  requestId,
+  attachmentId,
+  atoken,
+  params
+) {
+  const emailHint = params?.emailHint;
+  const q = new URLSearchParams({ atoken });
+  const res = await fetch(
+    buildUrl(
+      baseUrl,
+      `/api/portal/requests/${encodeURIComponent(requestId)}/attachments/${encodeURIComponent(attachmentId)}/file?${q.toString()}`
+    ),
+    {
+      method: 'GET',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.blob();
+}
+
 // ---------------------------------------------------------------------------
 // GET /api/portal/request-lookups
 // ---------------------------------------------------------------------------

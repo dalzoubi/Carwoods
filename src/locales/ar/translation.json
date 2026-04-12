@@ -1038,6 +1038,7 @@
       "shareUnavailable": "تعذر إنشاء رابط مشاركة الآن.",
       "sharePrompt": "انسخ وشارك هذا الرابط المؤقت:",
       "sharePromptFallback": "تم إنشاء رابط المشاركة. انسخه من مربع الحوار.",
+      "deepLinkOpenFailed": "تعذر فتح رابط المرفق. سجّل الدخول بحساب يملك صلاحية الوصول إلى هذا الطلب وحاول مرة أخرى.",
       "retryUpload": "إعادة المحاولة",
       "retryingHint": "الاتصال غير مستقر. إعادة المحاولة {{attempt}} من {{maxAttempts}}…",
       "retryRecoveredHint": "اكتمل الرفع بعد {{attempts}} محاولات.",
