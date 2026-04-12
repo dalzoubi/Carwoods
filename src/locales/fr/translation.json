@@ -1630,7 +1630,8 @@
       "empty": "Pas encore de demandes. Créez votre première demande de maintenance pour commencer.",
       "emptyManagement": "Aucune demande trouvée.",
       "viewAll": "Voir toutes les demandes",
-      "noTitle": "Demande sans titre"
+      "noTitle": "Demande sans titre",
+      "openRequestAria": "Ouvrir la demande de maintenance : {{title}}"
     },
     "actions": {
       "refresh": "Actualiser"

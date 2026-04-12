@@ -6,6 +6,27 @@
  * @param {string} [locale]
  * @returns {string}
  */
+/**
+ * If `deepLink` targets the portal maintenance requests page with an `id` query, returns that id.
+ * Supports paths like `/portal/requests?id=…` and `/dark/portal/requests?id=…`.
+ *
+ * @param {string | null | undefined} deepLink
+ * @returns {string}
+ */
+export function parsePortalRequestIdFromDeepLink(deepLink) {
+  if (!deepLink || typeof deepLink !== 'string') return '';
+  const pathPart = deepLink.split('?')[0].split('#')[0];
+  const normalized = pathPart.replace(/^\/dark(?=\/)/, '') || '/';
+  if (!/\/portal\/requests\/?$/.test(normalized)) return '';
+  const q = deepLink.includes('?') ? deepLink.slice(deepLink.indexOf('?')).split('#')[0] : '';
+  try {
+    const params = new URLSearchParams(q);
+    return String(params.get('id') || '').trim();
+  } catch {
+    return '';
+  }
+}
+
 export function relativeTime(date, locale) {
   const then = new Date(date).getTime();
   if (Number.isNaN(then)) return '';

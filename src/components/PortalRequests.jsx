@@ -22,13 +22,13 @@ import { Role } from '../domain/constants.js';
 import { isGuestRole, normalizeRole, resolveRole } from '../portalUtils';
 import TenantRequestForm from './portalRequests/TenantRequestForm';
 import RequestListPane from './portalRequests/RequestListPane';
-import RequestDetailPane from './portalRequests/RequestDetailPane';
 import { usePortalRequests } from './portalRequests/usePortalRequests';
 import StatusAlertSlot from './StatusAlertSlot';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 import PortalConfirmDialog from './PortalConfirmDialog';
 import { fetchLandlords } from '../lib/portalApiClient';
+import { usePortalRequestDetailModal } from './PortalRequestDetailModalContext';
 
 const PortalRequests = () => {
   const { t } = useTranslation();
@@ -62,13 +62,6 @@ const PortalRequests = () => {
     requestsStatus,
     requestsError,
     requests,
-    selectedRequestId,
-    setSelectedRequestId,
-    requestDetail,
-    detailStatus,
-    detailError,
-    threadMessages,
-    attachments,
     tenantForm,
     tenantDefaults,
     lookupStatus,
@@ -78,62 +71,15 @@ const PortalRequests = () => {
     priorityOptions,
     tenantCreateStatus,
     tenantCreateError,
-    managementForm,
-    managementStatusOptions,
-    managementUpdateStatus,
-    managementUpdateError,
-    messageForm,
-    setMessageForm,
-    messageStatus,
-    messageError,
-    messageDeleteStatus,
-    messageDeleteError,
-    attachmentFile,
-    attachmentStatus,
-    attachmentError,
-    attachmentErrorDebugId,
-    attachmentUploadProgress,
-    attachmentDeleteStatus,
-    attachmentDeleteError,
-    attachmentRetryHint,
-    attachmentShareStatus,
-    attachmentShareError,
     exportStatus,
     exportError,
-    auditEvents,
-    auditStatus,
-    auditError,
-    elsaSettingsError,
-    elsaDecisionStatus,
-    elsaDecisionError,
-    elsaDecisionActionStatus,
-    elsaDecisions,
-    elsaAutoRespondEnabled,
-    loadRequestDetails,
-    loadAuditForRequest,
-    loadElsaContext,
     loadRequests,
     onTenantField,
     onCreateAttachmentChange,
     onRemoveCreateAttachment,
     createAttachmentFiles,
     onCreateRequest,
-    onCancelRequest,
-    cancelStatus,
-    cancelError,
-    onManagementField,
-    onUpdateRequest,
-    onMessageSubmit,
-    onDeleteMessage,
-    onAttachmentChange,
-    onClearAttachmentFile,
-    onAttachmentSubmit,
-    onDeleteAttachment,
-    onShareAttachment,
     onExportCsv,
-    onSetElsaAutoRespond,
-    onRunElsa,
-    onReviewElsaDecision,
   } = usePortalRequests({
     baseUrl,
     isAuthenticated,
@@ -145,9 +91,19 @@ const PortalRequests = () => {
     getAccessToken,
     handleApiForbidden,
     t,
-    initialSelectedRequestId: selectedRequestFromUrl,
+    initialSelectedRequestId: '',
     secureAttachmentDeepLink,
+    syncDetailFromUrl: false,
+    listSelectionHintId: selectedRequestFromUrl,
   });
+
+  const { openRequestDetail, closeRequestDetail } = usePortalRequestDetailModal();
+
+  React.useEffect(() => {
+    const id = selectedRequestFromUrl.trim();
+    if (id) openRequestDetail(id);
+    else closeRequestDetail();
+  }, [selectedRequestFromUrl, openRequestDetail, closeRequestDetail]);
 
   const portalStateMessage = isAuthenticated
     ? meStatus === 'loading'
@@ -240,68 +196,14 @@ const PortalRequests = () => {
     if (tenantCreateStatus === 'success') showFeedback(t('portalRequests.create.saved'));
   }, [showFeedback, t, tenantCreateStatus]);
   React.useEffect(() => {
-    if (cancelStatus === 'success') showFeedback(t('portalRequests.cancel.cancelled'));
-  }, [cancelStatus, showFeedback, t]);
-  React.useEffect(() => {
-    if (managementUpdateStatus === 'success') showFeedback(t('portalRequests.management.saved'));
-  }, [managementUpdateStatus, showFeedback, t]);
-  React.useEffect(() => {
-    if (messageStatus === 'success') showFeedback(t('portalRequests.messages.sent'));
-  }, [messageStatus, showFeedback, t]);
-  React.useEffect(() => {
-    if (messageDeleteStatus === 'success') showFeedback(t('portalRequests.messages.deleted'));
-  }, [messageDeleteStatus, showFeedback, t]);
-  React.useEffect(() => {
-    if (attachmentStatus === 'success') showFeedback(t('portalRequests.attachments.saved'));
-  }, [attachmentStatus, showFeedback, t]);
-  React.useEffect(() => {
-    if (attachmentDeleteStatus === 'success') showFeedback(t('portalRequests.attachments.deleted'));
-  }, [attachmentDeleteStatus, showFeedback, t]);
-  React.useEffect(() => {
-    if (elsaDecisionActionStatus === 'success') showFeedback(t('portalRequests.elsa.reviewActionSaved'));
-  }, [elsaDecisionActionStatus, showFeedback, t]);
-  React.useEffect(() => {
     if (exportStatus === 'ok') showFeedback(t('portalRequests.exportSuccess'));
   }, [exportStatus, showFeedback, t]);
   React.useEffect(() => {
     if (requestsStatus === 'error') showFeedback(requestsError || t('portalRequests.errors.loadFailed'), 'error');
   }, [requestsError, requestsStatus, showFeedback, t]);
   React.useEffect(() => {
-    if (detailStatus === 'error') showFeedback(detailError || t('portalRequests.errors.loadFailed'), 'error');
-  }, [detailError, detailStatus, showFeedback, t]);
-  React.useEffect(() => {
     if (tenantCreateStatus === 'error') showFeedback(tenantCreateError || t('portalRequests.errors.saveFailed'), 'error');
   }, [tenantCreateError, tenantCreateStatus, showFeedback, t]);
-  React.useEffect(() => {
-    if (managementUpdateStatus === 'error') showFeedback(managementUpdateError || t('portalRequests.errors.saveFailed'), 'error');
-  }, [managementUpdateError, managementUpdateStatus, showFeedback, t]);
-  React.useEffect(() => {
-    if (messageStatus === 'error') showFeedback(messageError || t('portalRequests.errors.saveFailed'), 'error');
-  }, [messageError, messageStatus, showFeedback, t]);
-  React.useEffect(() => {
-    if (messageDeleteStatus === 'error') showFeedback(messageDeleteError || t('portalRequests.errors.saveFailed'), 'error');
-  }, [messageDeleteError, messageDeleteStatus, showFeedback, t]);
-  React.useEffect(() => {
-    if (attachmentStatus === 'error') showFeedback(attachmentError || t('portalRequests.errors.saveFailed'), 'error');
-  }, [attachmentError, attachmentStatus, showFeedback, t]);
-  React.useEffect(() => {
-    if (attachmentDeleteStatus === 'error') showFeedback(attachmentDeleteError || t('portalRequests.errors.saveFailed'), 'error');
-  }, [attachmentDeleteError, attachmentDeleteStatus, showFeedback, t]);
-  React.useEffect(() => {
-    if (attachmentShareStatus === 'error') showFeedback(attachmentShareError || t('portalRequests.errors.saveFailed'), 'error');
-  }, [attachmentShareError, attachmentShareStatus, showFeedback, t]);
-  React.useEffect(() => {
-    if (cancelStatus === 'error') showFeedback(cancelError || t('portalRequests.errors.saveFailed'), 'error');
-  }, [cancelError, cancelStatus, showFeedback, t]);
-  React.useEffect(() => {
-    if (auditStatus === 'error') showFeedback(auditError || t('portalRequests.errors.loadFailed'), 'error');
-  }, [auditError, auditStatus, showFeedback, t]);
-  React.useEffect(() => {
-    if (elsaSettingsError) showFeedback(elsaSettingsError, 'error');
-  }, [elsaSettingsError, showFeedback]);
-  React.useEffect(() => {
-    if (elsaDecisionStatus === 'error') showFeedback(elsaDecisionError || t('portalRequests.errors.saveFailed'), 'error');
-  }, [elsaDecisionError, elsaDecisionStatus, showFeedback, t]);
   React.useEffect(() => {
     if (exportStatus === 'error') showFeedback(exportError || t('portalRequests.errors.loadFailed'), 'error');
   }, [exportError, exportStatus, showFeedback, t]);
@@ -316,10 +218,6 @@ const PortalRequests = () => {
       },
       { replace: true }
     );
-  };
-
-  const closeRequestDetailModal = () => {
-    setRequestIdInUrl('');
   };
 
   return (
@@ -443,8 +341,11 @@ const PortalRequests = () => {
             requestsStatus={requestsStatus}
             requestsError={requestsError}
             initialStatusFilter={statusFilterFromUrl}
-            selectedRequestId={selectedRequestId}
-            onSelectRequest={(id) => setRequestIdInUrl(id)}
+            selectedRequestId={selectedRequestFromUrl}
+            onSelectRequest={(id) => {
+              setRequestIdInUrl(id);
+              openRequestDetail(id);
+            }}
             onReload={() => loadRequests({ keepSelection: true })}
             reloadDisabled={!isAuthenticated || !baseUrl || isGuest || requestsStatus === 'loading'}
             isAdmin={isAdmin}
@@ -456,94 +357,6 @@ const PortalRequests = () => {
           />
         </Paper>
 
-        <Dialog
-          open={Boolean(selectedRequestId)}
-          onClose={closeRequestDetailModal}
-          fullWidth
-          maxWidth="lg"
-          scroll="paper"
-          aria-labelledby="portal-request-detail-dialog-title"
-        >
-          <DialogTitle
-            id="portal-request-detail-dialog-title"
-            sx={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              justifyContent: 'space-between',
-              gap: 1,
-              pr: 1,
-            }}
-          >
-            <Typography component="span" variant="h6" sx={{ flex: 1, wordBreak: 'break-word', pt: 0.25 }}>
-              {requestDetail?.title || t('portalRequests.detailModal.title')}
-            </Typography>
-            <IconButton
-              type="button"
-              size="small"
-              onClick={closeRequestDetailModal}
-              aria-label={t('portalRequests.actions.close')}
-            >
-              <Close fontSize="small" />
-            </IconButton>
-          </DialogTitle>
-          <DialogContent dividers sx={{ pt: 2 }}>
-            {selectedRequestId ? (
-              <RequestDetailPane
-                requestDetail={requestDetail}
-                detailStatus={detailStatus}
-                detailError={detailError}
-                isManagement={isManagement}
-                isAdmin={isAdmin}
-                managementForm={managementForm}
-                managementStatusOptions={managementStatusOptions}
-                managementPriorityOptions={priorityOptions}
-                onManagementField={onManagementField}
-                onUpdateRequest={onUpdateRequest}
-                managementUpdateStatus={managementUpdateStatus}
-                managementUpdateError={managementUpdateError}
-                threadMessages={threadMessages}
-                messageForm={messageForm}
-                setMessageForm={setMessageForm}
-                onMessageSubmit={onMessageSubmit}
-                messageStatus={messageStatus}
-                messageError={messageError}
-                messageDeleteStatus={messageDeleteStatus}
-                messageDeleteError={messageDeleteError}
-                onDeleteMessage={onDeleteMessage}
-                attachments={attachments}
-                onAttachmentChange={onAttachmentChange}
-                onClearAttachmentFile={onClearAttachmentFile}
-                onAttachmentSubmit={onAttachmentSubmit}
-                attachmentFile={attachmentFile}
-                attachmentStatus={attachmentStatus}
-                attachmentError={attachmentError}
-                attachmentRetryHint={attachmentRetryHint}
-                attachmentErrorDebugId={attachmentErrorDebugId}
-                attachmentUploadProgress={attachmentUploadProgress}
-                attachmentDeleteStatus={attachmentDeleteStatus}
-                attachmentDeleteError={attachmentDeleteError}
-                onDeleteAttachment={onDeleteAttachment}
-                onShareAttachment={onShareAttachment}
-                currentUserId={meData?.user?.id || ''}
-                auditEvents={auditEvents}
-                auditStatus={auditStatus}
-                auditError={auditError}
-                elsaSettingsError={elsaSettingsError}
-                elsaDecisionStatus={elsaDecisionStatus}
-                elsaDecisionError={elsaDecisionError}
-                elsaDecisionActionStatus={elsaDecisionActionStatus}
-                elsaDecisions={elsaDecisions}
-                elsaAutoRespondEnabled={elsaAutoRespondEnabled}
-                onSetElsaAutoRespond={onSetElsaAutoRespond}
-                onRunElsa={onRunElsa}
-                onReviewElsaDecision={onReviewElsaDecision}
-                onCancelRequest={onCancelRequest}
-                cancelStatus={cancelStatus}
-                cancelError={cancelError}
-              />
-            ) : null}
-          </DialogContent>
-        </Dialog>
       </Stack>
       <PortalFeedbackSnackbar feedback={feedback} onClose={closeFeedback} />
     </Box>

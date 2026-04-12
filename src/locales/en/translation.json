@@ -1630,7 +1630,8 @@
       "empty": "No requests yet. Create your first maintenance request to get started.",
       "emptyManagement": "No requests found.",
       "viewAll": "View all requests",
-      "noTitle": "Untitled request"
+      "noTitle": "Untitled request",
+      "openRequestAria": "Open maintenance request: {{title}}"
     },
     "actions": {
       "refresh": "Refresh"

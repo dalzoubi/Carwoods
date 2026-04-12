@@ -147,6 +147,12 @@ export function usePortalRequests({
   t,
   initialSelectedRequestId = '',
   secureAttachmentDeepLink = null,
+  /** When false, skip fetching the requests list (overlay detail modal on other portal pages). */
+  listLoadEnabled = true,
+  /** When false, URL `initialSelectedRequestId` does not load detail (list page uses global modal for detail). */
+  syncDetailFromUrl = true,
+  /** Preferred id for list reload selection when `syncDetailFromUrl` is false (e.g. URL `id` on requests page). */
+  listSelectionHintId = '',
 }) {
   const [requestsStatus, setRequestsStatus] = useState('idle');
   const [requestsError, setRequestsError] = useState('');
@@ -342,6 +348,7 @@ export function usePortalRequests({
       showLoadingState = true,
       showDetailLoadingState = true,
     } = opts;
+    if (!listLoadEnabled) return;
     if (!baseUrl || !isAuthenticated || isGuest || meStatus !== 'ok') return;
     if (!listPath) return;
     if (showLoadingState) {
@@ -357,13 +364,13 @@ export function usePortalRequests({
       setRequestsStatus('ok');
 
       const currentSelected = selectedRequestIdRef.current;
-      const urlId = String(initialSelectedRequestId || '').trim();
+      const pickId = String(listSelectionHintId || '').trim() || String(initialSelectedRequestId || '').trim();
       const requestIds = new Set(nextRequests.map((request) => request.id));
       const nextSelected = keepSelection
         ? (requestIds.has(currentSelected)
             ? currentSelected
-            : requestIds.has(urlId)
-              ? urlId
+            : requestIds.has(pickId)
+              ? pickId
               : '')
         : nextRequests[0]?.id || '';
       setSelectedRequestId(nextSelected);
@@ -398,22 +405,25 @@ export function usePortalRequests({
   };
 
   useEffect(() => {
+    if (!listLoadEnabled) return;
     if (!baseUrl || !isAuthenticated || isGuest || meStatus !== 'ok') return;
     loadRequests({ keepSelection: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseUrl, isAuthenticated, isGuest, meStatus, listPath]);
+  }, [baseUrl, isAuthenticated, isGuest, meStatus, listPath, listLoadEnabled]);
 
   useEffect(() => {
+    if (!syncDetailFromUrl) return;
     const id = String(initialSelectedRequestId || '').trim();
     if (!id) {
       setSelectedRequestId('');
       return;
     }
     setSelectedRequestId(id);
-  }, [initialSelectedRequestId]);
+  }, [syncDetailFromUrl, initialSelectedRequestId]);
 
   // After initial mount, load detail when the URL ?id= changes (loadRequests handles the first deep link).
   useEffect(() => {
+    if (!syncDetailFromUrl) return;
     const id = String(initialSelectedRequestId || '').trim();
     const prev = prevUrlSelectedRequestIdRef.current;
     prevUrlSelectedRequestIdRef.current = id;
@@ -441,7 +451,46 @@ export function usePortalRequests({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- URL id + list readiness; skip first paint (loadRequests owns)
-  }, [initialSelectedRequestId, requestsStatus, requests]);
+  }, [syncDetailFromUrl, initialSelectedRequestId, requestsStatus, requests]);
+
+  // Overlay modal: load detail without a requests list (any portal route).
+  useEffect(() => {
+    if (listLoadEnabled) return;
+    if (!baseUrl || !isAuthenticated || isGuest || meStatus !== 'ok') return;
+    const id = String(initialSelectedRequestId || '').trim();
+    if (!id) {
+      setSelectedRequestId('');
+      setRequestDetail(null);
+      setDetailStatus('idle');
+      setDetailError('');
+      setThreadMessages([]);
+      setAttachments([]);
+      setAuditEvents([]);
+      setAuditStatus('idle');
+      setAuditError('');
+      setElsaDecisions([]);
+      setElsaDecisionStatus('idle');
+      setElsaDecisionError('');
+      return;
+    }
+    setSelectedRequestId(id);
+    let cancelled = false;
+    void (async () => {
+      try {
+        await loadRequestDetails(id);
+        if (cancelled) return;
+        await loadAuditForRequest(id);
+        if (cancelled) return;
+        await loadElsaContext(id);
+      } catch {
+        // surfaced via detailStatus / detailError
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- overlay id trigger; loaders use latest impl.
+  }, [listLoadEnabled, initialSelectedRequestId, baseUrl, isAuthenticated, isGuest, meStatus]);
 
   useEffect(() => {
     const link = secureAttachmentDeepLink;
@@ -844,7 +893,13 @@ export function usePortalRequests({
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
       await cancelRequest(baseUrl, token, selectedRequestId, { emailHint });
-      await loadRequests({ keepSelection: true, showLoadingState: false, showDetailLoadingState: false });
+      if (listLoadEnabled) {
+        await loadRequests({ keepSelection: true, showLoadingState: false, showDetailLoadingState: false });
+      } else {
+        await loadRequestDetails(selectedRequestId, { showLoadingState: false });
+        await loadAuditForRequest(selectedRequestId);
+        await loadElsaContext(selectedRequestId);
+      }
       setCancelStatus('success');
     } catch (error) {
       handleApiForbidden(error);
@@ -900,7 +955,13 @@ export function usePortalRequests({
         `/api/landlord/requests/${encodeURIComponent(selectedRequestId)}`,
         { emailHint, ...body }
       );
-      await loadRequests({ keepSelection: true, showLoadingState: false, showDetailLoadingState: false });
+      if (listLoadEnabled) {
+        await loadRequests({ keepSelection: true, showLoadingState: false, showDetailLoadingState: false });
+      } else {
+        await loadRequestDetails(selectedRequestId, { showLoadingState: false });
+        await loadAuditForRequest(selectedRequestId);
+        await loadElsaContext(selectedRequestId);
+      }
       setManagementUpdateStatus('success');
     } catch (error) {
       handleApiForbidden(error);

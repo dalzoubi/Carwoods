@@ -29,6 +29,7 @@ import { RequestStatus, Role } from '../domain/constants.js';
 import { withDarkPath } from '../routePaths';
 import { fetchRequests } from '../lib/portalApiClient';
 import PortalRefreshButton from './PortalRefreshButton';
+import { usePortalRequestDetailModal } from './PortalRequestDetailModalContext';
 
 export function statusColor(statusCode) {
   const s = String(statusCode ?? '').toUpperCase();
@@ -186,6 +187,7 @@ const PortalDashboard = () => {
     meStatus,
     getAccessToken,
   } = usePortalAuth();
+  const { openRequestDetail, isAvailable: requestDetailModalAvailable } = usePortalRequestDetailModal();
 
   const role = resolveRole(meData, account);
   const normalized = normalizeRole(role);
@@ -398,25 +400,46 @@ const PortalDashboard = () => {
                   {recentRequests.map((req) => {
                     const tone = priorityTone(req);
                     const submitterRoleLabel = roleLabel(req.submitted_by_role, t);
+                    const openInOverlay = Boolean(req.id) && requestDetailModalAvailable;
+                    const requestTitle = req.title || t('portalDashboard.recentRequests.noTitle');
                     return (
                       <Card
                         key={req.id}
                         variant="outlined"
+                        {...(openInOverlay
+                          ? {
+                              component: 'div',
+                              role: 'button',
+                              tabIndex: 0,
+                              'aria-label': t('portalDashboard.recentRequests.openRequestAria', {
+                                title: requestTitle,
+                              }),
+                              onClick: () => openRequestDetail(req.id),
+                              onKeyDown: (e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  openRequestDetail(req.id);
+                                }
+                              },
+                            }
+                          : {
+                              component: RouterLink,
+                              to: withDarkPath(
+                                pathname,
+                                `/portal/requests?id=${encodeURIComponent(req.id)}`
+                              ),
+                            })}
                         sx={{
                           cursor: 'pointer',
                           borderInlineStartWidth: 4,
                           borderInlineStartStyle: 'solid',
                           borderInlineStartColor: tone.borderColor,
                           bgcolor: tone.bgColor,
+                          color: 'inherit',
+                          textDecoration: 'none',
                           '&:hover': { borderColor: 'primary.main' },
                           transition: 'border-color 0.2s, background-color 0.2s',
                         }}
-                        component={RouterLink}
-                        to={withDarkPath(
-                          pathname,
-                          `/portal/requests?id=${encodeURIComponent(req.id)}`
-                        )}
-                        style={{ textDecoration: 'none', color: 'inherit' }}
                       >
                         <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                           <Stack
@@ -426,7 +449,7 @@ const PortalDashboard = () => {
                             sx={{ flexWrap: 'wrap', gap: 1 }}
                           >
                             <Typography variant="body2" fontWeight={600} noWrap sx={{ flex: 1, minWidth: 0 }}>
-                              {req.title || t('portalDashboard.recentRequests.noTitle')}
+                              {requestTitle}
                             </Typography>
                             <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap' }}>
                               <Chip

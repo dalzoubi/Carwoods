@@ -33,7 +33,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { notificationsPollIntervalMs } from '../featureFlags';
 import { usePortalAuth } from '../PortalAuthContext';
 import { withDarkPath } from '../routePaths';
-import { relativeTime } from '../lib/notificationUtils';
+import { parsePortalRequestIdFromDeepLink, relativeTime } from '../lib/notificationUtils';
+import { usePortalRequestDetailModal } from './PortalRequestDetailModalContext';
 import {
   addTrayHiddenId,
   loadTrayHiddenIds,
@@ -88,6 +89,7 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { openRequestDetail, isAvailable: requestDetailModalAvailable } = usePortalRequestDetailModal();
   const {
     isAuthenticated,
     account,
@@ -163,7 +165,10 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
       setNotifications((items) => items.map((item) => (
         item.id === notification.id ? { ...item, read_at: item.read_at || new Date().toISOString() } : item
       )));
-      if (notification.deep_link) {
+      const requestId = parsePortalRequestIdFromDeepLink(notification.deep_link);
+      if (requestId && requestDetailModalAvailable) {
+        openRequestDetail(requestId);
+      } else if (notification.deep_link) {
         navigate(withDarkPath(pathname, notification.deep_link));
       }
     } catch (error) {

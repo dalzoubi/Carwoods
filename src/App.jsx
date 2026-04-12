@@ -26,6 +26,7 @@ import PortalTenants from './components/PortalTenants';
 import PortalAdminNotificationTest from './components/PortalAdminNotificationTest';
 import PortalLayout from './components/PortalLayout';
 import PortalAuthGate from './components/PortalAuthGate';
+import { PortalRequestDetailModalProvider } from './components/PortalRequestDetailModalContext';
 import PortalRouteGuard from './components/PortalRouteGuard';
 import { isDarkPreviewRoute, isPortalRoute } from './routePaths';
 import { Role } from './domain/constants';
@@ -196,9 +197,11 @@ function PortalApp() {
         <>
             <ScrollToTopOnRouteChange />
             <PortalAuthGate>
-                <PortalLayout>
-                    <PortalRoutes />
-                </PortalLayout>
+                <PortalRequestDetailModalProvider>
+                    <PortalLayout>
+                        <PortalRoutes />
+                    </PortalLayout>
+                </PortalRequestDetailModalProvider>
             </PortalAuthGate>
             <Analytics />
         </>

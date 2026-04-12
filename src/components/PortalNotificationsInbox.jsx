@@ -31,7 +31,8 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
 } from '../lib/portalApiClient';
-import { relativeTime } from '../lib/notificationUtils';
+import { parsePortalRequestIdFromDeepLink, relativeTime } from '../lib/notificationUtils';
+import { usePortalRequestDetailModal } from './PortalRequestDetailModalContext';
 
 function eventIcon(eventTypeCode) {
   const code = String(eventTypeCode ?? '').toUpperCase();
@@ -58,6 +59,7 @@ const PortalNotificationsInbox = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { isAuthenticated, account, getAccessToken, baseUrl, handleApiForbidden } = usePortalAuth();
+  const { openRequestDetail, isAvailable: requestDetailModalAvailable } = usePortalRequestDetailModal();
 
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -118,7 +120,12 @@ const PortalNotificationsInbox = () => {
         )
       );
       if (navigate_after && notification.deep_link) {
-        navigate(withDarkPath(pathname, notification.deep_link));
+        const requestId = parsePortalRequestIdFromDeepLink(notification.deep_link);
+        if (requestId && requestDetailModalAvailable) {
+          openRequestDetail(requestId);
+        } else {
+          navigate(withDarkPath(pathname, notification.deep_link));
+        }
       }
     } catch (error) {
       handleApiForbidden?.(error);
@@ -129,7 +136,16 @@ const PortalNotificationsInbox = () => {
         return next;
       });
     }
-  }, [baseUrl, getAccessToken, emailHint, navigate, pathname, handleApiForbidden]);
+  }, [
+    baseUrl,
+    getAccessToken,
+    emailHint,
+    navigate,
+    pathname,
+    handleApiForbidden,
+    openRequestDetail,
+    requestDetailModalAvailable,
+  ]);
 
   const handleMarkAllRead = useCallback(async () => {
     if (!baseUrl) return;
