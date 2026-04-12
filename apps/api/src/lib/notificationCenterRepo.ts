@@ -144,3 +144,18 @@ export async function markPortalNotificationsReadForRequest(
   );
 }
 
+export async function markAllPortalNotificationsRead(
+  client: PoolClient,
+  userId: string
+): Promise<number> {
+  const r = await client.query<{ id: string }>(
+    `UPDATE portal_notifications
+        SET read_at = COALESCE(read_at, SYSDATETIMEOFFSET())
+      OUTPUT INSERTED.id
+      WHERE user_id = $1
+        AND read_at IS NULL`,
+    [userId]
+  );
+  return r.rows.length;
+}
+

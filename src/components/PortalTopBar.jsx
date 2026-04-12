@@ -3,6 +3,7 @@ import {
   AppBar,
   Badge,
   Box,
+  Button,
   Chip,
   CircularProgress,
   Divider,
@@ -25,6 +26,16 @@ import RestartAlt from '@mui/icons-material/RestartAlt';
 import LanguageIcon from '@mui/icons-material/Language';
 import Person from '@mui/icons-material/Person';
 import Logout from '@mui/icons-material/Logout';
+import Build from '@mui/icons-material/Build';
+import Chat from '@mui/icons-material/Chat';
+import Update from '@mui/icons-material/Update';
+import Notes from '@mui/icons-material/Notes';
+import PersonAdd from '@mui/icons-material/PersonAdd';
+import Email from '@mui/icons-material/Email';
+import Warning from '@mui/icons-material/Warning';
+import Close from '@mui/icons-material/Close';
+import DoneAll from '@mui/icons-material/DoneAll';
+import OpenInNew from '@mui/icons-material/OpenInNew';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -36,9 +47,30 @@ import { isGuestRole, normalizeRole, resolveDisplayName, resolveRole } from '../
 import { Role } from '../domain/constants.js';
 import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
 import PortalUserAvatar from './PortalUserAvatar';
-import { fetchNotifications, markNotificationRead } from '../lib/portalApiClient';
+import { fetchNotifications, markNotificationRead, markAllNotificationsRead } from '../lib/portalApiClient';
+import { relativeTime } from '../lib/notificationUtils';
 
 const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+
+function notificationEventIcon(eventTypeCode) {
+  const code = String(eventTypeCode ?? '').toUpperCase();
+  if (code === 'REQUEST_CREATED') return <Build sx={{ fontSize: 16 }} />;
+  if (code === 'REQUEST_UPDATED') return <Update sx={{ fontSize: 16 }} />;
+  if (code === 'REQUEST_MESSAGE_CREATED' || code === 'LANDLORD_MESSAGE_POSTED') return <Chat sx={{ fontSize: 16 }} />;
+  if (code === 'REQUEST_INTERNAL_NOTE') return <Notes sx={{ fontSize: 16 }} />;
+  if (code === 'ACCOUNT_ONBOARDED_WELCOME') return <PersonAdd sx={{ fontSize: 16 }} />;
+  if (code === 'ACCOUNT_EMAIL_VERIFICATION') return <Email sx={{ fontSize: 16 }} />;
+  if (code === 'SECURITY_NOTIFICATION_DELIVERY_FAILURE') return <Warning sx={{ fontSize: 16 }} color="warning" />;
+  return <NotificationsNone sx={{ fontSize: 16 }} />;
+}
+
+function resolvedBody(notification) {
+  const meta = notification.metadata_json;
+  if (meta && typeof meta === 'object' && typeof meta.ai_summary === 'string' && meta.ai_summary.trim()) {
+    return meta.ai_summary.trim();
+  }
+  return notification.body;
+}
 
 function usePageTitle(t) {
   const { pathname } = useLocation();
@@ -52,7 +84,7 @@ function usePageTitle(t) {
     '/portal/admin/landlords': t('portalLayout.sidebar.adminLandlords'),
     '/portal/admin/ai': t('portalLayout.sidebar.adminConfigurations'),
     '/portal/admin/config': t('portalLayout.sidebar.adminConfigurations'),
-    '/portal/notifications': t('portalLayout.sidebar.notificationPolicies'),
+    '/portal/notifications': t('portalNotificationsInbox.heading'),
     '/portal/properties': t('portalLayout.sidebar.properties'),
     '/portal/status': t('portalLayout.sidebar.status'),
   };
@@ -68,7 +100,7 @@ function portalRoleLabel(role, t) {
 }
 
 const PortalTopBar = ({ onMenuClick, isMobile }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const {
@@ -114,6 +146,8 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [dismissingIds, setDismissingIds] = useState(new Set());
+  const [markingAll, setMarkingAll] = useState(false);
   const sortedNotifications = useMemo(
     () =>
       [...notifications].sort((a, b) => {
@@ -203,6 +237,48 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
       handleApiForbidden?.(error);
     } finally {
       handleNotificationsClose();
+    }
+  };
+
+  const handleDismissNotification = async (e, notification) => {
+    e.stopPropagation();
+    if (!baseUrl || dismissingIds.has(notification.id)) return;
+    setDismissingIds((prev) => new Set(prev).add(notification.id));
+    try {
+      const token = await getAccessToken();
+      const response = await markNotificationRead(baseUrl, token, notification.id, {
+        emailHint: account?.username || undefined,
+      });
+      if (typeof response?.unread_count === 'number') {
+        setUnreadCount(response.unread_count);
+      } else {
+        setUnreadCount((value) => Math.max(0, value - 1));
+      }
+      setNotifications((items) => items.map((item) => (
+        item.id === notification.id ? { ...item, read_at: item.read_at || new Date().toISOString() } : item
+      )));
+    } catch (error) {
+      handleApiForbidden?.(error);
+    } finally {
+      setDismissingIds((prev) => { const next = new Set(prev); next.delete(notification.id); return next; });
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    if (!baseUrl || markingAll) return;
+    setMarkingAll(true);
+    try {
+      const token = await getAccessToken();
+      await markAllNotificationsRead(baseUrl, token, { emailHint: account?.username || undefined });
+      setNotifications((items) => items.map((item) => ({
+        ...item,
+        read_at: item.read_at || new Date().toISOString(),
+      })));
+      setUnreadCount(0);
+    } catch (error) {
+      handleApiForbidden?.(error);
+    } finally {
+      setMarkingAll(false);
     }
   };
 
@@ -454,44 +530,130 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
         onClose={handleNotificationsClose}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        slotProps={{ paper: { sx: { backgroundImage: 'none', minWidth: 320, maxWidth: 420 } } }}
-        MenuListProps={{ 'aria-labelledby': 'portal-notifications-button' }}
+        slotProps={{ paper: { sx: { backgroundImage: 'none', minWidth: 340, maxWidth: 440 } } }}
+        MenuListProps={{ 'aria-labelledby': 'portal-notifications-button', disablePadding: true }}
       >
-        <Box sx={{ px: 2, py: 1 }}>
-          <Typography variant="subtitle2">{t('portalHeader.notifications.title')}</Typography>
-          <Typography variant="caption" color="text.secondary">
-            {t('portalHeader.notifications.unreadCount', { count: unreadCount })}
-          </Typography>
+        {/* Header */}
+        <Box sx={{ px: 2, py: 1.25, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+          <Box>
+            <Typography variant="subtitle2">{t('portalHeader.notifications.title')}</Typography>
+            {unreadCount > 0 && (
+              <Typography variant="caption" color="text.secondary">
+                {t('portalHeader.notifications.unreadCount', { count: unreadCount })}
+              </Typography>
+            )}
+          </Box>
+          {unreadCount > 0 && (
+            <Tooltip title={t('portalHeader.notifications.markAllRead')} arrow>
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={handleMarkAllRead}
+                  disabled={markingAll}
+                  aria-label={t('portalHeader.notifications.markAllRead')}
+                >
+                  {markingAll ? <CircularProgress size={14} /> : <DoneAll fontSize="small" />}
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
         </Box>
         <Divider />
+
+        {/* Items */}
         {notificationsLoading ? (
-          <Box sx={{ px: 2, py: 2, display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{ px: 2, py: 3, display: 'flex', justifyContent: 'center' }}>
             <CircularProgress size={18} />
           </Box>
         ) : sortedNotifications.length === 0 ? (
-          <Box sx={{ px: 2, py: 2 }}>
+          <Box sx={{ px: 2, py: 2.5 }}>
             <Typography variant="body2" color="text.secondary">
               {t('portalHeader.notifications.empty')}
             </Typography>
           </Box>
-        ) : sortedNotifications.map((notification) => (
-          <MenuItem
-            key={notification.id}
-            onClick={() => { void handleNotificationClick(notification); }}
-            sx={{
-              alignItems: 'flex-start',
-              backgroundColor: notification.read_at ? 'transparent' : 'action.hover',
-              whiteSpace: 'normal',
+        ) : sortedNotifications.map((notification) => {
+          const isUnread = !notification.read_at;
+          const isDismissing = dismissingIds.has(notification.id);
+          return (
+            <Box
+              key={notification.id}
+              onClick={() => { void handleNotificationClick(notification); }}
+              sx={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 1,
+                px: 2,
+                py: 1.25,
+                cursor: 'pointer',
+                backgroundColor: isUnread ? 'action.hover' : 'transparent',
+                '&:hover': { backgroundColor: 'action.focus' },
+                transition: 'background-color 0.15s',
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+              }}
+            >
+              <Box sx={{ mt: 0.2, color: isUnread ? 'primary.main' : 'text.disabled', flexShrink: 0 }}>
+                {notificationEventIcon(notification.event_type_code)}
+              </Box>
+
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="body2" fontWeight={isUnread ? 700 : 500} noWrap>
+                  {notification.title}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {resolvedBody(notification)}
+                </Typography>
+                <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.25 }}>
+                  {notification.created_at ? relativeTime(notification.created_at, i18n.language) : ''}
+                </Typography>
+              </Box>
+
+              {isUnread && (
+                <Tooltip title={t('portalHeader.notifications.dismiss')} arrow>
+                  <span>
+                    <IconButton
+                      size="small"
+                      onClick={(e) => { void handleDismissNotification(e, notification); }}
+                      disabled={isDismissing}
+                      aria-label={t('portalHeader.notifications.dismiss')}
+                      sx={{ mt: -0.5, flexShrink: 0 }}
+                    >
+                      {isDismissing ? <CircularProgress size={12} /> : <Close sx={{ fontSize: 14 }} />}
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              )}
+            </Box>
+          );
+        })}
+
+        {/* Footer */}
+        <Divider />
+        <Box sx={{ px: 1, py: 0.5 }}>
+          <Button
+            component="a"
+            href={withDarkPath(pathname, '/portal/notifications')}
+            onClick={(e) => {
+              e.preventDefault();
+              handleNotificationsClose();
+              navigate(withDarkPath(pathname, '/portal/notifications'));
             }}
+            size="small"
+            endIcon={<OpenInNew sx={{ fontSize: 14 }} />}
+            sx={{ textTransform: 'none', width: '100%', justifyContent: 'center' }}
           >
-            <ListItemText
-              primary={notification.title}
-              secondary={notification.body}
-              primaryTypographyProps={{ variant: 'body2', fontWeight: notification.read_at ? 500 : 700 }}
-              secondaryTypographyProps={{ variant: 'caption' }}
-            />
-          </MenuItem>
-        ))}
+            {t('portalHeader.notifications.viewAll')}
+          </Button>
+        </Box>
       </Menu>
 
       {/* Account menu */}

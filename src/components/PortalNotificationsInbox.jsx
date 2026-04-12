@@ -1,0 +1,273 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet';
+import { useTranslation } from 'react-i18next';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Divider,
+  IconButton,
+  List,
+  ListItem,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import Build from '@mui/icons-material/Build';
+import Chat from '@mui/icons-material/Chat';
+import Update from '@mui/icons-material/Update';
+import Notes from '@mui/icons-material/Notes';
+import PersonAdd from '@mui/icons-material/PersonAdd';
+import Email from '@mui/icons-material/Email';
+import Warning from '@mui/icons-material/Warning';
+import NotificationsNone from '@mui/icons-material/NotificationsNone';
+import DoneAll from '@mui/icons-material/DoneAll';
+import Close from '@mui/icons-material/Close';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { usePortalAuth } from '../PortalAuthContext';
+import { withDarkPath } from '../routePaths';
+import {
+  fetchNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+} from '../lib/portalApiClient';
+import { relativeTime } from '../lib/notificationUtils';
+
+function eventIcon(eventTypeCode) {
+  const code = String(eventTypeCode ?? '').toUpperCase();
+  if (code === 'REQUEST_CREATED') return <Build fontSize="small" />;
+  if (code === 'REQUEST_UPDATED') return <Update fontSize="small" />;
+  if (code === 'REQUEST_MESSAGE_CREATED' || code === 'LANDLORD_MESSAGE_POSTED') return <Chat fontSize="small" />;
+  if (code === 'REQUEST_INTERNAL_NOTE') return <Notes fontSize="small" />;
+  if (code === 'ACCOUNT_ONBOARDED_WELCOME') return <PersonAdd fontSize="small" />;
+  if (code === 'ACCOUNT_EMAIL_VERIFICATION') return <Email fontSize="small" />;
+  if (code === 'SECURITY_NOTIFICATION_DELIVERY_FAILURE') return <Warning fontSize="small" color="warning" />;
+  return <NotificationsNone fontSize="small" />;
+}
+
+function notificationBody(notification) {
+  const meta = notification.metadata_json;
+  if (meta && typeof meta === 'object' && typeof meta.ai_summary === 'string' && meta.ai_summary.trim()) {
+    return meta.ai_summary.trim();
+  }
+  return notification.body;
+}
+
+const PortalNotificationsInbox = () => {
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { isAuthenticated, account, getAccessToken, baseUrl, handleApiForbidden } = usePortalAuth();
+
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [markingAll, setMarkingAll] = useState(false);
+  const [dismissing, setDismissing] = useState(new Set());
+
+  const emailHint = account?.username || undefined;
+
+  const load = useCallback(async () => {
+    if (!isAuthenticated || !baseUrl) return;
+    setLoading(true);
+    try {
+      const token = await getAccessToken();
+      const payload = await fetchNotifications(baseUrl, token, { emailHint, limit: 50 });
+      setNotifications(Array.isArray(payload?.notifications) ? payload.notifications : []);
+    } catch (error) {
+      handleApiForbidden?.(error);
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated, baseUrl, getAccessToken, emailHint, handleApiForbidden]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const handleDismiss = useCallback(async (notification, navigate_after = false) => {
+    if (!baseUrl) return;
+    setDismissing((prev) => new Set(prev).add(notification.id));
+    try {
+      const token = await getAccessToken();
+      await markNotificationRead(baseUrl, token, notification.id, { emailHint });
+      setNotifications((items) =>
+        items.map((item) =>
+          item.id === notification.id
+            ? { ...item, read_at: item.read_at || new Date().toISOString() }
+            : item
+        )
+      );
+      if (navigate_after && notification.deep_link) {
+        navigate(withDarkPath(pathname, notification.deep_link));
+      }
+    } catch (error) {
+      handleApiForbidden?.(error);
+    } finally {
+      setDismissing((prev) => {
+        const next = new Set(prev);
+        next.delete(notification.id);
+        return next;
+      });
+    }
+  }, [baseUrl, getAccessToken, emailHint, navigate, pathname, handleApiForbidden]);
+
+  const handleMarkAllRead = useCallback(async () => {
+    if (!baseUrl) return;
+    setMarkingAll(true);
+    try {
+      const token = await getAccessToken();
+      await markAllNotificationsRead(baseUrl, token, { emailHint });
+      setNotifications((items) =>
+        items.map((item) => ({
+          ...item,
+          read_at: item.read_at || new Date().toISOString(),
+        }))
+      );
+    } catch (error) {
+      handleApiForbidden?.(error);
+    } finally {
+      setMarkingAll(false);
+    }
+  }, [baseUrl, getAccessToken, emailHint, handleApiForbidden]);
+
+  const unreadCount = notifications.filter((n) => !n.read_at).length;
+
+  return (
+    <>
+      <Helmet>
+        <title>{t('portalNotificationsInbox.pageTitle')}</title>
+      </Helmet>
+
+      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2} flexWrap="wrap" gap={1}>
+        <Box>
+          <Typography variant="h6" fontWeight={600}>
+            {t('portalNotificationsInbox.heading')}
+          </Typography>
+          {!loading && (
+            <Typography variant="body2" color="text.secondary">
+              {unreadCount > 0
+                ? t('portalHeader.notifications.unreadCount', { count: unreadCount })
+                : t('portalNotificationsInbox.allRead')}
+            </Typography>
+          )}
+        </Box>
+        {unreadCount > 0 && (
+          <Button
+            size="small"
+            startIcon={markingAll ? <CircularProgress size={14} /> : <DoneAll fontSize="small" />}
+            onClick={handleMarkAllRead}
+            disabled={markingAll}
+            variant="outlined"
+          >
+            {t('portalNotificationsInbox.markAllRead')}
+          </Button>
+        )}
+      </Stack>
+
+      {loading ? (
+        <Box display="flex" justifyContent="center" py={6}>
+          <CircularProgress size={28} />
+        </Box>
+      ) : notifications.length === 0 ? (
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          py={8}
+          gap={1}
+          color="text.secondary"
+        >
+          <NotificationsNone sx={{ fontSize: 48, opacity: 0.3 }} />
+          <Typography variant="body2">{t('portalHeader.notifications.empty')}</Typography>
+        </Box>
+      ) : (
+        <List disablePadding>
+          {notifications.map((notification, idx) => {
+            const isUnread = !notification.read_at;
+            const isDismissing = dismissing.has(notification.id);
+            const body = notificationBody(notification);
+            const hasLink = Boolean(notification.deep_link);
+            return (
+              <React.Fragment key={notification.id}>
+                {idx > 0 && <Divider />}
+                <ListItem
+                  disablePadding
+                  sx={{
+                    px: 2,
+                    py: 1.5,
+                    gap: 1.5,
+                    alignItems: 'flex-start',
+                    backgroundColor: isUnread ? 'action.hover' : 'transparent',
+                    borderRadius: 1,
+                    transition: 'background-color 0.2s',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      mt: 0.25,
+                      color: isUnread ? 'primary.main' : 'text.disabled',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {eventIcon(notification.event_type_code)}
+                  </Box>
+
+                  <Box
+                    sx={{
+                      flex: 1,
+                      minWidth: 0,
+                      cursor: hasLink ? 'pointer' : 'default',
+                    }}
+                    onClick={() => hasLink && void handleDismiss(notification, true)}
+                  >
+                    <Typography
+                      variant="body2"
+                      fontWeight={isUnread ? 700 : 400}
+                      sx={{ mb: 0.25 }}
+                    >
+                      {notification.title}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {body}
+                    </Typography>
+                    <Typography variant="caption" color="text.disabled" sx={{ mt: 0.5, display: 'block' }}>
+                      {notification.created_at ? relativeTime(notification.created_at, i18n.language) : ''}
+                    </Typography>
+                  </Box>
+
+                  {isUnread && (
+                    <Tooltip title={t('portalNotificationsInbox.dismiss')} arrow>
+                      <span>
+                        <IconButton
+                          size="small"
+                          onClick={() => void handleDismiss(notification, false)}
+                          disabled={isDismissing}
+                          aria-label={t('portalNotificationsInbox.dismiss')}
+                          sx={{ mt: -0.5, flexShrink: 0 }}
+                        >
+                          {isDismissing ? <CircularProgress size={14} /> : <Close fontSize="small" />}
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  )}
+                </ListItem>
+              </React.Fragment>
+            );
+          })}
+        </List>
+      )}
+    </>
+  );
+};
+
+export default PortalNotificationsInbox;

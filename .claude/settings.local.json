@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -A 20 \"CREATE TABLE.*notification\" infra/db/migrations/*.sql)"
+    ]
+  }
+}

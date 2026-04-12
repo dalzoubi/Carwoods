@@ -19,6 +19,7 @@ import PortalStatus from './components/PortalStatus';
 import PortalProfile from './components/PortalProfile';
 import PortalRequests from './components/PortalRequests';
 import PortalAdminLandlords from './components/PortalAdminLandlords';
+import PortalNotificationsInbox from './components/PortalNotificationsInbox';
 import PortalAdminAiSettings from './components/PortalAdminAiSettings';
 import PortalAdminProperties from './components/PortalAdminProperties';
 import PortalTenants from './components/PortalTenants';
@@ -107,8 +108,8 @@ function PortalRoutes() {
             <Route
                 path="/portal/notifications"
                 element={
-                    <PortalRouteGuard allowedRoles={[Role.LANDLORD, Role.ADMIN]}>
-                        <Navigate to="/portal/admin/config?tab=notifications" replace />
+                    <PortalRouteGuard allowedRoles={[Role.TENANT, Role.LANDLORD, Role.ADMIN]}>
+                        <PortalNotificationsInbox />
                     </PortalRouteGuard>
                 }
             />

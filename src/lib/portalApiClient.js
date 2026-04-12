@@ -718,6 +718,30 @@ export async function markNotificationRead(baseUrl, accessToken, notificationId,
   return res.json();
 }
 
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ emailHint?: string }} [params]
+ * @returns {Promise<object>}
+ */
+export async function markAllNotificationsRead(baseUrl, accessToken, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, '/api/portal/notifications/mark-all-read'),
+    {
+      method: 'PATCH',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify({}),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
 // ---------------------------------------------------------------------------
 // PATCH /api/portal/admin/landlords/:id
 // PATCH /api/landlord/requests/:id

@@ -1489,13 +1489,24 @@
     "notifications": {
       "title": "Notificaciones",
       "empty": "Aún no hay notificaciones.",
-      "unreadCount": "{{count}} sin leer"
+      "unreadCount": "{{count}} sin leer",
+      "dismiss": "Descartar",
+      "markAllRead": "Marcar todo como leído",
+      "viewAll": "Ver todas las notificaciones"
     }
+  },
+  "portalNotificationsInbox": {
+    "pageTitle": "Notificaciones – Portal Carwoods",
+    "heading": "Notificaciones",
+    "allRead": "Todo al día",
+    "markAllRead": "Marcar todo como leído",
+    "dismiss": "Descartar"
   },
   "portalLayout": {
     "sidebar": {
       "dashboard": "Panel",
       "requests": "Solicitudes",
+      "notifications": "Notificaciones",
       "profile": "Perfil",
       "adminLandlords": "Propietarios",
       "adminConfigurations": "Configuraciones",

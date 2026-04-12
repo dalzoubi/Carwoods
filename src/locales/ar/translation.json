@@ -1489,13 +1489,24 @@
     "notifications": {
       "title": "الإشعارات",
       "empty": "لا توجد إشعارات بعد.",
-      "unreadCount": "{{count}} غير مقروءة"
+      "unreadCount": "{{count}} غير مقروءة",
+      "dismiss": "تجاهل",
+      "markAllRead": "تحديد الكل كمقروء",
+      "viewAll": "عرض جميع الإشعارات"
     }
+  },
+  "portalNotificationsInbox": {
+    "pageTitle": "الإشعارات – بوابة Carwoods",
+    "heading": "الإشعارات",
+    "allRead": "لا يوجد شيء جديد",
+    "markAllRead": "تحديد الكل كمقروء",
+    "dismiss": "تجاهل"
   },
   "portalLayout": {
     "sidebar": {
       "dashboard": "لوحة التحكم",
       "requests": "الطلبات",
+      "notifications": "الإشعارات",
       "profile": "الملف الشخصي",
       "adminLandlords": "الملاك",
       "adminConfigurations": "الإعدادات",

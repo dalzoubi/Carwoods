@@ -25,6 +25,7 @@ import Logout from '@mui/icons-material/Logout';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import ChevronLeft from '@mui/icons-material/ChevronLeft';
 import ChevronRight from '@mui/icons-material/ChevronRight';
+import NotificationsNone from '@mui/icons-material/NotificationsNone';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -71,6 +72,11 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
     ...(roleResolved && !isGuest
       ? [
           { key: 'requests', to: '/portal/requests', label: t('portalLayout.sidebar.requests'), icon: <Build /> },
+        ]
+      : []),
+    ...(roleResolved && !isGuest
+      ? [
+          { key: 'notifications', to: '/portal/notifications', label: t('portalLayout.sidebar.notifications'), icon: <NotificationsNone /> },
         ]
       : []),
     ...(roleResolved && !isGuest
