@@ -14,23 +14,32 @@ import {
   Stack,
   TextField,
   Tooltip,
+  Typography,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
-import HardBreak from '@tiptap/extension-hard-break';
+import CharacterCount from '@tiptap/extension-character-count';
 import FormatBoldIcon from '@mui/icons-material/FormatBold';
 import FormatItalicIcon from '@mui/icons-material/FormatItalic';
-import CodeIcon from '@mui/icons-material/Code';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
 import LinkIcon from '@mui/icons-material/Link';
 import { useTranslation } from 'react-i18next';
 import {
+  PORTAL_MESSAGE_BODY_MAX_CHARS,
   editorHtmlToMarkdown,
   isAllowedMessageLinkHref,
   markdownToTipTapHtml,
 } from '../../lib/portalMessageEditorBridge';
+
+function clampMarkdownToMax(md) {
+  const s = String(md ?? '');
+  if (s.length <= PORTAL_MESSAGE_BODY_MAX_CHARS) return s;
+  return s.slice(0, PORTAL_MESSAGE_BODY_MAX_CHARS);
+}
 
 function preventTakeFocusFromField(event) {
   event.preventDefault();
@@ -52,8 +61,7 @@ function escapeText(s) {
 }
 
 /**
- * WYSIWYG message field (TipTap): stores the same markdown string as before for the API.
- * Formatting toolbar shows while the editor or toolbar has focus.
+ * WYSIWYG message field (TipTap): markdown for the API, max {@link PORTAL_MESSAGE_BODY_MAX_CHARS} characters.
  */
 export default function PortalRequestMessageCompose({
   value,
@@ -79,6 +87,8 @@ export default function PortalRequestMessageCompose({
   const placeholder = t('portalRequests.messages.composePlaceholder');
 
   const showToolbar = focusedWithin && !disabled;
+  const mdLength = String(value ?? '').length;
+  const atLimit = mdLength >= PORTAL_MESSAGE_BODY_MAX_CHARS;
 
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -97,22 +107,13 @@ export default function PortalRequestMessageCompose({
       extensions: [
         StarterKit.configure({
           blockquote: false,
-          bulletList: false,
-          orderedList: false,
           heading: false,
           horizontalRule: false,
           codeBlock: false,
+          code: false,
           strike: false,
           underline: false,
-          hardBreak: false,
           link: false,
-        }),
-        HardBreak.extend({
-          addKeyboardShortcuts() {
-            return {
-              Enter: () => this.editor.commands.setHardBreak(),
-            };
-          },
         }),
         Link.configure({
           openOnClick: false,
@@ -127,8 +128,11 @@ export default function PortalRequestMessageCompose({
           isAllowedUri: (url) => isAllowedMessageLinkHref(url),
         }),
         Placeholder.configure({ placeholder }),
+        CharacterCount.configure({
+          limit: PORTAL_MESSAGE_BODY_MAX_CHARS,
+        }),
       ],
-      content: markdownToTipTapHtml(value),
+      content: markdownToTipTapHtml(clampMarkdownToMax(value)),
       editable: !disabled,
       shouldRerenderOnTransaction: true,
       editorProps: {
@@ -142,6 +146,13 @@ export default function PortalRequestMessageCompose({
       },
       onUpdate: ({ editor: ed }) => {
         const md = editorHtmlToMarkdown(ed.getHTML());
+        if (md.length > PORTAL_MESSAGE_BODY_MAX_CHARS) {
+          const clipped = md.slice(0, PORTAL_MESSAGE_BODY_MAX_CHARS);
+          lastEmittedRef.current = clipped;
+          ed.commands.setContent(markdownToTipTapHtml(clipped), false);
+          onChangeRef.current(clipped);
+          return;
+        }
         if (md === valueRef.current) {
           lastEmittedRef.current = md;
           return;
@@ -162,6 +173,14 @@ export default function PortalRequestMessageCompose({
 
   useEffect(() => {
     if (!editor) return;
+    const v = String(value ?? '');
+    const clamped = clampMarkdownToMax(v);
+    if (clamped !== v) {
+      lastEmittedRef.current = clamped;
+      onChangeRef.current(clamped);
+      editor.commands.setContent(markdownToTipTapHtml(clamped), false);
+      return;
+    }
     if (value === lastEmittedRef.current) return;
     lastEmittedRef.current = value;
     editor.commands.setContent(markdownToTipTapHtml(value), false);
@@ -250,19 +269,35 @@ export default function PortalRequestMessageCompose({
                 </IconButton>
               </span>
             </Tooltip>
-            <Tooltip title={t('portalRequests.messages.composeToolbarCode')} placement="top">
+            <Tooltip title={t('portalRequests.messages.composeToolbarBulletList')} placement="top">
               <span>
                 <IconButton
                   type="button"
                   size="small"
-                  color={editor?.isActive('code') ? 'primary' : 'default'}
-                  aria-label={t('portalRequests.messages.composeToolbarCode')}
-                  aria-pressed={editor?.isActive('code') ?? false}
+                  color={editor?.isActive('bulletList') ? 'primary' : 'default'}
+                  aria-label={t('portalRequests.messages.composeToolbarBulletList')}
+                  aria-pressed={editor?.isActive('bulletList') ?? false}
                   disabled={!canFmt}
                   onMouseDown={preventTakeFocusFromField}
-                  onClick={() => editor?.chain().focus().toggleCode().run()}
+                  onClick={() => editor?.chain().focus().toggleBulletList().run()}
                 >
-                  <CodeIcon fontSize="small" />
+                  <FormatListBulletedIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <Tooltip title={t('portalRequests.messages.composeToolbarOrderedList')} placement="top">
+              <span>
+                <IconButton
+                  type="button"
+                  size="small"
+                  color={editor?.isActive('orderedList') ? 'primary' : 'default'}
+                  aria-label={t('portalRequests.messages.composeToolbarOrderedList')}
+                  aria-pressed={editor?.isActive('orderedList') ?? false}
+                  disabled={!canFmt}
+                  onMouseDown={preventTakeFocusFromField}
+                  onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                >
+                  <FormatListNumberedIcon fontSize="small" />
                 </IconButton>
               </span>
             </Tooltip>
@@ -313,6 +348,13 @@ export default function PortalRequestMessageCompose({
               typography: 'body1',
               '& p': { margin: 0 },
               '& p + p': { marginTop: theme.spacing(0.5) },
+              '& ul, & ol': {
+                margin: 0,
+                paddingInlineStart: theme.spacing(3),
+                marginTop: theme.spacing(0.5),
+              },
+              '& li': { marginTop: theme.spacing(0.25) },
+              '& li p': { marginTop: 0 },
               '& a': {
                 color: theme.palette.primary.main,
                 textDecoration: 'underline',
@@ -330,7 +372,29 @@ export default function PortalRequestMessageCompose({
         >
           {editor ? <EditorContent editor={editor} /> : null}
         </Box>
-        <FormHelperText sx={{ mx: 0 }}>{t('portalRequests.messages.composeHelper')}</FormHelperText>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={0.5}
+          justifyContent="space-between"
+          alignItems={{ xs: 'flex-start', sm: 'flex-start' }}
+          gap={0.5}
+        >
+          <FormHelperText component="span" sx={{ mx: 0, flex: 1 }}>
+            {t('portalRequests.messages.composeHelper', { max: PORTAL_MESSAGE_BODY_MAX_CHARS })}
+          </FormHelperText>
+          <Typography
+            component="span"
+            variant="caption"
+            color={atLimit ? 'error' : 'text.secondary'}
+            sx={{ flexShrink: 0, alignSelf: { xs: 'flex-end', sm: 'flex-start' } }}
+            aria-live="polite"
+          >
+            {t('portalRequests.messages.composeCharacterCounter', {
+              current: mdLength,
+              max: PORTAL_MESSAGE_BODY_MAX_CHARS,
+            })}
+          </Typography>
+        </Stack>
       </Stack>
 
       <Dialog open={linkDialogOpen} onClose={() => setLinkDialogOpen(false)} fullWidth maxWidth="sm">

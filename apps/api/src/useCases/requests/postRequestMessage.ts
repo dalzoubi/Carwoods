@@ -18,7 +18,7 @@ import {
 } from '../../lib/requestsRepo.js';
 import { enqueueNotification } from '../../lib/notificationRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
-import { validateMessageBody, validateRequestId } from '../../domain/requestValidation.js';
+import { validatePortalRequestMessageBody, validateRequestId } from '../../domain/requestValidation.js';
 import { forbidden, notFound, validationError } from '../../domain/errors.js';
 import { Role, hasLandlordAccess } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
@@ -59,7 +59,7 @@ export async function postRequestMessage(
     if (!allowed) throw notFound();
   }
 
-  const bodyValidation = validateMessageBody(input.body);
+  const bodyValidation = validatePortalRequestMessageBody(input.body);
   if (!bodyValidation.valid) {
     throw validationError(bodyValidation.message);
   }

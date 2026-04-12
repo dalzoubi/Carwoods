@@ -29,6 +29,7 @@ import {
   fetchRequestAttachmentFileWithToken,
 } from '../../lib/portalApiClient';
 import { mergePolledRequestMessages } from '../../lib/mergePolledRequestMessages.js';
+import { PORTAL_MESSAGE_BODY_MAX_CHARS } from '../../lib/portalMessageEditorBridge';
 import { RequestStatus } from '../../domain/constants.js';
 import { FALLBACK_MAX_IMAGE_BYTES } from '../../attachmentUploadLimits.js';
 import { MESSAGES_POLL_INTERVAL_MS } from '../../featureFlags';
@@ -989,6 +990,12 @@ export function usePortalRequests({
   const onMessageSubmit = async (event) => {
     event.preventDefault();
     if (!baseUrl || !selectedRequestId || !messageForm.body.trim()) return;
+    const trimmedBody = messageForm.body.trim();
+    if (trimmedBody.length > PORTAL_MESSAGE_BODY_MAX_CHARS) {
+      setMessageStatus('error');
+      setMessageError(t('portalRequests.errors.messageBodyTooLong', { max: PORTAL_MESSAGE_BODY_MAX_CHARS }));
+      return;
+    }
     setMessageStatus('saving');
     setMessageError('');
     try {
@@ -996,7 +1003,7 @@ export function usePortalRequests({
       const emailHint = emailFromAccount(account);
       await postMessage(baseUrl, token, selectedRequestId, {
         emailHint,
-        body: messageForm.body.trim(),
+        body: trimmedBody,
         is_internal: isManagement ? Boolean(messageForm.is_internal) : false,
       });
       setMessageForm({ body: '', is_internal: false });

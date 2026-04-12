@@ -54,9 +54,22 @@ export function validateCreateRequest(input: {
   return ok();
 }
 
+/** Portal UI/API limit for messages posted via `postRequestMessage` (email/Elsa use separate paths). */
+export const PORTAL_REQUEST_MESSAGE_MAX_CHARS = 200;
+
 export function validateMessageBody(body: string | undefined): ValidationResult {
   if (!body) return fail('body', 'missing_body');
   if (body.length > 5000) return fail('body', 'body_too_long');
+  return ok();
+}
+
+/** Stricter cap for portal-posted thread messages only. */
+export function validatePortalRequestMessageBody(body: string | undefined): ValidationResult {
+  const base = validateMessageBody(body);
+  if (!base.valid) return base;
+  if (body!.length > PORTAL_REQUEST_MESSAGE_MAX_CHARS) {
+    return fail('body', 'body_too_long_portal');
+  }
   return ok();
 }
 
