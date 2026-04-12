@@ -1,4 +1,4 @@
-import { RequestStatus } from '../../domain/constants.js';
+import { hasAiAgentAccess, RequestStatus } from '../../domain/constants.js';
 import { validationError } from '../../domain/errors.js';
 import { writeAudit } from '../../lib/auditRepo.js';
 import type { PoolClient } from '../../lib/db.js';
@@ -13,16 +13,23 @@ import {
 /**
  * After Elsa posts a tenant-visible reply (auto-send or review send), move the
  * request to WAITING_ON_TENANT when it is not already there.
+ *
+ * AI automation (`AI_AGENT`) may perform this transition only while the request
+ * is still NOT_STARTED; human landlords/admins are not restricted.
  */
 export async function applyWaitingOnTenantAfterElsaTenantMessage(
   client: PoolClient,
-  params: { requestId: string; actorUserId: string }
+  params: { requestId: string; actorUserId: string; actorRole?: string }
 ): Promise<void> {
   const waitingId = await findStatusIdByCode(client, RequestStatus.WAITING_ON_TENANT);
   if (!waitingId) throw validationError('invalid_status_code');
 
   const before = await getRequestById(client, params.requestId);
   if (!before) return;
+  if (hasAiAgentAccess(params.actorRole ?? '')) {
+    const code = String(before.status_code ?? '').trim().toUpperCase();
+    if (code !== RequestStatus.NOT_STARTED) return;
+  }
   if (before.current_status_id === waitingId) return;
 
   const after = await updateRequestManagementFields(client, params.requestId, {

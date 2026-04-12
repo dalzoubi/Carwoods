@@ -276,7 +276,7 @@ export async function processElsaAutoResponse(
       });
       await applyWaitingOnTenantAfterElsaTenantMessage(
         client as Parameters<typeof applyWaitingOnTenantAfterElsaTenantMessage>[0],
-        { requestId: input.requestId, actorUserId: input.actorUserId }
+        { requestId: input.requestId, actorUserId: input.actorUserId, actorRole: input.actorRole }
       );
       log('info', 'elsa.process.auto_send.sent', {
         requestId: input.requestId,
