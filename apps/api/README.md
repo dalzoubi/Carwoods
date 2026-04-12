@@ -16,6 +16,8 @@ cp local.settings.json.example local.settings.json
 func start
 ```
 
+**Storage / timer:** Set `AzureWebJobsStorage` to a **full storage account connection string** from the Azure portal (Storage account → Access keys → Connection string). The example uses the same placeholders as `AZURE_STORAGE_ACCOUNT_NAME` / `AZURE_STORAGE_ACCOUNT_KEY` when those point at one account. Alternatively, `UseDevelopmentStorage=true` works only if **[Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite)** is running (blob port **10000**). `local.settings.json.example` sets `NOTIFICATION_OUTBOX_TIMER_DISABLED` to `true` so the outbox timer is not registered; drain with `POST /api/internal/jobs/process-notifications` when testing, or set the flag to `false` once storage is available for timer leases.
+
 Endpoints (local default port **7071**):
 
 | Method | Path | Auth |

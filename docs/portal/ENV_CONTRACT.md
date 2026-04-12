@@ -19,7 +19,7 @@ Manual Azure setup checklist: `docs/portal/AZURE_MANUAL_SETUP_CHECKLIST.md`.
 | Variable                                          | Required    | Description                                           |
 | ------------------------------------------------- | ----------- | ----------------------------------------------------- |
 | `FUNCTIONS_WORKER_RUNTIME`                        | Yes         | `node`                                                |
-| `AzureWebJobsStorage`                             | Yes (Azure) | Storage account connection for Functions runtime      |
+| `AzureWebJobsStorage`                             | Yes (Azure) | Storage account connection string for the Functions host (timer leases, internal state). Local: same format as portal **Access keys** connection string, or `UseDevelopmentStorage=true` with Azurite.      |
 | `DATABASE_URL`                                    | Yes         | Azure SQL ADO.NET connection string set by Bicep (Server=<host>,1433;Database=<db>;User Id=<user>;Password=<pass>;Encrypt=yes;TrustServerCertificate=no)             |
 | `BLOB_CONNECTION_STRING` or managed identity vars | Yes         | Blob access for SAS generation                        |
 | `BLOB_ACCOUNT_URL`                                | If using MI | `https://{account}.blob.core.windows.net`             |
@@ -42,7 +42,7 @@ Manual Azure setup checklist: `docs/portal/AZURE_MANUAL_SETUP_CHECKLIST.md`.
 | `PORTAL_LINK_SIGNING_SECRET`                      | Recommended | HMAC secret for signed attachment deep links and reply-to tokens (≥16 chars). Falls back to `NOTIFICATION_LINK_SIGNING_SECRET`, then a dev-only default. |
 | `INBOUND_EMAIL_INGEST_SECRET`                     | For inbound reply | Shared secret; HTTP handler requires header `x-carwoods-email-ingest-secret`. |
 | `INBOUND_EMAIL_REPLY_LOCAL_PREFIX`                | No          | Plus-address local-part prefix before the signed token (default `cwreply`). Example recipient: `cwreply+<token>@yourdomain`. |
-| `NOTIFICATION_OUTBOX_TIMER_DISABLED`              | No          | When `true`, disables the Azure Functions timer that drains `notification_outbox` (in-app rows are created during drain). Use HTTP `POST /api/internal/jobs/process-notifications` manually if disabled. |
+| `NOTIFICATION_OUTBOX_TIMER_DISABLED`              | No          | When `true`, the timer function is **not registered** (skips storage-backed timer listener — useful for local dev without Azurite). Drains `notification_outbox` via HTTP `POST /api/internal/jobs/process-notifications` instead. In Azure, leave unset or `false` so the timer runs. |
 | `NOTIFICATION_OUTBOX_TIMER_CRON`                | No          | NCRONTAB schedule for the outbox timer. Default `0 */1 * * * *` (every minute at second 0). |
 | `NOTIFICATION_OUTBOX_TIMER_BATCH_LIMIT`         | No          | Max outbox rows processed per timer tick. Default `25`. |
 
@@ -77,5 +77,5 @@ Manual Azure setup checklist: `docs/portal/AZURE_MANUAL_SETUP_CHECKLIST.md`.
 
 1. Root: start from `.env.example` if you need a tracked baseline; add `CHOKIDAR_USEPOLLING=true` as needed.
 2. Portal + API: `.env.portal.local.example` → `.env.portal.local` (Vite `portal` mode) and `apps/api/local.settings.json.example` → `local.settings.json` (gitignored). See `scripts/start-local-portal.ps1` for Docker SQL + migration helper.
-3. Use a local SQL Server instance (or `mcr.microsoft.com/mssql/server:2022-latest` via Docker) and Azurite for storage if desired.
+3. Use a local SQL Server instance (or `mcr.microsoft.com/mssql/server:2022-latest` via Docker). For `func start`, set `AzureWebJobsStorage` to a **real storage connection string** (see `local.settings.json.example`) or run **Azurite** with `UseDevelopmentStorage=true`. Enabling the notification outbox **timer** (`NOTIFICATION_OUTBOX_TIMER_DISABLED` not `true`) requires working storage either way; the example defaults the timer to disabled for simpler local startup.
 

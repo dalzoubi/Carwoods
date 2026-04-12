@@ -209,10 +209,13 @@ app.http('internalNotificationsProcess', {
   handler: processNotificationOutbox,
 });
 
-app.timer('notificationOutboxTimer', {
-  schedule: notificationOutboxTimerSchedule(),
-  handler: notificationOutboxOnTimer,
-});
+/** When disabled, omit registration so local `func start` works without Azurite/storage for timer leases. */
+if (!notificationOutboxTimerDisabled()) {
+  app.timer('notificationOutboxTimer', {
+    schedule: notificationOutboxTimerSchedule(),
+    handler: notificationOutboxOnTimer,
+  });
+}
 
 app.http('internalRevokeExpiredLeases', {
   methods: ['POST', 'OPTIONS'],

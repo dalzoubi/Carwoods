@@ -1,13 +1,39 @@
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=<storage-account-name>;AccountKey=<storage-account-key>;EndpointSuffix=core.windows.net",
     "FUNCTIONS_WORKER_RUNTIME": "node",
     "AZURE_RESOURCE_GROUP": "carwoods.com",
+
     "DATABASE_URL": "Server=localhost,1433;Database=carwoods_portal_dev;User Id=sa;Password=<your-local-sa-password>;Encrypt=yes;TrustServerCertificate=yes",
-    "CORS_ALLOWED_ORIGINS": "http://localhost:3000,https://carwoods.com,https://www.carwoods.com",
-    "FIREBASE_PROJECT_ID": "your-project-id",
+
+    "CORS_ALLOWED_ORIGINS": "http://localhost:3000,http://127.0.0.1:3000,https://carwoods.com,https://www.carwoods.com",
+
+    "FIREBASE_PROJECT_ID": "your-firebase-project-id",
     "FIREBASE_OPENID_METADATA_URL": "",
-    "GEMINI_API_KEY": "<your-gemini-api-key>"
+
+    "GEMINI_API_KEY": "<your-gemini-api-key>",
+
+    "AZURE_STORAGE_ACCOUNT_NAME": "<storage-account-name>",
+    "AZURE_STORAGE_ACCOUNT_KEY": "<storage-account-key>",
+    "AZURE_STORAGE_CONTAINER_NAME": "carwoods-portal-dev",
+
+    "ACS_CONNECTION_STRING": "Endpoint=https://<your-acs-resource>.communication.azure.com/;AccessKey=<primary-key>",
+    "ACS_ENDPOINT": "https://<your-acs-resource>.communication.azure.com/",
+    "ACS_AUTH_MODE": "connection_string",
+    "AZURE_ACS_USE_MANAGED_IDENTITY": "false",
+    "AZURE_ACS_CHANNELS": "both",
+
+    "PORTAL_LINK_SIGNING_SECRET": "",
+    "NOTIFICATION_LINK_SIGNING_SECRET": "",
+
+    "INBOUND_EMAIL_INGEST_SECRET": "",
+    "INBOUND_EMAIL_REPLY_LOCAL_PREFIX": "cwreply",
+
+    "NOTIFICATION_OUTBOX_TIMER_DISABLED": "true",
+    "NOTIFICATION_OUTBOX_TIMER_CRON": "0 */1 * * * *",
+    "NOTIFICATION_OUTBOX_TIMER_BATCH_LIMIT": "25",
+
+    "REQUEST_ATTACHMENT_STORAGE_PREFIX": ""
   }
 }

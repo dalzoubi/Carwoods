@@ -325,16 +325,29 @@ async function patchNotificationPolicyHandler(
   }
 }
 
-app.http('landlordNotificationPoliciesList', {
-  methods: ['GET', 'OPTIONS'],
-  authLevel: 'anonymous',
-  route: 'landlord/notifications/policies',
-  handler: listNotificationPoliciesHandler,
-});
+/** Single route: Azure Functions v4 rejects two functions with the same `route` even for different methods. */
+async function landlordNotificationPoliciesHttp(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  if (request.method === 'GET') {
+    return listNotificationPoliciesHandler(request, context);
+  }
+  if (request.method === 'PATCH') {
+    return patchNotificationPolicyHandler(request, context);
+  }
+  if (request.method === 'OPTIONS') {
+    const auth = await actorCanManageScope(request, context);
+    return auth.ok ? jsonResponse(405, auth.ctx.headers, { error: 'method_not_allowed' }) : auth.response;
+  }
+  const auth = await actorCanManageScope(request, context);
+  if (!auth.ok) return auth.response;
+  return jsonResponse(405, auth.ctx.headers, { error: 'method_not_allowed' });
+}
 
-app.http('landlordNotificationPoliciesPatch', {
-  methods: ['PATCH', 'OPTIONS'],
+app.http('landlordNotificationPolicies', {
+  methods: ['GET', 'PATCH', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'landlord/notifications/policies',
-  handler: patchNotificationPolicyHandler,
+  handler: landlordNotificationPoliciesHttp,
 });
