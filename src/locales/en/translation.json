@@ -808,6 +808,7 @@
     "intro": "Update your account email, name, and phone number used for portal communications.",
     "loading": "Loading your profile…",
     "saved": "Profile updated successfully.",
+    "preferencesRefreshed": "Your language and theme preferences have been updated from your saved settings.",
     "guestBlocked": "Guest accounts cannot edit profile details.",
     "dataUnavailable": "We could not load your profile data from the database. Please refresh and try again.",
     "changePhoto": "Change photo",

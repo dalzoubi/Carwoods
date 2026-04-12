@@ -808,6 +808,7 @@
     "intro": "Actualiza el correo, nombre y teléfono usados para comunicaciones del portal.",
     "loading": "Cargando tu perfil…",
     "saved": "Perfil actualizado correctamente.",
+    "preferencesRefreshed": "Sus preferencias de idioma y tema han sido actualizadas desde su configuración guardada.",
     "guestBlocked": "Las cuentas de invitado no pueden editar el perfil.",
     "dataUnavailable": "No pudimos cargar los datos de tu perfil desde la base de datos. Actualiza la página e inténtalo de nuevo.",
     "changePhoto": "Cambiar foto",

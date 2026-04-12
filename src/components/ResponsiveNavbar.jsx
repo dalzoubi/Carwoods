@@ -492,7 +492,7 @@ const ResponsiveNavbar = () => {
                     <Print aria-hidden />
                 </IconButton>
             ) : null}
-            {!isMobile && showAppearanceMenu ? (
+            {showAppearanceMenu ? (
                 <Tooltip title={t('nav.appearance')} arrow>
                     <IconButton
                         color="inherit"
@@ -511,25 +511,23 @@ const ResponsiveNavbar = () => {
                     </IconButton>
                 </Tooltip>
             ) : null}
-            {!isMobile ? (
-                <Tooltip title={t('nav.language')} arrow>
-                    <IconButton
-                        color="inherit"
-                        type="button"
-                        size="small"
-                        id="language-menu-button-toolbar"
-                        data-language-trigger="toolbar"
-                        aria-label={t('nav.selectLanguage')}
-                        aria-haspopup="true"
-                        aria-expanded={Boolean(languageAnchor)}
-                        aria-controls={languageAnchor ? 'language-menu' : undefined}
-                        onClick={handleLanguageOpen}
-                        sx={toolbarChromeIconButtonSx}
-                    >
-                        <Language aria-hidden />
-                    </IconButton>
-                </Tooltip>
-            ) : null}
+            <Tooltip title={t('nav.language')} arrow>
+                <IconButton
+                    color="inherit"
+                    type="button"
+                    size="small"
+                    id="language-menu-button-toolbar"
+                    data-language-trigger="toolbar"
+                    aria-label={t('nav.selectLanguage')}
+                    aria-haspopup="true"
+                    aria-expanded={Boolean(languageAnchor)}
+                    aria-controls={languageAnchor ? 'language-menu' : undefined}
+                    onClick={handleLanguageOpen}
+                    sx={toolbarChromeIconButtonSx}
+                >
+                    <Language aria-hidden />
+                </IconButton>
+            </Tooltip>
             {isAuthenticated ? (
                 <Tooltip title={t('portalHeader.notifications.title')} arrow>
                     <IconButton
@@ -703,44 +701,6 @@ const ResponsiveNavbar = () => {
                     >
                         <ListItemText primary={t('nav.portal')} style={{ color: muiTheme.palette.drawer.text }} />
                     </ListItemButton>
-                    {showAppearanceMenu ? (
-                        <ListItemButton
-                            onClick={handleAppearanceOpen}
-                            aria-haspopup="true"
-                            aria-expanded={Boolean(appearanceAnchor)}
-                            aria-controls={appearanceAnchor ? 'appearance-menu' : undefined}
-                            id="appearance-menu-button-drawer"
-                            data-appearance-trigger="drawer"
-                            sx={{
-                                ...listItemButtonSx,
-                                '&:hover': {
-                                    backgroundColor: muiTheme.palette.drawer.hover,
-                                },
-                            }}
-                        >
-                            <SettingsBrightness sx={{ mr: 1.5, color: muiTheme.palette.drawer.text }} fontSize="small" />
-                            <ListItemText primary={t('nav.appearance')} style={{ color: muiTheme.palette.drawer.text }} />
-                        </ListItemButton>
-                    ) : null}
-
-                    <ListItemButton
-                        onClick={handleLanguageOpen}
-                        aria-haspopup="true"
-                        aria-expanded={Boolean(languageAnchor)}
-                        aria-controls={languageAnchor ? 'language-menu' : undefined}
-                        id="language-menu-button-drawer"
-                        data-language-trigger="drawer"
-                        sx={{
-                            ...listItemButtonSx,
-                            '&:hover': {
-                                backgroundColor: muiTheme.palette.drawer.hover,
-                            },
-                        }}
-                    >
-                        <Language sx={{ mr: 1.5, color: muiTheme.palette.drawer.text }} fontSize="small" />
-                        <ListItemText primary={t('nav.language')} style={{ color: muiTheme.palette.drawer.text }} />
-                    </ListItemButton>
-
                     <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
                         {t('nav.legal')}
                     </ListSubheader>

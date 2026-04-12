@@ -24,7 +24,7 @@ import { usePortalAuth } from '../PortalAuthContext';
 import { useLanguage } from '../LanguageContext';
 import { useThemeMode } from '../ThemeModeContext';
 import { FEATURE_DARK_THEME } from '../featureFlags';
-import { emailFromAccount, isGuestRole, profilePhotoUrlFromMeData, resolveRole } from '../portalUtils';
+import { emailFromAccount, isGuestRole, normalizeRole, profilePhotoUrlFromMeData, resolveRole } from '../portalUtils';
 import { validatePersonBasics, validatePersonField } from '../portalPersonValidation';
 import {
   patchProfile,
@@ -91,9 +91,13 @@ const PortalProfile = () => {
     handleApiForbidden,
     refreshMe,
   } = usePortalAuth();
-  const { currentLanguage, storedLanguageOverride, changeLanguage, resetLanguagePreference, supportedLanguages } = useLanguage();
+  const { storedLanguageOverride, changeLanguage, resetLanguagePreference, supportedLanguages } = useLanguage();
   const { storedOverride, setOverrideDark, setOverrideLight, resetOverride } = useThemeMode();
   const role = resolveRole(meData, account);
+
+  // Pending appearance state — changes accumulate locally and only persist on Save.
+  const [pendingLanguage, setPendingLanguage] = useState(null); // null = 'system' / use device
+  const [pendingTheme, setPendingTheme] = useState(null); // null = 'system' / use device
   const [form, setForm] = useState({
     email: '',
     firstName: '',
@@ -131,6 +135,12 @@ const PortalProfile = () => {
     }),
     [meData]
   );
+  // Server-side appearance values (DB) — used as the baseline for change detection.
+  const initialAppearance = useMemo(() => ({
+    language: meData?.user?.ui_language ?? null,
+    theme: meData?.user?.ui_color_scheme ?? null,
+  }), [meData?.user?.ui_language, meData?.user?.ui_color_scheme]);
+
   const hasChanges = useMemo(
     () =>
       form.email !== initialForm.email
@@ -140,14 +150,51 @@ const PortalProfile = () => {
       || form.notificationsEmailEnabled !== initialForm.notificationsEmailEnabled
       || form.notificationsInAppEnabled !== initialForm.notificationsInAppEnabled
       || form.notificationsSmsEnabled !== initialForm.notificationsSmsEnabled
-      || form.notificationsSmsOptIn !== initialForm.notificationsSmsOptIn,
-    [form, initialForm]
+      || form.notificationsSmsOptIn !== initialForm.notificationsSmsOptIn
+      || pendingLanguage !== initialAppearance.language
+      || pendingTheme !== initialAppearance.theme,
+    [form, initialForm, pendingLanguage, pendingTheme, initialAppearance]
   );
 
   useEffect(() => {
     setForm(initialForm);
     setFieldErrors({});
   }, [initialForm]);
+
+  // Req 6: On mount (per user), read DB values and override browser storage if different.
+  // Also initialises the pending dropdowns from the server so the profile page always
+  // reflects the latest server-stored preferences, not just whatever is in localStorage.
+  const meUserId = meData?.user?.id;
+  useEffect(() => {
+    if (!meData?.user) return;
+    // Guests never have server-stored preferences; skip.
+    if (isGuestRole(normalizeRole(resolveRole(meData, account)))) return;
+
+    const dbLang = meData.user.ui_language ?? null;
+    const dbTheme = meData.user.ui_color_scheme ?? null;
+
+    // Initialise pending dropdowns with DB values.
+    setPendingLanguage(dbLang);
+    setPendingTheme(dbTheme);
+
+    // Override localStorage with server value if they differ, then show a notice.
+    let overridden = false;
+    if (dbLang !== storedLanguageOverride) {
+      if (dbLang !== null) void changeLanguage(dbLang);
+      else void resetLanguagePreference();
+      overridden = true;
+    }
+    if (FEATURE_DARK_THEME && dbTheme !== storedOverride) {
+      if (dbTheme === 'dark') setOverrideDark();
+      else if (dbTheme === 'light') setOverrideLight();
+      else resetOverride();
+      overridden = true;
+    }
+    if (overridden) {
+      showFeedback(t('portalProfile.preferencesRefreshed'), 'info');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meUserId]);
   useEffect(() => {
     if (saveStatus === 'success') {
       showFeedback(t('portalProfile.saved'));
@@ -275,6 +322,18 @@ const PortalProfile = () => {
       }
       setSaveStatus('success');
       refreshMe();
+
+      // Apply pending language/theme to context + localStorage now that Save succeeded.
+      // The preference sync hook will then push the new values to the server.
+      if (pendingLanguage !== storedLanguageOverride) {
+        if (pendingLanguage !== null) void changeLanguage(pendingLanguage);
+        else void resetLanguagePreference();
+      }
+      if (FEATURE_DARK_THEME && pendingTheme !== storedOverride) {
+        if (pendingTheme === 'dark') setOverrideDark();
+        else if (pendingTheme === 'light') setOverrideLight();
+        else resetOverride();
+      }
     } catch (error) {
       handleApiForbidden(error);
       if (
@@ -580,12 +639,12 @@ const PortalProfile = () => {
                       </InputLabel>
                       <Select
                         labelId="portal-profile-language-label"
-                        value={storedLanguageOverride ?? 'system'}
+                        value={pendingLanguage ?? 'system'}
                         label={t('portalProfile.fields.language')}
+                        disabled={formDisabled}
                         onChange={(e) => {
                           const v = e.target.value;
-                          if (v === 'system') resetLanguagePreference();
-                          else changeLanguage(v);
+                          setPendingLanguage(v === 'system' ? null : v);
                         }}
                       >
                         <MenuItem value="system">{t('portalProfile.languages.system')}</MenuItem>
@@ -603,13 +662,12 @@ const PortalProfile = () => {
                         </InputLabel>
                         <Select
                           labelId="portal-profile-theme-label"
-                          value={storedOverride ?? 'system'}
+                          value={pendingTheme ?? 'system'}
                           label={t('portalProfile.fields.colorTheme')}
+                          disabled={formDisabled}
                           onChange={(e) => {
                             const v = e.target.value;
-                            if (v === 'light') setOverrideLight();
-                            else if (v === 'dark') setOverrideDark();
-                            else resetOverride();
+                            setPendingTheme(v === 'system' ? null : v);
                           }}
                         >
                           <MenuItem value="system">{t('portalProfile.themes.system')}</MenuItem>
