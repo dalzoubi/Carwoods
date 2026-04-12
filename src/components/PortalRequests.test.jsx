@@ -54,6 +54,9 @@ const mockRequestsState = {
   attachmentUploadProgress: 0,
   attachmentDeleteStatus: 'idle',
   attachmentDeleteError: '',
+  attachmentRetryHint: '',
+  attachmentShareStatus: 'idle',
+  attachmentShareError: '',
   exportStatus: 'idle',
   exportError: '',
   auditEvents: [],
@@ -85,6 +88,7 @@ const mockRequestsState = {
   onClearAttachmentFile: vi.fn(),
   onAttachmentSubmit: vi.fn(),
   onDeleteAttachment: vi.fn(),
+  onShareAttachment: vi.fn(),
   onExportCsv: vi.fn(),
   onSetElsaAutoRespond: vi.fn(),
   onRunElsa: vi.fn(),
@@ -102,10 +106,6 @@ vi.mock('./portalRequests/usePortalRequests', () => ({
 
 vi.mock('./portalRequests/TenantRequestForm', () => ({
   default: () => <div data-testid="tenant-request-form" />,
-}));
-
-vi.mock('./portalRequests/RequestListPane', () => ({
-  default: () => <div data-testid="request-list-pane" />,
 }));
 
 vi.mock('./portalRequests/RequestDetailPane', () => ({
@@ -142,7 +142,7 @@ describe('PortalRequests create dialog routing', () => {
     expect(screen.queryByRole('dialog', { name: /create request/i })).not.toBeInTheDocument();
   });
 
-  it('shows inline empty-state message in detail pane when no requests are available', () => {
+  it('shows empty list message in the request list when no requests are available', () => {
     renderAtRoute('/portal/requests');
 
     expect(screen.getByText('No requests found for this account.')).toBeInTheDocument();

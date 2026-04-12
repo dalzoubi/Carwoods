@@ -105,13 +105,13 @@ describe('RequestListPane', () => {
     expect(newer.compareDocumentPosition(older) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('does not show empty state pill when there are no requests', () => {
+  it('shows empty list message when there are no requests', () => {
     renderPane({
       requests: [],
       requestsStatus: 'ok',
     });
 
-    expect(screen.queryByText('No requests found for this account.')).not.toBeInTheDocument();
+    expect(screen.getByText('No requests found for this account.')).toBeInTheDocument();
   });
 
   it('applies grouped status filter from dashboard query param', () => {

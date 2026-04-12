@@ -12,12 +12,10 @@ import {
   Paper,
   Stack,
   Typography,
-  useMediaQuery,
-  useTheme,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import Close from '@mui/icons-material/Close';
-import { useLocation } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
 import { hasLandlordAccess } from '../domain/roleUtils.js';
 import { Role } from '../domain/constants.js';
@@ -34,10 +32,7 @@ import { fetchLandlords } from '../lib/portalApiClient';
 
 const PortalRequests = () => {
   const { t } = useTranslation();
-  const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
+  const [searchParams, setSearchParams] = useSearchParams();
   const selectedRequestFromUrl = searchParams.get('id') || '';
   const attachmentFromUrl = searchParams.get('attachment') || '';
   const attachmentTokenFromUrl = searchParams.get('atoken') || '';
@@ -47,8 +42,6 @@ const PortalRequests = () => {
       : null;
   const createFromUrl = searchParams.get('create') === '1';
   const statusFilterFromUrl = searchParams.get('status') || 'all';
-  const listPaneRef = useRef(null);
-  const detailPaneRef = useRef(null);
   const {
     baseUrl,
     isAuthenticated,
@@ -313,6 +306,22 @@ const PortalRequests = () => {
     if (exportStatus === 'error') showFeedback(exportError || t('portalRequests.errors.loadFailed'), 'error');
   }, [exportError, exportStatus, showFeedback, t]);
 
+  const setRequestIdInUrl = (id) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (id) next.set('id', id);
+        else next.delete('id');
+        return next;
+      },
+      { replace: true }
+    );
+  };
+
+  const closeRequestDetailModal = () => {
+    setRequestIdInUrl('');
+  };
+
   return (
     <Box>
       <Helmet>
@@ -428,82 +437,56 @@ const PortalRequests = () => {
           </Box>
         )}
 
-        {/* Split pane: list + detail side by side on desktop */}
-        <Stack
-          direction={isDesktop ? 'row' : 'column'}
-          spacing={2}
-          sx={{ alignItems: 'flex-start' }}
-        >
-          {/* List pane */}
-          <Paper
-            ref={listPaneRef}
-            variant="outlined"
-            sx={{
-              width: isDesktop ? 340 : '100%',
-              minWidth: isDesktop ? 340 : undefined,
-              flexShrink: 0,
-              p: 2,
-              borderRadius: 2,
-              maxHeight: isDesktop ? 'calc(100vh - 200px)' : undefined,
-              overflow: 'auto',
-            }}
-          >
-            <RequestListPane
-              requests={requests}
-              requestsStatus={requestsStatus}
-              requestsError={requestsError}
-              initialStatusFilter={statusFilterFromUrl}
-              selectedRequestId={selectedRequestId}
-              onSelectRequest={async (id) => {
-                setSelectedRequestId(id);
-                try {
-                  await loadRequestDetails(id);
-                  await loadAuditForRequest(id);
-                  await loadElsaContext(id);
-                  if (!isDesktop) {
-                    detailPaneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }
-                } catch {
-                  // detail errors are surfaced in detailStatus/detailError
-                }
-              }}
-              onReload={() => loadRequests({ keepSelection: true })}
-              reloadDisabled={!isAuthenticated || !baseUrl || isGuest || requestsStatus === 'loading'}
-              isAdmin={isAdmin}
-              isManagement={isManagement}
-              landlords={landlords}
-              landlordsStatus={landlordsStatus}
-              selectedLandlordId={selectedLandlordId}
-              onSelectLandlord={setSelectedLandlordId}
-            />
-          </Paper>
+        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, width: '100%', maxWidth: 960 }}>
+          <RequestListPane
+            requests={requests}
+            requestsStatus={requestsStatus}
+            requestsError={requestsError}
+            initialStatusFilter={statusFilterFromUrl}
+            selectedRequestId={selectedRequestId}
+            onSelectRequest={(id) => setRequestIdInUrl(id)}
+            onReload={() => loadRequests({ keepSelection: true })}
+            reloadDisabled={!isAuthenticated || !baseUrl || isGuest || requestsStatus === 'loading'}
+            isAdmin={isAdmin}
+            isManagement={isManagement}
+            landlords={landlords}
+            landlordsStatus={landlordsStatus}
+            selectedLandlordId={selectedLandlordId}
+            onSelectLandlord={setSelectedLandlordId}
+          />
+        </Paper>
 
-          {/* Detail pane */}
-          <Paper
-            variant="outlined"
-            ref={detailPaneRef}
+        <Dialog
+          open={Boolean(selectedRequestId)}
+          onClose={closeRequestDetailModal}
+          fullWidth
+          maxWidth="lg"
+          scroll="paper"
+          aria-labelledby="portal-request-detail-dialog-title"
+        >
+          <DialogTitle
+            id="portal-request-detail-dialog-title"
             sx={{
-              flex: 1,
-              p: 2,
-              borderRadius: 2,
-              minWidth: 0,
-              width: isDesktop ? undefined : '100%',
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between',
+              gap: 1,
+              pr: 1,
             }}
           >
-            {!isDesktop && selectedRequestId && (
-              <Box sx={{ mb: 1.5 }}>
-                <Button
-                  type="button"
-                  size="small"
-                  onClick={() => {
-                    setSelectedRequestId('');
-                    listPaneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }}
-                >
-                  {t('portalRequests.actions.backToList')}
-                </Button>
-              </Box>
-            )}
+            <Typography component="span" variant="h6" sx={{ flex: 1, wordBreak: 'break-word', pt: 0.25 }}>
+              {requestDetail?.title || t('portalRequests.detailModal.title')}
+            </Typography>
+            <IconButton
+              type="button"
+              size="small"
+              onClick={closeRequestDetailModal}
+              aria-label={t('portalRequests.actions.close')}
+            >
+              <Close fontSize="small" />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent dividers sx={{ pt: 2 }}>
             {selectedRequestId ? (
               <RequestDetailPane
                 requestDetail={requestDetail}
@@ -558,17 +541,9 @@ const PortalRequests = () => {
                 cancelStatus={cancelStatus}
                 cancelError={cancelError}
               />
-            ) : (
-              <Box sx={{ py: 6, textAlign: 'center' }}>
-                <Typography color="text.secondary" variant="body2">
-                  {requests.length > 0
-                    ? t('portalRequests.list.selectPrompt')
-                    : t('portalRequests.list.empty')}
-                </Typography>
-              </Box>
-            )}
-          </Paper>
-        </Stack>
+            ) : null}
+          </DialogContent>
+        </Dialog>
       </Stack>
       <PortalFeedbackSnackbar feedback={feedback} onClose={closeFeedback} />
     </Box>

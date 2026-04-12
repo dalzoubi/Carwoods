@@ -132,7 +132,7 @@ export const TocNav = forwardRef(({ children, ...props }, ref) => {
         if (!target) return;
         e.preventDefault();
         target.scrollIntoView({ behavior: 'smooth' });
-        history.pushState(null, '', `#${id}`);
+        window.history.pushState(null, '', `#${id}`);
     }, []);
 
     const handleKeyDown = useCallback((e) => {
@@ -212,7 +212,7 @@ export function scrollToHashAnchor(href, { updateHistory = true } = {}) {
         target.scrollIntoView({ behavior: 'smooth' });
     }
     if (updateHistory) {
-        history.pushState(null, '', href);
+        window.history.pushState(null, '', href);
     }
     return true;
 }

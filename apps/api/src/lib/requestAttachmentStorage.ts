@@ -33,6 +33,9 @@ function toBlobBaseUrl(config: StorageConfig, storagePath: string): string {
   )}/${encodeBlobPath(storagePath)}`;
 }
 
+/** Azure recommends starting SAS slightly in the past to avoid intermittent "not yet valid" failures from clock skew. */
+const SAS_START_SKEW_MS = 15 * 60 * 1000;
+
 export function buildAttachmentReadUrl(
   storagePath: string,
   expiresInSeconds: number
@@ -40,6 +43,7 @@ export function buildAttachmentReadUrl(
   const config = getStorageConfig();
   if (!config) return null;
   const now = new Date();
+  const startsOn = new Date(now.getTime() - SAS_START_SKEW_MS);
   const expiresOn = new Date(now.getTime() + Math.max(1, expiresInSeconds) * 1000);
   const sharedKeyCredential = new StorageSharedKeyCredential(config.accountName, config.accountKey);
   const sasToken = generateBlobSASQueryParameters(
@@ -47,7 +51,7 @@ export function buildAttachmentReadUrl(
       containerName: config.containerName,
       blobName: storagePath,
       permissions: BlobSASPermissions.parse('r'),
-      startsOn: now,
+      startsOn,
       expiresOn,
       protocol: SASProtocol.Https,
     },
@@ -64,6 +68,7 @@ export function buildAttachmentUploadUrl(
   const config = getStorageConfig();
   if (!config) return null;
   const now = new Date();
+  const startsOn = new Date(now.getTime() - SAS_START_SKEW_MS);
   const expiresOn = new Date(now.getTime() + Math.max(1, expiresInSeconds) * 1000);
   const sharedKeyCredential = new StorageSharedKeyCredential(config.accountName, config.accountKey);
   const sasToken = generateBlobSASQueryParameters(
@@ -71,7 +76,7 @@ export function buildAttachmentUploadUrl(
       containerName: config.containerName,
       blobName: storagePath,
       permissions: BlobSASPermissions.parse('cw'),
-      startsOn: now,
+      startsOn,
       expiresOn,
       protocol: SASProtocol.Https,
       contentType,

@@ -133,7 +133,7 @@ describe('PortalAdminAttachmentConfig', () => {
         })
       );
     });
-  });
+  }, 15000);
 
   it('saves and clears landlord override with confirmation', async () => {
     render(

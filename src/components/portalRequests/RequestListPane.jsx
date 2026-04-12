@@ -250,6 +250,18 @@ const RequestListPane = ({
           <MenuItem value={RequestStatus.CANCELLED}>{t('portalRequests.statuses.CANCELLED')}</MenuItem>
         </Select>
       </Stack>
+      {requestsStatus === 'ok' && sortedRequests.length === 0 && (
+        <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+          {requests.length === 0
+            ? t('portalRequests.list.empty')
+            : t('portalRequests.list.noMatchesFilter')}
+        </Typography>
+      )}
+      {requestsStatus === 'ok' && sortedRequests.length > 0 && !selectedRequestId && (
+        <Typography variant="body2" color="text.secondary">
+          {t('portalRequests.list.selectPrompt')}
+        </Typography>
+      )}
       {sortedRequests.length > 0 && (
         <Box sx={{ minWidth: { md: 320 }, border: '1px solid', borderColor: 'divider', borderRadius: 1.5 }}>
           <List dense disablePadding>

@@ -35,6 +35,7 @@ import {
 } from '../lib/portalApiClient';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
+import PortalConfirmDialog from './PortalConfirmDialog';
 import PortalUserAvatar from './PortalUserAvatar';
 import ProfilePhotoEditorDialog from './ProfilePhotoEditorDialog';
 import StatusAlertSlot from './StatusAlertSlot';
@@ -112,6 +113,7 @@ const PortalProfile = () => {
   const [saveError, setSaveError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [smsOptInConfirmOpen, setSmsOptInConfirmOpen] = useState(false);
+  const [removePhotoConfirmOpen, setRemovePhotoConfirmOpen] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoEditorOpen, setPhotoEditorOpen] = useState(false);
   const [pendingPhotoFile, setPendingPhotoFile] = useState(null);
@@ -435,7 +437,16 @@ const PortalProfile = () => {
     }
   };
 
-  const removeProfilePhoto = async () => {
+  const openRemovePhotoConfirm = () => {
+    if (formDisabled || photoBusy || !hasProfilePhoto) return;
+    setRemovePhotoConfirmOpen(true);
+  };
+
+  const cancelRemovePhotoConfirm = () => {
+    setRemovePhotoConfirmOpen(false);
+  };
+
+  const confirmRemoveProfilePhoto = async () => {
     if (formDisabled || photoBusy || !hasProfilePhoto) return;
     setPhotoBusy(true);
     try {
@@ -444,6 +455,7 @@ const PortalProfile = () => {
       await deleteProfilePhoto(baseUrl, token, { emailHint });
       refreshMe();
       showFeedback(t('portalProfile.photoRemoved'), 'success');
+      setRemovePhotoConfirmOpen(false);
     } catch (error) {
       handleApiForbidden(error);
       showFeedback(t('portalProfile.photoErrors.uploadFailed'), 'error');
@@ -494,7 +506,7 @@ const PortalProfile = () => {
                   variant="text"
                   size="small"
                   disabled={formDisabled || photoBusy || !hasProfilePhoto}
-                  onClick={removeProfilePhoto}
+                  onClick={openRemovePhotoConfirm}
                   sx={{ textTransform: 'none' }}
                 >
                   {t('portalProfile.removePhoto')}
@@ -507,6 +519,8 @@ const PortalProfile = () => {
               meData={meData}
               firstName={form.firstName}
               lastName={form.lastName}
+              fallbackPhotoUrl={account?.photoURL}
+              onProfilePhotoLoadError={refreshMe}
               size={96}
             />
           </Box>
@@ -723,6 +737,18 @@ const PortalProfile = () => {
         </DialogActions>
       </Dialog>
       <PortalFeedbackSnackbar feedback={feedback} onClose={closeFeedback} />
+
+      <PortalConfirmDialog
+        open={removePhotoConfirmOpen}
+        onClose={cancelRemovePhotoConfirm}
+        onConfirm={confirmRemoveProfilePhoto}
+        title={t('portalProfile.removePhotoConfirm.title')}
+        body={t('portalProfile.removePhotoConfirm.body')}
+        confirmLabel={t('portalProfile.removePhotoConfirm.confirm')}
+        cancelLabel={t('portalProfile.removePhotoConfirm.cancel')}
+        confirmColor="error"
+        loading={photoBusy}
+      />
 
       <ProfilePhotoEditorDialog
         open={photoEditorOpen}

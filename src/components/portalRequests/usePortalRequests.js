@@ -152,6 +152,10 @@ export function usePortalRequests({
   const [requestsError, setRequestsError] = useState('');
   const [requests, setRequests] = useState([]);
   const [selectedRequestId, setSelectedRequestId] = useState('');
+  const selectedRequestIdRef = useRef('');
+  selectedRequestIdRef.current = selectedRequestId;
+  /** Tracks prior URL request id so we only fetch on id changes (initial deep link is handled by `loadRequests`). */
+  const prevUrlSelectedRequestIdRef = useRef(undefined);
   const [requestDetail, setRequestDetail] = useState(null);
   const [detailStatus, setDetailStatus] = useState('idle');
   const [detailError, setDetailError] = useState('');
@@ -352,14 +356,15 @@ export function usePortalRequests({
       setRequests(nextRequests);
       setRequestsStatus('ok');
 
+      const currentSelected = selectedRequestIdRef.current;
+      const urlId = String(initialSelectedRequestId || '').trim();
+      const requestIds = new Set(nextRequests.map((request) => request.id));
       const nextSelected = keepSelection
-        ? (
-            nextRequests.some((request) => request.id === selectedRequestId)
-              ? selectedRequestId
-              : initialSelectedRequestId && nextRequests.some((request) => request.id === initialSelectedRequestId)
-                ? initialSelectedRequestId
-                : nextRequests[0]?.id || ''
-          )
+        ? (requestIds.has(currentSelected)
+            ? currentSelected
+            : requestIds.has(urlId)
+              ? urlId
+              : '')
         : nextRequests[0]?.id || '';
       setSelectedRequestId(nextSelected);
       if (nextSelected) {
@@ -396,7 +401,47 @@ export function usePortalRequests({
     if (!baseUrl || !isAuthenticated || isGuest || meStatus !== 'ok') return;
     loadRequests({ keepSelection: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseUrl, isAuthenticated, isGuest, meStatus, listPath, initialSelectedRequestId]);
+  }, [baseUrl, isAuthenticated, isGuest, meStatus, listPath]);
+
+  useEffect(() => {
+    const id = String(initialSelectedRequestId || '').trim();
+    if (!id) {
+      setSelectedRequestId('');
+      return;
+    }
+    setSelectedRequestId(id);
+  }, [initialSelectedRequestId]);
+
+  // After initial mount, load detail when the URL ?id= changes (loadRequests handles the first deep link).
+  useEffect(() => {
+    const id = String(initialSelectedRequestId || '').trim();
+    const prev = prevUrlSelectedRequestIdRef.current;
+    prevUrlSelectedRequestIdRef.current = id;
+
+    if (!baseUrl || !isAuthenticated || isGuest || meStatus !== 'ok') return;
+    if (requestsStatus !== 'ok') return;
+    if (!id) return;
+    if (!requests.some((r) => String(r.id) === id)) return;
+    if (prev === undefined) return;
+    if (prev === id) return;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        await loadRequestDetails(id);
+        if (cancelled) return;
+        await loadAuditForRequest(id);
+        if (cancelled) return;
+        await loadElsaContext(id);
+      } catch {
+        // surfaced via detailStatus / detailError
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- URL id + list readiness; skip first paint (loadRequests owns)
+  }, [initialSelectedRequestId, requestsStatus, requests]);
 
   useEffect(() => {
     const link = secureAttachmentDeepLink;

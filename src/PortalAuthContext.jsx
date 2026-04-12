@@ -67,10 +67,13 @@ function RealPortalAuthProvider({ children }) {
 
   const toPortalAccount = useCallback((user) => {
     if (!user) return null;
+    const photoURL =
+      typeof user.photoURL === 'string' && user.photoURL.trim() ? user.photoURL.trim() : '';
     return {
       uid: user.uid ?? null,
       name: user.displayName ?? '',
       username: user.email ?? '',
+      photoURL,
     };
   }, []);
 

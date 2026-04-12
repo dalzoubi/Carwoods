@@ -816,6 +816,12 @@
     "photoUploading": "Subiendo…",
     "photoSaved": "Foto de perfil actualizada.",
     "photoRemoved": "Foto de perfil eliminada.",
+    "removePhotoConfirm": {
+      "title": "¿Quitar la foto de perfil?",
+      "body": "Se eliminará tu foto de perfil. Puedes subir una nueva en cualquier momento.",
+      "cancel": "Cancelar",
+      "confirm": "Quitar"
+    },
     "photoPreview": {
       "title": "Ajustar foto de perfil",
       "hint": "Arrastra la foto para recolocarla. Usa el control o los botones para acercar o alejar. El círculo muestra cómo se verá tu imagen.",
@@ -940,6 +946,9 @@
     "metaDescription": "Crear y administrar solicitudes de mantenimiento, mensajes y archivos adjuntos.",
     "heading": "Solicitudes de mantenimiento",
     "intro": "Usa este espacio para crear solicitudes, aplicar actualizaciones y mantener la comunicación en un solo hilo.",
+    "detailModal": {
+      "title": "Detalles de la solicitud"
+    },
     "loading": "Cargando datos de solicitudes…",
     "exportSuccess": "Exportación CSV descargada.",
     "labels": {
@@ -1005,6 +1014,7 @@
       "heading": "Lista de solicitudes",
       "empty": "No hay solicitudes para esta cuenta.",
       "selectPrompt": "Seleccione una solicitud para ver los detalles.",
+      "noMatchesFilter": "Ninguna solicitud coincide con los filtros actuales.",
       "landlordFilter": {
         "label": "Filtrar por propietario",
         "all": "Todos los propietarios",

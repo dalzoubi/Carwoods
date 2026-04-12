@@ -47,7 +47,7 @@ describe('ResponsiveNavbar sign-out confirmation', () => {
       </WithAppTheme>
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /signed in/i }));
+    fireEvent.click(screen.getByRole('button', { name: /account menu/i }));
     fireEvent.click(screen.getByRole('menuitem', { name: /^sign out$/i }));
 
     const dialog = screen.getByRole('dialog', { name: /sign out\?/i });
@@ -60,7 +60,7 @@ describe('ResponsiveNavbar sign-out confirmation', () => {
       expect(screen.queryByRole('dialog', { name: /sign out\?/i })).not.toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /signed in/i }));
+    fireEvent.click(screen.getByRole('button', { name: /account menu/i }));
     fireEvent.click(screen.getByRole('menuitem', { name: /^sign out$/i }));
     const confirmDialog = screen.getByRole('dialog', { name: /sign out\?/i });
     fireEvent.click(within(confirmDialog).getByRole('button', { name: /^sign out$/i }));
@@ -75,7 +75,7 @@ describe('ResponsiveNavbar sign-out confirmation', () => {
       </WithAppTheme>
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /signed in/i }));
+    fireEvent.click(screen.getByRole('button', { name: /account menu/i }));
     expect(screen.getByRole('menuitem', { name: /profile/i })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: /^sign out$/i })).toBeInTheDocument();
     expect(screen.queryByRole('menuitem', { name: /workspace/i })).not.toBeInTheDocument();

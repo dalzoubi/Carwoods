@@ -49,4 +49,19 @@ describe('PortalUserAvatar', () => {
       'https://override.example/x.png'
     );
   });
+
+  it('uses fallbackPhotoUrl when no portal photo', () => {
+    renderAvatar(
+      <PortalUserAvatar
+        firstName="Ada"
+        lastName="Lovelace"
+        meData={{ user: {} }}
+        fallbackPhotoUrl="https://idp.example/photo.png"
+      />
+    );
+    expect(screen.getByRole('presentation')).toHaveAttribute(
+      'src',
+      'https://idp.example/photo.png'
+    );
+  });
 });

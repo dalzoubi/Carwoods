@@ -48,13 +48,7 @@ describe('usePortalRequests', () => {
     vi.restoreAllMocks();
   });
 
-  it('loads requests and request details on initial mount', async () => {
-    // Mock order for non-management (isManagement: false):
-    // Both useEffect hooks fire concurrently. Effect 1 (loadRequests) and
-    // Effect 2 (loadLookups) each call headersBuilder() in the same microtask
-    // batch. FIFO resolution means effect 1 consumes mock 1 (list), then
-    // effect 2 consumes mock 2 (lookups), then effect 1 continues with
-    // mocks 3-5 (detail, messages, attachments).
+  it('loads requests list and lookups on initial mount without selecting a request', async () => {
     global.fetch
       .mockResolvedValueOnce(
         jsonResponse({
@@ -62,7 +56,30 @@ describe('usePortalRequests', () => {
         })
       )
       .mockResolvedValueOnce(
-        // Consumed by loadLookups (effect 2 fires concurrently with effect 1)
+        jsonResponse({ categories: [], priorities: [], tenant_defaults: null, landlord_contact: null })
+      );
+
+    const params = baseParams();
+    const { result } = renderHook(() => usePortalRequests(params));
+
+    await waitFor(() => {
+      expect(result.current.requestsStatus).toBe('ok');
+    });
+
+    expect(result.current.requests).toHaveLength(1);
+    expect(result.current.selectedRequestId).toBe('');
+    expect(result.current.requestDetail).toBeNull();
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('loads request details when initialSelectedRequestId is set (URL deep link)', async () => {
+    global.fetch
+      .mockResolvedValueOnce(
+        jsonResponse({
+          requests: [{ id: 'req-1', title: 'Kitchen leak', current_status_id: 'NOT_STARTED' }],
+        })
+      )
+      .mockResolvedValueOnce(
         jsonResponse({ categories: [], priorities: [], tenant_defaults: null, landlord_contact: null })
       )
       .mockResolvedValueOnce(
@@ -86,18 +103,16 @@ describe('usePortalRequests', () => {
         })
       );
 
-    // Pre-create stable params so getAccessToken and account keep the same
-    // reference across renders. Recreating them on every render would cause
-    // headersBuilder (useMemo on [account, getAccessToken]) to recompute
-    // every render, re-triggering useEffect(loadLookups) infinitely → OOM.
-    const params = baseParams();
+    const params = baseParams({ initialSelectedRequestId: 'req-1' });
     const { result } = renderHook(() => usePortalRequests(params));
 
     await waitFor(() => {
       expect(result.current.requestsStatus).toBe('ok');
     });
+    await waitFor(() => {
+      expect(result.current.detailStatus).toBe('ok');
+    });
 
-    expect(result.current.requests).toHaveLength(1);
     expect(result.current.selectedRequestId).toBe('req-1');
     expect(result.current.requestDetail?.id).toBe('req-1');
     expect(result.current.threadMessages).toHaveLength(1);
@@ -139,6 +154,7 @@ describe('usePortalRequests', () => {
       isManagement: true,
       isAdmin: true,
       account: { idTokenClaims: { email: 'admin@example.com' } },
+      initialSelectedRequestId: 'req-a1',
     });
     const { result } = renderHook(() => usePortalRequests(params));
 
@@ -187,6 +203,7 @@ describe('usePortalRequests', () => {
       isManagement: true,
       isAdmin: false,
       account: { idTokenClaims: { email: 'landlord@example.com' } },
+      initialSelectedRequestId: 'req-l1',
     });
     const { result } = renderHook(() => usePortalRequests(params));
 
@@ -226,11 +243,14 @@ describe('usePortalRequests', () => {
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
       .mockResolvedValueOnce(jsonResponse({ upload: { upload_url: 'https://example.invalid/upload' } }));
 
-    const params = baseParams();
+    const params = baseParams({ initialSelectedRequestId: 'req-2' });
     const { result } = renderHook(() => usePortalRequests(params));
 
     await waitFor(() => {
       expect(result.current.requestsStatus).toBe('ok');
+    });
+    await waitFor(() => {
+      expect(result.current.detailStatus).toBe('ok');
     });
 
     const file = new File(['file-bytes'], 'photo.jpg', { type: 'image/jpeg' });
@@ -270,11 +290,14 @@ describe('usePortalRequests', () => {
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
       .mockResolvedValueOnce(jsonResponse({ error: 'storage_not_configured' }, 422));
 
-    const params = baseParams();
+    const params = baseParams({ initialSelectedRequestId: 'req-22' });
     const { result } = renderHook(() => usePortalRequests(params));
 
     await waitFor(() => {
       expect(result.current.requestsStatus).toBe('ok');
+    });
+    await waitFor(() => {
+      expect(result.current.detailStatus).toBe('ok');
     });
 
     const file = new File(['file-bytes'], 'photo.jpg', { type: 'image/jpeg' });
@@ -314,11 +337,14 @@ describe('usePortalRequests', () => {
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }));
 
-    const params = baseParams();
+    const params = baseParams({ initialSelectedRequestId: 'req-3' });
     const { result } = renderHook(() => usePortalRequests(params));
 
     await waitFor(() => {
       expect(result.current.requestsStatus).toBe('ok');
+    });
+    await waitFor(() => {
+      expect(result.current.detailStatus).toBe('ok');
     });
 
     const fetchCallsBefore = global.fetch.mock.calls.length;
@@ -353,6 +379,7 @@ describe('usePortalRequests', () => {
     const params = baseParams({
       isManagement: true,
       account: { idTokenClaims: { email: 'landlord@example.com' } },
+      initialSelectedRequestId: 'req-x1',
     });
     const { result } = renderHook(() => usePortalRequests(params));
 
@@ -391,6 +418,7 @@ describe('usePortalRequests', () => {
     const params = baseParams({
       isManagement: true,
       account: { idTokenClaims: { email: 'landlord@example.com' } },
+      initialSelectedRequestId: 'req-c1',
     });
     const { result } = renderHook(() => usePortalRequests(params));
 
@@ -430,6 +458,7 @@ describe('usePortalRequests', () => {
     const params = baseParams({
       isManagement: true,
       account: { idTokenClaims: { email: 'landlord@example.com' } },
+      initialSelectedRequestId: 'req-m1',
     });
     const { result } = renderHook(() => usePortalRequests(params));
 
@@ -476,6 +505,7 @@ describe('usePortalRequests', () => {
     const params = baseParams({
       isManagement: true,
       account: { idTokenClaims: { email: 'landlord@example.com' } },
+      initialSelectedRequestId: 'req-msg1',
     });
     const { result } = renderHook(() => usePortalRequests(params));
 
@@ -515,6 +545,7 @@ describe('usePortalRequests', () => {
     const params = baseParams({
       isManagement: true,
       account: { idTokenClaims: { email: 'landlord@example.com' } },
+      initialSelectedRequestId: 'req-msg2',
     });
     const { result } = renderHook(() => usePortalRequests(params));
 
@@ -552,12 +583,15 @@ describe('usePortalRequests', () => {
           { id: 'req-r2', title: 'Pipe issue', status_code: 'NOT_STARTED' },
         ],
       }))
+      .mockResolvedValueOnce(
+        jsonResponse({ categories: [], priorities: [], tenant_defaults: null, landlord_contact: null })
+      )
       .mockResolvedValueOnce(jsonResponse({ request: { id: 'req-r1', title: 'Door issue', status_code: 'NOT_STARTED' } }))
       .mockResolvedValueOnce(jsonResponse({ messages: [] }))
       .mockResolvedValueOnce(jsonResponse({ attachments: [] }))
       .mockResolvedValueOnce(jsonResponse({ error: 'upstream_failed' }, 500));
 
-    const params = baseParams();
+    const params = baseParams({ initialSelectedRequestId: 'req-r1' });
     const { result } = renderHook(() => usePortalRequests(params));
 
     await waitFor(() => expect(result.current.requestsStatus).toBe('ok'));

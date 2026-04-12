@@ -1,16 +1,12 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import {
     AppBar,
-    Badge,
     Toolbar,
     IconButton,
     Button,
-    Chip,
-    CircularProgress,
     Drawer,
     List,
     ListItemButton,
-    ListItemIcon,
     ListItemText,
     ListSubheader,
     Menu,
@@ -21,7 +17,6 @@ import {
     Typography,
     Box,
     Tooltip,
-    Stack,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown';
@@ -32,24 +27,22 @@ import RestartAlt from '@mui/icons-material/RestartAlt';
 import Print from '@mui/icons-material/Print';
 import Language from '@mui/icons-material/Language';
 import Gavel from '@mui/icons-material/Gavel';
-import NotificationsNone from '@mui/icons-material/NotificationsNone';
 import Login from '@mui/icons-material/Login';
-import Person from '@mui/icons-material/Person';
-import Logout from '@mui/icons-material/Logout';
 import { NavLink } from '../styles';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useThemeMode } from '../ThemeModeContext';
 import { useLanguage } from '../LanguageContext';
 import { usePortalAuth } from '../PortalAuthContext';
-import { FEATURE_DARK_THEME, notificationsPollIntervalMs } from '../featureFlags';
+import { FEATURE_DARK_THEME } from '../featureFlags';
 import { isPrintablePageRoute, stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
-import { isGuestRole, normalizeRole, resolveDisplayName, resolveRole } from '../portalUtils';
 import { useTranslation } from 'react-i18next';
 import carwoodsLogo from '../assets/carwoods-logo.png';
-import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
-import PortalUserAvatar from './PortalUserAvatar';
-import { Role } from '../domain/constants.js';
-import { fetchNotifications, markNotificationRead } from '../lib/portalApiClient';
+import PortalNotificationsTray from './PortalNotificationsTray';
+import {
+    PORTAL_ACCOUNT_MENU_BUTTON_ID,
+    PortalAccountMenu,
+    PortalAccountMenuAvatarTrigger,
+} from './PortalAccountMenu';
 
 const DRAWER_PAPER_ID = 'main-navigation-drawer';
 
@@ -119,14 +112,6 @@ const logoLinkSx = {
     },
 };
 
-function portalRoleLabel(role, t) {
-    const normalized = normalizeRole(role);
-    if (normalized === Role.ADMIN) return t('portalHeader.roles.admin');
-    if (normalized === Role.LANDLORD) return t('portalHeader.roles.landlord');
-    if (normalized === Role.TENANT) return t('portalHeader.roles.tenant');
-    return t('portalHeader.roles.unknown');
-}
-
 const ResponsiveNavbar = () => {
     const appBarRef = useRef(null);
     const navigate = useNavigate();
@@ -138,14 +123,10 @@ const ResponsiveNavbar = () => {
     const [legalAnchor, setLegalAnchor] = useState(null);
     const [appearanceAnchor, setAppearanceAnchor] = useState(null);
     const [languageAnchor, setLanguageAnchor] = useState(null);
-    const [notificationsAnchor, setNotificationsAnchor] = useState(null);
     const [accountAnchor, setAccountAnchor] = useState(null);
-    const [signOutConfirmOpen, setSignOutConfirmOpen] = useState(false);
     const [appearanceMenuLabelledBy, setAppearanceMenuLabelledBy] = useState(undefined);
     const [languageMenuLabelledBy, setLanguageMenuLabelledBy] = useState(undefined);
-    const [notifications, setNotifications] = useState([]);
-    const [unreadCount, setUnreadCount] = useState(0);
-    const [notificationsLoading, setNotificationsLoading] = useState(false);
+    const notificationsTrayRef = useRef(null);
     const muiTheme = useTheme();
     const isMobile = useMediaQuery(muiTheme.breakpoints.down('lg'));
     const {
@@ -162,25 +143,8 @@ const ResponsiveNavbar = () => {
         storedLanguageOverride,
         resetLanguagePreference,
     } = useLanguage();
-    const {
-        isAuthenticated,
-        account,
-        meData,
-        meStatus,
-        signIn,
-        signOut,
-        baseUrl,
-        getAccessToken,
-        handleApiForbidden,
-    } = usePortalAuth();
+    const { isAuthenticated, signIn } = usePortalAuth();
     const { t } = useTranslation();
-    const portalRole = resolveRole(meData, account);
-    const portalAccountName = resolveDisplayName(meData, account, t('portalHeader.notSignedIn'));
-    const normalizedPortalRole = normalizeRole(portalRole);
-    const currentPortalRoleLabel = portalRoleLabel(portalRole, t);
-    const roleResolved = isAuthenticated && meStatus !== 'loading';
-    const isGuestAccount = roleResolved && isGuestRole(normalizedPortalRole);
-    const meLoading = isAuthenticated && meStatus === 'loading';
     const portalLinkTo = '/portal';
 
     const menuHorizontalOrigin = muiTheme.direction === 'rtl' ? 'right' : 'left';
@@ -228,6 +192,7 @@ const ResponsiveNavbar = () => {
         setLegalAnchor(null);
         setAppearanceAnchor(null);
         setLanguageAnchor(null);
+        notificationsTrayRef.current?.close();
         setTenantAnchor(e.currentTarget);
     };
     const handleTenantClose = () => {
@@ -239,6 +204,7 @@ const ResponsiveNavbar = () => {
         setLegalAnchor(null);
         setAppearanceAnchor(null);
         setLanguageAnchor(null);
+        notificationsTrayRef.current?.close();
         setLandlordAnchor(e.currentTarget);
     };
     const handleLandlordClose = () => {
@@ -250,6 +216,7 @@ const ResponsiveNavbar = () => {
         setLegalAnchor(null);
         setAppearanceAnchor(null);
         setLanguageAnchor(null);
+        notificationsTrayRef.current?.close();
         setPortalAnchor(e.currentTarget);
     };
     const handlePortalClose = () => {
@@ -261,7 +228,7 @@ const ResponsiveNavbar = () => {
         setPortalAnchor(null);
         setAppearanceAnchor(null);
         setLanguageAnchor(null);
-        setNotificationsAnchor(null);
+        notificationsTrayRef.current?.close();
         setLegalAnchor(e.currentTarget);
     };
     const handleLegalClose = () => {
@@ -273,7 +240,7 @@ const ResponsiveNavbar = () => {
         setPortalAnchor(null);
         setLegalAnchor(null);
         setLanguageAnchor(null);
-        setNotificationsAnchor(null);
+        notificationsTrayRef.current?.close();
         setAppearanceAnchor(e.currentTarget);
         const trigger = e.currentTarget.getAttribute('data-appearance-trigger');
         setAppearanceMenuLabelledBy(
@@ -290,7 +257,7 @@ const ResponsiveNavbar = () => {
         setPortalAnchor(null);
         setLegalAnchor(null);
         setAppearanceAnchor(null);
-        setNotificationsAnchor(null);
+        notificationsTrayRef.current?.close();
         setLanguageAnchor(e.currentTarget);
         const trigger = e.currentTarget.getAttribute('data-language-trigger');
         setLanguageMenuLabelledBy(
@@ -301,65 +268,6 @@ const ResponsiveNavbar = () => {
         setLanguageAnchor(null);
         setLanguageMenuLabelledBy(undefined);
     };
-    const loadNotifications = useCallback(async (options = {}) => {
-        const silent = Boolean(options.silent);
-        if (!isAuthenticated || !baseUrl) return;
-        if (!silent) setNotificationsLoading(true);
-        try {
-            const token = await getAccessToken();
-            const payload = await fetchNotifications(baseUrl, token, {
-                emailHint: account?.username || undefined,
-                limit: 20,
-            });
-            setNotifications(Array.isArray(payload?.notifications) ? payload.notifications : []);
-            setUnreadCount(Number(payload?.unread_count ?? 0));
-        } catch (error) {
-            handleApiForbidden?.(error);
-        } finally {
-            if (!silent) setNotificationsLoading(false);
-        }
-    }, [account?.username, baseUrl, getAccessToken, handleApiForbidden, isAuthenticated]);
-
-    const handleNotificationsOpen = (e) => {
-        setTenantAnchor(null);
-        setLandlordAnchor(null);
-        setPortalAnchor(null);
-        setLegalAnchor(null);
-        setAppearanceAnchor(null);
-        setLanguageAnchor(null);
-        setAccountAnchor(null);
-        setNotificationsAnchor(e.currentTarget);
-        void loadNotifications();
-    };
-    const handleNotificationsClose = () => {
-        setNotificationsAnchor(null);
-    };
-
-    const handleNotificationClick = async (notification) => {
-        if (!baseUrl) return;
-        try {
-            const token = await getAccessToken();
-            const response = await markNotificationRead(baseUrl, token, notification.id, {
-                emailHint: account?.username || undefined,
-            });
-            if (typeof response?.unread_count === 'number') {
-                setUnreadCount(response.unread_count);
-            } else {
-                setUnreadCount((value) => Math.max(0, value - 1));
-            }
-            setNotifications((items) => items.map((item) => (
-                item.id === notification.id ? { ...item, read_at: item.read_at || new Date().toISOString() } : item
-            )));
-            if (notification.deep_link) {
-                navigate(withDarkPath(pathname, notification.deep_link));
-            }
-        } catch (error) {
-            handleApiForbidden?.(error);
-        } finally {
-            handleNotificationsClose();
-        }
-    };
-
     const handleAccountOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
@@ -367,7 +275,7 @@ const ResponsiveNavbar = () => {
         setLegalAnchor(null);
         setAppearanceAnchor(null);
         setLanguageAnchor(null);
-        setNotificationsAnchor(null);
+        notificationsTrayRef.current?.close();
         setAccountAnchor(e.currentTarget);
     };
     const handleAccountClose = () => {
@@ -384,55 +292,6 @@ const ResponsiveNavbar = () => {
         }
         handleAccountOpen(e);
     };
-    const handleSignOutConfirmOpen = () => {
-        setSignOutConfirmOpen(true);
-    };
-    const handleSignOutConfirmClose = () => {
-        setSignOutConfirmOpen(false);
-    };
-    const handleSignOutConfirm = () => {
-        setSignOutConfirmOpen(false);
-        signOut();
-    };
-
-    useEffect(() => {
-        if (!isAuthenticated) {
-            setNotifications([]);
-            setUnreadCount(0);
-            return;
-        }
-        void loadNotifications();
-    }, [isAuthenticated, loadNotifications]);
-
-    useEffect(() => {
-        if (!isAuthenticated) return undefined;
-        const trayOpen = Boolean(notificationsAnchor);
-        const intervalMs = notificationsPollIntervalMs(trayOpen);
-        const timerId = window.setInterval(() => {
-            void loadNotifications({ silent: true });
-        }, intervalMs);
-        return () => window.clearInterval(timerId);
-    }, [isAuthenticated, loadNotifications, notificationsAnchor]);
-
-    useEffect(() => {
-        if (!isAuthenticated) return undefined;
-        const refresh = () => {
-            if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
-            void loadNotifications({ silent: true });
-        };
-        const onVisibilityChange = () => {
-            if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-                refresh();
-            }
-        };
-        window.addEventListener('focus', refresh);
-        document.addEventListener('visibilitychange', onVisibilityChange);
-        return () => {
-            window.removeEventListener('focus', refresh);
-            document.removeEventListener('visibilitychange', onVisibilityChange);
-        };
-    }, [isAuthenticated, loadNotifications]);
-
     const tenantLinks = [
         { to: '/apply', label: t('tenantLinks.apply') },
         { to: '/tenant-selection-criteria', label: t('tenantLinks.selectionCriteria') },
@@ -528,72 +387,37 @@ const ResponsiveNavbar = () => {
                 </IconButton>
             </Tooltip>
             {isAuthenticated ? (
-                <Tooltip title={t('portalHeader.notifications.title')} arrow>
-                    <IconButton
-                        color="inherit"
-                        type="button"
-                        size="small"
-                        id="notifications-menu-button"
-                        onClick={handleNotificationsOpen}
-                        aria-haspopup="true"
-                        aria-expanded={Boolean(notificationsAnchor)}
-                        aria-controls={notificationsAnchor ? 'notifications-menu' : undefined}
-                        aria-label={t('portalHeader.notifications.title')}
-                        sx={toolbarChromeIconButtonSx}
-                    >
-                        <Badge
-                            color="error"
-                            badgeContent={unreadCount > 99 ? '99+' : unreadCount}
-                            invisible={unreadCount <= 0}
-                        >
-                            <NotificationsNone fontSize="small" />
-                        </Badge>
-                    </IconButton>
-                </Tooltip>
+                <PortalNotificationsTray
+                    ref={notificationsTrayRef}
+                    buttonId="notifications-menu-button"
+                    menuId="notifications-menu"
+                    onMenuWillOpen={() => {
+                        setTenantAnchor(null);
+                        setLandlordAnchor(null);
+                        setPortalAnchor(null);
+                        setLegalAnchor(null);
+                        setAppearanceAnchor(null);
+                        setLanguageAnchor(null);
+                        setAccountAnchor(null);
+                    }}
+                    iconButtonColor="inherit"
+                    iconButtonSx={toolbarChromeIconButtonSx}
+                    menuProps={stableMenuProps}
+                />
             ) : null}
             {isAuthenticated ? (
-                meLoading ? (
-                    <Box
-                        sx={{
-                            width: 32,
-                            height: 32,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginInlineStart: 0.5,
-                            color: 'inherit',
-                        }}
-                    >
-                        <CircularProgress size={20} sx={{ color: 'inherit' }} />
-                    </Box>
-                ) : (
-                    <Tooltip title={t('portalLayout.topBar.accountMenu')} arrow>
-                        <IconButton
-                            type="button"
-                            size="small"
-                            id="portal-account-menu-button"
-                            onClick={handleAccountOpen}
-                            aria-haspopup="true"
-                            aria-expanded={Boolean(accountAnchor)}
-                            aria-controls={accountAnchor ? 'portal-account-menu' : undefined}
-                            aria-label={`${t('portalHeader.status.signedIn')} - ${portalAccountName}`}
-                            sx={{ marginInlineStart: 0.5, p: 0 }}
-                        >
-                            <PortalUserAvatar
-                                meData={meData}
-                                firstName={meData?.user?.first_name}
-                                lastName={meData?.user?.last_name}
-                                size={36}
-                            />
-                        </IconButton>
-                    </Tooltip>
-                )
+                <PortalAccountMenuAvatarTrigger
+                    onOpen={handleAccountOpen}
+                    menuOpen={Boolean(accountAnchor)}
+                    loadingPlaceholderSx={{ color: 'inherit' }}
+                    circularProgressSx={{ color: 'inherit' }}
+                />
             ) : (
                 <Button
                     type="button"
                     size={isMobile ? 'small' : 'medium'}
                     variant="contained"
-                    id="portal-account-menu-button"
+                    id={PORTAL_ACCOUNT_MENU_BUTTON_ID}
                     aria-label={t('portalHeader.actions.signIn')}
                     onClick={handleAccountButtonClick}
                     startIcon={<Login fontSize="small" aria-hidden />}
@@ -1155,133 +979,11 @@ const ResponsiveNavbar = () => {
                     {t('languagePreference.browserLanguageHint')}
                 </Typography>
             </Menu>
-            <Menu
-                {...stableMenuProps}
-                id="notifications-menu"
-                anchorEl={notificationsAnchor}
-                open={Boolean(notificationsAnchor)}
-                onClose={handleNotificationsClose}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                slotProps={{
-                    paper: {
-                        sx: { backgroundImage: 'none', minWidth: 320, maxWidth: 420 },
-                    },
-                    list: {
-                        'aria-labelledby': 'notifications-menu-button',
-                    },
-                }}
-            >
-                <Box sx={{ px: 2, py: 1 }}>
-                    <Typography variant="subtitle2">{t('portalHeader.notifications.title')}</Typography>
-                    <Typography variant="caption" color="text.secondary">
-                        {t('portalHeader.notifications.unreadCount', { count: unreadCount })}
-                    </Typography>
-                </Box>
-                <Divider />
-                {notificationsLoading ? (
-                    <Box sx={{ px: 2, py: 2, display: 'flex', justifyContent: 'center' }}>
-                        <CircularProgress size={18} />
-                    </Box>
-                ) : notifications.length === 0 ? (
-                    <Box sx={{ px: 2, py: 2 }}>
-                        <Typography variant="body2" color="text.secondary">
-                            {t('portalHeader.notifications.empty')}
-                        </Typography>
-                    </Box>
-                ) : notifications.map((notification) => (
-                    <MenuItem
-                        key={notification.id}
-                        onClick={() => { void handleNotificationClick(notification); }}
-                        sx={{
-                            alignItems: 'flex-start',
-                            backgroundColor: notification.read_at ? 'transparent' : 'action.hover',
-                            whiteSpace: 'normal',
-                        }}
-                    >
-                        <ListItemText
-                            primary={notification.title}
-                            secondary={notification.body}
-                            primaryTypographyProps={{
-                                variant: 'body2',
-                                fontWeight: notification.read_at ? 500 : 700,
-                            }}
-                            secondaryTypographyProps={{ variant: 'caption' }}
-                        />
-                    </MenuItem>
-                ))}
-            </Menu>
-            <Menu
-                {...stableMenuProps}
-                id="portal-account-menu"
+            <PortalAccountMenu
                 anchorEl={accountAnchor}
                 open={isAuthenticated && Boolean(accountAnchor)}
                 onClose={handleAccountClose}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                slotProps={{
-                    paper: {
-                        sx: { backgroundImage: 'none', minWidth: 230 },
-                    },
-                    list: {
-                        ...(isAuthenticated ? { 'aria-labelledby': 'portal-account-menu-button' } : {}),
-                    },
-                }}
-            >
-                <Box sx={{ px: 2, pt: 1.5, pb: 1 }}>
-                    <Stack direction="row" spacing={1.5} alignItems="flex-start">
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <Typography variant="body2" fontWeight={600} noWrap>
-                                {portalAccountName}
-                            </Typography>
-                            <Chip
-                                label={currentPortalRoleLabel}
-                                size="small"
-                                color="primary"
-                                variant="outlined"
-                                sx={{ height: 20, fontSize: '0.7rem', mt: 0.5 }}
-                            />
-                        </Box>
-                        <PortalUserAvatar
-                            meData={meData}
-                            firstName={meData?.user?.first_name}
-                            lastName={meData?.user?.last_name}
-                            size={36}
-                        />
-                    </Stack>
-                </Box>
-                <Divider />
-                <MenuItem
-                    onClick={() => {
-                        if (!isGuestAccount) {
-                            navigate(withDarkPath(pathname, '/portal/profile'));
-                        }
-                        handleAccountClose();
-                    }}
-                    disabled={isGuestAccount}
-                >
-                    <ListItemIcon>
-                        <Person fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText primary={t('portalHeader.nav.profile')} />
-                </MenuItem>
-                <Divider />
-                <MenuItem
-                    onClick={() => {
-                        handleSignOutConfirmOpen();
-                        handleAccountClose();
-                    }}
-                >
-                    <ListItemIcon>
-                        <Logout fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText primary={t('portalHeader.actions.signOut')} />
-                </MenuItem>
-            </Menu>
-            <PortalSignOutConfirmDialog
-                open={signOutConfirmOpen}
-                onClose={handleSignOutConfirmClose}
-                onConfirm={handleSignOutConfirm}
+                menuProps={stableMenuProps}
             />
         </>
     );

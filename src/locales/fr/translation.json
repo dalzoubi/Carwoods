@@ -816,6 +816,12 @@
     "photoUploading": "Envoi en cours…",
     "photoSaved": "Photo de profil mise a jour.",
     "photoRemoved": "Photo de profil supprimee.",
+    "removePhotoConfirm": {
+      "title": "Supprimer la photo de profil ?",
+      "body": "Votre photo de profil sera supprimee. Vous pourrez en televerser une nouvelle a tout moment.",
+      "cancel": "Annuler",
+      "confirm": "Supprimer"
+    },
     "photoPreview": {
       "title": "Ajuster la photo de profil",
       "hint": "Faites glisser la photo pour la repositionner. Utilisez le curseur ou les boutons pour zoomer. Le cercle montre le rendu final.",
@@ -940,6 +946,9 @@
     "metaDescription": "Creer et gerer les demandes de maintenance, messages et pieces jointes.",
     "heading": "Demandes de maintenance",
     "intro": "Utilisez cet espace pour creer des demandes, appliquer des mises a jour et centraliser la communication.",
+    "detailModal": {
+      "title": "Détails de la demande"
+    },
     "loading": "Chargement des donnees de demandes…",
     "exportSuccess": "Export CSV telecharge.",
     "labels": {
@@ -1005,6 +1014,7 @@
       "heading": "Liste des demandes",
       "empty": "Aucune demande trouvee pour ce compte.",
       "selectPrompt": "Sélectionnez une demande pour voir les détails.",
+      "noMatchesFilter": "Aucune demande ne correspond aux filtres actuels.",
       "landlordFilter": {
         "label": "Filtrer par propriétaire",
         "all": "Tous les propriétaires",

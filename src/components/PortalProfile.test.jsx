@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { WithAppTheme } from '../testUtils';
 import i18n from '../i18n';
@@ -39,6 +39,7 @@ vi.mock('../lib/portalApiClient', async (importOriginal) => {
     patchProfile: vi.fn().mockResolvedValue({
       user: { id: 'u1' },
     }),
+    deleteProfilePhoto: vi.fn().mockResolvedValue({}),
   };
 });
 
@@ -64,6 +65,7 @@ describe('PortalProfile', () => {
     mockAuthState.handleApiForbidden = vi.fn();
     mockAuthState.refreshMe = vi.fn();
     portalApiClient.patchProfile.mockResolvedValue({ user: { id: 'u1' } });
+    portalApiClient.deleteProfilePhoto.mockResolvedValue({});
     await i18n.changeLanguage('en');
   });
 
@@ -185,6 +187,59 @@ describe('PortalProfile', () => {
         })
       );
     });
+  });
+
+  it('asks for confirmation before removing profile photo', async () => {
+    mockAuthState.meData = {
+      role: 'AI_AGENT',
+      user: {
+        ...mockAuthState.meData.user,
+        profile_photo_url: 'https://example.com/photo.jpg',
+      },
+    };
+
+    render(<WithAppTheme><PortalProfile /></WithAppTheme>);
+
+    fireEvent.click(screen.getByRole('button', { name: /remove photo/i }));
+
+    const dialog = await screen.findByRole('dialog', { name: /remove profile photo\?/i });
+    expect(within(dialog).getByText(/your profile picture will be removed/i)).toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: /^remove$/i }));
+
+    await waitFor(() => {
+      expect(portalApiClient.deleteProfilePhoto).toHaveBeenCalledWith(
+        'https://api.carwoods.com',
+        'mock-token',
+        expect.objectContaining({ emailHint: 'agent@carwoods.com' })
+      );
+    });
+    expect(await screen.findByText(/profile photo removed/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  it('closes remove photo dialog without deleting when cancelled', async () => {
+    mockAuthState.meData = {
+      role: 'AI_AGENT',
+      user: {
+        ...mockAuthState.meData.user,
+        profile_photo_url: 'https://example.com/photo.jpg',
+      },
+    };
+
+    render(<WithAppTheme><PortalProfile /></WithAppTheme>);
+
+    fireEvent.click(screen.getByRole('button', { name: /remove photo/i }));
+
+    const dialog = await screen.findByRole('dialog', { name: /remove profile photo\?/i });
+    fireEvent.click(within(dialog).getByRole('button', { name: /cancel/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    expect(portalApiClient.deleteProfilePhoto).not.toHaveBeenCalled();
   });
 
   it('requires mobile phone when SMS notifications are enabled', async () => {

@@ -816,6 +816,12 @@
     "photoUploading": "Uploading…",
     "photoSaved": "Profile photo updated.",
     "photoRemoved": "Profile photo removed.",
+    "removePhotoConfirm": {
+      "title": "Remove profile photo?",
+      "body": "Your profile picture will be removed. You can upload a new one anytime.",
+      "cancel": "Cancel",
+      "confirm": "Remove"
+    },
     "photoPreview": {
       "title": "Adjust profile photo",
       "hint": "Drag the photo to reposition it. Use the slider or buttons to zoom in or out. The circle shows how your picture will appear.",
@@ -940,6 +946,9 @@
     "metaDescription": "Create and manage maintenance requests, messages, and attachments.",
     "heading": "Maintenance Requests",
     "intro": "Use this workspace to create requests, manage request updates, and keep tenant and management communication in one thread.",
+    "detailModal": {
+      "title": "Request details"
+    },
     "loading": "Loading request data…",
     "exportSuccess": "CSV export downloaded.",
     "labels": {
@@ -1005,6 +1014,7 @@
       "heading": "Request list",
       "empty": "No requests found for this account.",
       "selectPrompt": "Select a request to view details.",
+      "noMatchesFilter": "No requests match the current filters.",
       "landlordFilter": {
         "label": "Filter by landlord",
         "all": "All landlords",
