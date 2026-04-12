@@ -91,7 +91,7 @@ const PortalProfile = () => {
     handleApiForbidden,
     refreshMe,
   } = usePortalAuth();
-  const { currentLanguage, changeLanguage, supportedLanguages } = useLanguage();
+  const { currentLanguage, storedLanguageOverride, changeLanguage, resetLanguagePreference, supportedLanguages } = useLanguage();
   const { storedOverride, setOverrideDark, setOverrideLight, resetOverride } = useThemeMode();
   const role = resolveRole(meData, account);
   const [form, setForm] = useState({
@@ -580,10 +580,15 @@ const PortalProfile = () => {
                       </InputLabel>
                       <Select
                         labelId="portal-profile-language-label"
-                        value={currentLanguage}
+                        value={storedLanguageOverride ?? 'system'}
                         label={t('portalProfile.fields.language')}
-                        onChange={(e) => changeLanguage(e.target.value)}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (v === 'system') resetLanguagePreference();
+                          else changeLanguage(v);
+                        }}
                       >
+                        <MenuItem value="system">{t('portalProfile.languages.system')}</MenuItem>
                         {supportedLanguages.map((lang) => (
                           <MenuItem key={lang} value={lang}>
                             {t(`portalProfile.languages.${lang}`)}

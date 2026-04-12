@@ -42,8 +42,8 @@ const SUPPORTED_SCHEMES = ['light', 'dark'];
 export function useProfilePreferenceSync() {
     const { isAuthenticated, meData, meStatus, baseUrl, getAccessToken, account } =
         usePortalAuth();
-    const { currentLanguage, changeLanguage } = useLanguage();
-    const { storedOverride, setOverrideDark, setOverrideLight } = useThemeMode();
+    const { storedLanguageOverride, changeLanguage, resetLanguagePreference } = useLanguage();
+    const { storedOverride, setOverrideDark, setOverrideLight, resetOverride } = useThemeMode();
 
     // Track the last user ID whose prefs we applied to avoid re-applying on
     // background /me refreshes.
@@ -58,18 +58,30 @@ export function useProfilePreferenceSync() {
 
         appliedForUserIdRef.current = userId;
 
-        const serverLang = validOrNull(meData.user.ui_language, SUPPORTED_LANGUAGES);
-        const serverScheme = validOrNull(meData.user.ui_color_scheme, SUPPORTED_SCHEMES);
+        // ui_language: null means "follow device" — clear any stored override.
+        // A valid language code means override to that language.
+        const serverLangRaw = meData.user.ui_language;
+        const serverLangHasValue = typeof serverLangRaw === 'string'
+            && SUPPORTED_LANGUAGES.includes(serverLangRaw);
+        const serverLangIsNull = serverLangRaw === null;
 
-        if (serverLang && serverLang !== currentLanguage) {
-            changeLanguage(serverLang);
+        if (serverLangHasValue && storedLanguageOverride !== serverLangRaw) {
+            changeLanguage(serverLangRaw);
+        } else if (serverLangIsNull && storedLanguageOverride !== null) {
+            resetLanguagePreference();
         }
 
-        if (FEATURE_DARK_THEME && serverScheme) {
+        const serverScheme = validOrNull(meData.user.ui_color_scheme, SUPPORTED_SCHEMES);
+        // null means "follow system" — clear any stored override.
+        const serverSchemeIsNull = meData.user.ui_color_scheme === null;
+
+        if (FEATURE_DARK_THEME) {
             if (serverScheme === 'dark' && storedOverride !== 'dark') {
                 setOverrideDark();
             } else if (serverScheme === 'light' && storedOverride !== 'light') {
                 setOverrideLight();
+            } else if (serverSchemeIsNull && storedOverride !== null) {
+                resetOverride();
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,22 +109,23 @@ export function useProfilePreferenceSync() {
         [isAuthenticated, baseUrl, getAccessToken, account]
     );
 
-    // Watch language and push to server (skip the initial render value).
-    const prevLanguageRef = useRef(null);
+    // Watch stored language override and push to server.
+    // null means "follow device" — synced as null so other devices also follow theirs.
+    const prevLanguageRef = useRef(undefined);
     useEffect(() => {
         if (!isAuthenticated) {
-            prevLanguageRef.current = null;
+            prevLanguageRef.current = undefined;
             return;
         }
-        if (prevLanguageRef.current === null) {
-            // Initialise ref without syncing — the server value was just applied.
-            prevLanguageRef.current = currentLanguage;
+        if (prevLanguageRef.current === undefined) {
+            // Initialise ref without syncing — server value was just applied.
+            prevLanguageRef.current = storedLanguageOverride;
             return;
         }
-        if (prevLanguageRef.current === currentLanguage) return;
-        prevLanguageRef.current = currentLanguage;
-        syncToServer({ ui_language: currentLanguage });
-    }, [isAuthenticated, currentLanguage, syncToServer]);
+        if (prevLanguageRef.current === storedLanguageOverride) return;
+        prevLanguageRef.current = storedLanguageOverride;
+        syncToServer({ ui_language: storedLanguageOverride ?? null });
+    }, [isAuthenticated, storedLanguageOverride, syncToServer]);
 
     // Watch color-scheme override and push to server.
     const prevSchemeRef = useRef(undefined);

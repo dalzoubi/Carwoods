@@ -848,6 +848,7 @@
       "colorTheme": "Tema de color"
     },
     "languages": {
+      "system": "Usar configuración del dispositivo",
       "en": "English",
       "es": "Español",
       "fr": "Français",

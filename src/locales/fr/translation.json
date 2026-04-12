@@ -848,6 +848,7 @@
       "colorTheme": "Theme de couleur"
     },
     "languages": {
+      "system": "Utiliser le parametre de l'appareil",
       "en": "English",
       "es": "Español",
       "fr": "Français",
