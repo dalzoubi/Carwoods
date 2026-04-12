@@ -6,7 +6,7 @@
  * - Optional fields: first_name, last_name, phone.
  */
 
-import { findUserByEmail, updateUserProfile, type UserRow } from '../../lib/usersRepo.js';
+import { findUserByEmail, updateUserProfile, updateUserUiPreferences, type UserRow } from '../../lib/usersRepo.js';
 import {
   ensureUserNotificationPreference,
   updateUserNotificationPreference,
@@ -23,6 +23,8 @@ export type UpdateProfileInput = {
   firstName?: string | null;
   lastName?: string | null;
   phone?: string | null;
+  uiLanguage?: string | null;
+  uiColorScheme?: string | null;
   notificationPreferences?: {
     emailEnabled?: boolean;
     inAppEnabled?: boolean;
@@ -83,6 +85,16 @@ export async function updateProfile(
   }
 
   if (!updated) throw notFound();
+
+  const hasUiLanguage = Object.prototype.hasOwnProperty.call(input, 'uiLanguage');
+  const hasUiColorScheme = Object.prototype.hasOwnProperty.call(input, 'uiColorScheme');
+  if (hasUiLanguage || hasUiColorScheme) {
+    const withPrefs = await updateUserUiPreferences(db, input.actorUserId, {
+      ...(hasUiLanguage ? { uiLanguage: input.uiLanguage ?? null } : {}),
+      ...(hasUiColorScheme ? { uiColorScheme: input.uiColorScheme ?? null } : {}),
+    });
+    if (withPrefs) updated = withPrefs;
+  }
   const notificationPreferences = input.notificationPreferences
     ? await updateUserNotificationPreference(db, {
         userId: input.actorUserId,

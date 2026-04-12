@@ -195,6 +195,8 @@ export async function portalMeHandler(
       user: {
         ...addProfilePhotoReadUrl(user),
         notification_preferences: notificationPreferences,
+        ui_language: user.ui_language ?? null,
+        ui_color_scheme: user.ui_color_scheme ?? null,
       },
     },
   };

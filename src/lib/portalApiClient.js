@@ -599,6 +599,34 @@ export async function patchProfile(baseUrl, accessToken, payload) {
 }
 
 // ---------------------------------------------------------------------------
+// PATCH /api/portal/profile  (ui preferences only — thin wrapper)
+// ---------------------------------------------------------------------------
+
+/**
+ * Persist UI language and/or color-scheme preference for the authenticated
+ * user.  Only the supplied fields are sent; omitted fields are not cleared.
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ emailHint?: string, ui_language?: string|null, ui_color_scheme?: string|null }} payload
+ * @returns {Promise<object>}
+ */
+export async function patchUiPreferences(baseUrl, accessToken, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(buildUrl(baseUrl, '/api/portal/profile'), {
+    method: 'PATCH',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
 // POST /api/portal/profile/photo/upload-intent
 // POST /api/portal/profile/photo/finalize
 // DELETE /api/portal/profile/photo

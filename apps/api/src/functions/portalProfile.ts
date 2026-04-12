@@ -55,6 +55,9 @@ async function portalProfileHandler(
 
   const payload = asRecord(body);
 
+  const hasUiLanguage = Object.prototype.hasOwnProperty.call(payload, 'ui_language');
+  const hasUiColorScheme = Object.prototype.hasOwnProperty.call(payload, 'ui_color_scheme');
+
   try {
     const result = await updateProfile(getPool(), {
       actorUserId: user.id,
@@ -62,6 +65,8 @@ async function portalProfileHandler(
       firstName: str(payload.first_name) ?? null,
       lastName: str(payload.last_name) ?? null,
       phone: str(payload.phone) ?? null,
+      ...(hasUiLanguage ? { uiLanguage: str(payload.ui_language) ?? null } : {}),
+      ...(hasUiColorScheme ? { uiColorScheme: str(payload.ui_color_scheme) ?? null } : {}),
       notificationPreferences: (() => {
         const raw = asRecord(payload.notification_preferences);
         const emailEnabled = bool(raw.email_enabled);
@@ -96,7 +101,11 @@ async function portalProfileHandler(
       })(),
     });
     return jsonResponse(200, headers, {
-      user: addProfilePhotoReadUrl(result.user),
+      user: {
+        ...addProfilePhotoReadUrl(result.user),
+        ui_language: result.user.ui_language ?? null,
+        ui_color_scheme: result.user.ui_color_scheme ?? null,
+      },
       notification_preferences: result.notificationPreferences,
     });
   } catch (e) {

@@ -1,10 +1,13 @@
 import React from 'react';
 import { usePortalAuth } from '../PortalAuthContext';
+import { useProfilePreferenceSync } from '../hooks/useProfilePreferenceSync';
 import PortalLoginLanding from './PortalLoginLanding';
 import PortalLoadingScreen from './PortalLoadingScreen';
 
 const PortalAuthGate = ({ children }) => {
   const { authStatus, isAuthenticated, meStatus, meData } = usePortalAuth();
+
+  useProfilePreferenceSync();
 
   // While Firebase Auth is initializing or sign-in is in progress,
   // show a neutral loading screen — NOT the login page.
