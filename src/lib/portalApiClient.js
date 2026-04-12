@@ -352,7 +352,7 @@ export async function requestUploadIntent(baseUrl, accessToken, requestId, paylo
 
 /**
  * Cancel a maintenance request. Only allowed for tenants on requests in
- * NOT_STARTED or ACKNOWLEDGED status.
+ * NOT_STARTED, ACKNOWLEDGED, or WAITING_ON_TENANT status.
  *
  * @param {string} baseUrl
  * @param {string} accessToken
@@ -1028,6 +1028,28 @@ export async function processElsaRequest(baseUrl, accessToken, requestId, payloa
   invalidateElsaCacheForUser(baseUrl, emailHint);
   invalidateMessagesCacheForRequest(baseUrl, emailHint, requestId);
   return processPayload;
+}
+
+/**
+ * POST /api/landlord/requests/:id/elsa/summarize
+ * Read-only AI summary for management UI (does not invalidate caches).
+ */
+export async function summarizeElsaRequest(baseUrl, accessToken, requestId, payload = {}) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/requests/${encodeURIComponent(requestId)}/elsa/summarize`),
+    {
+      method: 'POST',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
 }
 
 export async function fetchElsaDecisions(baseUrl, accessToken, requestId, params) {

@@ -66,6 +66,40 @@ function asRequestId(payload: Record<string, unknown>): string | null {
   return asString(payload.request_id);
 }
 
+/** In-app / email deep link to the requests page with optional focus targets (hl* = highlight). */
+function portalRequestsDeepLink(
+  requestId: string,
+  focus: { messageId?: string | null; attachmentId?: string | null; decisionId?: string | null } = {}
+): string {
+  const params = new URLSearchParams();
+  params.set('id', requestId);
+  const mid = asString(focus.messageId);
+  const aid = asString(focus.attachmentId);
+  const did = asString(focus.decisionId);
+  if (mid) params.set('hlMsg', mid);
+  if (aid) params.set('hlAtt', aid);
+  if (did) params.set('hlDec', did);
+  return `/portal/requests?${params.toString()}`;
+}
+
+function deepLinkForPayload(
+  requestId: string | null,
+  payload: Record<string, unknown>,
+  focus: 'none' | 'message' | 'attachment' | 'decision'
+): string | null {
+  if (!requestId) return null;
+  if (focus === 'message') {
+    return portalRequestsDeepLink(requestId, { messageId: asString(payload.message_id) });
+  }
+  if (focus === 'attachment') {
+    return portalRequestsDeepLink(requestId, { attachmentId: asString(payload.attachment_id) });
+  }
+  if (focus === 'decision') {
+    return portalRequestsDeepLink(requestId, { decisionId: asString(payload.decision_id) });
+  }
+  return portalRequestsDeepLink(requestId);
+}
+
 function maintenanceBodyFromAi(
   baseBody: string,
   aiBundle: NotificationDispatchAiBundle | null,
@@ -148,7 +182,10 @@ function buildNotificationContent(
 ): NotificationContent {
   const requestId = asRequestId(payload);
   const requestTitle = displayRequestTitle(payload);
-  const link = requestId ? `/portal/requests?id=${encodeURIComponent(requestId)}` : null;
+  const linkNone = () => deepLinkForPayload(requestId, payload, 'none');
+  const linkMessage = () => deepLinkForPayload(requestId, payload, 'message');
+  const linkAttachment = () => deepLinkForPayload(requestId, payload, 'attachment');
+  const linkDecision = () => deepLinkForPayload(requestId, payload, 'decision');
   const normalizedEvent = eventTypeCode.trim().toUpperCase();
   const urgentLabel = aiBundle?.emergency ? '[Emergency]' : '[Urgent]';
 
@@ -193,7 +230,7 @@ function buildNotificationContent(
         aiBundle,
         urgentLabel
       ),
-      deepLink: link,
+      deepLink: linkNone(),
       requestId,
       metadata: { kind: 'request_created' },
     };
@@ -210,7 +247,7 @@ function buildNotificationContent(
           aiBundle,
           urgentLabel
         ),
-        deepLink: link,
+        deepLink: linkNone(),
         requestId,
         metadata: { kind: 'request_updated_waiting_on_tenant_ai' },
       };
@@ -223,7 +260,7 @@ function buildNotificationContent(
           aiBundle,
           urgentLabel
         ),
-        deepLink: link,
+        deepLink: linkNone(),
         requestId,
         metadata: { kind: 'request_updated_status' },
       };
@@ -235,7 +272,7 @@ function buildNotificationContent(
         aiBundle,
         urgentLabel
       ),
-      deepLink: link,
+      deepLink: linkNone(),
       requestId,
       metadata: { kind: 'request_updated' },
     };
@@ -249,7 +286,7 @@ function buildNotificationContent(
         aiBundle,
         urgentLabel
       ),
-      deepLink: link,
+      deepLink: linkNone(),
       requestId,
       metadata: { kind: 'request_cancelled' },
     };
@@ -270,7 +307,7 @@ function buildNotificationContent(
         aiBundle,
         urgentLabel
       ),
-      deepLink: link,
+      deepLink: linkAttachment(),
       requestId,
       metadata: { kind: 'request_attachment_added' },
     };
@@ -289,7 +326,7 @@ function buildNotificationContent(
         aiBundle,
         urgentLabel
       ),
-      deepLink: link,
+      deepLink: linkNone(),
       requestId,
       metadata: { kind: 'request_status_changed_elsa_alert' },
     };
@@ -304,7 +341,7 @@ function buildNotificationContent(
         aiBundle,
         urgentLabel
       ),
-      deepLink: link,
+      deepLink: linkDecision(),
       requestId,
       metadata: {
         kind: 'elsa_review_pending',
@@ -317,7 +354,7 @@ function buildNotificationContent(
     return {
       title: 'Internal note added',
       body: `A team member added an internal note (not visible to the tenant) on "${requestTitle}".`,
-      deepLink: link,
+      deepLink: linkMessage(),
       requestId,
       metadata: { kind: 'request_internal_note' },
     };
@@ -327,7 +364,7 @@ function buildNotificationContent(
     const part = contentForRequestMessageCreated(payload, requestTitle, aiBundle, urgentLabel);
     return {
       ...part,
-      deepLink: link,
+      deepLink: linkMessage(),
       requestId,
     };
   }
@@ -342,7 +379,7 @@ function buildNotificationContent(
           aiBundle,
           urgentLabel
         ),
-        deepLink: link,
+        deepLink: linkMessage(),
         requestId,
         metadata: { kind: 'tenant_ai_reply_review_approved' },
       };
@@ -354,7 +391,7 @@ function buildNotificationContent(
         aiBundle,
         urgentLabel
       ),
-      deepLink: link,
+      deepLink: linkMessage(),
       requestId,
       metadata: { kind: 'tenant_ai_reply_auto' },
     };
@@ -371,7 +408,7 @@ function buildNotificationContent(
           aiBundle,
           urgentLabel
         ),
-        deepLink: link,
+        deepLink: linkMessage(),
         requestId,
         metadata: { kind: 'landlord_message_elsa_auto' },
       };
@@ -383,7 +420,7 @@ function buildNotificationContent(
         aiBundle,
         urgentLabel
       ),
-      deepLink: link,
+      deepLink: linkMessage(),
       requestId,
       metadata: { kind: 'landlord_message_posted' },
     };
@@ -398,7 +435,7 @@ function buildNotificationContent(
       aiBundle,
       urgentLabel
     ),
-    deepLink: link,
+    deepLink: linkNone(),
     requestId,
     metadata: { kind: 'generic' },
   };
@@ -691,6 +728,8 @@ export async function dispatchOutboxNotification(
               role: recipient.role,
               ai_summary: aiBundle?.summary160 ?? null,
               ai_urgent: Boolean(aiBundle?.urgent || aiBundle?.emergency),
+              ...(asString(payload.message_id) ? { message_id: asString(payload.message_id) } : {}),
+              ...(asString(payload.attachment_id) ? { attachment_id: asString(payload.attachment_id) } : {}),
             },
           });
           if (created.id) {

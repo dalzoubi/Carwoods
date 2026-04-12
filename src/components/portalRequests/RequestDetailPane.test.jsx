@@ -81,8 +81,14 @@ function makeProps(overrides = {}) {
     elsaDecisionActionStatus: 'idle',
     elsaDecisions: [],
     elsaAutoRespondEnabled: true,
+    elsaSummarizeStatus: 'idle',
+    elsaSummarizeError: '',
+    elsaSummarizeText: '',
+    elsaSummarizeProviderUsed: '',
     onSetElsaAutoRespond: async () => {},
     onRunElsa: async () => {},
+    onSummarizeElsaRequest: async () => {},
+    onDismissElsaSummary: () => {},
     onReviewElsaDecision: async () => {},
     onCancelRequest: async () => {},
     cancelStatus: 'idle',
@@ -218,6 +224,43 @@ describe('RequestDetailPane', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Dismiss suggestion' }));
 
     expect(onReviewElsaDecision).toHaveBeenCalledWith('decision-hold-1', 'DISMISS');
+  });
+
+  it('opens summarize tile and dismisses it', () => {
+    const onDismissElsaSummary = vi.fn();
+    const { rerender } = render(
+      <WithAppTheme>
+        <RequestDetailPane
+          {...makeProps({
+            elsaSummarizeStatus: 'ok',
+            elsaSummarizeText: 'Leak reported under sink; awaiting vendor.',
+            elsaSummarizeProviderUsed: 'remote',
+            onDismissElsaSummary,
+          })}
+        />
+      </WithAppTheme>
+    );
+    expect(screen.getByText('AI summary')).toBeInTheDocument();
+    expect(screen.getByText('Leak reported under sink; awaiting vendor.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
+    expect(onDismissElsaSummary).toHaveBeenCalledTimes(1);
+    rerender(
+      <WithAppTheme>
+        <RequestDetailPane {...makeProps({ elsaSummarizeStatus: 'idle', onDismissElsaSummary })} />
+      </WithAppTheme>
+    );
+    expect(screen.queryByText('AI summary')).not.toBeInTheDocument();
+  });
+
+  it('invokes summarize when Summarize request is clicked', () => {
+    const onSummarizeElsaRequest = vi.fn();
+    render(
+      <WithAppTheme>
+        <RequestDetailPane {...makeProps({ onSummarizeElsaRequest })} />
+      </WithAppTheme>
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Summarize request' }));
+    expect(onSummarizeElsaRequest).toHaveBeenCalledTimes(1);
   });
 
   it('runs AI suggestion without opening a confirmation dialog', () => {

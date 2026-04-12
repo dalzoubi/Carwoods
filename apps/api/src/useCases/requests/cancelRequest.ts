@@ -4,8 +4,9 @@
  * Business rules:
  * - Actor must have the TENANT role.
  * - Tenant must own the request (active lease linkage).
- * - Request must be in a cancellable status: NOT_STARTED or ACKNOWLEDGED.
- *   Once scheduled or in-progress the property manager must handle it.
+ * - Request must be in a cancellable status: NOT_STARTED, ACKNOWLEDGED, or
+ *   WAITING_ON_TENANT (Elsa often moves auto-replied threads to the latter).
+ *   Once scheduled or work is actively with a vendor, the property manager must handle it.
  */
 
 import {
@@ -23,7 +24,7 @@ import { validateRequestId } from '../../domain/requestValidation.js';
 import { Role } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
 
-const CANCELLABLE_STATUS_CODES = new Set(['NOT_STARTED', 'ACKNOWLEDGED']);
+const CANCELLABLE_STATUS_CODES = new Set(['NOT_STARTED', 'ACKNOWLEDGED', 'WAITING_ON_TENANT']);
 
 export type CancelRequestInput = {
   requestId: string | undefined;

@@ -34,6 +34,9 @@ const PortalRequests = () => {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedRequestFromUrl = searchParams.get('id') || '';
+  const highlightMsgFromUrl = searchParams.get('hlMsg') || '';
+  const highlightAttFromUrl = searchParams.get('hlAtt') || '';
+  const highlightDecFromUrl = searchParams.get('hlDec') || '';
   const attachmentFromUrl = searchParams.get('attachment') || '';
   const attachmentTokenFromUrl = searchParams.get('atoken') || '';
   const secureAttachmentDeepLink =
@@ -101,9 +104,23 @@ const PortalRequests = () => {
 
   React.useEffect(() => {
     const id = selectedRequestFromUrl.trim();
-    if (id) openRequestDetail(id);
+    const highlight = {};
+    const hm = highlightMsgFromUrl.trim();
+    const ha = highlightAttFromUrl.trim();
+    const hd = highlightDecFromUrl.trim();
+    if (hm) highlight.messageId = hm;
+    if (ha) highlight.attachmentId = ha;
+    if (hd) highlight.decisionId = hd;
+    if (id) openRequestDetail(id, Object.keys(highlight).length ? highlight : null);
     else closeRequestDetail();
-  }, [selectedRequestFromUrl, openRequestDetail, closeRequestDetail]);
+  }, [
+    selectedRequestFromUrl,
+    highlightMsgFromUrl,
+    highlightAttFromUrl,
+    highlightDecFromUrl,
+    openRequestDetail,
+    closeRequestDetail,
+  ]);
 
   const portalStateMessage = isAuthenticated
     ? meStatus === 'loading'
@@ -214,6 +231,9 @@ const PortalRequests = () => {
         const next = new URLSearchParams(prev);
         if (id) next.set('id', id);
         else next.delete('id');
+        next.delete('hlMsg');
+        next.delete('hlAtt');
+        next.delete('hlDec');
         return next;
       },
       { replace: true }

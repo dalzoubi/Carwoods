@@ -46,11 +46,17 @@ import { AttachmentUploadControl } from '..';
 import { RequestStatus, Role } from '../../domain/constants.js';
 import { normalizeRole } from '../../portalUtils';
 import { getStatusChipSx } from './requestChipStyles';
+import { PortalMessageBody } from '../../lib/portalMessageBodyFormat';
+import PortalRequestMessageCompose from './PortalRequestMessageCompose';
 import elsaAssistantPhoto from '../../assets/elsa-assistant.webp';
 
 const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 const ELSA_INLINE_AVATAR_PX = 28;
-const CANCELLABLE_STATUS_CODES = new Set([RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED]);
+const CANCELLABLE_STATUS_CODES = new Set([
+  RequestStatus.NOT_STARTED,
+  RequestStatus.ACKNOWLEDGED,
+  RequestStatus.WAITING_ON_TENANT,
+]);
 const ELSA_MODE_LABEL_KEYS = {
   NEED_MORE_INFO: 'portalRequests.elsa.modes.needMoreInfo',
   SAFE_BASIC_TROUBLESHOOTING: 'portalRequests.elsa.modes.basicTroubleshooting',
@@ -303,12 +309,19 @@ const RequestDetailPane = ({
   elsaDecisionActionStatus,
   elsaDecisions,
   elsaAutoRespondEnabled,
+  elsaSummarizeStatus,
+  elsaSummarizeError,
+  elsaSummarizeText,
+  elsaSummarizeProviderUsed,
   onSetElsaAutoRespond,
   onRunElsa,
+  onSummarizeElsaRequest,
+  onDismissElsaSummary,
   onReviewElsaDecision,
   onCancelRequest,
   cancelStatus,
   cancelError,
+  notificationHighlight = null,
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -377,6 +390,69 @@ const RequestDetailPane = ({
       }),
     [threadMessages]
   );
+
+  const normalizedNotificationHighlight = useMemo(() => {
+    if (!notificationHighlight || typeof notificationHighlight !== 'object') {
+      return { messageId: '', attachmentId: '', decisionId: '' };
+    }
+    return {
+      messageId: String(notificationHighlight.messageId || '').trim(),
+      attachmentId: String(notificationHighlight.attachmentId || '').trim(),
+      decisionId: String(notificationHighlight.decisionId || '').trim(),
+    };
+  }, [notificationHighlight]);
+
+  const [notificationEmphasisActive, setNotificationEmphasisActive] = useState(true);
+  const [notificationHighlightEpoch, setNotificationHighlightEpoch] = useState(0);
+
+  useEffect(() => {
+    const { messageId, attachmentId, decisionId } = normalizedNotificationHighlight;
+    if (!messageId && !attachmentId && !decisionId) return;
+    setNotificationHighlightEpoch((n) => n + 1);
+  }, [normalizedNotificationHighlight, requestDetail?.id]);
+
+  useEffect(() => {
+    if (!notificationHighlightEpoch) return undefined;
+    setNotificationEmphasisActive(true);
+    const fadeId = window.setTimeout(() => setNotificationEmphasisActive(false), 12000);
+    return () => window.clearTimeout(fadeId);
+  }, [notificationHighlightEpoch]);
+
+  useEffect(() => {
+    if (detailStatus !== 'ok' || !requestDetail) return;
+    const mid = normalizedNotificationHighlight.messageId;
+    if (!mid) return;
+    if (isManagement) setActiveTab('details');
+    const scrollId = window.setTimeout(() => {
+      const el = document.getElementById(`portal-request-msg-${mid}`);
+      el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 120);
+    return () => window.clearTimeout(scrollId);
+  }, [detailStatus, requestDetail, normalizedNotificationHighlight.messageId, isManagement]);
+
+  useEffect(() => {
+    if (detailStatus !== 'ok' || !requestDetail) return;
+    const aid = normalizedNotificationHighlight.attachmentId;
+    if (!aid) return;
+    if (isManagement) setActiveTab('details');
+    const scrollId = window.setTimeout(() => {
+      const el = document.getElementById(`portal-request-att-${aid}`);
+      el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 120);
+    return () => window.clearTimeout(scrollId);
+  }, [detailStatus, requestDetail, normalizedNotificationHighlight.attachmentId, isManagement]);
+
+  useEffect(() => {
+    if (detailStatus !== 'ok' || !requestDetail || !isManagement) return;
+    const did = normalizedNotificationHighlight.decisionId;
+    if (!did) return;
+    setActiveTab('details');
+    const scrollId = window.setTimeout(() => {
+      const el = document.getElementById(`portal-request-elsa-${did}`);
+      el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 120);
+    return () => window.clearTimeout(scrollId);
+  }, [detailStatus, requestDetail, normalizedNotificationHighlight.decisionId, isManagement]);
   const sortedAttachments = useMemo(
     () =>
       [...attachments].sort((a, b) => {
@@ -1117,18 +1193,39 @@ const RequestDetailPane = ({
                   label={t('portalRequests.elsa.autoRespondToggle')}
                   sx={{ mr: 0 }}
                 />
-                <Button
-                  type="button"
-                  variant="outlined"
-                  onClick={onRunElsa}
-                  disabled={elsaDecisionStatus === 'loading'}
-                  startIcon={elsaDecisionStatus === 'loading' ? <CircularProgress size={16} /> : null}
-                  sx={{ minHeight: 40, width: { xs: '100%', md: 'auto' } }}
+                <Stack
+                  direction={{ xs: 'column', md: 'row' }}
+                  spacing={1}
+                  sx={{
+                    width: { xs: '100%', md: 'auto' },
+                    alignItems: { xs: 'stretch', md: 'center' },
+                  }}
                 >
-                  {elsaDecisionStatus === 'loading'
-                    ? t('portalRequests.elsa.running')
-                    : t('portalRequests.elsa.runNow')}
-                </Button>
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    onClick={onSummarizeElsaRequest}
+                    disabled={elsaSummarizeStatus === 'loading' || elsaDecisionStatus === 'loading'}
+                    startIcon={elsaSummarizeStatus === 'loading' ? <CircularProgress size={16} /> : null}
+                    sx={{ minHeight: 40, width: { xs: '100%', md: 'auto' } }}
+                  >
+                    {elsaSummarizeStatus === 'loading'
+                      ? t('portalRequests.elsa.summarizing')
+                      : t('portalRequests.elsa.summarizeRequest')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    onClick={onRunElsa}
+                    disabled={elsaDecisionStatus === 'loading'}
+                    startIcon={elsaDecisionStatus === 'loading' ? <CircularProgress size={16} /> : null}
+                    sx={{ minHeight: 40, width: { xs: '100%', md: 'auto' } }}
+                  >
+                    {elsaDecisionStatus === 'loading'
+                      ? t('portalRequests.elsa.running')
+                      : t('portalRequests.elsa.runNow')}
+                  </Button>
+                </Stack>
               </Stack>
             </Box>
             <StatusAlertSlot
@@ -1137,21 +1234,127 @@ const RequestDetailPane = ({
             <StatusAlertSlot
               message={elsaDecisionError ? { severity: 'error', text: elsaDecisionError } : null}
             />
-            {sortedElsaDecisions.map((decision) => {
-                const plannedReply = extractPlannedReply(decision);
-                const canUseSuggestedReply = shouldOfferManualAction(decision, plannedReply);
-                const canDismissSuggestion = shouldOfferDismissAction(decision);
-                const canMarkResolved = decision.policy_decision === 'HOLD_FOR_REVIEW' && !decision.reviewed_at;
-                const hasElsaActions = canUseSuggestedReply || canDismissSuggestion || canMarkResolved;
-                return (
+            {elsaSummarizeStatus !== 'idle' && (
               <Box
-                key={decision.id}
                 sx={(theme) => ({
                   border: '1px solid',
                   borderColor: 'divider',
                   borderRadius: 1.5,
                   p: { xs: 1.25, sm: 1.5 },
                   backgroundColor: alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.14 : 0.05),
+                })}
+              >
+                <Stack spacing={1}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', width: '100%' }}>
+                    <Avatar
+                      src={elsaAssistantPhoto}
+                      alt={t('portalRequests.messages.elsaName')}
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        flexShrink: 0,
+                        alignSelf: { xs: 'flex-start', sm: 'center' },
+                        mt: { xs: 0.2, sm: 0 },
+                        boxShadow: (th) => `0 0 0 1px ${alpha(th.palette.secondary.main, 0.35)}`,
+                      }}
+                    />
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', flex: 1, minWidth: 0 }}>
+                      <Chip
+                        size="small"
+                        label={t('portalRequests.elsa.summaryBadge')}
+                        color="info"
+                        variant="filled"
+                      />
+                    </Stack>
+                  </Box>
+                  {elsaSummarizeStatus === 'loading' && (
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <CircularProgress size={18} />
+                      <Typography variant="body2" color="text.secondary">
+                        {t('portalRequests.elsa.summarizing')}
+                      </Typography>
+                    </Stack>
+                  )}
+                  {elsaSummarizeStatus === 'error' && elsaSummarizeError && (
+                    <Typography variant="body2" color="error">
+                      {elsaSummarizeError}
+                    </Typography>
+                  )}
+                  {elsaSummarizeStatus === 'ok' && elsaSummarizeText && (
+                    <>
+                      {elsaSummarizeProviderUsed === 'unavailable' && (
+                        <Typography variant="body2" color="text.secondary">
+                          {t('portalRequests.elsa.summaryFallbackNote')}
+                        </Typography>
+                      )}
+                      <Box
+                        sx={(theme) => ({
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          borderRadius: 1,
+                          p: 1,
+                          borderInlineStartWidth: 3,
+                          borderInlineStartStyle: 'solid',
+                          borderInlineStartColor: theme.palette.primary.main,
+                          backgroundColor: alpha(theme.palette.background.default, theme.palette.mode === 'dark' ? 0.34 : 0.66),
+                        })}
+                      >
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.25 }}>
+                          {t('portalRequests.elsa.summaryContentLabel')}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+                        >
+                          {elsaSummarizeText}
+                        </Typography>
+                      </Box>
+                    </>
+                  )}
+                  <Divider />
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{ flexWrap: 'nowrap', alignItems: 'center', overflowX: 'auto', pb: 0.25 }}
+                  >
+                    <Button
+                      type="button"
+                      size="small"
+                      color="warning"
+                      variant="outlined"
+                      onClick={onDismissElsaSummary}
+                      sx={{ minHeight: 36, flexShrink: 0 }}
+                    >
+                      {t('portalRequests.elsa.actions.dismiss')}
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Box>
+            )}
+            {sortedElsaDecisions.map((decision) => {
+                const plannedReply = extractPlannedReply(decision);
+                const canUseSuggestedReply = shouldOfferManualAction(decision, plannedReply);
+                const canDismissSuggestion = shouldOfferDismissAction(decision);
+                const hasElsaActions = canUseSuggestedReply || canDismissSuggestion;
+                const isDecHighlight = notificationEmphasisActive
+                  && Boolean(normalizedNotificationHighlight.decisionId)
+                  && String(decision.id) === normalizedNotificationHighlight.decisionId;
+                return (
+              <Box
+                key={decision.id}
+                id={`portal-request-elsa-${decision.id}`}
+                sx={(theme) => ({
+                  border: '1px solid',
+                  borderColor: isDecHighlight ? 'primary.main' : 'divider',
+                  borderRadius: 1.5,
+                  p: { xs: 1.25, sm: 1.5 },
+                  backgroundColor: isDecHighlight
+                    ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.22 : 0.1)
+                    : alpha(theme.palette.secondary.main, theme.palette.mode === 'dark' ? 0.14 : 0.05),
+                  boxShadow: isDecHighlight
+                    ? `0 0 0 2px ${alpha(theme.palette.primary.main, 0.45)}`
+                    : 'none',
+                  transition: 'background-color 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease',
                 })}
               >
                 <Stack spacing={1}>
@@ -1294,19 +1497,6 @@ const RequestDetailPane = ({
                             {t('portalRequests.elsa.actions.dismiss')}
                           </Button>
                         )}
-                        {canMarkResolved && (
-                          <Button
-                            type="button"
-                            size="small"
-                            variant="outlined"
-                            onClick={() => handleReviewElsaDecision(decision.id, 'MARK_RESOLVED')}
-                            disabled={elsaDecisionActionStatus === 'saving'}
-                            startIcon={isElsaActionSaving(decision.id, 'MARK_RESOLVED') ? <CircularProgress size={14} color="inherit" /> : null}
-                            sx={{ minHeight: 36, flexShrink: 0 }}
-                          >
-                            {t('portalRequests.elsa.actions.markResolved')}
-                          </Button>
-                        )}
                       </Stack>
                     </>
                   )}
@@ -1346,17 +1536,30 @@ const RequestDetailPane = ({
               {sortedThreadMessages.length === 0 && (
                 <Typography color="text.secondary">{t('portalRequests.messages.empty')}</Typography>
               )}
-              {sortedThreadMessages.map((msg) => (
+              {sortedThreadMessages.map((msg) => {
+                const isMsgHighlight = notificationEmphasisActive
+                  && Boolean(normalizedNotificationHighlight.messageId)
+                  && String(msg.id) === normalizedNotificationHighlight.messageId;
+                return (
                 <Box
                   key={msg.id}
+                  id={`portal-request-msg-${msg.id}`}
                   sx={(theme) => ({
                     border: '1px solid',
-                    borderColor: msg.is_internal ? 'warning.main' : 'divider',
+                    borderColor: isMsgHighlight
+                      ? 'primary.main'
+                      : (msg.is_internal ? 'warning.main' : 'divider'),
                     p: 1,
                     borderRadius: 1,
-                    backgroundColor: msg.is_internal
-                      ? alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.22 : 0.12)
-                      : 'transparent',
+                    backgroundColor: isMsgHighlight
+                      ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.26 : 0.14)
+                      : (msg.is_internal
+                        ? alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.22 : 0.12)
+                        : 'transparent'),
+                    boxShadow: isMsgHighlight
+                      ? `0 0 0 2px ${alpha(theme.palette.primary.main, 0.45)}`
+                      : 'none',
+                    transition: 'background-color 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease',
                   })}
                 >
                   {/*
@@ -1457,7 +1660,8 @@ const RequestDetailPane = ({
                             </Stack>
                           </Stack>
                         </Stack>
-                        <Typography
+                        <PortalMessageBody
+                          text={msg.body}
                           color="text.secondary"
                           sx={{
                             width: '100%',
@@ -1465,14 +1669,13 @@ const RequestDetailPane = ({
                             wordBreak: 'break-word',
                             whiteSpace: 'pre-wrap',
                           }}
-                        >
-                          {msg.body}
-                        </Typography>
+                        />
                       </Stack>
                     );
                   })()}
                 </Box>
-              ))}
+              );
+              })}
             </Stack>
           </Box>
           <Dialog open={Boolean(deleteDialogMessage)} onClose={() => setDeleteDialogMessage(null)}>
@@ -1498,11 +1701,10 @@ const RequestDetailPane = ({
               </Button>
             </DialogActions>
           </Dialog>
-          <TextField
+          <PortalRequestMessageCompose
             label={t('portalRequests.messages.bodyLabel')}
             value={messageForm.body}
-            onChange={(event) => setMessageForm((prev) => ({ ...prev, body: event.target.value }))}
-            multiline
+            onChange={(body) => setMessageForm((prev) => ({ ...prev, body }))}
             minRows={2}
             required
             disabled={messageStatus === 'saving'}
@@ -1577,10 +1779,27 @@ const RequestDetailPane = ({
                   <Typography color="text.secondary">{t('portalRequests.attachments.empty')}</Typography>
                 </Box>
               )}
-              {sortedAttachments.map((att) => (
+              {sortedAttachments.map((att) => {
+                const isAttHighlight = notificationEmphasisActive
+                  && Boolean(normalizedNotificationHighlight.attachmentId)
+                  && String(att.id) === normalizedNotificationHighlight.attachmentId;
+                return (
                 <Box
                   key={att.id}
-                  sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1.25 }}
+                  id={`portal-request-att-${att.id}`}
+                  sx={(theme) => ({
+                    border: '1px solid',
+                    borderColor: isAttHighlight ? 'primary.main' : 'divider',
+                    borderRadius: 1,
+                    p: 1.25,
+                    backgroundColor: isAttHighlight
+                      ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.1)
+                      : 'transparent',
+                    boxShadow: isAttHighlight
+                      ? `0 0 0 2px ${alpha(theme.palette.primary.main, 0.45)}`
+                      : 'none',
+                    transition: 'background-color 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease',
+                  })}
                 >
                   <Stack spacing={0.75}>
                     {att.file_url && att.media_type === 'PHOTO' && (
@@ -1729,7 +1948,8 @@ const RequestDetailPane = ({
                     </Box>
                   </Stack>
                 </Box>
-              ))}
+              );
+              })}
             </Stack>
           </Box>
           <AttachmentUploadControl

@@ -31,7 +31,7 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
 } from '../lib/portalApiClient';
-import { parsePortalRequestIdFromDeepLink, relativeTime } from '../lib/notificationUtils';
+import { notificationOpenTargetFromRow, relativeTime } from '../lib/notificationUtils';
 import { usePortalRequestDetailModal } from './PortalRequestDetailModalContext';
 
 function eventIcon(eventTypeCode) {
@@ -120,9 +120,10 @@ const PortalNotificationsInbox = () => {
         )
       );
       if (navigate_after && notification.deep_link) {
-        const requestId = parsePortalRequestIdFromDeepLink(notification.deep_link);
+        const { requestId, highlight } = notificationOpenTargetFromRow(notification);
+        const highlightKeys = Object.keys(highlight);
         if (requestId && requestDetailModalAvailable) {
-          openRequestDetail(requestId);
+          openRequestDetail(requestId, highlightKeys.length ? highlight : null);
         } else {
           navigate(withDarkPath(pathname, notification.deep_link));
         }

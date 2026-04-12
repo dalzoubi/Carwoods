@@ -18,6 +18,7 @@ import {
   patchElsaPriorityPolicy,
   patchElsaSettings,
   processElsaRequest,
+  summarizeElsaRequest,
   patchElsaDecisionReview,
   fetchExportCsv,
   fetchRequestAudit,
@@ -217,6 +218,7 @@ export function usePortalRequests({
   const [attachmentShareError, setAttachmentShareError] = useState('');
   const [attachmentRetryHint, setAttachmentRetryHint] = useState('');
   const secureLinkConsumedRef = useRef('');
+  const elsaSummarizeSerialRef = useRef(0);
 
   const [exportStatus, setExportStatus] = useState('idle');
   const [exportError, setExportError] = useState('');
@@ -231,6 +233,10 @@ export function usePortalRequests({
   const [elsaDecisions, setElsaDecisions] = useState([]);
   const [elsaDecisionActionStatus, setElsaDecisionActionStatus] = useState('idle');
   const [elsaAutoRespondEnabled, setElsaAutoRespondEnabled] = useState(false);
+  const [elsaSummarizeStatus, setElsaSummarizeStatus] = useState('idle');
+  const [elsaSummarizeError, setElsaSummarizeError] = useState('');
+  const [elsaSummarizeText, setElsaSummarizeText] = useState('');
+  const [elsaSummarizeProviderUsed, setElsaSummarizeProviderUsed] = useState('');
   const [managementStatusOptions] = useState(() => [
     RequestStatus.NOT_STARTED,
     RequestStatus.ACKNOWLEDGED,
@@ -472,6 +478,10 @@ export function usePortalRequests({
       setElsaDecisions([]);
       setElsaDecisionStatus('idle');
       setElsaDecisionError('');
+      setElsaSummarizeStatus('idle');
+      setElsaSummarizeError('');
+      setElsaSummarizeText('');
+      setElsaSummarizeProviderUsed('');
       return;
     }
     setSelectedRequestId(id);
@@ -571,6 +581,10 @@ export function usePortalRequests({
     setElsaDecisionError('');
     setElsaDecisions([]);
     setElsaDecisionActionStatus('idle');
+    setElsaSummarizeStatus('idle');
+    setElsaSummarizeError('');
+    setElsaSummarizeText('');
+    setElsaSummarizeProviderUsed('');
   }, [selectedRequestId]);
 
   useEffect(() => {
@@ -1287,6 +1301,44 @@ export function usePortalRequests({
     }
   };
 
+  const onDismissElsaSummary = () => {
+    elsaSummarizeSerialRef.current += 1;
+    setElsaSummarizeStatus('idle');
+    setElsaSummarizeError('');
+    setElsaSummarizeText('');
+    setElsaSummarizeProviderUsed('');
+  };
+
+  const onSummarizeElsaRequest = async () => {
+    if (!baseUrl || !selectedRequestId || !isManagement) return;
+    const serial = ++elsaSummarizeSerialRef.current;
+    setElsaSummarizeStatus('loading');
+    setElsaSummarizeError('');
+    setElsaSummarizeText('');
+    setElsaSummarizeProviderUsed('');
+    try {
+      const token = await getAccessToken();
+      const emailHint = emailFromAccount(account);
+      const payload = await summarizeElsaRequest(baseUrl, token, selectedRequestId, { emailHint });
+      if (serial !== elsaSummarizeSerialRef.current) return;
+      const summary = typeof payload?.summary === 'string' ? payload.summary.trim() : '';
+      const providerUsed = typeof payload?.provider_used === 'string' ? payload.provider_used : '';
+      if (!summary) {
+        setElsaSummarizeStatus('error');
+        setElsaSummarizeError(t('portalRequests.elsa.summaryEmpty'));
+        return;
+      }
+      setElsaSummarizeText(summary);
+      setElsaSummarizeProviderUsed(providerUsed);
+      setElsaSummarizeStatus('ok');
+    } catch (error) {
+      if (serial !== elsaSummarizeSerialRef.current) return;
+      handleApiForbidden(error);
+      setElsaSummarizeStatus('error');
+      setElsaSummarizeError(extractErrorMessage(error, t, 'portalRequests.errors.saveFailed'));
+    }
+  };
+
   const onReviewElsaDecision = async (decisionId, action) => {
     if (!baseUrl || !selectedRequestId || !isManagement || !decisionId || !action) return;
     setElsaDecisionActionStatus('saving');
@@ -1425,6 +1477,10 @@ export function usePortalRequests({
     elsaDecisionActionStatus,
     elsaDecisions,
     elsaAutoRespondEnabled,
+    elsaSummarizeStatus,
+    elsaSummarizeError,
+    elsaSummarizeText,
+    elsaSummarizeProviderUsed,
     loadRequestDetails,
     loadAuditForRequest,
     loadElsaContext,
@@ -1446,6 +1502,8 @@ export function usePortalRequests({
     onExportCsv,
     onSetElsaAutoRespond,
     onRunElsa,
+    onSummarizeElsaRequest,
+    onDismissElsaSummary,
     onReviewElsaDecision,
     onUpdateElsaGlobalSettings,
     onSetElsaCategoryEnabled,

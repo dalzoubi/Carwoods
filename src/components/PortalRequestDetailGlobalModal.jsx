@@ -25,6 +25,7 @@ const PortalRequestDetailGlobalModal = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const modalCtx = useContext(PortalRequestDetailModalContext);
   const overlayRequestId = modalCtx?.overlayRequestId ?? '';
+  const overlayHighlight = modalCtx?.overlayHighlight ?? null;
   const closeRequestDetail = modalCtx?.closeRequestDetail ?? (() => {});
 
   const {
@@ -87,6 +88,10 @@ const PortalRequestDetailGlobalModal = () => {
     elsaDecisionActionStatus,
     elsaDecisions,
     elsaAutoRespondEnabled,
+    elsaSummarizeStatus,
+    elsaSummarizeError,
+    elsaSummarizeText,
+    elsaSummarizeProviderUsed,
     onManagementField,
     onUpdateRequest,
     onMessageSubmit,
@@ -98,6 +103,8 @@ const PortalRequestDetailGlobalModal = () => {
     onShareAttachment,
     onSetElsaAutoRespond,
     onRunElsa,
+    onSummarizeElsaRequest,
+    onDismissElsaSummary,
     onReviewElsaDecision,
     onCancelRequest,
     cancelStatus,
@@ -183,6 +190,9 @@ const PortalRequestDetailGlobalModal = () => {
         (prev) => {
           const next = new URLSearchParams(prev);
           next.delete('id');
+          next.delete('hlMsg');
+          next.delete('hlAtt');
+          next.delete('hlDec');
           return next;
         },
         { replace: true }
@@ -272,12 +282,19 @@ const PortalRequestDetailGlobalModal = () => {
               elsaDecisionActionStatus={elsaDecisionActionStatus}
               elsaDecisions={elsaDecisions}
               elsaAutoRespondEnabled={elsaAutoRespondEnabled}
+              elsaSummarizeStatus={elsaSummarizeStatus}
+              elsaSummarizeError={elsaSummarizeError}
+              elsaSummarizeText={elsaSummarizeText}
+              elsaSummarizeProviderUsed={elsaSummarizeProviderUsed}
               onSetElsaAutoRespond={onSetElsaAutoRespond}
               onRunElsa={onRunElsa}
+              onSummarizeElsaRequest={onSummarizeElsaRequest}
+              onDismissElsaSummary={onDismissElsaSummary}
               onReviewElsaDecision={onReviewElsaDecision}
               onCancelRequest={onCancelRequest}
               cancelStatus={cancelStatus}
               cancelError={cancelError}
+              notificationHighlight={overlayHighlight}
             />
           ) : null}
         </DialogContent>

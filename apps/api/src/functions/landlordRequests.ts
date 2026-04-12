@@ -27,6 +27,7 @@ import { exportRequestsCsv } from '../useCases/requests/exportRequestsCsv.js';
 import { listRequestAudit } from '../useCases/requests/listRequestAudit.js';
 import { listNotificationMetrics } from '../useCases/requests/listNotificationMetrics.js';
 import { processElsaAutoResponse } from '../useCases/requests/processElsaAutoResponse.js';
+import { summarizeMaintenanceRequestThread } from '../useCases/requests/summarizeMaintenanceRequestThread.js';
 import { reviewElsaDecision } from '../useCases/requests/reviewElsaDecision.js';
 import {
   getAiAgentRouting,
@@ -502,6 +503,31 @@ async function landlordProcessElsa(
   return jsonResponse(200, ctx.headers, result);
 }
 
+async function landlordRequestElsaSummarize(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireLandlordOrAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  if (request.method !== 'POST') return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+  const requestId = request.params.id;
+  if (!requestId) return jsonResponse(400, ctx.headers, { error: 'missing_id' });
+  try {
+    const result = await summarizeMaintenanceRequestThread(getPool(), {
+      requestId,
+      actorUserId: ctx.user.id,
+      actorRole: ctx.role,
+      logger: context,
+    });
+    return jsonResponse(200, ctx.headers, result);
+  } catch (e) {
+    const mapped = mapDomainError(e, ctx.headers);
+    if (mapped) return mapped;
+    throw e;
+  }
+}
+
 async function landlordRequestElsaDecisions(
   request: HttpRequest,
   context: InvocationContext
@@ -825,6 +851,13 @@ app.http('landlordRequestElsaProcess', {
   authLevel: 'anonymous',
   route: 'landlord/requests/{id}/elsa/process',
   handler: landlordProcessElsa,
+});
+
+app.http('landlordRequestElsaSummarize', {
+  methods: ['POST', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'landlord/requests/{id}/elsa/summarize',
+  handler: landlordRequestElsaSummarize,
 });
 
 app.http('landlordRequestElsaDecisions', {

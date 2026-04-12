@@ -3,6 +3,18 @@ import PortalRequestDetailGlobalModal from './PortalRequestDetailGlobalModal';
 
 export const PortalRequestDetailModalContext = createContext(null);
 
+function normalizeHighlight(highlight) {
+  if (!highlight || typeof highlight !== 'object') return null;
+  const out = {};
+  const m = String(highlight.messageId || '').trim();
+  const a = String(highlight.attachmentId || '').trim();
+  const d = String(highlight.decisionId || '').trim();
+  if (m) out.messageId = m;
+  if (a) out.attachmentId = a;
+  if (d) out.decisionId = d;
+  return Object.keys(out).length ? out : null;
+}
+
 /**
  * Opens the portal-wide maintenance request detail dialog without changing the route.
  * Outside {@link PortalRequestDetailModalProvider}, `openRequestDetail` is a no-op and `isAvailable` is false.
@@ -15,6 +27,7 @@ export function usePortalRequestDetailModal() {
       openRequestDetail: () => {},
       closeRequestDetail: () => {},
       overlayRequestId: '',
+      overlayHighlight: null,
     };
   }
   return ctx;
@@ -22,14 +35,18 @@ export function usePortalRequestDetailModal() {
 
 export function PortalRequestDetailModalProvider({ children }) {
   const [overlayRequestId, setOverlayRequestId] = useState('');
+  const [overlayHighlight, setOverlayHighlight] = useState(null);
 
-  const openRequestDetail = useCallback((id) => {
+  const openRequestDetail = useCallback((id, highlight = null) => {
     const sid = String(id || '').trim();
-    if (sid) setOverlayRequestId(sid);
+    if (!sid) return;
+    setOverlayRequestId(sid);
+    setOverlayHighlight(normalizeHighlight(highlight));
   }, []);
 
   const closeRequestDetail = useCallback(() => {
     setOverlayRequestId('');
+    setOverlayHighlight(null);
   }, []);
 
   const value = useMemo(
@@ -38,8 +55,9 @@ export function PortalRequestDetailModalProvider({ children }) {
       openRequestDetail,
       closeRequestDetail,
       overlayRequestId,
+      overlayHighlight,
     }),
-    [openRequestDetail, closeRequestDetail, overlayRequestId]
+    [openRequestDetail, closeRequestDetail, overlayRequestId, overlayHighlight]
   );
 
   return (

@@ -68,6 +68,10 @@ const mockRequestsState = {
   elsaDecisionActionStatus: 'idle',
   elsaDecisions: [],
   elsaAutoRespondEnabled: false,
+  elsaSummarizeStatus: 'idle',
+  elsaSummarizeError: '',
+  elsaSummarizeText: '',
+  elsaSummarizeProviderUsed: '',
   loadRequestDetails: vi.fn(),
   loadAuditForRequest: vi.fn(),
   loadElsaContext: vi.fn(),
@@ -92,6 +96,8 @@ const mockRequestsState = {
   onExportCsv: vi.fn(),
   onSetElsaAutoRespond: vi.fn(),
   onRunElsa: vi.fn(),
+  onSummarizeElsaRequest: vi.fn(),
+  onDismissElsaSummary: vi.fn(),
   onReviewElsaDecision: vi.fn(),
 };
 

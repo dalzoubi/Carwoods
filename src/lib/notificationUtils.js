@@ -6,6 +6,46 @@
  * @param {string} [locale]
  * @returns {string}
  */
+
+function trimStr(value) {
+  if (value === null || value === undefined) return '';
+  return String(value).trim();
+}
+
+/**
+ * Parses a portal maintenance-requests deep link for request id and optional highlight targets.
+ * Supports `/portal/requests?…` and `/dark/portal/requests?…` with `hlMsg`, `hlAtt`, `hlDec`.
+ *
+ * @param {string | null | undefined} deepLink
+ * @returns {{ requestId: string, highlight: { messageId: string, attachmentId: string, decisionId: string } }}
+ */
+export function parsePortalRequestDeepLink(deepLink) {
+  const emptyHighlight = { messageId: '', attachmentId: '', decisionId: '' };
+  if (!deepLink || typeof deepLink !== 'string') {
+    return { requestId: '', highlight: { ...emptyHighlight } };
+  }
+  const qIndex = deepLink.indexOf('?');
+  const pathPart = (qIndex === -1 ? deepLink : deepLink.slice(0, qIndex)).split('#')[0];
+  const normalized = pathPart.replace(/^\/dark(?=\/)/, '') || '/';
+  if (!/\/portal\/requests\/?$/.test(normalized)) {
+    return { requestId: '', highlight: { ...emptyHighlight } };
+  }
+  const q = qIndex === -1 ? '' : deepLink.slice(qIndex).split('#')[0];
+  try {
+    const params = new URLSearchParams(q.startsWith('?') ? q.slice(1) : q);
+    return {
+      requestId: trimStr(params.get('id')),
+      highlight: {
+        messageId: trimStr(params.get('hlMsg')),
+        attachmentId: trimStr(params.get('hlAtt')),
+        decisionId: trimStr(params.get('hlDec')),
+      },
+    };
+  } catch {
+    return { requestId: '', highlight: { ...emptyHighlight } };
+  }
+}
+
 /**
  * If `deepLink` targets the portal maintenance requests page with an `id` query, returns that id.
  * Supports paths like `/portal/requests?id=…` and `/dark/portal/requests?id=…`.
@@ -14,17 +54,37 @@
  * @returns {string}
  */
 export function parsePortalRequestIdFromDeepLink(deepLink) {
-  if (!deepLink || typeof deepLink !== 'string') return '';
-  const pathPart = deepLink.split('?')[0].split('#')[0];
-  const normalized = pathPart.replace(/^\/dark(?=\/)/, '') || '/';
-  if (!/\/portal\/requests\/?$/.test(normalized)) return '';
-  const q = deepLink.includes('?') ? deepLink.slice(deepLink.indexOf('?')).split('#')[0] : '';
-  try {
-    const params = new URLSearchParams(q);
-    return String(params.get('id') || '').trim();
-  } catch {
-    return '';
-  }
+  return parsePortalRequestDeepLink(deepLink).requestId;
+}
+
+/**
+ * Resolves request id and scroll/highlight targets for opening from a notification row.
+ * Merges URL query params with `metadata_json` so older notifications still focus when metadata has ids.
+ *
+ * @param {{ deep_link?: string|null, metadata_json?: unknown }} notification
+ * @returns {{ requestId: string, highlight: { messageId?: string, attachmentId?: string, decisionId?: string } }}
+ */
+export function notificationOpenTargetFromRow(notification) {
+  const fromLink = parsePortalRequestDeepLink(notification?.deep_link);
+  const meta = notification?.metadata_json && typeof notification.metadata_json === 'object'
+    ? notification.metadata_json
+    : {};
+  const metaMsg = trimStr(meta.message_id);
+  const metaAtt = trimStr(meta.attachment_id);
+  const metaDec = trimStr(meta.decision_id);
+
+  const highlight = {};
+  const msg = fromLink.highlight.messageId || metaMsg;
+  const att = fromLink.highlight.attachmentId || metaAtt;
+  const dec = fromLink.highlight.decisionId || metaDec;
+  if (msg) highlight.messageId = msg;
+  if (att) highlight.attachmentId = att;
+  if (dec) highlight.decisionId = dec;
+
+  return {
+    requestId: fromLink.requestId,
+    highlight,
+  };
 }
 
 export function relativeTime(date, locale) {
