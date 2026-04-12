@@ -539,6 +539,7 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
           <MenuItem
             key={lang}
             lang={lang}
+            selected={storedLanguageOverride === lang}
             onClick={() => { changeLanguage(lang); handleLanguageClose(); }}
           >
             {t(`languageNames.${lang}`)}

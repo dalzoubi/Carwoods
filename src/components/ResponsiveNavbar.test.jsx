@@ -144,6 +144,23 @@ describe('ResponsiveNavbar', () => {
       expect(screen.getByRole('menuitem', { name: /العربية/i })).toBeInTheDocument();
     });
 
+    it('does not mark any list language as selected when following browser language', () => {
+      renderWithProviders(<ResponsiveNavbar />);
+      fireEvent.click(screen.getByRole('button', { name: /select language/i }));
+      for (const name of [/english/i, /español/i, /français/i, /العربية/i]) {
+        expect(screen.getByRole('menuitem', { name })).not.toHaveClass('Mui-selected');
+      }
+    });
+
+    it('marks only the stored override language as selected in the menu', async () => {
+      localStorage.setItem('carwoods-language', 'fr');
+      await i18n.changeLanguage('fr');
+      renderWithProviders(<ResponsiveNavbar />);
+      fireEvent.click(screen.getByRole('button', { name: /select language|sélectionner la langue|seleccionar idioma|اختر اللغة/i }));
+      expect(screen.getByRole('menuitem', { name: /français/i })).toHaveClass('Mui-selected');
+      expect(screen.getByRole('menuitem', { name: /english/i })).not.toHaveClass('Mui-selected');
+    });
+
     it('selects a language and closes menu', async () => {
       renderWithProviders(<ResponsiveNavbar />);
       fireEvent.click(screen.getByRole('button', { name: /select language/i }));

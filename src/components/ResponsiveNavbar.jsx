@@ -157,7 +157,6 @@ const ResponsiveNavbar = () => {
         resetOverride,
     } = useThemeMode();
     const {
-        currentLanguage,
         supportedLanguages,
         changeLanguage,
         storedLanguageOverride,
@@ -1121,7 +1120,7 @@ const ResponsiveNavbar = () => {
                 {supportedLanguages.map((lang) => (
                     <MenuItem
                         key={lang}
-                        selected={currentLanguage === lang}
+                        selected={storedLanguageOverride === lang}
                         onClick={() => {
                             changeLanguage(lang);
                             handleLanguageClose();
