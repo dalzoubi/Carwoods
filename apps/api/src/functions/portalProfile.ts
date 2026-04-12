@@ -9,6 +9,7 @@ import { jsonResponse, mapDomainError, requirePortalUser } from '../lib/manageme
 
 import { clampQuietHoursMinuteOfDay } from '../lib/notificationQuietHours.js';
 import { updateProfile } from '../useCases/users/updateProfile.js';
+import { updateUserUiPreferences, findUserById } from '../lib/usersRepo.js';
 import { addProfilePhotoReadUrl } from '../lib/userProfilePhotoUrl.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
@@ -55,8 +56,41 @@ async function portalProfileHandler(
 
   const payload = asRecord(body);
 
+  const hasEmail = Object.prototype.hasOwnProperty.call(payload, 'email');
   const hasUiLanguage = Object.prototype.hasOwnProperty.call(payload, 'ui_language');
   const hasUiColorScheme = Object.prototype.hasOwnProperty.call(payload, 'ui_color_scheme');
+
+  // UI-preferences-only PATCH: no email/name/phone/notification fields.
+  // Bypass the full updateProfile flow (which requires a valid email) and write
+  // directly so background syncs from the nav menus work without a full form submit.
+  const isUiPrefsOnly = !hasEmail
+    && !Object.prototype.hasOwnProperty.call(payload, 'first_name')
+    && !Object.prototype.hasOwnProperty.call(payload, 'last_name')
+    && !Object.prototype.hasOwnProperty.call(payload, 'phone')
+    && !Object.prototype.hasOwnProperty.call(payload, 'notification_preferences')
+    && (hasUiLanguage || hasUiColorScheme);
+
+  if (isUiPrefsOnly) {
+    try {
+      const pool = getPool();
+      const updated = await updateUserUiPreferences(pool, user.id, {
+        ...(hasUiLanguage ? { uiLanguage: str(payload.ui_language) ?? null } : {}),
+        ...(hasUiColorScheme ? { uiColorScheme: str(payload.ui_color_scheme) ?? null } : {}),
+      });
+      const row = updated ?? (await findUserById(pool, user.id)) ?? user;
+      return jsonResponse(200, headers, {
+        user: {
+          ...addProfilePhotoReadUrl(row),
+          ui_language: row.ui_language ?? null,
+          ui_color_scheme: row.ui_color_scheme ?? null,
+        },
+      });
+    } catch (e) {
+      const mapped = mapDomainError(e, headers);
+      if (mapped) return mapped;
+      throw e;
+    }
+  }
 
   try {
     const result = await updateProfile(getPool(), {
