@@ -11,6 +11,20 @@
  * `message` is the human-readable summary used for display.
  */
 
+import {
+  portalCachedJsonGet,
+  buildPortalCacheKey,
+  PORTAL_CACHE_PREFIX,
+  PORTAL_CACHE_TTL_MS,
+  invalidateRequestsListCacheForUser,
+  invalidateLandlordsCache,
+  invalidateElsaCacheForUser,
+  invalidateNotificationsCacheForUser,
+  invalidateMessagesCacheForRequest,
+  invalidateTenantDetailCache,
+  invalidateAllTenantDetailCachesForUser,
+} from './portalDataCache.js';
+
 function buildUrl(baseUrl, path) {
   return `${baseUrl.replace(/\/$/, '')}${path}`;
 }
@@ -94,16 +108,15 @@ export async function fetchMe(baseUrl, accessToken, emailHint, signal) {
  */
 export async function fetchRequests(baseUrl, accessToken, params) {
   const { path, emailHint } = params;
-  const res = await fetch(buildUrl(baseUrl, path), {
-    method: 'GET',
-    headers: getHeaders(accessToken, emailHint),
-    credentials: 'omit',
+  const url = buildUrl(baseUrl, path);
+  const cacheKey = buildPortalCacheKey(PORTAL_CACHE_PREFIX.REQUESTS_LIST, baseUrl, emailHint, path);
+  return portalCachedJsonGet({
+    cacheKey,
+    ttlMs: PORTAL_CACHE_TTL_MS.REQUESTS_LIST,
+    fetchMode: 'ttl',
+    url,
+    prepareHeaders: () => getHeaders(accessToken, emailHint),
   });
-  if (!res.ok) {
-    const code = await readErrorBody(res);
-    throw apiError(res.status, code);
-  }
-  return res.json();
 }
 
 // ---------------------------------------------------------------------------
@@ -122,33 +135,36 @@ export async function fetchRequestDetail(baseUrl, accessToken, params) {
   const { detailPath, messagesPath, attachmentsPath, emailHint } = params;
   const headers = getHeaders(accessToken, emailHint);
 
-  const detailRes = await fetch(buildUrl(baseUrl, detailPath), {
-    method: 'GET',
-    headers,
-    credentials: 'omit',
-  });
+  const [detailRes, messagesRes, attachmentsRes] = await Promise.all([
+    fetch(buildUrl(baseUrl, detailPath), {
+      method: 'GET',
+      headers,
+      credentials: 'omit',
+    }),
+    fetch(buildUrl(baseUrl, messagesPath), {
+      method: 'GET',
+      headers,
+      credentials: 'omit',
+    }),
+    fetch(buildUrl(baseUrl, attachmentsPath), {
+      method: 'GET',
+      headers,
+      credentials: 'omit',
+    }),
+  ]);
+
   if (!detailRes.ok) {
     const code = await readErrorBody(detailRes);
     throw apiError(detailRes.status, code);
   }
   const detailPayload = await detailRes.json();
 
-  const messagesRes = await fetch(buildUrl(baseUrl, messagesPath), {
-    method: 'GET',
-    headers,
-    credentials: 'omit',
-  });
   if (!messagesRes.ok) {
     const code = await readErrorBody(messagesRes);
     throw apiError(messagesRes.status, code);
   }
   const messagesPayload = await messagesRes.json();
 
-  const attachmentsRes = await fetch(buildUrl(baseUrl, attachmentsPath), {
-    method: 'GET',
-    headers,
-    credentials: 'omit',
-  });
   if (!attachmentsRes.ok) {
     const code = await readErrorBody(attachmentsRes);
     throw apiError(attachmentsRes.status, code);
@@ -209,7 +225,9 @@ export async function createRequest(baseUrl, accessToken, payload) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const data = await res.json();
+  invalidateRequestsListCacheForUser(baseUrl, emailHint);
+  return data;
 }
 
 // ---------------------------------------------------------------------------
@@ -238,7 +256,10 @@ export async function postMessage(baseUrl, accessToken, requestId, payload) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const data = await res.json();
+  invalidateMessagesCacheForRequest(baseUrl, emailHint, requestId);
+  invalidateRequestsListCacheForUser(baseUrl, emailHint);
+  return data;
 }
 
 /**
@@ -250,19 +271,15 @@ export async function postMessage(baseUrl, accessToken, requestId, payload) {
  */
 export async function fetchRequestMessages(baseUrl, accessToken, requestId, params) {
   const emailHint = params?.emailHint;
-  const res = await fetch(
-    buildUrl(baseUrl, `/api/portal/requests/${encodeURIComponent(requestId)}/messages`),
-    {
-      method: 'GET',
-      headers: getHeaders(accessToken, emailHint),
-      credentials: 'omit',
-    }
-  );
-  if (!res.ok) {
-    const code = await readErrorBody(res);
-    throw apiError(res.status, code);
-  }
-  return res.json();
+  const url = buildUrl(baseUrl, `/api/portal/requests/${encodeURIComponent(requestId)}/messages`);
+  const cacheKey = buildPortalCacheKey(PORTAL_CACHE_PREFIX.MESSAGES, baseUrl, emailHint, requestId);
+  return portalCachedJsonGet({
+    cacheKey,
+    ttlMs: PORTAL_CACHE_TTL_MS.MESSAGES,
+    fetchMode: 'always',
+    url,
+    prepareHeaders: () => getHeaders(accessToken, emailHint),
+  });
 }
 
 /**
@@ -290,7 +307,9 @@ export async function deleteRequestMessage(baseUrl, accessToken, requestId, mess
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const data = await res.json();
+  invalidateMessagesCacheForRequest(baseUrl, emailHint, requestId);
+  return data;
 }
 
 // ---------------------------------------------------------------------------
@@ -356,7 +375,9 @@ export async function cancelRequest(baseUrl, accessToken, requestId, params) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const data = await res.json();
+  invalidateRequestsListCacheForUser(baseUrl, emailHint);
+  return data;
 }
 
 // ---------------------------------------------------------------------------
@@ -441,7 +462,9 @@ export async function finalizeUpload(baseUrl, accessToken, requestId, payload) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const data = await res.json();
+  invalidateRequestsListCacheForUser(baseUrl, emailHint);
+  return data;
 }
 
 /**
@@ -471,7 +494,9 @@ export async function deleteRequestAttachment(baseUrl, accessToken, requestId, a
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const delData = await res.json();
+  invalidateRequestsListCacheForUser(baseUrl, emailHint);
+  return delData;
 }
 
 /**
@@ -709,16 +734,20 @@ export async function fetchNotifications(baseUrl, accessToken, params) {
   const emailHint = params?.emailHint;
   const limitValue = Number.isFinite(Number(params?.limit)) ? Number(params.limit) : 20;
   const path = `/api/portal/notifications?limit=${encodeURIComponent(String(limitValue))}`;
-  const res = await fetch(buildUrl(baseUrl, path), {
-    method: 'GET',
-    headers: getHeaders(accessToken, emailHint),
-    credentials: 'omit',
+  const url = buildUrl(baseUrl, path);
+  const cacheKey = buildPortalCacheKey(
+    PORTAL_CACHE_PREFIX.NOTIFICATIONS,
+    baseUrl,
+    emailHint,
+    String(limitValue)
+  );
+  return portalCachedJsonGet({
+    cacheKey,
+    ttlMs: PORTAL_CACHE_TTL_MS.NOTIFICATIONS,
+    fetchMode: 'always',
+    url,
+    prepareHeaders: () => getHeaders(accessToken, emailHint),
   });
-  if (!res.ok) {
-    const code = await readErrorBody(res);
-    throw apiError(res.status, code);
-  }
-  return res.json();
 }
 
 /**
@@ -743,7 +772,9 @@ export async function markNotificationRead(baseUrl, accessToken, notificationId,
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const readPayload = await res.json();
+  invalidateNotificationsCacheForUser(baseUrl, emailHint);
+  return readPayload;
 }
 
 /**
@@ -767,7 +798,9 @@ export async function markAllNotificationsRead(baseUrl, accessToken, params) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const allReadPayload = await res.json();
+  invalidateNotificationsCacheForUser(baseUrl, emailHint);
+  return allReadPayload;
 }
 
 // ---------------------------------------------------------------------------
@@ -797,7 +830,18 @@ export async function patchResource(baseUrl, accessToken, path, payload) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const patchData = await res.json();
+  if (path.includes('/api/portal/admin/landlords')) {
+    invalidateLandlordsCache(baseUrl);
+  }
+  if (path.includes('/api/landlord/requests/')) {
+    invalidateRequestsListCacheForUser(baseUrl, emailHint);
+    const m = path.match(/\/api\/landlord\/requests\/([^/]+)/);
+    if (m?.[1]) {
+      invalidateMessagesCacheForRequest(baseUrl, emailHint, m[1]);
+    }
+  }
+  return patchData;
 }
 
 // ---------------------------------------------------------------------------
@@ -822,7 +866,9 @@ export async function createLandlord(baseUrl, accessToken, payload) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const createdLandlord = await res.json();
+  invalidateLandlordsCache(baseUrl);
+  return createdLandlord;
 }
 
 // ---------------------------------------------------------------------------
@@ -864,16 +910,20 @@ export async function fetchLandlords(baseUrl, accessToken, params) {
   const path = params?.includeInactive
     ? '/api/portal/admin/landlords?include_inactive=true'
     : '/api/portal/admin/landlords';
-  const res = await fetch(buildUrl(baseUrl, path), {
-    method: 'GET',
-    headers: getHeaders(accessToken),
-    credentials: 'omit',
+  const url = buildUrl(baseUrl, path);
+  const cacheKey = buildPortalCacheKey(
+    PORTAL_CACHE_PREFIX.LANDLORDS,
+    baseUrl,
+    '',
+    params?.includeInactive ? 'inactive' : 'active'
+  );
+  return portalCachedJsonGet({
+    cacheKey,
+    ttlMs: PORTAL_CACHE_TTL_MS.LANDLORDS,
+    fetchMode: 'ttl',
+    url,
+    prepareHeaders: () => getHeaders(accessToken),
   });
-  if (!res.ok) {
-    const code = await readErrorBody(res);
-    throw apiError(res.status, code);
-  }
-  return res.json();
 }
 
 // ---------------------------------------------------------------------------
@@ -906,16 +956,20 @@ export async function fetchAdminPortalUsers(baseUrl, accessToken, params) {
 export async function fetchElsaSettings(baseUrl, accessToken, params) {
   const emailHint = params?.emailHint;
   const requestParam = params?.requestId ? `?request_id=${encodeURIComponent(params.requestId)}` : '';
-  const res = await fetch(buildUrl(baseUrl, `/api/landlord/elsa/settings${requestParam}`), {
-    method: 'GET',
-    headers: getHeaders(accessToken, emailHint),
-    credentials: 'omit',
+  const url = buildUrl(baseUrl, `/api/landlord/elsa/settings${requestParam}`);
+  const cacheKey = buildPortalCacheKey(
+    PORTAL_CACHE_PREFIX.ELSA,
+    baseUrl,
+    emailHint,
+    params?.requestId ? String(params.requestId) : ''
+  );
+  return portalCachedJsonGet({
+    cacheKey,
+    ttlMs: PORTAL_CACHE_TTL_MS.ELSA,
+    fetchMode: 'ttl',
+    url,
+    prepareHeaders: () => getHeaders(accessToken, emailHint),
   });
-  if (!res.ok) {
-    const code = await readErrorBody(res);
-    throw apiError(res.status, code);
-  }
-  return res.json();
 }
 
 export async function patchElsaSettings(baseUrl, accessToken, payload) {
@@ -930,7 +984,9 @@ export async function patchElsaSettings(baseUrl, accessToken, payload) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const elsaPatch = await res.json();
+  invalidateElsaCacheForUser(baseUrl, emailHint);
+  return elsaPatch;
 }
 
 export async function patchElsaRequestAutoRespond(baseUrl, accessToken, requestId, payload) {
@@ -948,7 +1004,9 @@ export async function patchElsaRequestAutoRespond(baseUrl, accessToken, requestI
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const autoResp = await res.json();
+  invalidateElsaCacheForUser(baseUrl, emailHint);
+  return autoResp;
 }
 
 export async function processElsaRequest(baseUrl, accessToken, requestId, payload = {}) {
@@ -966,7 +1024,10 @@ export async function processElsaRequest(baseUrl, accessToken, requestId, payloa
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const processPayload = await res.json();
+  invalidateElsaCacheForUser(baseUrl, emailHint);
+  invalidateMessagesCacheForRequest(baseUrl, emailHint, requestId);
+  return processPayload;
 }
 
 export async function fetchElsaDecisions(baseUrl, accessToken, requestId, params) {
@@ -1004,7 +1065,9 @@ export async function patchElsaDecisionReview(baseUrl, accessToken, requestId, d
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const decisionReview = await res.json();
+  invalidateElsaCacheForUser(baseUrl, emailHint);
+  return decisionReview;
 }
 
 export async function patchElsaCategoryPolicy(baseUrl, accessToken, categoryCode, payload) {
@@ -1022,7 +1085,9 @@ export async function patchElsaCategoryPolicy(baseUrl, accessToken, categoryCode
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const catPol = await res.json();
+  invalidateElsaCacheForUser(baseUrl, emailHint);
+  return catPol;
 }
 
 export async function patchElsaPriorityPolicy(baseUrl, accessToken, priorityCode, payload) {
@@ -1040,7 +1105,9 @@ export async function patchElsaPriorityPolicy(baseUrl, accessToken, priorityCode
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const priPol = await res.json();
+  invalidateElsaCacheForUser(baseUrl, emailHint);
+  return priPol;
 }
 
 export async function patchElsaPropertyPolicy(baseUrl, accessToken, propertyId, payload) {
@@ -1058,7 +1125,9 @@ export async function patchElsaPropertyPolicy(baseUrl, accessToken, propertyId, 
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const propPol = await res.json();
+  invalidateElsaCacheForUser(baseUrl, emailHint);
+  return propPol;
 }
 
 export async function fetchAttachmentUploadConfig(baseUrl, accessToken, params) {
@@ -1277,19 +1346,15 @@ export async function createTenant(baseUrl, accessToken, payload) {
  */
 export async function fetchTenant(baseUrl, accessToken, tenantId, params) {
   const emailHint = params?.emailHint;
-  const res = await fetch(
-    buildUrl(baseUrl, `/api/landlord/tenants/${encodeURIComponent(tenantId)}`),
-    {
-      method: 'GET',
-      headers: getHeaders(accessToken, emailHint),
-      credentials: 'omit',
-    }
-  );
-  if (!res.ok) {
-    const code = await readErrorBody(res);
-    throw apiError(res.status, code);
-  }
-  return res.json();
+  const url = buildUrl(baseUrl, `/api/landlord/tenants/${encodeURIComponent(tenantId)}`);
+  const cacheKey = buildPortalCacheKey(PORTAL_CACHE_PREFIX.TENANT_DETAIL, baseUrl, emailHint, tenantId);
+  return portalCachedJsonGet({
+    cacheKey,
+    ttlMs: PORTAL_CACHE_TTL_MS.TENANT_DETAIL,
+    fetchMode: 'ttl',
+    url,
+    prepareHeaders: () => getHeaders(accessToken, emailHint),
+  });
 }
 
 /**
@@ -1316,7 +1381,9 @@ export async function patchTenantAccess(baseUrl, accessToken, tenantId, payload)
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const accessPayload = await res.json();
+  invalidateTenantDetailCache(baseUrl, emailHint, tenantId);
+  return accessPayload;
 }
 
 /**
@@ -1343,7 +1410,9 @@ export async function updateTenant(baseUrl, accessToken, tenantId, payload) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const updatedTenantPayload = await res.json();
+  invalidateTenantDetailCache(baseUrl, emailHint, tenantId);
+  return updatedTenantPayload;
 }
 
 /**
@@ -1369,6 +1438,7 @@ export async function deleteTenant(baseUrl, accessToken, tenantId, params) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
+  invalidateTenantDetailCache(baseUrl, emailHint, tenantId);
 }
 
 /**
@@ -1395,7 +1465,9 @@ export async function addTenantLease(baseUrl, accessToken, tenantId, payload) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const leaseCreated = await res.json();
+  invalidateTenantDetailCache(baseUrl, emailHint, tenantId);
+  return leaseCreated;
 }
 
 /**
@@ -1422,7 +1494,9 @@ export async function updateLease(baseUrl, accessToken, leaseId, payload) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const leaseUpdated = await res.json();
+  invalidateAllTenantDetailCachesForUser(baseUrl, emailHint);
+  return leaseUpdated;
 }
 
 /**
@@ -1448,6 +1522,7 @@ export async function deleteLease(baseUrl, accessToken, leaseId, params) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
+  invalidateAllTenantDetailCachesForUser(baseUrl, emailHint);
 }
 
 /**

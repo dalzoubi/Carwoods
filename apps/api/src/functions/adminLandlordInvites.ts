@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
 import { requireAdmin, jsonResponse, mapDomainError } from '../lib/managementRequest.js';
+import { jsonResponseWithEtag } from '../lib/httpEtag.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 
 import { listLandlords } from '../useCases/users/listLandlords.js';
@@ -48,7 +49,7 @@ async function adminLandlordsCollectionHandler(
         includeInactive,
         count: result.landlords.length,
       });
-      return jsonResponse(200, ctx.headers, { landlords: result.landlords });
+      return jsonResponseWithEtag(request, ctx.headers, { landlords: result.landlords });
     } catch (e) {
       const mapped = mapDomainError(e, ctx.headers);
       if (mapped) return mapped;

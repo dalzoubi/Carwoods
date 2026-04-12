@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
 import { jsonResponse, requirePortalUser } from '../lib/managementRequest.js';
+import { jsonResponseWithEtag } from '../lib/httpEtag.js';
 import {
   countUnreadPortalNotifications,
   listPortalNotificationsForUser,
@@ -37,7 +38,7 @@ async function portalNotificationsCollection(
     countUnreadPortalNotifications(getPool(), user.id),
   ]);
 
-  return jsonResponse(200, headers, {
+  return jsonResponseWithEtag(request, headers, {
     notifications,
     unread_count: unreadCount,
   });

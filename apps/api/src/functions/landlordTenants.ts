@@ -5,6 +5,7 @@ import {
   type InvocationContext,
 } from '@azure/functions';
 import { requireLandlordOrAdmin, jsonResponse, mapDomainError } from '../lib/managementRequest.js';
+import { jsonResponseWithEtag } from '../lib/httpEtag.js';
 import { readJsonBody } from '../lib/readBody.js';
 import { getPool } from '../lib/db.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
@@ -176,7 +177,7 @@ async function landlordTenantsItem(
         tenantId,
       });
       logInfo(context, 'tenants.item.get.success', { actorUserId: ctx.user.id, tenantId });
-      return jsonResponse(200, ctx.headers, { tenant: result.tenant, leases: result.leases });
+      return jsonResponseWithEtag(request, ctx.headers, { tenant: result.tenant, leases: result.leases });
     } catch (e) {
       const mapped = mapDomainError(e, ctx.headers);
       if (mapped) {

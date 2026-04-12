@@ -85,12 +85,52 @@ function sortApplyPropertiesByRentAscending(tiles) {
     .map(({ tile }) => tile);
 }
 
+export const APPLY_PROPERTIES_SESSION_KEY = 'carwoods:applyProperties:v1';
+const APPLY_PROPERTIES_SESSION_MS = 30 * 60 * 1000;
+
+function readApplyPropertiesSession(root) {
+  if (typeof sessionStorage === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(APPLY_PROPERTIES_SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (
+      !parsed
+      || parsed.root !== root
+      || typeof parsed.fetchedAt !== 'number'
+      || Date.now() - parsed.fetchedAt > APPLY_PROPERTIES_SESSION_MS
+      || !Array.isArray(parsed.tiles)
+    ) {
+      return null;
+    }
+    return parsed.tiles.map(normalizeApplyPropertyTile);
+  } catch {
+    return null;
+  }
+}
+
+function writeApplyPropertiesSession(root, tiles) {
+  if (typeof sessionStorage === 'undefined') return;
+  try {
+    sessionStorage.setItem(
+      APPLY_PROPERTIES_SESSION_KEY,
+      JSON.stringify({ root, fetchedAt: Date.now(), tiles })
+    );
+  } catch {
+    // quota / private mode
+  }
+}
+
 /**
  * @param {string} baseUrl
  * @returns {Promise<ApplyPropertyTile[]>}
  */
 export async function fetchPublicApplyProperties(baseUrl) {
   const root = baseUrl.replace(/\/$/, '');
+  const cached = readApplyPropertiesSession(root);
+  if (cached) {
+    return sortApplyPropertiesByRentAscending(cached);
+  }
   const url = `${root}/api/public/apply-properties`;
   const res = await fetch(url, {
     credentials: 'omit',
@@ -104,7 +144,9 @@ export async function fetchPublicApplyProperties(baseUrl) {
   if (!Array.isArray(list)) {
     throw new Error('apply-properties: expected array or { properties: [] }');
   }
-  return sortApplyPropertiesByRentAscending(list.map(normalizeApplyPropertyTile));
+  const tiles = sortApplyPropertiesByRentAscending(list.map(normalizeApplyPropertyTile));
+  writeApplyPropertiesSession(root, tiles);
+  return tiles;
 }
 
 /**

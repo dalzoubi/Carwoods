@@ -43,6 +43,7 @@ import {
   deleteLease,
   fetchLandlords,
   fetchLandlordProperties,
+  fetchTenant,
 } from '../lib/portalApiClient';
 import PortalConfirmDialog from './PortalConfirmDialog';
 import InlineActionStatus from './InlineActionStatus';
@@ -1005,19 +1006,7 @@ function TenantRow({
     setLeasesState({ status: 'loading', leases: [] });
     try {
       const accessToken = await getAccessToken();
-      const res = await fetch(
-        `${baseUrl.replace(/\/$/, '')}/api/landlord/tenants/${encodeURIComponent(tenant.id)}`,
-        {
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-            ...(emailHint ? { 'X-Email-Hint': emailHint } : {}),
-          },
-          credentials: 'omit',
-        }
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      const data = await fetchTenant(baseUrl, accessToken, tenant.id, { emailHint });
       setLeasesState({ status: 'ok', leases: Array.isArray(data.leases) ? data.leases : [] });
     } catch (e) {
       setLeasesState({ status: 'error', leases: [] });

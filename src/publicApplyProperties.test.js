@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  APPLY_PROPERTIES_SESSION_KEY,
   fetchPublicApplyProperties,
   logDualSourceApplyMismatch,
   normalizeApplyPropertyTile,
@@ -29,6 +30,12 @@ describe('normalizeApplyPropertyTile', () => {
 });
 
 describe('fetchPublicApplyProperties', () => {
+  beforeEach(() => {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem(APPLY_PROPERTIES_SESSION_KEY);
+    }
+  });
+
   it('parses { properties: [] }', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,

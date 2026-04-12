@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
 import { jsonResponse, mapDomainError, requirePortalUser } from '../lib/managementRequest.js';
+import { jsonResponseWithEtag } from '../lib/httpEtag.js';
 import { readJsonBody } from '../lib/readBody.js';
 import { withRateLimit } from '../lib/rateLimiter.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
@@ -62,7 +63,7 @@ async function portalRequestsCollection(
   if (request.method === 'GET') {
     try {
       const result = await listRequests(pool, { actorUserId: user.id, actorRole: role });
-      return jsonResponse(200, headers, { requests: result.requests });
+      return jsonResponseWithEtag(request, headers, { requests: result.requests });
     } catch (e) {
       const mapped = mapDomainError(e, headers);
       if (mapped) return mapped;
@@ -234,7 +235,7 @@ async function portalRequestMessages(
         actorUserId: user.id,
         actorRole: role,
       });
-      return jsonResponse(200, headers, { messages: result.messages });
+      return jsonResponseWithEtag(request, headers, { messages: result.messages });
     } catch (e) {
       const mapped = mapDomainError(e, headers);
       if (mapped) return mapped;

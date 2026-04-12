@@ -27,6 +27,7 @@ import {
   createRequestAttachmentShareLink,
   fetchRequestAttachmentFileWithToken,
 } from '../../lib/portalApiClient';
+import { mergePolledRequestMessages } from '../../lib/mergePolledRequestMessages.js';
 import { RequestStatus } from '../../domain/constants.js';
 import { FALLBACK_MAX_IMAGE_BYTES } from '../../attachmentUploadLimits.js';
 import { MESSAGES_POLL_INTERVAL_MS } from '../../featureFlags';
@@ -708,7 +709,8 @@ export function usePortalRequests({
         const emailHint = emailFromAccount(account);
         const payload = await fetchRequestMessages(baseUrl, token, selectedRequestId, { emailHint });
         if (cancelled) return;
-        setThreadMessages(Array.isArray(payload?.messages) ? payload.messages : []);
+        const next = Array.isArray(payload?.messages) ? payload.messages : [];
+        setThreadMessages((prev) => mergePolledRequestMessages(prev, next));
       } catch (error) {
         if (!cancelled) {
           handleApiForbidden(error);

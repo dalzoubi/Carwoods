@@ -236,15 +236,17 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
     void loadNotifications();
   }, [isAuthenticated, loadNotifications]);
 
+  const onNotificationsPage = pathname.includes('/portal/notifications');
+
   useEffect(() => {
-    if (!isAuthenticated) return undefined;
+    if (!isAuthenticated || onNotificationsPage) return undefined;
     const trayOpen = Boolean(anchorEl);
     const intervalMs = notificationsPollIntervalMs(trayOpen);
     const timerId = window.setInterval(() => {
       void loadNotifications({ silent: true });
     }, intervalMs);
     return () => window.clearInterval(timerId);
-  }, [isAuthenticated, loadNotifications, anchorEl]);
+  }, [isAuthenticated, loadNotifications, anchorEl, onNotificationsPage]);
 
   useEffect(() => {
     if (!isAuthenticated) return undefined;

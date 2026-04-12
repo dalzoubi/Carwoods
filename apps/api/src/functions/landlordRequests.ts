@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
 import { jsonResponse, mapDomainError, requireAdmin, requireLandlordOrAdmin } from '../lib/managementRequest.js';
+import { jsonResponseWithEtag } from '../lib/httpEtag.js';
 import { logError, logWarn } from '../lib/serverLogger.js';
 import { writeAudit } from '../lib/auditRepo.js';
 import {
@@ -103,7 +104,7 @@ async function landlordRequestsCollection(
       actorUserId: ctx.user.id,
       actorRole: ctx.role,
     });
-    return jsonResponse(200, ctx.headers, { requests: result.requests });
+    return jsonResponseWithEtag(request, ctx.headers, { requests: result.requests });
   } catch (e) {
     const mapped = mapDomainError(e, ctx.headers);
     if (mapped) return mapped;
@@ -262,7 +263,7 @@ async function landlordElsaSettings(
     const requestPolicy = requestId
       ? { auto_respond_enabled: await getElsaRequestAutoRespond(getPool(), requestId) }
       : null;
-    return jsonResponse(200, ctx.headers, {
+    return jsonResponseWithEtag(request, ctx.headers, {
       settings,
       categories,
       priorities,
