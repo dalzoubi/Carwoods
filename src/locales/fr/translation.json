@@ -808,6 +808,7 @@
     "intro": "Mettez a jour l'e-mail, le prenom, le nom et le telephone utilises pour le portail.",
     "loading": "Chargement de votre profil…",
     "saved": "Profil mis a jour avec succes.",
+    "preferencesRefreshed": "Vos préférences de langue et de thème ont été mises à jour depuis vos paramètres enregistrés.",
     "guestBlocked": "Les comptes invites ne peuvent pas modifier le profil.",
     "dataUnavailable": "Nous n'avons pas pu charger les donnees de votre profil depuis la base de donnees. Actualisez la page et reessayez.",
     "changePhoto": "Changer la photo",
