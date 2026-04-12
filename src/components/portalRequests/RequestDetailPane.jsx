@@ -37,14 +37,16 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import DownloadIcon from '@mui/icons-material/Download';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import IosShareIcon from '@mui/icons-material/IosShare';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
 import InlineActionStatus from '../InlineActionStatus';
 import PortalConfirmDialog from '../PortalConfirmDialog';
 import PortalUserAvatar from '../PortalUserAvatar';
 import { AttachmentUploadControl } from '..';
-import { RequestStatus, Role } from '../../domain/constants.js';
-import { normalizeRole } from '../../portalUtils';
+import { RequestStatus } from '../../domain/constants.js';
+import PortalNameWithRole from './PortalNameWithRole.jsx';
 import { getStatusChipSx } from './requestChipStyles';
 import { PortalMessageBody } from '../../lib/portalMessageBodyFormat';
 import PortalRequestMessageCompose from './PortalRequestMessageCompose';
@@ -52,6 +54,7 @@ import elsaAssistantPhoto from '../../assets/elsa-assistant.webp';
 
 const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 const ELSA_INLINE_AVATAR_PX = 28;
+const ATTACHMENT_TILE_THUMB_HEIGHT_PX = 56;
 const CANCELLABLE_STATUS_CODES = new Set([
   RequestStatus.NOT_STARTED,
   RequestStatus.ACKNOWLEDGED,
@@ -155,14 +158,6 @@ function extractPlannedReply(decision) {
   }
 }
 
-function roleLabel(roleValue, t) {
-  const role = normalizeRole(roleValue);
-  if (role === Role.ADMIN) return t('portalHeader.roles.admin');
-  if (role === Role.LANDLORD) return t('portalHeader.roles.landlord');
-  if (role === Role.TENANT) return t('portalHeader.roles.tenant');
-  return t('portalHeader.roles.unknown');
-}
-
 function displayNameWithFallback(data, fallbackText) {
   const candidates = [data?.displayName, data?.email, data?.userId];
   for (const candidate of candidates) {
@@ -170,43 +165,6 @@ function displayNameWithFallback(data, fallbackText) {
     if (value) return value;
   }
   return fallbackText;
-}
-
-function NameWithRole({
-  name,
-  role,
-  t,
-  roleLabelOverride = '',
-  chipColor = 'primary',
-  chipVariant = 'outlined',
-  avatar = null,
-  roleChipTooltip = '',
-}) {
-  const chipLabel = roleLabelOverride || roleLabel(role, t);
-  const chip = (
-    <Chip
-      label={chipLabel}
-      size="small"
-      color={chipColor}
-      variant={chipVariant}
-      sx={{ height: 20, fontSize: '0.7rem' }}
-    />
-  );
-  return (
-    <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexWrap: 'wrap' }}>
-      {avatar}
-      <Typography sx={{ fontWeight: 600 }}>{name}</Typography>
-      {roleChipTooltip ? (
-        <Tooltip title={roleChipTooltip}>
-          <Box component="span" sx={{ display: 'inline-flex', maxWidth: '100%' }}>
-            {chip}
-          </Box>
-        </Tooltip>
-      ) : (
-        chip
-      )}
-    </Stack>
-  );
 }
 
 function DetailRow({ label, value }) {
@@ -871,7 +829,7 @@ const RequestDetailPane = ({
                 <DetailRow
                   label={`${t('portalRequests.labels.reportedBy')}:`}
                   value={(
-                    <NameWithRole
+                    <PortalNameWithRole
                       avatar={(
                         <PortalUserAvatar
                           photoUrl={requestDetail.submitted_by_profile_photo_url ?? ''}
@@ -1144,6 +1102,439 @@ const RequestDetailPane = ({
           />
         </>
       )}
+
+
+
+      <SectionCard
+        component="form"
+        onSubmit={onAttachmentSubmit}
+      >
+        <Stack spacing={1.5}>
+          <Typography variant="h3" sx={sectionHeadingSx}>
+            {t('portalRequests.attachments.heading')}
+          </Typography>
+          <Box
+            sx={(theme) => ({
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 1.25,
+              p: 1.5,
+              backgroundColor: alpha(theme.palette.background.default, theme.palette.mode === 'dark' ? 0.32 : 0.65),
+            })}
+          >
+            <Stack spacing={0.75}>
+              {sortedAttachments.length === 0 && (
+                <Box
+                  sx={(theme) => ({
+                    border: '1px dashed',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    p: 1.25,
+                    backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.2 : 0.7),
+                  })}
+                >
+                  <Typography color="text.secondary">{t('portalRequests.attachments.empty')}</Typography>
+                </Box>
+              )}
+              <Box
+                sx={{
+                  display: 'grid',
+                  gap: 1,
+                  gridTemplateColumns: {
+                    xs: 'repeat(1, minmax(0, 1fr))',
+                    sm: 'repeat(3, minmax(0, 1fr))',
+                  },
+                }}
+              >
+                {sortedAttachments.map((att) => {
+                  const isAttHighlight = notificationEmphasisActive
+                    && Boolean(normalizedNotificationHighlight.attachmentId)
+                    && String(att.id) === normalizedNotificationHighlight.attachmentId;
+                  const previewLabel = `${t('portalRequests.attachments.preview')}: ${att.original_filename}`;
+                  return (
+                    <Box
+                      key={att.id}
+                      id={`portal-request-att-${att.id}`}
+                      sx={(theme) => ({
+                        border: '1px solid',
+                        borderColor: isAttHighlight ? 'primary.main' : 'divider',
+                        borderRadius: 1,
+                        p: 0.75,
+                        minWidth: 0,
+                        backgroundColor: isAttHighlight
+                          ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.1)
+                          : 'transparent',
+                        boxShadow: isAttHighlight
+                          ? `0 0 0 2px ${alpha(theme.palette.primary.main, 0.45)}`
+                          : 'none',
+                        transition: 'background-color 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease',
+                      })}
+                    >
+                      <Stack spacing={0.5}>
+                        {att.file_url && att.media_type === 'PHOTO' && (
+                          <Box
+                            component="button"
+                            type="button"
+                            onClick={() => openMediaPreview(att.id)}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                openMediaPreview(att.id);
+                              }
+                            }}
+                            aria-label={previewLabel}
+                            sx={{
+                              p: 0,
+                              border: 'none',
+                              background: 'transparent',
+                              width: '100%',
+                              textAlign: 'inherit',
+                              cursor: 'zoom-in',
+                              borderRadius: 1,
+                              overflow: 'hidden',
+                              lineHeight: 0,
+                            }}
+                          >
+                            <Box
+                              component="img"
+                              src={att.file_url}
+                              alt={att.original_filename}
+                              sx={{
+                                width: '100%',
+                                height: ATTACHMENT_TILE_THUMB_HEIGHT_PX,
+                                objectFit: 'cover',
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                borderRadius: 1,
+                                display: 'block',
+                              }}
+                            />
+                          </Box>
+                        )}
+                        {att.file_url && att.media_type === 'VIDEO' && (
+                          <Box
+                            component="button"
+                            type="button"
+                            onClick={() => openMediaPreview(att.id)}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                openMediaPreview(att.id);
+                              }
+                            }}
+                            aria-label={previewLabel}
+                            sx={{
+                              position: 'relative',
+                              p: 0,
+                              border: 'none',
+                              background: 'transparent',
+                              width: '100%',
+                              cursor: 'pointer',
+                              borderRadius: 1,
+                              overflow: 'hidden',
+                              lineHeight: 0,
+                            }}
+                          >
+                            <Box
+                              component="video"
+                              muted
+                              preload="metadata"
+                              src={att.file_url}
+                              sx={{
+                                width: '100%',
+                                height: ATTACHMENT_TILE_THUMB_HEIGHT_PX,
+                                objectFit: 'cover',
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                borderRadius: 1,
+                                display: 'block',
+                                pointerEvents: 'none',
+                              }}
+                            />
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                inset: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                pointerEvents: 'none',
+                              }}
+                            >
+                              <PlayArrowIcon
+                                sx={{
+                                  fontSize: 28,
+                                  color: 'common.white',
+                                  opacity: 0.92,
+                                  filter: (theme) => `drop-shadow(0 1px 2px ${alpha(theme.palette.common.black, 0.45)})`,
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                        )}
+                        {(!att.file_url || (att.media_type !== 'PHOTO' && att.media_type !== 'VIDEO')) && (
+                          <Box
+                            sx={(theme) => ({
+                              height: ATTACHMENT_TILE_THUMB_HEIGHT_PX,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderRadius: 1,
+                              border: '1px solid',
+                              borderColor: 'divider',
+                              backgroundColor: alpha(theme.palette.action.hover, theme.palette.mode === 'dark' ? 0.35 : 1),
+                            })}
+                          >
+                            <AttachFileIcon sx={{ fontSize: 28, color: 'text.secondary' }} />
+                          </Box>
+                        )}
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: 600,
+                              lineHeight: 1.25,
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              wordBreak: 'break-word',
+                            }}
+                          >
+                            {att.original_filename}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{
+                              display: 'block',
+                              mt: 0.25,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {attachmentMetaLabel(att)}
+                          </Typography>
+                          <PortalNameWithRole
+                            name={uploaderLabel(att)}
+                            role={att?.uploaded_by_role}
+                            t={t}
+                            truncateName
+                            stackSx={{ mt: 0.25 }}
+                          />
+                          {!att.file_url && (
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
+                              {t('portalRequests.attachments.unavailable')}
+                            </Typography>
+                          )}
+                          <Stack
+                            direction="row"
+                            spacing={0.25}
+                            useFlexGap
+                            sx={{
+                              flexWrap: 'wrap',
+                              alignItems: 'center',
+                              mt: 0.5,
+                              marginInlineEnd: -0.25,
+                            }}
+                          >
+                            {att.file_url && (
+                              <Tooltip title={t('portalRequests.attachments.download')}>
+                                <IconButton
+                                  component="a"
+                                  href={att.file_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  size="small"
+                                  aria-label={`${t('portalRequests.attachments.download')}: ${att.original_filename}`}
+                                  sx={{ padding: 0.5 }}
+                                >
+                                  <DownloadIcon sx={{ fontSize: 18 }} />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                            {att.file_url && (
+                              <Tooltip title={t('portalRequests.attachments.copyLink')}>
+                                <span>
+                                  <IconButton
+                                    type="button"
+                                    size="small"
+                                    onClick={() => handleCopyAttachmentLink(att)}
+                                    aria-label={t('portalRequests.attachments.copyLinkAria', { filename: att.original_filename })}
+                                    sx={{ padding: 0.5 }}
+                                  >
+                                    <ContentCopyIcon sx={{ fontSize: 18 }} />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            )}
+                            {canDeleteAttachment(att) && (
+                              <Tooltip title={t('portalRequests.attachments.deleteAction')}>
+                                <span>
+                                  <IconButton
+                                    type="button"
+                                    size="small"
+                                    color="error"
+                                    onClick={() => setAttachmentDeleteDialog(att)}
+                                    disabled={attachmentDeleteStatus === 'saving'}
+                                    aria-label={t('portalRequests.attachments.deleteAction')}
+                                    sx={{ padding: 0.5 }}
+                                  >
+                                    <DeleteOutlineIcon sx={{ fontSize: 18 }} />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            )}
+                            {isManagement && (
+                              <Tooltip
+                                title={
+                                  attachmentShareState.status === 'saving'
+                                    && attachmentShareState.attachmentId === att.id
+                                    ? t('portalRequests.actions.saving')
+                                    : t('portalRequests.attachments.share')
+                                }
+                              >
+                                <span>
+                                  <IconButton
+                                    type="button"
+                                    size="small"
+                                    onClick={() => handleShareAttachment(att.id)}
+                                    disabled={attachmentShareState.status === 'saving'}
+                                    aria-label={t('portalRequests.attachments.share')}
+                                    sx={{ padding: 0.5 }}
+                                  >
+                                    {(attachmentShareState.status === 'saving'
+                                      && attachmentShareState.attachmentId === att.id) ? (
+                                        <CircularProgress size={16} />
+                                      ) : (
+                                        <IosShareIcon sx={{ fontSize: 18 }} />
+                                      )}
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            )}
+                          </Stack>
+                        </Box>
+                      </Stack>
+                    </Box>
+                  );
+                })}
+              </Box>
+            </Stack>
+          </Box>
+          <AttachmentUploadControl
+            instructions={t('portalRequests.attachments.instructions')}
+            isDropActive={isAttachmentDropActive}
+            onDragOver={(event) => {
+              event.preventDefault();
+              setIsAttachmentDropActive(true);
+            }}
+            onDragLeave={() => setIsAttachmentDropActive(false)}
+            onDrop={(event) => {
+              event.preventDefault();
+              setIsAttachmentDropActive(false);
+              const file = event.dataTransfer?.files?.[0];
+              if (file) onAttachmentChange({ target: { files: [file] } });
+            }}
+            chooseButtonLabel={t('portalRequests.actions.chooseFile')}
+            inputKey={attachmentInputKey}
+            accept="image/*,video/*"
+            onFileChange={onAttachmentChange}
+            selectedContent={attachmentFile ? (
+              <Box
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                  px: 1.25,
+                  py: 0.75,
+                  minWidth: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.75,
+                }}
+              >
+                <AttachFileIcon sx={{ fontSize: 18, color: 'text.secondary', flexShrink: 0 }} />
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                >
+                  {t('portalRequests.attachments.selectedFileLabel')}: {attachmentFile.name} ({formatBytesToMbLabel(attachmentFile.size)})
+                </Typography>
+                <Tooltip title={t('portalRequests.create.removeAttachment')}>
+                  <Button
+                    type="button"
+                    size="small"
+                    onClick={() => {
+                      onClearAttachmentFile();
+                      setAttachmentInputKey((value) => value + 1);
+                    }}
+                    aria-label={t('portalRequests.create.removeAttachment')}
+                    sx={{ minWidth: 'auto', px: 1 }}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </Button>
+                </Tooltip>
+              </Box>
+            ) : null}
+            trailingAction={(
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={!attachmentFile || attachmentStatus === 'saving'}
+                startIcon={attachmentStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
+                sx={{ minHeight: 40, width: { xs: '100%', sm: 'auto' } }}
+              >
+                {attachmentStatus === 'saving'
+                  ? t('portalRequests.actions.saving')
+                  : attachmentStatus === 'error'
+                    ? t('portalRequests.attachments.retryUpload')
+                    : t('portalRequests.actions.attachFile')}
+              </Button>
+            )}
+          />
+          {attachmentStatus === 'saving' && (
+            <Stack spacing={0.5}>
+              <LinearProgress
+                variant={attachmentUploadProgress > 0 ? 'determinate' : 'indeterminate'}
+                value={attachmentUploadProgress > 0 ? attachmentUploadProgress : undefined}
+              />
+              {attachmentUploadProgress > 0 && (
+                <Typography variant="caption" color="text.secondary">
+                  {t('portalRequests.attachments.uploadProgress', { percent: attachmentUploadProgress })}
+                </Typography>
+              )}
+              {attachmentRetryHint ? (
+                <Typography variant="caption" color="text.secondary">
+                  {attachmentRetryHint}
+                </Typography>
+              ) : null}
+            </Stack>
+          )}
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            alignItems="center"
+            justifyContent="space-between"
+            spacing={1}
+            sx={{ flexWrap: 'wrap', rowGap: 1, alignItems: { xs: 'stretch', sm: 'center' } }}
+          >
+            <InlineActionStatus
+              message={
+                attachmentDeleteStatusMessage
+                || attachmentStatusMessage
+                || attachmentShareStatusMessage
+              }
+            />
+            {isDev && attachmentStatus === 'error' && attachmentErrorDebugId ? (
+              <Typography variant="caption" color="text.secondary">
+                {t('portalRequests.attachments.debugIdLabel')}: {attachmentErrorDebugId}
+              </Typography>
+            ) : null}
+          </Stack>
+        </Stack>
+      </SectionCard>
 
       {isManagement && (
         <SectionCard>
@@ -1623,7 +2014,7 @@ const RequestDetailPane = ({
                                       }}
                                     />
                                   )}
-                                  <NameWithRole
+                                  <PortalNameWithRole
                                     name={senderName}
                                     role={msg.sender_role}
                                     t={t}
@@ -1744,323 +2135,6 @@ const RequestDetailPane = ({
                 ? t('portalRequests.actions.saving')
                 : t('portalRequests.actions.sendMessage')}
             </Button>
-          </Stack>
-        </Stack>
-      </SectionCard>
-
-      <SectionCard
-        component="form"
-        onSubmit={onAttachmentSubmit}
-      >
-        <Stack spacing={1.5}>
-          <Typography variant="h3" sx={sectionHeadingSx}>
-            {t('portalRequests.attachments.heading')}
-          </Typography>
-          <Box
-            sx={(theme) => ({
-              border: '1px solid',
-              borderColor: 'divider',
-              borderRadius: 1.25,
-              p: 1.5,
-              backgroundColor: alpha(theme.palette.background.default, theme.palette.mode === 'dark' ? 0.32 : 0.65),
-            })}
-          >
-            <Stack spacing={0.75}>
-              {sortedAttachments.length === 0 && (
-                <Box
-                  sx={(theme) => ({
-                    border: '1px dashed',
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    p: 1.25,
-                    backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.2 : 0.7),
-                  })}
-                >
-                  <Typography color="text.secondary">{t('portalRequests.attachments.empty')}</Typography>
-                </Box>
-              )}
-              {sortedAttachments.map((att) => {
-                const isAttHighlight = notificationEmphasisActive
-                  && Boolean(normalizedNotificationHighlight.attachmentId)
-                  && String(att.id) === normalizedNotificationHighlight.attachmentId;
-                return (
-                <Box
-                  key={att.id}
-                  id={`portal-request-att-${att.id}`}
-                  sx={(theme) => ({
-                    border: '1px solid',
-                    borderColor: isAttHighlight ? 'primary.main' : 'divider',
-                    borderRadius: 1,
-                    p: 1.25,
-                    backgroundColor: isAttHighlight
-                      ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.1)
-                      : 'transparent',
-                    boxShadow: isAttHighlight
-                      ? `0 0 0 2px ${alpha(theme.palette.primary.main, 0.45)}`
-                      : 'none',
-                    transition: 'background-color 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease',
-                  })}
-                >
-                  <Stack spacing={0.75}>
-                    {att.file_url && att.media_type === 'PHOTO' && (
-                      <Box
-                        component="button"
-                        type="button"
-                        onClick={() => openMediaPreview(att.id)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault();
-                            openMediaPreview(att.id);
-                          }
-                        }}
-                        aria-label={`${t('portalRequests.attachments.preview')}: ${att.original_filename}`}
-                        sx={{
-                          p: 0,
-                          border: 'none',
-                          background: 'transparent',
-                          width: '100%',
-                          textAlign: 'inherit',
-                          cursor: 'zoom-in',
-                        }}
-                      >
-                        <Box
-                          component="img"
-                          src={att.file_url}
-                          alt={att.original_filename}
-                          sx={{
-                            width: '100%',
-                            maxHeight: 220,
-                            objectFit: 'cover',
-                            borderRadius: 1,
-                            border: '1px solid',
-                            borderColor: 'divider',
-                          }}
-                        />
-                      </Box>
-                    )}
-                    {att.file_url && att.media_type === 'VIDEO' && (
-                      <Box
-                        component="video"
-                        controls
-                        preload="metadata"
-                        src={att.file_url}
-                        aria-label={`${t('portalRequests.attachments.previewVideoLabel')}: ${att.original_filename}`}
-                        sx={{
-                          width: '100%',
-                          maxHeight: 260,
-                          borderRadius: 1,
-                          border: '1px solid',
-                          borderColor: 'divider',
-                        }}
-                      />
-                    )}
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                        <Typography
-                          variant="body2"
-                          sx={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}
-                        >
-                          {att.original_filename}
-                        </Typography>
-                        <Stack direction="row" spacing={0.5} sx={{ marginInlineStart: 'auto', flexShrink: 0 }}>
-                          {att.file_url && (
-                            <Tooltip title={t('portalRequests.attachments.download')}>
-                              <IconButton
-                                component="a"
-                                href={att.file_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                size="small"
-                                aria-label={`${t('portalRequests.attachments.download')}: ${att.original_filename}`}
-                              >
-                                <DownloadIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          )}
-                          {att.file_url && (
-                            <Tooltip title={t('portalRequests.attachments.copyLink')}>
-                              <span>
-                                <IconButton
-                                  type="button"
-                                  size="small"
-                                  onClick={() => handleCopyAttachmentLink(att)}
-                                  aria-label={t('portalRequests.attachments.copyLinkAria', { filename: att.original_filename })}
-                                >
-                                  <ContentCopyIcon fontSize="small" />
-                                </IconButton>
-                              </span>
-                            </Tooltip>
-                          )}
-                          {canDeleteAttachment(att) && (
-                            <Tooltip title={t('portalRequests.attachments.deleteAction')}>
-                              <span>
-                                <IconButton
-                                  type="button"
-                                  size="small"
-                                  color="error"
-                                  onClick={() => setAttachmentDeleteDialog(att)}
-                                  disabled={attachmentDeleteStatus === 'saving'}
-                                  aria-label={t('portalRequests.attachments.deleteAction')}
-                                >
-                                  <DeleteOutlineIcon fontSize="small" />
-                                </IconButton>
-                              </span>
-                            </Tooltip>
-                          )}
-                        </Stack>
-                      </Stack>
-                      <Typography variant="caption" color="text.secondary">
-                        {attachmentMetaLabel(att)}
-                      </Typography>
-                      <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexWrap: 'wrap' }}>
-                        <Typography variant="caption" color="text.secondary">
-                          {uploaderLabel(att)}
-                        </Typography>
-                        <Chip
-                          label={roleLabel(att?.uploaded_by_role, t)}
-                          size="small"
-                          color="primary"
-                          variant="outlined"
-                          sx={{ height: 20, fontSize: '0.7rem' }}
-                        />
-                      </Stack>
-                      {!att.file_url && (
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                          {t('portalRequests.attachments.unavailable')}
-                        </Typography>
-                      )}
-                      {isManagement && (
-                        <Stack direction="row" justifyContent="flex-end" sx={{ mt: 0.5 }}>
-                          <Button
-                            type="button"
-                            size="small"
-                            onClick={() => handleShareAttachment(att.id)}
-                            disabled={attachmentShareState.status === 'saving'}
-                            sx={{ textTransform: 'none' }}
-                          >
-                            {attachmentShareState.status === 'saving'
-                              && attachmentShareState.attachmentId === att.id
-                              ? t('portalRequests.actions.saving')
-                              : t('portalRequests.attachments.share')}
-                          </Button>
-                        </Stack>
-                      )}
-                    </Box>
-                  </Stack>
-                </Box>
-              );
-              })}
-            </Stack>
-          </Box>
-          <AttachmentUploadControl
-            instructions={t('portalRequests.attachments.instructions')}
-            isDropActive={isAttachmentDropActive}
-            onDragOver={(event) => {
-              event.preventDefault();
-              setIsAttachmentDropActive(true);
-            }}
-            onDragLeave={() => setIsAttachmentDropActive(false)}
-            onDrop={(event) => {
-              event.preventDefault();
-              setIsAttachmentDropActive(false);
-              const file = event.dataTransfer?.files?.[0];
-              if (file) onAttachmentChange({ target: { files: [file] } });
-            }}
-            chooseButtonLabel={t('portalRequests.actions.chooseFile')}
-            inputKey={attachmentInputKey}
-            accept="image/*,video/*"
-            onFileChange={onAttachmentChange}
-            selectedContent={attachmentFile ? (
-              <Box
-                sx={{
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 1,
-                  px: 1.25,
-                  py: 0.75,
-                  minWidth: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.75,
-                }}
-              >
-                <AttachFileIcon sx={{ fontSize: 18, color: 'text.secondary', flexShrink: 0 }} />
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                >
-                  {t('portalRequests.attachments.selectedFileLabel')}: {attachmentFile.name} ({formatBytesToMbLabel(attachmentFile.size)})
-                </Typography>
-                <Tooltip title={t('portalRequests.create.removeAttachment')}>
-                  <Button
-                    type="button"
-                    size="small"
-                    onClick={() => {
-                      onClearAttachmentFile();
-                      setAttachmentInputKey((value) => value + 1);
-                    }}
-                    aria-label={t('portalRequests.create.removeAttachment')}
-                    sx={{ minWidth: 'auto', px: 1 }}
-                  >
-                    <CloseIcon fontSize="small" />
-                  </Button>
-                </Tooltip>
-              </Box>
-            ) : null}
-            trailingAction={(
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={!attachmentFile || attachmentStatus === 'saving'}
-                startIcon={attachmentStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
-                sx={{ minHeight: 40, width: { xs: '100%', sm: 'auto' } }}
-              >
-                {attachmentStatus === 'saving'
-                  ? t('portalRequests.actions.saving')
-                  : attachmentStatus === 'error'
-                    ? t('portalRequests.attachments.retryUpload')
-                    : t('portalRequests.actions.attachFile')}
-              </Button>
-            )}
-          />
-          {attachmentStatus === 'saving' && (
-            <Stack spacing={0.5}>
-              <LinearProgress
-                variant={attachmentUploadProgress > 0 ? 'determinate' : 'indeterminate'}
-                value={attachmentUploadProgress > 0 ? attachmentUploadProgress : undefined}
-              />
-              {attachmentUploadProgress > 0 && (
-                <Typography variant="caption" color="text.secondary">
-                  {t('portalRequests.attachments.uploadProgress', { percent: attachmentUploadProgress })}
-                </Typography>
-              )}
-              {attachmentRetryHint ? (
-                <Typography variant="caption" color="text.secondary">
-                  {attachmentRetryHint}
-                </Typography>
-              ) : null}
-            </Stack>
-          )}
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            alignItems="center"
-            justifyContent="space-between"
-            spacing={1}
-            sx={{ flexWrap: 'wrap', rowGap: 1, alignItems: { xs: 'stretch', sm: 'center' } }}
-          >
-            <InlineActionStatus
-              message={
-                attachmentDeleteStatusMessage
-                || attachmentStatusMessage
-                || attachmentShareStatusMessage
-              }
-            />
-            {isDev && attachmentStatus === 'error' && attachmentErrorDebugId ? (
-              <Typography variant="caption" color="text.secondary">
-                {t('portalRequests.attachments.debugIdLabel')}: {attachmentErrorDebugId}
-              </Typography>
-            ) : null}
           </Stack>
         </Stack>
       </SectionCard>
