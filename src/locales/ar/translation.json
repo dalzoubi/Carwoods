@@ -842,7 +842,21 @@
       "notificationsEmail": "إشعارات البريد الإلكتروني",
       "notificationsInApp": "إشعارات داخل التطبيق",
       "notificationsSms": "إشعارات الرسائل النصية (أوافق صراحةً على تلقي إشعارات الرسائل النصية)",
-      "notificationsSmsOptIn": "أوافق صراحةً على تلقي إشعارات الرسائل النصية"
+      "notificationsSmsOptIn": "أوافق صراحةً على تلقي إشعارات الرسائل النصية",
+      "appearanceHeading": "تفضيلات المظهر",
+      "language": "اللغة",
+      "colorTheme": "نظام الألوان"
+    },
+    "languages": {
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "ar": "العربية"
+    },
+    "themes": {
+      "system": "استخدام إعداد الجهاز",
+      "light": "فاتح",
+      "dark": "داكن"
     },
     "smsOptInConfirm": {
       "title": "تأكيد الاشتراك في إشعارات الرسائل النصية",

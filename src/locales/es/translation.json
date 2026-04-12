@@ -842,7 +842,21 @@
       "notificationsEmail": "Notificaciones por correo electrónico",
       "notificationsInApp": "Notificaciones en la aplicación",
       "notificationsSms": "Notificaciones por SMS (acepto explícitamente recibir notificaciones por SMS)",
-      "notificationsSmsOptIn": "Acepto explícitamente recibir notificaciones por SMS"
+      "notificationsSmsOptIn": "Acepto explícitamente recibir notificaciones por SMS",
+      "appearanceHeading": "Preferencias de apariencia",
+      "language": "Idioma",
+      "colorTheme": "Tema de color"
+    },
+    "languages": {
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "ar": "العربية"
+    },
+    "themes": {
+      "system": "Usar configuración del dispositivo",
+      "light": "Claro",
+      "dark": "Oscuro"
     },
     "smsOptInConfirm": {
       "title": "Confirmar suscripción a notificaciones por SMS",

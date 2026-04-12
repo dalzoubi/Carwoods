@@ -8,8 +8,12 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
   FormControlLabel,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Skeleton,
   Stack,
   Switch,
@@ -17,6 +21,9 @@ import {
   Typography,
 } from '@mui/material';
 import { usePortalAuth } from '../PortalAuthContext';
+import { useLanguage } from '../LanguageContext';
+import { useThemeMode } from '../ThemeModeContext';
+import { FEATURE_DARK_THEME } from '../featureFlags';
 import { emailFromAccount, isGuestRole, profilePhotoUrlFromMeData, resolveRole } from '../portalUtils';
 import { validatePersonBasics, validatePersonField } from '../portalPersonValidation';
 import {
@@ -84,6 +91,8 @@ const PortalProfile = () => {
     handleApiForbidden,
     refreshMe,
   } = usePortalAuth();
+  const { currentLanguage, changeLanguage, supportedLanguages } = useLanguage();
+  const { storedOverride, setOverrideDark, setOverrideLight, resetOverride } = useThemeMode();
   const role = resolveRole(meData, account);
   const [form, setForm] = useState({
     email: '',
@@ -559,6 +568,54 @@ const PortalProfile = () => {
                     label={t('portalProfile.fields.notificationsSms')}
                   />
                 </Stack>
+
+                <Stack spacing={1.5}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    {t('portalProfile.fields.appearanceHeading')}
+                  </Typography>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                    <FormControl fullWidth size="small">
+                      <InputLabel id="portal-profile-language-label">
+                        {t('portalProfile.fields.language')}
+                      </InputLabel>
+                      <Select
+                        labelId="portal-profile-language-label"
+                        value={currentLanguage}
+                        label={t('portalProfile.fields.language')}
+                        onChange={(e) => changeLanguage(e.target.value)}
+                      >
+                        {supportedLanguages.map((lang) => (
+                          <MenuItem key={lang} value={lang}>
+                            {t(`portalProfile.languages.${lang}`)}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    {FEATURE_DARK_THEME && (
+                      <FormControl fullWidth size="small">
+                        <InputLabel id="portal-profile-theme-label">
+                          {t('portalProfile.fields.colorTheme')}
+                        </InputLabel>
+                        <Select
+                          labelId="portal-profile-theme-label"
+                          value={storedOverride ?? 'system'}
+                          label={t('portalProfile.fields.colorTheme')}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            if (v === 'light') setOverrideLight();
+                            else if (v === 'dark') setOverrideDark();
+                            else resetOverride();
+                          }}
+                        >
+                          <MenuItem value="system">{t('portalProfile.themes.system')}</MenuItem>
+                          <MenuItem value="light">{t('portalProfile.themes.light')}</MenuItem>
+                          <MenuItem value="dark">{t('portalProfile.themes.dark')}</MenuItem>
+                        </Select>
+                      </FormControl>
+                    )}
+                  </Stack>
+                </Stack>
+
                 <Stack
                   direction="row"
                   alignItems="center"
