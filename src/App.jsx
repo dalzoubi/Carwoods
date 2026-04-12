@@ -29,6 +29,7 @@ import PortalAuthGate from './components/PortalAuthGate';
 import PortalRouteGuard from './components/PortalRouteGuard';
 import { isDarkPreviewRoute, isPortalRoute } from './routePaths';
 import { Role } from './domain/constants';
+import { useProfilePreferenceSync } from './hooks/useProfilePreferenceSync';
 
 function ScrollToTopOnRouteChange() {
     const { pathname, hash } = useLocation();
@@ -207,6 +208,7 @@ function PortalApp() {
 const App = () => {
     const location = useLocation();
     const isPortal = isPortalRoute(location.pathname);
+    useProfilePreferenceSync();
     return isPortal ? <PortalApp /> : <MarketingApp />;
 };
 

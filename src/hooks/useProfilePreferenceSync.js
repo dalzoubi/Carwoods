@@ -24,7 +24,7 @@ import { useLanguage } from '../LanguageContext';
 import { useThemeMode } from '../ThemeModeContext';
 import { FEATURE_DARK_THEME } from '../featureFlags';
 import { patchUiPreferences } from '../lib/portalApiClient';
-import { emailFromAccount } from '../portalUtils';
+import { emailFromAccount, isGuestRole, normalizeRole, resolveRole } from '../portalUtils';
 
 /**
  * @param {string | null} value
@@ -45,13 +45,20 @@ export function useProfilePreferenceSync() {
     const { storedLanguageOverride, changeLanguage, resetLanguagePreference } = useLanguage();
     const { storedOverride, setOverrideDark, setOverrideLight, resetOverride } = useThemeMode();
 
+    // Guest users (authenticated but no portal role) must not sync preferences
+    // to the server — they behave like unauthenticated users for this purpose.
+    const role = resolveRole(meData, account);
+    const isGuest = isGuestRole(normalizeRole(role));
+    const canSync = isAuthenticated && !isGuest && Boolean(baseUrl);
+
     // Track the last user ID whose prefs we applied to avoid re-applying on
     // background /me refreshes.
     const appliedForUserIdRef = useRef(null);
 
     // Apply server prefs after a fresh sign-in (first time we see this user's data).
+    // Guests do not have stored prefs, so skip.
     useEffect(() => {
-        if (!isAuthenticated || meStatus !== 'ok' || !meData?.user) return;
+        if (!canSync || meStatus !== 'ok' || !meData?.user) return;
 
         const userId = meData.user.id;
         if (!userId || appliedForUserIdRef.current === userId) return;
@@ -85,19 +92,19 @@ export function useProfilePreferenceSync() {
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isAuthenticated, meStatus, meData]);
+    }, [canSync, meStatus, meData]);
 
-    // Reset tracking when the user signs out so the next login re-applies.
+    // Reset tracking when canSync goes false (sign-out or becomes guest)
+    // so the next eligible login re-applies server prefs.
     useEffect(() => {
-        if (!isAuthenticated) {
+        if (!canSync) {
             appliedForUserIdRef.current = null;
         }
-    }, [isAuthenticated]);
+    }, [canSync]);
 
-    // Sync language change back to server.
     const syncToServer = useCallback(
         async (patch) => {
-            if (!isAuthenticated || !baseUrl) return;
+            if (!canSync) return;
             try {
                 const token = await getAccessToken();
                 const emailHint = emailFromAccount(account);
@@ -106,14 +113,14 @@ export function useProfilePreferenceSync() {
                 // Best-effort: local state is canonical; server sync is additive.
             }
         },
-        [isAuthenticated, baseUrl, getAccessToken, account]
+        [canSync, baseUrl, getAccessToken, account]
     );
 
     // Watch stored language override and push to server.
     // null means "follow device" — synced as null so other devices also follow theirs.
     const prevLanguageRef = useRef(undefined);
     useEffect(() => {
-        if (!isAuthenticated) {
+        if (!canSync) {
             prevLanguageRef.current = undefined;
             return;
         }
@@ -125,12 +132,12 @@ export function useProfilePreferenceSync() {
         if (prevLanguageRef.current === storedLanguageOverride) return;
         prevLanguageRef.current = storedLanguageOverride;
         syncToServer({ ui_language: storedLanguageOverride ?? null });
-    }, [isAuthenticated, storedLanguageOverride, syncToServer]);
+    }, [canSync, storedLanguageOverride, syncToServer]);
 
     // Watch color-scheme override and push to server.
     const prevSchemeRef = useRef(undefined);
     useEffect(() => {
-        if (!isAuthenticated) {
+        if (!canSync) {
             prevSchemeRef.current = undefined;
             return;
         }
@@ -142,5 +149,5 @@ export function useProfilePreferenceSync() {
         prevSchemeRef.current = storedOverride;
         // storedOverride is null when "follow system" is chosen — persist null.
         syncToServer({ ui_color_scheme: storedOverride ?? null });
-    }, [isAuthenticated, storedOverride, syncToServer]);
+    }, [canSync, storedOverride, syncToServer]);
 }
