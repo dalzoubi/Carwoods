@@ -10,6 +10,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  ListSubheader,
   Tooltip,
   Typography,
   useTheme,
@@ -26,6 +27,8 @@ import ArrowBack from '@mui/icons-material/ArrowBack';
 import ChevronLeft from '@mui/icons-material/ChevronLeft';
 import ChevronRight from '@mui/icons-material/ChevronRight';
 import NotificationsNone from '@mui/icons-material/NotificationsNone';
+import HealthAndSafety from '@mui/icons-material/HealthAndSafety';
+import Send from '@mui/icons-material/Send';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -85,6 +88,26 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
         ]
       : []),
   ];
+
+  const healthNavItems =
+    roleResolved && normalized === Role.ADMIN
+      ? [
+          {
+            key: 'health-status',
+            to: '/portal/status',
+            label: t('portalLayout.sidebar.status'),
+            icon: <HealthAndSafety />,
+            exact: true,
+          },
+          {
+            key: 'health-notification-test',
+            to: '/portal/admin/health/notification-test',
+            label: t('portalLayout.sidebar.notificationTest'),
+            icon: <Send />,
+            exact: true,
+          },
+        ]
+      : [];
 
   const handleNavClick = () => {
     if (isMobile) onClose();
@@ -159,6 +182,76 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
 
       <List component="nav" sx={{ flex: 1, px: 1, py: 1.5, overflow: 'auto' }}>
         {navItems.map((item) => {
+          const isActive = item.exact
+            ? normalizedPath === item.to
+            : normalizedPath.startsWith(item.to);
+          const listItemButton = (
+            <ListItemButton
+              component={RouterLink}
+              to={withDarkPath(pathname, item.to)}
+              selected={isActive}
+              onClick={handleNavClick}
+              sx={{
+                borderRadius: 1.5,
+                mb: 0.5,
+                justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',
+                '&.Mui-selected': {
+                  backgroundColor: 'action.selected',
+                  '&:hover': { backgroundColor: 'action.selected' },
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: collapsed && !isMobile ? 0 : 40,
+                  color: isActive ? 'primary.main' : 'text.secondary',
+                  marginInlineEnd: collapsed && !isMobile ? 0 : undefined,
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+              {(!collapsed || isMobile) && (
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{
+                    fontWeight: isActive ? 600 : 400,
+                    color: isActive ? 'primary.main' : 'text.primary',
+                  }}
+                />
+              )}
+            </ListItemButton>
+          );
+          if (collapsed && !isMobile) {
+            return (
+              <Tooltip key={item.key} title={item.label} placement="right" arrow>
+                {listItemButton}
+              </Tooltip>
+            );
+          }
+          return (
+            <React.Fragment key={item.key}>
+              {listItemButton}
+            </React.Fragment>
+          );
+        })}
+        {healthNavItems.length > 0 && (
+          <ListSubheader
+            component="div"
+            disableSticky
+            sx={{
+              typography: 'caption',
+              fontWeight: 700,
+              color: 'text.secondary',
+              lineHeight: 2,
+              px: 2,
+              mt: 1,
+              ...(collapsed && !isMobile ? { display: 'none' } : {}),
+            }}
+          >
+            {t('portalLayout.sidebar.healthGroup')}
+          </ListSubheader>
+        )}
+        {healthNavItems.map((item) => {
           const isActive = item.exact
             ? normalizedPath === item.to
             : normalizedPath.startsWith(item.to);

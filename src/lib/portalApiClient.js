@@ -798,6 +798,31 @@ export async function createLandlord(baseUrl, accessToken, payload) {
 }
 
 // ---------------------------------------------------------------------------
+// POST /api/portal/admin/notifications/test  (admin only)
+// ---------------------------------------------------------------------------
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ emailHint?: string, channel: 'in_app'|'email'|'sms', email?: string, phone?: string, title?: string, body?: string }} payload
+ * @returns {Promise<object>}
+ */
+export async function postAdminNotificationTest(baseUrl, accessToken, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(buildUrl(baseUrl, '/api/portal/admin/notifications/test'), {
+    method: 'POST',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
 // GET /api/portal/admin/landlords
 // ---------------------------------------------------------------------------
 
@@ -814,6 +839,33 @@ export async function fetchLandlords(baseUrl, accessToken, params) {
   const res = await fetch(buildUrl(baseUrl, path), {
     method: 'GET',
     headers: getHeaders(accessToken),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/portal/admin/users  (admin — portal users for tooling, e.g. notification test)
+// ---------------------------------------------------------------------------
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ includeInactive?: boolean, emailHint?: string }} [params]
+ * @returns {Promise<object>}
+ */
+export async function fetchAdminPortalUsers(baseUrl, accessToken, params) {
+  const emailHint = params?.emailHint;
+  const path = params?.includeInactive
+    ? '/api/portal/admin/users?include_inactive=true'
+    : '/api/portal/admin/users';
+  const res = await fetch(buildUrl(baseUrl, path), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
     credentials: 'omit',
   });
   if (!res.ok) {

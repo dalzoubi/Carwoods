@@ -23,6 +23,7 @@ import PortalNotificationsInbox from './components/PortalNotificationsInbox';
 import PortalAdminAiSettings from './components/PortalAdminAiSettings';
 import PortalAdminProperties from './components/PortalAdminProperties';
 import PortalTenants from './components/PortalTenants';
+import PortalAdminNotificationTest from './components/PortalAdminNotificationTest';
 import PortalLayout from './components/PortalLayout';
 import PortalAuthGate from './components/PortalAuthGate';
 import PortalRouteGuard from './components/PortalRouteGuard';
@@ -134,6 +135,14 @@ function PortalRoutes() {
                 element={
                     <PortalRouteGuard allowedRoles={[Role.LANDLORD, Role.ADMIN]}>
                         <PortalAdminAiSettings />
+                    </PortalRouteGuard>
+                }
+            />
+            <Route
+                path="/portal/admin/health/notification-test"
+                element={
+                    <PortalRouteGuard allowedRoles={[Role.ADMIN]}>
+                        <PortalAdminNotificationTest />
                     </PortalRouteGuard>
                 }
             />

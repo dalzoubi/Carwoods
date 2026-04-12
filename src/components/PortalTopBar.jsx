@@ -35,6 +35,7 @@ import Email from '@mui/icons-material/Email';
 import Warning from '@mui/icons-material/Warning';
 import Close from '@mui/icons-material/Close';
 import DoneAll from '@mui/icons-material/DoneAll';
+import Science from '@mui/icons-material/Science';
 import OpenInNew from '@mui/icons-material/OpenInNew';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -49,8 +50,11 @@ import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
 import PortalUserAvatar from './PortalUserAvatar';
 import { fetchNotifications, markNotificationRead, markAllNotificationsRead } from '../lib/portalApiClient';
 import { relativeTime } from '../lib/notificationUtils';
-
-const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+import {
+  addTrayHiddenId,
+  loadTrayHiddenIds,
+  selectNotificationsForTray,
+} from '../lib/notificationTrayPrefs';
 
 function notificationEventIcon(eventTypeCode) {
   const code = String(eventTypeCode ?? '').toUpperCase();
@@ -61,6 +65,7 @@ function notificationEventIcon(eventTypeCode) {
   if (code === 'ACCOUNT_ONBOARDED_WELCOME') return <PersonAdd sx={{ fontSize: 16 }} />;
   if (code === 'ACCOUNT_EMAIL_VERIFICATION') return <Email sx={{ fontSize: 16 }} />;
   if (code === 'SECURITY_NOTIFICATION_DELIVERY_FAILURE') return <Warning sx={{ fontSize: 16 }} color="warning" />;
+  if (code === 'ADMIN_NOTIFICATION_TEST') return <Science sx={{ fontSize: 16 }} />;
   return <NotificationsNone sx={{ fontSize: 16 }} />;
 }
 
@@ -87,6 +92,7 @@ function usePageTitle(t) {
     '/portal/notifications': t('portalNotificationsInbox.heading'),
     '/portal/properties': t('portalLayout.sidebar.properties'),
     '/portal/status': t('portalLayout.sidebar.status'),
+    '/portal/admin/health/notification-test': t('portalLayout.sidebar.notificationTest'),
   };
   return titles[normalized] || t('portalLayout.sidebar.dashboard');
 }
@@ -148,16 +154,21 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [dismissingIds, setDismissingIds] = useState(new Set());
   const [markingAll, setMarkingAll] = useState(false);
-  const sortedNotifications = useMemo(
-    () =>
-      [...notifications].sort((a, b) => {
-        const aMs = a?.created_at ? new Date(a.created_at).getTime() : 0;
-        const bMs = b?.created_at ? new Date(b.created_at).getTime() : 0;
-        const byCreated = (Number.isFinite(bMs) ? bMs : 0) - (Number.isFinite(aMs) ? aMs : 0);
-        if (byCreated !== 0) return byCreated;
-        return collator.compare(String(a?.id ?? ''), String(b?.id ?? ''));
-      }),
-    [notifications]
+  const [trayHiddenIds, setTrayHiddenIds] = useState(() => new Set());
+
+  const trayUserKey = account?.uid || account?.username || '';
+
+  React.useEffect(() => {
+    if (!trayUserKey) {
+      setTrayHiddenIds(new Set());
+      return;
+    }
+    setTrayHiddenIds(loadTrayHiddenIds(trayUserKey));
+  }, [trayUserKey]);
+
+  const trayNotifications = useMemo(
+    () => selectNotificationsForTray(notifications, trayHiddenIds),
+    [notifications, trayHiddenIds]
   );
 
   const loadNotifications = React.useCallback(async () => {
@@ -242,21 +253,24 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
 
   const handleDismissNotification = async (e, notification) => {
     e.stopPropagation();
-    if (!baseUrl || dismissingIds.has(notification.id)) return;
+    if (!trayUserKey || dismissingIds.has(notification.id)) return;
     setDismissingIds((prev) => new Set(prev).add(notification.id));
     try {
-      const token = await getAccessToken();
-      const response = await markNotificationRead(baseUrl, token, notification.id, {
-        emailHint: account?.username || undefined,
-      });
-      if (typeof response?.unread_count === 'number') {
-        setUnreadCount(response.unread_count);
-      } else {
-        setUnreadCount((value) => Math.max(0, value - 1));
+      if (!notification.read_at && baseUrl) {
+        const token = await getAccessToken();
+        const response = await markNotificationRead(baseUrl, token, notification.id, {
+          emailHint: account?.username || undefined,
+        });
+        if (typeof response?.unread_count === 'number') {
+          setUnreadCount(response.unread_count);
+        } else {
+          setUnreadCount((value) => Math.max(0, value - 1));
+        }
+        setNotifications((items) => items.map((item) => (
+          item.id === notification.id ? { ...item, read_at: item.read_at || new Date().toISOString() } : item
+        )));
       }
-      setNotifications((items) => items.map((item) => (
-        item.id === notification.id ? { ...item, read_at: item.read_at || new Date().toISOString() } : item
-      )));
+      setTrayHiddenIds((prev) => addTrayHiddenId(trayUserKey, notification.id, prev));
     } catch (error) {
       handleApiForbidden?.(error);
     } finally {
@@ -565,13 +579,19 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
           <Box sx={{ px: 2, py: 3, display: 'flex', justifyContent: 'center' }}>
             <CircularProgress size={18} />
           </Box>
-        ) : sortedNotifications.length === 0 ? (
+        ) : notifications.length === 0 ? (
           <Box sx={{ px: 2, py: 2.5 }}>
             <Typography variant="body2" color="text.secondary">
               {t('portalHeader.notifications.empty')}
             </Typography>
           </Box>
-        ) : sortedNotifications.map((notification) => {
+        ) : trayNotifications.length === 0 ? (
+          <Box sx={{ px: 2, py: 2.5 }}>
+            <Typography variant="body2" color="text.secondary">
+              {t('portalHeader.notifications.emptyTrayFiltered')}
+            </Typography>
+          </Box>
+        ) : trayNotifications.map((notification) => {
           const isUnread = !notification.read_at;
           const isDismissing = dismissingIds.has(notification.id);
           return (
@@ -617,21 +637,19 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
                 </Typography>
               </Box>
 
-              {isUnread && (
-                <Tooltip title={t('portalHeader.notifications.dismiss')} arrow>
-                  <span>
-                    <IconButton
-                      size="small"
-                      onClick={(e) => { void handleDismissNotification(e, notification); }}
-                      disabled={isDismissing}
-                      aria-label={t('portalHeader.notifications.dismiss')}
-                      sx={{ mt: -0.5, flexShrink: 0 }}
-                    >
-                      {isDismissing ? <CircularProgress size={12} /> : <Close sx={{ fontSize: 14 }} />}
-                    </IconButton>
-                  </span>
-                </Tooltip>
-              )}
+              <Tooltip title={t('portalHeader.notifications.dismiss')} arrow>
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={(e) => { void handleDismissNotification(e, notification); }}
+                    disabled={isDismissing}
+                    aria-label={t('portalHeader.notifications.dismiss')}
+                    sx={{ mt: -0.5, flexShrink: 0 }}
+                  >
+                    {isDismissing ? <CircularProgress size={12} /> : <Close sx={{ fontSize: 14 }} />}
+                  </IconButton>
+                </span>
+              </Tooltip>
             </Box>
           );
         })}

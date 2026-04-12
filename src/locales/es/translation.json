@@ -702,6 +702,57 @@
       "unknown": "Error inesperado"
     }
   },
+  "portalAdminNotificationTest": {
+    "metaTitle": "Carwoods - Prueba de notificaciones",
+    "metaDescription": "Enviar correo, SMS y notificaciones en la aplicación de prueba (administrador).",
+    "heading": "Prueba de notificaciones",
+    "intro": "Use estas herramientas para verificar los canales de entrega. El correo y el SMS crean filas en cola para que su proveedor de mensajería las procese; las notificaciones en la aplicación aparecen de inmediato en su bandeja del portal.",
+    "notAvailable": "Inicie sesión como administrador con acceso a la API para usar esta página.",
+    "fields": {
+      "title": "Título",
+      "body": "Mensaje"
+    },
+    "email": {
+      "heading": "Correo de prueba",
+      "hint": "Encola una fila de entrega de correo con asunto y cuerpo almacenados para el trabajo de envío.",
+      "toLabel": "Correo del destinatario",
+      "send": "Enviar correo de prueba"
+    },
+    "sms": {
+      "heading": "SMS de prueba",
+      "hint": "Use el formato E.164 (+ y código de país). Encola una fila de SMS para su proveedor de mensajería.",
+      "phoneLabel": "Número de teléfono (E.164)",
+      "send": "Enviar SMS de prueba"
+    },
+    "inApp": {
+      "heading": "Notificación en la aplicación de prueba",
+      "hint": "Crea una notificación en la aplicación para el usuario del portal seleccionado (administrador, arrendador o inquilino). El destinatario la verá en la campana de la cabecera y en la página Notificaciones.",
+      "recipientLabel": "Destinatario",
+      "recipientHelper": "Elija cualquier administrador, arrendador o inquilino para recibir la notificación de prueba.",
+      "recipientYou": "Usted (administrador con sesión iniciada)",
+      "send": "Enviar notificación en la aplicación de prueba"
+    },
+    "success": {
+      "inApp": "Notificación en la aplicación de prueba creada.",
+      "inAppWithId": "Notificación en la aplicación de prueba creada (id: {{id}}).",
+      "emailQueued": "Correo de prueba puesto en cola.",
+      "emailWithId": "Correo de prueba en cola (id de entrega: {{id}}).",
+      "smsQueued": "SMS de prueba puesto en cola.",
+      "smsWithId": "SMS de prueba en cola (id de entrega: {{id}})."
+    },
+    "errors": {
+      "unknown": "La solicitud falló. Inténtelo de nuevo o compruebe su conexión.",
+      "invalid_json": "Cuerpo de solicitud no válido.",
+      "invalid_channel": "Canal no válido.",
+      "invalid_email": "Introduzca una dirección de correo válida.",
+      "invalid_phone_e164": "Introduzca un número E.164 válido (por ejemplo +15551234567).",
+      "invalid_target_user_id": "Elija un destinatario válido.",
+      "target_user_not_found": "No se encontró ese usuario.",
+      "forbidden": "No tiene permiso para ejecutar pruebas de notificación.",
+      "unauthorized": "Vuelva a iniciar sesión e inténtelo de nuevo.",
+      "invalid_token": "Sesión caducada. Vuelva a iniciar sesión."
+    }
+  },
   "portalStatus": {
     "title": "Carwoods - Estado del portal",
     "metaDescription": "Comprobaciones de solución de problemas del portal para conectividad API y salud de autenticación.",
@@ -1489,6 +1540,7 @@
     "notifications": {
       "title": "Notificaciones",
       "empty": "Aún no hay notificaciones.",
+      "emptyTrayFiltered": "No hay nada que mostrar aquí. Abre Notificaciones para ver todo el historial.",
       "unreadCount": "{{count}} sin leer",
       "dismiss": "Descartar",
       "markAllRead": "Marcar todo como leído",
@@ -1513,7 +1565,10 @@
       "adminAiConfig": "Configuración de IA",
       "notificationPolicies": "Políticas de notificación",
       "properties": "Propiedades",
+      "tenants": "Inquilinos",
       "status": "Estado del sistema",
+      "healthGroup": "Salud",
+      "notificationTest": "Prueba de notificaciones",
       "collapse": "Contraer barra lateral",
       "expand": "Expandir barra lateral",
       "signOut": "Cerrar sesión",

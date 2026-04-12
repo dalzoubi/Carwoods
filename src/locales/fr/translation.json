@@ -702,6 +702,57 @@
       "unknown": "Erreur inattendue"
     }
   },
+  "portalAdminNotificationTest": {
+    "metaTitle": "Carwoods - Test des notifications",
+    "metaDescription": "Envoyer des e-mails, SMS et notifications in-app de test (admin).",
+    "heading": "Test des notifications",
+    "intro": "Utilisez ces outils pour vérifier les canaux d’envoi. Les e-mails et SMS créent des lignes en file d’attente pour votre fournisseur de messagerie ; les notifications in-app apparaissent immédiatement dans votre boîte du portail.",
+    "notAvailable": "Connectez-vous en tant qu’administrateur avec accès API pour utiliser cette page.",
+    "fields": {
+      "title": "Titre",
+      "body": "Message"
+    },
+    "email": {
+      "heading": "E-mail de test",
+      "hint": "Met en file d’attente une livraison e-mail avec objet et corps stockés pour le job d’envoi.",
+      "toLabel": "E-mail du destinataire",
+      "send": "Envoyer l’e-mail de test"
+    },
+    "sms": {
+      "heading": "SMS de test",
+      "hint": "Utilisez le format E.164 (+ et indicatif pays). Met en file d’attente un SMS pour votre fournisseur.",
+      "phoneLabel": "Numéro de téléphone (E.164)",
+      "send": "Envoyer le SMS de test"
+    },
+    "inApp": {
+      "heading": "Notification in-app de test",
+      "hint": "Crée une notification in-app pour l’utilisateur du portail sélectionné (admin, propriétaire ou locataire). Le destinataire la voit dans la cloche de l’en-tête et sur la page Notifications.",
+      "recipientLabel": "Destinataire",
+      "recipientHelper": "Choisissez un admin, un propriétaire ou un locataire pour recevoir la notification de test.",
+      "recipientYou": "Vous (admin connecté)",
+      "send": "Envoyer la notification in-app de test"
+    },
+    "success": {
+      "inApp": "Notification in-app de test créée.",
+      "inAppWithId": "Notification in-app de test créée (id : {{id}}).",
+      "emailQueued": "E-mail de test mis en file d’attente.",
+      "emailWithId": "E-mail de test en file d’attente (id de livraison : {{id}}).",
+      "smsQueued": "SMS de test mis en file d’attente.",
+      "smsWithId": "SMS de test en file d’attente (id de livraison : {{id}})."
+    },
+    "errors": {
+      "unknown": "La requête a échoué. Réessayez ou vérifiez votre connexion.",
+      "invalid_json": "Corps de requête non valide.",
+      "invalid_channel": "Canal non valide.",
+      "invalid_email": "Saisissez une adresse e-mail valide.",
+      "invalid_phone_e164": "Saisissez un numéro E.164 valide (par ex. +15551234567).",
+      "invalid_target_user_id": "Choisissez un destinataire valide.",
+      "target_user_not_found": "Cet utilisateur est introuvable.",
+      "forbidden": "Vous n’avez pas l’autorisation d’exécuter des tests de notification.",
+      "unauthorized": "Reconnectez-vous, puis réessayez.",
+      "invalid_token": "Session expirée. Reconnectez-vous."
+    }
+  },
   "portalStatus": {
     "title": "Carwoods - Statut du portail",
     "metaDescription": "Vérifications de dépannage du portail pour la connectivité API et l'état de l'authentification.",
@@ -1489,6 +1540,7 @@
     "notifications": {
       "title": "Notifications",
       "empty": "Aucune notification pour le moment.",
+      "emptyTrayFiltered": "Rien à afficher ici. Ouvrez Notifications pour l’historique complet.",
       "unreadCount": "{{count}} non lues",
       "dismiss": "Ignorer",
       "markAllRead": "Tout marquer comme lu",
@@ -1513,7 +1565,10 @@
       "adminAiConfig": "Configuration IA",
       "notificationPolicies": "Politiques de notification",
       "properties": "Propriétés",
+      "tenants": "Locataires",
       "status": "État du système",
+      "healthGroup": "Santé",
+      "notificationTest": "Test des notifications",
       "collapse": "Réduire la barre latérale",
       "expand": "Développer la barre latérale",
       "signOut": "Se déconnecter",

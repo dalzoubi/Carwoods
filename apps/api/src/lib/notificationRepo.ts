@@ -210,15 +210,17 @@ export async function insertNotificationDelivery(
     providerMessageId?: string | null;
     error?: string | null;
     scheduledSendAt?: Date | null;
+    /** Optional JSON string (e.g. admin test subject/body for downstream senders). */
+    payloadJson?: string | null;
   }
 ): Promise<NotificationDeliveryRow> {
   const r = await client.query<NotificationDeliveryRow>(
     `INSERT INTO notification_deliveries (
-       id, outbox_id, recipient_email, template_id, status, provider_message_id, error, scheduled_send_at
+       id, outbox_id, recipient_email, template_id, status, provider_message_id, error, scheduled_send_at, payload_json
      )
      OUTPUT INSERTED.id, INSERTED.outbox_id, INSERTED.recipient_email, INSERTED.template_id,
             INSERTED.status, INSERTED.provider_message_id, INSERTED.error, INSERTED.created_at
-     VALUES (NEWID(), $1, $2, $3, $4, $5, $6, $7)`,
+     VALUES (NEWID(), $1, $2, $3, $4, $5, $6, $7, $8)`,
     [
       params.outboxId,
       params.recipientTarget,
@@ -227,6 +229,7 @@ export async function insertNotificationDelivery(
       params.providerMessageId ?? null,
       params.error ?? null,
       params.scheduledSendAt ?? null,
+      params.payloadJson ?? null,
     ]
   );
   return r.rows[0]!;

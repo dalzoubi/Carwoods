@@ -702,6 +702,57 @@
       "unknown": "Unexpected error"
     }
   },
+  "portalAdminNotificationTest": {
+    "metaTitle": "Carwoods - Notification test",
+    "metaDescription": "Send test email, SMS, and in-app notifications to portal users (admin).",
+    "heading": "Notification test",
+    "intro": "Use these tools to verify delivery pipelines. Email and SMS create queued rows for your messaging provider to process; in-app notifications appear immediately in your portal inbox.",
+    "notAvailable": "Sign in as an administrator with API access to use this page.",
+    "fields": {
+      "title": "Title",
+      "body": "Message"
+    },
+    "email": {
+      "heading": "Test email",
+      "hint": "Queues an email delivery row with subject and body stored for the sender job.",
+      "toLabel": "Recipient email",
+      "send": "Send test email"
+    },
+    "sms": {
+      "heading": "Test SMS",
+      "hint": "Use E.164 format (leading + and country code). Queues an SMS delivery row for your messaging provider.",
+      "phoneLabel": "Phone number (E.164)",
+      "send": "Send test SMS"
+    },
+    "inApp": {
+      "heading": "Test in-app notification",
+      "hint": "Creates an in-app notification for the selected portal user (admin, landlord, or tenant). The recipient sees it in the header bell and on the Notifications page.",
+      "recipientLabel": "Recipient",
+      "recipientHelper": "Choose any admin, landlord, or tenant to receive the test notification.",
+      "recipientYou": "You (signed-in admin)",
+      "send": "Send test in-app notification"
+    },
+    "success": {
+      "inApp": "In-app test notification created.",
+      "inAppWithId": "In-app test notification created (id: {{id}}).",
+      "emailQueued": "Test email queued for delivery.",
+      "emailWithId": "Test email queued (delivery id: {{id}}).",
+      "smsQueued": "Test SMS queued for delivery.",
+      "smsWithId": "Test SMS queued (delivery id: {{id}})."
+    },
+    "errors": {
+      "unknown": "Request failed. Try again or check your connection.",
+      "invalid_json": "Invalid request body.",
+      "invalid_channel": "Invalid channel.",
+      "invalid_email": "Enter a valid email address.",
+      "invalid_phone_e164": "Enter a valid E.164 phone number (for example +15551234567).",
+      "invalid_target_user_id": "Choose a valid recipient.",
+      "target_user_not_found": "That user was not found.",
+      "forbidden": "You do not have permission to run notification tests.",
+      "unauthorized": "Sign in again, then retry.",
+      "invalid_token": "Session expired. Sign in again."
+    }
+  },
   "portalStatus": {
     "title": "Carwoods - Portal Status",
     "metaDescription": "Portal troubleshooting checks for API connectivity and authentication health.",
@@ -1489,6 +1540,7 @@
     "notifications": {
       "title": "Notifications",
       "empty": "No notifications yet.",
+      "emptyTrayFiltered": "Nothing to show here. Open Notifications for your full history.",
       "unreadCount": "{{count}} unread",
       "dismiss": "Dismiss",
       "markAllRead": "Mark all as read",
@@ -1515,6 +1567,8 @@
       "properties": "Properties",
       "tenants": "Tenants",
       "status": "System Status",
+      "healthGroup": "Health",
+      "notificationTest": "Notification test",
       "collapse": "Collapse sidebar",
       "expand": "Expand sidebar",
       "signOut": "Sign out",

@@ -155,6 +155,36 @@ export async function listLandlords(
   return r.rows;
 }
 
+/**
+ * Admin notification test / tooling: human portal roles that can receive in-app notifications.
+ * Excludes AI_AGENT and other roles.
+ */
+export async function listUsersForAdminNotificationRecipients(
+  client: Queryable,
+  options?: { includeInactive?: boolean }
+): Promise<UserRow[]> {
+  const roleFilter = `role IN ('${Role.ADMIN}', '${Role.LANDLORD}', '${Role.TENANT}')`;
+  const orderBy = `ORDER BY role, status DESC, last_name ASC, first_name ASC, email ASC`;
+  const columns = `id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status`;
+  if (options?.includeInactive) {
+    const r = await client.query<UserRow>(
+      `SELECT ${columns}
+       FROM users
+       WHERE ${roleFilter}
+       ${orderBy}`
+    );
+    return r.rows;
+  }
+  const r = await client.query<UserRow>(
+    `SELECT ${columns}
+     FROM users
+     WHERE ${roleFilter}
+       AND (status = 'ACTIVE' OR status = 'INVITED')
+     ORDER BY role, last_name ASC, first_name ASC, email ASC`
+  );
+  return r.rows;
+}
+
 export async function setLandlordActiveStatus(
   client: Queryable,
   id: string,
