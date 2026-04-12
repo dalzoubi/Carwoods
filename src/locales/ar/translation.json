@@ -848,6 +848,7 @@
       "colorTheme": "نظام الألوان"
     },
     "languages": {
+      "system": "استخدام إعداد الجهاز",
       "en": "English",
       "es": "Español",
       "fr": "Français",
