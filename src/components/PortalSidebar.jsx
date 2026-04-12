@@ -3,8 +3,6 @@ import { Role } from '../domain/constants.js';
 import {
   Box,
   Button,
-  Chip,
-  CircularProgress,
   Divider,
   Drawer,
   IconButton,
@@ -12,8 +10,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Skeleton,
-  Stack,
   Tooltip,
   Typography,
   useTheme,
@@ -32,22 +28,13 @@ import ChevronRight from '@mui/icons-material/ChevronRight';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
-import { isGuestRole, normalizeRole, resolveDisplayName, resolveRole } from '../portalUtils';
+import { isGuestRole, normalizeRole, resolveRole } from '../portalUtils';
 import { stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
 import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
-import PortalUserAvatar from './PortalUserAvatar';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 
 export const SIDEBAR_WIDTH = 260;
 export const SIDEBAR_COLLAPSED_WIDTH = 84;
-
-function portalRoleLabel(role, t) {
-  const n = normalizeRole(role);
-  if (n === Role.ADMIN) return t('portalHeader.roles.admin');
-  if (n === Role.LANDLORD) return t('portalHeader.roles.landlord');
-  if (n === Role.TENANT) return t('portalHeader.roles.tenant');
-  return t('portalHeader.roles.unknown');
-}
 
 const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarToggle }) => {
   const { t } = useTranslation();
@@ -59,8 +46,6 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
   const role = resolveRole(meData, account);
   const normalized = normalizeRole(role);
   const isGuest = isGuestRole(normalized);
-  const displayName = resolveDisplayName(meData, account, t('portalHeader.notSignedIn'));
-  const roleLabel = portalRoleLabel(role, t);
   const roleResolved = isAuthenticated && meStatus !== 'loading';
 
   const normalizedPath = stripDarkPreviewPrefix(pathname);
@@ -226,53 +211,6 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
 
       {isAuthenticated && (
         <Box sx={{ p: collapsed && !isMobile ? 1.5 : 2 }}>
-          {meStatus === 'loading' ? (
-            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5, justifyContent: collapsed && !isMobile ? 'center' : 'flex-start' }}>
-              {(!collapsed || isMobile) && (
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Skeleton variant="text" width="70%" height={20} />
-                  <Skeleton variant="rounded" width={60} height={20} sx={{ mt: 0.5 }} />
-                </Box>
-              )}
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, flexShrink: 0 }}>
-                <CircularProgress size={24} />
-              </Box>
-            </Stack>
-          ) : (
-            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5, justifyContent: collapsed && !isMobile ? 'center' : 'flex-start' }}>
-              {(!collapsed || isMobile) && (
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography variant="body2" noWrap fontWeight={600}>
-                    {displayName}
-                  </Typography>
-                  <Chip
-                    label={roleLabel}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                    sx={{ height: 20, fontSize: '0.7rem' }}
-                  />
-                </Box>
-              )}
-              <Tooltip title={t('portalLayout.sidebar.profile')} arrow>
-                <IconButton
-                  component={RouterLink}
-                  to={withDarkPath(pathname, '/portal/profile')}
-                  type="button"
-                  size="small"
-                  aria-label={t('portalLayout.sidebar.profile')}
-                >
-                  <PortalUserAvatar
-                    meData={meData}
-                    firstName={meData?.user?.first_name}
-                    lastName={meData?.user?.last_name}
-                    size={36}
-                  />
-                </IconButton>
-              </Tooltip>
-            </Stack>
-          )}
-          
           {collapsed && !isMobile ? (
             <Tooltip title={t('portalLayout.sidebar.signOut')} arrow>
               <IconButton
