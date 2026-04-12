@@ -36,14 +36,13 @@ import Warning from '@mui/icons-material/Warning';
 import Close from '@mui/icons-material/Close';
 import DoneAll from '@mui/icons-material/DoneAll';
 import Science from '@mui/icons-material/Science';
-import OpenInNew from '@mui/icons-material/OpenInNew';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { isDarkPreviewRoute, stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
 import { useThemeMode } from '../ThemeModeContext';
 import { useLanguage } from '../LanguageContext';
-import { FEATURE_DARK_THEME, NOTIFICATIONS_POLL_INTERVAL_MS } from '../featureFlags';
+import { FEATURE_DARK_THEME, notificationsPollIntervalMs } from '../featureFlags';
 import { isGuestRole, normalizeRole, resolveDisplayName, resolveRole } from '../portalUtils';
 import { Role } from '../domain/constants.js';
 import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
@@ -171,9 +170,10 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
     [notifications, trayHiddenIds]
   );
 
-  const loadNotifications = React.useCallback(async () => {
+  const loadNotifications = React.useCallback(async (options = {}) => {
+    const silent = Boolean(options.silent);
     if (!isAuthenticated || !baseUrl) return;
-    setNotificationsLoading(true);
+    if (!silent) setNotificationsLoading(true);
     try {
       const token = await getAccessToken();
       const payload = await fetchNotifications(baseUrl, token, {
@@ -185,7 +185,7 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
     } catch (error) {
       handleApiForbidden?.(error);
     } finally {
-      setNotificationsLoading(false);
+      if (!silent) setNotificationsLoading(false);
     }
   }, [account?.username, baseUrl, getAccessToken, handleApiForbidden, isAuthenticated]);
 
@@ -307,10 +307,31 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
 
   React.useEffect(() => {
     if (!isAuthenticated) return undefined;
+    const trayOpen = Boolean(notificationsAnchor);
+    const intervalMs = notificationsPollIntervalMs(trayOpen);
     const timerId = window.setInterval(() => {
-      void loadNotifications();
-    }, NOTIFICATIONS_POLL_INTERVAL_MS);
+      void loadNotifications({ silent: true });
+    }, intervalMs);
     return () => window.clearInterval(timerId);
+  }, [isAuthenticated, loadNotifications, notificationsAnchor]);
+
+  React.useEffect(() => {
+    if (!isAuthenticated) return undefined;
+    const refresh = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      void loadNotifications({ silent: true });
+    };
+    const onVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        refresh();
+      }
+    };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, [isAuthenticated, loadNotifications]);
 
   return (
@@ -666,7 +687,6 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
               navigate(withDarkPath(pathname, '/portal/notifications'));
             }}
             size="small"
-            endIcon={<OpenInNew sx={{ fontSize: 14 }} />}
             sx={{ textTransform: 'none', width: '100%', justifyContent: 'center' }}
           >
             {t('portalHeader.notifications.viewAll')}

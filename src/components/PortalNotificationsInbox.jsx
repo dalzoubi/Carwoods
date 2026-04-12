@@ -66,9 +66,10 @@ const PortalNotificationsInbox = () => {
 
   const emailHint = account?.username || undefined;
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (options = {}) => {
+    const silent = Boolean(options.silent);
     if (!isAuthenticated || !baseUrl) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     try {
       const token = await getAccessToken();
       const payload = await fetchNotifications(baseUrl, token, { emailHint, limit: 50 });
@@ -76,13 +77,32 @@ const PortalNotificationsInbox = () => {
     } catch (error) {
       handleApiForbidden?.(error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [isAuthenticated, baseUrl, getAccessToken, emailHint, handleApiForbidden]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return undefined;
+    const refresh = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      void load({ silent: true });
+    };
+    const onVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        refresh();
+      }
+    };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [isAuthenticated, load]);
 
   const handleDismiss = useCallback(async (notification, navigate_after = false) => {
     if (!baseUrl) return;

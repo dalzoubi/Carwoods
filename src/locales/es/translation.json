@@ -1540,7 +1540,7 @@
     "notifications": {
       "title": "Notificaciones",
       "empty": "Aún no hay notificaciones.",
-      "emptyTrayFiltered": "No hay nada que mostrar aquí. Abre Notificaciones para ver todo el historial.",
+      "emptyTrayFiltered": "Todo al día.",
       "unreadCount": "{{count}} sin leer",
       "dismiss": "Descartar",
       "markAllRead": "Marcar todo como leído",

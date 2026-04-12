@@ -35,7 +35,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import DownloadIcon from '@mui/icons-material/Download';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useTranslation } from 'react-i18next';
@@ -47,8 +46,10 @@ import { AttachmentUploadControl } from '..';
 import { RequestStatus, Role } from '../../domain/constants.js';
 import { normalizeRole } from '../../portalUtils';
 import { getStatusChipSx } from './requestChipStyles';
+import elsaAssistantPhoto from '../../assets/elsa-assistant.webp';
 
 const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+const ELSA_INLINE_AVATAR_PX = 28;
 const CANCELLABLE_STATUS_CODES = new Set([RequestStatus.NOT_STARTED, RequestStatus.ACKNOWLEDGED]);
 const ELSA_MODE_LABEL_KEYS = {
   NEED_MORE_INFO: 'portalRequests.elsa.modes.needMoreInfo',
@@ -478,7 +479,8 @@ const RequestDetailPane = ({
     setCopyDismissDecision(decision);
   };
   const shouldOfferManualAction = (decision, plannedReply) => (
-    Boolean(plannedReply)
+    decision.policy_decision !== 'SEND_AUTOMATICALLY'
+    && Boolean(plannedReply)
     && (
       decision.policy_decision === 'BLOCK_AND_ALERT_ADMIN'
       || decision.policy_decision === 'HOLD_FOR_REVIEW'
@@ -1079,9 +1081,15 @@ const RequestDetailPane = ({
                 gap: 1,
               }}
             >
-              <SmartToyIcon
-                sx={{ fontSize: '1.35rem', color: 'secondary.main', flexShrink: 0 }}
-                aria-hidden
+              <Avatar
+                src={elsaAssistantPhoto}
+                alt={t('portalRequests.messages.elsaName')}
+                sx={{
+                  width: ELSA_INLINE_AVATAR_PX,
+                  height: ELSA_INLINE_AVATAR_PX,
+                  flexShrink: 0,
+                  boxShadow: (theme) => `0 0 0 1px ${alpha(theme.palette.secondary.main, 0.35)}`,
+                }}
               />
               {t('portalRequests.elsa.heading')}
             </Typography>
@@ -1148,15 +1156,17 @@ const RequestDetailPane = ({
               >
                 <Stack spacing={1}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', width: '100%' }}>
-                    <SmartToyIcon
+                    <Avatar
+                      src={elsaAssistantPhoto}
+                      alt={t('portalRequests.messages.elsaName')}
                       sx={{
-                        fontSize: 24,
-                        color: 'secondary.main',
+                        width: 24,
+                        height: 24,
                         flexShrink: 0,
                         alignSelf: { xs: 'flex-start', sm: 'center' },
                         mt: { xs: 0.2, sm: 0 },
+                        boxShadow: (theme) => `0 0 0 1px ${alpha(theme.palette.secondary.main, 0.35)}`,
                       }}
-                      aria-hidden
                     />
                     <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', flex: 1, minWidth: 0 }}>
                       <Chip
@@ -1369,16 +1379,14 @@ const RequestDetailPane = ({
                             {isElsaAutoMessage ? (
                               <Avatar
                                 variant="circular"
+                                src={elsaAssistantPhoto}
+                                alt={t('portalRequests.messages.elsaName')}
                                 sx={{
                                   width: MESSAGE_THREAD_AVATAR_PX,
                                   height: MESSAGE_THREAD_AVATAR_PX,
-                                  bgcolor: 'secondary.main',
-                                  color: 'secondary.contrastText',
+                                  boxShadow: (theme) => `0 0 0 1px ${alpha(theme.palette.secondary.main, 0.35)}`,
                                 }}
-                                aria-hidden
-                              >
-                                <SmartToyIcon sx={{ fontSize: MESSAGE_THREAD_AVATAR_PX * 0.55 }} aria-hidden />
-                              </Avatar>
+                              />
                             ) : (
                               <PortalUserAvatar
                                 photoUrl={msg.sender_profile_photo_url ?? ''}

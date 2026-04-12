@@ -7,6 +7,7 @@ import {
   markElsaDecisionReviewed,
   type ElsaDecisionRow,
 } from '../../lib/elsaRepo.js';
+import { enqueueNotification } from '../../lib/notificationRepo.js';
 import { getRequestById, insertRequestMessage } from '../../lib/requestsRepo.js';
 import { applyWaitingOnTenantAfterElsaTenantMessage } from './applyWaitingOnTenantAfterElsaMessage.js';
 
@@ -80,6 +81,16 @@ export async function reviewElsaDecision(
         source: 'SYSTEM',
       });
       sentMessageId = message.id;
+      await enqueueNotification(client as Parameters<typeof enqueueNotification>[0], {
+        eventTypeCode: 'REQUEST_TENANT_AI_REPLY',
+        idempotencyKey: `elsa-reviewed-tenant-reply-${message.id}`,
+        payload: {
+          request_id: input.requestId,
+          message_id: message.id,
+          title: request.title,
+          reply_kind: 'REVIEW_APPROVED',
+        },
+      });
       await applyWaitingOnTenantAfterElsaTenantMessage(
         client as Parameters<typeof applyWaitingOnTenantAfterElsaTenantMessage>[0],
         { requestId: input.requestId, actorUserId: input.actorUserId, actorRole: input.actorRole }

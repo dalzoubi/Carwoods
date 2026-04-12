@@ -9,6 +9,7 @@
 
 import {
   countRequestAttachments,
+  getRequestById,
   insertRequestAttachment,
   tenantCanAccessRequest,
   type RequestAttachmentRow,
@@ -133,11 +134,19 @@ export async function finalizeRequestAttachment(
       before: null,
       after: created,
     });
+    const requestRow = await getRequestById(
+      client as Parameters<typeof getRequestById>[0],
+      requestId
+    );
+    const requestTitle = requestRow?.title ?? 'Maintenance request';
     await enqueueNotification(client as Parameters<typeof enqueueNotification>[0], {
       eventTypeCode: 'REQUEST_ATTACHMENT_ADDED',
       payload: {
         request_id: requestId,
         attachment_id: created.id,
+        uploader_user_id: input.actorUserId,
+        uploader_role: role,
+        title: requestTitle,
       },
       idempotencyKey: `request-attachment:${created.id}`,
     });

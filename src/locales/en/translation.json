@@ -1540,7 +1540,7 @@
     "notifications": {
       "title": "Notifications",
       "empty": "No notifications yet.",
-      "emptyTrayFiltered": "Nothing to show here. Open Notifications for your full history.",
+      "emptyTrayFiltered": "All caught up.",
       "unreadCount": "{{count}} unread",
       "dismiss": "Dismiss",
       "markAllRead": "Mark all as read",

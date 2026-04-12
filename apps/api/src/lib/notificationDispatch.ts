@@ -77,13 +77,77 @@ function maintenanceBodyFromAi(
   return `${prefix}${aiBundle.summary160}`.trim() || baseBody;
 }
 
+function displayRequestTitle(payload: Record<string, unknown>): string {
+  const raw = asString(payload.title)?.trim();
+  return raw && raw.length > 0 ? raw : 'Maintenance request';
+}
+
+function contentForRequestMessageCreated(
+  payload: Record<string, unknown>,
+  requestTitle: string,
+  aiBundle: NotificationDispatchAiBundle | null,
+  urgentLabel: string
+): Pick<NotificationContent, 'title' | 'body' | 'metadata'> {
+  const senderRole = normalizeRole(asString(payload.sender_role));
+  const messageSource = (asString(payload.message_source) ?? 'PORTAL').trim().toUpperCase();
+
+  if (senderRole === Role.TENANT) {
+    if (messageSource === 'EMAIL_REPLY') {
+      return {
+        title: 'Tenant replied by email',
+        body: maintenanceBodyFromAi(
+          `The tenant sent a new reply by email on "${requestTitle}".`,
+          aiBundle,
+          urgentLabel
+        ),
+        metadata: { kind: 'request_message_tenant_email' },
+      };
+    }
+    return {
+      title: 'Tenant replied',
+      body: maintenanceBodyFromAi(
+        `The tenant posted a new message on "${requestTitle}".`,
+        aiBundle,
+        urgentLabel
+      ),
+      metadata: { kind: 'request_message_tenant_portal' },
+    };
+  }
+
+  if (senderRole === Role.LANDLORD || senderRole === Role.ADMIN) {
+    const who =
+      senderRole === Role.ADMIN
+        ? 'An administrator'
+        : 'Your property manager';
+    return {
+      title: 'Message from management',
+      body: maintenanceBodyFromAi(
+        `${who} posted a new message on "${requestTitle}".`,
+        aiBundle,
+        urgentLabel
+      ),
+      metadata: { kind: 'request_message_management' },
+    };
+  }
+
+  return {
+    title: 'New request message',
+    body: maintenanceBodyFromAi(
+      `Someone posted a new message on "${requestTitle}".`,
+      aiBundle,
+      urgentLabel
+    ),
+    metadata: { kind: 'request_message' },
+  };
+}
+
 function buildNotificationContent(
   eventTypeCode: string,
   payload: Record<string, unknown>,
   aiBundle: NotificationDispatchAiBundle | null
 ): NotificationContent {
   const requestId = asRequestId(payload);
-  const requestTitle = asString(payload.title) ?? 'Maintenance request';
+  const requestTitle = displayRequestTitle(payload);
   const link = requestId ? `/portal/requests?id=${encodeURIComponent(requestId)}` : null;
   const normalizedEvent = eventTypeCode.trim().toUpperCase();
   const urgentLabel = aiBundle?.emergency ? '[Emergency]' : '[Urgent]';
@@ -125,7 +189,7 @@ function buildNotificationContent(
     return {
       title: 'New maintenance request',
       body: maintenanceBodyFromAi(
-        `A new maintenance request was created: ${requestTitle}.`,
+        `A tenant submitted a new maintenance request: "${requestTitle}".`,
         aiBundle,
         urgentLabel
       ),
@@ -136,10 +200,38 @@ function buildNotificationContent(
   }
 
   if (normalizedEvent === 'REQUEST_UPDATED') {
+    const waitingAfterAi = Boolean(payload.waiting_on_tenant_after_ai);
+    const statusChanged = Boolean(payload.status_changed);
+    if (waitingAfterAi) {
+      return {
+        title: 'Waiting for your reply',
+        body: maintenanceBodyFromAi(
+          `Your maintenance request "${requestTitle}" was updated and is waiting for your response.`,
+          aiBundle,
+          urgentLabel
+        ),
+        deepLink: link,
+        requestId,
+        metadata: { kind: 'request_updated_waiting_on_tenant_ai' },
+      };
+    }
+    if (statusChanged) {
+      return {
+        title: 'Request status updated',
+        body: maintenanceBodyFromAi(
+          `The status of "${requestTitle}" was updated.`,
+          aiBundle,
+          urgentLabel
+        ),
+        deepLink: link,
+        requestId,
+        metadata: { kind: 'request_updated_status' },
+      };
+    }
     return {
       title: 'Maintenance request updated',
       body: maintenanceBodyFromAi(
-        `A maintenance request has new updates: ${requestTitle}.`,
+        `Details were updated for "${requestTitle}".`,
         aiBundle,
         urgentLabel
       ),
@@ -149,20 +241,148 @@ function buildNotificationContent(
     };
   }
 
+  if (normalizedEvent === 'REQUEST_CANCELLED') {
+    return {
+      title: 'Request cancelled by tenant',
+      body: maintenanceBodyFromAi(
+        `The tenant cancelled the maintenance request "${requestTitle}".`,
+        aiBundle,
+        urgentLabel
+      ),
+      deepLink: link,
+      requestId,
+      metadata: { kind: 'request_cancelled' },
+    };
+  }
+
+  if (normalizedEvent === 'REQUEST_ATTACHMENT_ADDED') {
+    const uploaderRole = normalizeRole(asString(payload.uploader_role));
+    const who =
+      uploaderRole === Role.TENANT
+        ? 'The tenant'
+        : uploaderRole === Role.LANDLORD || uploaderRole === Role.ADMIN
+          ? 'Your team'
+          : 'Someone';
+    return {
+      title: 'New attachment on request',
+      body: maintenanceBodyFromAi(
+        `${who} added a photo or file to "${requestTitle}".`,
+        aiBundle,
+        urgentLabel
+      ),
+      deepLink: link,
+      requestId,
+      metadata: { kind: 'request_attachment_added' },
+    };
+  }
+
+  if (normalizedEvent === 'REQUEST_STATUS_CHANGED') {
+    const reason =
+      asString(payload.reason)
+      ?? 'Elsa blocked an automatic reply and needs a management review.';
+    const severity = (asString(payload.severity) ?? '').trim().toUpperCase();
+    const isUrgent = severity === 'URGENT';
+    return {
+      title: isUrgent ? 'Urgent: Elsa needs review' : 'Elsa needs review',
+      body: maintenanceBodyFromAi(
+        `${reason} Request: "${requestTitle}".`,
+        aiBundle,
+        urgentLabel
+      ),
+      deepLink: link,
+      requestId,
+      metadata: { kind: 'request_status_changed_elsa_alert' },
+    };
+  }
+
+  if (normalizedEvent === 'REQUEST_ELSA_REVIEW_PENDING') {
+    const decisionId = asString(payload.decision_id);
+    return {
+      title: 'Elsa draft needs review',
+      body: maintenanceBodyFromAi(
+        `The maintenance assistant (Elsa) drafted a tenant reply on "${requestTitle}" and is waiting for a landlord or administrator to review and send it.`,
+        aiBundle,
+        urgentLabel
+      ),
+      deepLink: link,
+      requestId,
+      metadata: {
+        kind: 'elsa_review_pending',
+        ...(decisionId ? { decision_id: decisionId } : {}),
+      },
+    };
+  }
+
   if (normalizedEvent === 'REQUEST_INTERNAL_NOTE') {
     return {
-      title: 'Internal request note',
-      body: 'A new internal note was added to a maintenance request.',
+      title: 'Internal note added',
+      body: `A team member added an internal note (not visible to the tenant) on "${requestTitle}".`,
       deepLink: link,
       requestId,
       metadata: { kind: 'request_internal_note' },
     };
   }
 
-  if (normalizedEvent === 'LANDLORD_MESSAGE_POSTED') {
+  if (normalizedEvent === 'REQUEST_MESSAGE_CREATED') {
+    const part = contentForRequestMessageCreated(payload, requestTitle, aiBundle, urgentLabel);
     return {
-      title: 'New request message',
-      body: maintenanceBodyFromAi('There is a new message on a maintenance request.', aiBundle, urgentLabel),
+      ...part,
+      deepLink: link,
+      requestId,
+    };
+  }
+
+  if (normalizedEvent === 'REQUEST_TENANT_AI_REPLY') {
+    const replyKind = (asString(payload.reply_kind) ?? 'AUTO').trim().toUpperCase();
+    if (replyKind === 'REVIEW_APPROVED') {
+      return {
+        title: 'New reply on your request',
+        body: maintenanceBodyFromAi(
+          `Your management team sent a new reply on "${requestTitle}". Open the request to read the full message.`,
+          aiBundle,
+          urgentLabel
+        ),
+        deepLink: link,
+        requestId,
+        metadata: { kind: 'tenant_ai_reply_review_approved' },
+      };
+    }
+    return {
+      title: 'New assistant reply',
+      body: maintenanceBodyFromAi(
+        `The maintenance assistant (Elsa) posted a new reply on "${requestTitle}". Open the request to read the full message.`,
+        aiBundle,
+        urgentLabel
+      ),
+      deepLink: link,
+      requestId,
+      metadata: { kind: 'tenant_ai_reply_auto' },
+    };
+  }
+
+  if (normalizedEvent === 'LANDLORD_MESSAGE_POSTED') {
+    const source = (asString(payload.source) ?? '').trim().toUpperCase();
+    const isElsaAuto = source === 'ELSA_AUTO_SENT' || source === 'SYSTEM';
+    if (isElsaAuto) {
+      return {
+        title: 'AI assistant replied',
+        body: maintenanceBodyFromAi(
+          `Elsa (AI) posted an automatic reply to the tenant on "${requestTitle}".`,
+          aiBundle,
+          urgentLabel
+        ),
+        deepLink: link,
+        requestId,
+        metadata: { kind: 'landlord_message_elsa_auto' },
+      };
+    }
+    return {
+      title: 'New team message',
+      body: maintenanceBodyFromAi(
+        `Someone on the management team posted a message on "${requestTitle}".`,
+        aiBundle,
+        urgentLabel
+      ),
       deepLink: link,
       requestId,
       metadata: { kind: 'landlord_message_posted' },
@@ -170,11 +390,17 @@ function buildNotificationContent(
   }
 
   return {
-    title: 'New request message',
-    body: maintenanceBodyFromAi('There is a new message on a maintenance request.', aiBundle, urgentLabel),
+    title: 'Portal notification',
+    body: maintenanceBodyFromAi(
+      requestId
+        ? `There is an update on "${requestTitle}".`
+        : 'You have a new portal notification.',
+      aiBundle,
+      urgentLabel
+    ),
     deepLink: link,
     requestId,
-    metadata: { kind: 'request_message' },
+    metadata: { kind: 'generic' },
   };
 }
 
@@ -207,10 +433,77 @@ async function resolveRecipientsForEvent(
   const requestId = asRequestId(payload);
   if (!requestId) return [];
   const senderUserId = asString(payload.sender_user_id);
+  const uploaderUserId = asString(payload.uploader_user_id);
   const recipients = await listRequestNotificationRecipients(db, requestId);
   if (!recipients.length) return [];
 
+  if (normalizedEvent === 'REQUEST_CREATED' || normalizedEvent === 'REQUEST_CANCELLED') {
+    return recipients
+      .filter((row) => row.is_management)
+      .map((row) => ({
+        userId: row.user_id,
+        email: row.email,
+        phone: row.phone,
+        role: row.role,
+      }));
+  }
+
   if (normalizedEvent === 'REQUEST_INTERNAL_NOTE') {
+    return recipients
+      .filter((row) => row.is_management)
+      .map((row) => ({
+        userId: row.user_id,
+        email: row.email,
+        phone: row.phone,
+        role: row.role,
+      }));
+  }
+
+  if (normalizedEvent === 'REQUEST_STATUS_CHANGED') {
+    return recipients
+      .filter((row) => row.is_management)
+      .map((row) => ({
+        userId: row.user_id,
+        email: row.email,
+        phone: row.phone,
+        role: row.role,
+      }));
+  }
+
+  if (normalizedEvent === 'REQUEST_ELSA_REVIEW_PENDING') {
+    return recipients
+      .filter((row) => row.is_management)
+      .map((row) => ({
+        userId: row.user_id,
+        email: row.email,
+        phone: row.phone,
+        role: row.role,
+      }));
+  }
+
+  if (normalizedEvent === 'REQUEST_UPDATED' && Boolean(payload.waiting_on_tenant_after_ai)) {
+    return recipients
+      .filter((row) => !row.is_management)
+      .map((row) => ({
+        userId: row.user_id,
+        email: row.email,
+        phone: row.phone,
+        role: row.role,
+      }));
+  }
+
+  if (normalizedEvent === 'REQUEST_TENANT_AI_REPLY') {
+    return recipients
+      .filter((row) => !row.is_management)
+      .map((row) => ({
+        userId: row.user_id,
+        email: row.email,
+        phone: row.phone,
+        role: row.role,
+      }));
+  }
+
+  if (normalizedEvent === 'LANDLORD_MESSAGE_POSTED') {
     return recipients
       .filter((row) => row.is_management)
       .map((row) => ({
@@ -244,6 +537,28 @@ async function resolveRecipientsForEvent(
       }));
   }
 
+  if (normalizedEvent === 'REQUEST_ATTACHMENT_ADDED' && uploaderUserId) {
+    const uploader = recipients.find((row) => row.user_id === uploaderUserId);
+    if (!uploader) {
+      return recipients.map((row) => ({
+        userId: row.user_id,
+        email: row.email,
+        phone: row.phone,
+        role: row.role,
+      }));
+    }
+    const uploaderIsManagement = isManagementRole(uploader.role);
+    return recipients
+      .filter((row) => row.user_id !== uploaderUserId)
+      .filter((row) => (uploaderIsManagement ? !row.is_management : row.is_management))
+      .map((row) => ({
+        userId: row.user_id,
+        email: row.email,
+        phone: row.phone,
+        role: row.role,
+      }));
+  }
+
   return recipients.map((row) => ({
     userId: row.user_id,
     email: row.email,
@@ -264,9 +579,22 @@ function dedupeRecipients(recipients: DispatchRecipient[]): DispatchRecipient[] 
 }
 
 function cooldownRequestId(content: NotificationContent, outboxId: string): string {
-  if (content.requestId) return content.requestId;
-  /** Per-outbox for non-thread events so distinct onboarding notifications are not merged. */
-  return outboxId;
+  const rid = content.requestId;
+  if (!rid) {
+    /** Per-outbox for non-thread events so distinct onboarding notifications are not merged. */
+    return outboxId;
+  }
+  const kind = typeof content.metadata?.kind === 'string' ? content.metadata.kind : '';
+  /** Same request can produce several tenant-facing rows in one transaction; avoid suppressing later ones. */
+  if (kind === 'tenant_ai_reply_auto') return `${rid}:tenant_ai_reply_auto`;
+  if (kind === 'tenant_ai_reply_review_approved') return `${rid}:tenant_ai_reply_reviewed`;
+  if (kind === 'request_updated_waiting_on_tenant_ai') return `${rid}:waiting_on_tenant_after_ai`;
+  if (kind === 'elsa_review_pending') {
+    const did =
+      typeof content.metadata?.decision_id === 'string' ? content.metadata.decision_id.trim() : '';
+    return did ? `${rid}:elsa_review_pending:${did}` : `${rid}:elsa_review_pending`;
+  }
+  return rid;
 }
 
 async function enqueueChannelDeliveries(

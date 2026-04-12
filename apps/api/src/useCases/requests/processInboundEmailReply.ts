@@ -4,6 +4,7 @@
 
 import { findUserByEmail, findUserById } from '../../lib/usersRepo.js';
 import {
+  getRequestById,
   insertRequestMessage,
   tenantCanAccessRequest,
   landlordOwnsRequestProperty,
@@ -118,6 +119,8 @@ export async function processInboundEmailReply(
     return { ok: false, reason: 'invalid_body', requestId };
   }
 
+  const actorRole = String(authorizedUser.role ?? '').trim().toUpperCase();
+
   const client = await db.connect();
   try {
     await client.query('BEGIN');
@@ -129,6 +132,8 @@ export async function processInboundEmailReply(
       isInternal: false,
       source: 'EMAIL_REPLY',
     });
+    const requestRow = await getRequestById(pc, requestId);
+    const requestTitle = requestRow?.title ?? 'Maintenance request';
     await writeAudit(pc, {
       actorUserId: userId,
       entityType: 'REQUEST_MESSAGE',
@@ -143,13 +148,15 @@ export async function processInboundEmailReply(
         request_id: requestId,
         message_id: created.id,
         sender_user_id: userId,
+        sender_role: actorRole,
+        message_source: 'EMAIL_REPLY',
+        title: requestTitle,
       },
       idempotencyKey: `request-message:${created.id}`,
     });
     await client.query('COMMIT');
 
-    const role = String(authorizedUser.role ?? '').trim().toUpperCase();
-    if (role === Role.TENANT) {
+    if (actorRole === Role.TENANT) {
       (async () => {
         try {
           const [autoRespondEnabled, settings] = await Promise.all([

@@ -60,6 +60,8 @@ export async function applyWaitingOnTenantAfterElsaTenantMessage(
       request_id: params.requestId,
       status_changed: true,
       assigned_vendor_id: after.assigned_vendor_id,
+      title: before.title,
+      waiting_on_tenant_after_ai: true,
     },
     idempotencyKey: `request-updated:${params.requestId}:${after.updated_at.toISOString()}`,
   });

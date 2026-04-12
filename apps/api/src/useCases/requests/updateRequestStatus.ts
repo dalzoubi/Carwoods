@@ -148,6 +148,7 @@ export async function updateRequestStatus(
         request_id: input.requestId,
         status_changed: Boolean(newStatusId && newStatusId !== current.current_status_id),
         assigned_vendor_id: updated.assigned_vendor_id,
+        title: current.title,
       },
       idempotencyKey: `request-updated:${input.requestId}:${updated.updated_at.toISOString()}`,
     });

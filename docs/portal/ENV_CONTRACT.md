@@ -68,7 +68,8 @@ Manual Azure setup checklist: `docs/portal/AZURE_MANUAL_SETUP_CHECKLIST.md`.
 | `VITE_FIREBASE_PROJECT_ID`  | Firebase project ID; should match API `FIREBASE_PROJECT_ID` |
 | `VITE_FEATURE_APPLY_API` | When **not** `false`, and `VITE_API_BASE_URL` is set, `/apply` uses `GET /api/public/apply-properties` first; falls back to the generated file on error or empty API response. |
 | `VITE_FEATURE_APPLY_DUAL_SOURCE` | Dev only: set to `false` to disable console compare of API vs generated tiles. |
-| `VITE_NOTIFICATIONS_POLL_MS` | Optional notification poll cadence in ms for signed-in users (main site + portal headers). Default `60000`; clamped to min `10000`, max `300000`. |
+| `VITE_NOTIFICATIONS_POLL_MS` | Optional notification poll cadence in ms for signed-in users (main site + portal headers). Default `60000`; clamped to min `10000`, max `300000`. When the notification tray is open, polling uses at most **8s** (still respects a shorter base interval if configured). |
+| `VITE_MESSAGES_POLL_MS` | Optional cadence in ms for refreshing the open maintenance request thread (portal). Default `15000`; clamped to min `10000`, max `300000`. |
 
 
 **Never** set `GEMINI_API_KEY`, `DATABASE_URL`, `BLOB_`* secrets, or ACS secrets in `VITE_*`.

@@ -154,6 +154,8 @@ describe('RequestDetailPane', () => {
     );
 
     expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Send Via AI' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Use in Message Box' })).not.toBeInTheDocument();
   });
 
   it('copies blocked AI message into compose form and asks for dismiss confirmation', () => {

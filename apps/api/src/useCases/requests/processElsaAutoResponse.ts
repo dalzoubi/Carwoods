@@ -272,6 +272,17 @@ export async function processElsaAutoResponse(
           request_id: input.requestId,
           message_id: sentMessage.id,
           source: 'ELSA_AUTO_SENT',
+          title: request.title,
+        },
+      });
+      await enqueueNotification(client as Parameters<typeof enqueueNotification>[0], {
+        eventTypeCode: 'REQUEST_TENANT_AI_REPLY',
+        idempotencyKey: `elsa-tenant-reply-${sentMessage.id}`,
+        payload: {
+          request_id: input.requestId,
+          message_id: sentMessage.id,
+          title: request.title,
+          reply_kind: 'AUTO',
         },
       });
       await applyWaitingOnTenantAfterElsaTenantMessage(
@@ -289,8 +300,9 @@ export async function processElsaAutoResponse(
         payload: {
           request_id: input.requestId,
           severity: 'URGENT',
-          reason: 'Elsa policy blocked auto-send and requires admin alert',
+          reason: 'Elsa blocked an automatic reply and requires a management review.',
           policy_flags: evaluation.policyFlags,
+          title: request.title,
         },
       });
       log('warn', 'elsa.process.blocked.alert_enqueued', {
@@ -320,6 +332,21 @@ export async function processElsaAutoResponse(
       sentMessageId,
       sentAt,
     });
+    if (evaluation.policyDecision === ElsaPolicyDecision.HOLD_FOR_REVIEW) {
+      await enqueueNotification(client as Parameters<typeof enqueueNotification>[0], {
+        eventTypeCode: 'REQUEST_ELSA_REVIEW_PENDING',
+        idempotencyKey: `elsa-review-pending:${decisionId}`,
+        payload: {
+          request_id: input.requestId,
+          decision_id: decisionId,
+          title: request.title,
+        },
+      });
+      log('info', 'elsa.process.review_pending.notification_enqueued', {
+        requestId: input.requestId,
+        decisionId,
+      });
+    }
     log('info', 'elsa.process.decision.persisted', {
       requestId: input.requestId,
       decisionId,

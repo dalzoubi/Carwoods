@@ -11,6 +11,7 @@
  */
 
 import {
+  getRequestById,
   insertRequestMessage,
   tenantCanAccessRequest,
   type RequestMessageRow,
@@ -78,6 +79,11 @@ export async function postRequestMessage(
         source: 'PORTAL',
       }
     );
+    const requestRow = await getRequestById(
+      client as Parameters<typeof getRequestById>[0],
+      requestId
+    );
+    const requestTitle = requestRow?.title ?? 'Maintenance request';
     await writeAudit(client as Parameters<typeof writeAudit>[0], {
       actorUserId: input.actorUserId,
       entityType: 'REQUEST_MESSAGE',
@@ -92,6 +98,9 @@ export async function postRequestMessage(
         request_id: requestId,
         message_id: created.id,
         sender_user_id: input.actorUserId,
+        sender_role: role,
+        message_source: 'PORTAL',
+        title: requestTitle,
       },
       idempotencyKey: `request-message:${created.id}`,
     });

@@ -29,7 +29,7 @@ import {
 } from '../../lib/portalApiClient';
 import { RequestStatus } from '../../domain/constants.js';
 import { FALLBACK_MAX_IMAGE_BYTES } from '../../attachmentUploadLimits.js';
-const MESSAGE_POLL_INTERVAL_MS = 15000;
+import { MESSAGES_POLL_INTERVAL_MS } from '../../featureFlags';
 const MESSAGE_SUCCESS_AUTO_DISMISS_MS = 5000;
 const ELSA_DECISION_ACTION_SUCCESS_AUTO_DISMISS_MS = 5000;
 const IS_DEV = import.meta.env.DEV;
@@ -624,10 +624,24 @@ export function usePortalRequests({
       }
     };
 
-    const intervalId = window.setInterval(refreshMessages, MESSAGE_POLL_INTERVAL_MS);
+    const intervalId = window.setInterval(refreshMessages, MESSAGES_POLL_INTERVAL_MS);
+
+    const refreshOnResume = () => {
+      void refreshMessages();
+    };
+    const onVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        refreshOnResume();
+      }
+    };
+    window.addEventListener('focus', refreshOnResume);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
     return () => {
       cancelled = true;
       window.clearInterval(intervalId);
+      window.removeEventListener('focus', refreshOnResume);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
     };
   }, [
     selectedRequestId,

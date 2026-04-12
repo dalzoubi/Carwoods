@@ -1540,7 +1540,7 @@
     "notifications": {
       "title": "الإشعارات",
       "empty": "لا توجد إشعارات بعد.",
-      "emptyTrayFiltered": "لا يوجد شيء لعرضه هنا. افتح الإشعارات لعرض السجل كاملًا.",
+      "emptyTrayFiltered": "أنت على اطلاع بكل شيء.",
       "unreadCount": "{{count}} غير مقروءة",
       "dismiss": "تجاهل",
       "markAllRead": "تحديد الكل كمقروء",

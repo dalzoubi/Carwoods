@@ -41,7 +41,7 @@ import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useThemeMode } from '../ThemeModeContext';
 import { useLanguage } from '../LanguageContext';
 import { usePortalAuth } from '../PortalAuthContext';
-import { FEATURE_DARK_THEME, NOTIFICATIONS_POLL_INTERVAL_MS } from '../featureFlags';
+import { FEATURE_DARK_THEME, notificationsPollIntervalMs } from '../featureFlags';
 import { isPrintablePageRoute, stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
 import { isGuestRole, normalizeRole, resolveDisplayName, resolveRole } from '../portalUtils';
 import { useTranslation } from 'react-i18next';
@@ -302,9 +302,10 @@ const ResponsiveNavbar = () => {
         setLanguageAnchor(null);
         setLanguageMenuLabelledBy(undefined);
     };
-    const loadNotifications = useCallback(async () => {
+    const loadNotifications = useCallback(async (options = {}) => {
+        const silent = Boolean(options.silent);
         if (!isAuthenticated || !baseUrl) return;
-        setNotificationsLoading(true);
+        if (!silent) setNotificationsLoading(true);
         try {
             const token = await getAccessToken();
             const payload = await fetchNotifications(baseUrl, token, {
@@ -316,7 +317,7 @@ const ResponsiveNavbar = () => {
         } catch (error) {
             handleApiForbidden?.(error);
         } finally {
-            setNotificationsLoading(false);
+            if (!silent) setNotificationsLoading(false);
         }
     }, [account?.username, baseUrl, getAccessToken, handleApiForbidden, isAuthenticated]);
 
@@ -406,10 +407,31 @@ const ResponsiveNavbar = () => {
 
     useEffect(() => {
         if (!isAuthenticated) return undefined;
+        const trayOpen = Boolean(notificationsAnchor);
+        const intervalMs = notificationsPollIntervalMs(trayOpen);
         const timerId = window.setInterval(() => {
-            void loadNotifications();
-        }, NOTIFICATIONS_POLL_INTERVAL_MS);
+            void loadNotifications({ silent: true });
+        }, intervalMs);
         return () => window.clearInterval(timerId);
+    }, [isAuthenticated, loadNotifications, notificationsAnchor]);
+
+    useEffect(() => {
+        if (!isAuthenticated) return undefined;
+        const refresh = () => {
+            if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+            void loadNotifications({ silent: true });
+        };
+        const onVisibilityChange = () => {
+            if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+                refresh();
+            }
+        };
+        window.addEventListener('focus', refresh);
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        return () => {
+            window.removeEventListener('focus', refresh);
+            document.removeEventListener('visibilitychange', onVisibilityChange);
+        };
     }, [isAuthenticated, loadNotifications]);
 
     const tenantLinks = [
