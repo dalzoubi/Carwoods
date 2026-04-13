@@ -31,8 +31,8 @@
     "resourcesMenu": "Resources menu",
     "renters": "Renters",
     "rentersMenu": "Renters menu",
-    "forManagers": "For Managers",
-    "forManagersMenu": "For managers menu",
+    "forLandlords": "For Landlords",
+    "forLandlordsMenu": "For Landlords menu",
     "propertyManagement": "Property Management"
   },
   "tenantLinks": {

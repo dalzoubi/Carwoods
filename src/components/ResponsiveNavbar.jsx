@@ -568,7 +568,7 @@ const ResponsiveNavbar = () => {
 
                     {/* For Managers section */}
                     <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
-                        {t('nav.forManagers')}
+                        {t('nav.forLandlords')}
                     </ListSubheader>
                     {productNavLinks.map(({ to, label }) => (
                         <ListItemButton
@@ -806,7 +806,7 @@ const ResponsiveNavbar = () => {
                                     aria-haspopup="true"
                                     aria-expanded={Boolean(productAnchor)}
                                     aria-controls={productAnchor ? 'product-menu' : undefined}
-                                    aria-label={t('nav.forManagersMenu')}
+                                    aria-label={t('nav.forLandlordsMenu')}
                                     sx={{
                                         color: 'inherit',
                                         padding: '0.3rem 0.55rem',
@@ -816,7 +816,7 @@ const ResponsiveNavbar = () => {
                                         '&:hover': { backgroundColor: 'var(--nav-chrome-hover-bg)' },
                                     }}
                                 >
-                                    <span style={{ marginInlineEnd: '0.2rem' }}>{t('nav.forManagers')}</span>
+                                    <span style={{ marginInlineEnd: '0.2rem' }}>{t('nav.forLandlords')}</span>
                                     <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
                                 </IconButton>
                                 <Menu

@@ -12,8 +12,9 @@ import {
   verifyAccessToken,
   authConfigured,
 } from '../lib/jwtVerify.js';
-import { findUserByClaims } from '../lib/usersRepo.js';
+import { findUserByClaims, autoAssignFreeTier } from '../lib/usersRepo.js';
 import { getGlobalAttachmentUploadConfigCached } from '../lib/attachmentUploadConfigRepo.js';
+import { getTierById, getTierByName } from '../lib/subscriptionTiersRepo.js';
 import { addProfilePhotoReadUrl } from '../lib/userProfilePhotoUrl.js';
 import { ensureUserNotificationPreference } from '../lib/notificationPolicyRepo.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
@@ -183,6 +184,29 @@ export async function portalMeHandler(
     }
   }
 
+  // Tier: auto-assign FREE for LANDLORD users who don't yet have a tier
+  let tier: { id: string; name: string; display_name: string; limits: import('../lib/subscriptionTiersRepo.js').TierLimits } | null = null;
+  if (deps.hasDatabaseUrl()) {
+    try {
+      const pool = deps.getPool();
+      if (user.role === Role.LANDLORD && !user.tier_id) {
+        const freeTier = await getTierByName(pool, 'FREE');
+        if (freeTier) {
+          await autoAssignFreeTier(pool, user.id, freeTier.id);
+          user = { ...user, tier_id: freeTier.id };
+          tier = { id: freeTier.id, name: freeTier.name, display_name: freeTier.display_name, limits: freeTier.limits };
+        }
+      } else if (user.tier_id) {
+        const t = await getTierById(pool, user.tier_id);
+        if (t) tier = { id: t.id, name: t.name, display_name: t.display_name, limits: t.limits };
+      }
+    } catch (tierErr) {
+      logWarn(context, 'portal.me.tier_lookup.failed', {
+        message: tierErr instanceof Error ? tierErr.message : String(tierErr),
+      });
+    }
+  }
+
   return {
     status: 200,
     headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
@@ -197,6 +221,7 @@ export async function portalMeHandler(
         notification_preferences: notificationPreferences,
         ui_language: user.ui_language ?? null,
         ui_color_scheme: user.ui_color_scheme ?? null,
+        tier,
       },
     },
   };
