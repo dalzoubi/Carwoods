@@ -58,6 +58,14 @@ const Footer = () => {
     return (
         <FooterContainer>
             <p>{t('footer.copyright')}</p>
+            <FooterInternalLink to={withDarkPath(pathname, '/apply')} aria-label={t('footer.applyAriaLabel')}>
+                {t('footer.apply')}
+            </FooterInternalLink>
+            <FooterSeparator aria-hidden="true">|</FooterSeparator>
+            <FooterInternalLink to={withDarkPath(pathname, '/property-management')} aria-label={t('footer.propertyManagementAriaLabel')}>
+                {t('footer.propertyManagement')}
+            </FooterInternalLink>
+            <FooterSeparator aria-hidden="true">|</FooterSeparator>
             <FooterInternalLink to={withDarkPath(pathname, '/pricing')} aria-label={t('footer.pricingAriaLabel')}>
                 {t('footer.pricing')}
             </FooterInternalLink>

@@ -119,6 +119,7 @@ const ResponsiveNavbar = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [tenantAnchor, setTenantAnchor] = useState(null);
     const [landlordAnchor, setLandlordAnchor] = useState(null);
+    const [rentersAnchor, setRentersAnchor] = useState(null);
     const [productAnchor, setProductAnchor] = useState(null);
     const [portalAnchor, setPortalAnchor] = useState(null);
     const [legalAnchor, setLegalAnchor] = useState(null);
@@ -211,9 +212,24 @@ const ResponsiveNavbar = () => {
     const handleLandlordClose = () => {
         setLandlordAnchor(null);
     };
+    const handleRentersOpen = (e) => {
+        setTenantAnchor(null);
+        setLandlordAnchor(null);
+        setProductAnchor(null);
+        setPortalAnchor(null);
+        setLegalAnchor(null);
+        setAppearanceAnchor(null);
+        setLanguageAnchor(null);
+        notificationsTrayRef.current?.close();
+        setRentersAnchor(e.currentTarget);
+    };
+    const handleRentersClose = () => {
+        setRentersAnchor(null);
+    };
     const handleProductOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setRentersAnchor(null);
         setPortalAnchor(null);
         setLegalAnchor(null);
         setAppearanceAnchor(null);
@@ -228,6 +244,7 @@ const ResponsiveNavbar = () => {
     const handlePortalOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setRentersAnchor(null);
         setProductAnchor(null);
         setLegalAnchor(null);
         setAppearanceAnchor(null);
@@ -241,6 +258,7 @@ const ResponsiveNavbar = () => {
     const handleLegalOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setRentersAnchor(null);
         setPortalAnchor(null);
         setProductAnchor(null);
         setAppearanceAnchor(null);
@@ -254,6 +272,7 @@ const ResponsiveNavbar = () => {
     const handleAppearanceOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setRentersAnchor(null);
         setPortalAnchor(null);
         setProductAnchor(null);
         setLegalAnchor(null);
@@ -272,6 +291,7 @@ const ResponsiveNavbar = () => {
     const handleLanguageOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setRentersAnchor(null);
         setPortalAnchor(null);
         setProductAnchor(null);
         setLegalAnchor(null);
@@ -290,6 +310,7 @@ const ResponsiveNavbar = () => {
     const handleAccountOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setRentersAnchor(null);
         setPortalAnchor(null);
         setProductAnchor(null);
         setLegalAnchor(null);
@@ -312,16 +333,16 @@ const ResponsiveNavbar = () => {
         }
         handleAccountOpen(e);
     };
-    const productLinks = [
-        { to: '/features', label: t('features.dashboardFeatureHeading') + ' & More' },
-        { to: '/features', label: t('features.requestsFeatureHeading') },
-        { to: '/features', label: t('features.tenantsFeatureHeading') },
-        { to: '/features', label: t('features.aiFeatureHeading') },
-    ].filter((v, i, arr) => arr.findIndex((l) => l.to + l.label === v.to + v.label) === i);
+    const rentersLinks = [
+        { to: '/apply', label: t('tenantLinks.apply') },
+        { to: '/tenant-selection-criteria', label: t('tenantLinks.selectionCriteria') },
+        { to: '/application-required-documents', label: t('tenantLinks.requiredDocuments') },
+    ];
 
-    // Simplified product dropdown: single Features link + For Property Managers
+    // "For Managers" dropdown: portal product pages
     const productNavLinks = [
         { to: '/features', label: 'All Features' },
+        { to: '/pricing', label: t('nav.pricing') },
         { to: '/for-property-managers', label: t('nav.forPropertyManagers') },
     ];
 
@@ -417,6 +438,7 @@ const ResponsiveNavbar = () => {
                     onMenuWillOpen={() => {
                         setTenantAnchor(null);
                         setLandlordAnchor(null);
+                        setRentersAnchor(null);
                         setPortalAnchor(null);
                         setProductAnchor(null);
                         setLegalAnchor(null);
@@ -516,8 +538,37 @@ const ResponsiveNavbar = () => {
                         <ListItemText primary={t('nav.home')} style={{ color: muiTheme.palette.drawer.text }} />
                     </ListItemButton>
 
+                    {/* Renters section */}
                     <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
-                        {t('nav.product')}
+                        {t('nav.renters')}
+                    </ListSubheader>
+                    {rentersLinks.map(({ to, label }) => (
+                        <ListItemButton
+                            key={to}
+                            component={RouterLink}
+                            to={withDarkPath(pathname, to)}
+                            selected={isRouteActive(to)}
+                            onClick={handleDrawerToggle}
+                            sx={{ pl: 3, ...listItemButtonSx }}
+                        >
+                            <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
+                        </ListItemButton>
+                    ))}
+
+                    {/* Property Management — direct */}
+                    <ListItemButton
+                        component={RouterLink}
+                        to={withDarkPath(pathname, '/property-management')}
+                        selected={isRouteActive('/property-management')}
+                        onClick={handleDrawerToggle}
+                        sx={listItemButtonSx}
+                    >
+                        <ListItemText primary={t('nav.propertyManagement')} style={{ color: muiTheme.palette.drawer.text }} />
+                    </ListItemButton>
+
+                    {/* For Managers section */}
+                    <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
+                        {t('nav.forManagers')}
                     </ListSubheader>
                     {productNavLinks.map(({ to, label }) => (
                         <ListItemButton
@@ -531,16 +582,6 @@ const ResponsiveNavbar = () => {
                             <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
                         </ListItemButton>
                     ))}
-
-                    <ListItemButton
-                        component={RouterLink}
-                        to={withDarkPath(pathname, '/pricing')}
-                        selected={isRouteActive('/pricing')}
-                        onClick={handleDrawerToggle}
-                        sx={listItemButtonSx}
-                    >
-                        <ListItemText primary={t('nav.pricing')} style={{ color: muiTheme.palette.drawer.text }} />
-                    </ListItemButton>
 
                     <ListItemButton
                         component={RouterLink}
@@ -696,7 +737,67 @@ const ResponsiveNavbar = () => {
                                     {t('nav.home')}
                                 </NavLink>
 
-                                {/* Product dropdown */}
+                                {/* Renters dropdown */}
+                                <IconButton
+                                    component="span"
+                                    disableRipple
+                                    id="renters-menu-button"
+                                    onClick={handleRentersOpen}
+                                    aria-haspopup="true"
+                                    aria-expanded={Boolean(rentersAnchor)}
+                                    aria-controls={rentersAnchor ? 'renters-menu' : undefined}
+                                    aria-label={t('nav.rentersMenu')}
+                                    sx={{
+                                        color: 'inherit',
+                                        padding: '0.3rem 0.55rem',
+                                        fontWeight: 'bold',
+                                        fontSize: '0.9rem',
+                                        borderRadius: '4px',
+                                        '&:hover': { backgroundColor: 'var(--nav-chrome-hover-bg)' },
+                                    }}
+                                >
+                                    <span style={{ marginInlineEnd: '0.2rem' }}>{t('nav.renters')}</span>
+                                    <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
+                                </IconButton>
+                                <Menu
+                                    {...stableMenuProps}
+                                    id="renters-menu"
+                                    anchorEl={rentersAnchor}
+                                    open={Boolean(rentersAnchor)}
+                                    onClose={handleRentersClose}
+                                    MenuListProps={{ 'aria-labelledby': 'renters-menu-button' }}
+                                    slotProps={{ paper: { sx: { backgroundImage: 'none' } } }}
+                                    anchorOrigin={menuAnchorOrigin}
+                                    transformOrigin={menuTransformOrigin}
+                                >
+                                    {rentersLinks.map(({ to, label }) => (
+                                        <MenuItem
+                                            key={to}
+                                            component={RouterLink}
+                                            to={withDarkPath(pathname, to)}
+                                            selected={isRouteActive(to)}
+                                            onClick={handleRentersClose}
+                                            sx={{
+                                                color: 'text.secondary',
+                                                '&:hover': { backgroundColor: 'var(--menu-item-hover-bg)', color: 'var(--menu-item-hover-fg)' },
+                                                '&.Mui-selected': { backgroundColor: 'var(--menu-item-active-bg)', color: 'var(--menu-item-active-fg)' },
+                                            }}
+                                        >
+                                            {label}
+                                        </MenuItem>
+                                    ))}
+                                </Menu>
+
+                                {/* Property Management — direct link */}
+                                <NavLink
+                                    to={withDarkPath(pathname, '/property-management')}
+                                    className={({ isActive }) => (isActive ? 'active' : '')}
+                                    style={headerNavLinkStyle}
+                                >
+                                    {t('nav.propertyManagement')}
+                                </NavLink>
+
+                                {/* For Managers dropdown */}
                                 <IconButton
                                     component="span"
                                     disableRipple
@@ -705,19 +806,17 @@ const ResponsiveNavbar = () => {
                                     aria-haspopup="true"
                                     aria-expanded={Boolean(productAnchor)}
                                     aria-controls={productAnchor ? 'product-menu' : undefined}
-                                    aria-label={t('nav.productMenu')}
+                                    aria-label={t('nav.forManagersMenu')}
                                     sx={{
                                         color: 'inherit',
                                         padding: '0.3rem 0.55rem',
                                         fontWeight: 'bold',
                                         fontSize: '0.9rem',
                                         borderRadius: '4px',
-                                        '&:hover': {
-                                            backgroundColor: 'var(--nav-chrome-hover-bg)',
-                                        },
+                                        '&:hover': { backgroundColor: 'var(--nav-chrome-hover-bg)' },
                                     }}
                                 >
-                                    <span style={{ marginInlineEnd: '0.2rem' }}>{t('nav.product')}</span>
+                                    <span style={{ marginInlineEnd: '0.2rem' }}>{t('nav.forManagers')}</span>
                                     <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
                                 </IconButton>
                                 <Menu
@@ -748,10 +847,6 @@ const ResponsiveNavbar = () => {
                                         </MenuItem>
                                     ))}
                                 </Menu>
-
-                                <NavLink to={withDarkPath(pathname, '/pricing')} className={({ isActive }) => (isActive ? 'active' : '')} style={headerNavLinkStyle}>
-                                    {t('nav.pricing')}
-                                </NavLink>
 
                                 <NavLink to={withDarkPath(pathname, '/contact-us')} className={({ isActive }) => (isActive ? 'active' : '')} style={headerNavLinkStyle}>
                                     {t('nav.contactUs')}

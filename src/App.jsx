@@ -72,7 +72,7 @@ function MarketingRoutes() {
             <Route path="/apply" element={<Apply />} />
             <Route path="/tenant-selection-criteria" element={<TenantSelectionCriteria />} />
             <Route path="/application-required-documents" element={<ApplicationRequiredDocuments />} />
-            <Route path="/property-management" element={<Navigate to="/features" replace />} />
+            <Route path="/property-management" element={<PropertyManagement />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/features" element={<Features />} />
             <Route path="/for-property-managers" element={<ForPropertyManagers />} />
