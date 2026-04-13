@@ -8,6 +8,7 @@ import {
   Card,
   CardContent,
   Chip,
+  IconButton,
   Paper,
   Skeleton,
   Snackbar,
@@ -20,6 +21,9 @@ import Assignment from '@mui/icons-material/Assignment';
 import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
 import HomeWork from '@mui/icons-material/HomeWork';
 import ArrowForward from '@mui/icons-material/ArrowForward';
+import Close from '@mui/icons-material/Close';
+import CheckCircle from '@mui/icons-material/CheckCircle';
+import RadioButtonUnchecked from '@mui/icons-material/RadioButtonUnchecked';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { alpha } from '@mui/material/styles';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -176,6 +180,107 @@ const StatCard = ({ label, value, loading, to }) => (
   </Paper>
 );
 
+const ONBOARDING_DISMISSED_KEY = 'carwoods-onboarding-dismissed';
+
+const OnboardingChecklist = ({ pathname }) => {
+  const { t } = useTranslation();
+  const [dismissed, setDismissed] = useState(
+    () => localStorage.getItem(ONBOARDING_DISMISSED_KEY) === 'true'
+  );
+
+  const handleDismiss = () => {
+    localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
+    setDismissed(true);
+  };
+
+  if (dismissed) return null;
+
+  const steps = [
+    {
+      label: t('portalDashboard.onboarding.step1Label'),
+      desc: t('portalDashboard.onboarding.step1Desc'),
+      action: t('portalDashboard.onboarding.step1Action'),
+      to: withDarkPath(pathname, '/portal/properties'),
+    },
+    {
+      label: t('portalDashboard.onboarding.step2Label'),
+      desc: t('portalDashboard.onboarding.step2Desc'),
+      action: t('portalDashboard.onboarding.step2Action'),
+      to: withDarkPath(pathname, '/portal/tenants'),
+    },
+    {
+      label: t('portalDashboard.onboarding.step3Label'),
+      desc: t('portalDashboard.onboarding.step3Desc'),
+      action: t('portalDashboard.onboarding.step3Action'),
+      to: withDarkPath(pathname, '/portal/admin/config'),
+    },
+  ];
+
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        p: { xs: 2.5, sm: 3 },
+        borderRadius: 2,
+        borderColor: 'primary.light',
+        position: 'relative',
+      }}
+    >
+      <IconButton
+        size="small"
+        onClick={handleDismiss}
+        aria-label={t('portalDashboard.onboarding.dismissAriaLabel')}
+        sx={{ position: 'absolute', top: 8, right: 8 }}
+      >
+        <Close fontSize="small" />
+      </IconButton>
+      <Typography variant="h6" fontWeight={700} sx={{ mb: 0.5, pr: 4 }}>
+        {t('portalDashboard.onboarding.heading')}
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
+        {t('portalDashboard.onboarding.subheading')}
+      </Typography>
+      <Stack spacing={1.5}>
+        {steps.map((step, i) => (
+          <Stack
+            key={i}
+            direction="row"
+            spacing={1.5}
+            alignItems="center"
+            sx={{
+              p: 1.5,
+              borderRadius: 1.5,
+              border: '1px solid',
+              borderColor: 'divider',
+              bgcolor: 'background.default',
+            }}
+          >
+            <RadioButtonUnchecked sx={{ color: 'text.disabled', flexShrink: 0 }} aria-hidden />
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="body2" fontWeight={600}>
+                {step.label}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {step.desc}
+              </Typography>
+            </Box>
+            <Button
+              component={RouterLink}
+              to={step.to}
+              size="small"
+              variant="outlined"
+              endIcon={<ArrowForward sx={{ fontSize: '0.9rem' }} />}
+              sx={{ textTransform: 'none', fontWeight: 600, flexShrink: 0, whiteSpace: 'nowrap' }}
+            >
+              {step.action}
+            </Button>
+          </Stack>
+        ))}
+      </Stack>
+    </Paper>
+  );
+};
+
 const PortalDashboard = () => {
   const { t } = useTranslation();
   const { pathname, state: locationState } = useLocation();
@@ -258,6 +363,11 @@ const PortalDashboard = () => {
             ? t('portalDashboard.welcomeBack', { name: firstName })
             : t('portalDashboard.welcomeGeneric')}
         </Typography>
+
+        {/* Onboarding checklist for new landlords */}
+        {showDashboard && isManagement && (
+          <OnboardingChecklist pathname={pathname} />
+        )}
 
         {showDashboard && (
           <>

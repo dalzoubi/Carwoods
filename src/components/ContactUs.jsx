@@ -27,8 +27,6 @@ const InternalLink = styled(Link)`
     }
 `;
 
-const HAR_AGENT_URL = 'https://www.har.com/dennis-alzoubi/agent_dalzoubi';
-
 const ContactUs = () => {
     const { pathname } = useLocation();
     const { t } = useTranslation();
@@ -44,17 +42,17 @@ const ContactUs = () => {
             <Heading>{t('contact.heading')}</Heading>
             <Paragraph>
                 {t('contact.para1Prefix')}{' '}
-                <InternalLink to={withDarkPath(pathname, '/apply')}>{t('contact.applyLinkText')}</InternalLink>
-                {' '}{t('contact.para1Suffix')}
+                <a href="mailto:support@carwoods.com">support@carwoods.com</a>.{' '}
+                {t('contact.para1Suffix')}
             </Paragraph>
             <Paragraph>
-                {t('contact.para2')}
+                {t('contact.para2')}{' '}
+                <InternalLink to={withDarkPath(pathname, '/apply')}>{t('contact.applyLinkText2')}</InternalLink>
+                {' '}{t('contact.para2Suffix')}
             </Paragraph>
             <p>
                 <Button
-                    href={HAR_AGENT_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href={t('contact.ctaEmailHref')}
                     aria-label={t('contact.ctaAriaLabel')}
                 >
                     {t('contact.ctaButton')}

@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import FormatQuote from '@mui/icons-material/FormatQuote';
 import { alpha, useTheme } from '@mui/material/styles';
 import ChevronRight from '@mui/icons-material/ChevronRight';
 import { withDarkPath } from '../routePaths';
@@ -116,6 +118,12 @@ const Home = () => {
         { label: t('home.highlight3Label'), detail: t('home.highlight3Detail') },
     ];
 
+    const testimonials = [
+        { quote: t('home.testimonial1Quote'), author: t('home.testimonial1Author') },
+        { quote: t('home.testimonial2Quote'), author: t('home.testimonial2Author') },
+        { quote: t('home.testimonial3Quote'), author: t('home.testimonial3Author') },
+    ];
+
     return (
         <Stack component="article" spacing={3.5}>
             <Helmet>
@@ -149,7 +157,7 @@ const Home = () => {
                         component="p"
                         sx={{
                             mt: 0,
-                            mb: 0,
+                            mb: 2.5,
                             maxWidth: 'md',
                             fontWeight: 600,
                             color: 'text.primary',
@@ -158,6 +166,22 @@ const Home = () => {
                     >
                         {t('home.heroSubtitle')}
                     </Typography>
+                    <Button
+                        component={Link}
+                        to={withDarkPath(pathname, '/pricing')}
+                        variant="contained"
+                        size="large"
+                        sx={{
+                            textTransform: 'none',
+                            fontWeight: 700,
+                            px: 3,
+                            py: 1.25,
+                            fontSize: '1rem',
+                            borderRadius: 2,
+                        }}
+                    >
+                        {t('home.heroCta')}
+                    </Button>
                 </Box>
                 <Box
                     data-print-hide
@@ -278,7 +302,66 @@ const Home = () => {
             >
                 <Paper
                     component={Link}
-                    to={withDarkPath(pathname, '/apply')}
+                    to={withDarkPath(pathname, '/features')}
+                    elevation={0}
+                    aria-labelledby="home-managers-title home-managers-cta"
+                    sx={audienceTileLinkSx(theme)}
+                >
+                    <Box data-print-hide sx={audienceTileImageFrameSx}>
+                        <Box
+                            component="img"
+                            src={ownersPhoto}
+                            alt=""
+                            width={1200}
+                            height={750}
+                            loading="lazy"
+                            decoding="async"
+                            sizes="(max-width: 900px) 100vw, 50vw"
+                            sx={cardImageSx}
+                            aria-hidden
+                        />
+                    </Box>
+                    <Box sx={{ p: 2.75 }}>
+                        <Typography
+                            id="home-managers-title"
+                            component="h2"
+                            variant="h2"
+                            sx={audienceTitleSx}
+                        >
+                            {t('home.managersTitle')}
+                        </Typography>
+                        <Typography color="text.secondary" sx={{ mb: 1.5 }}>
+                            {t('home.managersBody')}
+                        </Typography>
+                        <Box component="ul" sx={{ ...listSx, color: 'text.secondary' }}>
+                            <li>{t('home.managersBullet1')}</li>
+                            <li>{t('home.managersBullet2')}</li>
+                            <li>{t('home.managersBullet3')}</li>
+                        </Box>
+                        <Typography
+                            id="home-managers-cta"
+                            component="span"
+                            variant="body1"
+                            sx={{
+                                mt: 2.5,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 0.5,
+                                fontWeight: 700,
+                                color: 'primary.main',
+                                textDecoration: 'underline',
+                                textUnderlineOffset: '3px',
+                            }}
+                        >
+                            {t('home.managersCta')}
+                            <ChevronRight sx={{ fontSize: '1.35rem' }} aria-hidden />
+                        </Typography>
+                    </Box>
+                </Paper>
+
+                <Paper
+                    component={Link}
+                    to={withDarkPath(pathname, '/portal')}
                     elevation={0}
                     aria-labelledby="home-renters-title home-renters-cta"
                     sx={audienceTileLinkSx(theme)}
@@ -334,66 +417,82 @@ const Home = () => {
                         </Typography>
                     </Box>
                 </Paper>
+            </Stack>
 
-                <Paper
-                    component={Link}
-                    to={withDarkPath(pathname, '/property-management')}
-                    elevation={0}
-                    aria-labelledby="home-owners-title home-owners-cta"
-                    sx={audienceTileLinkSx(theme)}
+            {/* Social proof / testimonials */}
+            <Box
+                component="section"
+                aria-label={t('home.socialProofLabel')}
+                sx={{
+                    py: { xs: 3, sm: 4 },
+                    px: { xs: 2.25, sm: 3.5 },
+                    borderRadius: 2,
+                    bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.06 : 0.03),
+                    border: '1px solid',
+                    borderColor: 'divider',
+                }}
+            >
+                <Typography
+                    variant="overline"
+                    component="p"
+                    sx={{
+                        fontWeight: 800,
+                        color: 'primary.main',
+                        letterSpacing: 0.08,
+                        mb: 2.5,
+                        textAlign: 'center',
+                        fontSize: '0.75rem',
+                    }}
                 >
-                    <Box data-print-hide sx={audienceTileImageFrameSx}>
-                        <Box
-                            component="img"
-                            src={ownersPhoto}
-                            alt=""
-                            width={1200}
-                            height={750}
-                            loading="lazy"
-                            decoding="async"
-                            sizes="(max-width: 900px) 100vw, 50vw"
-                            sx={cardImageSx}
-                            aria-hidden
-                        />
-                    </Box>
-                    <Box sx={{ p: 2.75 }}>
-                        <Typography
-                            id="home-owners-title"
-                            component="h2"
-                            variant="h2"
-                            sx={audienceTitleSx}
-                        >
-                            {t('home.ownersTitle')}
-                        </Typography>
-                        <Typography color="text.secondary" sx={{ mb: 1.5 }}>
-                            {t('home.ownersBody')}
-                        </Typography>
-                        <Box component="ul" sx={{ ...listSx, color: 'text.secondary' }}>
-                            <li>{t('home.ownersBullet1')}</li>
-                            <li>{t('home.ownersBullet2')}</li>
-                            <li>{t('home.ownersBullet3')}</li>
-                        </Box>
-                        <Typography
-                            id="home-owners-cta"
-                            component="span"
-                            variant="body1"
+                    {t('home.socialProofLabel')}
+                </Typography>
+                <Stack
+                    direction={{ xs: 'column', md: 'row' }}
+                    spacing={2.5}
+                    useFlexGap
+                    flexWrap="wrap"
+                >
+                    {testimonials.map((item, i) => (
+                        <Paper
+                            key={i}
+                            elevation={0}
                             sx={{
-                                mt: 2.5,
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: 0.5,
-                                fontWeight: 700,
-                                color: 'primary.main',
-                                textDecoration: 'underline',
-                                textUnderlineOffset: '3px',
+                                flex: '1 1 260px',
+                                p: 2.5,
+                                borderRadius: 2,
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                bgcolor: 'background.paper',
+                                backgroundImage: 'none',
                             }}
                         >
-                            {t('home.ownersCta')}
-                            <ChevronRight sx={{ fontSize: '1.35rem' }} aria-hidden />
-                        </Typography>
-                    </Box>
-                </Paper>
-            </Stack>
+                            <FormatQuote
+                                sx={{
+                                    fontSize: '2rem',
+                                    color: 'primary.light',
+                                    mb: 0.5,
+                                    display: 'block',
+                                }}
+                                aria-hidden
+                            />
+                            <Typography
+                                variant="body2"
+                                color="text.primary"
+                                sx={{ fontStyle: 'italic', mb: 1.5, lineHeight: 1.6 }}
+                            >
+                                {item.quote}
+                            </Typography>
+                            <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                sx={{ fontWeight: 600 }}
+                            >
+                                — {item.author}
+                            </Typography>
+                        </Paper>
+                    ))}
+                </Stack>
+            </Box>
         </Stack>
     );
 };
