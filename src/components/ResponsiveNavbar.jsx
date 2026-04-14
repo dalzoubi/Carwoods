@@ -423,7 +423,7 @@ const ResponsiveNavbar = () => {
                 />
             ) : (
                 <>
-                    {!isMobile && (
+                    {!isMobile ? (
                         <Button
                             component={RouterLink}
                             to={withDarkPath(pathname, '/portal')}
@@ -445,6 +445,19 @@ const ResponsiveNavbar = () => {
                         >
                             {t('portalHeader.actions.signIn')}
                         </Button>
+                    ) : (
+                        <Tooltip title={t('portalHeader.actions.signIn')} arrow>
+                            <IconButton
+                                component={RouterLink}
+                                to={withDarkPath(pathname, '/portal')}
+                                type="button"
+                                size="small"
+                                aria-label={t('portalHeader.actions.signIn')}
+                                sx={toolbarChromeIconButtonSx}
+                            >
+                                <Login fontSize="small" aria-hidden />
+                            </IconButton>
+                        </Tooltip>
                     )}
                     <Button
                         component={RouterLink}
