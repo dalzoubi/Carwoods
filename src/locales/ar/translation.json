@@ -233,6 +233,8 @@
     "privacyPolicyAriaLabel": "سياسة الخصوصية",
     "termsOfUse": "شروط الاستخدام",
     "termsOfUseAriaLabel": "شروط الاستخدام",
+    "accessibility": "إمكانية الوصول",
+    "accessibilityAriaLabel": "إمكانية الوصول",
     "trecNotice": "إشعار حماية المستهلك للجنة العقارية في تكساس",
     "trecNoticeAriaLabel": "إشعار حماية المستهلك للجنة العقارية في تكساس (يفتح في علامة تبويب جديدة)",
     "trecBrokerage": "معلومات لجنة العقارات في تكساس حول خدمات الوساطة",

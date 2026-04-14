@@ -86,6 +86,10 @@ const Footer = () => {
                 {t('footer.termsOfUse')}
             </FooterInternalLink>
             <FooterSeparator aria-hidden="true">|</FooterSeparator>
+            <FooterInternalLink to={withDarkPath(pathname, '/accessibility')} aria-label={t('footer.accessibilityAriaLabel')}>
+                {t('footer.accessibility')}
+            </FooterInternalLink>
+            <FooterSeparator aria-hidden="true">|</FooterSeparator>
             <FooterLink href="https://www.trec.texas.gov/sites/default/files/pdf-forms/CN%201-2.pdf" target="_blank" rel="noopener noreferrer" aria-label={t('footer.trecNoticeAriaLabel')}>
                 {t('footer.trecNotice')}
             </FooterLink>
