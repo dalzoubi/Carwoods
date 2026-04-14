@@ -27,6 +27,7 @@ export type InviteLandlordInput = {
   email: string;
   firstName: string | null;
   lastName: string | null;
+  phone?: string | null;
 };
 
 export type InviteLandlordOutput = {
@@ -58,6 +59,7 @@ export async function inviteLandlord(
           email: input.email,
           firstName: input.firstName,
           lastName: input.lastName,
+          phone: input.phone,
         }
       );
     } catch (e) {

@@ -97,11 +97,13 @@ export async function upsertLandlordUserByEmail(
     email: string;
     firstName?: string | null;
     lastName?: string | null;
+    phone?: string | null;
   }
 ): Promise<UpsertLandlordResult> {
   const normalizedEmail = normalizeEmail(params.email);
   const firstName = normalizeNamePart(params.firstName);
   const lastName = normalizeNamePart(params.lastName);
+  const phone = normalizePhone(params.phone);
   const existing = await findUserByEmail(client, normalizedEmail);
 
   if (existing) {
@@ -118,6 +120,7 @@ export async function upsertLandlordUserByEmail(
           SET status = 'ACTIVE',
               first_name = COALESCE(NULLIF($2, ''), first_name),
               last_name = COALESCE(NULLIF($3, ''), last_name),
+              phone = COALESCE($5, phone),
               external_auth_oid = CASE
                 WHEN external_auth_oid IS NULL
                   OR external_auth_oid = ''
@@ -131,7 +134,7 @@ export async function upsertLandlordUserByEmail(
                INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
                INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
         WHERE id = $1`,
-      [existing.id, firstName, lastName, placeholderExternalAuthOidForLandlordEmail(normalizedEmail)]
+      [existing.id, firstName, lastName, placeholderExternalAuthOidForLandlordEmail(normalizedEmail), phone]
     );
     return {
       user: updated.rows[0] ?? existing,
@@ -140,13 +143,13 @@ export async function upsertLandlordUserByEmail(
   }
 
   const inserted = await client.query<UserRow>(
-    `INSERT INTO users (id, external_auth_oid, email, first_name, last_name, role, status)
+    `INSERT INTO users (id, external_auth_oid, email, first_name, last_name, phone, role, status)
      OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
             INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
             INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
-     VALUES (NEWID(), $1, $2, $3, $4, '${Role.LANDLORD}', 'ACTIVE')`,
-    [placeholderExternalAuthOidForLandlordEmail(normalizedEmail), normalizedEmail, firstName, lastName]
+     VALUES (NEWID(), $1, $2, $3, $4, $5, '${Role.LANDLORD}', 'ACTIVE')`,
+    [placeholderExternalAuthOidForLandlordEmail(normalizedEmail), normalizedEmail, firstName, lastName, phone]
   );
 
   return {
