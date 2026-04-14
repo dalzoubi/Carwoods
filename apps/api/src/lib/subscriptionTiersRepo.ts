@@ -24,9 +24,10 @@ type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResul
 
 const TIER_COLUMNS = `id, name, display_name, description, limits, is_active, created_at`;
 
-export async function listTiers(db: Queryable): Promise<TierRow[]> {
+export async function listTiers(db: Queryable, options?: { includeInactive?: boolean }): Promise<TierRow[]> {
+  const whereClause = options?.includeInactive ? '' : 'WHERE is_active = 1 ';
   const r = await db.query<TierRow>(
-    `SELECT ${TIER_COLUMNS} FROM subscription_tiers ORDER BY
+    `SELECT ${TIER_COLUMNS} FROM subscription_tiers ${whereClause}ORDER BY
      CASE name WHEN 'FREE' THEN 1 WHEN 'STARTER' THEN 2 WHEN 'PRO' THEN 3 ELSE 4 END`
   );
   return r.rows;

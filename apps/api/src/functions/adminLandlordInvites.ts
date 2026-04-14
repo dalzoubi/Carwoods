@@ -12,6 +12,7 @@ import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 import { listLandlords } from '../useCases/users/listLandlords.js';
 import { inviteLandlord } from '../useCases/users/inviteLandlord.js';
 import { setLandlordActive } from '../useCases/users/setLandlordActive.js';
+import { updateLandlordProfile } from '../useCases/users/updateLandlordProfile.js';
 import { assignLandlordTier } from '../useCases/users/assignLandlordTier.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
@@ -77,6 +78,7 @@ async function adminLandlordsCollectionHandler(
   const email = asOptionalString(b.email)?.toLowerCase() ?? '';
   const firstName = asOptionalString(b.first_name);
   const lastName = asOptionalString(b.last_name);
+  const phone = asOptionalString(b.phone);
 
   try {
     const result = await inviteLandlord(getPool(), {
@@ -85,6 +87,7 @@ async function adminLandlordsCollectionHandler(
       email,
       firstName,
       lastName,
+      phone,
     });
     logInfo(context, 'admin.landlords.upsert.success', {
       actorUserId: ctx.user.id,
@@ -143,35 +146,74 @@ async function adminLandlordsItemHandler(
     return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
   }
   const b = asRecord(body);
-  if (typeof b.active !== 'boolean') {
+
+  // Active toggle: { active: boolean }
+  if (typeof b.active === 'boolean') {
+    try {
+      const result = await setLandlordActive(getPool(), {
+        actorUserId: ctx.user.id,
+        actorRole: ctx.role,
+        landlordId,
+        active: b.active,
+      });
+      logInfo(context, 'admin.landlords.item.success', {
+        actorUserId: ctx.user.id,
+        landlordId,
+        active: b.active,
+      });
+      return jsonResponse(200, ctx.headers, { landlord: result.landlord });
+    } catch (e) {
+      const mapped = mapDomainError(e, ctx.headers);
+      if (mapped) {
+        logWarn(context, 'admin.landlords.item.not_found', { actorUserId: ctx.user.id, landlordId });
+        return mapped;
+      }
+      logError(context, 'admin.landlords.item.error', {
+        actorUserId: ctx.user.id,
+        landlordId,
+        message: e instanceof Error ? e.message : 'unknown_error',
+      });
+      throw e;
+    }
+  }
+
+  // Profile edit: { email, first_name, last_name, phone? }
+  const email = asOptionalString(b.email);
+  if (!email) {
     logWarn(context, 'admin.landlords.item.validation_failed', {
       actorUserId: ctx.user.id,
       landlordId,
-      reason: 'missing_active',
+      reason: 'missing_email',
     });
-    return jsonResponse(400, ctx.headers, { error: 'missing_active' });
+    return jsonResponse(400, ctx.headers, { error: 'missing_email' });
   }
 
   try {
-    const result = await setLandlordActive(getPool(), {
+    const result = await updateLandlordProfile(getPool(), {
       actorUserId: ctx.user.id,
       actorRole: ctx.role,
       landlordId,
-      active: b.active,
+      email,
+      firstName: asOptionalString(b.first_name),
+      lastName: asOptionalString(b.last_name),
+      phone: asOptionalString(b.phone),
     });
-    logInfo(context, 'admin.landlords.item.success', {
+    logInfo(context, 'admin.landlords.item.profile.update.success', {
       actorUserId: ctx.user.id,
       landlordId,
-      active: b.active,
     });
     return jsonResponse(200, ctx.headers, { landlord: result.landlord });
   } catch (e) {
     const mapped = mapDomainError(e, ctx.headers);
     if (mapped) {
-      logWarn(context, 'admin.landlords.item.not_found', { actorUserId: ctx.user.id, landlordId });
+      logWarn(context, 'admin.landlords.item.profile.update.error', {
+        actorUserId: ctx.user.id,
+        landlordId,
+        reason: e instanceof Error ? e.message : 'unknown',
+      });
       return mapped;
     }
-    logError(context, 'admin.landlords.item.error', {
+    logError(context, 'admin.landlords.item.profile.update.error', {
       actorUserId: ctx.user.id,
       landlordId,
       message: e instanceof Error ? e.message : 'unknown_error',
