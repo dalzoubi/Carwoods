@@ -1719,7 +1719,8 @@
       "home": "الرئيسية للبوابة",
       "requests": "الطلبات",
       "profile": "الملف الشخصي",
-      "adminLandlords": "الإدارة: الملاك"
+      "adminLandlords": "الإدارة: الملاك",
+      "goToPortal": "الانتقال إلى البوابة"
     },
     "status": {
       "signedIn": "تم تسجيل الدخول",

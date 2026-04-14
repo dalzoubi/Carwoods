@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import Person from '@mui/icons-material/Person';
 import Logout from '@mui/icons-material/Logout';
+import Dashboard from '@mui/icons-material/Dashboard';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -166,6 +167,17 @@ export function PortalAccountMenu({ anchorEl, open, onClose, menuProps }) {
           </Stack>
         </Box>
         <Divider />
+        <MenuItem
+          onClick={() => {
+            navigate(withDarkPath(pathname, '/portal'));
+            onClose();
+          }}
+        >
+          <ListItemIcon>
+            <Dashboard fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary={t('portalHeader.nav.goToPortal', 'Go to Portal')} />
+        </MenuItem>
         <MenuItem
           onClick={() => {
             if (!profileDisabled) {

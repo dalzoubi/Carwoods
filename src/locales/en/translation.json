@@ -80,7 +80,7 @@
     "selfManagersBullet2": "AI-assisted routing and notifications",
     "selfManagersBullet3": "Free to start, subscription tiers available",
     "selfManagersCta": "See pricing and features",
-    "featuredBadge": "New \u2022 Featured",
+    "featuredBadge": "New • Featured",
     "heroHeadingNew": "Houston Property Management",
     "heroSubtitleNew": "Find a Houston rental. Hire us to manage your property. Or use our portal to self-manage your own."
   },
@@ -313,7 +313,7 @@
     "featureSms": "SMS notifications",
     "featureSmsStarter": "Included",
     "featureSmsPro": "Included",
-    "featureSmsFree": "\u2014",
+    "featureSmsFree": "—",
     "comingSoonBadge": "Coming Soon"
   },
   "features": {
@@ -1858,7 +1858,8 @@
       "home": "Portal Home",
       "requests": "Requests",
       "profile": "Profile",
-      "adminLandlords": "Admin: Landlords"
+      "adminLandlords": "Admin: Landlords",
+      "goToPortal": "Go to Portal"
     },
     "status": {
       "signedIn": "Signed in",

@@ -1718,7 +1718,8 @@
       "home": "Inicio del portal",
       "requests": "Solicitudes",
       "profile": "Perfil",
-      "adminLandlords": "Admin: Propietarios"
+      "adminLandlords": "Admin: Propietarios",
+      "goToPortal": "Ir al Portal"
     },
     "status": {
       "signedIn": "Sesión iniciada",

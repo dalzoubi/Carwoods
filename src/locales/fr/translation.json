@@ -1718,7 +1718,8 @@
       "home": "Accueil du portail",
       "requests": "Demandes",
       "profile": "Profil",
-      "adminLandlords": "Admin : Propriétaires"
+      "adminLandlords": "Admin : Propriétaires",
+      "goToPortal": "Accéder au Portail"
     },
     "status": {
       "signedIn": "Connecté",
