@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -11,7 +12,7 @@ import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import rentersPhoto from '../assets/home/renters-space.jpg';
 import ownersPhoto from '../assets/home/owners-skyline.jpg';
-import managersPhoto from '../assets/home/managers-building.jpg';
+import managersPhoto from '../assets/home/mid-hero-home.jpg';
 
 const listSx = {
     m: 0,
@@ -84,7 +85,7 @@ const audienceTitleSx = {
     fontWeight: 700,
 };
 
-function AudienceTile({ to, titleId, ctaId, image, imageAlt, imageSizes, imageHeight, title, body, bullets, cta, featured }) {
+function AudienceTile({ to, titleId, ctaId, image, imageAlt, imageSizes, imageHeight, title, body, bullets, cta, featured, badge }) {
     const theme = useTheme();
     const imgFrameSx = {
         position: 'relative',
@@ -114,18 +115,26 @@ function AudienceTile({ to, titleId, ctaId, image, imageAlt, imageSizes, imageHe
                         sizes={imageSizes || '(max-width: 900px) 100vw, 33vw'}
                         sx={cardImageSx}
                     />
+                    {featured && badge && (
+                        <Chip
+                            label={badge}
+                            color="primary"
+                            size="small"
+                            sx={{
+                                position: 'absolute',
+                                top: 12,
+                                left: 12,
+                                fontWeight: 800,
+                                fontSize: '0.7rem',
+                                letterSpacing: 0.05,
+                                textTransform: 'uppercase',
+                                boxShadow: `0 4px 12px ${alpha(theme.palette.common.black, 0.25)}`,
+                            }}
+                        />
+                    )}
                 </Box>
             )}
             <Box sx={{ p: featured ? { xs: 2.75, md: 3.5 } : 2.75 }}>
-                {featured && (
-                    <Typography
-                        variant="overline"
-                        component="p"
-                        sx={{ fontWeight: 800, color: 'primary.main', letterSpacing: 0.08, mb: 0.5, fontSize: '0.7rem' }}
-                    >
-                        {/* eslint-disable-next-line react/prop-types */}
-                    </Typography>
-                )}
                 <Typography id={titleId} component="h2" variant="h2" sx={audienceTitleSx}>
                     {title}
                 </Typography>
@@ -238,6 +247,7 @@ const Home = () => {
                         t('home.selfManagersBullet3'),
                     ]}
                     cta={t('home.selfManagersCta')}
+                    badge={t('home.featuredBadge', 'New • Featured')}
                     featured
                 />
 

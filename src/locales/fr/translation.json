@@ -77,7 +77,8 @@
     "selfManagersBullet1": "Portail locataire avec suivi des demandes de maintenance",
     "selfManagersBullet2": "Routage intelligent et notifications automatisées",
     "selfManagersBullet3": "Gratuit pour commencer, avec des niveaux d'abonnement disponibles",
-    "selfManagersCta": "Voir les tarifs et fonctionnalités"
+    "selfManagersCta": "Voir les tarifs et fonctionnalités",
+    "featuredBadge": "Nouveau \u2022 En vedette"
   },
   "apply": {
     "title": "Carwoods - Comment postuler",
@@ -2006,6 +2007,7 @@
     "faq4Question": "Y a-t-il un contrat ou un engagement de paiement anticipé ?",
     "faq4Answer": "Non. Pas de contrats, pas d'engagements. Les plans payants seront mensuels au lancement.",
     "faq5Question": "Comment les locataires accèdent-ils au portail ?",
-    "faq5Answer": "Les locataires reçoivent un lien d'invitation du gestionnaire et peuvent se connecter depuis n'importe quel navigateur."
+    "faq5Answer": "Les locataires reçoivent un lien d'invitation du gestionnaire et peuvent se connecter depuis n'importe quel navigateur.",
+    "comingSoonBadge": "Bientôt Disponible"
   }
 }

@@ -80,6 +80,7 @@
     "selfManagersBullet2": "AI-assisted routing and notifications",
     "selfManagersBullet3": "Free to start, subscription tiers available",
     "selfManagersCta": "See pricing and features",
+    "featuredBadge": "New \u2022 Featured",
     "heroHeadingNew": "Houston Property Management",
     "heroSubtitleNew": "Find a Houston rental. Hire us to manage your property. Or use our portal to self-manage your own."
   },
@@ -312,7 +313,8 @@
     "featureSms": "SMS notifications",
     "featureSmsStarter": "Included",
     "featureSmsPro": "Included",
-    "featureSmsFree": "—"
+    "featureSmsFree": "\u2014",
+    "comingSoonBadge": "Coming Soon"
   },
   "features": {
     "title": "Carwoods — Features",

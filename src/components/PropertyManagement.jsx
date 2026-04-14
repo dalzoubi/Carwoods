@@ -56,13 +56,6 @@ const PropertyManagement = () => {
             >
                 <Box>
                     <Typography
-                        variant="overline"
-                        component="p"
-                        sx={{ fontWeight: 800, color: 'primary.main', letterSpacing: 0.08, mb: 1, fontSize: '0.75rem' }}
-                    >
-                        Carwoods Houston
-                    </Typography>
-                    <Typography
                         variant="h1"
                         component="h1"
                         sx={{

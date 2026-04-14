@@ -28,7 +28,7 @@ import { Heading } from '../styles';
 import { useTranslation } from 'react-i18next';
 import { withDarkPath } from '../routePaths';
 
-const PlanCard = ({ tier, tagline, price, pricePeriod, features, cta, ctaAria, ctaTo, highlighted, comingSoon }) => {
+const PlanCard = ({ tier, tagline, capacity, price, pricePeriod, features, cta, ctaAria, ctaTo, highlighted, comingSoon, comingSoonLabel }) => {
     const theme = useTheme();
     return (
         <Paper
@@ -47,6 +47,7 @@ const PlanCard = ({ tier, tagline, price, pricePeriod, features, cta, ctaAria, c
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
+                opacity: comingSoon ? 0.92 : 1,
             }}
         >
             {highlighted && (
@@ -64,6 +65,25 @@ const PlanCard = ({ tier, tagline, price, pricePeriod, features, cta, ctaAria, c
                     }}
                 />
             )}
+            {comingSoon && (
+                <Chip
+                    label={comingSoonLabel}
+                    size="small"
+                    sx={{
+                        position: 'absolute',
+                        top: 12,
+                        right: 12,
+                        fontWeight: 700,
+                        fontSize: '0.65rem',
+                        letterSpacing: 0.05,
+                        textTransform: 'uppercase',
+                        bgcolor: alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.2 : 0.15),
+                        color: theme.palette.warning.dark,
+                        border: '1px solid',
+                        borderColor: alpha(theme.palette.warning.main, 0.4),
+                    }}
+                />
+            )}
             <Box sx={{ mb: 2.5 }}>
                 <Typography variant="h5" component="h2" sx={{ fontWeight: 800, mb: 0.5 }}>
                     {tier}
@@ -72,7 +92,7 @@ const PlanCard = ({ tier, tagline, price, pricePeriod, features, cta, ctaAria, c
                     {tagline}
                 </Typography>
             </Box>
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mb: 2 }}>
                 <Typography
                     component="span"
                     sx={{ fontSize: '2.25rem', fontWeight: 800, color: 'text.primary', lineHeight: 1 }}
@@ -90,6 +110,23 @@ const PlanCard = ({ tier, tagline, price, pricePeriod, features, cta, ctaAria, c
                     </Typography>
                 )}
             </Box>
+            {capacity && (
+                <Box
+                    sx={{
+                        mb: 3,
+                        px: 1.5,
+                        py: 1,
+                        borderRadius: 1.5,
+                        bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.06),
+                        border: '1px solid',
+                        borderColor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.25 : 0.15),
+                    }}
+                >
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                        {capacity}
+                    </Typography>
+                </Box>
+            )}
             <Stack spacing={1} sx={{ mb: 3, flex: 1 }}>
                 {features.map((f, i) => (
                     <Stack key={i} direction="row" spacing={1} alignItems="flex-start">
@@ -135,57 +172,64 @@ const Pricing = () => {
     const theme = useTheme();
     const { pathname } = useLocation();
 
-    const freeFeatures = [
-        { label: t('pricing.featurePropertiesFree', '1 property'), included: true },
-        { label: t('pricing.featureMaintenanceRequests', 'Maintenance requests'), included: true },
-        { label: t('pricing.featureTenantPortal', 'Tenant portal access'), included: true },
-        { label: t('pricing.featureNotifications', 'In-app & email notifications'), included: true },
-        { label: t('pricing.featureSms', 'SMS notifications'), included: false },
-        { label: t('pricing.featureAiRouting', 'AI maintenance routing'), included: false },
-        { label: t('pricing.featureDocStorage', 'Document storage'), included: false },
-        { label: t('pricing.featureReports', 'Reports & exports'), included: false },
-        { label: t('pricing.featureWhiteLabel', 'Custom branding'), included: false },
-        { label: t('pricing.featurePrioritySupport', 'Priority support'), included: false },
+    const sharedFeatures = [
+        { key: 'featureTenantPortal', label: t('pricing.featureTenantPortal', 'Tenant portal access') },
+        { key: 'featureMaintenanceRequests', label: t('pricing.featureMaintenanceRequests', 'Maintenance requests') },
+        { key: 'featureNotifications', label: t('pricing.featureNotifications', 'In-app & email notifications') },
+        { key: 'featureSms', label: t('pricing.featureSms', 'SMS notifications') },
+        { key: 'featureAiRouting', label: t('pricing.featureAiRouting', 'AI maintenance routing') },
+        { key: 'featureDocStorage', label: t('pricing.featureDocStorage', 'Document storage') },
+        { key: 'featureReports', label: t('pricing.featureReports', 'Reports & exports') },
+        { key: 'featureWhiteLabel', label: t('pricing.featureWhiteLabel', 'Custom branding') },
+        { key: 'featurePrioritySupport', label: t('pricing.featurePrioritySupport', 'Priority support') },
     ];
 
-    const starterFeatures = [
-        { label: t('pricing.featurePropertiesStarter', 'Up to 5 properties'), included: true },
-        { label: t('pricing.featureMaintenanceRequests', 'Maintenance requests'), included: true },
-        { label: t('pricing.featureTenantPortal', 'Tenant portal access'), included: true },
-        { label: t('pricing.featureNotifications', 'In-app & email notifications'), included: true },
-        { label: t('pricing.featureSms', 'SMS notifications'), included: true },
-        { label: t('pricing.featureAiRouting', 'AI maintenance routing'), included: true },
-        { label: t('pricing.featureDocStorage', 'Document storage'), included: true },
-        { label: t('pricing.featureReports', 'Reports & exports'), included: true },
-        { label: t('pricing.featureWhiteLabel', 'Custom branding'), included: false },
-        { label: t('pricing.featurePrioritySupport', 'Priority support'), included: false },
-    ];
+    const inclusion = {
+        free: {
+            featureTenantPortal: true,
+            featureMaintenanceRequests: true,
+            featureNotifications: true,
+            featureSms: false,
+            featureAiRouting: false,
+            featureDocStorage: false,
+            featureReports: false,
+            featureWhiteLabel: false,
+            featurePrioritySupport: false,
+        },
+        starter: {
+            featureTenantPortal: true,
+            featureMaintenanceRequests: true,
+            featureNotifications: true,
+            featureSms: true,
+            featureAiRouting: true,
+            featureDocStorage: true,
+            featureReports: true,
+            featureWhiteLabel: false,
+            featurePrioritySupport: false,
+        },
+        pro: {
+            featureTenantPortal: true,
+            featureMaintenanceRequests: true,
+            featureNotifications: true,
+            featureSms: true,
+            featureAiRouting: true,
+            featureDocStorage: true,
+            featureReports: true,
+            featureWhiteLabel: true,
+            featurePrioritySupport: true,
+        },
+    };
 
-    const proFeatures = [
-        { label: t('pricing.featurePropertiesPro', 'Unlimited properties'), included: true },
-        { label: t('pricing.featureMaintenanceRequests', 'Maintenance requests'), included: true },
-        { label: t('pricing.featureTenantPortal', 'Tenant portal access'), included: true },
-        { label: t('pricing.featureNotifications', 'In-app & email notifications'), included: true },
-        { label: t('pricing.featureSms', 'SMS notifications'), included: true },
-        { label: t('pricing.featureAiRouting', 'AI maintenance routing'), included: true },
-        { label: t('pricing.featureDocStorage', 'Document storage'), included: true },
-        { label: t('pricing.featureReports', 'Reports & exports'), included: true },
-        { label: t('pricing.featureWhiteLabel', 'Custom branding'), included: true },
-        { label: t('pricing.featurePrioritySupport', 'Priority support'), included: true },
-    ];
+    const freeFeatures = sharedFeatures.map((f) => ({ label: f.label, included: inclusion.free[f.key] }));
+    const starterFeatures = sharedFeatures.map((f) => ({ label: f.label, included: inclusion.starter[f.key] }));
+    const proFeatures = sharedFeatures.map((f) => ({ label: f.label, included: inclusion.pro[f.key] }));
 
-    const featureRows = [
-        { label: t('pricing.featureProperties'), free: t('pricing.featurePropertiesFree'), starter: t('pricing.featurePropertiesStarter'), pro: t('pricing.featurePropertiesPro') },
-        { label: t('pricing.featureTenantPortal'), free: true, starter: true, pro: true },
-        { label: t('pricing.featureMaintenanceRequests'), free: true, starter: true, pro: true },
-        { label: t('pricing.featureNotifications'), free: true, starter: true, pro: true },
-        { label: t('pricing.featureSms'), free: false, starter: true, pro: true },
-        { label: t('pricing.featureAiRouting'), free: false, starter: true, pro: true },
-        { label: t('pricing.featureDocStorage'), free: false, starter: true, pro: true },
-        { label: t('pricing.featureReports'), free: false, starter: true, pro: true },
-        { label: t('pricing.featureWhiteLabel'), free: false, starter: false, pro: true },
-        { label: t('pricing.featurePrioritySupport'), free: false, starter: false, pro: true },
-    ];
+    const featureRows = sharedFeatures.map((f) => ({
+        label: f.label,
+        free: inclusion.free[f.key],
+        starter: inclusion.starter[f.key],
+        pro: inclusion.pro[f.key],
+    }));
 
     const faqs = [
         { q: t('pricing.faq1Question'), a: t('pricing.faq1Answer') },
@@ -231,6 +275,7 @@ const Pricing = () => {
                 <PlanCard
                     tier={t('pricing.freeTierLabel')}
                     tagline={t('pricing.freeTierTagline')}
+                    capacity={t('pricing.featurePropertiesFree', '1 property')}
                     price={t('pricing.freeTierPrice')}
                     pricePeriod={t('pricing.freeTierPricePeriod')}
                     features={freeFeatures}
@@ -239,10 +284,12 @@ const Pricing = () => {
                     ctaTo={withDarkPath(pathname, '/portal')}
                     highlighted={false}
                     comingSoon={false}
+                    comingSoonLabel={t('pricing.comingSoonBadge', 'Coming Soon')}
                 />
                 <PlanCard
                     tier={t('pricing.starterTierLabel')}
                     tagline={t('pricing.starterTierTagline')}
+                    capacity={t('pricing.featurePropertiesStarter', 'Up to 5 properties')}
                     price={t('pricing.starterTierPrice')}
                     pricePeriod={t('pricing.starterTierPricePeriod')}
                     features={starterFeatures}
@@ -250,10 +297,12 @@ const Pricing = () => {
                     ctaAria={t('pricing.starterTierCtaAria')}
                     highlighted={true}
                     comingSoon={true}
+                    comingSoonLabel={t('pricing.comingSoonBadge', 'Coming Soon')}
                 />
                 <PlanCard
                     tier={t('pricing.proTierLabel')}
                     tagline={t('pricing.proTierTagline')}
+                    capacity={t('pricing.featurePropertiesPro', 'Unlimited properties')}
                     price={t('pricing.proTierPrice')}
                     pricePeriod={t('pricing.proTierPricePeriod')}
                     features={proFeatures}
@@ -261,6 +310,7 @@ const Pricing = () => {
                     ctaAria={t('pricing.proTierCtaAria')}
                     highlighted={false}
                     comingSoon={true}
+                    comingSoonLabel={t('pricing.comingSoonBadge', 'Coming Soon')}
                 />
             </Stack>
 
@@ -297,6 +347,17 @@ const Pricing = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
+                            <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.06 : 0.02) }}>
+                                <TableCell sx={{ color: 'text.primary', fontWeight: 700 }}>{t('pricing.featureProperties', 'Properties')}</TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 600 }}>{t('pricing.featurePropertiesFree', '1 property')}</TableCell>
+                                <TableCell
+                                    align="center"
+                                    sx={{ fontWeight: 600, bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.05 : 0.02) }}
+                                >
+                                    {t('pricing.featurePropertiesStarter', 'Up to 5 properties')}
+                                </TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 600 }}>{t('pricing.featurePropertiesPro', 'Unlimited properties')}</TableCell>
+                            </TableRow>
                             {featureRows.map((row, i) => (
                                 <TableRow
                                     key={i}
