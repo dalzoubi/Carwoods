@@ -31,8 +31,9 @@ import { hasLandlordAccess } from '../domain/roleUtils.js';
 import { isGuestRole, normalizeRole, resolveRole, emailFromAccount } from '../portalUtils';
 import { RequestStatus, Role } from '../domain/constants.js';
 import { withDarkPath } from '../routePaths';
-import { fetchRequests } from '../lib/portalApiClient';
+import { fetchRequests, fetchLandlordProperties, fetchTenants } from '../lib/portalApiClient';
 import PortalRefreshButton from './PortalRefreshButton';
+import { ONBOARDING_SETTINGS_VISITED_KEY } from './PortalAdminAiSettings';
 import { usePortalRequestDetailModal } from './PortalRequestDetailModalContext';
 
 export function statusColor(statusCode) {
@@ -182,16 +183,50 @@ const StatCard = ({ label, value, loading, to }) => (
 
 const ONBOARDING_DISMISSED_KEY = 'carwoods-onboarding-dismissed';
 
-const OnboardingChecklist = ({ pathname }) => {
+const OnboardingChecklist = ({ pathname, baseUrl, getAccessToken }) => {
   const { t } = useTranslation();
   const [dismissed, setDismissed] = useState(
     () => localStorage.getItem(ONBOARDING_DISMISSED_KEY) === 'true'
   );
+  const [hasProperties, setHasProperties] = useState(false);
+  const [hasTenants, setHasTenants] = useState(false);
+  const [hasSettings, setHasSettings] = useState(
+    () => localStorage.getItem(ONBOARDING_SETTINGS_VISITED_KEY) === 'true'
+  );
+
+  useEffect(() => {
+    if (dismissed || !baseUrl || !getAccessToken) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = await getAccessToken();
+        const [propsData, tenantsData] = await Promise.all([
+          fetchLandlordProperties(baseUrl, token, {}),
+          fetchTenants(baseUrl, token, {}),
+        ]);
+        if (cancelled) return;
+        const props = Array.isArray(propsData) ? propsData : (propsData?.properties ?? []);
+        const tens = Array.isArray(tenantsData) ? tenantsData : (tenantsData?.tenants ?? []);
+        setHasProperties(props.length > 0);
+        setHasTenants(tens.length > 0);
+      } catch {
+        // non-critical — checklist degrades gracefully
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [dismissed, baseUrl, getAccessToken]);
 
   const handleDismiss = () => {
     localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
     setDismissed(true);
   };
+
+  // Auto-dismiss once all steps are done
+  const allDone = hasProperties && hasTenants && hasSettings;
+  useEffect(() => {
+    if (allDone) handleDismiss();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allDone]);
 
   if (dismissed) return null;
 
@@ -201,18 +236,21 @@ const OnboardingChecklist = ({ pathname }) => {
       desc: t('portalDashboard.onboarding.step1Desc'),
       action: t('portalDashboard.onboarding.step1Action'),
       to: withDarkPath(pathname, '/portal/properties'),
+      done: hasProperties,
     },
     {
       label: t('portalDashboard.onboarding.step2Label'),
       desc: t('portalDashboard.onboarding.step2Desc'),
       action: t('portalDashboard.onboarding.step2Action'),
       to: withDarkPath(pathname, '/portal/tenants'),
+      done: hasTenants,
     },
     {
       label: t('portalDashboard.onboarding.step3Label'),
       desc: t('portalDashboard.onboarding.step3Desc'),
       action: t('portalDashboard.onboarding.step3Action'),
       to: withDarkPath(pathname, '/portal/admin/config'),
+      done: hasSettings,
     },
   ];
 
@@ -251,29 +289,40 @@ const OnboardingChecklist = ({ pathname }) => {
               p: 1.5,
               borderRadius: 1.5,
               border: '1px solid',
-              borderColor: 'divider',
-              bgcolor: 'background.default',
+              borderColor: step.done ? 'success.light' : 'divider',
+              bgcolor: step.done ? (theme) => alpha(theme.palette.success.main, 0.06) : 'background.default',
+              transition: 'border-color 0.2s, background-color 0.2s',
             }}
           >
-            <RadioButtonUnchecked sx={{ color: 'text.disabled', flexShrink: 0 }} aria-hidden />
+            {step.done ? (
+              <CheckCircle sx={{ color: 'success.main', flexShrink: 0 }} aria-hidden />
+            ) : (
+              <RadioButtonUnchecked sx={{ color: 'text.disabled', flexShrink: 0 }} aria-hidden />
+            )}
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="body2" fontWeight={600}>
+              <Typography
+                variant="body2"
+                fontWeight={600}
+                sx={{ textDecoration: step.done ? 'line-through' : 'none', color: step.done ? 'text.secondary' : 'text.primary' }}
+              >
                 {step.label}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 {step.desc}
               </Typography>
             </Box>
-            <Button
-              component={RouterLink}
-              to={step.to}
-              size="small"
-              variant="outlined"
-              endIcon={<ArrowForward sx={{ fontSize: '0.9rem' }} />}
-              sx={{ textTransform: 'none', fontWeight: 600, flexShrink: 0, whiteSpace: 'nowrap' }}
-            >
-              {step.action}
-            </Button>
+            {!step.done && (
+              <Button
+                component={RouterLink}
+                to={step.to}
+                size="small"
+                variant="outlined"
+                endIcon={<ArrowForward sx={{ fontSize: '0.9rem' }} />}
+                sx={{ textTransform: 'none', fontWeight: 600, flexShrink: 0, whiteSpace: 'nowrap' }}
+              >
+                {step.action}
+              </Button>
+            )}
           </Stack>
         ))}
       </Stack>
@@ -366,7 +415,7 @@ const PortalDashboard = () => {
 
         {/* Onboarding checklist for new landlords */}
         {showDashboard && isManagement && (
-          <OnboardingChecklist pathname={pathname} />
+          <OnboardingChecklist pathname={pathname} baseUrl={baseUrl} getAccessToken={getAccessToken} />
         )}
 
         {showDashboard && (

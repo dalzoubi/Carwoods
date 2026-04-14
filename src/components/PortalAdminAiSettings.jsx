@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { Box, Paper, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,8 @@ import PortalAdminAiAgents from './PortalAdminAiAgents';
 import PortalAdminAttachmentConfig from './PortalAdminAttachmentConfig';
 import PortalNotificationPolicies from './PortalNotificationPolicies';
 
+export const ONBOARDING_SETTINGS_VISITED_KEY = 'carwoods-onboarding-settings-visited';
+
 function tabIndexFromSlug(rawSlug, tabSlugs) {
   const normalized = String(rawSlug || '').trim().toLowerCase();
   const index = tabSlugs.indexOf(normalized);
@@ -20,6 +22,10 @@ function tabIndexFromSlug(rawSlug, tabSlugs) {
 const PortalAdminAiSettings = () => {
   const { t } = useTranslation();
   const { account, meData } = usePortalAuth();
+
+  useEffect(() => {
+    localStorage.setItem(ONBOARDING_SETTINGS_VISITED_KEY, 'true');
+  }, []);
   const role = normalizeRole(resolveRole(meData, account));
   const isLandlord = role === Role.LANDLORD;
   const tabSlugs = isLandlord
