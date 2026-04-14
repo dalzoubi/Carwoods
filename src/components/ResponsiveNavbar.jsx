@@ -729,14 +729,6 @@ const ResponsiveNavbar = () => {
                                     rowGap: 2,
                                 }}
                             >
-                                <NavLink
-                                    to={withDarkPath(pathname, '/')}
-                                    className={({ isActive }) => (isActive ? 'active' : '')}
-                                    style={headerNavLinkStyle}
-                                >
-                                    {t('nav.home')}
-                                </NavLink>
-
                                 {/* Renters dropdown */}
                                 <IconButton
                                     component="span"

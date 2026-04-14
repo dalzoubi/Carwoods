@@ -172,9 +172,6 @@ const Home = () => {
     const { pathname } = useLocation();
     const { t } = useTranslation();
 
-    const heroBg = alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.1 : 0.05);
-    const heroBorder = alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.3 : 0.18);
-
     return (
         <Stack component="article" spacing={3.5}>
             <Helmet>
@@ -182,44 +179,19 @@ const Home = () => {
                 <meta name="description" content={t('home.metaDescription')} />
             </Helmet>
 
-            {/* Page header */}
-            <Box
-                sx={{
-                    textAlign: 'center',
-                    pt: { xs: 2, sm: 3 },
-                    pb: { xs: 1, sm: 1.5 },
-                    px: { xs: 2, sm: 3 },
-                    borderRadius: 2,
-                    bgcolor: heroBg,
-                    border: '1px solid',
-                    borderColor: heroBorder,
-                }}
-            >
+            {/* Page header — minimal, tiles carry the detail */}
+            <Box sx={{ textAlign: 'center', pt: { xs: 1.5, sm: 2 }, pb: 0, px: { xs: 1, sm: 2 } }}>
                 <Typography
                     variant="h1"
                     component="h1"
                     sx={{
-                        fontSize: { xs: '1.65rem', sm: '2rem', md: '2.4rem' },
+                        fontSize: { xs: '1.35rem', sm: '1.6rem', md: '1.85rem' },
                         fontWeight: 800,
-                        lineHeight: 1.2,
+                        lineHeight: 1.25,
                         color: 'text.primary',
-                        mb: 1.25,
                     }}
                 >
-                    {t('home.heroHeadingNew', 'Houston Property Management')}
-                </Typography>
-                <Typography
-                    variant="subtitle1"
-                    component="p"
-                    sx={{
-                        color: 'text.secondary',
-                        maxWidth: 560,
-                        mx: 'auto',
-                        lineHeight: 1.5,
-                        fontSize: { xs: '0.95rem', sm: '1rem' },
-                    }}
-                >
-                    {t('home.heroSubtitleNew', 'Find a Houston rental. Hire us to manage your property. Or use our portal to self-manage your own.')}
+                    {t('home.heroHeadingNew')}
                 </Typography>
             </Box>
 
