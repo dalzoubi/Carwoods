@@ -34,6 +34,7 @@ import { RequestStatus, Role } from '../domain/constants.js';
 import { withDarkPath } from '../routePaths';
 import { fetchRequests, fetchLandlordProperties, fetchTenants } from '../lib/portalApiClient';
 import PortalRefreshButton from './PortalRefreshButton';
+import PortalUserAvatar from './PortalUserAvatar';
 import { ONBOARDING_SETTINGS_VISITED_KEY } from './PortalAdminAiSettings';
 import { usePortalRequestDetailModal } from './PortalRequestDetailModalContext';
 
@@ -653,8 +654,17 @@ const PortalDashboard = () => {
                               spacing={0.75}
                               sx={{ mt: 0.75, flexWrap: 'wrap' }}
                             >
-                              <Typography variant="caption" color="text.secondary">
-                                {t('portalRequests.labels.reportedBy')}: {requesterName(req, t)}
+                              <Typography variant="caption" color="text.secondary" component="span">
+                                {t('portalRequests.labels.reportedBy')}:
+                              </Typography>
+                              <PortalUserAvatar
+                                photoUrl={String(req.submitted_by_profile_photo_url ?? '').trim()}
+                                firstName={String(req.submitted_by_first_name ?? '')}
+                                lastName={String(req.submitted_by_last_name ?? '')}
+                                size={28}
+                              />
+                              <Typography variant="caption" color="text.secondary" component="span">
+                                {requesterName(req, t)}
                               </Typography>
                               <Chip
                                 label={submitterRoleLabel}

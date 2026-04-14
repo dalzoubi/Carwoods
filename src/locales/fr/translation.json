@@ -1404,6 +1404,10 @@
       "firstName": "Prénom",
       "lastName": "Nom",
       "phone": "Téléphone (optionnel)",
+      "tierLabel": "Formule d'abonnement",
+      "tierPlaceholder": "Sélectionnez une formule",
+      "tierLoading": "Chargement des formules d'abonnement…",
+      "tierFallbackNotice": "Les formules n'ont pas pu être chargées. Le propriétaire sera créé sur la formule gratuite.",
       "saveLandlord": "Enregistrer le propriétaire",
       "editHeading": "Modifier le propriétaire",
       "sending": "Enregistrement…"
@@ -1931,7 +1935,11 @@
     },
     "addLeaseDialog": {
       "title": "Ajouter un bail",
-      "save": "Ajouter le bail"
+      "save": "Ajouter le bail",
+      "readOnlyTenant": "Locataire",
+      "readOnlyProperty": "Propriété",
+      "cannotResolveProperty": "Nous n'avons pas pu déterminer le bien pour ce bail. Actualisez la page et réessayez.",
+      "addLeaseNeedsPropertyHint": "Nous n'avons pas encore de bien associé à ce bail. Attendez le chargement des baux ou corrigez la fiche locataire, puis réessayez."
     },
     "editLeaseDialog": {
       "title": "Modifier le bail",
@@ -1994,6 +2002,8 @@
       "lastNameRequired": "Le nom de famille est obligatoire.",
       "phoneInvalid": "Saisissez un numéro de téléphone valide.",
       "activeLeaseRequiredForReassign": "Ce locataire doit avoir un bail actif avant de pouvoir changer de propriétaire.",
+      "leaseDatesOverlap": "Ces dates chevauchent un autre bail de ce locataire. Modifiez la date de début ou de fin pour éviter le chevauchement.",
+      "propertyLeaseOccupancyConflict": "Un autre locataire a déjà un bail qui chevauche ces dates pour ce bien. Ajustez les dates ou régularisez l'autre bail d'abord.",
       "saveFailed": "Impossible d'enregistrer les modifications du locataire.",
       "landlordRequired": "Veuillez sélectionner un propriétaire.",
       "propertyRequired": "Veuillez sélectionner une propriété.",

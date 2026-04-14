@@ -27,6 +27,7 @@ import {
 } from '../lib/portalApiClient';
 import StatusAlertSlot from './StatusAlertSlot';
 import PortalRefreshButton from './PortalRefreshButton';
+import PortalPersonWithAvatar from './PortalPersonWithAvatar';
 
 const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 const BYTES_PER_MB = 1024 * 1024;
@@ -327,11 +328,26 @@ const PortalAdminAttachmentConfig = () => {
               value={selectedLandlordId}
               onChange={(event) => setSelectedLandlordId(event.target.value)}
             >
-              {sortedLandlords.map((landlord) => (
-                <MenuItem key={landlord.id} value={landlord.id}>
-                  {landlord.name || landlord.email || landlord.id}
-                </MenuItem>
-              ))}
+              {sortedLandlords.map((landlord) => {
+                const first = String(landlord.first_name ?? '').trim();
+                const last = String(landlord.last_name ?? '').trim();
+                const label = `${first} ${last}`.trim() || String(landlord.email ?? landlord.name ?? landlord.id ?? '').trim();
+                return (
+                  <MenuItem key={landlord.id} value={landlord.id}>
+                    <PortalPersonWithAvatar
+                      photoUrl={String(landlord.profile_photo_url ?? '').trim()}
+                      firstName={landlord.first_name ?? ''}
+                      lastName={landlord.last_name ?? ''}
+                      size={28}
+                      alignItems="center"
+                    >
+                      <Typography variant="body2" component="span">
+                        {label}
+                      </Typography>
+                    </PortalPersonWithAvatar>
+                  </MenuItem>
+                );
+              })}
             </TextField>
             {selectedLandlordId && (
               <>

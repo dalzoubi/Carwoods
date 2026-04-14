@@ -50,6 +50,7 @@ import {
 } from '../lib/propertiesApiClient';
 import StatusAlertSlot from './StatusAlertSlot';
 import PortalRefreshButton from './PortalRefreshButton';
+import PortalPersonWithAvatar from './PortalPersonWithAvatar';
 import { listingFromHarPreviewPayload, parseHarInput } from '../portalHarPreviewParse';
 import { fetchElsaSettings, fetchHarPreview, fetchLandlords, patchElsaPropertyPolicy } from '../lib/portalApiClient';
 
@@ -59,6 +60,13 @@ function landlordRowLabel(landlord) {
   const first = String(landlord?.first_name ?? '').trim();
   const last = String(landlord?.last_name ?? '').trim();
   return `${first} ${last}`.trim() || String(landlord?.email ?? '').trim();
+}
+
+function splitNameForInitials(displayName) {
+  const parts = String(displayName ?? '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { first: '', last: '' };
+  if (parts.length === 1) return { first: parts[0], last: '' };
+  return { first: parts[0], last: parts.slice(1).join(' ') };
 }
 
 const EMPTY_FORM = {
@@ -121,6 +129,7 @@ function validate(form, t, opts = {}) {
 const PropertyCard = ({
   property,
   isAdmin,
+  landlordRow = null,
   syncingHar,
   onEdit,
   onDelete,
@@ -135,6 +144,10 @@ const PropertyCard = ({
 }) => {
   const hasPhoto = Boolean(property.photoUrl);
   const isDeleted = Boolean(property.deletedAt);
+  const nameSplit = splitNameForInitials(property.landlordName);
+  const landlordPhotoUrl = String(landlordRow?.profile_photo_url ?? '').trim();
+  const landlordFirstName = String(landlordRow?.first_name ?? '').trim() || nameSplit.first;
+  const landlordLastName = String(landlordRow?.last_name ?? '').trim() || nameSplit.last;
   return (
     <Card variant="outlined" sx={{ display: 'flex', flexDirection: 'column', height: '100%', borderRadius: 2 }}>
       {hasPhoto ? (
@@ -176,9 +189,17 @@ const PropertyCard = ({
             </Typography>
           )}
           {isAdmin && property.landlordName && (
-            <Typography variant="caption" color="text.secondary">
-              {t('portalAdminProperties.grid.landlord')}: {property.landlordName}
-            </Typography>
+            <PortalPersonWithAvatar
+              photoUrl={landlordPhotoUrl}
+              firstName={landlordFirstName}
+              lastName={landlordLastName}
+              size={28}
+              alignItems="center"
+            >
+              <Typography variant="caption" color="text.secondary">
+                {t('portalAdminProperties.grid.landlord')}: {property.landlordName}
+              </Typography>
+            </PortalPersonWithAvatar>
           )}
         </Stack>
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1, minHeight: 32 }}>
@@ -808,7 +829,17 @@ const PortalAdminProperties = () => {
               <MenuItem value="">{t('portalAdminProperties.grid.landlordFilterAll')}</MenuItem>
               {sortedLandlords.map((landlord) => (
                 <MenuItem key={landlord.id} value={landlord.id}>
-                  {landlordRowLabel(landlord)}
+                  <PortalPersonWithAvatar
+                    photoUrl={String(landlord.profile_photo_url ?? '').trim()}
+                    firstName={landlord.first_name ?? ''}
+                    lastName={landlord.last_name ?? ''}
+                    size={28}
+                    alignItems="center"
+                  >
+                    <Typography variant="body2" component="span">
+                      {landlordRowLabel(landlord)}
+                    </Typography>
+                  </PortalPersonWithAvatar>
                 </MenuItem>
               ))}
             </TextField>
@@ -853,6 +884,7 @@ const PortalAdminProperties = () => {
                   <PropertyCard
                     property={property}
                     isAdmin={isAdmin}
+                    landlordRow={sortedLandlords.find((l) => l.id === property.landlordUserId) ?? null}
                     syncingHar={syncHarTargetId === property.id}
                     onEdit={handleEdit}
                     onDelete={handleDeleteClick}
@@ -987,7 +1019,17 @@ const PortalAdminProperties = () => {
                     <MenuItem value="">{t('portalAdminProperties.form.landlordSelect')}</MenuItem>
                     {sortedLandlords.map((landlord) => (
                       <MenuItem key={landlord.id} value={landlord.id}>
-                        {landlordRowLabel(landlord)}
+                        <PortalPersonWithAvatar
+                          photoUrl={String(landlord.profile_photo_url ?? '').trim()}
+                          firstName={landlord.first_name ?? ''}
+                          lastName={landlord.last_name ?? ''}
+                          size={28}
+                          alignItems="center"
+                        >
+                          <Typography variant="body2" component="span">
+                            {landlordRowLabel(landlord)}
+                          </Typography>
+                        </PortalPersonWithAvatar>
                       </MenuItem>
                     ))}
                   </TextField>

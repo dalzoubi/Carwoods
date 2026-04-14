@@ -7,13 +7,16 @@
  * - If the email already belongs to an ADMIN user → conflict.
  * - If the email already belongs to a non-LANDLORD/non-ADMIN user → conflict.
  * - Otherwise: creates a new LANDLORD user or reactivates an existing one.
+ * - New landlords get a subscription tier: requested `tierId` when valid, otherwise the FREE tier.
  */
 
 import {
   upsertLandlordUserByEmail,
+  setUserTier,
   type UserRow,
   type UpsertLandlordResult,
 } from '../../lib/usersRepo.js';
+import { getTierById, getTierByName } from '../../lib/subscriptionTiersRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
 import { enqueueNotification } from '../../lib/notificationRepo.js';
 import { validateLandlordInvite } from '../../domain/userValidation.js';
@@ -28,6 +31,8 @@ export type InviteLandlordInput = {
   firstName: string | null;
   lastName: string | null;
   phone?: string | null;
+  /** When set and valid, new landlords are assigned this tier; otherwise falls back to FREE. */
+  tierId?: string | null;
 };
 
 export type InviteLandlordOutput = {
@@ -50,6 +55,7 @@ export async function inviteLandlord(
 
   const client = await db.connect();
   let result: UpsertLandlordResult;
+  let finalLandlord: UserRow;
   try {
     await client.query('BEGIN');
     try {
@@ -69,13 +75,39 @@ export async function inviteLandlord(
       if (msg === 'email_already_used_by_non_landlord') throw conflictError('email_already_used');
       throw e;
     }
+
+    finalLandlord = result.user;
+    if (result.created) {
+      const requested = (input.tierId ?? '').trim();
+      let tier = requested
+        ? await getTierById(client as Parameters<typeof getTierById>[0], requested)
+        : null;
+      if (!tier) {
+        tier = await getTierByName(client as Parameters<typeof getTierByName>[0], 'FREE');
+      }
+      if (!tier) {
+        await client.query('ROLLBACK');
+        throw validationError('free_tier_not_configured');
+      }
+      const tierUpdated = await setUserTier(
+        client as Parameters<typeof setUserTier>[0],
+        finalLandlord.id,
+        tier.id
+      );
+      if (!tierUpdated) {
+        await client.query('ROLLBACK');
+        throw new Error('set_user_tier_failed');
+      }
+      finalLandlord = tierUpdated;
+    }
+
     await writeAudit(client as Parameters<typeof writeAudit>[0], {
       actorUserId: input.actorUserId,
       entityType: 'LANDLORD',
-      entityId: result.user.id,
+      entityId: finalLandlord.id,
       action: result.created ? 'CREATE' : 'UPDATE',
       before: null,
-      after: result.user,
+      after: finalLandlord,
     });
     await client.query('COMMIT');
   } catch (error) {
@@ -92,15 +124,15 @@ export async function inviteLandlord(
         await enqueueNotification(notifyClient as Parameters<typeof enqueueNotification>[0], {
           eventTypeCode: 'ACCOUNT_LANDLORD_CREATED',
           payload: {
-            landlord_user_id: result.user.id,
-            landlord_email: result.user.email,
-            email: result.user.email,
-            first_name: result.user.first_name,
-            last_name: result.user.last_name,
+            landlord_user_id: finalLandlord.id,
+            landlord_email: finalLandlord.email,
+            email: finalLandlord.email,
+            first_name: finalLandlord.first_name,
+            last_name: finalLandlord.last_name,
             source: 'ADMIN_INVITE',
             invited_by_user_id: input.actorUserId,
           },
-          idempotencyKey: `account-landlord-created:${result.user.id}:invite`,
+          idempotencyKey: `account-landlord-created:${finalLandlord.id}:invite`,
         });
       } catch {
         // Non-blocking: landlord row is already committed; outbox can be retried manually if needed.
@@ -110,5 +142,5 @@ export async function inviteLandlord(
     }
   }
 
-  return { landlord: result.user, landlord_created: result.created };
+  return { landlord: finalLandlord, landlord_created: result.created };
 }

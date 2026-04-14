@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
 import PortalRefreshButton from '../PortalRefreshButton';
 import PortalUserAvatar from '../PortalUserAvatar';
+import PortalPersonWithAvatar from '../PortalPersonWithAvatar';
 import { RequestStatus, Role } from '../../domain/constants';
 import { normalizeRole } from '../../portalUtils';
 import { getStatusChipSx } from './requestChipStyles';
@@ -218,7 +219,17 @@ const RequestListPane = ({
               const name = `${first} ${last}`.trim() || String(landlord.email ?? '').trim();
               return (
                 <MenuItem key={landlord.id} value={landlord.id}>
-                  {name || t('portalRequests.list.landlordFilter.unknown')}
+                  <PortalPersonWithAvatar
+                    photoUrl={String(landlord.profile_photo_url ?? '').trim()}
+                    firstName={landlord.first_name ?? ''}
+                    lastName={landlord.last_name ?? ''}
+                    size={28}
+                    alignItems="center"
+                  >
+                    <Typography variant="body2" component="span">
+                      {name || t('portalRequests.list.landlordFilter.unknown')}
+                    </Typography>
+                  </PortalPersonWithAvatar>
                 </MenuItem>
               );
             })}

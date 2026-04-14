@@ -16,11 +16,24 @@ import {
 import { writeAudit } from '../lib/auditRepo.js';
 import { Role } from '../domain/constants.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
+import { profilePhotoReadUrlFromStoragePath } from '../lib/userProfilePhotoUrl.js';
+
+type NotificationPolicyUserOptionDb = {
+  user_id: string;
+  display_name: string;
+  role: string;
+  first_name: string | null;
+  last_name: string | null;
+  profile_photo_storage_path: string | null;
+};
 
 type NotificationPolicyUserOption = {
   user_id: string;
   display_name: string;
   role: string;
+  first_name: string | null;
+  last_name: string | null;
+  profile_photo_url: string | null;
 };
 
 function asRecord(v: unknown): Record<string, unknown> {
@@ -136,7 +149,7 @@ async function listScopeUserOptions(
        WHERE mr.id = $1
          AND mr.deleted_at IS NULL`;
 
-  const rows = await pool.query<NotificationPolicyUserOption>(
+  const rows = await pool.query<NotificationPolicyUserOptionDb>(
     `WITH scoped_scope AS (
        SELECT 1 AS ok
        FROM ${scopeType === 'PROPERTY' ? 'properties p' : 'maintenance_requests mr'}
@@ -156,7 +169,10 @@ async function listScopeUserOptions(
          WHEN LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, ''))) = '' THEN u.email
          ELSE LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, '')))
        END AS display_name,
-       u.role
+       u.role,
+       u.first_name,
+       u.last_name,
+       u.profile_photo_storage_path
      FROM scoped_scope ss
      JOIN scoped_users su ON 1 = 1
      JOIN users u ON u.id = su.user_id
@@ -170,7 +186,13 @@ async function listScopeUserOptions(
     scopeId,
     userCount: rows.rows.length,
   });
-  return rows.rows;
+  return rows.rows.map((row) => {
+    const { profile_photo_storage_path, ...rest } = row;
+    return {
+      ...rest,
+      profile_photo_url: profilePhotoReadUrlFromStoragePath(profile_photo_storage_path),
+    };
+  });
 }
 
 async function listNotificationPoliciesHandler(

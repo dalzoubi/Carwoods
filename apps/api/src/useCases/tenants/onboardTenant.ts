@@ -7,6 +7,7 @@
  * - The property must exist and be accessible to the actor.
  * - Email must not belong to an ADMIN or LANDLORD user.
  * - Lease dates must not overlap any existing lease for this tenant.
+ * - The property must not already have another tenant on an overlapping lease.
  * - Month-to-month leases have no end date.
  */
 
@@ -15,7 +16,12 @@ import {
   checkLeaseOverlapForTenant,
   type TenantRow,
 } from '../../lib/tenantsRepo.js';
-import { insertLease, linkLeaseTenant, type LeaseRowFull } from '../../lib/leasesRepo.js';
+import {
+  insertLease,
+  linkLeaseTenant,
+  checkPropertyExclusiveTenantConflict,
+  type LeaseRowFull,
+} from '../../lib/leasesRepo.js';
 import { getPropertyByIdForActor } from '../../lib/propertiesRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
 import { enqueueNotification } from '../../lib/notificationRepo.js';
@@ -113,6 +119,21 @@ export async function onboardTenant(
     if (hasOverlap) {
       await client.query('ROLLBACK');
       throw conflictError('lease_dates_overlap');
+    }
+
+    const hasPropertyConflict = await checkPropertyExclusiveTenantConflict(
+      client as Parameters<typeof checkPropertyExclusiveTenantConflict>[0],
+      {
+        propertyId: input.propertyId!,
+        startDate: input.startDate!,
+        endDate,
+        excludeLeaseId: null,
+        allowedUserIds: [tenantResult.user.id],
+      }
+    );
+    if (hasPropertyConflict) {
+      await client.query('ROLLBACK');
+      throw conflictError('property_lease_occupancy_conflict');
     }
 
     // Derive status: ACTIVE if start_date <= today, else UPCOMING

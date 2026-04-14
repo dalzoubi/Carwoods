@@ -1562,6 +1562,10 @@
       "firstName": "First name",
       "lastName": "Last name",
       "phone": "Phone (optional)",
+      "tierLabel": "Subscription plan",
+      "tierPlaceholder": "Select a plan",
+      "tierLoading": "Loading subscription plans…",
+      "tierFallbackNotice": "Plans could not be loaded. The landlord will be created on the Free plan.",
       "saveLandlord": "Save landlord",
       "editHeading": "Edit landlord",
       "sending": "Saving…"
@@ -2089,7 +2093,11 @@
     },
     "addLeaseDialog": {
       "title": "Add Lease",
-      "save": "Add lease"
+      "save": "Add lease",
+      "readOnlyTenant": "Tenant",
+      "readOnlyProperty": "Property",
+      "cannotResolveProperty": "We could not determine which property this lease is for. Refresh the page and try again.",
+      "addLeaseNeedsPropertyHint": "We do not have a property on file for this lease yet. Wait for leases to load, or fix the tenant record, then try again."
     },
     "editLeaseDialog": {
       "title": "Edit Lease",
@@ -2152,6 +2160,8 @@
       "lastNameRequired": "Last name is required.",
       "phoneInvalid": "Enter a valid phone number.",
       "activeLeaseRequiredForReassign": "This tenant needs an active lease before you can change landlord.",
+      "leaseDatesOverlap": "These dates overlap another lease for this tenant. Change the start or end date so leases do not overlap.",
+      "propertyLeaseOccupancyConflict": "Another tenant already has a lease that overlaps these dates at this property. Adjust dates or resolve the other lease first.",
       "saveFailed": "Unable to save tenant changes.",
       "landlordRequired": "Please select a landlord.",
       "propertyRequired": "Please select a property.",

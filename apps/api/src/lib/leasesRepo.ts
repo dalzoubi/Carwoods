@@ -160,3 +160,50 @@ export async function linkLeaseTenant(
   );
   return sel.rows[0]!;
 }
+
+/** User IDs linked to a lease (roommates share one lease row). */
+export async function listLeaseTenantUserIds(client: Queryable, leaseId: string): Promise<string[]> {
+  const r = await client.query<{ user_id: string }>(
+    `SELECT user_id FROM lease_tenants WHERE lease_id = $1`,
+    [leaseId]
+  );
+  return r.rows.map((row) => row.user_id);
+}
+
+/**
+ * True if another lease on the same property overlaps the given date range and has a tenant
+ * outside `allowedUserIds` (tenants who may share this occupancy window, e.g. same household).
+ * Excludes `excludeLeaseId` (the lease being created/updated/linked).
+ */
+export async function checkPropertyExclusiveTenantConflict(
+  client: Queryable,
+  params: {
+    propertyId: string;
+    startDate: string;
+    endDate: string | null;
+    excludeLeaseId: string | null;
+    allowedUserIds: string[];
+  }
+): Promise<boolean> {
+  const { propertyId, startDate, endDate, excludeLeaseId, allowedUserIds } = params;
+  if (allowedUserIds.length === 0) return false;
+
+  const allowedPlaceholders = allowedUserIds.map((_, i) => `$${5 + i}`).join(', ');
+  const sql = `SELECT COUNT(*) AS overlap_count
+     FROM leases l2
+     WHERE l2.property_id = $1
+       AND l2.deleted_at IS NULL
+       AND ($2 IS NULL OR l2.id <> $2)
+       AND ($3 <= COALESCE(l2.end_date, '9999-12-31'))
+       AND (COALESCE($4, '9999-12-31') >= l2.start_date)
+       AND EXISTS (
+         SELECT 1
+           FROM lease_tenants lt
+          WHERE lt.lease_id = l2.id
+            AND lt.user_id NOT IN (${allowedPlaceholders})
+       )`;
+
+  const values: unknown[] = [propertyId, excludeLeaseId, startDate, endDate, ...allowedUserIds];
+  const r = await client.query<{ overlap_count: number }>(sql, values);
+  return Number(r.rows[0]?.overlap_count ?? 0) > 0;
+}

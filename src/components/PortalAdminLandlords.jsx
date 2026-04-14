@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -10,6 +11,7 @@ import {
   DialogTitle,
   FormControl,
   FormControlLabel,
+  FormHelperText,
   IconButton,
   InputLabel,
   MenuItem,
@@ -36,6 +38,7 @@ import StatusAlertSlot from './StatusAlertSlot';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 import PortalRefreshButton from './PortalRefreshButton';
+import PortalUserAvatar from './PortalUserAvatar';
 
 const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 
@@ -98,7 +101,13 @@ const PortalAdminLandlords = () => {
   const canUseModule = isAuthenticated && isAdmin && Boolean(baseUrl);
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [form, setForm] = useState({ email: '', firstName: '', lastName: '', phone: '' });
+  const [form, setForm] = useState({
+    email: '',
+    firstName: '',
+    lastName: '',
+    phone: '',
+    tierId: '',
+  });
   const [fieldErrors, setFieldErrors] = useState({});
   const [editingLandlordId, setEditingLandlordId] = useState(null);
   const [editForm, setEditForm] = useState({ email: '', firstName: '', lastName: '', phone: '' });
@@ -192,6 +201,16 @@ const PortalAdminLandlords = () => {
     [form, t]
   );
   const isFormValid = Object.keys(formErrors).length === 0;
+
+  const createPlanChoiceOk = useMemo(() => {
+    if (tiersState.status === 'loading') return false;
+    if (tiersState.status === 'error') return true;
+    if (tiersState.status !== 'ok') return false;
+    if (tiersState.tiers.length === 0) return true;
+    return Boolean(String(form.tierId ?? '').trim());
+  }, [form.tierId, tiersState.status, tiersState.tiers.length]);
+
+  const canSubmitCreate = isFormValid && createPlanChoiceOk;
   const editFormErrors = useMemo(
     () =>
       validatePersonBasics(editForm, t, {
@@ -352,7 +371,7 @@ const PortalAdminLandlords = () => {
   const closeCreateDialog = () => {
     setCreateDialogOpen(false);
     setFieldErrors({});
-    setForm({ email: '', firstName: '', lastName: '', phone: '' });
+    setForm({ email: '', firstName: '', lastName: '', phone: '', tierId: '' });
   };
 
   const onEditChange = (field) => (event) => {
@@ -425,22 +444,40 @@ const PortalAdminLandlords = () => {
       });
       return;
     }
+    if (!createPlanChoiceOk) {
+      if (tiersState.status === 'ok' && tiersState.tiers.length > 0) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          tierId: t('portalAdminLandlords.errors.tierPickRequired'),
+        }));
+      }
+      setSubmitState({
+        status: 'error',
+        detail: t('portalAdminLandlords.errors.tierPickRequired'),
+      });
+      return;
+    }
     const email = form.email.trim().toLowerCase();
     setSubmitState({ status: 'saving', detail: '' });
     try {
       const accessToken = await getAccessToken();
-      await createLandlord(baseUrl, accessToken, {
+      const tierTrimmed = String(form.tierId ?? '').trim();
+      const payload = {
         email,
         first_name: form.firstName.trim(),
         last_name: form.lastName.trim(),
         phone: form.phone.trim() || null,
-      });
+      };
+      if (tierTrimmed) {
+        payload.tier_id = tierTrimmed;
+      }
+      await createLandlord(baseUrl, accessToken, payload);
       setSubmitState({
         status: 'ok',
         detail: t('portalAdminLandlords.messages.landlordSaved'),
       });
       setFieldErrors({});
-      setForm({ email: '', firstName: '', lastName: '', phone: '' });
+      setForm({ email: '', firstName: '', lastName: '', phone: '', tierId: '' });
       setCreateDialogOpen(false);
       void loadLandlords();
     } catch (error) {
@@ -478,7 +515,11 @@ const PortalAdminLandlords = () => {
             variant="contained"
             startIcon={<AddIcon />}
             disabled={!canUseModule}
-            onClick={() => setCreateDialogOpen(true)}
+            onClick={() => {
+              setForm((prev) => ({ ...prev, tierId: '' }));
+              setFieldErrors((prev) => ({ ...prev, tierId: '' }));
+              setCreateDialogOpen(true);
+            }}
           >
             {t('portalAdminLandlords.form.showForm')}
           </Button>
@@ -541,7 +582,15 @@ const PortalAdminLandlords = () => {
                 }}
               >
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Stack direction="row" spacing={1.5} sx={{ flex: 1, minWidth: 0, alignItems: 'flex-start' }}>
+                    <PortalUserAvatar
+                      photoUrl={String(landlord.profile_photo_url ?? '').trim()}
+                      firstName={landlord.first_name ?? ''}
+                      lastName={landlord.last_name ?? ''}
+                      size={44}
+                      sx={{ flexShrink: 0, mt: 0.125 }}
+                    />
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Stack spacing={0.5}>
                       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                         <Typography sx={{ fontWeight: 600 }}>{displayName(landlord)}</Typography>
@@ -554,7 +603,9 @@ const PortalAdminLandlords = () => {
                           variant={isActiveStatus(landlord.status) ? 'filled' : 'outlined'}
                         />
                       </Stack>
-                      <Typography sx={{ fontWeight: 600 }}>{landlord.email}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {landlord.email}
+                      </Typography>
                       <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                         <Typography variant="body2" color="text.secondary" component="span" sx={{ fontWeight: 600 }}>
                           {t('portalAdminLandlords.list.tier')}
@@ -589,7 +640,8 @@ const PortalAdminLandlords = () => {
                         </Tooltip>
                       </Stack>
                     </Stack>
-                  </Box>
+                    </Box>
+                  </Stack>
                   <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end', flexShrink: 0 }}>
                     <IconButton
                       type="button"
@@ -771,9 +823,58 @@ const PortalAdminLandlords = () => {
                 label={t('portalAdminLandlords.form.phone')}
                 value={form.phone}
                 onChange={onChange('phone')}
+                helperText=" "
                 fullWidth
                 autoComplete="tel"
               />
+              {tiersState.status === 'error' && (
+                <Alert severity="info">
+                  {t('portalAdminLandlords.form.tierFallbackNotice')}
+                </Alert>
+              )}
+              {tiersState.status === 'loading' && (
+                <Typography color="text.secondary" variant="body2">
+                  {t('portalAdminLandlords.form.tierLoading')}
+                </Typography>
+              )}
+              {tiersState.status === 'ok' && tiersState.tiers.length > 0 && (
+                <FormControl fullWidth required error={Boolean(fieldErrors.tierId)}>
+                  <InputLabel id="admin-landlord-create-tier-label" shrink>
+                    {t('portalAdminLandlords.form.tierLabel')}
+                  </InputLabel>
+                  <Select
+                    labelId="admin-landlord-create-tier-label"
+                    label={t('portalAdminLandlords.form.tierLabel')}
+                    value={form.tierId}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setForm((prev) => ({ ...prev, tierId: value }));
+                      setFieldErrors((prev) => ({ ...prev, tierId: '' }));
+                      if (submitState.status !== 'saving') {
+                        setSubmitState({ status: 'idle', detail: '' });
+                      }
+                    }}
+                    displayEmpty
+                  >
+                    <MenuItem value="">
+                      <em>{t('portalAdminLandlords.form.tierPlaceholder')}</em>
+                    </MenuItem>
+                    {tiersState.tiers.map((tier) => (
+                      <MenuItem key={String(tier.id)} value={String(tier.id)}>
+                        {String(tier.display_name ?? tier.name ?? tier.id)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <FormHelperText error={Boolean(fieldErrors.tierId)}>
+                    {fieldErrors.tierId || ' '}
+                  </FormHelperText>
+                </FormControl>
+              )}
+              {tiersState.status === 'ok' && tiersState.tiers.length === 0 && (
+                <Alert severity="info">
+                  {t('portalAdminLandlords.form.tierFallbackNotice')}
+                </Alert>
+              )}
             </Stack>
           </DialogContent>
           <DialogActions>
@@ -787,7 +888,7 @@ const PortalAdminLandlords = () => {
             <Button
               type="submit"
               variant="contained"
-              disabled={!canUseModule || submitState.status === 'saving' || !isFormValid}
+              disabled={!canUseModule || submitState.status === 'saving' || !canSubmitCreate}
             >
               {submitState.status === 'saving'
                 ? t('portalAdminLandlords.form.sending')

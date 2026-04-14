@@ -65,6 +65,9 @@ export type RequestAttachmentRow = {
   uploaded_by_user_id: string;
   uploaded_by_display_name: string | null;
   uploaded_by_role: string | null;
+  uploaded_by_first_name: string | null;
+  uploaded_by_last_name: string | null;
+  uploaded_by_profile_photo_url: string | null;
   storage_path: string;
   original_filename: string;
   content_type: string;
@@ -72,6 +75,40 @@ export type RequestAttachmentRow = {
   media_type: 'PHOTO' | 'VIDEO';
   created_at: Date;
 };
+
+type RequestAttachmentQueryRow = {
+  id: string;
+  request_id: string;
+  uploaded_by_user_id: string;
+  uploaded_by_display_name: string | null;
+  uploaded_by_role: string | null;
+  uploaded_by_first_name: string | null;
+  uploaded_by_last_name: string | null;
+  uploaded_by_profile_photo_storage_path: string | null;
+  storage_path: string;
+  original_filename: string;
+  content_type: string;
+  file_size_bytes: number;
+  media_type: 'PHOTO' | 'VIDEO';
+  created_at: Date;
+};
+
+function mapRequestAttachmentRow(row: RequestAttachmentQueryRow): RequestAttachmentRow {
+  const {
+    uploaded_by_profile_photo_storage_path,
+    uploaded_by_first_name,
+    uploaded_by_last_name,
+    ...base
+  } = row;
+  return {
+    ...base,
+    uploaded_by_first_name: uploaded_by_first_name ?? null,
+    uploaded_by_last_name: uploaded_by_last_name ?? null,
+    uploaded_by_profile_photo_url: profilePhotoReadUrlFromStoragePath(
+      uploaded_by_profile_photo_storage_path ?? null
+    ),
+  };
+}
 
 export type RequestLookupOption = {
   code: string;
@@ -790,13 +827,15 @@ export async function insertRequestAttachment(
     mediaType: 'PHOTO' | 'VIDEO';
   }
 ): Promise<RequestAttachmentRow> {
-  const r = await client.query<RequestAttachmentRow>(
+  const r = await client.query<RequestAttachmentQueryRow>(
     `INSERT INTO request_attachments (
        id, request_id, uploaded_by_user_id, storage_path, original_filename,
        content_type, file_size_bytes, media_type
      )
      OUTPUT INSERTED.id, INSERTED.request_id, INSERTED.uploaded_by_user_id,
             NULL AS uploaded_by_display_name, NULL AS uploaded_by_role,
+            NULL AS uploaded_by_first_name, NULL AS uploaded_by_last_name,
+            NULL AS uploaded_by_profile_photo_storage_path,
             INSERTED.storage_path, INSERTED.original_filename, INSERTED.content_type,
             INSERTED.file_size_bytes, INSERTED.media_type, INSERTED.created_at
      VALUES (NEWID(), $1, $2, $3, $4, $5, $6, $7)`,
@@ -810,20 +849,23 @@ export async function insertRequestAttachment(
       params.mediaType,
     ]
   );
-  return r.rows[0]!;
+  return mapRequestAttachmentRow(r.rows[0]!);
 }
 
 export async function listRequestAttachments(
   client: Queryable,
   requestId: string
 ): Promise<RequestAttachmentRow[]> {
-  const r = await client.query<RequestAttachmentRow>(
+  const r = await client.query<RequestAttachmentQueryRow>(
     `SELECT ra.id, ra.request_id, ra.uploaded_by_user_id,
             CASE
               WHEN LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, ''))) = '' THEN u.email
               ELSE LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, '')))
             END AS uploaded_by_display_name,
             u.role AS uploaded_by_role,
+            u.first_name AS uploaded_by_first_name,
+            u.last_name AS uploaded_by_last_name,
+            u.profile_photo_storage_path AS uploaded_by_profile_photo_storage_path,
             ra.storage_path, ra.original_filename, ra.content_type, ra.file_size_bytes,
             ra.media_type, ra.created_at
      FROM request_attachments ra
@@ -832,7 +874,7 @@ export async function listRequestAttachments(
      ORDER BY created_at ASC`,
     [requestId]
   );
-  return r.rows;
+  return r.rows.map(mapRequestAttachmentRow);
 }
 
 export async function getRequestAttachmentById(
@@ -840,13 +882,16 @@ export async function getRequestAttachmentById(
   requestId: string,
   attachmentId: string
 ): Promise<RequestAttachmentRow | null> {
-  const r = await client.query<RequestAttachmentRow>(
+  const r = await client.query<RequestAttachmentQueryRow>(
     `SELECT TOP 1 ra.id, ra.request_id, ra.uploaded_by_user_id,
             CASE
               WHEN LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, ''))) = '' THEN u.email
               ELSE LTRIM(RTRIM(ISNULL(u.first_name, '') + ' ' + ISNULL(u.last_name, '')))
             END AS uploaded_by_display_name,
             u.role AS uploaded_by_role,
+            u.first_name AS uploaded_by_first_name,
+            u.last_name AS uploaded_by_last_name,
+            u.profile_photo_storage_path AS uploaded_by_profile_photo_storage_path,
             ra.storage_path, ra.original_filename, ra.content_type, ra.file_size_bytes,
             ra.media_type, ra.created_at
      FROM request_attachments ra
@@ -855,7 +900,8 @@ export async function getRequestAttachmentById(
        AND ra.id = $2`,
     [requestId, attachmentId]
   );
-  return r.rows[0] ?? null;
+  const row = r.rows[0];
+  return row ? mapRequestAttachmentRow(row) : null;
 }
 
 export async function deleteRequestAttachmentById(
@@ -863,17 +909,20 @@ export async function deleteRequestAttachmentById(
   requestId: string,
   attachmentId: string
 ): Promise<RequestAttachmentRow | null> {
-  const r = await client.query<RequestAttachmentRow>(
+  const r = await client.query<RequestAttachmentQueryRow>(
     `DELETE FROM request_attachments
      OUTPUT DELETED.id, DELETED.request_id, DELETED.uploaded_by_user_id,
             NULL AS uploaded_by_display_name, NULL AS uploaded_by_role,
+            NULL AS uploaded_by_first_name, NULL AS uploaded_by_last_name,
+            NULL AS uploaded_by_profile_photo_storage_path,
             DELETED.storage_path, DELETED.original_filename, DELETED.content_type,
             DELETED.file_size_bytes, DELETED.media_type, DELETED.created_at
      WHERE request_id = $1
        AND id = $2`,
     [requestId, attachmentId]
   );
-  return r.rows[0] ?? null;
+  const row = r.rows[0];
+  return row ? mapRequestAttachmentRow(row) : null;
 }
 
 export async function listRequestNotificationRecipients(

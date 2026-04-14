@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import {
+  Alert,
   Box,
   Button,
   CircularProgress,
@@ -46,6 +47,8 @@ import {
   fetchTenant,
 } from '../lib/portalApiClient';
 import PortalConfirmDialog from './PortalConfirmDialog';
+import PortalUserAvatar from './PortalUserAvatar';
+import PortalPersonWithAvatar from './PortalPersonWithAvatar';
 import InlineActionStatus from './InlineActionStatus';
 import StatusAlertSlot from './StatusAlertSlot';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
@@ -181,6 +184,10 @@ function tenantApiErrorMessage(error, t) {
       return t('portalTenants.errors.phoneInvalid');
     case 'active_lease_not_found':
       return t('portalTenants.errors.activeLeaseRequiredForReassign');
+    case 'lease_dates_overlap':
+      return t('portalTenants.errors.leaseDatesOverlap');
+    case 'property_lease_occupancy_conflict':
+      return t('portalTenants.errors.propertyLeaseOccupancyConflict');
     default:
       return t('portalTenants.errors.saveFailed');
   }
@@ -528,28 +535,43 @@ const EMPTY_LEASE_FORM = {
   notes: '',
 };
 
-function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
+function AddLeaseDialog({
+  open,
+  onClose,
+  onSaved,
+  tenantId,
+  properties,
+  fixedPropertyId,
+  tenantName,
+  propertyAddressText,
+  t,
+}) {
   const [form, setForm] = useState(EMPTY_LEASE_FORM);
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
   const [initialForm, setInitialForm] = useState(EMPTY_LEASE_FORM);
   const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
+  const wasOpenRef = useRef(false);
   const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
   const emailHint = meData?.user?.email ?? account?.username ?? '';
   const submitStatusMessage = submitState.status === 'error'
     ? { severity: 'error', text: submitState.detail }
     : null;
-  const sortedProperties = useMemo(() => sortByPropertyLabel(properties), [properties]);
 
   useEffect(() => {
-    if (open) {
-      setForm(EMPTY_LEASE_FORM);
-      setInitialForm(EMPTY_LEASE_FORM);
+    if (open && !wasOpenRef.current) {
+      const raw = typeof fixedPropertyId === 'string' ? fixedPropertyId.trim() : '';
+      const allowed = new Set((properties ?? []).map((p) => p?.id).filter(Boolean));
+      const property_id = raw && allowed.has(raw) ? raw : '';
+      const next = { ...EMPTY_LEASE_FORM, property_id };
+      setForm(next);
+      setInitialForm(next);
       setFieldErrors({});
       setSubmitState({ status: 'idle', detail: '' });
       setDiscardDialogOpen(false);
     }
-  }, [open]);
+    wasOpenRef.current = open;
+  }, [open, fixedPropertyId, properties]);
   const hasUnsavedChanges = JSON.stringify(form) !== JSON.stringify(initialForm);
   const handleAttemptClose = () => {
     if (submitState.status === 'saving') return;
@@ -568,7 +590,7 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
 
   const validate = () => {
     const errors = {};
-    if (!form.property_id) errors.property_id = t('portalTenants.errors.propertyRequired');
+    if (!form.property_id) errors.property_id = t('portalTenants.addLeaseDialog.cannotResolveProperty');
     if (!form.start_date) errors.start_date = t('portalTenants.errors.startDateRequired');
     if (!form.month_to_month && form.end_date && form.end_date <= form.start_date) {
       errors.end_date = t('portalTenants.errors.endDateBeforeStart');
@@ -613,27 +635,24 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
       <Box component="form" onSubmit={onSubmit}>
         <DialogContent sx={{ py: 1.25, px: 3 }}>
           <Stack spacing={1.25}>
-            <Select
-              value={form.property_id}
-              onChange={onChange('property_id')}
-              displayEmpty
+            <TextField
+              label={t('portalTenants.addLeaseDialog.readOnlyTenant')}
+              value={tenantName}
               fullWidth
-              error={Boolean(fieldErrors.property_id)}
               size="small"
-            >
-              <MenuItem value="" disabled>
-                {t('portalTenants.form.selectProperty')}
-              </MenuItem>
-              {sortedProperties.map((p) => (
-                <MenuItem key={p.id} value={p.id}>
-                  {propertyLabel(p)}
-                </MenuItem>
-              ))}
-            </Select>
-            {fieldErrors.property_id && (
-              <Typography variant="caption" color="error">
-                {fieldErrors.property_id}
-              </Typography>
+              margin="dense"
+              InputProps={{ readOnly: true }}
+            />
+            <TextField
+              label={t('portalTenants.addLeaseDialog.readOnlyProperty')}
+              value={propertyAddressText || '—'}
+              fullWidth
+              size="small"
+              margin="dense"
+              InputProps={{ readOnly: true }}
+            />
+            {Boolean(fieldErrors.property_id) && (
+              <Alert severity="warning">{fieldErrors.property_id}</Alert>
             )}
             <TextField
               label={t('portalTenants.form.startDate')}
@@ -694,7 +713,7 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
           <Button
             type="submit"
             variant="contained"
-            disabled={submitState.status === 'saving'}
+            disabled={submitState.status === 'saving' || !form.property_id}
           >
             {submitState.status === 'saving'
               ? t('portalTenants.actions.saving')
@@ -923,7 +942,17 @@ function EditTenantDialog({
                   </MenuItem>
                   {sortedLandlords.map((l) => (
                     <MenuItem key={l.id} value={l.id}>
-                      {displayName(l)} — {l.email}
+                      <PortalPersonWithAvatar
+                        photoUrl={String(l.profile_photo_url ?? '').trim()}
+                        firstName={l.first_name ?? ''}
+                        lastName={l.last_name ?? ''}
+                        size={28}
+                        alignItems="center"
+                      >
+                        <Typography variant="body2" component="span">
+                          {displayName(l)} — {l.email}
+                        </Typography>
+                      </PortalPersonWithAvatar>
                     </MenuItem>
                   ))}
                 </TextField>
@@ -1023,6 +1052,29 @@ function TenantRow({
     [leasesState.leases]
   );
 
+  /** Property to pre-select in Add Lease: same order as lease list (most recent start first). */
+  const defaultPropertyIdForAddLease = useMemo(() => {
+    const ids = new Set((properties ?? []).map((p) => p?.id).filter(Boolean));
+    const valid = (id) => {
+      const s = typeof id === 'string' ? id.trim() : '';
+      return s && ids.has(s) ? s : '';
+    };
+    if (leasesState.status === 'ok' && sortedLeases.length > 0) {
+      const fromLease = valid(sortedLeases[0].property_id);
+      if (fromLease) return fromLease;
+    }
+    return valid(tenant.property_id);
+  }, [leasesState.status, sortedLeases, tenant.property_id, properties]);
+
+  const addLeasePropertyAddressText = useMemo(() => {
+    const pid = defaultPropertyIdForAddLease;
+    if (!pid) return '';
+    const match = (properties ?? []).find((p) => p.id === pid);
+    if (match) return propertyLabel(match);
+    const fromTenant = propertyLabel(tenant);
+    return fromTenant !== '—' ? fromTenant : '';
+  }, [defaultPropertyIdForAddLease, properties, tenant]);
+
   const loadLeases = useCallback(async () => {
     if (!baseUrl) return;
     setLeasesState({ status: 'loading', leases: [] });
@@ -1073,25 +1125,34 @@ function TenantRow({
           flexWrap: 'wrap',
         }}
       >
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-            <Typography sx={{ fontWeight: 600 }}>{displayName(tenant)}</Typography>
-            <Chip
-              label={isActive ? t('portalTenants.status.active') : t('portalTenants.status.disabled')}
-              size="small"
-              color={isActive ? 'success' : 'default'}
-              variant={isActive ? 'filled' : 'outlined'}
-            />
-          </Stack>
-          <Typography variant="body2" color="text.secondary">
-            {tenant.email}
-          </Typography>
-          {tenant.property_street && (
-            <Typography variant="caption" color="text.secondary">
-              {propertyLabel(tenant)}
+        <Stack direction="row" spacing={1.5} sx={{ flex: 1, minWidth: 0, alignItems: 'flex-start' }}>
+          <PortalUserAvatar
+            photoUrl={String(tenant.profile_photo_url ?? '').trim()}
+            firstName={tenant.first_name ?? ''}
+            lastName={tenant.last_name ?? ''}
+            size={44}
+            sx={{ flexShrink: 0, mt: 0.125 }}
+          />
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+              <Typography sx={{ fontWeight: 600 }}>{displayName(tenant)}</Typography>
+              <Chip
+                label={isActive ? t('portalTenants.status.active') : t('portalTenants.status.disabled')}
+                size="small"
+                color={isActive ? 'success' : 'default'}
+                variant={isActive ? 'filled' : 'outlined'}
+              />
+            </Stack>
+            <Typography variant="body2" color="text.secondary">
+              {tenant.email}
             </Typography>
-          )}
-        </Box>
+            {tenant.property_street && (
+              <Typography variant="caption" color="text.secondary">
+                {propertyLabel(tenant)}
+              </Typography>
+            )}
+          </Box>
+        </Stack>
 
         <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', flexShrink: 0 }}>
           <Tooltip title={t('portalTenants.actions.editTenant')}>
@@ -1166,14 +1227,24 @@ function TenantRow({
               <Typography variant="subtitle2" color="text.secondary">
                 {t('portalTenants.lease.heading')}
               </Typography>
-              <Button
-                type="button"
-                size="small"
-                startIcon={<Add />}
-                onClick={() => setAddLeaseOpen(true)}
-              >
-                {t('portalTenants.actions.addLease')}
-              </Button>
+              {defaultPropertyIdForAddLease ? (
+                <Button
+                  type="button"
+                  size="small"
+                  startIcon={<Add />}
+                  onClick={() => setAddLeaseOpen(true)}
+                >
+                  {t('portalTenants.actions.addLease')}
+                </Button>
+              ) : (
+                <Tooltip title={t('portalTenants.addLeaseDialog.addLeaseNeedsPropertyHint')}>
+                  <span>
+                    <Button type="button" size="small" startIcon={<Add />} disabled>
+                      {t('portalTenants.actions.addLease')}
+                    </Button>
+                  </span>
+                </Tooltip>
+              )}
             </Stack>
 
             {leasesState.status === 'loading' && (
@@ -1214,6 +1285,9 @@ function TenantRow({
         onSaved={handleLeaseSaved}
         tenantId={tenant.id}
         properties={properties}
+        fixedPropertyId={defaultPropertyIdForAddLease}
+        tenantName={displayName(tenant)}
+        propertyAddressText={addLeasePropertyAddressText}
         t={t}
       />
       <EditTenantDialog
@@ -1483,7 +1557,17 @@ function OnboardTenantDialog({
                 </MenuItem>
                 {sortedLandlords.map((l) => (
                   <MenuItem key={l.id} value={l.id}>
-                    {displayName(l)} — {l.email}
+                    <PortalPersonWithAvatar
+                      photoUrl={String(l.profile_photo_url ?? '').trim()}
+                      firstName={l.first_name ?? ''}
+                      lastName={l.last_name ?? ''}
+                      size={28}
+                      alignItems="center"
+                    >
+                      <Typography variant="body2" component="span">
+                        {displayName(l)} — {l.email}
+                      </Typography>
+                    </PortalPersonWithAvatar>
                   </MenuItem>
                 ))}
               </TextField>
@@ -1815,7 +1899,17 @@ const PortalTenants = () => {
                 </MenuItem>
                 {sortedLandlords.map((l) => (
                   <MenuItem key={l.id} value={l.id}>
-                    {displayName(l)} — {l.email}
+                    <PortalPersonWithAvatar
+                      photoUrl={String(l.profile_photo_url ?? '').trim()}
+                      firstName={l.first_name ?? ''}
+                      lastName={l.last_name ?? ''}
+                      size={28}
+                      alignItems="center"
+                    >
+                      <Typography variant="body2" component="span">
+                        {displayName(l)} — {l.email}
+                      </Typography>
+                    </PortalPersonWithAvatar>
                   </MenuItem>
                 ))}
               </Select>

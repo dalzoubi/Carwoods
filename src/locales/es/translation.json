@@ -1404,6 +1404,10 @@
       "firstName": "Nombre",
       "lastName": "Apellido",
       "phone": "Teléfono (opcional)",
+      "tierLabel": "Plan de suscripción",
+      "tierPlaceholder": "Selecciona un plan",
+      "tierLoading": "Cargando planes de suscripción…",
+      "tierFallbackNotice": "No se pudieron cargar los planes. El propietario se creará en el plan gratuito.",
       "saveLandlord": "Guardar propietario",
       "editHeading": "Editar propietario",
       "sending": "Guardando…"
@@ -1931,7 +1935,11 @@
     },
     "addLeaseDialog": {
       "title": "Añadir contrato",
-      "save": "Añadir contrato"
+      "save": "Añadir contrato",
+      "readOnlyTenant": "Inquilino",
+      "readOnlyProperty": "Propiedad",
+      "cannotResolveProperty": "No pudimos determinar la propiedad de este contrato. Actualice la página e inténtelo de nuevo.",
+      "addLeaseNeedsPropertyHint": "Aún no tenemos una propiedad registrada para este contrato. Espere a que carguen los contratos o corrija el registro del inquilino e inténtelo de nuevo."
     },
     "editLeaseDialog": {
       "title": "Editar contrato",
@@ -1994,6 +2002,8 @@
       "lastNameRequired": "El apellido es obligatorio.",
       "phoneInvalid": "Introduce un número de teléfono válido.",
       "activeLeaseRequiredForReassign": "Este inquilino necesita un contrato activo antes de poder cambiar de propietario.",
+      "leaseDatesOverlap": "Estas fechas se solapan con otro contrato de este inquilino. Cambie la fecha de inicio o fin para que los contratos no se solapen.",
+      "propertyLeaseOccupancyConflict": "Otro inquilino ya tiene un contrato que se solapa con estas fechas en esta propiedad. Ajuste las fechas o resuelva el otro contrato primero.",
       "saveFailed": "No se pudieron guardar los cambios del inquilino.",
       "landlordRequired": "Por favor selecciona un propietario.",
       "propertyRequired": "Por favor selecciona una propiedad.",

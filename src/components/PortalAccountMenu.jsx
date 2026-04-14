@@ -138,6 +138,15 @@ export function PortalAccountMenu({ anchorEl, open, onClose, menuProps }) {
       >
         <Box sx={{ px: 2, pt: 1.5, pb: 1 }}>
           <Stack direction="row" spacing={1.5} alignItems="flex-start">
+            <PortalUserAvatar
+              meData={meData}
+              firstName={meData?.user?.first_name}
+              lastName={meData?.user?.last_name}
+              fallbackPhotoUrl={account?.photoURL}
+              onProfilePhotoLoadError={refreshMe}
+              size={36}
+              sx={{ flexShrink: 0 }}
+            />
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography variant="body2" fontWeight={600} noWrap>
                 {displayName}
@@ -150,14 +159,6 @@ export function PortalAccountMenu({ anchorEl, open, onClose, menuProps }) {
                 sx={{ height: 20, fontSize: '0.7rem', mt: 0.5 }}
               />
             </Box>
-            <PortalUserAvatar
-              meData={meData}
-              firstName={meData?.user?.first_name}
-              lastName={meData?.user?.last_name}
-              fallbackPhotoUrl={account?.photoURL}
-              onProfilePhotoLoadError={refreshMe}
-              size={36}
-            />
           </Stack>
         </Box>
         <Divider />

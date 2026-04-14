@@ -472,8 +472,18 @@ const PortalProfile = () => {
       </Helmet>
 
       <Stack spacing={3}>
-        {/* Heading and photo: title first in reading order, avatar after */}
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: 'wrap' }}>
+        {/* Heading and photo: avatar beside title (same pattern as other portal headers) */}
+        <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ flexWrap: 'wrap' }}>
+          <Box sx={{ flexShrink: 0 }}>
+            <PortalUserAvatar
+              meData={meData}
+              firstName={form.firstName}
+              lastName={form.lastName}
+              fallbackPhotoUrl={account?.photoURL}
+              onProfilePhotoLoadError={refreshMe}
+              size={96}
+            />
+          </Box>
           <Box sx={{ flex: '1 1 200px', minWidth: 0 }}>
             <Typography variant="h5" component="h2" fontWeight={700}>
               {t('portalProfile.heading')}
@@ -513,16 +523,6 @@ const PortalProfile = () => {
                 </Button>
               </Stack>
             )}
-          </Box>
-          <Box sx={{ flexShrink: 0 }}>
-            <PortalUserAvatar
-              meData={meData}
-              firstName={form.firstName}
-              lastName={form.lastName}
-              fallbackPhotoUrl={account?.photoURL}
-              onProfilePhotoLoadError={refreshMe}
-              size={96}
-            />
           </Box>
         </Stack>
 

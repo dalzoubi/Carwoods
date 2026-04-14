@@ -12,6 +12,7 @@ export type TenantRow = {
 };
 
 export type TenantWithContextRow = TenantRow & {
+  profile_photo_storage_path: string | null;
   property_id: string | null;
   property_street: string | null;
   property_city: string | null;
@@ -159,6 +160,7 @@ export async function listTenantsForActor(
   const r = await client.query<TenantWithContextRow>(
     `SELECT DISTINCT
        u.id, u.email, u.first_name, u.last_name, u.phone, u.role, u.status,
+       u.profile_photo_storage_path,
        p.id   AS property_id,
        p.street AS property_street,
        p.city   AS property_city,

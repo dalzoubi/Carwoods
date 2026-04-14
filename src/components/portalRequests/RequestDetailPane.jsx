@@ -1322,6 +1322,14 @@ const RequestDetailPane = ({
                             t={t}
                             truncateName
                             stackSx={{ mt: 0.25 }}
+                            avatar={(
+                              <PortalUserAvatar
+                                photoUrl={String(att.uploaded_by_profile_photo_url ?? '').trim()}
+                                firstName={String(att.uploaded_by_first_name ?? '')}
+                                lastName={String(att.uploaded_by_last_name ?? '')}
+                                size={ELSA_INLINE_AVATAR_PX}
+                              />
+                            )}
                           />
                           {!att.file_url && (
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>

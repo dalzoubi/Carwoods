@@ -79,6 +79,7 @@ async function adminLandlordsCollectionHandler(
   const firstName = asOptionalString(b.first_name);
   const lastName = asOptionalString(b.last_name);
   const phone = asOptionalString(b.phone);
+  const tierId = asOptionalString(b.tier_id);
 
   try {
     const result = await inviteLandlord(getPool(), {
@@ -88,6 +89,7 @@ async function adminLandlordsCollectionHandler(
       firstName,
       lastName,
       phone,
+      tierId,
     });
     logInfo(context, 'admin.landlords.upsert.success', {
       actorUserId: ctx.user.id,

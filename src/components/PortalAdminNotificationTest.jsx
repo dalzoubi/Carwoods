@@ -11,6 +11,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import PortalUserAvatar from './PortalUserAvatar';
 import { usePortalAuth } from '../PortalAuthContext';
 import { Role } from '../domain/constants.js';
 import { emailFromAccount, normalizeRole, resolveRole } from '../portalUtils';
@@ -118,6 +119,7 @@ const PortalAdminNotificationTest = () => {
           email: portalUser.email ?? account?.username ?? '',
           first_name: portalUser.first_name,
           last_name: portalUser.last_name,
+          profile_photo_url: portalUser.profile_photo_url ?? '',
           role: typeof role === 'string' ? role : Role.ADMIN,
         },
         ...source,
@@ -132,6 +134,9 @@ const PortalAdminNotificationTest = () => {
           ? t('portalAdminNotificationTest.inApp.recipientYou')
           : userDisplayName(u),
         secondaryLabel: `${String(u.email ?? '').trim() || '—'} · ${roleLabelForRecipient(t, u.role)}`,
+        photoUrl: String(u.profile_photo_url ?? '').trim(),
+        firstName: String(u.first_name ?? ''),
+        lastName: String(u.last_name ?? ''),
       };
     });
     rows.sort((a, b) => {
@@ -322,6 +327,26 @@ const PortalAdminNotificationTest = () => {
               loading={recipientsLoading || meStatus === 'loading'}
               getOptionLabel={(o) => (o ? `${o.primaryLabel} (${o.secondaryLabel})` : '')}
               isOptionEqualToValue={(a, b) => Boolean(a && b && a.id === b.id)}
+              renderOption={(props, option) => (
+                <li {...props}>
+                  <Stack direction="row" spacing={1.25} alignItems="center" sx={{ width: '100%', py: 0.25 }}>
+                    <PortalUserAvatar
+                      photoUrl={option.photoUrl}
+                      firstName={option.firstName}
+                      lastName={option.lastName}
+                      size={32}
+                    />
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography variant="body2" noWrap>
+                        {option.primaryLabel}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+                        {option.secondaryLabel}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </li>
+              )}
               renderInput={(params) => (
                 <TextField
                   {...params}

@@ -14,6 +14,7 @@ import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 import StatusAlertSlot from './StatusAlertSlot';
 import PortalRefreshButton from './PortalRefreshButton';
+import PortalPersonWithAvatar from './PortalPersonWithAvatar';
 
 const CHANNEL_OPTIONS = ['inherit', 'enabled', 'disabled'];
 
@@ -35,6 +36,13 @@ function propertyAddressLabel(property) {
   const locality = [city, state].filter(Boolean).join(', ');
   const address = [street, locality, zip].filter(Boolean).join(' ');
   return address || name;
+}
+
+function splitNameForInitials(displayName) {
+  const parts = String(displayName ?? '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { first: '', last: '' };
+  if (parts.length === 1) return { first: parts[0], last: '' };
+  return { first: parts[0], last: parts.slice(1).join(' ') };
 }
 
 function roleColor(role) {
@@ -121,6 +129,9 @@ const PortalNotificationPolicies = () => {
         id: submittedByUserId,
         displayName: submittedByName,
         role: normalizeRole(row?.submitted_by_role),
+        profile_photo_url: String(row?.submitted_by_profile_photo_url ?? '').trim(),
+        first_name: String(row?.submitted_by_first_name ?? ''),
+        last_name: String(row?.submitted_by_last_name ?? ''),
       });
     });
 
@@ -131,10 +142,14 @@ const PortalNotificationPolicies = () => {
     const landlordUserId = String(property?.landlord_user_id ?? property?.created_by ?? '').trim();
     const landlordName = String(property?.landlord_name ?? '').trim();
     if (landlordUserId) {
+      const split = splitNameForInitials(landlordName || landlordUserId);
       byId.set(landlordUserId, {
         id: landlordUserId,
         displayName: landlordName || landlordUserId,
         role: Role.LANDLORD,
+        profile_photo_url: '',
+        first_name: split.first,
+        last_name: split.last,
       });
     }
     return Array.from(byId.values());
@@ -152,6 +167,9 @@ const PortalNotificationPolicies = () => {
         id,
         displayName,
         role: normalizedRole,
+        profile_photo_url: String(user.profile_photo_url ?? '').trim(),
+        first_name: String(user.first_name ?? ''),
+        last_name: String(user.last_name ?? ''),
       });
     });
     if (byId.size === 0) {
@@ -162,16 +180,23 @@ const PortalNotificationPolicies = () => {
           id,
           displayName: String(user.displayName ?? '').trim() || id,
           role: normalizeRole(user.role),
+          profile_photo_url: String(user.profile_photo_url ?? '').trim(),
+          first_name: String(user.first_name ?? ''),
+          last_name: String(user.last_name ?? ''),
         });
       });
     }
     policies.forEach((policy) => {
       const id = String(policy?.user_id ?? '').trim();
       if (!id || byId.has(id)) return;
+      const split = splitNameForInitials(id);
       byId.set(id, {
         id,
         displayName: id,
         role: '',
+        profile_photo_url: '',
+        first_name: split.first,
+        last_name: split.last,
       });
     });
     return byId;
@@ -436,10 +461,20 @@ const PortalNotificationPolicies = () => {
                 alignItems={{ xs: 'flex-start', md: 'center' }}
                 sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1.5, p: 1.25 }}
               >
-                <Typography variant="body2" sx={{ minWidth: 220 }}>
-                  {t('portalNotificationPolicies.overrides.user')}:{' '}
-                  {userOptionMap.get(policy.user_id)?.displayName || policy.user_id}
-                </Typography>
+                <Box sx={{ minWidth: 220, maxWidth: '100%' }}>
+                  <PortalPersonWithAvatar
+                    photoUrl={String(userOptionMap.get(policy.user_id)?.profile_photo_url ?? '').trim()}
+                    firstName={String(userOptionMap.get(policy.user_id)?.first_name ?? '')}
+                    lastName={String(userOptionMap.get(policy.user_id)?.last_name ?? '')}
+                    size={28}
+                    alignItems="center"
+                  >
+                    <Typography variant="body2">
+                      {t('portalNotificationPolicies.overrides.user')}:{' '}
+                      {userOptionMap.get(policy.user_id)?.displayName || policy.user_id}
+                    </Typography>
+                  </PortalPersonWithAvatar>
+                </Box>
                 <Chip size="small" label={`${t('portalNotificationPolicies.form.eventCategory')}: ${policy.event_category}`} />
                 <Chip
                   size="small"
@@ -468,14 +503,22 @@ const PortalNotificationPolicies = () => {
             >
               {userOptions.map((option) => (
                 <MenuItem key={option.id} value={option.id}>
-                  <Stack direction="row" spacing={1} alignItems="center" sx={{ width: '100%' }}>
-                    <Typography>{option.displayName}</Typography>
-                    <Chip
-                      size="small"
-                      color={roleColor(option.role)}
-                      label={roleLabel(option.role)}
-                    />
-                  </Stack>
+                  <PortalPersonWithAvatar
+                    photoUrl={String(option.profile_photo_url ?? '').trim()}
+                    firstName={option.first_name ?? ''}
+                    lastName={option.last_name ?? ''}
+                    size={28}
+                    alignItems="center"
+                  >
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ width: '100%', flexWrap: 'wrap' }}>
+                      <Typography variant="body2">{option.displayName}</Typography>
+                      <Chip
+                        size="small"
+                        color={roleColor(option.role)}
+                        label={roleLabel(option.role)}
+                      />
+                    </Stack>
+                  </PortalPersonWithAvatar>
                 </MenuItem>
               ))}
             </TextField>

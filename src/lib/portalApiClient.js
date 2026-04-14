@@ -851,7 +851,7 @@ export async function patchResource(baseUrl, accessToken, path, payload) {
 /**
  * @param {string} baseUrl
  * @param {string} accessToken
- * @param {{ emailHint?: string, email: string, first_name: string, last_name: string }} payload
+ * @param {{ emailHint?: string, email: string, first_name: string, last_name: string, phone?: string|null, tier_id?: string }} payload
  * @returns {Promise<object>}
  */
 export async function createLandlord(baseUrl, accessToken, payload) {

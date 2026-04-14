@@ -7,6 +7,7 @@ import {
 import { getPool } from '../lib/db.js';
 import { requireAdmin, jsonResponse, mapDomainError } from '../lib/managementRequest.js';
 import { listUsersForAdminNotificationRecipients } from '../lib/usersRepo.js';
+import { addProfilePhotoReadUrl } from '../lib/userProfilePhotoUrl.js';
 import { logInfo, logWarn } from '../lib/serverLogger.js';
 
 async function adminPortalUsersHandler(
@@ -28,12 +29,13 @@ async function adminPortalUsersHandler(
 
   try {
     const users = await listUsersForAdminNotificationRecipients(getPool(), { includeInactive });
+    const usersWithPhotoUrl = users.map((u) => addProfilePhotoReadUrl(u));
     logInfo(context, 'admin.portal_users.list', {
       actorUserId: ctx.user.id,
       includeInactive,
-      count: users.length,
+      count: usersWithPhotoUrl.length,
     });
-    return jsonResponse(200, ctx.headers, { users });
+    return jsonResponse(200, ctx.headers, { users: usersWithPhotoUrl });
   } catch (e) {
     const mapped = mapDomainError(e, ctx.headers);
     if (mapped) return mapped;

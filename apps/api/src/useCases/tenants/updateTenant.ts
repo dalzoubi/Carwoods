@@ -6,6 +6,10 @@ import {
   updateTenantProfile,
   type TenantRow,
 } from '../../lib/tenantsRepo.js';
+import {
+  listLeaseTenantUserIds,
+  checkPropertyExclusiveTenantConflict,
+} from '../../lib/leasesRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
 import { validateProfileUpdate } from '../../domain/userValidation.js';
 import { conflictError, forbidden, notFound, validationError } from '../../domain/errors.js';
@@ -94,6 +98,27 @@ export async function updateTenant(
         await client.query('ROLLBACK');
         throw notFound('active_lease_not_found');
       }
+
+      const leaseEnd = activeLease.month_to_month ? null : activeLease.end_date;
+      const tenantsOnLease = await listLeaseTenantUserIds(
+        client as Parameters<typeof listLeaseTenantUserIds>[0],
+        activeLease.id
+      );
+      const propertyConflict = await checkPropertyExclusiveTenantConflict(
+        client as Parameters<typeof checkPropertyExclusiveTenantConflict>[0],
+        {
+          propertyId: normalizedPropertyId,
+          startDate: activeLease.start_date,
+          endDate: leaseEnd,
+          excludeLeaseId: activeLease.id,
+          allowedUserIds: tenantsOnLease,
+        }
+      );
+      if (propertyConflict) {
+        await client.query('ROLLBACK');
+        throw conflictError('property_lease_occupancy_conflict');
+      }
+
       const changed = await setLeaseProperty(
         client as Parameters<typeof setLeaseProperty>[0],
         activeLease.id,

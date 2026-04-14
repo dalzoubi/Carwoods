@@ -6,11 +6,18 @@
  * - Tenant must exist and be accessible to actor.
  * - Property must exist and be accessible to actor.
  * - New lease dates must not overlap any existing lease for this tenant.
+ * - The property must not already have another tenant on an overlapping lease
+ *   (same household may share one lease; roommates stay on that lease).
  * - Month-to-month leases have no end date.
  */
 
 import { getTenantById, checkLeaseOverlapForTenant } from '../../lib/tenantsRepo.js';
-import { insertLease, linkLeaseTenant, type LeaseRowFull } from '../../lib/leasesRepo.js';
+import {
+  insertLease,
+  linkLeaseTenant,
+  checkPropertyExclusiveTenantConflict,
+  type LeaseRowFull,
+} from '../../lib/leasesRepo.js';
 import { getPropertyByIdForActor } from '../../lib/propertiesRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
 import { validateAddTenantLease } from '../../domain/tenantValidation.js';
@@ -64,18 +71,35 @@ export async function addTenantLease(
   const monthToMonth = input.monthToMonth ?? false;
   const endDate = monthToMonth ? null : (input.endDate ?? null);
 
-  // Check for overlapping leases
-  const hasOverlap = await checkLeaseOverlapForTenant(
-    db,
-    input.tenantId,
-    input.startDate!,
-    endDate
-  );
-  if (hasOverlap) throw conflictError('lease_dates_overlap');
-
   const client = await db.connect();
   try {
     await client.query('BEGIN');
+
+    const hasTenantOverlap = await checkLeaseOverlapForTenant(
+      client as Parameters<typeof checkLeaseOverlapForTenant>[0],
+      input.tenantId,
+      input.startDate!,
+      endDate
+    );
+    if (hasTenantOverlap) {
+      await client.query('ROLLBACK');
+      throw conflictError('lease_dates_overlap');
+    }
+
+    const hasPropertyConflict = await checkPropertyExclusiveTenantConflict(
+      client as Parameters<typeof checkPropertyExclusiveTenantConflict>[0],
+      {
+        propertyId: input.propertyId,
+        startDate: input.startDate!,
+        endDate: endDate,
+        excludeLeaseId: null,
+        allowedUserIds: [input.tenantId],
+      }
+    );
+    if (hasPropertyConflict) {
+      await client.query('ROLLBACK');
+      throw conflictError('property_lease_occupancy_conflict');
+    }
 
     const today = new Date().toISOString().slice(0, 10);
     const leaseStatus = input.startDate! <= today ? 'ACTIVE' : 'UPCOMING';

@@ -121,6 +121,44 @@ describe('PortalAdminLandlords', () => {
     expect(portalApiClient.patchResource).not.toHaveBeenCalled();
   });
 
+  it('creates a landlord with selected subscription tier', async () => {
+    render(
+      <WithAppTheme>
+        <PortalAdminLandlords />
+      </WithAppTheme>
+    );
+
+    await waitFor(() => expect(portalApiClient.fetchAdminSubscriptionTiers).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole('button', { name: /add landlord/i }));
+
+    fireEvent.change(screen.getByLabelText(/landlord email/i), {
+      target: { value: 'new@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Ned' } });
+    fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'New' } });
+
+    const planCombo = screen.getByRole('combobox', { name: /subscription plan/i });
+    fireEvent.mouseDown(planCombo);
+    const starterOption = await screen.findByRole('option', { name: 'Starter' });
+    fireEvent.click(starterOption);
+
+    fireEvent.click(screen.getByRole('button', { name: /^save landlord$/i }));
+
+    await waitFor(() => {
+      expect(portalApiClient.createLandlord).toHaveBeenCalledWith(
+        'https://api.carwoods.com',
+        'mock-token',
+        expect.objectContaining({
+          email: 'new@example.com',
+          first_name: 'Ned',
+          last_name: 'New',
+          tier_id: 'tier-starter',
+        })
+      );
+    });
+  });
+
   it('updates landlord tier via admin tier endpoint', async () => {
     render(
       <WithAppTheme>
