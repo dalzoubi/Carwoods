@@ -55,6 +55,12 @@ import { fetchElsaSettings, fetchHarPreview, fetchLandlords, patchElsaPropertyPo
 
 const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 
+function landlordRowLabel(landlord) {
+  const first = String(landlord?.first_name ?? '').trim();
+  const last = String(landlord?.last_name ?? '').trim();
+  return `${first} ${last}`.trim() || String(landlord?.email ?? '').trim();
+}
+
 const EMPTY_FORM = {
   harId: '',
   addressLine: '',
@@ -299,6 +305,8 @@ const PortalAdminProperties = () => {
   const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
   const [landlords, setLandlords] = useState([]);
   const [landlordsStatus, setLandlordsStatus] = useState('idle'); // idle | loading | ok | error
+  /** Admin-only: filter grid to one landlord; empty string = all landlords */
+  const [adminLandlordFilterId, setAdminLandlordFilterId] = useState('');
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteStatus, setDeleteStatus] = useState('idle'); // idle | deleting | error
@@ -386,6 +394,12 @@ const PortalAdminProperties = () => {
       cancelled = true;
     };
   }, [isAuthenticated, baseUrl, isAdmin, getAccessToken]);
+
+  useEffect(() => {
+    if (!isAdmin || !adminLandlordFilterId) return;
+    const ids = new Set(landlords.map((l) => l?.id).filter(Boolean));
+    if (!ids.has(adminLandlordFilterId)) setAdminLandlordFilterId('');
+  }, [isAdmin, adminLandlordFilterId, landlords]);
 
   const resetForm = () => {
     setForm({
@@ -652,12 +666,26 @@ const PortalAdminProperties = () => {
     }
   };
 
-  const filteredProperties = properties.filter((property) => {
-    if (visibilityFilter === 'visible' && !property.showOnApplyPage) return false;
-    if (visibilityFilter === 'hidden' && property.showOnApplyPage) return false;
-    if (visibilityFilter === 'deleted' && !property.deletedAt) return false;
-    return true;
-  });
+  const sortedLandlords = useMemo(
+    () =>
+      [...landlords].sort((a, b) => collator.compare(landlordRowLabel(a), landlordRowLabel(b))),
+    [landlords]
+  );
+
+  const filteredProperties = useMemo(
+    () =>
+      properties.filter((property) => {
+        if (isAdmin && adminLandlordFilterId && property.landlordUserId !== adminLandlordFilterId) {
+          return false;
+        }
+        if (visibilityFilter === 'visible' && !property.showOnApplyPage) return false;
+        if (visibilityFilter === 'hidden' && property.showOnApplyPage) return false;
+        if (visibilityFilter === 'deleted' && !property.deletedAt) return false;
+        return true;
+      }),
+    [properties, isAdmin, adminLandlordFilterId, visibilityFilter]
+  );
+
   const sortedFilteredProperties = useMemo(
     () =>
       [...filteredProperties].sort((a, b) => {
@@ -669,19 +697,13 @@ const PortalAdminProperties = () => {
       }),
     [filteredProperties]
   );
-  const sortedLandlords = useMemo(
-    () =>
-      [...landlords].sort((a, b) => {
-        const aFirst = String(a?.first_name ?? '').trim();
-        const aLast = String(a?.last_name ?? '').trim();
-        const bFirst = String(b?.first_name ?? '').trim();
-        const bLast = String(b?.last_name ?? '').trim();
-        const aName = `${aFirst} ${aLast}`.trim() || String(a?.email ?? '').trim();
-        const bName = `${bFirst} ${bLast}`.trim() || String(b?.email ?? '').trim();
-        return collator.compare(aName, bName);
-      }),
-    [landlords]
-  );
+
+  const gridEmptyMessage = useMemo(() => {
+    if (isAdmin && adminLandlordFilterId && sortedFilteredProperties.length === 0 && properties.length > 0) {
+      return t('portalAdminProperties.grid.emptyLandlordFilter');
+    }
+    return t('portalAdminProperties.grid.empty');
+  }, [sortedFilteredProperties.length, properties.length, isAdmin, adminLandlordFilterId, t]);
 
   return (
     <Box sx={{ py: 4 }}>
@@ -720,7 +742,10 @@ const PortalAdminProperties = () => {
             disabled={!canManage}
             onClick={() => {
               setEditingId(null);
-              const nextForm = { ...EMPTY_FORM };
+              const nextForm = {
+                ...EMPTY_FORM,
+                landlordUserId: isAdmin && adminLandlordFilterId ? adminLandlordFilterId : '',
+              };
               setForm(nextForm);
               setFieldErrors({});
               setHarSearchId('');
@@ -765,6 +790,29 @@ const PortalAdminProperties = () => {
               <MenuItem value="deleted">{t('portalAdminProperties.grid.visibilityFilterDeleted')}</MenuItem>
             ) : null}
           </TextField>
+          {isAdmin ? (
+            <TextField
+              select
+              label={t('portalAdminProperties.grid.landlordFilterLabel')}
+              value={adminLandlordFilterId}
+              onChange={(e) => setAdminLandlordFilterId(e.target.value)}
+              size="small"
+              sx={{ minWidth: 260 }}
+              disabled={landlordsStatus === 'loading'}
+              helperText={
+                landlordsStatus === 'error'
+                  ? t('portalAdminProperties.grid.landlordFilterLoadError')
+                  : ' '
+              }
+            >
+              <MenuItem value="">{t('portalAdminProperties.grid.landlordFilterAll')}</MenuItem>
+              {sortedLandlords.map((landlord) => (
+                <MenuItem key={landlord.id} value={landlord.id}>
+                  {landlordRowLabel(landlord)}
+                </MenuItem>
+              ))}
+            </TextField>
+          ) : null}
         </Box>
 
         {/* Properties Grid */}
@@ -796,7 +844,7 @@ const PortalAdminProperties = () => {
             </Box>
           ) : sortedFilteredProperties.length === 0 ? (
             <Typography variant="body2" color="text.secondary">
-              {t('portalAdminProperties.grid.empty')}
+              {gridEmptyMessage}
             </Typography>
           ) : (
             <Grid container spacing={2}>
@@ -937,16 +985,11 @@ const PortalAdminProperties = () => {
                     }
                   >
                     <MenuItem value="">{t('portalAdminProperties.form.landlordSelect')}</MenuItem>
-                    {sortedLandlords.map((landlord) => {
-                      const first = String(landlord.first_name ?? '').trim();
-                      const last = String(landlord.last_name ?? '').trim();
-                      const name = `${first} ${last}`.trim() || String(landlord.email ?? '').trim();
-                      return (
-                        <MenuItem key={landlord.id} value={landlord.id}>
-                          {name}
-                        </MenuItem>
-                      );
-                    })}
+                    {sortedLandlords.map((landlord) => (
+                      <MenuItem key={landlord.id} value={landlord.id}>
+                        {landlordRowLabel(landlord)}
+                      </MenuItem>
+                    ))}
                   </TextField>
                 </Grid>
               )}

@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import i18n from '../i18n';
 import PortalUserAvatar from './PortalUserAvatar';
@@ -63,5 +63,34 @@ describe('PortalUserAvatar', () => {
       'src',
       'https://idp.example/photo.png'
     );
+  });
+
+  it('does not call onProfilePhotoLoadError again when only the signed URL query changes', () => {
+    const onProfilePhotoLoadError = vi.fn();
+    const url1 = 'https://blob.example/container/a.jpg?sig=old';
+    const url2 = 'https://blob.example/container/a.jpg?sig=new';
+    const { rerender } = renderAvatar(
+      <PortalUserAvatar
+        firstName="Ada"
+        lastName="Lovelace"
+        meData={{ user: { profile_photo_url: url1 } }}
+        onProfilePhotoLoadError={onProfilePhotoLoadError}
+      />
+    );
+    fireEvent.error(screen.getByRole('presentation'));
+    expect(onProfilePhotoLoadError).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <ThemeProvider theme={theme}>
+        <PortalUserAvatar
+          firstName="Ada"
+          lastName="Lovelace"
+          meData={{ user: { profile_photo_url: url2 } }}
+          onProfilePhotoLoadError={onProfilePhotoLoadError}
+        />
+      </ThemeProvider>
+    );
+    fireEvent.error(screen.getByRole('presentation'));
+    expect(onProfilePhotoLoadError).toHaveBeenCalledTimes(1);
   });
 });

@@ -349,6 +349,45 @@ export async function listRequestsForManagement(client: Queryable): Promise<Requ
   return r.rows.map(mapRequestRow);
 }
 
+/** Landlord dashboard: requests whose property was created by this landlord user. */
+export async function listRequestsForLandlord(
+  client: Queryable,
+  landlordUserId: string
+): Promise<RequestRow[]> {
+  const r = await client.query<RequestRowQuery>(
+    `SELECT mr.id, mr.property_id, mr.lease_id, p.created_by AS landlord_user_id,
+            mr.submitted_by_user_id, mr.assigned_vendor_id,
+            mr.category_id, sc.code AS category_code, sc.name AS category_name,
+            mr.priority_id, rp.code AS priority_code, rp.name AS priority_name,
+            mr.current_status_id,
+            rs.code AS status_code, rs.name AS status_name,
+            mr.title, mr.description,
+            mr.internal_notes, mr.estimated_cost, mr.actual_cost, mr.scheduled_for,
+            mr.scheduled_from, mr.scheduled_to,
+            mr.vendor_contact_name, mr.vendor_contact_phone,
+            CASE
+              WHEN LTRIM(RTRIM(ISNULL(su.first_name, '') + ' ' + ISNULL(su.last_name, ''))) = '' THEN su.email
+              ELSE LTRIM(RTRIM(ISNULL(su.first_name, '') + ' ' + ISNULL(su.last_name, '')))
+            END AS submitted_by_display_name,
+            su.role AS submitted_by_role,
+            su.first_name AS submitted_by_first_name,
+            su.last_name AS submitted_by_last_name,
+            su.profile_photo_storage_path AS submitted_by_profile_photo_storage_path,
+            mr.emergency_disclaimer_acknowledged, mr.created_at, mr.updated_at,
+            mr.completed_at, mr.closed_at, mr.deleted_at
+     FROM maintenance_requests mr
+     INNER JOIN properties p ON p.id = mr.property_id AND p.created_by = $1
+     LEFT JOIN service_categories sc ON sc.id = mr.category_id
+     LEFT JOIN request_priorities rp ON rp.id = mr.priority_id
+     LEFT JOIN request_statuses rs ON rs.id = mr.current_status_id
+     LEFT JOIN users su ON su.id = mr.submitted_by_user_id
+     WHERE mr.deleted_at IS NULL
+     ORDER BY mr.updated_at DESC`,
+    [landlordUserId]
+  );
+  return r.rows.map(mapRequestRow);
+}
+
 export async function getRequestById(client: Queryable, id: string): Promise<RequestRow | null> {
   const r = await client.query<RequestRowQuery>(
     `SELECT mr.id, mr.property_id, mr.lease_id, mr.submitted_by_user_id, mr.assigned_vendor_id,
@@ -416,6 +455,32 @@ export async function landlordOwnsRequestProperty(
     [requestId, landlordUserId]
   );
   return r.rows.length > 0;
+}
+
+/**
+ * Whether a landlord or admin may access a maintenance request in management APIs.
+ * Admins may access any non-deleted request; landlords only their properties.
+ */
+export async function managementCanAccessRequest(
+  client: Queryable,
+  requestId: string,
+  actorRole: string,
+  actorUserId: string
+): Promise<boolean> {
+  const r = actorRole.trim().toUpperCase();
+  if (r === Role.ADMIN) {
+    const exists = await client.query<{ ok: number }>(
+      `SELECT TOP 1 1 AS ok
+       FROM maintenance_requests
+       WHERE id = $1 AND deleted_at IS NULL`,
+      [requestId]
+    );
+    return exists.rows.length > 0;
+  }
+  if (r === Role.LANDLORD) {
+    return landlordOwnsRequestProperty(client, requestId, actorUserId);
+  }
+  return false;
 }
 
 export async function insertMaintenanceRequest(

@@ -21,7 +21,19 @@
     "portal": "Portail",
     "portalMenu": "Menu portail",
     "legalMenu": "Menu des mentions légales",
-    "print": "Imprimer cette page"
+    "print": "Imprimer cette page",
+    "renters": "Locataires",
+    "rentersMenu": "Menu locataires",
+    "propertyManagement": "Gestion Immobilière",
+    "forLandlords": "Pour les Propriétaires",
+    "forLandlordsMenu": "Menu propriétaires",
+    "forPropertyManagers": "Pour les Gestionnaires",
+    "pricing": "Tarifs",
+    "getStarted": "Commencer",
+    "product": "Produit",
+    "productMenu": "Menu produit",
+    "resources": "Ressources",
+    "resourcesMenu": "Menu ressources"
   },
   "tenantLinks": {
     "apply": "Postuler",
@@ -57,19 +69,28 @@
     "highlight2Detail": "Candidatures, loyer et entretien en un seul flux",
     "highlight3Label": "Une communication qui tient",
     "highlight3Detail": "Moins d'écarts, des prochaines étapes plus claires",
-    "audienceLabel": "Choisissez locataires ou propriétaires",
+    "audienceLabel": "Qui êtes-vous ?",
     "rentersTitle": "Locataires",
-    "rentersBody": "Vous cherchez une location à Houston ? Nous gardons le chemin honnête : ce dont vous avez besoin pour postuler, à quoi s'attendre, et des personnes qui répondent au téléphone.",
-    "rentersBullet1": "Étapes de candidature simplifiées et guide des documents requis",
-    "rentersBullet2": "Esprit de listes locales — nous connaissons les rythmes de ce marché",
-    "rentersBullet3": "Respect de votre temps : moins de surprises, prochaines étapes plus claires",
+    "rentersBody": "Vous cherchez un logement à Houston ? Parcourez les biens disponibles, consultez les critères de sélection et postulez en ligne.",
+    "rentersBullet1": "Étapes de candidature disponibles en ligne — sans appel téléphonique",
+    "rentersBullet2": "Les critères de sélection sont clairs et publiés",
+    "rentersBullet3": "Portail locataire pour la maintenance après emménagement",
     "rentersCta": "Commencer votre candidature",
     "ownersTitle": "Propriétaires",
-    "ownersBody": "Confiez-nous les tâches fastidieuses. Nous commercialisons les vacances, sélectionnons les locataires, coordonnons les réparations et rendons compte pour que vous puissiez vous concentrer sur la vue d'ensemble.",
-    "ownersBullet1": "Gestion immobilière complète adaptée à vos objectifs",
-    "ownersBullet2": "Coordination de l'entretien et relations avec les fournisseurs",
-    "ownersBullet3": "Communication régulière — vous ne devinez jamais ce qui se passe",
-    "ownersCta": "Explorer la gestion immobilière"
+    "ownersBody": "Vous possédez un bien locatif à Houston ? Nous nous occupons du marketing, de la sélection des locataires, de la maintenance et de la collecte des loyers.",
+    "ownersBullet1": "Agent immobilier agréé et gestionnaire de biens à Houston",
+    "ownersBullet2": "Service complet : de la vacance au renouvellement du bail",
+    "ownersBullet3": "Communication transparente et rapports réguliers",
+    "ownersCta": "Découvrir nos services",
+    "heroHeadingNew": "Gestion Immobilière à Houston. Autogestion Partout.",
+    "heroSubtitleNew": "Trouvez un logement en location à Houston ou confiez-nous la gestion complète de votre investissement — ou utilisez notre portail pour gérer vos propres locations depuis n'importe où aux États-Unis.",
+    "selfManagersTitle": "Propriétaires Indépendants",
+    "selfManagersBody": "Vous gérez vos propres locations ? Utilisez notre portail pour offrir à vos locataires une expérience professionnelle — demandes de maintenance, messagerie et notifications au même endroit.",
+    "selfManagersBullet1": "Portail locataire avec suivi des demandes de maintenance",
+    "selfManagersBullet2": "Elsa — assistante IA qui trie et répond automatiquement aux demandes de maintenance",
+    "selfManagersBullet3": "Gratuit pour commencer, avec des niveaux d'abonnement disponibles",
+    "selfManagersCta": "Voir les tarifs et fonctionnalités",
+    "featuredBadge": "Nouveau • En vedette"
   },
   "apply": {
     "title": "Carwoods - Comment postuler",
@@ -104,7 +125,38 @@
     "para1Suffix": "Elle explique l'éligibilité, la documentation requise et comment soumettre via le canal de listing. Suivre d'abord ce flux de travail nous permet de vous assister efficacement et systématiquement.",
     "para2": "Si vous avez déjà suivi ces étapes, ou si vous avez une question qui ne peut pas y être traitée — comme les services de gestion immobilière ou un autre sujet qui nécessite un contact direct — veuillez contacter notre agent agréé sur HAR.com (Houston Association of Realtors). Nous encourageons l'utilisation de ce canal lorsque les options en libre-service ne sont pas suffisantes.",
     "ctaButton": "Contacter notre agent sur HAR.com",
-    "ctaAriaLabel": "Contacter notre agent sur HAR.com (s'ouvre dans un nouvel onglet)"
+    "ctaAriaLabel": "Contacter notre agent sur HAR.com (s'ouvre dans un nouvel onglet)",
+    "intro": "Vous avez une question ? Remplissez le formulaire ci-dessous et notre équipe vous répondra dans un jour ouvrable.",
+    "dbaNote": "Carwoods est un nom commercial d'Alzoubi Motors LLC, une société à responsabilité limitée du Texas.",
+    "nameLabel": "Votre nom",
+    "emailLabel": "Adresse e-mail",
+    "phoneLabel": "Numéro de téléphone (facultatif)",
+    "subjectLabel": "Sujet",
+    "messageLabel": "Message",
+    "submitButton": "Envoyer le message",
+    "submitting": "Envoi en cours…",
+    "successHeading": "Message envoyé",
+    "successBody": "Merci ! Nous vous contacterons dans un jour ouvrable.",
+    "recaptchaError": "Échec de la vérification de sécurité. Veuillez réessayer.",
+    "recaptchaRequired": "La vérification de sécurité n’a pas abouti. Actualisez la page et réessayez.",
+    "errorBody": "Une erreur s'est produite. Veuillez réessayer ou nous envoyer un e-mail à support@carwoods.com.",
+    "nameRequired": "Le nom est obligatoire",
+    "emailInvalid": "Veuillez saisir une adresse e-mail valide",
+    "messageRequired": "Le message est obligatoire",
+    "harIntro": "Pour les informations de courtage conformément à la loi du Texas :",
+    "harLinkText": "Informations de Courtage HAR",
+    "harAriaLabel": "Voir les informations de courtage HAR (s'ouvre dans un nouvel onglet)",
+    "recaptchaDisclaimer": "Ce formulaire est protégé par reCAPTCHA. La",
+    "recaptchaPrivacy": "Politique de Confidentialité",
+    "recaptchaAnd": "et les",
+    "recaptchaTerms": "Conditions d'utilisation",
+    "recaptchaApply": "de Google s'appliquent.",
+    "subjects": {
+      "general": "Demande générale",
+      "renter": "Locataire / Candidat",
+      "propertyOwner": "Propriétaire",
+      "portalSaas": "Portail / SaaS"
+    }
   },
   "privacy": {
     "title": "Carwoods - Politique de confidentialité",
@@ -152,7 +204,11 @@
     "contactBody": "Si vous avez des questions sur ces Conditions, veuillez nous contacter via notre page",
     "contactLink": "Contactez-nous",
     "contactBodySuffix": "",
-    "lastUpdated": "Dernière mise à jour : avril 2026"
+    "lastUpdated": "Dernière mise à jour : avril 2025",
+    "portalServicesHeading": "Services de Portail et d'Abonnement",
+    "portalServicesBody": "Le portail Carwoods est proposé comme service logiciel par abonnement pour les gestionnaires immobiliers et les propriétaires indépendants. Un niveau gratuit avec des fonctionnalités limitées est disponible. Les niveaux payants sont en développement. L'accès au portail ne garantit pas un niveau de service, une disponibilité ou des fonctionnalités spécifiques.",
+    "tenantDataHeading": "Données des Locataires",
+    "tenantDataBody": "Les gestionnaires qui utilisent le portail Carwoods invitent et gèrent leurs propres locataires. Le gestionnaire, et non Carwoods, est le responsable du traitement des données personnelles de ses locataires au sein du portail. Les gestionnaires sont responsables d'obtenir le consentement approprié de leurs locataires."
   },
   "accessibility": {
     "title": "Carwoods - Déclaration d'accessibilité",
@@ -177,10 +233,22 @@
     "privacyPolicyAriaLabel": "Politique de confidentialité",
     "termsOfUse": "Conditions d'utilisation",
     "termsOfUseAriaLabel": "Conditions d'utilisation",
+    "accessibility": "Accessibilité",
+    "accessibilityAriaLabel": "Accessibilité",
     "trecNotice": "Avis de protection du consommateur de la Commission immobilière du Texas",
     "trecNoticeAriaLabel": "Avis de protection du consommateur de la Commission immobilière du Texas (s'ouvre dans un nouvel onglet)",
     "trecBrokerage": "Informations de la Commission immobilière du Texas sur les services de courtage",
-    "trecBrokerageAriaLabel": "Informations de la Commission immobilière du Texas sur les services de courtage (s'ouvre dans un nouvel onglet)"
+    "trecBrokerageAriaLabel": "Informations de la Commission immobilière du Texas sur les services de courtage (s'ouvre dans un nouvel onglet)",
+    "pricing": "Tarifs",
+    "pricingAriaLabel": "Plans tarifaires",
+    "features": "Fonctionnalités",
+    "featuresAriaLabel": "Fonctionnalités du produit",
+    "forPropertyManagers": "Pour les Gestionnaires",
+    "forPropertyManagersAriaLabel": "Pour les gestionnaires immobiliers",
+    "apply": "Postuler",
+    "applyAriaLabel": "Postuler pour une location",
+    "propertyManagement": "Gestion Immobilière",
+    "propertyManagementAriaLabel": "Services de gestion immobilière"
   },
   "applyFlowSubnav": {
     "label": "Navigation du processus de candidature",
@@ -254,7 +322,26 @@
     "s11Heading": "11. Droit applicable",
     "s11Body": "Le présent Accord sera régi et interprété conformément aux lois de l'État du TEXAS.",
     "s12Heading": "12. Accord complet",
-    "s12Body": "Le présent Accord constitue l'accord complet entre les parties et remplace tous les accords ou ententes antérieurs, qu'ils soient écrits ou oraux, relatifs à l'objet des présentes."
+    "s12Body": "Le présent Accord constitue l'accord complet entre les parties et remplace tous les accords ou ententes antérieurs, qu'ils soient écrits ou oraux, relatifs à l'objet des présentes.",
+    "heroSubtitle": "Agent immobilier agréé et gestionnaire de biens à Houston. Nous commercialisons les vacances, sélectionnons les locataires, coordonnons les réparations et vous faisons des rapports.",
+    "heroBenefit1": "Marketing complet et sélection des locataires dès le premier jour",
+    "heroBenefit2": "Coordination de la maintenance avec des prestataires de confiance",
+    "heroBenefit3": "Rapports transparents et communication régulière",
+    "heroCtaButton": "Nous contacter",
+    "heroCtaAriaLabel": "Contacter Carwoods pour les services de gestion immobilière",
+    "servicesHeading": "Ce que nous gérons pour vous",
+    "service1Heading": "Location et Marketing",
+    "service1Body": "Nous référençons votre bien sur les MLS et les grandes plateformes, qualifions les candidats et gérons tout le processus de location.",
+    "service2Heading": "Sélection des Locataires",
+    "service2Body": "Vérification des antécédents, du crédit, des revenus et de l'historique locatif — appliquée de manière cohérente.",
+    "service3Heading": "Coordination de la Maintenance",
+    "service3Body": "Les locataires soumettent des demandes via le portail. Nous les trions, envoyons des prestataires de confiance et vous tenons informé.",
+    "service4Heading": "Collecte de Loyer et Rapports",
+    "service4Body": "Collecte en ligne, relevés mensuels et rapports annuels pour que vous sachiez toujours où en est votre investissement.",
+    "whyCarwoodsHeading": "Pourquoi Carwoods ?",
+    "whyCarwoodsBody": "Dennis Alzoubi est agent immobilier et gestionnaire de biens agréé au Texas, basé à Houston. Carwoods combine expertise locale et logiciels modernes.",
+    "ctaSectionHeading": "Prêt à commencer ?",
+    "ctaSectionBody": "Parlez-nous de votre bien et nous vous ferons un suivi avec les prochaines étapes."
   },
   "tenantCriteria": {
     "title": "Carwoods - Critères de sélection des locataires",
@@ -588,56 +675,128 @@
       "employment": {
         "question": "Quel est votre statut d'emploi ?",
         "options": {
-          "employed": { "label": "Employé", "desc": "Travaillant pour un employeur (W-2)" },
-          "selfEmployed": { "label": "Travailleur indépendant", "desc": "Possède une entreprise ou travaille comme contractant" },
-          "both": { "label": "Les deux", "desc": "Employé et également travailleur indépendant" },
-          "notEmployed": { "label": "Sans emploi actuellement", "desc": "Retraité, étudiant ou autre" }
+          "employed": {
+            "label": "Employé",
+            "desc": "Travaillant pour un employeur (W-2)"
+          },
+          "selfEmployed": {
+            "label": "Travailleur indépendant",
+            "desc": "Possède une entreprise ou travaille comme contractant"
+          },
+          "both": {
+            "label": "Les deux",
+            "desc": "Employé et également travailleur indépendant"
+          },
+          "notEmployed": {
+            "label": "Sans emploi actuellement",
+            "desc": "Retraité, étudiant ou autre"
+          }
         }
       },
       "hasPets": {
         "question": "Avez-vous des animaux de compagnie ou des animaux ?",
         "options": {
-          "none": { "label": "Pas d'animaux", "desc": "" },
-          "pets": { "label": "Oui — animal(aux)", "desc": "Chats, chiens ou autres animaux domestiques" },
-          "service": { "label": "Oui — animal d'assistance", "desc": "Dressé pour effectuer des tâches liées à un handicap" },
-          "esa": { "label": "Oui — ESA ou animal de soutien", "desc": "Animal de soutien émotionnel ou autre animal d'assistance" }
+          "none": {
+            "label": "Pas d'animaux",
+            "desc": ""
+          },
+          "pets": {
+            "label": "Oui — animal(aux)",
+            "desc": "Chats, chiens ou autres animaux domestiques"
+          },
+          "service": {
+            "label": "Oui — animal d'assistance",
+            "desc": "Dressé pour effectuer des tâches liées à un handicap"
+          },
+          "esa": {
+            "label": "Oui — ESA ou animal de soutien",
+            "desc": "Animal de soutien émotionnel ou autre animal d'assistance"
+          }
         }
       },
       "benefits": {
         "question": "Recevez-vous des prestations gouvernementales ou autres ?",
         "hint": "Sélectionnez tout ce qui s'applique",
         "options": {
-          "none": { "label": "Aucune", "desc": "" },
-          "va": { "label": "Prestations VA", "desc": "Prestations des Affaires des anciens combattants" },
-          "ssaSsi": { "label": "Sécurité sociale (SSA / SSI)", "desc": "" },
-          "ssdi": { "label": "SSDI", "desc": "Assurance invalidité de la Sécurité sociale" },
-          "retirement": { "label": "Retraite / Pension", "desc": "" },
-          "childSupport": { "label": "Pension alimentaire ou maintien conjugal", "desc": "" },
-          "otherBenefits": { "label": "Autres prestations", "desc": "Toute autre prestation gouvernementale ou d'agence" }
+          "none": {
+            "label": "Aucune",
+            "desc": ""
+          },
+          "va": {
+            "label": "Prestations VA",
+            "desc": "Prestations des Affaires des anciens combattants"
+          },
+          "ssaSsi": {
+            "label": "Sécurité sociale (SSA / SSI)",
+            "desc": ""
+          },
+          "ssdi": {
+            "label": "SSDI",
+            "desc": "Assurance invalidité de la Sécurité sociale"
+          },
+          "retirement": {
+            "label": "Retraite / Pension",
+            "desc": ""
+          },
+          "childSupport": {
+            "label": "Pension alimentaire ou maintien conjugal",
+            "desc": ""
+          },
+          "otherBenefits": {
+            "label": "Autres prestations",
+            "desc": "Toute autre prestation gouvernementale ou d'agence"
+          }
         }
       },
       "section8": {
         "question": "Postulez-vous avec une aide au logement (Section 8 ou similaire) ?",
         "options": {
-          "no": { "label": "Non", "desc": "" },
-          "yes": { "label": "Oui", "desc": "J'ai un bon de choix de logement ou similaire" }
+          "no": {
+            "label": "Non",
+            "desc": ""
+          },
+          "yes": {
+            "label": "Oui",
+            "desc": "J'ai un bon de choix de logement ou similaire"
+          }
         }
       },
       "guarantorCosigner": {
         "question": "Aurez-vous besoin d'un garant ou d'un co-signataire ?",
         "options": {
-          "neither": { "label": "Aucun", "desc": "" },
-          "guarantor": { "label": "Garant", "desc": "Signe un accord de garantie séparé" },
-          "cosigner": { "label": "Co-signataire", "desc": "Signe le bail en tant que co-locataire" },
-          "notSure": { "label": "Pas sûr", "desc": "Je pourrais en avoir besoin mais je ne suis pas certain" }
+          "neither": {
+            "label": "Aucun",
+            "desc": ""
+          },
+          "guarantor": {
+            "label": "Garant",
+            "desc": "Signe un accord de garantie séparé"
+          },
+          "cosigner": {
+            "label": "Co-signataire",
+            "desc": "Signe le bail en tant que co-locataire"
+          },
+          "notSure": {
+            "label": "Pas sûr",
+            "desc": "Je pourrais en avoir besoin mais je ne suis pas certain"
+          }
         }
       },
       "creditScore": {
         "question": "Connaissez-vous votre score de crédit approximatif ?",
         "options": {
-          "unknown": { "label": "Je ne sais pas", "desc": "" },
-          "above650": { "label": "650 ou plus", "desc": "Répond à l'exigence minimale de crédit" },
-          "below650": { "label": "Inférieur à 650", "desc": "En dessous du minimum standard" }
+          "unknown": {
+            "label": "Je ne sais pas",
+            "desc": ""
+          },
+          "above650": {
+            "label": "650 ou plus",
+            "desc": "Répond à l'exigence minimale de crédit"
+          },
+          "below650": {
+            "label": "Inférieur à 650",
+            "desc": "En dessous du minimum standard"
+          }
         }
       }
     }
@@ -1253,7 +1412,8 @@
       "landlordSaved": "Propriétaire enregistré avec succès.",
       "landlordUpdated": "Propriétaire mis à jour avec succès.",
       "deactivated": "Propriétaire désactivé.",
-      "reactivated": "Propriétaire réactivé."
+      "reactivated": "Propriétaire réactivé.",
+      "tierUpdated": "Formule d'abonnement mise à jour."
     },
     "list": {
       "heading": "Propriétaires",
@@ -1262,14 +1422,24 @@
       "loading": "Chargement des propriétaires…",
       "empty": "Aucun propriétaire trouvé.",
       "name": "Nom",
-      "status": "Statut utilisateur"
+      "status": "Statut utilisateur",
+      "tier": "Formule",
+      "tierNone": "Non attribuée",
+      "tierChipAria": "Formule d'abonnement : {{tier}}"
     },
     "actions": {
       "edit": "Modifier",
       "saveChanges": "Enregistrer les modifications",
       "deactivate": "Désactiver",
       "reactivate": "Réactiver",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "changeTier": "Modifier la formule d'abonnement"
+    },
+    "tierDialog": {
+      "title": "Formule d'abonnement pour {{name}}",
+      "selectLabel": "Formule",
+      "save": "Enregistrer la formule",
+      "loadingTiers": "Chargement des formules…"
     },
     "confirmDeactivate": {
       "title": "Désactiver le propriétaire ?",
@@ -1289,7 +1459,10 @@
       "emailRequired": "L'e-mail est obligatoire.",
       "emailInvalid": "Saisissez une adresse e-mail valide.",
       "firstNameRequired": "Le prénom est obligatoire.",
-      "lastNameRequired": "Le nom est obligatoire."
+      "lastNameRequired": "Le nom est obligatoire.",
+      "tierListFailed": "Impossible de charger les formules d'abonnement.",
+      "tierSaveFailed": "Impossible de mettre à jour la formule d'abonnement.",
+      "tierPickRequired": "Choisissez une formule avant d'enregistrer."
     }
   },
   "portalAdminConfigurations": {
@@ -1504,6 +1677,10 @@
       "visibilityFilterVisible": "Visibles",
       "visibilityFilterHidden": "Non visibles",
       "visibilityFilterDeleted": "Supprimées uniquement",
+      "landlordFilterLabel": "Filtrer par propriétaire",
+      "landlordFilterAll": "Tous les propriétaires",
+      "landlordFilterLoadError": "Impossible de charger les propriétaires.",
+      "emptyLandlordFilter": "Aucune propriété ne correspond à ce propriétaire et aux filtres actuels.",
       "editButton": "Modifier",
       "deleteButton": "Supprimer",
       "syncHarButton": "Synchroniser avec HAR",
@@ -1562,7 +1739,8 @@
       "home": "Accueil du portail",
       "requests": "Demandes",
       "profile": "Profil",
-      "adminLandlords": "Admin : Propriétaires"
+      "adminLandlords": "Admin : Propriétaires",
+      "goToPortal": "Accéder au Portail"
     },
     "status": {
       "signedIn": "Connecté",
@@ -1644,7 +1822,8 @@
       "viewProfile": "Modifier le profil",
       "exportCsv": "Exporter CSV",
       "manageLandlords": "Gérer les propriétaires",
-      "manageProperties": "Gérer les propriétés"
+      "manageProperties": "Gérer les propriétés",
+      "manageTenants": "Gérer les locataires"
     },
     "recentRequests": {
       "heading": "Demandes récentes",
@@ -1657,7 +1836,22 @@
     "actions": {
       "refresh": "Actualiser"
     },
-    "accessDenied": "Vous n'avez pas la permission d'accéder à cette page."
+    "accessDenied": "Vous n'avez pas la permission d'accéder à cette page.",
+    "onboarding": {
+      "heading": "Commencez avec Carwoods",
+      "subheading": "Complétez ces étapes pour configurer votre portail de gestion immobilière.",
+      "dismiss": "Ignorer",
+      "dismissAriaLabel": "Ignorer la liste de configuration",
+      "step1Label": "Ajoutez votre première propriété",
+      "step1Desc": "Créez une annonce immobilière et ajoutez des photos.",
+      "step1Action": "Aller aux Propriétés",
+      "step2Label": "Invitez votre premier locataire",
+      "step2Desc": "Envoyez un lien d'invitation pour connecter un locataire à son bail.",
+      "step2Action": "Aller aux Locataires",
+      "step3Label": "Configurez vos paramètres",
+      "step3Desc": "Configurez le routage IA, les notifications et les préférences du portail.",
+      "step3Action": "Aller aux Paramètres"
+    }
   },
   "portalLoading": {
     "ariaLabel": "Chargement du portail"
@@ -1665,7 +1859,7 @@
   "portalLogin": {
     "title": "Carwoods - Portail Immobilier",
     "metaDescription": "Connectez-vous au portail immobilier Carwoods.",
-    "heading": "Portail Immobilier",
+    "heading": "Connexion ou inscription",
     "subtitle": "Gérez les demandes de maintenance, paiements, candidatures et communiquez avec votre équipe de gestion.",
     "features": {
       "requests": "Soumettez et suivez les demandes de maintenance",
@@ -1721,6 +1915,7 @@
       "firstName": "Prénom",
       "lastName": "Nom de famille",
       "phone": "Téléphone (facultatif)",
+      "landlord": "Propriétaire",
       "selectLandlord": "Sélectionner un propriétaire",
       "selectProperty": "Sélectionner une propriété",
       "startDate": "Date de début du bail",
@@ -1825,5 +2020,143 @@
   "languagePreference": {
     "useBrowserLanguage": "Utiliser la langue du navigateur",
     "browserLanguageHint": "Votre choix est enregistré dans ce navigateur. La réinitialisation efface le remplacement et suit à nouveau la langue du navigateur (anglais si non prise en charge)."
+  },
+  "pricing": {
+    "title": "Carwoods — Tarifs",
+    "metaDescription": "Tarification simple et transparente pour les gestionnaires immobiliers.",
+    "heading": "Tarification Simple et Transparente",
+    "subheading": "Commencez gratuitement. Évoluez quand vous êtes prêt. Sans contrats, sans surprises.",
+    "freeTierLabel": "Gratuit",
+    "freeTierTagline": "Démarrez sans frais",
+    "freeTierPrice": "0 €",
+    "freeTierPricePeriod": "pour toujours",
+    "freeTierCta": "Commencer Gratuitement",
+    "freeTierCtaAria": "Commencer avec le plan gratuit",
+    "starterTierLabel": "Payez en Grandissant",
+    "starterTierLabelShort": "Payez en Grandissant",
+    "starterTierTagline": "Pour les propriétaires indépendants et autogérés",
+    "starterTierPrice": "Bientôt disponible",
+    "starterTierPricePeriod": "· par bien / mois",
+    "starterTierCta": "Rejoindre la Liste d'attente",
+    "starterTierCtaAria": "Rejoindre la liste d'attente du plan Payez en Grandissant",
+    "proTierLabel": "Pro",
+    "proTierTagline": "Pour les équipes de gestion immobilière",
+    "proTierPrice": "Bientôt disponible",
+    "proTierPricePeriod": "· tarif mensuel fixe",
+    "proTierCta": "Rejoindre la Liste d'attente",
+    "proTierCtaAria": "Rejoindre la liste d'attente du plan Pro",
+    "featureTableHeading": "Comparer les plans",
+    "featureProperties": "Propriétés",
+    "featurePropertiesFree": "1 propriété",
+    "featurePropertiesStarter": "Illimitées — payez par bien",
+    "featurePropertiesPro": "Illimitées — accès équipe inclus",
+    "featureTenantPortal": "Accès au portail locataire",
+    "featureMaintenanceRequests": "Demandes de maintenance",
+    "featureNotifications": "Notifications in-app et e-mail",
+    "featureSms": "Notifications SMS",
+    "featureAiRouting": "Routage IA de la maintenance",
+    "featureDocStorage": "Stockage de documents",
+    "featureReports": "Rapports et exports",
+    "featureWhiteLabel": "Marque personnalisée",
+    "featurePrioritySupport": "Support prioritaire",
+    "faqHeading": "Foire aux questions",
+    "faq1Question": "Mes locataires paient-ils quelque chose ?",
+    "faq1Answer": "Non. Les locataires accèdent au portail gratuitement. Seuls les gestionnaires paient un abonnement.",
+    "faq2Question": "Puis-je inviter mes locataires existants ?",
+    "faq2Answer": "Oui. Une fois que vous ajoutez un bien, vous pouvez inviter des locataires par e-mail.",
+    "faq3Question": "Que se passe-t-il après la bêta gratuite ?",
+    "faq3Answer": "Les comptes gratuits resteront sur le niveau gratuit avec 1 propriété.",
+    "faq4Question": "Y a-t-il un contrat ou un engagement de paiement anticipé ?",
+    "faq4Answer": "Non. Pas de contrats, pas d'engagements. Les plans payants seront mensuels au lancement.",
+    "faq5Question": "Comment fonctionne la facturation 'Payez en Grandissant' ?",
+    "faq5Answer": "Vous payez un tarif fixe pour chaque bien géré — ajoutez des biens et votre facture évolue avec vous. Il n'y a pas de limite au nombre de biens.",
+    "featureTeamAccess": "Comptes membres d'équipe",
+    "featureTeamAccessFree": "—",
+    "featureTeamAccessStarter": "—",
+    "featureTeamAccessPro": "Inclus",
+    "comingSoonBadge": "Bientôt Disponible"
+  },
+  "features": {
+    "title": "Carwoods — Fonctionnalités",
+    "metaDescription": "Tout ce dont les gestionnaires immobiliers ont besoin en un seul portail : propriétés, locataires, demandes de maintenance, notifications et routage par IA.",
+    "heading": "Tout ce dont Vous Avez Besoin pour Gérer Votre Portefeuille",
+    "subheading": "Conçu pour les gestionnaires immobiliers qui travaillent au quotidien. Chaque fonctionnalité du portail correspond à quelque chose que vous faites chaque jour.",
+    "dashboardFeatureHeading": "Tableau de Bord",
+    "dashboardFeatureBody": "Consultez toutes les demandes de maintenance ouvertes, en cours et résolues en un coup d'œil. Une vue pour l'ensemble de votre portefeuille.",
+    "propertiesFeatureHeading": "Propriétés",
+    "propertiesFeatureBody": "Ajoutez et gérez vos propriétés locatives avec des photos, des détails d'annonce et la synchronisation HAR.com. Organisez tout par unité.",
+    "tenantsFeatureHeading": "Gestion des Locataires",
+    "tenantsFeatureBody": "Invitez des locataires par e-mail, suivez les baux actifs et contrôlez l'accès au portail, le tout depuis un seul registre de locataires.",
+    "requestsFeatureHeading": "Demandes de Maintenance",
+    "requestsFeatureBody": "Les locataires soumettent des demandes via le portail. Vous suivez le statut, envoyez des messages, joignez des photos et assignez des prestataires, le tout dans un seul fil.",
+    "notificationsFeatureHeading": "Notifications",
+    "notificationsFeatureBody": "Les notifications dans l'application, par e-mail et SMS vous tiennent informés, vous et vos locataires, à chaque étape d'une demande.",
+    "aiFeatureHeading": "Configuration IA (ELSA)",
+    "aiFeatureBody": "Configurez ELSA, l'assistant de maintenance IA, pour trier et router automatiquement les demandes selon la catégorie, la priorité et vos préférences.",
+    "elsaPhotoAlt": "Elsa, Assistante IA de Carwoods",
+    "elsaSectionHeading": "Rencontrez Elsa, Votre Assistante IA Immobilière",
+    "elsaGrowingChip": "Toujours en évolution",
+    "elsaIntro": "Elsa examine chaque demande de maintenance entrante et décide de la meilleure étape suivante — demander plus d'informations, envoyer des conseils de dépannage, ou escalader vers un prestataire. Elle travaille discrètement en arrière-plan pour que vous n'ayez pas à le faire.",
+    "elsaCapability1": "Examine et classe chaque demande de maintenance",
+    "elsaCapability2": "Répond automatiquement aux locataires avec des étapes de dépannage sûres",
+    "elsaCapability3": "Détecte les urgences et vous alerte immédiatement",
+    "elsaCapability4": "Résume les fils de demandes pour un contexte rapide",
+    "elsaCapability5": "Suggère l'envoi d'un prestataire en cas d'escalade nécessaire",
+    "elsaCapability6": "Entièrement configurable par bien, catégorie et priorité",
+    "elsaGrowingNote": "Les capacités d'Elsa évoluent continuellement avec de nouvelles fonctionnalités — plus d'automatisation, un routage plus intelligent et des intégrations plus profondes sont en préparation.",
+    "requestStatusesHeading": "Statuts des demandes en un coup d'œil",
+    "statusOpen": "Ouverte",
+    "statusAcknowledged": "Reçue",
+    "statusScheduled": "Planifiée",
+    "statusWaitingVendor": "En attente du prestataire",
+    "statusWaitingTenant": "En attente du locataire",
+    "statusComplete": "Complétée",
+    "compareHeading": "Ce que reçoit le gestionnaire. Ce que reçoit le locataire.",
+    "managerGets1": "Gestion complète des propriétés et locataires",
+    "managerGets2": "Routage de maintenance assisté par IA",
+    "managerGets3": "Export CSV et rapports",
+    "managerGets4": "Contrôles de politique de notifications",
+    "managerGets5": "Gestion des baux et documents",
+    "tenantGets1": "Soumettre des demandes de maintenance",
+    "tenantGets2": "Messagerie directe avec le gestionnaire",
+    "tenantGets3": "Mises à jour du statut de la demande",
+    "tenantGets4": "Alertes par e-mail, dans l'application et SMS",
+    "tenantGets5": "Préférences de profil et de notifications",
+    "ctaHeading": "Prêt à commencer ?",
+    "ctaBody": "Inscrivez-vous gratuitement et ajoutez votre première propriété aujourd'hui.",
+    "ctaButton": "Voir les tarifs",
+    "ctaButtonAria": "Voir les plans tarifaires"
+  },
+  "forPropertyManagers": {
+    "title": "Carwoods — Pour les Gestionnaires Immobiliers",
+    "metaDescription": "Carwoods est conçu pour les gestionnaires immobiliers qui souhaitent arrêter de gérer par SMS et offrir aux locataires un vrai portail.",
+    "heading": "Vous Gérez les Biens. Nous Gérons le Logiciel.",
+    "subheading": "Conçu pour les gestionnaires immobiliers qui veulent un système professionnel et centralisé, sans le prix exorbitant des solutions d'entreprise.",
+    "problemHeading": "Cela vous semble familier ?",
+    "problem1": "Les demandes de maintenance arrivent par SMS, appel et e-mail, dispersées dans trois boîtes de réception",
+    "problem2": "Les locataires ne savent pas ce qui se passe avec leur demande après l'avoir signalée",
+    "problem3": "Vous suivez les dates de bail dans un tableur et récupérez les documents à la main",
+    "problem4": "Rien n'est centralisé, donc les transferts aux prestataires et les relances tombent à l'eau",
+    "solutionHeading": "Un portail. Chaque conversation. Chaque propriété.",
+    "solution1Heading": "Ajoutez vos propriétés",
+    "solution1Body": "Créez votre portefeuille immobilier en quelques minutes. Ajoutez des photos, connectez des annonces HAR et organisez par unité.",
+    "solution2Heading": "Invitez vos locataires",
+    "solution2Body": "Envoyez aux locataires un lien d'invitation. Ils créent un compte et se connectent directement à leur bail, sans configuration manuelle.",
+    "solution3Heading": "Les locataires soumettent des demandes",
+    "solution3Body": "Les locataires enregistrent des demandes de maintenance via le portail. Vous les voyez instantanément, catégorisées et hiérarchisées.",
+    "solution4Heading": "Suivre et résoudre",
+    "solution4Body": "Mettez à jour le statut, envoyez des messages aux locataires, joignez des photos et assignez des prestataires, le tout dans le même fil de demande.",
+    "workflowLabel": "Comment ça marche",
+    "elsaSectionHeading": "Elsa Gère la Routine. Vous Vous Concentrez sur l'Essentiel.",
+    "elsaBody": "Chaque demande de maintenance est examinée par Elsa, votre assistante IA intégrée. Elle trie le problème, décide de dépanner ou d'escalader, et tient les locataires informés — sans que vous ayez à lever le petit doigt.",
+    "testimonialsHeading": "Ce que disent les gestionnaires",
+    "testimonial1Quote": "Le portail se paye lui-même avec le temps que j'économise à ne pas répondre aux mêmes SMS de mise à jour de maintenance chaque semaine.",
+    "testimonial1Author": "Propriétaire, 6 unités à Houston",
+    "testimonial2Quote": "Mes locataires l'utilisent vraiment et aiment ça. Rien que ça, ça vaut le coup.",
+    "testimonial2Author": "Gestionnaire immobilier, 12 unités",
+    "ctaHeading": "Commencez à gérer plus intelligemment.",
+    "ctaBody": "Gratuit pour votre première propriété. Aucune carte de crédit requise.",
+    "ctaButton": "Voir les tarifs et les plans",
+    "ctaButtonAria": "Voir les plans tarifaires pour les gestionnaires immobiliers"
   }
 }

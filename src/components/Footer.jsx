@@ -58,12 +58,36 @@ const Footer = () => {
     return (
         <FooterContainer>
             <p>{t('footer.copyright')}</p>
+            <FooterInternalLink to={withDarkPath(pathname, '/apply')} aria-label={t('footer.applyAriaLabel')}>
+                {t('footer.apply')}
+            </FooterInternalLink>
+            <FooterSeparator aria-hidden="true">|</FooterSeparator>
+            <FooterInternalLink to={withDarkPath(pathname, '/property-management')} aria-label={t('footer.propertyManagementAriaLabel')}>
+                {t('footer.propertyManagement')}
+            </FooterInternalLink>
+            <FooterSeparator aria-hidden="true">|</FooterSeparator>
+            <FooterInternalLink to={withDarkPath(pathname, '/pricing')} aria-label={t('footer.pricingAriaLabel')}>
+                {t('footer.pricing')}
+            </FooterInternalLink>
+            <FooterSeparator aria-hidden="true">|</FooterSeparator>
+            <FooterInternalLink to={withDarkPath(pathname, '/features')} aria-label={t('footer.featuresAriaLabel')}>
+                {t('footer.features')}
+            </FooterInternalLink>
+            <FooterSeparator aria-hidden="true">|</FooterSeparator>
+            <FooterInternalLink to={withDarkPath(pathname, '/for-property-managers')} aria-label={t('footer.forPropertyManagersAriaLabel')}>
+                {t('footer.forPropertyManagers')}
+            </FooterInternalLink>
+            <FooterSeparator aria-hidden="true">|</FooterSeparator>
             <FooterInternalLink to={withDarkPath(pathname, '/privacy')} aria-label={t('footer.privacyPolicyAriaLabel')}>
                 {t('footer.privacyPolicy')}
             </FooterInternalLink>
             <FooterSeparator aria-hidden="true">|</FooterSeparator>
             <FooterInternalLink to={withDarkPath(pathname, '/terms-of-service')} aria-label={t('footer.termsOfUseAriaLabel')}>
                 {t('footer.termsOfUse')}
+            </FooterInternalLink>
+            <FooterSeparator aria-hidden="true">|</FooterSeparator>
+            <FooterInternalLink to={withDarkPath(pathname, '/accessibility')} aria-label={t('footer.accessibilityAriaLabel')}>
+                {t('footer.accessibility')}
             </FooterInternalLink>
             <FooterSeparator aria-hidden="true">|</FooterSeparator>
             <FooterLink href="https://www.trec.texas.gov/sites/default/files/pdf-forms/CN%201-2.pdf" target="_blank" rel="noopener noreferrer" aria-label={t('footer.trecNoticeAriaLabel')}>

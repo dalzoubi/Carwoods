@@ -298,8 +298,7 @@ describe('PortalTenants', () => {
     await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
     const dialog = screen.getByRole('dialog');
 
-    const selects = within(dialog).getAllByRole('combobox');
-    const landlordSelect = selects[0];
+    const landlordSelect = within(dialog).getByLabelText(/landlord/i);
     fireEvent.mouseDown(landlordSelect);
     await waitFor(() => expect(screen.getByRole('listbox')).toBeInTheDocument());
     fireEvent.click(screen.getByRole('option', { name: /milo owner/i }));
@@ -626,7 +625,7 @@ describe('PortalTenants', () => {
       expect(within(dialog).getByText(/please select a landlord/i)).toBeInTheDocument();
     });
 
-    const landlordSelect = within(dialog).getAllByRole('combobox')[0];
+    const landlordSelect = within(dialog).getByLabelText(/landlord/i);
     fireEvent.mouseDown(landlordSelect);
     await waitFor(() => expect(screen.getByRole('listbox')).toBeInTheDocument());
     fireEvent.click(screen.getByRole('option', { name: /lana lord/i }));

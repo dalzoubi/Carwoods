@@ -7,6 +7,7 @@ import {
     Drawer,
     List,
     ListItemButton,
+    ListItemIcon,
     ListItemText,
     ListSubheader,
     Menu,
@@ -26,7 +27,6 @@ import SettingsBrightness from '@mui/icons-material/SettingsBrightness';
 import RestartAlt from '@mui/icons-material/RestartAlt';
 import Print from '@mui/icons-material/Print';
 import Language from '@mui/icons-material/Language';
-import Gavel from '@mui/icons-material/Gavel';
 import Login from '@mui/icons-material/Login';
 import { NavLink } from '../styles';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
@@ -119,6 +119,8 @@ const ResponsiveNavbar = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [tenantAnchor, setTenantAnchor] = useState(null);
     const [landlordAnchor, setLandlordAnchor] = useState(null);
+    const [rentersAnchor, setRentersAnchor] = useState(null);
+    const [productAnchor, setProductAnchor] = useState(null);
     const [portalAnchor, setPortalAnchor] = useState(null);
     const [legalAnchor, setLegalAnchor] = useState(null);
     const [appearanceAnchor, setAppearanceAnchor] = useState(null);
@@ -210,9 +212,40 @@ const ResponsiveNavbar = () => {
     const handleLandlordClose = () => {
         setLandlordAnchor(null);
     };
+    const handleRentersOpen = (e) => {
+        setTenantAnchor(null);
+        setLandlordAnchor(null);
+        setProductAnchor(null);
+        setPortalAnchor(null);
+        setLegalAnchor(null);
+        setAppearanceAnchor(null);
+        setLanguageAnchor(null);
+        notificationsTrayRef.current?.close();
+        setRentersAnchor(e.currentTarget);
+    };
+    const handleRentersClose = () => {
+        setRentersAnchor(null);
+    };
+    const handleProductOpen = (e) => {
+        setTenantAnchor(null);
+        setLandlordAnchor(null);
+        setRentersAnchor(null);
+        setPortalAnchor(null);
+        setLegalAnchor(null);
+        setAppearanceAnchor(null);
+        setLanguageAnchor(null);
+        notificationsTrayRef.current?.close();
+        setProductAnchor(e.currentTarget);
+    };
+    const handleProductClose = () => {
+        setProductAnchor(null);
+    };
+
     const handlePortalOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setRentersAnchor(null);
+        setProductAnchor(null);
         setLegalAnchor(null);
         setAppearanceAnchor(null);
         setLanguageAnchor(null);
@@ -225,7 +258,9 @@ const ResponsiveNavbar = () => {
     const handleLegalOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setRentersAnchor(null);
         setPortalAnchor(null);
+        setProductAnchor(null);
         setAppearanceAnchor(null);
         setLanguageAnchor(null);
         notificationsTrayRef.current?.close();
@@ -237,7 +272,9 @@ const ResponsiveNavbar = () => {
     const handleAppearanceOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setRentersAnchor(null);
         setPortalAnchor(null);
+        setProductAnchor(null);
         setLegalAnchor(null);
         setLanguageAnchor(null);
         notificationsTrayRef.current?.close();
@@ -254,7 +291,9 @@ const ResponsiveNavbar = () => {
     const handleLanguageOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setRentersAnchor(null);
         setPortalAnchor(null);
+        setProductAnchor(null);
         setLegalAnchor(null);
         setAppearanceAnchor(null);
         notificationsTrayRef.current?.close();
@@ -271,7 +310,9 @@ const ResponsiveNavbar = () => {
     const handleAccountOpen = (e) => {
         setTenantAnchor(null);
         setLandlordAnchor(null);
+        setRentersAnchor(null);
         setPortalAnchor(null);
+        setProductAnchor(null);
         setLegalAnchor(null);
         setAppearanceAnchor(null);
         setLanguageAnchor(null);
@@ -292,14 +333,17 @@ const ResponsiveNavbar = () => {
         }
         handleAccountOpen(e);
     };
-    const tenantLinks = [
+    const rentersLinks = [
         { to: '/apply', label: t('tenantLinks.apply') },
         { to: '/tenant-selection-criteria', label: t('tenantLinks.selectionCriteria') },
         { to: '/application-required-documents', label: t('tenantLinks.requiredDocuments') },
     ];
 
-    const landlordLinks = [
-        { to: '/property-management', label: t('landlordLinks.propertyManagement') },
+    // "For Managers" dropdown: portal product pages
+    const productNavLinks = [
+        { to: '/features', label: 'All Features' },
+        { to: '/pricing', label: t('nav.pricing') },
+        { to: '/for-property-managers', label: t('nav.forPropertyManagers') },
     ];
 
     const legalLinks = [
@@ -320,24 +364,6 @@ const ResponsiveNavbar = () => {
                 ml: { xs: 0, md: 'auto' },
             }}
         >
-            {!isMobile ? (
-                <Tooltip title={t('nav.legal')} arrow>
-                    <IconButton
-                        color="inherit"
-                        type="button"
-                        size="small"
-                        id="legal-menu-button"
-                        onClick={handleLegalOpen}
-                        aria-haspopup="true"
-                        aria-expanded={Boolean(legalAnchor)}
-                        aria-controls={legalAnchor ? 'legal-menu' : undefined}
-                        aria-label={t('nav.legalMenu')}
-                        sx={toolbarChromeIconButtonSx}
-                    >
-                        <Gavel aria-hidden />
-                    </IconButton>
-                </Tooltip>
-            ) : null}
             {showPrintButton ? (
                 <IconButton
                     color="inherit"
@@ -349,25 +375,6 @@ const ResponsiveNavbar = () => {
                 >
                     <Print aria-hidden />
                 </IconButton>
-            ) : null}
-            {showAppearanceMenu ? (
-                <Tooltip title={t('nav.appearance')} arrow>
-                    <IconButton
-                        color="inherit"
-                        type="button"
-                        size="small"
-                        id="appearance-menu-button-toolbar"
-                        data-appearance-trigger="toolbar"
-                        aria-label={t('nav.appearance')}
-                        aria-haspopup="true"
-                        aria-expanded={Boolean(appearanceAnchor)}
-                        aria-controls={appearanceAnchor ? 'appearance-menu' : undefined}
-                        onClick={handleAppearanceOpen}
-                        sx={toolbarChromeIconButtonSx}
-                    >
-                        <SettingsBrightness aria-hidden />
-                    </IconButton>
-                </Tooltip>
             ) : null}
             <Tooltip title={t('nav.language')} arrow>
                 <IconButton
@@ -394,7 +401,9 @@ const ResponsiveNavbar = () => {
                     onMenuWillOpen={() => {
                         setTenantAnchor(null);
                         setLandlordAnchor(null);
+                        setRentersAnchor(null);
                         setPortalAnchor(null);
+                        setProductAnchor(null);
                         setLegalAnchor(null);
                         setAppearanceAnchor(null);
                         setLanguageAnchor(null);
@@ -413,22 +422,59 @@ const ResponsiveNavbar = () => {
                     circularProgressSx={{ color: 'inherit' }}
                 />
             ) : (
-                <Button
-                    type="button"
-                    size={isMobile ? 'small' : 'medium'}
-                    variant="contained"
-                    id={PORTAL_ACCOUNT_MENU_BUTTON_ID}
-                    aria-label={t('portalHeader.actions.signIn')}
-                    onClick={handleAccountButtonClick}
-                    startIcon={<Login fontSize="small" aria-hidden />}
-                    sx={{
-                        ...signInCtaButtonSx,
-                        fontSize: isMobile ? '0.75rem' : signInCtaButtonSx.fontSize,
-                        px: isMobile ? 1.1 : signInCtaButtonSx.px,
-                    }}
-                >
-                    {t('portalHeader.actions.signIn')}
-                </Button>
+                <>
+                    {!isMobile ? (
+                        <Button
+                            component={RouterLink}
+                            to={withDarkPath(pathname, '/portal')}
+                            type="button"
+                            size="small"
+                            variant="text"
+                            id={PORTAL_ACCOUNT_MENU_BUTTON_ID}
+                            aria-label={t('portalHeader.actions.signIn')}
+                            startIcon={<Login fontSize="small" aria-hidden />}
+                            sx={{
+                                color: 'inherit',
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                fontSize: '0.85rem',
+                                px: 1,
+                                opacity: 0.85,
+                                '&:hover': { opacity: 1, backgroundColor: 'var(--nav-chrome-hover-bg)' },
+                            }}
+                        >
+                            {t('portalHeader.actions.signIn')}
+                        </Button>
+                    ) : (
+                        <Tooltip title={t('portalHeader.actions.signIn')} arrow>
+                            <IconButton
+                                component={RouterLink}
+                                to={withDarkPath(pathname, '/portal')}
+                                type="button"
+                                size="small"
+                                aria-label={t('portalHeader.actions.signIn')}
+                                sx={toolbarChromeIconButtonSx}
+                            >
+                                <Login fontSize="small" aria-hidden />
+                            </IconButton>
+                        </Tooltip>
+                    )}
+                    <Button
+                        component={RouterLink}
+                        to={withDarkPath(pathname, '/pricing')}
+                        type="button"
+                        size={isMobile ? 'small' : 'medium'}
+                        variant="contained"
+                        aria-label={t('nav.getStarted')}
+                        sx={{
+                            ...signInCtaButtonSx,
+                            fontSize: isMobile ? '0.75rem' : signInCtaButtonSx.fontSize,
+                            px: isMobile ? 1.1 : signInCtaButtonSx.px,
+                        }}
+                    >
+                        {t('nav.getStarted')}
+                    </Button>
+                </>
             )}
         </Box>
     ) : null;
@@ -456,7 +502,7 @@ const ResponsiveNavbar = () => {
 
     const drawerContent = (
         <div style={{ backgroundColor: muiTheme.palette.drawer.background, minHeight: '100%' }}>
-            <nav aria-label={t('nav.home')}>
+            <nav aria-label={t('nav.siteMenu')}>
                 <List disablePadding>
                     <ListItemButton
                         component={RouterLink}
@@ -468,39 +514,46 @@ const ResponsiveNavbar = () => {
                         <ListItemText primary={t('nav.home')} style={{ color: muiTheme.palette.drawer.text }} />
                     </ListItemButton>
 
+                    {/* Renters section */}
                     <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
-                        {t('nav.tenant')}
+                        {t('nav.renters')}
                     </ListSubheader>
-                    {tenantLinks.map(({ to, label }) => (
+                    {rentersLinks.map(({ to, label }) => (
                         <ListItemButton
                             key={to}
                             component={RouterLink}
                             to={withDarkPath(pathname, to)}
                             selected={isRouteActive(to)}
                             onClick={handleDrawerToggle}
-                            sx={{
-                                pl: 3,
-                                ...listItemButtonSx,
-                            }}
+                            sx={{ pl: 3, ...listItemButtonSx }}
                         >
                             <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
                         </ListItemButton>
                     ))}
 
+                    {/* Property Management — direct */}
+                    <ListItemButton
+                        component={RouterLink}
+                        to={withDarkPath(pathname, '/property-management')}
+                        selected={isRouteActive('/property-management')}
+                        onClick={handleDrawerToggle}
+                        sx={listItemButtonSx}
+                    >
+                        <ListItemText primary={t('nav.propertyManagement')} style={{ color: muiTheme.palette.drawer.text }} />
+                    </ListItemButton>
+
+                    {/* For Managers section */}
                     <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
-                        {t('nav.landlord')}
+                        {t('nav.forLandlords')}
                     </ListSubheader>
-                    {landlordLinks.map(({ to, label }) => (
+                    {productNavLinks.map(({ to, label }) => (
                         <ListItemButton
-                            key={to}
+                            key={to + label}
                             component={RouterLink}
                             to={withDarkPath(pathname, to)}
                             selected={isRouteActive(to)}
                             onClick={handleDrawerToggle}
-                            sx={{
-                                pl: 3,
-                                ...listItemButtonSx,
-                            }}
+                            sx={{ pl: 3, ...listItemButtonSx }}
                         >
                             <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
                         </ListItemButton>
@@ -515,6 +568,7 @@ const ResponsiveNavbar = () => {
                     >
                         <ListItemText primary={t('nav.contactUs')} style={{ color: muiTheme.palette.drawer.text }} />
                     </ListItemButton>
+
                     <ListItemButton
                         component={RouterLink}
                         to={withDarkPath(pathname, portalLinkTo)}
@@ -522,8 +576,9 @@ const ResponsiveNavbar = () => {
                         onClick={handleDrawerToggle}
                         sx={listItemButtonSx}
                     >
-                        <ListItemText primary={t('nav.portal')} style={{ color: muiTheme.palette.drawer.text }} />
+                        <ListItemText primary={t('portalHeader.actions.signIn')} style={{ color: muiTheme.palette.drawer.text }} />
                     </ListItemButton>
+
                     <ListSubheader disableSticky disableGutters sx={{ ...subheaderSx, pt: 1.5 }}>
                         {t('nav.legal')}
                     </ListSubheader>
@@ -534,14 +589,25 @@ const ResponsiveNavbar = () => {
                             to={withDarkPath(pathname, to)}
                             selected={isRouteActive(to)}
                             onClick={handleDrawerToggle}
-                            sx={{
-                                pl: 3,
-                                ...listItemButtonSx,
-                            }}
+                            sx={{ pl: 3, ...listItemButtonSx }}
                         >
                             <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
                         </ListItemButton>
                     ))}
+
+                    {showAppearanceMenu && (
+                        <ListItemButton
+                            id="appearance-menu-button-drawer"
+                            data-appearance-trigger="drawer"
+                            onClick={handleAppearanceOpen}
+                            sx={listItemButtonSx}
+                        >
+                            <ListItemIcon sx={{ minWidth: 36, color: muiTheme.palette.drawer.text }}>
+                                <SettingsBrightness fontSize="small" aria-hidden />
+                            </ListItemIcon>
+                            <ListItemText primary={t('nav.appearance')} style={{ color: muiTheme.palette.drawer.text }} />
+                        </ListItemButton>
+                    )}
                 </List>
             </nav>
         </div>
@@ -653,144 +719,116 @@ const ResponsiveNavbar = () => {
                                     rowGap: 2,
                                 }}
                             >
+                                {/* Renters dropdown */}
+                                <IconButton
+                                    component="span"
+                                    disableRipple
+                                    id="renters-menu-button"
+                                    onClick={handleRentersOpen}
+                                    aria-haspopup="true"
+                                    aria-expanded={Boolean(rentersAnchor)}
+                                    aria-controls={rentersAnchor ? 'renters-menu' : undefined}
+                                    aria-label={t('nav.rentersMenu')}
+                                    sx={{
+                                        color: 'inherit',
+                                        padding: '0.3rem 0.55rem',
+                                        fontWeight: 'bold',
+                                        fontSize: '0.9rem',
+                                        borderRadius: '4px',
+                                        '&:hover': { backgroundColor: 'var(--nav-chrome-hover-bg)' },
+                                    }}
+                                >
+                                    <span style={{ marginInlineEnd: '0.2rem' }}>{t('nav.renters')}</span>
+                                    <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
+                                </IconButton>
+                                <Menu
+                                    {...stableMenuProps}
+                                    id="renters-menu"
+                                    anchorEl={rentersAnchor}
+                                    open={Boolean(rentersAnchor)}
+                                    onClose={handleRentersClose}
+                                    MenuListProps={{ 'aria-labelledby': 'renters-menu-button' }}
+                                    slotProps={{ paper: { sx: { backgroundImage: 'none' } } }}
+                                    anchorOrigin={menuAnchorOrigin}
+                                    transformOrigin={menuTransformOrigin}
+                                >
+                                    {rentersLinks.map(({ to, label }) => (
+                                        <MenuItem
+                                            key={to}
+                                            component={RouterLink}
+                                            to={withDarkPath(pathname, to)}
+                                            selected={isRouteActive(to)}
+                                            onClick={handleRentersClose}
+                                            sx={{
+                                                color: 'text.secondary',
+                                                '&:hover': { backgroundColor: 'var(--menu-item-hover-bg)', color: 'var(--menu-item-hover-fg)' },
+                                                '&.Mui-selected': { backgroundColor: 'var(--menu-item-active-bg)', color: 'var(--menu-item-active-fg)' },
+                                            }}
+                                        >
+                                            {label}
+                                        </MenuItem>
+                                    ))}
+                                </Menu>
+
+                                {/* Property Management — direct link */}
                                 <NavLink
-                                    to={withDarkPath(pathname, '/')}
+                                    to={withDarkPath(pathname, '/property-management')}
                                     className={({ isActive }) => (isActive ? 'active' : '')}
                                     style={headerNavLinkStyle}
                                 >
-                                    {t('nav.home')}
+                                    {t('nav.propertyManagement')}
                                 </NavLink>
 
+                                {/* For Managers dropdown */}
                                 <IconButton
                                     component="span"
                                     disableRipple
-                                    id="tenant-menu-button"
-                                    onClick={handleTenantOpen}
+                                    id="product-menu-button"
+                                    onClick={handleProductOpen}
                                     aria-haspopup="true"
-                                    aria-expanded={Boolean(tenantAnchor)}
-                                    aria-controls={tenantAnchor ? 'tenant-menu' : undefined}
-                                    aria-label={t('nav.tenantMenu')}
+                                    aria-expanded={Boolean(productAnchor)}
+                                    aria-controls={productAnchor ? 'product-menu' : undefined}
+                                    aria-label={t('nav.forLandlordsMenu')}
                                     sx={{
                                         color: 'inherit',
                                         padding: '0.3rem 0.55rem',
                                         fontWeight: 'bold',
                                         fontSize: '0.9rem',
                                         borderRadius: '4px',
-                                        '&:hover': {
-                                            backgroundColor: 'var(--nav-chrome-hover-bg)',
-                                        },
+                                        '&:hover': { backgroundColor: 'var(--nav-chrome-hover-bg)' },
                                     }}
                                 >
-                                    <span style={{ marginInlineEnd: '0.2rem' }}>{t('nav.tenant')}</span>
+                                    <span style={{ marginInlineEnd: '0.2rem' }}>{t('nav.forLandlords')}</span>
                                     <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
                                 </IconButton>
                                 <Menu
                                     {...stableMenuProps}
-                                    id="tenant-menu"
-                                    anchorEl={tenantAnchor}
-                                    open={Boolean(tenantAnchor)}
-                                    onClose={handleTenantClose}
-                                    MenuListProps={{
-                                        'aria-labelledby': 'tenant-menu-button',
-                                    }}
-                                    slotProps={{
-                                        paper: {
-                                            sx: { backgroundImage: 'none' },
-                                        },
-                                    }}
+                                    id="product-menu"
+                                    anchorEl={productAnchor}
+                                    open={Boolean(productAnchor)}
+                                    onClose={handleProductClose}
+                                    MenuListProps={{ 'aria-labelledby': 'product-menu-button' }}
+                                    slotProps={{ paper: { sx: { backgroundImage: 'none' } } }}
                                     anchorOrigin={menuAnchorOrigin}
                                     transformOrigin={menuTransformOrigin}
                                 >
-                                    {tenantLinks.map(({ to, label }) => (
+                                    {productNavLinks.map(({ to, label }) => (
                                         <MenuItem
-                                            key={to}
+                                            key={to + label}
                                             component={RouterLink}
                                             to={withDarkPath(pathname, to)}
                                             selected={isRouteActive(to)}
-                                            onClick={handleTenantClose}
+                                            onClick={handleProductClose}
                                             sx={{
                                                 color: 'text.secondary',
-                                                '&:hover': {
-                                                    backgroundColor: 'var(--menu-item-hover-bg)',
-                                                    color: 'var(--menu-item-hover-fg)',
-                                                },
-                                                '&.Mui-selected': {
-                                                    backgroundColor: 'var(--menu-item-active-bg)',
-                                                    color: 'var(--menu-item-active-fg)',
-                                                },
+                                                '&:hover': { backgroundColor: 'var(--menu-item-hover-bg)', color: 'var(--menu-item-hover-fg)' },
+                                                '&.Mui-selected': { backgroundColor: 'var(--menu-item-active-bg)', color: 'var(--menu-item-active-fg)' },
                                             }}
                                         >
                                             {label}
                                         </MenuItem>
                                     ))}
                                 </Menu>
-
-                                <IconButton
-                                    component="span"
-                                    disableRipple
-                                    id="landlord-menu-button"
-                                    onClick={handleLandlordOpen}
-                                    aria-haspopup="true"
-                                    aria-expanded={Boolean(landlordAnchor)}
-                                    aria-controls={landlordAnchor ? 'landlord-menu' : undefined}
-                                    aria-label={t('nav.landlordMenu')}
-                                    sx={{
-                                        color: 'inherit',
-                                        padding: '0.3rem 0.55rem',
-                                        fontWeight: 'bold',
-                                        fontSize: '0.9rem',
-                                        borderRadius: '4px',
-                                        '&:hover': {
-                                            backgroundColor: 'var(--nav-chrome-hover-bg)',
-                                        },
-                                    }}
-                                >
-                                    <span style={{ marginInlineEnd: '0.2rem' }}>{t('nav.landlord')}</span>
-                                    <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
-                                </IconButton>
-                                <Menu
-                                    {...stableMenuProps}
-                                    id="landlord-menu"
-                                    anchorEl={landlordAnchor}
-                                    open={Boolean(landlordAnchor)}
-                                    onClose={handleLandlordClose}
-                                    MenuListProps={{
-                                        'aria-labelledby': 'landlord-menu-button',
-                                    }}
-                                    slotProps={{
-                                        paper: {
-                                            sx: { backgroundImage: 'none' },
-                                        },
-                                    }}
-                                    anchorOrigin={menuAnchorOrigin}
-                                    transformOrigin={menuTransformOrigin}
-                                >
-                                    {landlordLinks.map(({ to, label }) => (
-                                        <MenuItem
-                                            key={to}
-                                            component={RouterLink}
-                                            to={withDarkPath(pathname, to)}
-                                            selected={isRouteActive(to)}
-                                            onClick={handleLandlordClose}
-                                            sx={{
-                                                color: 'text.secondary',
-                                                '&:hover': {
-                                                    backgroundColor: 'var(--menu-item-hover-bg)',
-                                                    color: 'var(--menu-item-hover-fg)',
-                                                },
-                                                '&.Mui-selected': {
-                                                    backgroundColor: 'var(--menu-item-active-bg)',
-                                                    color: 'var(--menu-item-active-fg)',
-                                                },
-                                            }}
-                                        >
-                                            {label}
-                                        </MenuItem>
-                                    ))}
-                                </Menu>
-                                <NavLink to={withDarkPath(pathname, portalLinkTo)} className={({ isActive }) => (isActive ? 'active' : '')} style={headerNavLinkStyle}>
-                                    {t('nav.portal')}
-                                </NavLink>
 
                                 <NavLink to={withDarkPath(pathname, '/contact-us')} className={({ isActive }) => (isActive ? 'active' : '')} style={headerNavLinkStyle}>
                                     {t('nav.contactUs')}

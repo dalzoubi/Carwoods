@@ -1,158 +1,255 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Helmet } from 'react-helmet';
+import { Link, useLocation } from 'react-router-dom';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import HomeWork from '@mui/icons-material/HomeWork';
+import PeopleAlt from '@mui/icons-material/PeopleAlt';
+import Build from '@mui/icons-material/Build';
+import Assessment from '@mui/icons-material/Assessment';
+import CheckCircleOutline from '@mui/icons-material/CheckCircleOutline';
+import { alpha, useTheme } from '@mui/material/styles';
+import { withDarkPath } from '../routePaths';
 import { useTranslation } from 'react-i18next';
-import { Heading, SubHeading, Paragraph, BackToTop, PrintHeader, PrintHeaderLogo, PrintHeaderLogoPrint, PageHeader } from '../styles';
-import { TocPageLayout } from './TocPageLayout';
-import carwoodsLogo from '../assets/carwoods-logo.png';
-import carwoodsLogoPrint from '../assets/carwoods-logo-print.png';
+import ownersPhoto from '../assets/home/owners-skyline.jpg';
+
+const SERVICES = [
+    { icon: HomeWork, titleKey: 'propertyManagement.service1Heading', bodyKey: 'propertyManagement.service1Body' },
+    { icon: PeopleAlt, titleKey: 'propertyManagement.service2Heading', bodyKey: 'propertyManagement.service2Body' },
+    { icon: Build, titleKey: 'propertyManagement.service3Heading', bodyKey: 'propertyManagement.service3Body' },
+    { icon: Assessment, titleKey: 'propertyManagement.service4Heading', bodyKey: 'propertyManagement.service4Body' },
+];
 
 const PropertyManagement = () => {
-  const { t } = useTranslation();
+    const theme = useTheme();
+    const { pathname } = useLocation();
+    const { t } = useTranslation();
 
-  useEffect(() => {
-    const hash = window.location.hash.slice(1);
-    if (hash) {
-      const el = document.getElementById(hash);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, []);
+    const heroBg = alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.06);
+    const heroBorder = alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.32 : 0.2);
 
-  return (
-        <div>
+    return (
+        <Stack component="article" spacing={4}>
             <Helmet>
                 <title>{t('propertyManagement.title')}</title>
+                <meta name="description" content={t('propertyManagement.metaDescription')} />
             </Helmet>
-            <PrintHeader>
-              <PrintHeaderLogo src={carwoodsLogo} alt="" aria-hidden />
-              <PrintHeaderLogoPrint src={carwoodsLogoPrint} alt={t('common.carwoodsAlt')} />
-            </PrintHeader>
-            <PageHeader>
-              <Heading>{t('propertyManagement.heading')}</Heading>
-            </PageHeader>
 
-            <TocPageLayout
-              toc={
-                <>
-                  <SubHeading>{t('common.contents')}</SubHeading>
-                  <ol>
-                    <li><a href="#section-1">{t('propertyManagement.toc1')}</a></li>
-                    <li><a href="#section-2">{t('propertyManagement.toc2')}</a></li>
-                    <li><a href="#section-3">{t('propertyManagement.toc3')}</a></li>
-                    <li><a href="#section-4">{t('propertyManagement.toc4')}</a></li>
-                    <li><a href="#section-5">{t('propertyManagement.toc5')}</a></li>
-                    <li><a href="#section-6">{t('propertyManagement.toc6')}</a></li>
-                    <li><a href="#section-7">{t('propertyManagement.toc7')}</a></li>
-                    <li><a href="#section-8">{t('propertyManagement.toc8')}</a></li>
-                    <li><a href="#section-9">{t('propertyManagement.toc9')}</a></li>
-                    <li><a href="#section-10">{t('propertyManagement.toc10')}</a></li>
-                    <li><a href="#section-11">{t('propertyManagement.toc11')}</a></li>
-                    <li><a href="#section-12">{t('propertyManagement.toc12')}</a></li>
-                  </ol>
-                </>
-              }
+            {/* Hero section */}
+            <Box
+                sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', md: 'minmax(0,1fr) minmax(0,1fr)' },
+                    gap: { xs: 2.5, md: 4 },
+                    alignItems: 'center',
+                    px: { xs: 2.5, sm: 3.5 },
+                    py: { xs: 3.5, sm: 4.5 },
+                    borderRadius: 3,
+                    bgcolor: heroBg,
+                    border: '1px solid',
+                    borderColor: heroBorder,
+                    backgroundImage: `linear-gradient(135deg, ${heroBg} 0%, ${alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.04 : 0.01)} 100%)`,
+                }}
             >
-            <section aria-labelledby="section-1">
-                <SubHeading id="section-1">{t('propertyManagement.s1Heading')}</SubHeading>
-                <Paragraph>{t('propertyManagement.s1Body')}</Paragraph>
-                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
-            </section>
+                <Box>
+                    <Typography
+                        variant="h1"
+                        component="h1"
+                        sx={{
+                            fontSize: { xs: '1.65rem', sm: '2rem', md: '2.3rem' },
+                            fontWeight: 800,
+                            lineHeight: 1.2,
+                            color: 'text.primary',
+                            mb: 1.75,
+                        }}
+                    >
+                        {t('propertyManagement.heading')}
+                    </Typography>
+                    <Typography
+                        variant="subtitle1"
+                        component="p"
+                        sx={{ color: 'text.secondary', lineHeight: 1.55, mb: 2.5, fontSize: { xs: '0.95rem', sm: '1rem' } }}
+                    >
+                        {t('propertyManagement.heroSubtitle')}
+                    </Typography>
+                    <Stack spacing={1} sx={{ mb: 3 }}>
+                        {['heroBenefit1', 'heroBenefit2', 'heroBenefit3'].map((key) => (
+                            <Stack key={key} direction="row" spacing={1} alignItems="flex-start">
+                                <CheckCircleOutline
+                                    sx={{ color: 'primary.main', fontSize: '1.15rem', mt: 0.2, flexShrink: 0 }}
+                                    aria-hidden
+                                />
+                                <Typography variant="body2" color="text.secondary">
+                                    {t(`propertyManagement.${key}`)}
+                                </Typography>
+                            </Stack>
+                        ))}
+                    </Stack>
+                    <Button
+                        component={Link}
+                        to={withDarkPath(pathname, '/contact-us')}
+                        variant="contained"
+                        size="large"
+                        aria-label={t('propertyManagement.heroCtaAriaLabel')}
+                        sx={{
+                            textTransform: 'none',
+                            fontWeight: 700,
+                            px: 3,
+                            py: 1.25,
+                            fontSize: '1rem',
+                            borderRadius: 2,
+                        }}
+                    >
+                        {t('propertyManagement.heroCtaButton')}
+                    </Button>
+                </Box>
+                <Box
+                    data-print-hide
+                    sx={{
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        minHeight: { xs: 200, md: 260 },
+                        maxHeight: { md: 340 },
+                        boxShadow:
+                            theme.palette.mode === 'dark'
+                                ? `0 12px 28px ${alpha(theme.palette.common.black, 0.4)}`
+                                : `0 16px 40px ${alpha(theme.palette.common.black, 0.1)}`,
+                    }}
+                >
+                    <Box
+                        component="img"
+                        src={ownersPhoto}
+                        alt=""
+                        aria-hidden
+                        width={1200}
+                        height={750}
+                        sizes="(max-width: 900px) 100vw, 45vw"
+                        sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', minHeight: { xs: 200, md: 260 } }}
+                    />
+                </Box>
+            </Box>
 
-            <section aria-labelledby="section-2">
-                <SubHeading id="section-2">{t('propertyManagement.s2Heading')}</SubHeading>
-                <Paragraph>{t('propertyManagement.s2Body')}</Paragraph>
-                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
-            </section>
+            {/* Services grid */}
+            <Box component="section" aria-labelledby="services-heading">
+                <Typography
+                    id="services-heading"
+                    variant="h2"
+                    component="h2"
+                    sx={{ fontWeight: 700, fontSize: { xs: '1.35rem', sm: '1.6rem' }, mb: 2.5, color: 'text.primary' }}
+                >
+                    {t('propertyManagement.servicesHeading')}
+                </Typography>
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                        gap: 2.5,
+                    }}
+                >
+                    {SERVICES.map(({ icon: Icon, titleKey, bodyKey }) => (
+                        <Paper
+                            key={titleKey}
+                            elevation={0}
+                            sx={{
+                                p: 2.75,
+                                borderRadius: 2,
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                bgcolor: 'background.paper',
+                                backgroundImage: 'none',
+                            }}
+                        >
+                            <Stack direction="row" spacing={1.5} alignItems="flex-start" sx={{ mb: 1 }}>
+                                <Icon
+                                    sx={{ color: 'primary.main', fontSize: '1.5rem', mt: 0.25, flexShrink: 0 }}
+                                    aria-hidden
+                                />
+                                <Typography variant="h3" component="h3" sx={{ fontWeight: 700, fontSize: '1rem', color: 'text.primary' }}>
+                                    {t(titleKey)}
+                                </Typography>
+                            </Stack>
+                            <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                                {t(bodyKey)}
+                            </Typography>
+                        </Paper>
+                    ))}
+                </Box>
+            </Box>
 
-            <section aria-labelledby="section-3">
-                <SubHeading id="section-3">{t('propertyManagement.s3Heading')}</SubHeading>
-                <Paragraph>{t('propertyManagement.s3Body')}</Paragraph>
-                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
-            </section>
+            {/* Why Carwoods */}
+            <Paper
+                component="section"
+                aria-labelledby="why-carwoods-heading"
+                elevation={0}
+                sx={{
+                    p: { xs: 2.75, sm: 3.5 },
+                    borderRadius: 2,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.07 : 0.04),
+                    backgroundImage: 'none',
+                }}
+            >
+                <Typography
+                    id="why-carwoods-heading"
+                    variant="h2"
+                    component="h2"
+                    sx={{ fontWeight: 700, fontSize: { xs: '1.25rem', sm: '1.45rem' }, mb: 1.5, color: 'text.primary' }}
+                >
+                    {t('propertyManagement.whyCarwoodsHeading')}
+                </Typography>
+                <Typography color="text.secondary" sx={{ lineHeight: 1.65 }}>
+                    {t('propertyManagement.whyCarwoodsBody')}
+                </Typography>
+            </Paper>
 
-            <section aria-labelledby="section-4">
-                <SubHeading id="section-4">{t('propertyManagement.s4Heading')}</SubHeading>
-                <Paragraph>{t('propertyManagement.s4Intro')}</Paragraph>
-                <ul>
-                    <li>{t('propertyManagement.s4Li1')}</li>
-                    <li>{t('propertyManagement.s4Li2')}</li>
-                    <li>{t('propertyManagement.s4Li3')}</li>
-                    <li>{t('propertyManagement.s4Li4')}</li>
-                    <li>{t('propertyManagement.s4Li5')}</li>
-                    <li>{t('propertyManagement.s4Li6')}</li>
-                    <li>{t('propertyManagement.s4Li7')}</li>
-                    <li>{t('propertyManagement.s4Li8')}</li>
-                    <li>{t('propertyManagement.s4Li9')}</li>
-                </ul>
-                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
-            </section>
-
-            <section aria-labelledby="section-5">
-                <SubHeading id="section-5">{t('propertyManagement.s5Heading')}</SubHeading>
-                <Paragraph>{t('propertyManagement.s5Intro')}</Paragraph>
-                <ul>
-                    <li>{t('propertyManagement.s5Li1')}</li>
-                    <li>{t('propertyManagement.s5Li2')}</li>
-                    <li>{t('propertyManagement.s5Li3')}</li>
-                </ul>
-                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
-            </section>
-
-            <section aria-labelledby="section-6">
-                <SubHeading id="section-6">{t('propertyManagement.s6Heading')}</SubHeading>
-                <Paragraph>{t('propertyManagement.s6Body1')}</Paragraph>
-                <Paragraph>{t('propertyManagement.s6Body2')}</Paragraph>
-                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
-            </section>
-
-            <section aria-labelledby="section-7">
-                <SubHeading id="section-7">{t('propertyManagement.s7Heading')}</SubHeading>
-                <Paragraph>{t('propertyManagement.s7Intro')}</Paragraph>
-                <ul>
-                    <li>{t('propertyManagement.s7Li1')}</li>
-                    <li>{t('propertyManagement.s7Li2')}</li>
-                    <li>{t('propertyManagement.s7Li3')}</li>
-                </ul>
-                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
-            </section>
-
-            <section aria-labelledby="section-8">
-                <SubHeading id="section-8">{t('propertyManagement.s8Heading')}</SubHeading>
-                <Paragraph>{t('propertyManagement.s8Intro')}</Paragraph>
-                <ol>
-                    <li>{t('propertyManagement.s8Li1')}</li>
-                    <li>{t('propertyManagement.s8Li2')}</li>
-                    <li>{t('propertyManagement.s8Li3')}</li>
-                    <li>{t('propertyManagement.s8Li4')}</li>
-                </ol>
-                <Paragraph>{t('propertyManagement.s8Footer')}</Paragraph>
-                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
-            </section>
-
-            <section aria-labelledby="section-9">
-                <SubHeading id="section-9">{t('propertyManagement.s9Heading')}</SubHeading>
-                <Paragraph>{t('propertyManagement.s9Body')}</Paragraph>
-                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
-            </section>
-
-            <section aria-labelledby="section-10">
-                <SubHeading id="section-10">{t('propertyManagement.s10Heading')}</SubHeading>
-                <Paragraph>{t('propertyManagement.s10Body')}</Paragraph>
-                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
-            </section>
-
-            <section aria-labelledby="section-11">
-                <SubHeading id="section-11">{t('propertyManagement.s11Heading')}</SubHeading>
-                <Paragraph>{t('propertyManagement.s11Body')}</Paragraph>
-                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
-            </section>
-
-            <section aria-labelledby="section-12">
-                <SubHeading id="section-12">{t('propertyManagement.s12Heading')}</SubHeading>
-                <Paragraph>{t('propertyManagement.s12Body')}</Paragraph>
-                <BackToTop href="#page-top">{t('common.backToTop')}</BackToTop>
-            </section>
-            </TocPageLayout>
-        </div>
+            {/* CTA section */}
+            <Box
+                component="section"
+                aria-labelledby="pm-cta-heading"
+                sx={{
+                    textAlign: 'center',
+                    py: { xs: 3.5, sm: 4.5 },
+                    px: { xs: 2.5, sm: 3.5 },
+                    borderRadius: 3,
+                    bgcolor: heroBg,
+                    border: '1px solid',
+                    borderColor: heroBorder,
+                }}
+            >
+                <Typography
+                    id="pm-cta-heading"
+                    variant="h2"
+                    component="h2"
+                    sx={{ fontWeight: 700, fontSize: { xs: '1.35rem', sm: '1.6rem' }, mb: 1.25, color: 'text.primary' }}
+                >
+                    {t('propertyManagement.ctaSectionHeading')}
+                </Typography>
+                <Typography color="text.secondary" sx={{ mb: 3, maxWidth: 480, mx: 'auto' }}>
+                    {t('propertyManagement.ctaSectionBody')}
+                </Typography>
+                <Button
+                    component={Link}
+                    to={withDarkPath(pathname, '/contact-us')}
+                    variant="contained"
+                    size="large"
+                    aria-label={t('propertyManagement.heroCtaAriaLabel')}
+                    sx={{
+                        textTransform: 'none',
+                        fontWeight: 700,
+                        px: 3.5,
+                        py: 1.25,
+                        fontSize: '1rem',
+                        borderRadius: 2,
+                    }}
+                >
+                    {t('propertyManagement.heroCtaButton')}
+                </Button>
+            </Box>
+        </Stack>
     );
 };
 

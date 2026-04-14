@@ -30,6 +30,7 @@
     "styled-components": "^6.1.13",
     "stylis-plugin-rtl": "^2.1.1",
     "turndown": "^7.2.4",
+    "react-google-recaptcha-v3": "^1.10.1",
     "web-vitals": "^4.2.4"
   },
   "scripts": {

@@ -4,7 +4,7 @@
  *
  * Cache keys documented for operators:
  * - reqlist:{base}|{emailHint}|{path}     — GET requests list (portal or landlord path)
- * - landlords:{base}|{emailHint}|{extra} — GET admin landlords (extra = include flag)
+ * - landlords:{base}|{emailHint}|{extra} — GET admin landlords (extra = include flag + cache-bust version)
  * - elsa:{base}|{emailHint}|{requestId?}
  * - notifications:{base}|{emailHint}|{limit}
  * - reqmsgs:{base}|{emailHint}|{requestId} — message thread poll

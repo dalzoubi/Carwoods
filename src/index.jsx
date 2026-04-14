@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import CssBaseline from '@mui/material/CssBaseline';
+import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import './i18n';
 import './index.css';
 import App from './App';
@@ -14,16 +15,18 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <LanguageProvider>
-        <ThemeModeProvider>
-          <PortalAuthProvider>
-            <CssBaseline />
-            <App />
-          </PortalAuthProvider>
-        </ThemeModeProvider>
-      </LanguageProvider>
-    </BrowserRouter>
+    <GoogleReCaptchaProvider reCaptchaKey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''}>
+      <BrowserRouter>
+        <LanguageProvider>
+          <ThemeModeProvider>
+            <PortalAuthProvider>
+              <CssBaseline />
+              <App />
+            </PortalAuthProvider>
+          </ThemeModeProvider>
+        </LanguageProvider>
+      </BrowserRouter>
+    </GoogleReCaptchaProvider>
   </React.StrictMode>
 );
 

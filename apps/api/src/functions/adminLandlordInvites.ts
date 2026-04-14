@@ -12,6 +12,7 @@ import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 import { listLandlords } from '../useCases/users/listLandlords.js';
 import { inviteLandlord } from '../useCases/users/inviteLandlord.js';
 import { setLandlordActive } from '../useCases/users/setLandlordActive.js';
+import { assignLandlordTier } from '../useCases/users/assignLandlordTier.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
   if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>;
@@ -191,4 +192,55 @@ app.http('adminLandlordsItem', {
   authLevel: 'anonymous',
   route: 'portal/admin/landlords/{id}',
   handler: adminLandlordsItemHandler,
+});
+
+async function adminLandlordsItemTierHandler(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  const landlordId = request.params.id;
+
+  if (!landlordId) return jsonResponse(400, ctx.headers, { error: 'missing_id' });
+  if (request.method !== 'PATCH') return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+
+  let body: unknown;
+  try { body = await request.json(); } catch {
+    return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
+  }
+  const b = asRecord(body);
+  const tierId = asOptionalString(b.tier_id);
+  if (!tierId) return jsonResponse(400, ctx.headers, { error: 'missing_tier_id' });
+
+  try {
+    const result = await assignLandlordTier(getPool(), {
+      actorUserId: ctx.user.id,
+      actorRole: ctx.role,
+      landlordId,
+      tierId,
+    });
+    logInfo(context, 'admin.landlords.tier.update.success', {
+      actorUserId: ctx.user.id,
+      landlordId,
+      tierId,
+    });
+    return jsonResponse(200, ctx.headers, { landlord: result.landlord });
+  } catch (e) {
+    const mapped = mapDomainError(e, ctx.headers);
+    if (mapped) return mapped;
+    logError(context, 'admin.landlords.tier.update.error', {
+      actorUserId: ctx.user.id,
+      message: e instanceof Error ? e.message : 'unknown_error',
+    });
+    throw e;
+  }
+}
+
+app.http('adminLandlordsItemTier', {
+  methods: ['PATCH', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'portal/admin/landlords/{id}/tier',
+  handler: adminLandlordsItemTierHandler,
 });

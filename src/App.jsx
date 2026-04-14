@@ -8,6 +8,9 @@ import Apply from './components/Apply';
 import TenantSelectionCriteria from './components/TenantSelectionCriteria';
 import ApplicationRequiredDocuments from './components/ApplicationRequiredDocuments';
 import PropertyManagement from './components/PropertyManagement';
+import Pricing from './components/Pricing';
+import Features from './components/Features';
+import ForPropertyManagers from './components/ForPropertyManagers';
 import ContactUs from './components/ContactUs';
 import Privacy from './components/Privacy';
 import Accessibility from './components/Accessibility';
@@ -70,11 +73,13 @@ function MarketingRoutes() {
             <Route path="/tenant-selection-criteria" element={<TenantSelectionCriteria />} />
             <Route path="/application-required-documents" element={<ApplicationRequiredDocuments />} />
             <Route path="/property-management" element={<PropertyManagement />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/features" element={<Features />} />
+            <Route path="/for-property-managers" element={<ForPropertyManagers />} />
             <Route path="/contact-us" element={<ContactUs />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/accessibility" element={<Accessibility />} />
-            <Route path="/portal" element={<Navigate to="/portal" replace />} />
         </Routes>
     );
 }

@@ -16,6 +16,7 @@ import {
   getRequestById,
   insertRequestMessage,
   listRequestMessages,
+  managementCanAccessRequest,
 } from '../../lib/requestsRepo.js';
 import { enqueueNotification } from '../../lib/notificationRepo.js';
 import { suggestReply } from './aiMaintenanceReplyService.js';
@@ -84,6 +85,11 @@ export async function processElsaAutoResponse(
 
   if (!hasLandlordAccess(input.actorRole) && !hasAiAgentAccess(input.actorRole)) throw forbidden();
   if (!input.requestId) throw validationError('missing_id');
+  if (hasLandlordAccess(input.actorRole)) {
+    const ar = input.actorRole.trim().toUpperCase();
+    const ok = await managementCanAccessRequest(db, input.requestId, ar, input.actorUserId);
+    if (!ok) throw notFound();
+  }
   const request = await getRequestById(db, input.requestId);
   if (!request) throw notFound();
 

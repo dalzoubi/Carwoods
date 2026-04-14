@@ -179,7 +179,7 @@ const PortalStatus = () => {
               </Typography>
               <PortalRefreshButton
                 label={t('portalSetup.actions.refreshSession')}
-                onClick={refreshMe}
+                onClick={() => refreshMe({ force: true })}
                 disabled={!isAuthenticated}
                 loading={meStatus === 'loading'}
               />
@@ -313,7 +313,7 @@ const PortalStatus = () => {
                     type="button"
                     size="small"
                     aria-label={t('portalSetup.actions.checkMe')}
-                    onClick={refreshMe}
+                    onClick={() => refreshMe({ force: true })}
                     disabled={!isAuthenticated || meStatus === 'loading'}
                   >
                     <ManageSearch fontSize="small" />

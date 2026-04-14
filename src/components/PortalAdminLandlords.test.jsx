@@ -29,6 +29,7 @@ vi.mock('../lib/portalApiClient', async (importOriginal) => {
   return {
     ...actual,
     fetchLandlords: vi.fn(),
+    fetchAdminSubscriptionTiers: vi.fn(),
     createLandlord: vi.fn(),
     patchResource: vi.fn(),
   };
@@ -42,7 +43,18 @@ const landlordsPayload = {
       first_name: 'Lana',
       last_name: 'Lord',
       status: 'ACTIVE',
+      tier_id: 'tier-starter',
+      tier_name: 'STARTER',
+      tier_display_name: 'Starter',
     },
+  ],
+};
+
+const tiersPayload = {
+  tiers: [
+    { id: 'tier-free', name: 'FREE', display_name: 'Free', is_active: true },
+    { id: 'tier-starter', name: 'STARTER', display_name: 'Starter', is_active: true },
+    { id: 'tier-pro', name: 'PRO', display_name: 'Pro', is_active: true },
   ],
 };
 
@@ -51,6 +63,7 @@ describe('PortalAdminLandlords', () => {
     vi.clearAllMocks();
     await i18n.changeLanguage('en');
     portalApiClient.fetchLandlords.mockResolvedValue(landlordsPayload);
+    portalApiClient.fetchAdminSubscriptionTiers.mockResolvedValue(tiersPayload);
     portalApiClient.createLandlord.mockResolvedValue({ landlord: landlordsPayload.landlords[0] });
     portalApiClient.patchResource.mockResolvedValue({ landlord: landlordsPayload.landlords[0] });
     mockAuthState.getAccessToken = vi.fn().mockResolvedValue('mock-token');
@@ -65,6 +78,8 @@ describe('PortalAdminLandlords', () => {
     );
 
     await waitFor(() => expect(portalApiClient.fetchLandlords).toHaveBeenCalled());
+
+    expect(screen.getByText('Starter')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /edit/i }));
     fireEvent.change(screen.getByLabelText(/landlord email/i), {
@@ -104,5 +119,37 @@ describe('PortalAdminLandlords', () => {
     fireEvent.change(screen.getByLabelText(/landlord email/i), { target: { value: 'invalid-email' } });
     expect(screen.getByRole('button', { name: /save changes/i })).toBeDisabled();
     expect(portalApiClient.patchResource).not.toHaveBeenCalled();
+  });
+
+  it('updates landlord tier via admin tier endpoint', async () => {
+    render(
+      <WithAppTheme>
+        <PortalAdminLandlords />
+      </WithAppTheme>
+    );
+
+    await waitFor(() => expect(portalApiClient.fetchAdminSubscriptionTiers).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole('button', { name: /change subscription plan/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/subscription plan for lana lord/i)).toBeInTheDocument();
+    });
+
+    const combo = screen.getByRole('combobox', { name: /plan/i });
+    fireEvent.mouseDown(combo);
+    const freeOption = await screen.findByRole('option', { name: 'Free' });
+    fireEvent.click(freeOption);
+
+    fireEvent.click(screen.getByRole('button', { name: /^save plan$/i }));
+
+    await waitFor(() => {
+      expect(portalApiClient.patchResource).toHaveBeenCalledWith(
+        'https://api.carwoods.com',
+        'mock-token',
+        '/api/portal/admin/landlords/landlord-1/tier',
+        { tier_id: 'tier-free' }
+      );
+    });
   });
 });

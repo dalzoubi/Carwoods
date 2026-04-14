@@ -13,7 +13,26 @@ export type UserRow = {
   role: string;
   status: string;
   ui_language: string | null;
+  tier_id: string | null;
   ui_color_scheme: string | null;
+};
+
+/** Landlord row returned by {@link listLandlords} (admin list), including joined tier labels. */
+export type LandlordAdminListRow = Pick<
+  UserRow,
+  | 'id'
+  | 'external_auth_oid'
+  | 'email'
+  | 'first_name'
+  | 'last_name'
+  | 'phone'
+  | 'profile_photo_storage_path'
+  | 'role'
+  | 'status'
+  | 'tier_id'
+> & {
+  tier_name: string | null;
+  tier_display_name: string | null;
 };
 
 export type UpsertLandlordResult = {
@@ -51,7 +70,7 @@ export async function findUserBySubject(
   externalAuthOid: string
 ): Promise<UserRow | null> {
   const r = await client.query<UserRow>(
-    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status, ui_language, ui_color_scheme
+    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status, ui_language, ui_color_scheme, tier_id
      FROM users WHERE external_auth_oid = $1`,
     [externalAuthOid]
   );
@@ -64,7 +83,7 @@ export async function findUserByEmail(
 ): Promise<UserRow | null> {
   const normalized = normalizeEmail(email);
   const r = await client.query<UserRow>(
-    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status, ui_language, ui_color_scheme
+    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status, ui_language, ui_color_scheme, tier_id
      FROM users
      WHERE LOWER(email) = $1`,
     [normalized]
@@ -110,7 +129,7 @@ export async function upsertLandlordUserByEmail(
         OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
                INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
                INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
-               INSERTED.ui_language, INSERTED.ui_color_scheme
+               INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
         WHERE id = $1`,
       [existing.id, firstName, lastName, placeholderExternalAuthOidForLandlordEmail(normalizedEmail)]
     );
@@ -125,7 +144,7 @@ export async function upsertLandlordUserByEmail(
      OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
             INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
             INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
-            INSERTED.ui_language, INSERTED.ui_color_scheme
+            INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
      VALUES (NEWID(), $1, $2, $3, $4, '${Role.LANDLORD}', 'ACTIVE')`,
     [placeholderExternalAuthOidForLandlordEmail(normalizedEmail), normalizedEmail, firstName, lastName]
   );
@@ -136,25 +155,86 @@ export async function upsertLandlordUserByEmail(
   };
 }
 
+/**
+ * Auto-register a brand-new landlord on first sign-in.
+ *
+ * Only creates a record when no user with this email exists yet.
+ * Returns null if the user already exists (ACTIVE, DISABLED, etc.) — the
+ * caller should let the normal /me flow handle that case.
+ * Returns null if no email can be extracted from the token claims.
+ */
+export async function autoRegisterLandlordByClaims(
+  client: Queryable,
+  claims: AccessTokenClaims,
+  emailHint?: string
+): Promise<UserRow | null> {
+  const email = primaryEmailFromClaims(claims) ?? emailHint;
+  if (!email?.trim()) return null;
+
+  const normalizedEmail = normalizeEmail(email);
+
+  // Don't auto-create if a record already exists — preserve existing state
+  const existing = await findUserByEmail(client, normalizedEmail);
+  if (existing) return null;
+
+  const externalAuthOid = claims.oid ?? claims.sub;
+
+  // Best-effort name extraction from token claims
+  const firstName = normalizeNamePart(
+    claims.given_name ?? (claims.name ? claims.name.split(' ')[0] : null)
+  );
+  const lastName = normalizeNamePart(
+    claims.family_name ?? (claims.name ? claims.name.split(' ').slice(1).join(' ') : null)
+  );
+
+  const result = await client.query<UserRow>(
+    `INSERT INTO users (id, external_auth_oid, email, first_name, last_name, role, status)
+     OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
+            INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
+            INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
+            INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
+     VALUES (NEWID(), $1, $2, $3, $4, '${Role.LANDLORD}', 'ACTIVE')`,
+    [externalAuthOid, normalizedEmail, firstName, lastName]
+  );
+
+  return result.rows[0] ?? null;
+}
+
+const LANDLORD_LIST_SELECT = `
+  u.id,
+  u.external_auth_oid,
+  u.email,
+  u.first_name,
+  u.last_name,
+  u.phone,
+  u.profile_photo_storage_path,
+  u.role,
+  u.status,
+  u.tier_id,
+  st.name AS tier_name,
+  st.display_name AS tier_display_name`;
+
 export async function listLandlords(
   client: Queryable,
   options?: { includeInactive?: boolean }
-): Promise<UserRow[]> {
+): Promise<LandlordAdminListRow[]> {
   if (options?.includeInactive) {
-    const r = await client.query<UserRow>(
-      `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status
-       FROM users
-       WHERE role = '${Role.LANDLORD}'
-       ORDER BY status DESC, last_name ASC, first_name ASC, email ASC`
+    const r = await client.query<LandlordAdminListRow>(
+      `SELECT ${LANDLORD_LIST_SELECT}
+       FROM users u
+       LEFT JOIN subscription_tiers st ON st.id = u.tier_id
+       WHERE u.role = '${Role.LANDLORD}'
+       ORDER BY u.status DESC, u.last_name ASC, u.first_name ASC, u.email ASC`
     );
     return r.rows;
   }
-  const r = await client.query<UserRow>(
-    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status
-     FROM users
-     WHERE role = '${Role.LANDLORD}'
-       AND status = 'ACTIVE'
-     ORDER BY last_name ASC, first_name ASC, email ASC`
+  const r = await client.query<LandlordAdminListRow>(
+    `SELECT ${LANDLORD_LIST_SELECT}
+     FROM users u
+     LEFT JOIN subscription_tiers st ON st.id = u.tier_id
+     WHERE u.role = '${Role.LANDLORD}'
+       AND u.status = 'ACTIVE'
+     ORDER BY u.last_name ASC, u.first_name ASC, u.email ASC`
   );
   return r.rows;
 }
@@ -169,7 +249,7 @@ export async function listUsersForAdminNotificationRecipients(
 ): Promise<UserRow[]> {
   const roleFilter = `role IN ('${Role.ADMIN}', '${Role.LANDLORD}', '${Role.TENANT}')`;
   const orderBy = `ORDER BY role, status DESC, last_name ASC, first_name ASC, email ASC`;
-  const columns = `id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status, ui_language, ui_color_scheme`;
+  const columns = `id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status, ui_language, ui_color_scheme, tier_id`;
   if (options?.includeInactive) {
     const r = await client.query<UserRow>(
       `SELECT ${columns}
@@ -202,7 +282,7 @@ export async function setLandlordActiveStatus(
       OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
              INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
              INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
-             INSERTED.ui_language, INSERTED.ui_color_scheme
+             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
       WHERE id = $1
         AND role = '${Role.LANDLORD}'`,
     [id, nextStatus]
@@ -215,7 +295,7 @@ export async function findUserById(
   id: string
 ): Promise<UserRow | null> {
   const r = await client.query<UserRow>(
-    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status, ui_language, ui_color_scheme
+    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status, ui_language, ui_color_scheme, tier_id
      FROM users WHERE id = $1`,
     [id]
   );
@@ -340,7 +420,7 @@ export async function updateUserProfile(
       OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
              INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
              INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
-             INSERTED.ui_language, INSERTED.ui_color_scheme
+             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
       WHERE id = $1
         AND (
           LOWER(email) <> $2
@@ -386,7 +466,7 @@ export async function ensureManagementUser(
      OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
             INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
             INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
-            INSERTED.ui_language, INSERTED.ui_color_scheme;`,
+            INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id;`,
     [sub, email, firstName, lastName, role]
   );
   return r.rows[0]!;
@@ -439,7 +519,7 @@ export async function updateUserUiPreferences(
       OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
              INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
              INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
-             INSERTED.ui_language, INSERTED.ui_color_scheme
+             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
       WHERE id = $1`,
     params
   );
@@ -458,9 +538,44 @@ export async function updateUserProfilePhotoPath(
       OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
              INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
              INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
-             INSERTED.ui_language, INSERTED.ui_color_scheme
+             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
       WHERE id = $1`,
     [userId, storagePath]
   );
   return r.rows[0] ?? null;
+}
+
+export async function setUserTier(
+  client: Queryable,
+  userId: string,
+  tierId: string | null
+): Promise<UserRow | null> {
+  const r = await client.query<UserRow>(
+    `UPDATE users
+        SET tier_id    = $2,
+            updated_at = GETUTCDATE()
+      OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
+             INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
+             INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
+             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
+      WHERE id = $1`,
+    [userId, tierId]
+  );
+  return r.rows[0] ?? null;
+}
+
+/**
+ * Assigns the FREE tier to a user only when they don't already have one.
+ * Idempotent — safe to call on every login.
+ */
+export async function autoAssignFreeTier(
+  client: Queryable,
+  userId: string,
+  freeTierId: string
+): Promise<void> {
+  await client.query(
+    `UPDATE users SET tier_id = $2, updated_at = GETUTCDATE()
+     WHERE id = $1 AND tier_id IS NULL`,
+    [userId, freeTierId]
+  );
 }

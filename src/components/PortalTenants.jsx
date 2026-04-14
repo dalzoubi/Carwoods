@@ -136,8 +136,17 @@ function tenantRowKey(tenant, index) {
 
 function DialogTitleWithClose({ title, onClose, closeLabel, disabled = false }) {
   return (
-    <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-      <Typography component="span">{title}</Typography>
+    <DialogTitle
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 1,
+        py: 1.25,
+        pr: 1,
+      }}
+    >
+      <Typography component="span" variant="subtitle1">{title}</Typography>
       <IconButton
         type="button"
         onClick={onClose}
@@ -290,8 +299,8 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
         disabled={submitState.status === 'saving'}
       />
       <Box component="form" onSubmit={onSubmit}>
-        <DialogContent>
-          <Stack spacing={2}>
+        <DialogContent sx={{ py: 1.25, px: 3 }}>
+          <Stack spacing={1.25}>
             <Select
               value={form.property_id}
               onChange={onChange('property_id')}
@@ -320,8 +329,10 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
               error={Boolean(fieldErrors.start_date)}
               helperText={fieldErrors.start_date || ' '}
               size="small"
+              margin="dense"
             />
             <FormControlLabel
+              sx={{ my: 0, py: 0 }}
               control={
                 <Checkbox
                   checked={form.month_to_month}
@@ -342,6 +353,7 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
                 error={Boolean(fieldErrors.end_date)}
                 helperText={fieldErrors.end_date || ' '}
                 size="small"
+                margin="dense"
               />
             )}
             <TextField
@@ -349,13 +361,15 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
               value={form.notes}
               onChange={onChange('notes')}
               multiline
-              rows={2}
+              minRows={1}
+              maxRows={5}
               fullWidth
               size="small"
+              margin="dense"
             />
           </Stack>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 2, py: 1 }}>
           <InlineActionStatus message={submitStatusMessage} />
           <Button type="button" onClick={handleAttemptClose} disabled={submitState.status === 'saving'}>
             {t('portalTenants.actions.cancel')}
@@ -597,8 +611,8 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
         disabled={submitState.status === 'saving'}
       />
       <Box component="form" onSubmit={onSubmit}>
-        <DialogContent>
-          <Stack spacing={2}>
+        <DialogContent sx={{ py: 1.25, px: 3 }}>
+          <Stack spacing={1.25}>
             <Select
               value={form.property_id}
               onChange={onChange('property_id')}
@@ -632,8 +646,10 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
               error={Boolean(fieldErrors.start_date)}
               helperText={fieldErrors.start_date || ' '}
               size="small"
+              margin="dense"
             />
             <FormControlLabel
+              sx={{ my: 0, py: 0 }}
               control={
                 <Checkbox
                   checked={form.month_to_month}
@@ -654,6 +670,7 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
                 error={Boolean(fieldErrors.end_date)}
                 helperText={fieldErrors.end_date || ' '}
                 size="small"
+                margin="dense"
               />
             )}
             <TextField
@@ -661,13 +678,15 @@ function AddLeaseDialog({ open, onClose, onSaved, tenantId, properties, t }) {
               value={form.notes}
               onChange={onChange('notes')}
               multiline
-              rows={2}
+              minRows={1}
+              maxRows={5}
               fullWidth
               size="small"
+              margin="dense"
             />
           </Stack>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 2, py: 1 }}>
           <InlineActionStatus message={submitStatusMessage} />
           <Button type="button" onClick={handleAttemptClose} disabled={submitState.status === 'saving'}>
             {t('portalTenants.actions.cancel')}
@@ -823,9 +842,9 @@ function EditTenantDialog({
         disabled={submitState.status === 'saving'}
       />
       <Box component="form" onSubmit={onSubmit}>
-        <DialogContent>
-          <Stack spacing={2}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+        <DialogContent sx={{ py: 1.25, px: 3 }}>
+          <Stack spacing={1.25}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
               <TextField
                 label={t('portalTenants.form.firstName')}
                 value={form.firstName}
@@ -835,6 +854,7 @@ function EditTenantDialog({
                 error={Boolean(fieldErrors.firstName)}
                 helperText={fieldErrors.firstName || ' '}
                 size="small"
+                margin="dense"
                 autoComplete="given-name"
               />
               <TextField
@@ -846,6 +866,7 @@ function EditTenantDialog({
                 error={Boolean(fieldErrors.lastName)}
                 helperText={fieldErrors.lastName || ' '}
                 size="small"
+                margin="dense"
                 autoComplete="family-name"
               />
             </Stack>
@@ -859,6 +880,7 @@ function EditTenantDialog({
               error={Boolean(fieldErrors.email)}
               helperText={fieldErrors.email || ' '}
               size="small"
+              margin="dense"
               autoComplete="email"
             />
             <TextField
@@ -867,11 +889,14 @@ function EditTenantDialog({
               onChange={onChange('phone')}
               fullWidth
               size="small"
+              margin="dense"
               autoComplete="tel"
             />
             {isAdmin && (
               <>
-                <Select
+                <TextField
+                  select
+                  label={t('portalTenants.form.landlord')}
                   value={form.landlord_id}
                   onChange={(e) => {
                     const nextLandlordId = e.target.value;
@@ -886,10 +911,12 @@ function EditTenantDialog({
                       property_id: '',
                     }));
                   }}
-                  displayEmpty
+                  required
                   fullWidth
-                  error={Boolean(fieldErrors.landlord_id)}
                   size="small"
+                  margin="dense"
+                  error={Boolean(fieldErrors.landlord_id)}
+                  helperText={fieldErrors.landlord_id || ' '}
                 >
                   <MenuItem value="" disabled>
                     {t('portalTenants.form.selectLandlord')}
@@ -899,12 +926,7 @@ function EditTenantDialog({
                       {displayName(l)} — {l.email}
                     </MenuItem>
                   ))}
-                </Select>
-                {fieldErrors.landlord_id && (
-                  <Typography variant="caption" color="error" sx={{ mt: '-8px !important' }}>
-                    {fieldErrors.landlord_id}
-                  </Typography>
-                )}
+                </TextField>
                 <Select
                   value={form.property_id}
                   onChange={onChange('property_id')}
@@ -932,7 +954,7 @@ function EditTenantDialog({
             )}
           </Stack>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 2, py: 1 }}>
           <InlineActionStatus message={submitStatusMessage} />
           <Button type="button" onClick={handleAttemptClose} disabled={submitState.status === 'saving'}>
             {t('portalTenants.actions.cancel')}
@@ -1369,13 +1391,13 @@ function OnboardTenantDialog({
         disabled={submitState.status === 'saving'}
       />
       <Box component="form" onSubmit={onSubmit}>
-        <DialogContent>
-          <Stack spacing={2}>
-            <Typography variant="subtitle2" color="text.secondary">
+        <DialogContent sx={{ py: 1.25, px: 3 }}>
+          <Stack spacing={1.25}>
+            <Typography variant="subtitle2" color="text.secondary" sx={{ lineHeight: 1.25 }}>
               {t('portalTenants.onboardDialog.tenantSection')}
             </Typography>
 
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
               <TextField
                 label={t('portalTenants.form.firstName')}
                 value={form.firstName}
@@ -1385,6 +1407,7 @@ function OnboardTenantDialog({
                 error={Boolean(fieldErrors.firstName)}
                 helperText={fieldErrors.firstName || ' '}
                 size="small"
+                margin="dense"
                 autoComplete="given-name"
               />
               <TextField
@@ -1396,6 +1419,7 @@ function OnboardTenantDialog({
                 error={Boolean(fieldErrors.lastName)}
                 helperText={fieldErrors.lastName || ' '}
                 size="small"
+                margin="dense"
                 autoComplete="family-name"
               />
             </Stack>
@@ -1409,6 +1433,7 @@ function OnboardTenantDialog({
               error={Boolean(fieldErrors.email)}
               helperText={fieldErrors.email || ' '}
               size="small"
+              margin="dense"
               autoComplete="email"
             />
             <TextField
@@ -1417,53 +1442,51 @@ function OnboardTenantDialog({
               onChange={onChange('phone')}
               fullWidth
               size="small"
+              margin="dense"
               autoComplete="tel"
             />
 
-            <Typography variant="subtitle2" color="text.secondary" sx={{ pt: 1 }}>
+            <Typography variant="subtitle2" color="text.secondary" sx={{ lineHeight: 1.25, pt: 0.25 }}>
               {t('portalTenants.onboardDialog.leaseSection')}
             </Typography>
 
             {isAdmin && (
-              <>
-                <Select
-                  value={form.landlord_id}
-                  onChange={(e) => {
-                    const nextLandlordId = e.target.value;
-                    setForm((prev) => ({
-                      ...prev,
-                      landlord_id: nextLandlordId,
-                      property_id: '',
-                    }));
-                    setFieldErrors((prev) => ({
-                      ...prev,
-                      landlord_id: '',
-                      property_id: '',
-                    }));
-                    if (typeof onLandlordChange === 'function') {
-                      onLandlordChange(nextLandlordId);
-                    }
-                  }}
-                  displayEmpty
-                  fullWidth
-                  error={Boolean(fieldErrors.landlord_id)}
-                  size="small"
-                >
-                  <MenuItem value="" disabled>
-                    {t('portalTenants.form.selectLandlord')}
+              <TextField
+                select
+                label={t('portalTenants.form.landlord')}
+                value={form.landlord_id}
+                onChange={(e) => {
+                  const nextLandlordId = e.target.value;
+                  setForm((prev) => ({
+                    ...prev,
+                    landlord_id: nextLandlordId,
+                    property_id: '',
+                  }));
+                  setFieldErrors((prev) => ({
+                    ...prev,
+                    landlord_id: '',
+                    property_id: '',
+                  }));
+                  if (typeof onLandlordChange === 'function') {
+                    onLandlordChange(nextLandlordId);
+                  }
+                }}
+                required
+                fullWidth
+                size="small"
+                margin="dense"
+                error={Boolean(fieldErrors.landlord_id)}
+                helperText={fieldErrors.landlord_id || ' '}
+              >
+                <MenuItem value="" disabled>
+                  {t('portalTenants.form.selectLandlord')}
+                </MenuItem>
+                {sortedLandlords.map((l) => (
+                  <MenuItem key={l.id} value={l.id}>
+                    {displayName(l)} — {l.email}
                   </MenuItem>
-                  {sortedLandlords.map((l) => (
-                    <MenuItem key={l.id} value={l.id}>
-                      {displayName(l)} — {l.email}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {fieldErrors.landlord_id && (
-                  <Typography variant="caption" color="error" sx={{ mt: '-8px !important' }}>
-                    {fieldErrors.landlord_id}
-                  </Typography>
-                )}
-              </>
+                ))}
+              </TextField>
             )}
 
             <Select
@@ -1501,8 +1524,10 @@ function OnboardTenantDialog({
               error={Boolean(fieldErrors.start_date)}
               helperText={fieldErrors.start_date || ' '}
               size="small"
+              margin="dense"
             />
             <FormControlLabel
+              sx={{ my: 0, py: 0 }}
               control={
                 <Checkbox
                   checked={form.month_to_month}
@@ -1523,6 +1548,7 @@ function OnboardTenantDialog({
                 error={Boolean(fieldErrors.end_date)}
                 helperText={fieldErrors.end_date || ' '}
                 size="small"
+                margin="dense"
               />
             )}
             <TextField
@@ -1530,13 +1556,15 @@ function OnboardTenantDialog({
               value={form.notes}
               onChange={onChange('notes')}
               multiline
-              rows={2}
+              minRows={1}
+              maxRows={5}
               fullWidth
               size="small"
+              margin="dense"
             />
           </Stack>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 2, py: 1 }}>
           <InlineActionStatus message={submitStatusMessage} />
           <Button type="button" onClick={handleAttemptClose} disabled={submitState.status === 'saving'}>
             {t('portalTenants.actions.cancel')}

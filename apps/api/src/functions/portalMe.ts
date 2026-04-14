@@ -12,10 +12,12 @@ import {
   verifyAccessToken,
   authConfigured,
 } from '../lib/jwtVerify.js';
-import { findUserByClaims } from '../lib/usersRepo.js';
+import { findUserByClaims, autoAssignFreeTier, autoRegisterLandlordByClaims } from '../lib/usersRepo.js';
 import { getGlobalAttachmentUploadConfigCached } from '../lib/attachmentUploadConfigRepo.js';
+import { getTierById, getTierByName } from '../lib/subscriptionTiersRepo.js';
 import { addProfilePhotoReadUrl } from '../lib/userProfilePhotoUrl.js';
 import { ensureUserNotificationPreference } from '../lib/notificationPolicyRepo.js';
+import { enqueueNotification } from '../lib/notificationRepo.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 import { withRateLimit } from '../lib/rateLimiter.js';
 import { Role } from '../domain/constants.js';
@@ -26,6 +28,7 @@ type PortalMeDeps = {
   verifyAccessToken: typeof verifyAccessToken;
   authConfigured: typeof authConfigured;
   findUserByClaims: typeof findUserByClaims;
+  autoRegisterLandlordByClaims: typeof autoRegisterLandlordByClaims;
   ensureUserNotificationPreference: typeof ensureUserNotificationPreference;
   getGlobalAttachmentUploadConfigCached: typeof getGlobalAttachmentUploadConfigCached;
 };
@@ -36,6 +39,7 @@ const DEFAULT_PORTAL_ME_DEPS: PortalMeDeps = {
   verifyAccessToken,
   authConfigured,
   findUserByClaims,
+  autoRegisterLandlordByClaims,
   ensureUserNotificationPreference,
   getGlobalAttachmentUploadConfigCached,
 };
@@ -123,7 +127,54 @@ export async function portalMeHandler(
     };
   }
 
+  // No existing user — auto-register as a Free-tier landlord on first sign-in
+  if (!user && deps.hasDatabaseUrl()) {
+    try {
+      const pool = deps.getPool();
+      const newUser = await deps.autoRegisterLandlordByClaims(pool, claims, emailHint);
+      if (newUser) {
+        user = newUser;
+        notificationPreferences = await deps.ensureUserNotificationPreference(pool, user.id);
+        logInfo(context, 'portal.me.auto_registered', {
+          userId: user.id,
+          subject: claims.sub,
+          oid: claims.oid ?? null,
+        });
+        try {
+          const notifyClient = await pool.connect();
+          try {
+            await enqueueNotification(notifyClient, {
+              eventTypeCode: 'ACCOUNT_LANDLORD_CREATED',
+              payload: {
+                landlord_user_id: user.id,
+                landlord_email: user.email,
+                email: user.email,
+                first_name: user.first_name ?? null,
+                last_name: user.last_name ?? null,
+                source: 'SELF_REGISTRATION',
+              },
+              idempotencyKey: `account-landlord-created:${user.id}:self`,
+            });
+          } finally {
+            notifyClient.release();
+          }
+        } catch (notifyErr) {
+          logWarn(context, 'portal.me.landlord_notify_admins.failed', {
+            userId: user.id,
+            message: notifyErr instanceof Error ? notifyErr.message : String(notifyErr),
+          });
+        }
+      }
+    } catch (error) {
+      logError(context, 'portal.me.auto_register.error', {
+        message: error instanceof Error ? error.message : 'unknown',
+        subject: claims.sub,
+      });
+    }
+  }
+
   if (!user) {
+    // Auto-registration skipped (no email in token) or already handled above
     logWarn(context, 'portal.me.forbidden', {
       reason: 'user_not_found',
       subject: claims.sub,
@@ -183,6 +234,29 @@ export async function portalMeHandler(
     }
   }
 
+  // Tier: auto-assign FREE for LANDLORD users who don't yet have a tier
+  let tier: { id: string; name: string; display_name: string; limits: import('../lib/subscriptionTiersRepo.js').TierLimits } | null = null;
+  if (deps.hasDatabaseUrl()) {
+    try {
+      const pool = deps.getPool();
+      if (user.role === Role.LANDLORD && !user.tier_id) {
+        const freeTier = await getTierByName(pool, 'FREE');
+        if (freeTier) {
+          await autoAssignFreeTier(pool, user.id, freeTier.id);
+          user = { ...user, tier_id: freeTier.id };
+          tier = { id: freeTier.id, name: freeTier.name, display_name: freeTier.display_name, limits: freeTier.limits };
+        }
+      } else if (user.tier_id) {
+        const t = await getTierById(pool, user.tier_id);
+        if (t) tier = { id: t.id, name: t.name, display_name: t.display_name, limits: t.limits };
+      }
+    } catch (tierErr) {
+      logWarn(context, 'portal.me.tier_lookup.failed', {
+        message: tierErr instanceof Error ? tierErr.message : String(tierErr),
+      });
+    }
+  }
+
   return {
     status: 200,
     headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
@@ -197,6 +271,7 @@ export async function portalMeHandler(
         notification_preferences: notificationPreferences,
         ui_language: user.ui_language ?? null,
         ui_color_scheme: user.ui_color_scheme ?? null,
+        tier,
       },
     },
   };

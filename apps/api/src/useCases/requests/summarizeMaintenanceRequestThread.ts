@@ -4,6 +4,7 @@ import type { TransactionPool } from '../types.js';
 import {
   getRequestById,
   listRequestMessages,
+  managementCanAccessRequest,
   type RequestMessageRow,
   type RequestRow,
 } from '../../lib/requestsRepo.js';
@@ -129,6 +130,9 @@ export async function summarizeMaintenanceRequestThread(
 
   if (!hasLandlordAccess(input.actorRole)) throw forbidden();
   if (!input.requestId) throw validationError('missing_id');
+  const role = input.actorRole.trim().toUpperCase();
+  const ok = await managementCanAccessRequest(db, input.requestId, role, input.actorUserId);
+  if (!ok) throw notFound();
   const request = await getRequestById(db, input.requestId);
   if (!request) throw notFound();
 

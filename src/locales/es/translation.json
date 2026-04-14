@@ -21,7 +21,19 @@
     "portal": "Portal",
     "portalMenu": "Menú del portal",
     "legalMenu": "Menú legal",
-    "print": "Imprimir esta página"
+    "print": "Imprimir esta página",
+    "renters": "Inquilinos",
+    "rentersMenu": "Menú de inquilinos",
+    "propertyManagement": "Gestión de Propiedades",
+    "forLandlords": "Para Propietarios",
+    "forLandlordsMenu": "Menú para propietarios",
+    "forPropertyManagers": "Para Gestores de Propiedades",
+    "pricing": "Precios",
+    "getStarted": "Empezar",
+    "product": "Producto",
+    "productMenu": "Menú de producto",
+    "resources": "Recursos",
+    "resourcesMenu": "Menú de recursos"
   },
   "tenantLinks": {
     "apply": "Solicitar",
@@ -57,19 +69,28 @@
     "highlight2Detail": "Solicitudes, renta y mantenimiento en un solo flujo",
     "highlight3Label": "Comunicación que se mantiene",
     "highlight3Detail": "Menos vacíos, pasos siguientes más claros",
-    "audienceLabel": "Elija inquilinos o propietarios",
+    "audienceLabel": "¿Quién es usted?",
     "rentersTitle": "Inquilinos",
-    "rentersBody": "¿Buscando un arrendamiento en Houston? Mantenemos el camino honesto: lo que necesita para solicitar, qué esperar y personas que contestan el teléfono.",
-    "rentersBullet1": "Pasos de solicitud simplificados y guía de documentos requeridos",
-    "rentersBullet2": "Mentalidad de listados locales: conocemos los ritmos de este mercado",
-    "rentersBullet3": "Respeto por su tiempo: menos sorpresas, pasos siguientes más claros",
-    "rentersCta": "Iniciar su solicitud",
+    "rentersBody": "¿Busca alquiler en Houston? Explore propiedades disponibles, revise los criterios de selección y solicite en línea.",
+    "rentersBullet1": "Pasos de solicitud disponibles en línea — sin llamadas telefónicas",
+    "rentersBullet2": "Los criterios de selección son claros y están publicados",
+    "rentersBullet3": "Portal de inquilinos para mantenimiento una vez que se mude",
+    "rentersCta": "Inicie su solicitud",
     "ownersTitle": "Propietarios",
-    "ownersBody": "Déjenos las llaves del trabajo tedioso. Comercializamos vacantes, seleccionamos inquilinos, coordinamos reparaciones e informamos para que pueda enfocarse en el panorama general.",
-    "ownersBullet1": "Gestión integral de propiedades adaptada a sus objetivos",
-    "ownersBullet2": "Coordinación de mantenimiento y relaciones con proveedores",
-    "ownersBullet3": "Comunicación constante: nunca adivinará qué está pasando",
-    "ownersCta": "Explorar la gestión de propiedades"
+    "ownersBody": "¿Tiene propiedades en alquiler en Houston? Nos encargamos del marketing, selección de inquilinos, coordinación de mantenimiento y cobro de renta.",
+    "ownersBullet1": "Agente inmobiliario y administrador de propiedades con licencia en Houston",
+    "ownersBullet2": "Servicio completo: desde vacante hasta renovación de contrato",
+    "ownersBullet3": "Comunicación transparente e informes regulares",
+    "ownersCta": "Explore nuestros servicios",
+    "heroHeadingNew": "Gestión de Propiedades en Houston. Autogestión en Cualquier Lugar.",
+    "heroSubtitleNew": "Encuentre un alquiler en Houston o contrátenos para gestionar su propiedad de inversión — o use nuestro portal para autogestionar sus propiedades desde cualquier parte de EE. UU.",
+    "selfManagersTitle": "Propietarios Independientes",
+    "selfManagersBody": "¿Gestiona sus propios alquileres? Use nuestro portal para ofrecer a sus inquilinos una experiencia profesional — solicitudes de mantenimiento, mensajería y notificaciones en un solo lugar.",
+    "selfManagersBullet1": "Portal de inquilinos con seguimiento de solicitudes de mantenimiento",
+    "selfManagersBullet2": "Elsa — asistente de IA que clasifica y responde automáticamente a solicitudes de mantenimiento",
+    "selfManagersBullet3": "Gratis para comenzar, con planes de suscripción disponibles",
+    "selfManagersCta": "Ver precios y características",
+    "featuredBadge": "Nuevo • Destacado"
   },
   "apply": {
     "title": "Carwoods - Cómo Solicitar",
@@ -104,7 +125,38 @@
     "para1Suffix": "Explica la elegibilidad, la documentación requerida y cómo enviar a través del canal de listado. Seguir ese flujo de trabajo primero nos permite asistirle de manera eficiente y consistente.",
     "para2": "Si ya ha seguido esos pasos, o tiene un asunto que no se puede abordar allí, como servicios de administración de propiedades u otro tema que requiera contacto directo, comuníquese con nuestro agente licenciado en HAR.com (Houston Association of Realtors). Alentamos el uso de este canal cuando las opciones de autoservicio no son suficientes.",
     "ctaButton": "Contactar a Nuestro Agente en HAR.com",
-    "ctaAriaLabel": "Contactar a nuestro agente en HAR.com (se abre en una nueva pestaña)"
+    "ctaAriaLabel": "Contactar a nuestro agente en HAR.com (se abre en una nueva pestaña)",
+    "intro": "¿Tiene alguna pregunta? Complete el formulario a continuación y nuestro equipo responderá en un día hábil.",
+    "dbaNote": "Carwoods es un nombre comercial de Alzoubi Motors LLC, una LLC de Texas.",
+    "nameLabel": "Su nombre",
+    "emailLabel": "Correo electrónico",
+    "phoneLabel": "Número de teléfono (opcional)",
+    "subjectLabel": "Asunto",
+    "messageLabel": "Mensaje",
+    "submitButton": "Enviar mensaje",
+    "submitting": "Enviando…",
+    "successHeading": "Mensaje enviado",
+    "successBody": "¡Gracias! Nos pondremos en contacto en un día hábil.",
+    "recaptchaError": "Error de verificación de seguridad. Por favor, inténtelo de nuevo.",
+    "recaptchaRequired": "No se completó la verificación de seguridad. Actualice la página e inténtelo de nuevo.",
+    "errorBody": "Algo salió mal. Por favor, inténtelo de nuevo o envíenos un correo a support@carwoods.com.",
+    "nameRequired": "El nombre es obligatorio",
+    "emailInvalid": "Por favor ingrese una dirección de correo electrónico válida",
+    "messageRequired": "El mensaje es obligatorio",
+    "harIntro": "Para información de corretaje según la ley de Texas:",
+    "harLinkText": "Información de Corretaje HAR",
+    "harAriaLabel": "Ver información de corretaje HAR (se abre en nueva pestaña)",
+    "recaptchaDisclaimer": "Este formulario está protegido por reCAPTCHA. La",
+    "recaptchaPrivacy": "Política de Privacidad",
+    "recaptchaAnd": "y los",
+    "recaptchaTerms": "Términos de Servicio",
+    "recaptchaApply": "de Google aplican.",
+    "subjects": {
+      "general": "Consulta general",
+      "renter": "Arrendatario / Solicitante",
+      "propertyOwner": "Propietario",
+      "portalSaas": "Portal / SaaS"
+    }
   },
   "privacy": {
     "title": "Carwoods - Política de Privacidad",
@@ -152,7 +204,11 @@
     "contactBody": "Si tiene preguntas sobre estos Términos, contáctenos a través de nuestra página de",
     "contactLink": "Contáctenos",
     "contactBodySuffix": "",
-    "lastUpdated": "Última actualización: abril de 2026"
+    "lastUpdated": "Última actualización: abril de 2025",
+    "portalServicesHeading": "Servicios de Portal y Suscripción",
+    "portalServicesBody": "El portal de Carwoods se ofrece como servicio de software por suscripción para administradores de propiedades y propietarios independientes. Hay un nivel gratuito con funcionalidad limitada disponible. Los niveles de suscripción pagados están en desarrollo. El acceso al portal no garantiza un nivel específico de servicio, tiempo de actividad o disponibilidad de funciones.",
+    "tenantDataHeading": "Datos de Inquilinos",
+    "tenantDataBody": "Los administradores que usan el portal de Carwoods invitan y gestionan a sus propios inquilinos. El administrador, y no Carwoods, es el responsable del tratamiento de datos personales de sus inquilinos dentro del portal. Los administradores son responsables de obtener el consentimiento apropiado de sus inquilinos."
   },
   "accessibility": {
     "title": "Carwoods - Declaración de Accesibilidad",
@@ -177,10 +233,22 @@
     "privacyPolicyAriaLabel": "Política de Privacidad",
     "termsOfUse": "Términos de uso",
     "termsOfUseAriaLabel": "Términos de uso",
+    "accessibility": "Accesibilidad",
+    "accessibilityAriaLabel": "Accesibilidad",
     "trecNotice": "Aviso de Protección al Consumidor de la Comisión de Bienes Raíces de Texas",
     "trecNoticeAriaLabel": "Aviso de Protección al Consumidor de la Comisión de Bienes Raíces de Texas (se abre en una nueva pestaña)",
     "trecBrokerage": "Información de la Comisión de Bienes Raíces de Texas sobre Servicios de Corretaje",
-    "trecBrokerageAriaLabel": "Información de la Comisión de Bienes Raíces de Texas sobre Servicios de Corretaje (se abre en una nueva pestaña)"
+    "trecBrokerageAriaLabel": "Información de la Comisión de Bienes Raíces de Texas sobre Servicios de Corretaje (se abre en una nueva pestaña)",
+    "pricing": "Precios",
+    "pricingAriaLabel": "Planes de precios",
+    "features": "Funcionalidades",
+    "featuresAriaLabel": "Funcionalidades del producto",
+    "forPropertyManagers": "Para Gestores de Propiedades",
+    "forPropertyManagersAriaLabel": "Para gestores de propiedades",
+    "apply": "Solicitar",
+    "applyAriaLabel": "Solicitar un alquiler",
+    "propertyManagement": "Gestión de Propiedades",
+    "propertyManagementAriaLabel": "Servicios de gestión de propiedades"
   },
   "applyFlowSubnav": {
     "label": "Navegación del proceso de solicitud",
@@ -254,7 +322,26 @@
     "s11Heading": "11. Ley Aplicable",
     "s11Body": "Este Acuerdo se regirá e interpretará de conformidad con las leyes del Estado de TEXAS.",
     "s12Heading": "12. Acuerdo Completo",
-    "s12Body": "Este Acuerdo constituye el acuerdo completo entre las partes y reemplaza todos los acuerdos o entendimientos previos, ya sean escritos u orales, relacionados con el objeto del mismo."
+    "s12Body": "Este Acuerdo constituye el acuerdo completo entre las partes y reemplaza todos los acuerdos o entendimientos previos, ya sean escritos u orales, relacionados con el objeto del mismo.",
+    "heroSubtitle": "Agente inmobiliario y administrador de propiedades con licencia en Houston. Comercializamos vacantes, seleccionamos inquilinos, coordinamos reparaciones e informamos — para que usted se enfoque en su inversión.",
+    "heroBenefit1": "Marketing completo y selección de inquilinos desde el primer día",
+    "heroBenefit2": "Coordinación de mantenimiento con relaciones de proveedores de confianza",
+    "heroBenefit3": "Informes transparentes y comunicación constante",
+    "heroCtaButton": "Contáctenos",
+    "heroCtaAriaLabel": "Contactar Carwoods sobre servicios de administración de propiedades",
+    "servicesHeading": "Lo que manejamos por usted",
+    "service1Heading": "Arrendamiento y Marketing",
+    "service1Body": "Listamos su propiedad en MLS y principales plataformas, calificamos solicitantes y gestionamos todo el proceso de arrendamiento.",
+    "service2Heading": "Selección de Inquilinos",
+    "service2Body": "Verificación de antecedentes, crédito, ingresos e historial de alquiler — aplicada de manera consistente para cumplimiento.",
+    "service3Heading": "Coordinación de Mantenimiento",
+    "service3Body": "Los inquilinos envían solicitudes a través del portal. Clasificamos, enviamos proveedores confiables y lo mantenemos informado.",
+    "service4Heading": "Cobro de Renta e Informes",
+    "service4Body": "Cobro en línea, estados de cuenta mensuales e informes anuales para que siempre sepa dónde está su inversión.",
+    "whyCarwoodsHeading": "¿Por qué Carwoods?",
+    "whyCarwoodsBody": "Dennis Alzoubi es agente inmobiliario y administrador de propiedades con licencia en Texas, radicado en Houston. Carwoods combina experiencia local práctica con software moderno.",
+    "ctaSectionHeading": "¿Listo para comenzar?",
+    "ctaSectionBody": "Cuéntenos sobre su propiedad y haremos seguimiento con los próximos pasos."
   },
   "tenantCriteria": {
     "title": "Carwoods - Criterios de Selección de Inquilinos",
@@ -588,56 +675,128 @@
       "employment": {
         "question": "¿Cuál es su situación laboral?",
         "options": {
-          "employed": { "label": "Empleado", "desc": "Trabajando para un empleador (W-2)" },
-          "selfEmployed": { "label": "Trabajador Independiente", "desc": "Tiene un negocio o trabaja como contratista" },
-          "both": { "label": "Ambos", "desc": "Empleado y también trabajador independiente" },
-          "notEmployed": { "label": "Sin empleo actualmente", "desc": "Jubilado, estudiante u otro" }
+          "employed": {
+            "label": "Empleado",
+            "desc": "Trabajando para un empleador (W-2)"
+          },
+          "selfEmployed": {
+            "label": "Trabajador Independiente",
+            "desc": "Tiene un negocio o trabaja como contratista"
+          },
+          "both": {
+            "label": "Ambos",
+            "desc": "Empleado y también trabajador independiente"
+          },
+          "notEmployed": {
+            "label": "Sin empleo actualmente",
+            "desc": "Jubilado, estudiante u otro"
+          }
         }
       },
       "hasPets": {
         "question": "¿Tiene mascotas o animales?",
         "options": {
-          "none": { "label": "No tengo mascotas ni animales", "desc": "" },
-          "pets": { "label": "Sí — mascota(s)", "desc": "Gatos, perros u otras mascotas domésticas" },
-          "service": { "label": "Sí — animal de servicio", "desc": "Entrenado para realizar tareas relacionadas con una discapacidad" },
-          "esa": { "label": "Sí — ESA o animal de asistencia", "desc": "Animal de apoyo emocional u otro animal de asistencia" }
+          "none": {
+            "label": "No tengo mascotas ni animales",
+            "desc": ""
+          },
+          "pets": {
+            "label": "Sí — mascota(s)",
+            "desc": "Gatos, perros u otras mascotas domésticas"
+          },
+          "service": {
+            "label": "Sí — animal de servicio",
+            "desc": "Entrenado para realizar tareas relacionadas con una discapacidad"
+          },
+          "esa": {
+            "label": "Sí — ESA o animal de asistencia",
+            "desc": "Animal de apoyo emocional u otro animal de asistencia"
+          }
         }
       },
       "benefits": {
         "question": "¿Recibe beneficios gubernamentales u otros beneficios?",
         "hint": "Seleccione todos los que apliquen",
         "options": {
-          "none": { "label": "Ninguno", "desc": "" },
-          "va": { "label": "Beneficios VA", "desc": "Beneficios del Departamento de Asuntos de Veteranos" },
-          "ssaSsi": { "label": "Seguro Social (SSA / SSI)", "desc": "" },
-          "ssdi": { "label": "SSDI", "desc": "Seguro de Discapacidad del Seguro Social" },
-          "retirement": { "label": "Jubilación / Pensión", "desc": "" },
-          "childSupport": { "label": "Manutención de Menores o Cónyuge", "desc": "" },
-          "otherBenefits": { "label": "Otros beneficios", "desc": "Cualquier otro beneficio gubernamental o de agencia" }
+          "none": {
+            "label": "Ninguno",
+            "desc": ""
+          },
+          "va": {
+            "label": "Beneficios VA",
+            "desc": "Beneficios del Departamento de Asuntos de Veteranos"
+          },
+          "ssaSsi": {
+            "label": "Seguro Social (SSA / SSI)",
+            "desc": ""
+          },
+          "ssdi": {
+            "label": "SSDI",
+            "desc": "Seguro de Discapacidad del Seguro Social"
+          },
+          "retirement": {
+            "label": "Jubilación / Pensión",
+            "desc": ""
+          },
+          "childSupport": {
+            "label": "Manutención de Menores o Cónyuge",
+            "desc": ""
+          },
+          "otherBenefits": {
+            "label": "Otros beneficios",
+            "desc": "Cualquier otro beneficio gubernamental o de agencia"
+          }
         }
       },
       "section8": {
         "question": "¿Está solicitando con asistencia de vivienda (Sección 8 o similar)?",
         "options": {
-          "no": { "label": "No", "desc": "" },
-          "yes": { "label": "Sí", "desc": "Tengo un Vale de Elección de Vivienda o similar" }
+          "no": {
+            "label": "No",
+            "desc": ""
+          },
+          "yes": {
+            "label": "Sí",
+            "desc": "Tengo un Vale de Elección de Vivienda o similar"
+          }
         }
       },
       "guarantorCosigner": {
         "question": "¿Necesitará un garante o cofirmante?",
         "options": {
-          "neither": { "label": "Ninguno", "desc": "" },
-          "guarantor": { "label": "Garante", "desc": "Firma un acuerdo de garantía separado" },
-          "cosigner": { "label": "Cofirmante", "desc": "Firma el contrato como co-inquilino" },
-          "notSure": { "label": "No estoy seguro", "desc": "Es posible que necesite uno pero no estoy seguro" }
+          "neither": {
+            "label": "Ninguno",
+            "desc": ""
+          },
+          "guarantor": {
+            "label": "Garante",
+            "desc": "Firma un acuerdo de garantía separado"
+          },
+          "cosigner": {
+            "label": "Cofirmante",
+            "desc": "Firma el contrato como co-inquilino"
+          },
+          "notSure": {
+            "label": "No estoy seguro",
+            "desc": "Es posible que necesite uno pero no estoy seguro"
+          }
         }
       },
       "creditScore": {
         "question": "¿Conoce su puntaje de crédito aproximado?",
         "options": {
-          "unknown": { "label": "No lo sé", "desc": "" },
-          "above650": { "label": "650 o más", "desc": "Cumple el requisito mínimo de crédito" },
-          "below650": { "label": "Por debajo de 650", "desc": "Por debajo del mínimo estándar" }
+          "unknown": {
+            "label": "No lo sé",
+            "desc": ""
+          },
+          "above650": {
+            "label": "650 o más",
+            "desc": "Cumple el requisito mínimo de crédito"
+          },
+          "below650": {
+            "label": "Por debajo de 650",
+            "desc": "Por debajo del mínimo estándar"
+          }
         }
       }
     }
@@ -1253,7 +1412,8 @@
       "landlordSaved": "Propietario guardado correctamente.",
       "landlordUpdated": "Propietario actualizado correctamente.",
       "deactivated": "Propietario desactivado.",
-      "reactivated": "Propietario reactivado."
+      "reactivated": "Propietario reactivado.",
+      "tierUpdated": "Plan de suscripción actualizado."
     },
     "list": {
       "heading": "Propietarios",
@@ -1262,14 +1422,24 @@
       "loading": "Cargando propietarios…",
       "empty": "No se encontraron propietarios.",
       "name": "Nombre",
-      "status": "Estado del usuario"
+      "status": "Estado del usuario",
+      "tier": "Plan",
+      "tierNone": "Sin asignar",
+      "tierChipAria": "Plan de suscripción: {{tier}}"
     },
     "actions": {
       "edit": "Editar",
       "saveChanges": "Guardar cambios",
       "deactivate": "Desactivar",
       "reactivate": "Reactivar",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "changeTier": "Cambiar plan de suscripción"
+    },
+    "tierDialog": {
+      "title": "Plan de suscripción de {{name}}",
+      "selectLabel": "Plan",
+      "save": "Guardar plan",
+      "loadingTiers": "Cargando planes…"
     },
     "confirmDeactivate": {
       "title": "¿Desactivar propietario?",
@@ -1289,7 +1459,10 @@
       "emailRequired": "El correo es obligatorio.",
       "emailInvalid": "Ingresa un correo electrónico válido.",
       "firstNameRequired": "El nombre es obligatorio.",
-      "lastNameRequired": "El apellido es obligatorio."
+      "lastNameRequired": "El apellido es obligatorio.",
+      "tierListFailed": "No se pudieron cargar los planes de suscripción.",
+      "tierSaveFailed": "No se pudo actualizar el plan de suscripción.",
+      "tierPickRequired": "Elige un plan antes de guardar."
     }
   },
   "portalAdminConfigurations": {
@@ -1504,6 +1677,10 @@
       "visibilityFilterVisible": "Visibles",
       "visibilityFilterHidden": "No visibles",
       "visibilityFilterDeleted": "Solo eliminadas",
+      "landlordFilterLabel": "Filtrar por propietario",
+      "landlordFilterAll": "Todos los propietarios",
+      "landlordFilterLoadError": "No se pudieron cargar los propietarios.",
+      "emptyLandlordFilter": "No hay propiedades que coincidan con este propietario y los filtros actuales.",
       "editButton": "Editar",
       "deleteButton": "Eliminar",
       "syncHarButton": "Sincronizar con HAR",
@@ -1562,7 +1739,8 @@
       "home": "Inicio del portal",
       "requests": "Solicitudes",
       "profile": "Perfil",
-      "adminLandlords": "Admin: Propietarios"
+      "adminLandlords": "Admin: Propietarios",
+      "goToPortal": "Ir al Portal"
     },
     "status": {
       "signedIn": "Sesión iniciada",
@@ -1644,7 +1822,8 @@
       "viewProfile": "Editar perfil",
       "exportCsv": "Exportar CSV",
       "manageLandlords": "Gestionar propietarios",
-      "manageProperties": "Gestionar propiedades"
+      "manageProperties": "Gestionar propiedades",
+      "manageTenants": "Gestionar inquilinos"
     },
     "recentRequests": {
       "heading": "Solicitudes recientes",
@@ -1657,7 +1836,22 @@
     "actions": {
       "refresh": "Actualizar"
     },
-    "accessDenied": "No tienes permiso para ver esa página."
+    "accessDenied": "No tienes permiso para ver esa página.",
+    "onboarding": {
+      "heading": "Comienza con Carwoods",
+      "subheading": "Completa estos pasos para configurar tu portal de gestión de propiedades.",
+      "dismiss": "Descartar",
+      "dismissAriaLabel": "Descartar lista de configuración",
+      "step1Label": "Añade tu primera propiedad",
+      "step1Desc": "Crea un anuncio de propiedad y añade fotos.",
+      "step1Action": "Ir a Propiedades",
+      "step2Label": "Invita a tu primer inquilino",
+      "step2Desc": "Envía un enlace de invitación para conectar a un inquilino con su contrato.",
+      "step2Action": "Ir a Inquilinos",
+      "step3Label": "Configura tus ajustes",
+      "step3Desc": "Configura el enrutamiento de IA, las notificaciones y las preferencias del portal.",
+      "step3Action": "Ir a Configuración"
+    }
   },
   "portalLoading": {
     "ariaLabel": "Cargando portal"
@@ -1665,7 +1859,7 @@
   "portalLogin": {
     "title": "Carwoods - Portal de Propiedades",
     "metaDescription": "Inicia sesión en el portal de propiedades de Carwoods.",
-    "heading": "Portal de Propiedades",
+    "heading": "Iniciar sesión o registrarse",
     "subtitle": "Gestiona solicitudes de mantenimiento, pagos, aplicaciones y comunícate con tu equipo de administración.",
     "features": {
       "requests": "Envía y sigue solicitudes de mantenimiento",
@@ -1721,6 +1915,7 @@
       "firstName": "Nombre",
       "lastName": "Apellido",
       "phone": "Teléfono (opcional)",
+      "landlord": "Propietario",
       "selectLandlord": "Selecciona un propietario",
       "selectProperty": "Selecciona una propiedad",
       "startDate": "Fecha de inicio del contrato",
@@ -1825,5 +2020,143 @@
   "languagePreference": {
     "useBrowserLanguage": "Usar idioma del navegador",
     "browserLanguageHint": "Su elección se guarda en este navegador. Restablecer borra la anulación y vuelve a seguir el idioma del navegador (inglés si no es compatible)."
+  },
+  "pricing": {
+    "title": "Carwoods — Precios",
+    "metaDescription": "Precios simples y transparentes para administradores de propiedades.",
+    "heading": "Precios Simples y Transparentes",
+    "subheading": "Comience gratis. Actualice cuando esté listo. Sin contratos, sin sorpresas.",
+    "freeTierLabel": "Gratis",
+    "freeTierTagline": "Comience sin costo",
+    "freeTierPrice": "/bin/bash",
+    "freeTierPricePeriod": "para siempre",
+    "freeTierCta": "Comenzar Gratis",
+    "freeTierCtaAria": "Comenzar con el plan gratuito",
+    "starterTierLabel": "Paga Según Crezcas",
+    "starterTierLabelShort": "Paga Según Crezcas",
+    "starterTierTagline": "Para propietarios independientes y autogestionados",
+    "starterTierPrice": "Próximamente",
+    "starterTierPricePeriod": "· por propiedad / mes",
+    "starterTierCta": "Unirse a la Lista de Espera",
+    "starterTierCtaAria": "Unirse a la lista de espera del plan Paga Según Crezcas",
+    "proTierLabel": "Pro",
+    "proTierTagline": "Para equipos de administración de propiedades",
+    "proTierPrice": "Próximamente",
+    "proTierPricePeriod": "· tarifa mensual fija",
+    "proTierCta": "Unirse a la Lista de Espera",
+    "proTierCtaAria": "Unirse a la lista de espera del plan Pro",
+    "featureTableHeading": "Comparar planes",
+    "featureProperties": "Propiedades",
+    "featurePropertiesFree": "1 propiedad",
+    "featurePropertiesStarter": "Ilimitadas — paga por propiedad",
+    "featurePropertiesPro": "Ilimitadas — acceso de equipo incluido",
+    "featureTenantPortal": "Acceso al portal de inquilinos",
+    "featureMaintenanceRequests": "Solicitudes de mantenimiento",
+    "featureNotifications": "Notificaciones en app y correo",
+    "featureSms": "Notificaciones SMS",
+    "featureAiRouting": "Enrutamiento IA de mantenimiento",
+    "featureDocStorage": "Almacenamiento de documentos",
+    "featureReports": "Informes y exportaciones",
+    "featureWhiteLabel": "Marca personalizada",
+    "featurePrioritySupport": "Soporte prioritario",
+    "faqHeading": "Preguntas frecuentes",
+    "faq1Question": "¿Pagan algo mis inquilinos?",
+    "faq1Answer": "No. Los inquilinos acceden al portal de forma gratuita. Solo los administradores pagan la suscripción.",
+    "faq2Question": "¿Puedo invitar a mis inquilinos actuales?",
+    "faq2Answer": "Sí. Una vez que agregue una propiedad, puede invitar inquilinos por correo electrónico.",
+    "faq3Question": "¿Qué pasa después del período gratuito?",
+    "faq3Answer": "Las cuentas gratuitas permanecerán en el nivel gratuito con 1 propiedad.",
+    "faq4Question": "¿Hay contrato o compromiso de pago anticipado?",
+    "faq4Answer": "No. Sin contratos, sin compromisos. Los planes pagados serán mensuales al lanzarse.",
+    "faq5Question": "¿Cómo funciona la facturación de 'Paga Según Crezcas'?",
+    "faq5Answer": "Pagas una tarifa fija por cada propiedad que administras — añade más propiedades y tu factura crece contigo. No hay límite en el número de propiedades.",
+    "featureTeamAccess": "Cuentas de miembros del equipo",
+    "featureTeamAccessFree": "—",
+    "featureTeamAccessStarter": "—",
+    "featureTeamAccessPro": "Incluido",
+    "comingSoonBadge": "Próximamente"
+  },
+  "features": {
+    "title": "Carwoods — Funcionalidades",
+    "metaDescription": "Todo lo que los gestores de propiedades necesitan en un portal: propiedades, inquilinos, solicitudes de mantenimiento, notificaciones y enrutamiento con IA.",
+    "heading": "Todo lo que Necesitas para Gestionar tu Cartera",
+    "subheading": "Creado para gestores de propiedades que trabajan con situaciones reales. Cada función del portal corresponde a algo que haces a diario.",
+    "dashboardFeatureHeading": "Panel de Control",
+    "dashboardFeatureBody": "Consulta todas las solicitudes de mantenimiento abiertas, en progreso y resueltas de un vistazo. Una vista para toda tu cartera.",
+    "propertiesFeatureHeading": "Propiedades",
+    "propertiesFeatureBody": "Añade y gestiona tus propiedades en alquiler con fotos, detalles del anuncio y sincronización con HAR.com. Organiza todo por unidad.",
+    "tenantsFeatureHeading": "Gestión de Inquilinos",
+    "tenantsFeatureBody": "Invita a inquilinos por correo electrónico, realiza el seguimiento de contratos activos y controla el acceso al portal, todo desde un único registro de inquilinos.",
+    "requestsFeatureHeading": "Solicitudes de Mantenimiento",
+    "requestsFeatureBody": "Los inquilinos envían solicitudes a través del portal. Tú haces el seguimiento del estado, envías mensajes, adjuntas fotos y asignas proveedores, todo en un mismo hilo.",
+    "notificationsFeatureHeading": "Notificaciones",
+    "notificationsFeatureBody": "Las notificaciones dentro de la app, por correo electrónico y SMS mantienen informados a ti y a tus inquilinos en cada etapa de una solicitud.",
+    "aiFeatureHeading": "Configuración de IA (ELSA)",
+    "aiFeatureBody": "Configura ELSA, el asistente de mantenimiento con IA, para clasificar y enrutar solicitudes automáticamente según la categoría, prioridad y tus preferencias.",
+    "elsaPhotoAlt": "Elsa, Asistente IA de Carwoods",
+    "elsaSectionHeading": "Conoce a Elsa, Tu Asistente IA de Propiedades",
+    "elsaGrowingChip": "Siempre Creciendo",
+    "elsaIntro": "Elsa revisa cada solicitud de mantenimiento entrante y decide el mejor paso siguiente — pedir más información, enviar orientación de solución de problemas, o escalar a un proveedor. Trabaja silenciosamente en segundo plano para que tú no tengas que hacerlo.",
+    "elsaCapability1": "Revisa y clasifica cada solicitud de mantenimiento",
+    "elsaCapability2": "Responde automáticamente a los inquilinos con pasos seguros de solución de problemas",
+    "elsaCapability3": "Detecta emergencias y te alerta de inmediato",
+    "elsaCapability4": "Resume hilos de solicitudes para contexto rápido",
+    "elsaCapability5": "Sugiere el envío de proveedores cuando se necesita escalar",
+    "elsaCapability6": "Totalmente configurable por propiedad, categoría y prioridad",
+    "elsaGrowingNote": "Las capacidades de Elsa crecen continuamente con nuevas funciones — más automatización, enrutamiento más inteligente e integraciones más profundas están en camino.",
+    "requestStatusesHeading": "Estados de solicitudes de un vistazo",
+    "statusOpen": "Abierta",
+    "statusAcknowledged": "Recibida",
+    "statusScheduled": "Programada",
+    "statusWaitingVendor": "Esperando al proveedor",
+    "statusWaitingTenant": "Esperando al inquilino",
+    "statusComplete": "Completada",
+    "compareHeading": "Lo que obtiene el gestor. Lo que obtiene el inquilino.",
+    "managerGets1": "Gestión completa de propiedades e inquilinos",
+    "managerGets2": "Enrutamiento de mantenimiento asistido por IA",
+    "managerGets3": "Exportación CSV e informes",
+    "managerGets4": "Controles de política de notificaciones",
+    "managerGets5": "Gestión de contratos y documentos",
+    "tenantGets1": "Enviar solicitudes de mantenimiento",
+    "tenantGets2": "Mensajería directa con el gestor",
+    "tenantGets3": "Actualizaciones del estado de la solicitud",
+    "tenantGets4": "Alertas por correo, dentro de la app y SMS",
+    "tenantGets5": "Preferencias de perfil y notificaciones",
+    "ctaHeading": "¿Listo para empezar?",
+    "ctaBody": "Regístrate gratis y añade tu primera propiedad hoy.",
+    "ctaButton": "Ver precios",
+    "ctaButtonAria": "Ver planes de precios"
+  },
+  "forPropertyManagers": {
+    "title": "Carwoods — Para Gestores de Propiedades",
+    "metaDescription": "Carwoods está creado para gestores de propiedades que quieren dejar de gestionar por mensaje de texto y dar a los inquilinos un portal real.",
+    "heading": "Tú Gestionas las Propiedades. Nosotros nos Encargamos del Software.",
+    "subheading": "Creado para gestores de propiedades que quieren un sistema profesional y centralizado, sin el precio de empresa.",
+    "problemHeading": "¿Te suena familiar?",
+    "problem1": "Las solicitudes de mantenimiento llegan por mensaje de texto, llamada y correo electrónico, dispersas en tres bandejas de entrada",
+    "problem2": "Los inquilinos no saben qué está pasando con su solicitud después de reportarla",
+    "problem3": "Llevas el seguimiento de las fechas de arrendamiento en una hoja de cálculo y reúnes documentos a mano",
+    "problem4": "Nada está centralizado, así que los traspasos a proveedores y los seguimientos se pierden",
+    "solutionHeading": "Un portal. Cada conversación. Cada propiedad.",
+    "solution1Heading": "Añade tus propiedades",
+    "solution1Body": "Crea tu cartera de propiedades en minutos. Añade fotos, conecta anuncios de HAR y organiza por unidad.",
+    "solution2Heading": "Invita a tus inquilinos",
+    "solution2Body": "Envía a los inquilinos un enlace de invitación. Crean una cuenta y se conectan directamente a su contrato, sin configuración manual.",
+    "solution3Heading": "Los inquilinos envían solicitudes",
+    "solution3Body": "Los inquilinos registran solicitudes de mantenimiento a través del portal. Las ves al instante, categorizadas y priorizadas.",
+    "solution4Heading": "Seguimiento y resolución",
+    "solution4Body": "Actualiza el estado, envía mensajes a inquilinos, adjunta fotos y asigna proveedores, todo dentro del mismo hilo de solicitud.",
+    "workflowLabel": "Cómo funciona",
+    "elsaSectionHeading": "Elsa Maneja la Rutina. Tú te Enfocas en lo que Importa.",
+    "elsaBody": "Cada solicitud de mantenimiento es revisada por Elsa, tu asistente IA integrada. Clasifica el problema, decide si solucionar o escalar, y mantiene a los inquilinos informados — sin que tú tengas que mover un dedo.",
+    "testimonialsHeading": "Lo que dicen los gestores",
+    "testimonial1Quote": "El portal se paga solo con el tiempo que ahorro al no responder los mismos mensajes de actualización de mantenimiento cada semana.",
+    "testimonial1Author": "Propietario, 6 unidades en Houston",
+    "testimonial2Quote": "Mis inquilinos realmente lo usan y les gusta. Eso solo ya vale la pena.",
+    "testimonial2Author": "Gestor de propiedades, 12 unidades",
+    "ctaHeading": "Empieza a gestionar de forma más inteligente.",
+    "ctaBody": "Gratis para tu primera propiedad. No se requiere tarjeta de crédito.",
+    "ctaButton": "Ver precios y planes",
+    "ctaButtonAria": "Ver planes de precios para gestores de propiedades"
   }
 }

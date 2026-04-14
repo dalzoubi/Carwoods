@@ -8,6 +8,7 @@ import {
   Card,
   CardContent,
   Chip,
+  IconButton,
   Paper,
   Skeleton,
   Snackbar,
@@ -19,7 +20,11 @@ import Person from '@mui/icons-material/Person';
 import Assignment from '@mui/icons-material/Assignment';
 import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
 import HomeWork from '@mui/icons-material/HomeWork';
+import People from '@mui/icons-material/People';
 import ArrowForward from '@mui/icons-material/ArrowForward';
+import Close from '@mui/icons-material/Close';
+import CheckCircle from '@mui/icons-material/CheckCircle';
+import RadioButtonUnchecked from '@mui/icons-material/RadioButtonUnchecked';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { alpha } from '@mui/material/styles';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -27,8 +32,9 @@ import { hasLandlordAccess } from '../domain/roleUtils.js';
 import { isGuestRole, normalizeRole, resolveRole, emailFromAccount } from '../portalUtils';
 import { RequestStatus, Role } from '../domain/constants.js';
 import { withDarkPath } from '../routePaths';
-import { fetchRequests } from '../lib/portalApiClient';
+import { fetchRequests, fetchLandlordProperties, fetchTenants } from '../lib/portalApiClient';
 import PortalRefreshButton from './PortalRefreshButton';
+import { ONBOARDING_SETTINGS_VISITED_KEY } from './PortalAdminAiSettings';
 import { usePortalRequestDetailModal } from './PortalRequestDetailModalContext';
 
 export function statusColor(statusCode) {
@@ -176,6 +182,163 @@ const StatCard = ({ label, value, loading, to }) => (
   </Paper>
 );
 
+const ONBOARDING_DISMISSED_KEY = 'carwoods-onboarding-dismissed';
+
+const OnboardingChecklist = ({ pathname, baseUrl, getAccessToken }) => {
+  const { t } = useTranslation();
+  const [dismissed, setDismissed] = useState(
+    () => localStorage.getItem(ONBOARDING_DISMISSED_KEY) === 'true'
+  );
+  const [hasProperties, setHasProperties] = useState(false);
+  const [hasTenants, setHasTenants] = useState(false);
+  const [hasSettings, setHasSettings] = useState(
+    () => localStorage.getItem(ONBOARDING_SETTINGS_VISITED_KEY) === 'true'
+  );
+
+  /** Landlord must finish property + tenant setup before dismiss applies. */
+  const basicsIncomplete = !hasProperties || !hasTenants;
+
+  useEffect(() => {
+    if (!baseUrl || !getAccessToken) return;
+    // Avoid re-fetch loops: do not depend on hasProperties/hasTenants. Skip only when the user
+    // dismissed after completing basics (both lists non-empty from the last fetch).
+    if (dismissed && hasProperties && hasTenants) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = await getAccessToken();
+        const [propsData, tenantsData] = await Promise.all([
+          fetchLandlordProperties(baseUrl, token, {}),
+          fetchTenants(baseUrl, token, {}),
+        ]);
+        if (cancelled) return;
+        const props = Array.isArray(propsData) ? propsData : (propsData?.properties ?? []);
+        const tens = Array.isArray(tenantsData) ? tenantsData : (tenantsData?.tenants ?? []);
+        setHasProperties(props.length > 0);
+        setHasTenants(tens.length > 0);
+      } catch {
+        // non-critical — checklist degrades gracefully
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [dismissed, baseUrl, getAccessToken]);
+
+  const handleDismiss = () => {
+    localStorage.setItem(ONBOARDING_DISMISSED_KEY, 'true');
+    setDismissed(true);
+  };
+
+  // Auto-dismiss once all steps are done
+  const allDone = hasProperties && hasTenants && hasSettings;
+  useEffect(() => {
+    if (allDone) handleDismiss();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allDone]);
+
+  if (dismissed && !basicsIncomplete) return null;
+
+  const steps = [
+    {
+      label: t('portalDashboard.onboarding.step1Label'),
+      desc: t('portalDashboard.onboarding.step1Desc'),
+      action: t('portalDashboard.onboarding.step1Action'),
+      to: withDarkPath(pathname, '/portal/properties'),
+      done: hasProperties,
+    },
+    {
+      label: t('portalDashboard.onboarding.step2Label'),
+      desc: t('portalDashboard.onboarding.step2Desc'),
+      action: t('portalDashboard.onboarding.step2Action'),
+      to: withDarkPath(pathname, '/portal/tenants'),
+      done: hasTenants,
+    },
+    {
+      label: t('portalDashboard.onboarding.step3Label'),
+      desc: t('portalDashboard.onboarding.step3Desc'),
+      action: t('portalDashboard.onboarding.step3Action'),
+      to: withDarkPath(pathname, '/portal/admin/config'),
+      done: hasSettings,
+    },
+  ];
+
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        p: { xs: 2.5, sm: 3 },
+        borderRadius: 2,
+        borderColor: 'primary.light',
+        position: 'relative',
+      }}
+    >
+      {!basicsIncomplete && (
+        <IconButton
+          size="small"
+          onClick={handleDismiss}
+          aria-label={t('portalDashboard.onboarding.dismissAriaLabel')}
+          sx={{ position: 'absolute', top: 8, right: 8 }}
+        >
+          <Close fontSize="small" />
+        </IconButton>
+      )}
+      <Typography variant="h6" fontWeight={700} sx={{ mb: 0.5, pr: 4 }}>
+        {t('portalDashboard.onboarding.heading')}
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
+        {t('portalDashboard.onboarding.subheading')}
+      </Typography>
+      <Stack spacing={1.5}>
+        {steps.map((step, i) => (
+          <Stack
+            key={i}
+            direction="row"
+            spacing={1.5}
+            alignItems="center"
+            sx={{
+              p: 1.5,
+              borderRadius: 1.5,
+              border: '1px solid',
+              borderColor: step.done ? 'success.light' : 'divider',
+              bgcolor: step.done ? (theme) => alpha(theme.palette.success.main, 0.06) : 'background.default',
+              transition: 'border-color 0.2s, background-color 0.2s',
+            }}
+          >
+            {step.done ? (
+              <CheckCircle sx={{ color: 'success.main', flexShrink: 0 }} aria-hidden />
+            ) : (
+              <RadioButtonUnchecked sx={{ color: 'text.disabled', flexShrink: 0 }} aria-hidden />
+            )}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                variant="body2"
+                fontWeight={600}
+                sx={{ textDecoration: step.done ? 'line-through' : 'none', color: step.done ? 'text.secondary' : 'text.primary' }}
+              >
+                {step.label}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {step.desc}
+              </Typography>
+            </Box>
+            {!step.done && (
+              <Button
+                component={RouterLink}
+                to={step.to}
+                size="small"
+                variant="outlined"
+                endIcon={<ArrowForward sx={{ fontSize: '0.9rem' }} />}
+                sx={{ textTransform: 'none', fontWeight: 600, flexShrink: 0, whiteSpace: 'nowrap' }}
+              >
+                {step.action}
+              </Button>
+            )}
+          </Stack>
+        ))}
+      </Stack>
+    </Paper>
+  );
+};
+
 const PortalDashboard = () => {
   const { t } = useTranslation();
   const { pathname, state: locationState } = useLocation();
@@ -259,6 +422,11 @@ const PortalDashboard = () => {
             : t('portalDashboard.welcomeGeneric')}
         </Typography>
 
+        {/* Onboarding checklist — landlords without properties or tenants (or settings) */}
+        {showDashboard && normalized === Role.LANDLORD && (
+          <OnboardingChecklist pathname={pathname} baseUrl={baseUrl} getAccessToken={getAccessToken} />
+        )}
+
         {showDashboard && (
           <>
             {/* Stats */}
@@ -292,7 +460,7 @@ const PortalDashboard = () => {
               <Typography variant="h6" fontWeight={600} gutterBottom>
                 {t('portalDashboard.quickActions.heading')}
               </Typography>
-              <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1.5 }}>
+              <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap" sx={{ gap: 1.5 }}>
                 {!isManagement && (
                   <Button
                     component={RouterLink}
@@ -315,16 +483,6 @@ const PortalDashboard = () => {
                 >
                   {t('portalDashboard.quickActions.viewRequests')}
                 </Button>
-                <Button
-                  component={RouterLink}
-                  to={withDarkPath(pathname, '/portal/profile')}
-                  type="button"
-                  variant="outlined"
-                  startIcon={<Person />}
-                  sx={{ textTransform: 'none' }}
-                >
-                  {t('portalDashboard.quickActions.viewProfile')}
-                </Button>
                 {(normalized === Role.LANDLORD || normalized === Role.ADMIN) && (
                   <Button
                     component={RouterLink}
@@ -335,6 +493,18 @@ const PortalDashboard = () => {
                     sx={{ textTransform: 'none' }}
                   >
                     {t('portalDashboard.quickActions.manageProperties')}
+                  </Button>
+                )}
+                {(normalized === Role.LANDLORD || normalized === Role.ADMIN) && (
+                  <Button
+                    component={RouterLink}
+                    to={withDarkPath(pathname, '/portal/tenants')}
+                    type="button"
+                    variant="outlined"
+                    startIcon={<People />}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    {t('portalDashboard.quickActions.manageTenants')}
                   </Button>
                 )}
                 {normalized === Role.ADMIN && (
@@ -349,6 +519,16 @@ const PortalDashboard = () => {
                     {t('portalDashboard.quickActions.manageLandlords')}
                   </Button>
                 )}
+                <Button
+                  component={RouterLink}
+                  to={withDarkPath(pathname, '/portal/profile')}
+                  type="button"
+                  variant="outlined"
+                  startIcon={<Person />}
+                  sx={{ textTransform: 'none' }}
+                >
+                  {t('portalDashboard.quickActions.viewProfile')}
+                </Button>
               </Stack>
             </Paper>
 
