@@ -54,24 +54,9 @@ export function PortalAccountMenuAvatarTrigger({
     return null;
   }
 
-  if (meLoading) {
-    return (
-      <Box
-        sx={{
-          width: 32,
-          height: 32,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginInlineStart: 0.5,
-          ...loadingPlaceholderSx,
-        }}
-      >
-        <CircularProgress size={20} sx={circularProgressSx} />
-      </Box>
-    );
-  }
-
+  // Always keep the same IconButton in the DOM as the menu anchor. Swapping it for a
+  // plain Box during /me loading unmounts the anchor node while Menu/Popper still
+  // holds a reference — positioning falls back to the top-left of the viewport.
   return (
     <Tooltip title={t('portalLayout.topBar.accountMenu')} arrow>
       <IconButton
@@ -83,16 +68,25 @@ export function PortalAccountMenuAvatarTrigger({
         aria-expanded={Boolean(menuOpen)}
         aria-controls={menuOpen ? PORTAL_ACCOUNT_MENU_ID : undefined}
         aria-label={t('portalLayout.topBar.accountMenu')}
-        sx={{ marginInlineStart: 0.5, ...iconButtonSx }}
+        aria-busy={meLoading}
+        sx={{
+          marginInlineStart: 0.5,
+          ...iconButtonSx,
+          ...(meLoading ? loadingPlaceholderSx : {}),
+        }}
       >
-        <PortalUserAvatar
-          meData={meData}
-          firstName={meData?.user?.first_name}
-          lastName={meData?.user?.last_name}
-          fallbackPhotoUrl={account?.photoURL}
-          onProfilePhotoLoadError={refreshMe}
-          size={36}
-        />
+        {meLoading ? (
+          <CircularProgress size={20} sx={circularProgressSx} />
+        ) : (
+          <PortalUserAvatar
+            meData={meData}
+            firstName={meData?.user?.first_name}
+            lastName={meData?.user?.last_name}
+            fallbackPhotoUrl={account?.photoURL}
+            onProfilePhotoLoadError={refreshMe}
+            size={36}
+          />
+        )}
       </IconButton>
     </Tooltip>
   );
@@ -176,7 +170,7 @@ export function PortalAccountMenu({ anchorEl, open, onClose, menuProps }) {
           <ListItemIcon>
             <Dashboard fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary={t('portalHeader.nav.goToPortal', 'Go to Portal')} />
+          <ListItemText primary={t('portalHeader.nav.goToPortal')} />
         </MenuItem>
         <MenuItem
           onClick={() => {

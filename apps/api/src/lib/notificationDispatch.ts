@@ -222,6 +222,33 @@ function buildNotificationContent(
     };
   }
 
+  if (normalizedEvent === 'ACCOUNT_LANDLORD_CREATED') {
+    const email =
+      asString(payload.landlord_email)
+      ?? asString(payload.email)
+      ?? 'unknown';
+    const first = asString(payload.first_name);
+    const last = asString(payload.last_name);
+    const name = [first, last].filter(Boolean).join(' ').trim();
+    const display = name || email;
+    const source = (asString(payload.source) ?? 'SELF_REGISTRATION').trim().toUpperCase();
+    const body =
+      source === 'ADMIN_INVITE'
+        ? `An administrator created a new landlord account for ${display} (${email}).`
+        : `A landlord self-registered in the portal: ${display} (${email}).`;
+    return {
+      title: 'New landlord account',
+      body,
+      deepLink: '/portal/admin/landlords',
+      requestId: null,
+      metadata: {
+        kind: 'landlord_account_created',
+        landlord_user_id: asString(payload.landlord_user_id),
+        source: source.toLowerCase(),
+      },
+    };
+  }
+
   if (normalizedEvent === 'REQUEST_CREATED') {
     return {
       title: 'New maintenance request',
@@ -465,6 +492,16 @@ async function resolveRecipientsForEvent(
     const role = asString(payload.role) ?? Role.TENANT;
     if (!userId) return [];
     return [{ userId, email, phone, role }];
+  }
+
+  if (normalizedEvent === 'ACCOUNT_LANDLORD_CREATED') {
+    const admins = await listActiveAdminNotificationRecipients(db);
+    return admins.map((row) => ({
+      userId: row.user_id,
+      email: row.email,
+      phone: row.phone,
+      role: row.role,
+    }));
   }
 
   const requestId = asRequestId(payload);

@@ -9,6 +9,7 @@
 
 import {
   countRequestAttachments,
+  managementCanAccessRequest,
   tenantCanAccessRequest,
 } from '../../lib/requestsRepo.js';
 import {
@@ -66,6 +67,9 @@ export async function requestUploadIntent(
   if (!isManagement) {
     if (role !== Role.TENANT) throw forbidden();
     const allowed = await tenantCanAccessRequest(db, requestId, input.actorUserId);
+    if (!allowed) throw notFound();
+  } else {
+    const allowed = await managementCanAccessRequest(db, requestId, role, input.actorUserId);
     if (!allowed) throw notFound();
   }
 

@@ -138,6 +138,7 @@
     "successHeading": "تم إرسال الرسالة",
     "successBody": "شكراً! سنتواصل معك في غضون يوم عمل واحد.",
     "recaptchaError": "فشل التحقق الأمني. يرجى المحاولة مرة أخرى.",
+    "recaptchaRequired": "لم يكتمل التحقق الأمني. يرجى تحديث الصفحة والمحاولة مرة أخرى.",
     "errorBody": "حدث خطأ ما. يرجى المحاولة مرة أخرى أو مراسلتنا على support@carwoods.com.",
     "nameRequired": "الاسم مطلوب",
     "emailInvalid": "يرجى إدخال عنوان بريد إلكتروني صحيح",
@@ -1410,7 +1411,8 @@
       "landlordSaved": "تم حفظ المالك بنجاح.",
       "landlordUpdated": "تم تحديث المالك بنجاح.",
       "deactivated": "تم تعطيل المالك.",
-      "reactivated": "تمت إعادة تفعيل المالك."
+      "reactivated": "تمت إعادة تفعيل المالك.",
+      "tierUpdated": "تم تحديث خطة الاشتراك."
     },
     "list": {
       "heading": "الملاك",
@@ -1419,14 +1421,24 @@
       "loading": "جارٍ تحميل الملاك…",
       "empty": "لم يتم العثور على ملاك.",
       "name": "الاسم",
-      "status": "حالة المستخدم"
+      "status": "حالة المستخدم",
+      "tier": "الخطة",
+      "tierNone": "غير معيّنة",
+      "tierChipAria": "خطة الاشتراك: {{tier}}"
     },
     "actions": {
       "edit": "تعديل",
       "saveChanges": "حفظ التغييرات",
       "deactivate": "تعطيل",
       "reactivate": "إعادة التفعيل",
-      "cancel": "إلغاء"
+      "cancel": "إلغاء",
+      "changeTier": "تغيير خطة الاشتراك"
+    },
+    "tierDialog": {
+      "title": "خطة الاشتراك لـ {{name}}",
+      "selectLabel": "الخطة",
+      "save": "حفظ الخطة",
+      "loadingTiers": "جارٍ تحميل الخطط…"
     },
     "confirmDeactivate": {
       "title": "تعطيل المالك؟",
@@ -1446,7 +1458,10 @@
       "emailRequired": "البريد الإلكتروني مطلوب.",
       "emailInvalid": "أدخل عنوان بريد إلكتروني صالحًا.",
       "firstNameRequired": "الاسم الأول مطلوب.",
-      "lastNameRequired": "اسم العائلة مطلوب."
+      "lastNameRequired": "اسم العائلة مطلوب.",
+      "tierListFailed": "تعذر تحميل خطط الاشتراك.",
+      "tierSaveFailed": "تعذر تحديث خطة الاشتراك.",
+      "tierPickRequired": "اختر خطة قبل الحفظ."
     }
   },
   "portalAdminConfigurations": {
@@ -1661,6 +1676,10 @@
       "visibilityFilterVisible": "مرئية",
       "visibilityFilterHidden": "غير مرئية",
       "visibilityFilterDeleted": "المحذوفة فقط",
+      "landlordFilterLabel": "تصفية حسب المالك",
+      "landlordFilterAll": "جميع الملاك",
+      "landlordFilterLoadError": "تعذّر تحميل قائمة الملاك.",
+      "emptyLandlordFilter": "لا توجد عقارات تطابق هذا المالك مع عوامل التصفية الحالية.",
       "editButton": "تعديل",
       "deleteButton": "حذف",
       "syncHarButton": "مزامنة مع HAR",
@@ -1802,7 +1821,8 @@
       "viewProfile": "تعديل الملف الشخصي",
       "exportCsv": "تصدير CSV",
       "manageLandlords": "إدارة الملاك",
-      "manageProperties": "إدارة العقارات"
+      "manageProperties": "إدارة العقارات",
+      "manageTenants": "إدارة المستأجرين"
     },
     "recentRequests": {
       "heading": "الطلبات الأخيرة",
@@ -1838,7 +1858,7 @@
   "portalLogin": {
     "title": "Carwoods - بوابة العقارات",
     "metaDescription": "سجل الدخول إلى بوابة العقارات في Carwoods.",
-    "heading": "بوابة العقارات",
+    "heading": "تسجيل الدخول أو إنشاء حساب",
     "subtitle": "أدر طلبات الصيانة والمدفوعات والطلبات وتواصل مع فريق إدارة العقارات.",
     "features": {
       "requests": "أرسل وتابع طلبات الصيانة",
@@ -1894,6 +1914,7 @@
       "firstName": "الاسم الأول",
       "lastName": "اسم العائلة",
       "phone": "الهاتف (اختياري)",
+      "landlord": "مالك العقار",
       "selectLandlord": "اختر مالكاً",
       "selectProperty": "اختر عقاراً",
       "startDate": "تاريخ بدء عقد الإيجار",

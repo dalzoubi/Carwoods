@@ -8,7 +8,11 @@ import {
   type ElsaDecisionRow,
 } from '../../lib/elsaRepo.js';
 import { enqueueNotification } from '../../lib/notificationRepo.js';
-import { getRequestById, insertRequestMessage } from '../../lib/requestsRepo.js';
+import {
+  getRequestById,
+  insertRequestMessage,
+  managementCanAccessRequest,
+} from '../../lib/requestsRepo.js';
 import { applyWaitingOnTenantAfterElsaTenantMessage } from './applyWaitingOnTenantAfterElsaMessage.js';
 
 export type ReviewElsaDecisionInput = {
@@ -49,6 +53,10 @@ export async function reviewElsaDecision(
   if (!input.requestId) throw validationError('missing_id');
   if (!input.decisionId) throw validationError('missing_decision_id');
   if (!input.action) throw validationError('missing_action');
+
+  const role = input.actorRole.trim().toUpperCase();
+  const canAccess = await managementCanAccessRequest(db, input.requestId, role, input.actorUserId);
+  if (!canAccess) throw notFound();
 
   const request = await getRequestById(db, input.requestId);
   if (!request) throw notFound();

@@ -17,6 +17,7 @@ import { getGlobalAttachmentUploadConfigCached } from '../lib/attachmentUploadCo
 import { getTierById, getTierByName } from '../lib/subscriptionTiersRepo.js';
 import { addProfilePhotoReadUrl } from '../lib/userProfilePhotoUrl.js';
 import { ensureUserNotificationPreference } from '../lib/notificationPolicyRepo.js';
+import { enqueueNotification } from '../lib/notificationRepo.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 import { withRateLimit } from '../lib/rateLimiter.js';
 import { Role } from '../domain/constants.js';
@@ -139,6 +140,30 @@ export async function portalMeHandler(
           subject: claims.sub,
           oid: claims.oid ?? null,
         });
+        try {
+          const notifyClient = await pool.connect();
+          try {
+            await enqueueNotification(notifyClient, {
+              eventTypeCode: 'ACCOUNT_LANDLORD_CREATED',
+              payload: {
+                landlord_user_id: user.id,
+                landlord_email: user.email,
+                email: user.email,
+                first_name: user.first_name ?? null,
+                last_name: user.last_name ?? null,
+                source: 'SELF_REGISTRATION',
+              },
+              idempotencyKey: `account-landlord-created:${user.id}:self`,
+            });
+          } finally {
+            notifyClient.release();
+          }
+        } catch (notifyErr) {
+          logWarn(context, 'portal.me.landlord_notify_admins.failed', {
+            userId: user.id,
+            message: notifyErr instanceof Error ? notifyErr.message : String(notifyErr),
+          });
+        }
       }
     } catch (error) {
       logError(context, 'portal.me.auto_register.error', {

@@ -11,6 +11,7 @@ import {
   countRequestAttachments,
   getRequestById,
   insertRequestAttachment,
+  managementCanAccessRequest,
   tenantCanAccessRequest,
   type RequestAttachmentRow,
 } from '../../lib/requestsRepo.js';
@@ -64,6 +65,9 @@ export async function finalizeRequestAttachment(
   if (!isManagement) {
     if (role !== Role.TENANT) throw forbidden();
     const allowed = await tenantCanAccessRequest(db, requestId, input.actorUserId);
+    if (!allowed) throw notFound();
+  } else {
+    const allowed = await managementCanAccessRequest(db, requestId, role, input.actorUserId);
     if (!allowed) throw notFound();
   }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { WithAppTheme } from '../testUtils';
 import i18n from '../i18n';
 import PortalAdminProperties from './PortalAdminProperties';
@@ -180,6 +180,66 @@ describe('PortalAdminProperties', () => {
     expect(screen.queryByText(/Landlord:\s+Lana Lord/i)).not.toBeInTheDocument();
   });
 
+  it('lets admin filter the grid by landlord', async () => {
+    mockAuthState.meData = {
+      role: 'ADMIN',
+      user: { first_name: 'Portal', last_name: 'Admin', role: 'ADMIN', status: 'ACTIVE' },
+    };
+    portalApiClient.fetchLandlords.mockResolvedValue({
+      landlords: [
+        { id: 'landlord-a', first_name: 'Ann', last_name: 'Admin', email: 'ann@example.com' },
+        { id: 'landlord-b', first_name: 'Bob', last_name: 'Boss', email: 'bob@example.com' },
+      ],
+    });
+    propertiesApiClient.listPropertiesApi.mockResolvedValue([
+      makeApiRow({
+        id: 'p-a',
+        landlord_user_id: 'landlord-a',
+        landlord_name: 'Ann Admin',
+        metadata: {
+          apply: {
+            addressLine: '111 Alpha St',
+            cityStateZip: 'Houston, TX 77001',
+            monthlyRentLabel: '',
+            photoUrl: '',
+            harListingUrl: '',
+            applyUrl: '',
+            detailLines: [],
+          },
+        },
+      }),
+      makeApiRow({
+        id: 'p-b',
+        landlord_user_id: 'landlord-b',
+        landlord_name: 'Bob Boss',
+        metadata: {
+          apply: {
+            addressLine: '222 Beta Rd',
+            cityStateZip: 'Houston, TX 77002',
+            monthlyRentLabel: '',
+            photoUrl: '',
+            harListingUrl: '',
+            applyUrl: '',
+            detailLines: [],
+          },
+        },
+      }),
+    ]);
+
+    render(<WithAppTheme><PortalAdminProperties /></WithAppTheme>);
+    await waitFor(() => expect(screen.getByText('111 Alpha St')).toBeInTheDocument());
+    expect(screen.getByText('222 Beta Rd')).toBeInTheDocument();
+
+    const landlordFilter = screen.getByLabelText(/filter by landlord/i);
+    fireEvent.mouseDown(landlordFilter);
+    fireEvent.click(screen.getByRole('option', { name: /ann admin/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('111 Alpha St')).toBeInTheDocument();
+      expect(screen.queryByText('222 Beta Rd')).not.toBeInTheDocument();
+    });
+  });
+
   it('requires landlord selection for admin property create', async () => {
     mockAuthState.meData = {
       role: 'ADMIN',
@@ -203,7 +263,8 @@ describe('PortalAdminProperties', () => {
       expect(propertiesApiClient.createPropertyApi).not.toHaveBeenCalled();
     });
 
-    fireEvent.mouseDown(screen.getByLabelText(/landlord/i));
+    const addDialog = await screen.findByRole('dialog');
+    fireEvent.mouseDown(within(addDialog).getByLabelText(/landlord/i));
     fireEvent.click(screen.getByRole('option', { name: /lana lord/i }));
     fireEvent.click(screen.getByRole('button', { name: /create property/i }));
 
@@ -346,7 +407,8 @@ describe('PortalAdminProperties', () => {
     await waitFor(() => expect(screen.getByText('14 Reassign St')).toBeInTheDocument());
 
     fireEvent.click(screen.getByRole('button', { name: /edit/i }));
-    fireEvent.mouseDown(screen.getByLabelText(/landlord/i));
+    const editDialog = await screen.findByRole('dialog');
+    fireEvent.mouseDown(within(editDialog).getByLabelText(/landlord/i));
     fireEvent.click(screen.getByRole('option', { name: /ravi ray/i }));
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
 

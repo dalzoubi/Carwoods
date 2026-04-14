@@ -2,12 +2,14 @@
  * List maintenance requests.
  *
  * - Tenants see only their own requests (scoped to their active leases).
- * - Landlords / admins see all requests.
+ * - Landlords see requests for properties they own (properties.created_by).
+ * - Admins see all requests.
  */
 
 import {
   listRequestsForTenant,
   listRequestsForManagement,
+  listRequestsForLandlord,
   type RequestRow,
 } from '../../lib/requestsRepo.js';
 import { forbidden } from '../../domain/errors.js';
@@ -34,7 +36,12 @@ export async function listRequests(
     return { requests };
   }
 
-  if (role === Role.LANDLORD || role === Role.ADMIN) {
+  if (role === Role.LANDLORD) {
+    const requests = await listRequestsForLandlord(db, input.actorUserId);
+    return { requests };
+  }
+
+  if (role === Role.ADMIN) {
     const requests = await listRequestsForManagement(db);
     return { requests };
   }

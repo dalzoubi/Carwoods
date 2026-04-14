@@ -17,6 +17,24 @@ export type UserRow = {
   ui_color_scheme: string | null;
 };
 
+/** Landlord row returned by {@link listLandlords} (admin list), including joined tier labels. */
+export type LandlordAdminListRow = Pick<
+  UserRow,
+  | 'id'
+  | 'external_auth_oid'
+  | 'email'
+  | 'first_name'
+  | 'last_name'
+  | 'phone'
+  | 'profile_photo_storage_path'
+  | 'role'
+  | 'status'
+  | 'tier_id'
+> & {
+  tier_name: string | null;
+  tier_display_name: string | null;
+};
+
 export type UpsertLandlordResult = {
   user: UserRow;
   created: boolean;
@@ -182,25 +200,41 @@ export async function autoRegisterLandlordByClaims(
   return result.rows[0] ?? null;
 }
 
+const LANDLORD_LIST_SELECT = `
+  u.id,
+  u.external_auth_oid,
+  u.email,
+  u.first_name,
+  u.last_name,
+  u.phone,
+  u.profile_photo_storage_path,
+  u.role,
+  u.status,
+  u.tier_id,
+  st.name AS tier_name,
+  st.display_name AS tier_display_name`;
+
 export async function listLandlords(
   client: Queryable,
   options?: { includeInactive?: boolean }
-): Promise<UserRow[]> {
+): Promise<LandlordAdminListRow[]> {
   if (options?.includeInactive) {
-    const r = await client.query<UserRow>(
-      `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status
-       FROM users
-       WHERE role = '${Role.LANDLORD}'
-       ORDER BY status DESC, last_name ASC, first_name ASC, email ASC`
+    const r = await client.query<LandlordAdminListRow>(
+      `SELECT ${LANDLORD_LIST_SELECT}
+       FROM users u
+       LEFT JOIN subscription_tiers st ON st.id = u.tier_id
+       WHERE u.role = '${Role.LANDLORD}'
+       ORDER BY u.status DESC, u.last_name ASC, u.first_name ASC, u.email ASC`
     );
     return r.rows;
   }
-  const r = await client.query<UserRow>(
-    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status
-     FROM users
-     WHERE role = '${Role.LANDLORD}'
-       AND status = 'ACTIVE'
-     ORDER BY last_name ASC, first_name ASC, email ASC`
+  const r = await client.query<LandlordAdminListRow>(
+    `SELECT ${LANDLORD_LIST_SELECT}
+     FROM users u
+     LEFT JOIN subscription_tiers st ON st.id = u.tier_id
+     WHERE u.role = '${Role.LANDLORD}'
+       AND u.status = 'ACTIVE'
+     ORDER BY u.last_name ASC, u.first_name ASC, u.email ASC`
   );
   return r.rows;
 }

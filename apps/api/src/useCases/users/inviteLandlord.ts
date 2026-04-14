@@ -15,6 +15,7 @@ import {
   type UpsertLandlordResult,
 } from '../../lib/usersRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
+import { enqueueNotification } from '../../lib/notificationRepo.js';
 import { validateLandlordInvite } from '../../domain/userValidation.js';
 import { conflictError, forbidden, validationError } from '../../domain/errors.js';
 import { Role } from '../../domain/constants.js';
@@ -47,9 +48,9 @@ export async function inviteLandlord(
   if (!inviteValidation.valid) throw validationError(inviteValidation.message);
 
   const client = await db.connect();
+  let result: UpsertLandlordResult;
   try {
     await client.query('BEGIN');
-    let result: UpsertLandlordResult;
     try {
       result = await upsertLandlordUserByEmail(
         client as Parameters<typeof upsertLandlordUserByEmail>[0],
@@ -75,11 +76,37 @@ export async function inviteLandlord(
       after: result.user,
     });
     await client.query('COMMIT');
-    return { landlord: result.user, landlord_created: result.created };
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;
   } finally {
     client.release();
   }
+
+  if (result.created) {
+    const notifyClient = await db.connect();
+    try {
+      try {
+        await enqueueNotification(notifyClient as Parameters<typeof enqueueNotification>[0], {
+          eventTypeCode: 'ACCOUNT_LANDLORD_CREATED',
+          payload: {
+            landlord_user_id: result.user.id,
+            landlord_email: result.user.email,
+            email: result.user.email,
+            first_name: result.user.first_name,
+            last_name: result.user.last_name,
+            source: 'ADMIN_INVITE',
+            invited_by_user_id: input.actorUserId,
+          },
+          idempotencyKey: `account-landlord-created:${result.user.id}:invite`,
+        });
+      } catch {
+        // Non-blocking: landlord row is already committed; outbox can be retried manually if needed.
+      }
+    } finally {
+      notifyClient.release();
+    }
+  }
+
+  return { landlord: result.user, landlord_created: result.created };
 }

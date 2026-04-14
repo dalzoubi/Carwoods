@@ -8,8 +8,12 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
   FormControlLabel,
   IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
   Switch,
   Stack,
   TextField,
@@ -19,13 +23,14 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import BlockIcon from '@mui/icons-material/Block';
 import EditIcon from '@mui/icons-material/Edit';
+import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined';
 import ReplayIcon from '@mui/icons-material/Replay';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { Role } from '../domain/constants.js';
 import { validatePersonBasics, validatePersonField } from '../portalPersonValidation';
 import { resolveRole, normalizeRole } from '../portalUtils';
-import { fetchLandlords, createLandlord, patchResource } from '../lib/portalApiClient';
+import { fetchLandlords, fetchAdminSubscriptionTiers, createLandlord, patchResource } from '../lib/portalApiClient';
 import PortalConfirmDialog from './PortalConfirmDialog';
 import StatusAlertSlot from './StatusAlertSlot';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
@@ -46,6 +51,35 @@ function displayName(landlord) {
 
 function isActiveStatus(status) {
   return String(status ?? '').toUpperCase() === 'ACTIVE';
+}
+
+function tierChipColor(tierName) {
+  const n = String(tierName ?? '').toUpperCase();
+  if (n === 'PRO') return 'primary';
+  if (n === 'STARTER') return 'info';
+  return 'default';
+}
+
+/** Normalize tier fields (mssql driver / cached payloads may vary casing or omit joined labels). */
+function pickLandlordTierFields(landlord) {
+  if (!landlord || typeof landlord !== 'object') {
+    return { tier_id: null, tier_name: null, tier_display_name: null };
+  }
+  const rawId = landlord.tier_id ?? landlord.Tier_Id ?? landlord.tierId;
+  const tier_id =
+    rawId != null && String(rawId).trim() !== '' ? String(rawId).trim() : null;
+  const pickStr = (...keys) => {
+    for (const k of keys) {
+      const v = landlord[k];
+      if (typeof v === 'string' && v.trim()) return v.trim();
+    }
+    return null;
+  };
+  return {
+    tier_id,
+    tier_name: pickStr('tier_name', 'Tier_Name', 'tierName'),
+    tier_display_name: pickStr('tier_display_name', 'Tier_Display_Name', 'tierDisplayName'),
+  };
 }
 
 const PortalAdminLandlords = () => {
@@ -72,6 +106,12 @@ const PortalAdminLandlords = () => {
   const [showInactive, setShowInactive] = useState(false);
   const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
   const [landlordsState, setLandlordsState] = useState({ status: 'idle', detail: '', landlords: [] });
+  const [tiersState, setTiersState] = useState({ status: 'idle', detail: '', tiers: [] });
+  const [tierDialog, setTierDialog] = useState({
+    open: false,
+    landlord: null,
+    selectedTierId: '',
+  });
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
   const sortedLandlords = useMemo(
     () =>
@@ -110,6 +150,34 @@ const PortalAdminLandlords = () => {
   useEffect(() => {
     void loadLandlords();
   }, [loadLandlords]);
+
+  const loadTiers = useCallback(async () => {
+    if (!canUseModule || !baseUrl) {
+      setTiersState({ status: 'idle', detail: '', tiers: [] });
+      return;
+    }
+    setTiersState((prev) => ({ ...prev, status: 'loading', detail: '' }));
+    try {
+      const accessToken = await getAccessToken();
+      const payload = await fetchAdminSubscriptionTiers(baseUrl, accessToken);
+      setTiersState({
+        status: 'ok',
+        detail: '',
+        tiers: Array.isArray(payload?.tiers) ? payload.tiers : [],
+      });
+    } catch (error) {
+      handleApiForbidden(error);
+      setTiersState({
+        status: 'error',
+        detail: toFriendlyErrorMessage(t, 'portalAdminLandlords.errors.tierListFailed'),
+        tiers: [],
+      });
+    }
+  }, [baseUrl, canUseModule, getAccessToken, handleApiForbidden, t]);
+
+  useEffect(() => {
+    void loadTiers();
+  }, [loadTiers]);
 
   const formErrors = useMemo(
     () =>
@@ -154,6 +222,12 @@ const PortalAdminLandlords = () => {
     }
   }, [landlordsState.detail, landlordsState.status, showFeedback]);
 
+  useEffect(() => {
+    if (tiersState.status === 'error' && tiersState.detail) {
+      showFeedback(tiersState.detail, 'error');
+    }
+  }, [tiersState.detail, tiersState.status, showFeedback]);
+
   const onToggleActive = async (landlordId, active) => {
     if (!canUseModule || !baseUrl) return;
     setSubmitState({ status: 'saving', detail: '' });
@@ -192,6 +266,49 @@ const PortalAdminLandlords = () => {
     const { landlordId, activate } = confirmDialog;
     setConfirmDialog({ open: false, landlordId: null, activate: false, name: '' });
     void onToggleActive(landlordId, activate);
+  };
+
+  const openTierDialog = (landlord) => {
+    const { tier_id } = pickLandlordTierFields(landlord);
+    const fallbackId = tiersState.tiers[0]?.id != null ? String(tiersState.tiers[0].id) : '';
+    setTierDialog({
+      open: true,
+      landlord,
+      selectedTierId: tier_id || fallbackId,
+    });
+  };
+
+  const closeTierDialog = () => {
+    setTierDialog({ open: false, landlord: null, selectedTierId: '' });
+  };
+
+  const onTierDialogSave = async () => {
+    if (!canUseModule || !baseUrl || !tierDialog.landlord?.id || !tierDialog.selectedTierId) {
+      showFeedback(t('portalAdminLandlords.errors.tierPickRequired'), 'error');
+      return;
+    }
+    setSubmitState({ status: 'saving', detail: '' });
+    try {
+      const accessToken = await getAccessToken();
+      await patchResource(
+        baseUrl,
+        accessToken,
+        `/api/portal/admin/landlords/${tierDialog.landlord.id}/tier`,
+        { tier_id: tierDialog.selectedTierId }
+      );
+      setSubmitState({
+        status: 'ok',
+        detail: t('portalAdminLandlords.messages.tierUpdated'),
+      });
+      closeTierDialog();
+      void loadLandlords();
+    } catch (error) {
+      handleApiForbidden(error);
+      setSubmitState({
+        status: 'error',
+        detail: toFriendlyErrorMessage(t, 'portalAdminLandlords.errors.tierSaveFailed'),
+      });
+    }
   };
 
   const onChange = (field) => (event) => {
@@ -438,6 +555,39 @@ const PortalAdminLandlords = () => {
                         />
                       </Stack>
                       <Typography sx={{ fontWeight: 600 }}>{landlord.email}</Typography>
+                      <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                        <Typography variant="body2" color="text.secondary" component="span" sx={{ fontWeight: 600 }}>
+                          {t('portalAdminLandlords.list.tier')}
+                        </Typography>
+                        {(() => {
+                          const tf = pickLandlordTierFields(landlord);
+                          const chipLabel = tf.tier_display_name ?? t('portalAdminLandlords.list.tierNone');
+                          return (
+                            <Chip
+                              label={chipLabel}
+                              size="small"
+                              color={tierChipColor(tf.tier_name)}
+                              variant="outlined"
+                              sx={{ maxWidth: '100%' }}
+                              aria-label={t('portalAdminLandlords.list.tierChipAria', { tier: chipLabel })}
+                            />
+                          );
+                        })()}
+                        <Tooltip title={t('portalAdminLandlords.actions.changeTier')}>
+                          <span>
+                            <IconButton
+                              type="button"
+                              size="small"
+                              onClick={() => openTierDialog(landlord)}
+                              aria-label={t('portalAdminLandlords.actions.changeTier')}
+                              disabled={!canUseModule || submitState.status === 'saving' || tiersState.status !== 'ok'}
+                              color="primary"
+                            >
+                              <LayersOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </Stack>
                     </Stack>
                   </Box>
                   <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end', flexShrink: 0 }}>
@@ -489,6 +639,69 @@ const PortalAdminLandlords = () => {
           </Stack>
         </Box>
       </Stack>
+
+      <Dialog
+        open={tierDialog.open}
+        onClose={submitState.status === 'saving' ? undefined : closeTierDialog}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>
+          {t('portalAdminLandlords.tierDialog.title', {
+            name: tierDialog.landlord ? displayName(tierDialog.landlord) : '',
+          })}
+        </DialogTitle>
+        <DialogContent dividers>
+          {tiersState.status === 'error' && (
+            <Typography color="error" variant="body2" sx={{ mb: 1 }}>
+              {tiersState.detail}
+            </Typography>
+          )}
+          {tiersState.status === 'loading' && (
+            <Typography color="text.secondary" variant="body2">
+              {t('portalAdminLandlords.tierDialog.loadingTiers')}
+            </Typography>
+          )}
+          {tiersState.status === 'ok' && (
+            <FormControl fullWidth margin="dense">
+              <InputLabel id="admin-landlord-tier-select-label">
+                {t('portalAdminLandlords.tierDialog.selectLabel')}
+              </InputLabel>
+              <Select
+                labelId="admin-landlord-tier-select-label"
+                label={t('portalAdminLandlords.tierDialog.selectLabel')}
+                value={tierDialog.selectedTierId}
+                onChange={(e) => setTierDialog((prev) => ({ ...prev, selectedTierId: e.target.value }))}
+              >
+                {tiersState.tiers.map((tier) => (
+                  <MenuItem key={String(tier.id)} value={String(tier.id)}>
+                    {String(tier.display_name ?? tier.name ?? tier.id)}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button type="button" onClick={closeTierDialog} disabled={submitState.status === 'saving'}>
+            {t('portalAdminLandlords.actions.cancel')}
+          </Button>
+          <Button
+            type="button"
+            variant="contained"
+            onClick={() => void onTierDialogSave()}
+            disabled={
+              submitState.status === 'saving'
+              || tiersState.status !== 'ok'
+              || !tierDialog.selectedTierId
+            }
+          >
+            {submitState.status === 'saving'
+              ? t('portalAdminLandlords.form.sending')
+              : t('portalAdminLandlords.tierDialog.save')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <PortalConfirmDialog
         open={confirmDialog.open}

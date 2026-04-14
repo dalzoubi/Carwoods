@@ -5,10 +5,13 @@
  * - Actor must have landlord or admin access.
  */
 
-import { listRequestsForManagement } from '../../lib/requestsRepo.js';
+import {
+  listRequestsForLandlord,
+  listRequestsForManagement,
+} from '../../lib/requestsRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
 import { forbidden } from '../../domain/errors.js';
-import { hasLandlordAccess } from '../../domain/constants.js';
+import { Role, hasLandlordAccess } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
 
 export type ExportRequestsCsvInput = {
@@ -34,7 +37,11 @@ export async function exportRequestsCsv(
     throw forbidden();
   }
 
-  const rows = await listRequestsForManagement(db);
+  const role = input.actorRole.trim().toUpperCase();
+  const rows =
+    role === Role.ADMIN
+      ? await listRequestsForManagement(db)
+      : await listRequestsForLandlord(db, input.actorUserId);
   const header = [
     'id',
     'property_id',

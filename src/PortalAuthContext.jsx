@@ -1,4 +1,12 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
 import { VITE_API_BASE_URL_RESOLVED } from './featureFlags';
 import {
@@ -18,6 +26,12 @@ const PORTAL_DEV_AUTH = import.meta.env.VITE_PORTAL_DEV_AUTH === 'true';
 
 /** How often (ms) to re-poll /me while a user is authenticated. */
 export const ME_POLL_INTERVAL_MS = 5 * 60 * 1000;
+
+/**
+ * Soft /me refresh coalescing (profile photo error → refreshMe, duplicate avatars, etc.).
+ * Use refreshMe({ force: true }) from explicit UI (status page, after profile save).
+ */
+export const ME_REFRESH_COALESCE_MS = 3000;
 
 const DEV_AUTH_VALUE = PORTAL_DEV_AUTH
   ? {
@@ -58,9 +72,9 @@ function RealPortalAuthProvider({ children }) {
   );
   const [authError, setAuthError] = useState('');
   const [account, setAccount] = useState(null);
-  const [firebaseUser, setFirebaseUser] = useState(null);
   const [refreshTick, setRefreshTick] = useState(0);
   const [lockoutReason, setLockoutReason] = useState(null);
+  const lastSoftMeRefreshAtRef = useRef(0);
 
   const baseUrl = VITE_API_BASE_URL_RESOLVED || '';
   const meUrl = baseUrl ? `${baseUrl.replace(/\/$/, '')}/api/portal/me` : '';
@@ -103,7 +117,6 @@ function RealPortalAuthProvider({ children }) {
       applyAccountChooserPrompt(provider, providerId);
       const result = await signInWithPopup(auth, provider);
       const nextUser = result?.user ?? null;
-      setFirebaseUser(nextUser);
       setAccount(toPortalAccount(nextUser));
       setAuthStatus(nextUser ? 'authenticated' : 'unauthenticated');
       setRefreshTick((x) => x + 1);
@@ -127,7 +140,6 @@ function RealPortalAuthProvider({ children }) {
     } catch {
       // Best-effort sign out; local state reset below handles the rest.
     }
-    setFirebaseUser(null);
     setAccount(null);
     setAuthError('');
     setLockoutReason(null);
@@ -144,14 +156,27 @@ function RealPortalAuthProvider({ children }) {
     } catch {
       // Best-effort; local state reset below handles the rest.
     }
-    setFirebaseUser(null);
     setAccount(null);
     setAuthError('');
     setAuthStatus('unauthenticated');
     setLockoutReason(reason);
   }, []);
 
-  const refreshMe = useCallback(() => {
+  /**
+   * Re-run GET /api/portal/me (via useMeProfile). By default coalesced so duplicate
+   * PortalUserAvatar instances or other burst callers cannot hammer the API.
+   * @param {{ force?: boolean }} [opts]  Pass `{ force: true }` for explicit user actions.
+   */
+  const refreshMe = useCallback((opts) => {
+    const force = Boolean(opts && typeof opts === 'object' && opts.force === true);
+    const now = Date.now();
+    if (!force) {
+      const prev = lastSoftMeRefreshAtRef.current;
+      if (prev !== 0 && now - prev < ME_REFRESH_COALESCE_MS) {
+        return;
+      }
+    }
+    lastSoftMeRefreshAtRef.current = now;
     setRefreshTick((x) => x + 1);
   }, []);
 
@@ -174,12 +199,20 @@ function RealPortalAuthProvider({ children }) {
     [signOutDueToDisabledAccount]
   );
 
+  // Always read auth.currentUser here — do not close over a User from React state.
+  // Otherwise onAuthStateChanged can deliver a new User reference repeatedly
+  // (token/profile churn), which recreates this callback, retriggers useMeProfile,
+  // and hammers GET /api/portal/me in a tight loop (~one request per round-trip).
   const getAccessToken = useCallback(async () => {
-    if (!firebaseUser) {
+    if (!auth) {
       throw new Error('auth_unavailable');
     }
-    return firebaseUser.getIdToken();
-  }, [firebaseUser]);
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('auth_unavailable');
+    }
+    return user.getIdToken();
+  }, []);
 
   useEffect(() => {
     if (!FIREBASE_AUTH_CONFIGURED || !auth) {
@@ -191,12 +224,24 @@ function RealPortalAuthProvider({ children }) {
     const unsubscribe = onAuthStateChanged(
       auth,
       (user) => {
-        setFirebaseUser(user ?? null);
-        setAccount(toPortalAccount(user));
+        setAccount((prev) => {
+          const nextAcc = toPortalAccount(user);
+          if (!prev && !nextAcc) return prev;
+          if (
+            prev
+            && nextAcc
+            && prev.uid === nextAcc.uid
+            && prev.username === nextAcc.username
+            && prev.name === nextAcc.name
+            && prev.photoURL === nextAcc.photoURL
+          ) {
+            return prev;
+          }
+          return nextAcc;
+        });
         setAuthStatus(user ? 'authenticated' : 'unauthenticated');
       },
       (error) => {
-        setFirebaseUser(null);
         setAccount(null);
         setAuthStatus('error');
         setAuthError(toSafeAuthErrorCode(error, 'auth_init_failed'));
@@ -227,12 +272,13 @@ function RealPortalAuthProvider({ children }) {
   // Periodic /me polling while authenticated so a disabled account is detected
   // within ME_POLL_INTERVAL_MS even without navigation or page reload.
   useEffect(() => {
-    if (authStatus !== 'authenticated' || !firebaseUser || !baseUrl) return;
+    if (authStatus !== 'authenticated' || !baseUrl) return;
     const id = setInterval(() => {
+      if (!auth?.currentUser) return;
       setRefreshTick((x) => x + 1);
     }, ME_POLL_INTERVAL_MS);
     return () => clearInterval(id);
-  }, [authStatus, firebaseUser, baseUrl]);
+  }, [authStatus, baseUrl]);
 
   const value = useMemo(
     () => ({

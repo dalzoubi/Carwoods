@@ -71,7 +71,12 @@ vi.mock('./featureFlags', () => ({
 }));
 
 // eslint-disable-next-line import/first
-import { PortalAuthProvider, usePortalAuth, ME_POLL_INTERVAL_MS } from './PortalAuthContext';
+import {
+  PortalAuthProvider,
+  usePortalAuth,
+  ME_POLL_INTERVAL_MS,
+  ME_REFRESH_COALESCE_MS,
+} from './PortalAuthContext';
 
 function Inspector() {
   const ctx = usePortalAuth();
@@ -111,6 +116,13 @@ describe('ME_POLL_INTERVAL_MS', () => {
   it('is exported and equals 5 minutes (300 000 ms)', () => {
     expect(typeof ME_POLL_INTERVAL_MS).toBe('number');
     expect(ME_POLL_INTERVAL_MS).toBe(5 * 60 * 1000);
+  });
+});
+
+describe('ME_REFRESH_COALESCE_MS', () => {
+  it('is exported and is a positive coalesce window', () => {
+    expect(typeof ME_REFRESH_COALESCE_MS).toBe('number');
+    expect(ME_REFRESH_COALESCE_MS).toBeGreaterThan(0);
   });
 });
 

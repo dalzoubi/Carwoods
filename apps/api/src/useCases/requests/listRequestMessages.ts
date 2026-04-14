@@ -7,6 +7,7 @@
 
 import {
   listRequestMessages as listMsgs,
+  managementCanAccessRequest,
   tenantCanAccessRequest,
   type RequestMessageRow,
 } from '../../lib/requestsRepo.js';
@@ -43,6 +44,9 @@ export async function listRequestMessages(
   if (!isManagement) {
     if (role !== Role.TENANT) throw forbidden();
     const allowed = await tenantCanAccessRequest(db, requestId, input.actorUserId);
+    if (!allowed) throw notFound();
+  } else {
+    const allowed = await managementCanAccessRequest(db, requestId, role, input.actorUserId);
     if (!allowed) throw notFound();
   }
 

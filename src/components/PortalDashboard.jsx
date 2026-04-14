@@ -20,6 +20,7 @@ import Person from '@mui/icons-material/Person';
 import Assignment from '@mui/icons-material/Assignment';
 import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
 import HomeWork from '@mui/icons-material/HomeWork';
+import People from '@mui/icons-material/People';
 import ArrowForward from '@mui/icons-material/ArrowForward';
 import Close from '@mui/icons-material/Close';
 import CheckCircle from '@mui/icons-material/CheckCircle';
@@ -194,8 +195,14 @@ const OnboardingChecklist = ({ pathname, baseUrl, getAccessToken }) => {
     () => localStorage.getItem(ONBOARDING_SETTINGS_VISITED_KEY) === 'true'
   );
 
+  /** Landlord must finish property + tenant setup before dismiss applies. */
+  const basicsIncomplete = !hasProperties || !hasTenants;
+
   useEffect(() => {
-    if (dismissed || !baseUrl || !getAccessToken) return;
+    if (!baseUrl || !getAccessToken) return;
+    // Avoid re-fetch loops: do not depend on hasProperties/hasTenants. Skip only when the user
+    // dismissed after completing basics (both lists non-empty from the last fetch).
+    if (dismissed && hasProperties && hasTenants) return;
     let cancelled = false;
     (async () => {
       try {
@@ -228,7 +235,7 @@ const OnboardingChecklist = ({ pathname, baseUrl, getAccessToken }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allDone]);
 
-  if (dismissed) return null;
+  if (dismissed && !basicsIncomplete) return null;
 
   const steps = [
     {
@@ -264,14 +271,16 @@ const OnboardingChecklist = ({ pathname, baseUrl, getAccessToken }) => {
         position: 'relative',
       }}
     >
-      <IconButton
-        size="small"
-        onClick={handleDismiss}
-        aria-label={t('portalDashboard.onboarding.dismissAriaLabel')}
-        sx={{ position: 'absolute', top: 8, right: 8 }}
-      >
-        <Close fontSize="small" />
-      </IconButton>
+      {!basicsIncomplete && (
+        <IconButton
+          size="small"
+          onClick={handleDismiss}
+          aria-label={t('portalDashboard.onboarding.dismissAriaLabel')}
+          sx={{ position: 'absolute', top: 8, right: 8 }}
+        >
+          <Close fontSize="small" />
+        </IconButton>
+      )}
       <Typography variant="h6" fontWeight={700} sx={{ mb: 0.5, pr: 4 }}>
         {t('portalDashboard.onboarding.heading')}
       </Typography>
@@ -413,8 +422,8 @@ const PortalDashboard = () => {
             : t('portalDashboard.welcomeGeneric')}
         </Typography>
 
-        {/* Onboarding checklist for new landlords */}
-        {showDashboard && isManagement && (
+        {/* Onboarding checklist — landlords without properties or tenants (or settings) */}
+        {showDashboard && normalized === Role.LANDLORD && (
           <OnboardingChecklist pathname={pathname} baseUrl={baseUrl} getAccessToken={getAccessToken} />
         )}
 
@@ -451,7 +460,7 @@ const PortalDashboard = () => {
               <Typography variant="h6" fontWeight={600} gutterBottom>
                 {t('portalDashboard.quickActions.heading')}
               </Typography>
-              <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1.5 }}>
+              <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap" sx={{ gap: 1.5 }}>
                 {!isManagement && (
                   <Button
                     component={RouterLink}
@@ -474,16 +483,6 @@ const PortalDashboard = () => {
                 >
                   {t('portalDashboard.quickActions.viewRequests')}
                 </Button>
-                <Button
-                  component={RouterLink}
-                  to={withDarkPath(pathname, '/portal/profile')}
-                  type="button"
-                  variant="outlined"
-                  startIcon={<Person />}
-                  sx={{ textTransform: 'none' }}
-                >
-                  {t('portalDashboard.quickActions.viewProfile')}
-                </Button>
                 {(normalized === Role.LANDLORD || normalized === Role.ADMIN) && (
                   <Button
                     component={RouterLink}
@@ -494,6 +493,18 @@ const PortalDashboard = () => {
                     sx={{ textTransform: 'none' }}
                   >
                     {t('portalDashboard.quickActions.manageProperties')}
+                  </Button>
+                )}
+                {(normalized === Role.LANDLORD || normalized === Role.ADMIN) && (
+                  <Button
+                    component={RouterLink}
+                    to={withDarkPath(pathname, '/portal/tenants')}
+                    type="button"
+                    variant="outlined"
+                    startIcon={<People />}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    {t('portalDashboard.quickActions.manageTenants')}
                   </Button>
                 )}
                 {normalized === Role.ADMIN && (
@@ -508,6 +519,16 @@ const PortalDashboard = () => {
                     {t('portalDashboard.quickActions.manageLandlords')}
                   </Button>
                 )}
+                <Button
+                  component={RouterLink}
+                  to={withDarkPath(pathname, '/portal/profile')}
+                  type="button"
+                  variant="outlined"
+                  startIcon={<Person />}
+                  sx={{ textTransform: 'none' }}
+                >
+                  {t('portalDashboard.quickActions.viewProfile')}
+                </Button>
               </Stack>
             </Paper>
 

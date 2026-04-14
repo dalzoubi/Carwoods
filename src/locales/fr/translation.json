@@ -138,6 +138,7 @@
     "successHeading": "Message envoyé",
     "successBody": "Merci ! Nous vous contacterons dans un jour ouvrable.",
     "recaptchaError": "Échec de la vérification de sécurité. Veuillez réessayer.",
+    "recaptchaRequired": "La vérification de sécurité n’a pas abouti. Actualisez la page et réessayez.",
     "errorBody": "Une erreur s'est produite. Veuillez réessayer ou nous envoyer un e-mail à support@carwoods.com.",
     "nameRequired": "Le nom est obligatoire",
     "emailInvalid": "Veuillez saisir une adresse e-mail valide",
@@ -1409,7 +1410,8 @@
       "landlordSaved": "Propriétaire enregistré avec succès.",
       "landlordUpdated": "Propriétaire mis à jour avec succès.",
       "deactivated": "Propriétaire désactivé.",
-      "reactivated": "Propriétaire réactivé."
+      "reactivated": "Propriétaire réactivé.",
+      "tierUpdated": "Formule d'abonnement mise à jour."
     },
     "list": {
       "heading": "Propriétaires",
@@ -1418,14 +1420,24 @@
       "loading": "Chargement des propriétaires…",
       "empty": "Aucun propriétaire trouvé.",
       "name": "Nom",
-      "status": "Statut utilisateur"
+      "status": "Statut utilisateur",
+      "tier": "Formule",
+      "tierNone": "Non attribuée",
+      "tierChipAria": "Formule d'abonnement : {{tier}}"
     },
     "actions": {
       "edit": "Modifier",
       "saveChanges": "Enregistrer les modifications",
       "deactivate": "Désactiver",
       "reactivate": "Réactiver",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "changeTier": "Modifier la formule d'abonnement"
+    },
+    "tierDialog": {
+      "title": "Formule d'abonnement pour {{name}}",
+      "selectLabel": "Formule",
+      "save": "Enregistrer la formule",
+      "loadingTiers": "Chargement des formules…"
     },
     "confirmDeactivate": {
       "title": "Désactiver le propriétaire ?",
@@ -1445,7 +1457,10 @@
       "emailRequired": "L'e-mail est obligatoire.",
       "emailInvalid": "Saisissez une adresse e-mail valide.",
       "firstNameRequired": "Le prénom est obligatoire.",
-      "lastNameRequired": "Le nom est obligatoire."
+      "lastNameRequired": "Le nom est obligatoire.",
+      "tierListFailed": "Impossible de charger les formules d'abonnement.",
+      "tierSaveFailed": "Impossible de mettre à jour la formule d'abonnement.",
+      "tierPickRequired": "Choisissez une formule avant d'enregistrer."
     }
   },
   "portalAdminConfigurations": {
@@ -1660,6 +1675,10 @@
       "visibilityFilterVisible": "Visibles",
       "visibilityFilterHidden": "Non visibles",
       "visibilityFilterDeleted": "Supprimées uniquement",
+      "landlordFilterLabel": "Filtrer par propriétaire",
+      "landlordFilterAll": "Tous les propriétaires",
+      "landlordFilterLoadError": "Impossible de charger les propriétaires.",
+      "emptyLandlordFilter": "Aucune propriété ne correspond à ce propriétaire et aux filtres actuels.",
       "editButton": "Modifier",
       "deleteButton": "Supprimer",
       "syncHarButton": "Synchroniser avec HAR",
@@ -1801,7 +1820,8 @@
       "viewProfile": "Modifier le profil",
       "exportCsv": "Exporter CSV",
       "manageLandlords": "Gérer les propriétaires",
-      "manageProperties": "Gérer les propriétés"
+      "manageProperties": "Gérer les propriétés",
+      "manageTenants": "Gérer les locataires"
     },
     "recentRequests": {
       "heading": "Demandes récentes",
@@ -1837,7 +1857,7 @@
   "portalLogin": {
     "title": "Carwoods - Portail Immobilier",
     "metaDescription": "Connectez-vous au portail immobilier Carwoods.",
-    "heading": "Portail Immobilier",
+    "heading": "Connexion ou inscription",
     "subtitle": "Gérez les demandes de maintenance, paiements, candidatures et communiquez avec votre équipe de gestion.",
     "features": {
       "requests": "Soumettez et suivez les demandes de maintenance",
@@ -1893,6 +1913,7 @@
       "firstName": "Prénom",
       "lastName": "Nom de famille",
       "phone": "Téléphone (facultatif)",
+      "landlord": "Propriétaire",
       "selectLandlord": "Sélectionner un propriétaire",
       "selectProperty": "Sélectionner une propriété",
       "startDate": "Date de début du bail",

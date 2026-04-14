@@ -80,7 +80,6 @@ function MarketingRoutes() {
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/accessibility" element={<Accessibility />} />
-            <Route path="/portal" element={<Navigate to="/portal" replace />} />
         </Routes>
     );
 }

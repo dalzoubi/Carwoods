@@ -5,6 +5,8 @@ import {
   type InvocationContext,
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
+import { managementCanAccessRequest } from '../lib/requestsRepo.js';
+import { notFound } from '../domain/errors.js';
 import { jsonResponse, mapDomainError, requireAdmin, requireLandlordOrAdmin } from '../lib/managementRequest.js';
 import { jsonResponseWithEtag } from '../lib/httpEtag.js';
 import { logError, logWarn } from '../lib/serverLogger.js';
@@ -252,27 +254,37 @@ async function landlordElsaSettings(
   if (!gate.ok) return gate.response;
   const { ctx } = gate;
   if (request.method === 'GET') {
-    const settings = await getElsaSettings(getPool());
-    const [categories, priorities, properties, agents, routing] = await Promise.all([
-      listCategoryPolicies(getPool()),
-      listPriorityPolicies(getPool()),
-      listPropertyPolicies(getPool()),
-      listAiAgents(getPool()),
-      getAiAgentRouting(getPool()),
-    ]);
-    const requestId = str(request.query.get('request_id'));
-    const requestPolicy = requestId
-      ? { auto_respond_enabled: await getElsaRequestAutoRespond(getPool(), requestId) }
-      : null;
-    return jsonResponseWithEtag(request, ctx.headers, {
-      settings,
-      categories,
-      priorities,
-      properties,
-      request: requestPolicy,
-      agents,
-      routing,
-    });
+    try {
+      const settings = await getElsaSettings(getPool());
+      const [categories, priorities, properties, agents, routing] = await Promise.all([
+        listCategoryPolicies(getPool()),
+        listPriorityPolicies(getPool()),
+        listPropertyPolicies(getPool()),
+        listAiAgents(getPool()),
+        getAiAgentRouting(getPool()),
+      ]);
+      const requestId = str(request.query.get('request_id'));
+      let requestPolicy: { auto_respond_enabled: boolean } | null = null;
+      if (requestId) {
+        const role = ctx.role.trim().toUpperCase();
+        const ok = await managementCanAccessRequest(getPool(), requestId, role, ctx.user.id);
+        if (!ok) throw notFound();
+        requestPolicy = { auto_respond_enabled: await getElsaRequestAutoRespond(getPool(), requestId) };
+      }
+      return jsonResponseWithEtag(request, ctx.headers, {
+        settings,
+        categories,
+        priorities,
+        properties,
+        request: requestPolicy,
+        agents,
+        routing,
+      });
+    } catch (e) {
+      const mapped = mapDomainError(e, ctx.headers);
+      if (mapped) return mapped;
+      throw e;
+    }
   }
   if (request.method !== 'PATCH') {
     return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
@@ -458,18 +470,28 @@ async function landlordRequestElsaAutoRespond(
   const enabled = bool(b.auto_respond_enabled);
   if (enabled === undefined) return jsonResponse(400, ctx.headers, { error: 'missing_auto_respond_enabled' });
 
-  const client = await getPool().connect();
   try {
-    await client.query('BEGIN');
-    await setElsaRequestAutoRespond(client, requestId, enabled, ctx.user.id);
-    await client.query('COMMIT');
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
+    const role = ctx.role.trim().toUpperCase();
+    const ok = await managementCanAccessRequest(getPool(), requestId, role, ctx.user.id);
+    if (!ok) throw notFound();
+
+    const client = await getPool().connect();
+    try {
+      await client.query('BEGIN');
+      await setElsaRequestAutoRespond(client, requestId, enabled, ctx.user.id);
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+    return jsonResponse(200, ctx.headers, { ok: true, auto_respond_enabled: enabled });
+  } catch (e) {
+    const mapped = mapDomainError(e, ctx.headers);
+    if (mapped) return mapped;
+    throw e;
   }
-  return jsonResponse(200, ctx.headers, { ok: true, auto_respond_enabled: enabled });
 }
 
 async function landlordProcessElsa(
@@ -538,8 +560,17 @@ async function landlordRequestElsaDecisions(
   if (request.method !== 'GET') return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
   const requestId = request.params.id;
   if (!requestId) return jsonResponse(400, ctx.headers, { error: 'missing_id' });
-  const result = await listElsaDecisionsForRequest(getPool(), requestId, 25);
-  return jsonResponse(200, ctx.headers, { decisions: result });
+  try {
+    const role = ctx.role.trim().toUpperCase();
+    const ok = await managementCanAccessRequest(getPool(), requestId, role, ctx.user.id);
+    if (!ok) throw notFound();
+    const result = await listElsaDecisionsForRequest(getPool(), requestId, 25);
+    return jsonResponse(200, ctx.headers, { decisions: result });
+  } catch (e) {
+    const mapped = mapDomainError(e, ctx.headers);
+    if (mapped) return mapped;
+    throw e;
+  }
 }
 
 async function landlordRequestElsaDecisionReview(

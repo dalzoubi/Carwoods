@@ -4,7 +4,7 @@ import {
   getLandlordAttachmentUploadOverrideCached,
 } from '../../lib/attachmentUploadConfigRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
-import { getRequestAttachmentById } from '../../lib/requestsRepo.js';
+import { getRequestAttachmentById, managementCanAccessRequest } from '../../lib/requestsRepo.js';
 import { signAttachmentAccessToken } from '../../lib/secureSignedToken.js';
 import { Role, hasLandlordAccess } from '../../domain/constants.js';
 import { forbidden, notFound, validationError } from '../../domain/errors.js';
@@ -49,6 +49,9 @@ export async function createRequestAttachmentShareLink(
   }
 
   const requestId = input.requestId!;
+  const allowed = await managementCanAccessRequest(db, requestId, role, input.actorUserId);
+  if (!allowed) throw notFound();
+
   const attachment = await getRequestAttachmentById(db, requestId, input.attachmentId);
   if (!attachment) throw notFound();
 

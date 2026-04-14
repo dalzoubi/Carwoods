@@ -1,6 +1,7 @@
 import {
   deleteRequestAttachmentById,
   getRequestAttachmentById,
+  managementCanAccessRequest,
   type RequestAttachmentRow,
   tenantCanAccessRequest,
 } from '../../lib/requestsRepo.js';
@@ -43,6 +44,9 @@ export async function deleteRequestAttachment(
   if (!isManagement) {
     if (role !== Role.TENANT) throw forbidden();
     const allowed = await tenantCanAccessRequest(db, requestId, input.actorUserId);
+    if (!allowed) throw notFound();
+  } else {
+    const allowed = await managementCanAccessRequest(db, requestId, role, input.actorUserId);
     if (!allowed) throw notFound();
   }
 

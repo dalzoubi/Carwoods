@@ -110,8 +110,18 @@ export async function submitContactRequest(
   if (!message) throw validationError('message_required');
   if (!VALID_SUBJECTS.has(subject)) throw validationError('invalid_subject');
 
+  const recaptchaSecretConfigured = Boolean(process.env.RECAPTCHA_SECRET_KEY?.trim());
   let recaptchaScore: number | null = null;
-  if (recaptchaToken) {
+
+  if (recaptchaSecretConfigured) {
+    if (!recaptchaToken) {
+      throw validationError('recaptcha_required');
+    }
+    recaptchaScore = await verifyRecaptcha(recaptchaToken, context);
+    if (recaptchaScore === null || recaptchaScore < RECAPTCHA_MIN_SCORE) {
+      throw validationError('recaptcha_failed');
+    }
+  } else if (recaptchaToken) {
     recaptchaScore = await verifyRecaptcha(recaptchaToken, context);
     if (recaptchaScore !== null && recaptchaScore < RECAPTCHA_MIN_SCORE) {
       throw validationError('recaptcha_failed');

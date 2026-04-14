@@ -2,11 +2,13 @@
  * Fetch a single maintenance request.
  *
  * Tenants may only view requests linked to their active leases.
- * Landlords / admins may view any request; they also receive the internal_notes field.
+ * Landlords may view requests for their properties only; admins may view any request.
+ * Management roles receive the internal_notes field.
  */
 
 import {
   getRequestById,
+  landlordOwnsRequestProperty,
   tenantCanAccessRequest,
   type RequestRow,
 } from '../../lib/requestsRepo.js';
@@ -39,10 +41,14 @@ export async function getRequest(
   const role = input.actorRole.trim().toUpperCase();
   const isManagement = hasLandlordAccess(role);
 
-  if (!isManagement) {
-    if (role !== Role.TENANT) throw forbidden();
+  if (role === Role.TENANT) {
     const allowed = await tenantCanAccessRequest(db, requestId, input.actorUserId);
     if (!allowed) throw notFound();
+  } else if (role === Role.LANDLORD) {
+    const allowed = await landlordOwnsRequestProperty(db, requestId, input.actorUserId);
+    if (!allowed) throw notFound();
+  } else if (role !== Role.ADMIN) {
+    throw forbidden();
   }
 
   const row = await getRequestById(db, requestId);

@@ -13,6 +13,7 @@ import {
   findStatusIdByCode,
   getRequestById,
   insertRequestStatusHistory,
+  managementCanAccessRequest,
   updateRequestManagementFields,
   type RequestRow,
 } from '../../lib/requestsRepo.js';
@@ -69,6 +70,10 @@ export async function updateRequestStatus(
   }
 
   const pool = db;
+  const role = input.actorRole.trim().toUpperCase();
+  const canAccess = await managementCanAccessRequest(pool, input.requestId, role, input.actorUserId);
+  if (!canAccess) throw notFound();
+
   const current = await getRequestById(pool, input.requestId);
   if (!current) throw notFound();
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { emailFromAccount } from '../portalUtils';
 import { fetchMe } from '../lib/portalApiClient';
 
@@ -14,12 +14,30 @@ import { fetchMe } from '../lib/portalApiClient';
  * @param {number} params.refreshTick - Increment to trigger a re-fetch
  * @returns {{ meStatus: string, meData: object|null, meError: string, meErrorStatus: number|null, meErrorCode: string|null }}
  */
+function accountStableKey(account) {
+  if (!account) return '';
+  return [
+    account.uid ?? '',
+    account.username ?? '',
+    account.name ?? '',
+    account.photoURL ?? '',
+  ].join('\0');
+}
+
 export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, refreshTick }) {
   const [meStatus, setMeStatus] = useState('idle');
   const [meData, setMeData] = useState(null);
   const [meError, setMeError] = useState('');
   const [meErrorStatus, setMeErrorStatus] = useState(null);
   const [meErrorCode, setMeErrorCode] = useState(null);
+
+  const accountKey = useMemo(
+    () => accountStableKey(account),
+    [account?.uid, account?.username, account?.name, account?.photoURL]
+  );
+
+  const accountRef = useRef(account);
+  accountRef.current = account;
 
   const buildSafeMeErrorMessage = useCallback((error) => {
     const status = error && typeof error === 'object' && typeof error.status === 'number'
@@ -43,7 +61,7 @@ export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, ref
   }, []);
 
   useEffect(() => {
-    if (!baseUrl || authStatus !== 'authenticated' || !account) {
+    if (!baseUrl || authStatus !== 'authenticated' || !accountKey) {
       clearMe();
       return;
     }
@@ -56,7 +74,7 @@ export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, ref
       setMeErrorCode(null);
       try {
         const accessToken = await getAccessToken();
-        const hint = emailFromAccount(account);
+        const hint = emailFromAccount(accountRef.current);
         const payload = await fetchMe(baseUrl, accessToken, hint, controller.signal);
         setMeStatus('ok');
         setMeData(payload ?? null);
@@ -80,7 +98,7 @@ export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, ref
 
     run();
     return () => controller.abort();
-  }, [account, authStatus, baseUrl, buildSafeMeErrorMessage, clearMe, getAccessToken, refreshTick]);
+  }, [accountKey, authStatus, baseUrl, buildSafeMeErrorMessage, clearMe, getAccessToken, refreshTick]);
 
   return { meStatus, meData, meError, meErrorStatus, meErrorCode };
 }

@@ -323,7 +323,7 @@ const PortalProfile = () => {
         });
       }
       setSaveStatus('success');
-      refreshMe();
+      refreshMe({ force: true });
 
       // Apply pending language/theme to context + localStorage now that Save succeeded.
       // The preference sync hook will then push the new values to the server.
@@ -425,7 +425,7 @@ const PortalProfile = () => {
         content_type: 'image/jpeg',
         file_size_bytes: outFile.size,
       });
-      refreshMe();
+      refreshMe({ force: true });
       showFeedback(t('portalProfile.photoSaved'), 'success');
     } catch (error) {
       handleApiForbidden(error);
@@ -453,7 +453,7 @@ const PortalProfile = () => {
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
       await deleteProfilePhoto(baseUrl, token, { emailHint });
-      refreshMe();
+      refreshMe({ force: true });
       showFeedback(t('portalProfile.photoRemoved'), 'success');
       setRemovePhotoConfirmOpen(false);
     } catch (error) {

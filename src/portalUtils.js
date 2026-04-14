@@ -85,3 +85,24 @@ export function profilePhotoUrlFromMeData(meData) {
   const url = meData?.user?.profile_photo_url;
   return typeof url === 'string' && url.trim() ? url.trim() : '';
 }
+
+/**
+ * Origin + pathname only (no query or hash). Used so a rotating SAS on the same
+ * blob does not look like a new image — avoids tight GET /api/portal/me loops when
+ * the profile avatar calls refreshMe after repeated load failures.
+ */
+export function stableImageUrlIdentityKey(url) {
+  const s = typeof url === 'string' ? url.trim() : '';
+  if (!s) return '';
+  try {
+    const u = new URL(s);
+    return `${u.origin}${u.pathname}`;
+  } catch {
+    const q = s.indexOf('?');
+    const h = s.indexOf('#');
+    if (q === -1 && h === -1) return s;
+    if (q === -1) return s.slice(0, h);
+    if (h === -1) return s.slice(0, q);
+    return s.slice(0, Math.min(q, h));
+  }
+}

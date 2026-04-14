@@ -911,11 +911,12 @@ export async function fetchLandlords(baseUrl, accessToken, params) {
     ? '/api/portal/admin/landlords?include_inactive=true'
     : '/api/portal/admin/landlords';
   const url = buildUrl(baseUrl, path);
+  // Bump `extra` when the list payload shape changes so TTL cache cannot serve stale rows.
   const cacheKey = buildPortalCacheKey(
     PORTAL_CACHE_PREFIX.LANDLORDS,
     baseUrl,
     '',
-    params?.includeInactive ? 'inactive' : 'active'
+    params?.includeInactive ? 'inactive:v2' : 'active:v2'
   );
   return portalCachedJsonGet({
     cacheKey,
@@ -924,6 +925,28 @@ export async function fetchLandlords(baseUrl, accessToken, params) {
     url,
     prepareHeaders: () => getHeaders(accessToken),
   });
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/portal/admin/tiers
+// ---------------------------------------------------------------------------
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @returns {Promise<{ tiers: object[] }>}
+ */
+export async function fetchAdminSubscriptionTiers(baseUrl, accessToken) {
+  const res = await fetch(buildUrl(baseUrl, '/api/portal/admin/tiers'), {
+    method: 'GET',
+    headers: getHeaders(accessToken),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
 }
 
 // ---------------------------------------------------------------------------

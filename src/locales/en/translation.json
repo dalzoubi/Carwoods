@@ -133,6 +133,7 @@
     "successHeading": "Message Sent",
     "successBody": "We'll be in touch within one business day.",
     "recaptchaError": "Security check failed. Please try again.",
+    "recaptchaRequired": "Security verification did not complete. Please refresh the page and try again.",
     "errorBody": "Something went wrong. Please try again or email us at support@carwoods.com.",
     "nameRequired": "Name is required",
     "emailInvalid": "Please enter a valid email address",
@@ -1549,7 +1550,8 @@
       "landlordSaved": "Landlord saved successfully.",
       "landlordUpdated": "Landlord updated successfully.",
       "deactivated": "Landlord deactivated.",
-      "reactivated": "Landlord reactivated."
+      "reactivated": "Landlord reactivated.",
+      "tierUpdated": "Subscription plan updated."
     },
     "list": {
       "heading": "Landlords",
@@ -1558,14 +1560,24 @@
       "loading": "Loading landlords…",
       "empty": "No landlords found.",
       "name": "Name",
-      "status": "User status"
+      "status": "User status",
+      "tier": "Plan",
+      "tierNone": "Not assigned",
+      "tierChipAria": "Subscription plan: {{tier}}"
     },
     "actions": {
       "edit": "Edit",
       "saveChanges": "Save changes",
       "deactivate": "Deactivate",
       "reactivate": "Reactivate",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "changeTier": "Change subscription plan"
+    },
+    "tierDialog": {
+      "title": "Subscription plan for {{name}}",
+      "selectLabel": "Plan",
+      "save": "Save plan",
+      "loadingTiers": "Loading plans…"
     },
     "confirmDeactivate": {
       "title": "Deactivate landlord?",
@@ -1585,7 +1597,10 @@
       "emailRequired": "Email is required.",
       "emailInvalid": "Enter a valid email address.",
       "firstNameRequired": "First name is required.",
-      "lastNameRequired": "Last name is required."
+      "lastNameRequired": "Last name is required.",
+      "tierListFailed": "Unable to load subscription plans.",
+      "tierSaveFailed": "Unable to update subscription plan.",
+      "tierPickRequired": "Choose a plan before saving."
     }
   },
   "portalAdminConfigurations": {
@@ -1800,6 +1815,10 @@
       "visibilityFilterVisible": "Visible",
       "visibilityFilterHidden": "Not visible",
       "visibilityFilterDeleted": "Deleted only",
+      "landlordFilterLabel": "Filter by landlord",
+      "landlordFilterAll": "All landlords",
+      "landlordFilterLoadError": "Could not load landlords.",
+      "emptyLandlordFilter": "No properties match this landlord and the current filters.",
       "editButton": "Edit",
       "deleteButton": "Delete",
       "syncHarButton": "Sync with HAR",
@@ -1941,7 +1960,8 @@
       "viewProfile": "Edit Profile",
       "exportCsv": "Export CSV",
       "manageLandlords": "Manage Landlords",
-      "manageProperties": "Manage Properties"
+      "manageProperties": "Manage Properties",
+      "manageTenants": "Manage Tenants"
     },
     "recentRequests": {
       "heading": "Recent Requests",
@@ -1977,7 +1997,7 @@
   "portalLogin": {
     "title": "Carwoods - Property Portal",
     "metaDescription": "Sign in to the Carwoods property portal.",
-    "heading": "Property Portal",
+    "heading": "Sign in or Register",
     "subtitle": "Manage maintenance requests, payments, applications, and communicate with your property management team.",
     "features": {
       "requests": "Submit and track maintenance requests",
@@ -2033,6 +2053,7 @@
       "firstName": "First name",
       "lastName": "Last name",
       "phone": "Phone (optional)",
+      "landlord": "Landlord",
       "selectLandlord": "Select a landlord",
       "selectProperty": "Select a property",
       "startDate": "Lease start date",

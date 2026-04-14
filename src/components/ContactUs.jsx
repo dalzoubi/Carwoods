@@ -95,6 +95,13 @@ const ContactUs = () => {
         const data = await resp.json().catch(() => ({}));
         if (data.error === 'recaptcha_failed') {
           setSubmitError(t('contact.recaptchaError', 'Security check failed. Please try again.'));
+        } else if (data.error === 'recaptcha_required') {
+          setSubmitError(
+            t(
+              'contact.recaptchaRequired',
+              'Security verification did not complete. Please refresh the page and try again.',
+            ),
+          );
         } else {
           setSubmitError(t('contact.errorBody', 'Something went wrong. Please try again or email us at support@carwoods.com.'));
         }

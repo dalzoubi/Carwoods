@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { Avatar, Box } from '@mui/material';
-import { portalUserInitials, profilePhotoUrlFromMeData } from '../portalUtils';
+import {
+  portalUserInitials,
+  profilePhotoUrlFromMeData,
+  stableImageUrlIdentityKey,
+} from '../portalUtils';
 
 function uniquePhotoCandidates(primary, fallback) {
   const out = [];
@@ -69,14 +73,28 @@ export default function PortalUserAvatar({
     [primary, fallback]
   );
   const candidateKey = candidates.join('\0');
+  const stableCandidateIdentityKey = useMemo(
+    () => candidates.map((c) => stableImageUrlIdentityKey(c)).join('\0'),
+    [candidates]
+  );
 
   const [load, dispatch] = useReducer(loadReducer, { attempt: 0, givenUp: false });
   const refreshNotifiedRef = useRef(false);
+  const prevStableIdentityRef = useRef('');
 
+  // Reset load attempts whenever the full URL string changes (e.g. new SAS token).
+  // Only clear refreshNotifiedRef when the underlying asset identity changes; if the
+  // API returns a fresh signed URL for the same blob after refreshMe, re-clearing
+  // would loop: fail → refreshMe → new SAS → reset ref → fail → refreshMe → …
   useEffect(() => {
     dispatch({ type: 'reset' });
-    refreshNotifiedRef.current = false;
-  }, [candidateKey]);
+    const prevStable = prevStableIdentityRef.current;
+    const nextStable = stableCandidateIdentityKey;
+    prevStableIdentityRef.current = nextStable;
+    if (nextStable !== prevStable) {
+      refreshNotifiedRef.current = false;
+    }
+  }, [candidateKey, stableCandidateIdentityKey]);
 
   useEffect(() => {
     if (load.givenUp && !refreshNotifiedRef.current) {
