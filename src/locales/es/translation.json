@@ -21,7 +21,19 @@
     "portal": "Portal",
     "portalMenu": "Menú del portal",
     "legalMenu": "Menú legal",
-    "print": "Imprimir esta página"
+    "print": "Imprimir esta página",
+    "renters": "Inquilinos",
+    "rentersMenu": "Menú de inquilinos",
+    "propertyManagement": "Gestión de Propiedades",
+    "forLandlords": "Para Propietarios",
+    "forLandlordsMenu": "Menú para propietarios",
+    "forPropertyManagers": "Para Gestores de Propiedades",
+    "pricing": "Precios",
+    "getStarted": "Empezar",
+    "product": "Producto",
+    "productMenu": "Menú de producto",
+    "resources": "Recursos",
+    "resourcesMenu": "Menú de recursos"
   },
   "tenantLinks": {
     "apply": "Solicitar",

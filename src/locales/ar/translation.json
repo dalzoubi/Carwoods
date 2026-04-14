@@ -21,7 +21,19 @@
     "portal": "البوابة",
     "portalMenu": "قائمة البوابة",
     "legalMenu": "القائمة القانونية",
-    "print": "طباعة هذه الصفحة"
+    "print": "طباعة هذه الصفحة",
+    "renters": "المستأجرون",
+    "rentersMenu": "قائمة المستأجرين",
+    "propertyManagement": "إدارة العقارات",
+    "forLandlords": "للملاك",
+    "forLandlordsMenu": "قائمة الملاك",
+    "forPropertyManagers": "لمديري العقارات",
+    "pricing": "الأسعار",
+    "getStarted": "ابدأ الآن",
+    "product": "المنتج",
+    "productMenu": "قائمة المنتج",
+    "resources": "الموارد",
+    "resourcesMenu": "قائمة الموارد"
   },
   "tenantLinks": {
     "apply": "تقديم الطلب",
