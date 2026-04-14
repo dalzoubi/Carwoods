@@ -56,8 +56,8 @@
     "exitPreview": "Exit preview (go home)"
   },
   "home": {
-    "title": "Carwoods — Houston Property Management",
-    "metaDescription": "Find a Houston rental to apply for, hire Carwoods as your property manager, or use our portal to manage your own rentals.",
+    "title": "Carwoods — Property Management & Self-Management Portal",
+    "metaDescription": "Full-service property management in Houston, plus a self-management portal for independent landlords across the US. Find a rental, hire a manager, or manage your own.",
     "heroImageAlt": "Keys to a new home resting on a welcome mat",
     "midHeroAlt": "Modern home exterior with warm evening light",
     "audienceLabel": "Who are you?",
@@ -81,8 +81,8 @@
     "selfManagersBullet3": "Free to start, subscription tiers available",
     "selfManagersCta": "See pricing and features",
     "featuredBadge": "New • Featured",
-    "heroHeadingNew": "Houston Property Management",
-    "heroSubtitleNew": "Find a Houston rental. Hire us to manage your property. Or use our portal to self-manage your own."
+    "heroHeadingNew": "Property Management in Houston. Self-Management Anywhere.",
+    "heroSubtitleNew": "Find a Houston rental or hire us to fully manage your investment property — or use our portal to self-manage your own rentals from anywhere in the US."
   },
   "apply": {
     "title": "Carwoods - How to Apply",
