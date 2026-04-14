@@ -7,6 +7,7 @@ import {
     Drawer,
     List,
     ListItemButton,
+    ListItemIcon,
     ListItemText,
     ListSubheader,
     Menu,
@@ -26,7 +27,6 @@ import SettingsBrightness from '@mui/icons-material/SettingsBrightness';
 import RestartAlt from '@mui/icons-material/RestartAlt';
 import Print from '@mui/icons-material/Print';
 import Language from '@mui/icons-material/Language';
-import Gavel from '@mui/icons-material/Gavel';
 import Login from '@mui/icons-material/Login';
 import { NavLink } from '../styles';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
@@ -364,24 +364,6 @@ const ResponsiveNavbar = () => {
                 ml: { xs: 0, md: 'auto' },
             }}
         >
-            {!isMobile ? (
-                <Tooltip title={t('nav.legal')} arrow>
-                    <IconButton
-                        color="inherit"
-                        type="button"
-                        size="small"
-                        id="legal-menu-button"
-                        onClick={handleLegalOpen}
-                        aria-haspopup="true"
-                        aria-expanded={Boolean(legalAnchor)}
-                        aria-controls={legalAnchor ? 'legal-menu' : undefined}
-                        aria-label={t('nav.legalMenu')}
-                        sx={toolbarChromeIconButtonSx}
-                    >
-                        <Gavel aria-hidden />
-                    </IconButton>
-                </Tooltip>
-            ) : null}
             {showPrintButton ? (
                 <IconButton
                     color="inherit"
@@ -393,25 +375,6 @@ const ResponsiveNavbar = () => {
                 >
                     <Print aria-hidden />
                 </IconButton>
-            ) : null}
-            {showAppearanceMenu ? (
-                <Tooltip title={t('nav.appearance')} arrow>
-                    <IconButton
-                        color="inherit"
-                        type="button"
-                        size="small"
-                        id="appearance-menu-button-toolbar"
-                        data-appearance-trigger="toolbar"
-                        aria-label={t('nav.appearance')}
-                        aria-haspopup="true"
-                        aria-expanded={Boolean(appearanceAnchor)}
-                        aria-controls={appearanceAnchor ? 'appearance-menu' : undefined}
-                        onClick={handleAppearanceOpen}
-                        sx={toolbarChromeIconButtonSx}
-                    >
-                        <SettingsBrightness aria-hidden />
-                    </IconButton>
-                </Tooltip>
             ) : null}
             <Tooltip title={t('nav.language')} arrow>
                 <IconButton
@@ -618,6 +581,20 @@ const ResponsiveNavbar = () => {
                             <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
                         </ListItemButton>
                     ))}
+
+                    {showAppearanceMenu && (
+                        <ListItemButton
+                            id="appearance-menu-button-drawer"
+                            data-appearance-trigger="drawer"
+                            onClick={handleAppearanceOpen}
+                            sx={listItemButtonSx}
+                        >
+                            <ListItemIcon sx={{ minWidth: 36, color: muiTheme.palette.drawer.text }}>
+                                <SettingsBrightness fontSize="small" aria-hidden />
+                            </ListItemIcon>
+                            <ListItemText primary={t('nav.appearance')} style={{ color: muiTheme.palette.drawer.text }} />
+                        </ListItemButton>
+                    )}
                 </List>
             </nav>
         </div>
