@@ -1813,7 +1813,22 @@
     "actions": {
       "refresh": "Actualizar"
     },
-    "accessDenied": "No tienes permiso para ver esa página."
+    "accessDenied": "No tienes permiso para ver esa página.",
+    "onboarding": {
+      "heading": "Comienza con Carwoods",
+      "subheading": "Completa estos pasos para configurar tu portal de gestión de propiedades.",
+      "dismiss": "Descartar",
+      "dismissAriaLabel": "Descartar lista de configuración",
+      "step1Label": "Añade tu primera propiedad",
+      "step1Desc": "Crea un anuncio de propiedad y añade fotos.",
+      "step1Action": "Ir a Propiedades",
+      "step2Label": "Invita a tu primer inquilino",
+      "step2Desc": "Envía un enlace de invitación para conectar a un inquilino con su contrato.",
+      "step2Action": "Ir a Inquilinos",
+      "step3Label": "Configura tus ajustes",
+      "step3Desc": "Configura el enrutamiento de IA, las notificaciones y las preferencias del portal.",
+      "step3Action": "Ir a Configuración"
+    }
   },
   "portalLoading": {
     "ariaLabel": "Cargando portal"

@@ -1813,7 +1813,22 @@
     "actions": {
       "refresh": "Actualiser"
     },
-    "accessDenied": "Vous n'avez pas la permission d'accéder à cette page."
+    "accessDenied": "Vous n'avez pas la permission d'accéder à cette page.",
+    "onboarding": {
+      "heading": "Commencez avec Carwoods",
+      "subheading": "Complétez ces étapes pour configurer votre portail de gestion immobilière.",
+      "dismiss": "Ignorer",
+      "dismissAriaLabel": "Ignorer la liste de configuration",
+      "step1Label": "Ajoutez votre première propriété",
+      "step1Desc": "Créez une annonce immobilière et ajoutez des photos.",
+      "step1Action": "Aller aux Propriétés",
+      "step2Label": "Invitez votre premier locataire",
+      "step2Desc": "Envoyez un lien d'invitation pour connecter un locataire à son bail.",
+      "step2Action": "Aller aux Locataires",
+      "step3Label": "Configurez vos paramètres",
+      "step3Desc": "Configurez le routage IA, les notifications et les préférences du portail.",
+      "step3Action": "Aller aux Paramètres"
+    }
   },
   "portalLoading": {
     "ariaLabel": "Chargement du portail"
