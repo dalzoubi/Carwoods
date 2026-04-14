@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
+    Avatar,
     Box,
     Button,
     Chip,
@@ -13,14 +14,15 @@ import HomeWork from '@mui/icons-material/HomeWork';
 import People from '@mui/icons-material/People';
 import Build from '@mui/icons-material/Build';
 import Notifications from '@mui/icons-material/Notifications';
-import SmartToy from '@mui/icons-material/SmartToy';
 import Check from '@mui/icons-material/Check';
 import ArrowForward from '@mui/icons-material/ArrowForward';
+import AutoAwesome from '@mui/icons-material/AutoAwesome';
 import { alpha, useTheme } from '@mui/material/styles';
 import { Helmet } from 'react-helmet';
 import { Heading } from '../styles';
 import { useTranslation } from 'react-i18next';
 import { withDarkPath } from '../routePaths';
+import elsaPhoto from '../assets/elsa-assistant.webp';
 
 const FeatureSection = ({ icon, heading, body, reversed }) => {
     const theme = useTheme();
@@ -78,7 +80,15 @@ const Features = () => {
         { icon: <People />, heading: t('features.tenantsFeatureHeading'), body: t('features.tenantsFeatureBody') },
         { icon: <Build />, heading: t('features.requestsFeatureHeading'), body: t('features.requestsFeatureBody') },
         { icon: <Notifications />, heading: t('features.notificationsFeatureHeading'), body: t('features.notificationsFeatureBody') },
-        { icon: <SmartToy />, heading: t('features.aiFeatureHeading'), body: t('features.aiFeatureBody') },
+    ];
+
+    const elsaCapabilities = [
+        t('features.elsaCapability1'),
+        t('features.elsaCapability2'),
+        t('features.elsaCapability3'),
+        t('features.elsaCapability4'),
+        t('features.elsaCapability5'),
+        t('features.elsaCapability6'),
     ];
 
     const requestStatuses = [
@@ -143,6 +153,78 @@ const Features = () => {
                     <FeatureSection key={i} icon={f.icon} heading={f.heading} body={f.body} />
                 ))}
             </Stack>
+
+            {/* Elsa spotlight */}
+            <Paper
+                component="section"
+                aria-labelledby="features-elsa-heading"
+                elevation={0}
+                sx={{
+                    p: { xs: 3, sm: 4 },
+                    border: '2px solid',
+                    borderColor: 'primary.main',
+                    borderRadius: 3,
+                    bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.08 : 0.03),
+                    backgroundImage: 'none',
+                }}
+            >
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 3, sm: 4 }} alignItems={{ xs: 'center', sm: 'flex-start' }}>
+                    {/* Avatar + identity */}
+                    <Stack alignItems="center" spacing={1} sx={{ flexShrink: 0 }}>
+                        <Avatar
+                            src={elsaPhoto}
+                            alt={t('features.elsaPhotoAlt')}
+                            sx={{ width: 96, height: 96, border: '3px solid', borderColor: 'primary.main' }}
+                        />
+                        <Typography variant="h6" component="div" sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1 }}>
+                            {t('portalRequests.elsaName', 'Elsa')}
+                        </Typography>
+                        <Chip
+                            label={t('portalRequests.aiAssistantRole', 'AI Assistant')}
+                            color="primary"
+                            size="small"
+                            sx={{ fontWeight: 700, fontSize: '0.7rem' }}
+                        />
+                    </Stack>
+
+                    {/* Description + capabilities */}
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                            <Typography id="features-elsa-heading" variant="h5" component="h2" sx={{ fontWeight: 800 }}>
+                                {t('features.elsaSectionHeading')}
+                            </Typography>
+                            <Chip
+                                icon={<AutoAwesome sx={{ fontSize: '0.85rem !important' }} />}
+                                label={t('features.elsaGrowingChip')}
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                                sx={{ fontWeight: 700, fontSize: '0.65rem' }}
+                            />
+                        </Stack>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, lineHeight: 1.7 }}>
+                            {t('features.elsaIntro')}
+                        </Typography>
+                        <Stack
+                            direction={{ xs: 'column', md: 'row' }}
+                            flexWrap="wrap"
+                            useFlexGap
+                            spacing={1}
+                            sx={{ mb: 2.5 }}
+                        >
+                            {elsaCapabilities.map((cap, i) => (
+                                <Stack key={i} direction="row" spacing={0.75} alignItems="flex-start" sx={{ flex: { md: '1 1 45%' }, minWidth: 0 }}>
+                                    <Check sx={{ fontSize: '1rem', color: 'primary.main', mt: 0.2, flexShrink: 0 }} aria-hidden />
+                                    <Typography variant="body2" sx={{ lineHeight: 1.5 }}>{cap}</Typography>
+                                </Stack>
+                            ))}
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                            {t('features.elsaGrowingNote')}
+                        </Typography>
+                    </Box>
+                </Stack>
+            </Paper>
 
             {/* Maintenance request statuses */}
             <Box

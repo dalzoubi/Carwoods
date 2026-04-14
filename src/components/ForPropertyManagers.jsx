@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
+    Avatar,
     Box,
     Button,
+    Chip,
     Paper,
     Stack,
     Typography,
@@ -15,11 +17,13 @@ import PersonAdd from '@mui/icons-material/PersonAdd';
 import Build from '@mui/icons-material/Build';
 import TaskAlt from '@mui/icons-material/TaskAlt';
 import FormatQuote from '@mui/icons-material/FormatQuote';
+import AutoAwesome from '@mui/icons-material/AutoAwesome';
 import { alpha, useTheme } from '@mui/material/styles';
 import { Helmet } from 'react-helmet';
 import { Heading } from '../styles';
 import { useTranslation } from 'react-i18next';
 import { withDarkPath } from '../routePaths';
+import elsaPhoto from '../assets/elsa-assistant.webp';
 
 const WorkflowStep = ({ step, icon, heading, body }) => {
     const theme = useTheme();
@@ -184,6 +188,63 @@ const ForPropertyManagers = () => {
                             body={step.body}
                         />
                     ))}
+                </Stack>
+            </Box>
+
+            {/* Elsa spotlight */}
+            <Box
+                component="section"
+                aria-labelledby="fpm-elsa-heading"
+                sx={{
+                    p: { xs: 3, sm: 4 },
+                    borderRadius: 2,
+                    border: '2px solid',
+                    borderColor: 'primary.main',
+                    bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.08 : 0.03),
+                }}
+            >
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} alignItems={{ xs: 'center', sm: 'flex-start' }}>
+                    <Stack alignItems="center" spacing={1} sx={{ flexShrink: 0 }}>
+                        <Avatar
+                            src={elsaPhoto}
+                            alt={t('features.elsaPhotoAlt')}
+                            sx={{ width: 80, height: 80, border: '3px solid', borderColor: 'primary.main' }}
+                        />
+                        <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1 }}>
+                            {t('portalRequests.elsaName', 'Elsa')}
+                        </Typography>
+                        <Chip
+                            icon={<AutoAwesome sx={{ fontSize: '0.85rem !important' }} />}
+                            label={t('portalRequests.aiAssistantRole', 'AI Assistant')}
+                            color="primary"
+                            size="small"
+                            sx={{ fontWeight: 700, fontSize: '0.7rem' }}
+                        />
+                    </Stack>
+                    <Box sx={{ flex: 1 }}>
+                        <Typography id="fpm-elsa-heading" variant="h5" component="h2" sx={{ fontWeight: 800, mb: 1 }}>
+                            {t('forPropertyManagers.elsaSectionHeading')}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.7 }}>
+                            {t('forPropertyManagers.elsaBody')}
+                        </Typography>
+                        <Stack spacing={0.75}>
+                            {[
+                                t('features.elsaCapability1'),
+                                t('features.elsaCapability2'),
+                                t('features.elsaCapability3'),
+                                t('features.elsaCapability4'),
+                            ].map((cap, i) => (
+                                <Stack key={i} direction="row" spacing={0.75} alignItems="flex-start">
+                                    <Check sx={{ fontSize: '1rem', color: 'primary.main', mt: 0.2, flexShrink: 0 }} aria-hidden />
+                                    <Typography variant="body2">{cap}</Typography>
+                                </Stack>
+                            ))}
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5, fontStyle: 'italic' }}>
+                            {t('features.elsaGrowingNote')}
+                        </Typography>
+                    </Box>
                 </Stack>
             </Box>
 
