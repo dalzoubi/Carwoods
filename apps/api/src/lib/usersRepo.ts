@@ -137,6 +137,51 @@ export async function upsertLandlordUserByEmail(
   };
 }
 
+/**
+ * Auto-register a brand-new landlord on first sign-in.
+ *
+ * Only creates a record when no user with this email exists yet.
+ * Returns null if the user already exists (ACTIVE, DISABLED, etc.) — the
+ * caller should let the normal /me flow handle that case.
+ * Returns null if no email can be extracted from the token claims.
+ */
+export async function autoRegisterLandlordByClaims(
+  client: Queryable,
+  claims: AccessTokenClaims,
+  emailHint?: string
+): Promise<UserRow | null> {
+  const email = primaryEmailFromClaims(claims) ?? emailHint;
+  if (!email?.trim()) return null;
+
+  const normalizedEmail = normalizeEmail(email);
+
+  // Don't auto-create if a record already exists — preserve existing state
+  const existing = await findUserByEmail(client, normalizedEmail);
+  if (existing) return null;
+
+  const externalAuthOid = claims.oid ?? claims.sub;
+
+  // Best-effort name extraction from token claims
+  const firstName = normalizeNamePart(
+    claims.given_name ?? (claims.name ? claims.name.split(' ')[0] : null)
+  );
+  const lastName = normalizeNamePart(
+    claims.family_name ?? (claims.name ? claims.name.split(' ').slice(1).join(' ') : null)
+  );
+
+  const result = await client.query<UserRow>(
+    `INSERT INTO users (id, external_auth_oid, email, first_name, last_name, role, status)
+     OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
+            INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
+            INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
+            INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
+     VALUES (NEWID(), $1, $2, $3, $4, '${Role.LANDLORD}', 'ACTIVE')`,
+    [externalAuthOid, normalizedEmail, firstName, lastName]
+  );
+
+  return result.rows[0] ?? null;
+}
+
 export async function listLandlords(
   client: Queryable,
   options?: { includeInactive?: boolean }

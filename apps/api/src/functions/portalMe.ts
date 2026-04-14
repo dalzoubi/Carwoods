@@ -12,7 +12,7 @@ import {
   verifyAccessToken,
   authConfigured,
 } from '../lib/jwtVerify.js';
-import { findUserByClaims, autoAssignFreeTier } from '../lib/usersRepo.js';
+import { findUserByClaims, autoAssignFreeTier, autoRegisterLandlordByClaims } from '../lib/usersRepo.js';
 import { getGlobalAttachmentUploadConfigCached } from '../lib/attachmentUploadConfigRepo.js';
 import { getTierById, getTierByName } from '../lib/subscriptionTiersRepo.js';
 import { addProfilePhotoReadUrl } from '../lib/userProfilePhotoUrl.js';
@@ -27,6 +27,7 @@ type PortalMeDeps = {
   verifyAccessToken: typeof verifyAccessToken;
   authConfigured: typeof authConfigured;
   findUserByClaims: typeof findUserByClaims;
+  autoRegisterLandlordByClaims: typeof autoRegisterLandlordByClaims;
   ensureUserNotificationPreference: typeof ensureUserNotificationPreference;
   getGlobalAttachmentUploadConfigCached: typeof getGlobalAttachmentUploadConfigCached;
 };
@@ -37,6 +38,7 @@ const DEFAULT_PORTAL_ME_DEPS: PortalMeDeps = {
   verifyAccessToken,
   authConfigured,
   findUserByClaims,
+  autoRegisterLandlordByClaims,
   ensureUserNotificationPreference,
   getGlobalAttachmentUploadConfigCached,
 };
@@ -124,7 +126,30 @@ export async function portalMeHandler(
     };
   }
 
+  // No existing user — auto-register as a Free-tier landlord on first sign-in
+  if (!user && deps.hasDatabaseUrl()) {
+    try {
+      const pool = deps.getPool();
+      const newUser = await deps.autoRegisterLandlordByClaims(pool, claims, emailHint);
+      if (newUser) {
+        user = newUser;
+        notificationPreferences = await deps.ensureUserNotificationPreference(pool, user.id);
+        logInfo(context, 'portal.me.auto_registered', {
+          userId: user.id,
+          subject: claims.sub,
+          oid: claims.oid ?? null,
+        });
+      }
+    } catch (error) {
+      logError(context, 'portal.me.auto_register.error', {
+        message: error instanceof Error ? error.message : 'unknown',
+        subject: claims.sub,
+      });
+    }
+  }
+
   if (!user) {
+    // Auto-registration skipped (no email in token) or already handled above
     logWarn(context, 'portal.me.forbidden', {
       reason: 'user_not_found',
       subject: claims.sub,
