@@ -94,17 +94,17 @@ const PlanCard = ({ tier, tagline, capacity, price, pricePeriod, features, cta, 
             </Box>
             <Box sx={{ mb: 2 }}>
                 <Typography
-                    component="span"
+                    component="div"
                     sx={{ fontSize: '2.25rem', fontWeight: 800, color: 'text.primary', lineHeight: 1 }}
                 >
                     {price}
                 </Typography>
                 {pricePeriod && (
                     <Typography
-                        component="span"
+                        component="div"
                         variant="body2"
                         color="text.secondary"
-                        sx={{ ml: 0.75 }}
+                        sx={{ mt: 0.5 }}
                     >
                         {pricePeriod}
                     </Typography>
@@ -182,6 +182,7 @@ const Pricing = () => {
         { key: 'featureReports', label: t('pricing.featureReports', 'Reports & exports') },
         { key: 'featureWhiteLabel', label: t('pricing.featureWhiteLabel', 'Custom branding') },
         { key: 'featurePrioritySupport', label: t('pricing.featurePrioritySupport', 'Priority support') },
+        { key: 'featureTeamAccess', label: t('pricing.featureTeamAccess', 'Team member accounts') },
     ];
 
     const inclusion = {
@@ -195,6 +196,7 @@ const Pricing = () => {
             featureReports: false,
             featureWhiteLabel: false,
             featurePrioritySupport: false,
+            featureTeamAccess: false,
         },
         starter: {
             featureTenantPortal: true,
@@ -206,6 +208,7 @@ const Pricing = () => {
             featureReports: true,
             featureWhiteLabel: false,
             featurePrioritySupport: false,
+            featureTeamAccess: false,
         },
         pro: {
             featureTenantPortal: true,
@@ -217,6 +220,7 @@ const Pricing = () => {
             featureReports: true,
             featureWhiteLabel: true,
             featurePrioritySupport: true,
+            featureTeamAccess: true,
         },
     };
 
@@ -341,7 +345,7 @@ const Pricing = () => {
                                         bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.1 : 0.04),
                                     }}
                                 >
-                                    {t('pricing.starterTierLabel')}
+                                    {t('pricing.starterTierLabelShort', 'Pay as You Grow')}
                                 </TableCell>
                                 <TableCell align="center" sx={{ fontWeight: 700 }}>{t('pricing.proTierLabel')}</TableCell>
                             </TableRow>
