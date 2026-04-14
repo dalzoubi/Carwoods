@@ -57,19 +57,27 @@
     "highlight2Detail": "Candidatures, loyer et entretien en un seul flux",
     "highlight3Label": "Une communication qui tient",
     "highlight3Detail": "Moins d'écarts, des prochaines étapes plus claires",
-    "audienceLabel": "Choisissez locataires ou propriétaires",
+    "audienceLabel": "Qui êtes-vous ?",
     "rentersTitle": "Locataires",
-    "rentersBody": "Vous cherchez une location à Houston ? Nous gardons le chemin honnête : ce dont vous avez besoin pour postuler, à quoi s'attendre, et des personnes qui répondent au téléphone.",
-    "rentersBullet1": "Étapes de candidature simplifiées et guide des documents requis",
-    "rentersBullet2": "Esprit de listes locales — nous connaissons les rythmes de ce marché",
-    "rentersBullet3": "Respect de votre temps : moins de surprises, prochaines étapes plus claires",
+    "rentersBody": "Vous cherchez un logement à Houston ? Parcourez les biens disponibles, consultez les critères de sélection et postulez en ligne.",
+    "rentersBullet1": "Étapes de candidature disponibles en ligne — sans appel téléphonique",
+    "rentersBullet2": "Les critères de sélection sont clairs et publiés",
+    "rentersBullet3": "Portail locataire pour la maintenance après emménagement",
     "rentersCta": "Commencer votre candidature",
     "ownersTitle": "Propriétaires",
-    "ownersBody": "Confiez-nous les tâches fastidieuses. Nous commercialisons les vacances, sélectionnons les locataires, coordonnons les réparations et rendons compte pour que vous puissiez vous concentrer sur la vue d'ensemble.",
-    "ownersBullet1": "Gestion immobilière complète adaptée à vos objectifs",
-    "ownersBullet2": "Coordination de l'entretien et relations avec les fournisseurs",
-    "ownersBullet3": "Communication régulière — vous ne devinez jamais ce qui se passe",
-    "ownersCta": "Explorer la gestion immobilière"
+    "ownersBody": "Vous possédez un bien locatif à Houston ? Nous nous occupons du marketing, de la sélection des locataires, de la maintenance et de la collecte des loyers.",
+    "ownersBullet1": "Agent immobilier agréé et gestionnaire de biens à Houston",
+    "ownersBullet2": "Service complet : de la vacance au renouvellement du bail",
+    "ownersBullet3": "Communication transparente et rapports réguliers",
+    "ownersCta": "Découvrir nos services",
+    "heroHeadingNew": "Gestion Immobilière à Houston",
+    "heroSubtitleNew": "Trouvez un logement en location à Houston. Engagez-nous pour gérer votre bien. Ou utilisez notre portail pour gérer vous-même vos locations.",
+    "selfManagersTitle": "Propriétaires Indépendants",
+    "selfManagersBody": "Vous gérez vos propres locations ? Utilisez notre portail pour offrir à vos locataires une expérience professionnelle — demandes de maintenance, messagerie et notifications au même endroit.",
+    "selfManagersBullet1": "Portail locataire avec suivi des demandes de maintenance",
+    "selfManagersBullet2": "Routage intelligent et notifications automatisées",
+    "selfManagersBullet3": "Gratuit pour commencer, avec des niveaux d'abonnement disponibles",
+    "selfManagersCta": "Voir les tarifs et fonctionnalités"
   },
   "apply": {
     "title": "Carwoods - Comment postuler",
@@ -104,7 +112,37 @@
     "para1Suffix": "Elle explique l'éligibilité, la documentation requise et comment soumettre via le canal de listing. Suivre d'abord ce flux de travail nous permet de vous assister efficacement et systématiquement.",
     "para2": "Si vous avez déjà suivi ces étapes, ou si vous avez une question qui ne peut pas y être traitée — comme les services de gestion immobilière ou un autre sujet qui nécessite un contact direct — veuillez contacter notre agent agréé sur HAR.com (Houston Association of Realtors). Nous encourageons l'utilisation de ce canal lorsque les options en libre-service ne sont pas suffisantes.",
     "ctaButton": "Contacter notre agent sur HAR.com",
-    "ctaAriaLabel": "Contacter notre agent sur HAR.com (s'ouvre dans un nouvel onglet)"
+    "ctaAriaLabel": "Contacter notre agent sur HAR.com (s'ouvre dans un nouvel onglet)",
+    "intro": "Vous avez une question ? Remplissez le formulaire ci-dessous et notre équipe vous répondra dans un jour ouvrable.",
+    "dbaNote": "Carwoods est un nom commercial d'Alzoubi Motors LLC, une société à responsabilité limitée du Texas.",
+    "nameLabel": "Votre nom",
+    "emailLabel": "Adresse e-mail",
+    "phoneLabel": "Numéro de téléphone (facultatif)",
+    "subjectLabel": "Sujet",
+    "messageLabel": "Message",
+    "submitButton": "Envoyer le message",
+    "submitting": "Envoi en cours…",
+    "successHeading": "Message envoyé",
+    "successBody": "Merci ! Nous vous contacterons dans un jour ouvrable.",
+    "recaptchaError": "Échec de la vérification de sécurité. Veuillez réessayer.",
+    "errorBody": "Une erreur s'est produite. Veuillez réessayer ou nous envoyer un e-mail à support@carwoods.com.",
+    "nameRequired": "Le nom est obligatoire",
+    "emailInvalid": "Veuillez saisir une adresse e-mail valide",
+    "messageRequired": "Le message est obligatoire",
+    "harIntro": "Pour les informations de courtage conformément à la loi du Texas :",
+    "harLinkText": "Informations de Courtage HAR",
+    "harAriaLabel": "Voir les informations de courtage HAR (s'ouvre dans un nouvel onglet)",
+    "recaptchaDisclaimer": "Ce formulaire est protégé par reCAPTCHA. La",
+    "recaptchaPrivacy": "Politique de Confidentialité",
+    "recaptchaAnd": "et les",
+    "recaptchaTerms": "Conditions d'utilisation",
+    "recaptchaApply": "de Google s'appliquent.",
+    "subjects": {
+      "general": "Demande générale",
+      "renter": "Locataire / Candidat",
+      "propertyOwner": "Propriétaire",
+      "portalSaas": "Portail / SaaS"
+    }
   },
   "privacy": {
     "title": "Carwoods - Politique de confidentialité",
@@ -152,7 +190,11 @@
     "contactBody": "Si vous avez des questions sur ces Conditions, veuillez nous contacter via notre page",
     "contactLink": "Contactez-nous",
     "contactBodySuffix": "",
-    "lastUpdated": "Dernière mise à jour : avril 2026"
+    "lastUpdated": "Dernière mise à jour : avril 2025",
+    "portalServicesHeading": "Services de Portail et d'Abonnement",
+    "portalServicesBody": "Le portail Carwoods est proposé comme service logiciel par abonnement pour les gestionnaires immobiliers et les propriétaires indépendants. Un niveau gratuit avec des fonctionnalités limitées est disponible. Les niveaux payants sont en développement. L'accès au portail ne garantit pas un niveau de service, une disponibilité ou des fonctionnalités spécifiques.",
+    "tenantDataHeading": "Données des Locataires",
+    "tenantDataBody": "Les gestionnaires qui utilisent le portail Carwoods invitent et gèrent leurs propres locataires. Le gestionnaire, et non Carwoods, est le responsable du traitement des données personnelles de ses locataires au sein du portail. Les gestionnaires sont responsables d'obtenir le consentement approprié de leurs locataires."
   },
   "accessibility": {
     "title": "Carwoods - Déclaration d'accessibilité",
@@ -254,7 +296,26 @@
     "s11Heading": "11. Droit applicable",
     "s11Body": "Le présent Accord sera régi et interprété conformément aux lois de l'État du TEXAS.",
     "s12Heading": "12. Accord complet",
-    "s12Body": "Le présent Accord constitue l'accord complet entre les parties et remplace tous les accords ou ententes antérieurs, qu'ils soient écrits ou oraux, relatifs à l'objet des présentes."
+    "s12Body": "Le présent Accord constitue l'accord complet entre les parties et remplace tous les accords ou ententes antérieurs, qu'ils soient écrits ou oraux, relatifs à l'objet des présentes.",
+    "heroSubtitle": "Agent immobilier agréé et gestionnaire de biens à Houston. Nous commercialisons les vacances, sélectionnons les locataires, coordonnons les réparations et vous faisons des rapports.",
+    "heroBenefit1": "Marketing complet et sélection des locataires dès le premier jour",
+    "heroBenefit2": "Coordination de la maintenance avec des prestataires de confiance",
+    "heroBenefit3": "Rapports transparents et communication régulière",
+    "heroCtaButton": "Nous contacter",
+    "heroCtaAriaLabel": "Contacter Carwoods pour les services de gestion immobilière",
+    "servicesHeading": "Ce que nous gérons pour vous",
+    "service1Heading": "Location et Marketing",
+    "service1Body": "Nous référençons votre bien sur les MLS et les grandes plateformes, qualifions les candidats et gérons tout le processus de location.",
+    "service2Heading": "Sélection des Locataires",
+    "service2Body": "Vérification des antécédents, du crédit, des revenus et de l'historique locatif — appliquée de manière cohérente.",
+    "service3Heading": "Coordination de la Maintenance",
+    "service3Body": "Les locataires soumettent des demandes via le portail. Nous les trions, envoyons des prestataires de confiance et vous tenons informé.",
+    "service4Heading": "Collecte de Loyer et Rapports",
+    "service4Body": "Collecte en ligne, relevés mensuels et rapports annuels pour que vous sachiez toujours où en est votre investissement.",
+    "whyCarwoodsHeading": "Pourquoi Carwoods ?",
+    "whyCarwoodsBody": "Dennis Alzoubi est agent immobilier et gestionnaire de biens agréé au Texas, basé à Houston. Carwoods combine expertise locale et logiciels modernes.",
+    "ctaSectionHeading": "Prêt à commencer ?",
+    "ctaSectionBody": "Parlez-nous de votre bien et nous vous ferons un suivi avec les prochaines étapes."
   },
   "tenantCriteria": {
     "title": "Carwoods - Critères de sélection des locataires",
@@ -588,56 +649,128 @@
       "employment": {
         "question": "Quel est votre statut d'emploi ?",
         "options": {
-          "employed": { "label": "Employé", "desc": "Travaillant pour un employeur (W-2)" },
-          "selfEmployed": { "label": "Travailleur indépendant", "desc": "Possède une entreprise ou travaille comme contractant" },
-          "both": { "label": "Les deux", "desc": "Employé et également travailleur indépendant" },
-          "notEmployed": { "label": "Sans emploi actuellement", "desc": "Retraité, étudiant ou autre" }
+          "employed": {
+            "label": "Employé",
+            "desc": "Travaillant pour un employeur (W-2)"
+          },
+          "selfEmployed": {
+            "label": "Travailleur indépendant",
+            "desc": "Possède une entreprise ou travaille comme contractant"
+          },
+          "both": {
+            "label": "Les deux",
+            "desc": "Employé et également travailleur indépendant"
+          },
+          "notEmployed": {
+            "label": "Sans emploi actuellement",
+            "desc": "Retraité, étudiant ou autre"
+          }
         }
       },
       "hasPets": {
         "question": "Avez-vous des animaux de compagnie ou des animaux ?",
         "options": {
-          "none": { "label": "Pas d'animaux", "desc": "" },
-          "pets": { "label": "Oui — animal(aux)", "desc": "Chats, chiens ou autres animaux domestiques" },
-          "service": { "label": "Oui — animal d'assistance", "desc": "Dressé pour effectuer des tâches liées à un handicap" },
-          "esa": { "label": "Oui — ESA ou animal de soutien", "desc": "Animal de soutien émotionnel ou autre animal d'assistance" }
+          "none": {
+            "label": "Pas d'animaux",
+            "desc": ""
+          },
+          "pets": {
+            "label": "Oui — animal(aux)",
+            "desc": "Chats, chiens ou autres animaux domestiques"
+          },
+          "service": {
+            "label": "Oui — animal d'assistance",
+            "desc": "Dressé pour effectuer des tâches liées à un handicap"
+          },
+          "esa": {
+            "label": "Oui — ESA ou animal de soutien",
+            "desc": "Animal de soutien émotionnel ou autre animal d'assistance"
+          }
         }
       },
       "benefits": {
         "question": "Recevez-vous des prestations gouvernementales ou autres ?",
         "hint": "Sélectionnez tout ce qui s'applique",
         "options": {
-          "none": { "label": "Aucune", "desc": "" },
-          "va": { "label": "Prestations VA", "desc": "Prestations des Affaires des anciens combattants" },
-          "ssaSsi": { "label": "Sécurité sociale (SSA / SSI)", "desc": "" },
-          "ssdi": { "label": "SSDI", "desc": "Assurance invalidité de la Sécurité sociale" },
-          "retirement": { "label": "Retraite / Pension", "desc": "" },
-          "childSupport": { "label": "Pension alimentaire ou maintien conjugal", "desc": "" },
-          "otherBenefits": { "label": "Autres prestations", "desc": "Toute autre prestation gouvernementale ou d'agence" }
+          "none": {
+            "label": "Aucune",
+            "desc": ""
+          },
+          "va": {
+            "label": "Prestations VA",
+            "desc": "Prestations des Affaires des anciens combattants"
+          },
+          "ssaSsi": {
+            "label": "Sécurité sociale (SSA / SSI)",
+            "desc": ""
+          },
+          "ssdi": {
+            "label": "SSDI",
+            "desc": "Assurance invalidité de la Sécurité sociale"
+          },
+          "retirement": {
+            "label": "Retraite / Pension",
+            "desc": ""
+          },
+          "childSupport": {
+            "label": "Pension alimentaire ou maintien conjugal",
+            "desc": ""
+          },
+          "otherBenefits": {
+            "label": "Autres prestations",
+            "desc": "Toute autre prestation gouvernementale ou d'agence"
+          }
         }
       },
       "section8": {
         "question": "Postulez-vous avec une aide au logement (Section 8 ou similaire) ?",
         "options": {
-          "no": { "label": "Non", "desc": "" },
-          "yes": { "label": "Oui", "desc": "J'ai un bon de choix de logement ou similaire" }
+          "no": {
+            "label": "Non",
+            "desc": ""
+          },
+          "yes": {
+            "label": "Oui",
+            "desc": "J'ai un bon de choix de logement ou similaire"
+          }
         }
       },
       "guarantorCosigner": {
         "question": "Aurez-vous besoin d'un garant ou d'un co-signataire ?",
         "options": {
-          "neither": { "label": "Aucun", "desc": "" },
-          "guarantor": { "label": "Garant", "desc": "Signe un accord de garantie séparé" },
-          "cosigner": { "label": "Co-signataire", "desc": "Signe le bail en tant que co-locataire" },
-          "notSure": { "label": "Pas sûr", "desc": "Je pourrais en avoir besoin mais je ne suis pas certain" }
+          "neither": {
+            "label": "Aucun",
+            "desc": ""
+          },
+          "guarantor": {
+            "label": "Garant",
+            "desc": "Signe un accord de garantie séparé"
+          },
+          "cosigner": {
+            "label": "Co-signataire",
+            "desc": "Signe le bail en tant que co-locataire"
+          },
+          "notSure": {
+            "label": "Pas sûr",
+            "desc": "Je pourrais en avoir besoin mais je ne suis pas certain"
+          }
         }
       },
       "creditScore": {
         "question": "Connaissez-vous votre score de crédit approximatif ?",
         "options": {
-          "unknown": { "label": "Je ne sais pas", "desc": "" },
-          "above650": { "label": "650 ou plus", "desc": "Répond à l'exigence minimale de crédit" },
-          "below650": { "label": "Inférieur à 650", "desc": "En dessous du minimum standard" }
+          "unknown": {
+            "label": "Je ne sais pas",
+            "desc": ""
+          },
+          "above650": {
+            "label": "650 ou plus",
+            "desc": "Répond à l'exigence minimale de crédit"
+          },
+          "below650": {
+            "label": "Inférieur à 650",
+            "desc": "En dessous du minimum standard"
+          }
         }
       }
     }
@@ -1825,5 +1958,54 @@
   "languagePreference": {
     "useBrowserLanguage": "Utiliser la langue du navigateur",
     "browserLanguageHint": "Votre choix est enregistré dans ce navigateur. La réinitialisation efface le remplacement et suit à nouveau la langue du navigateur (anglais si non prise en charge)."
+  },
+  "pricing": {
+    "title": "Carwoods — Tarifs",
+    "metaDescription": "Tarification simple et transparente pour les gestionnaires immobiliers.",
+    "heading": "Tarification Simple et Transparente",
+    "subheading": "Commencez gratuitement. Évoluez quand vous êtes prêt. Sans contrats, sans surprises.",
+    "freeTierLabel": "Gratuit",
+    "freeTierTagline": "Démarrez sans frais",
+    "freeTierPrice": "0 €",
+    "freeTierPricePeriod": "pour toujours",
+    "freeTierCta": "Commencer Gratuitement",
+    "freeTierCtaAria": "Commencer avec le plan gratuit",
+    "starterTierLabel": "Débutant",
+    "starterTierTagline": "Pour les portefeuilles en croissance",
+    "starterTierPrice": "Bientôt disponible",
+    "starterTierPricePeriod": "",
+    "starterTierCta": "Rejoindre la Liste d'attente",
+    "starterTierCtaAria": "Rejoindre la liste d'attente du plan Débutant",
+    "proTierLabel": "Pro",
+    "proTierTagline": "Pour les gestionnaires confirmés",
+    "proTierPrice": "Bientôt disponible",
+    "proTierPricePeriod": "",
+    "proTierCta": "Rejoindre la Liste d'attente",
+    "proTierCtaAria": "Rejoindre la liste d'attente du plan Pro",
+    "featureTableHeading": "Comparer les plans",
+    "featureProperties": "Propriétés",
+    "featurePropertiesFree": "1 propriété",
+    "featurePropertiesStarter": "Jusqu'à 5 propriétés",
+    "featurePropertiesPro": "Propriétés illimitées",
+    "featureTenantPortal": "Accès au portail locataire",
+    "featureMaintenanceRequests": "Demandes de maintenance",
+    "featureNotifications": "Notifications in-app et e-mail",
+    "featureSms": "Notifications SMS",
+    "featureAiRouting": "Routage IA de la maintenance",
+    "featureDocStorage": "Stockage de documents",
+    "featureReports": "Rapports et exports",
+    "featureWhiteLabel": "Marque personnalisée",
+    "featurePrioritySupport": "Support prioritaire",
+    "faqHeading": "Foire aux questions",
+    "faq1Question": "Mes locataires paient-ils quelque chose ?",
+    "faq1Answer": "Non. Les locataires accèdent au portail gratuitement. Seuls les gestionnaires paient un abonnement.",
+    "faq2Question": "Puis-je inviter mes locataires existants ?",
+    "faq2Answer": "Oui. Une fois que vous ajoutez un bien, vous pouvez inviter des locataires par e-mail.",
+    "faq3Question": "Que se passe-t-il après la bêta gratuite ?",
+    "faq3Answer": "Les comptes gratuits resteront sur le niveau gratuit avec 1 propriété.",
+    "faq4Question": "Y a-t-il un contrat ou un engagement de paiement anticipé ?",
+    "faq4Answer": "Non. Pas de contrats, pas d'engagements. Les plans payants seront mensuels au lancement.",
+    "faq5Question": "Comment les locataires accèdent-ils au portail ?",
+    "faq5Answer": "Les locataires reçoivent un lien d'invitation du gestionnaire et peuvent se connecter depuis n'importe quel navigateur."
   }
 }

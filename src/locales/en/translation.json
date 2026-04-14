@@ -79,7 +79,9 @@
     "selfManagersBullet1": "Tenant portal with maintenance request tracking",
     "selfManagersBullet2": "AI-assisted routing and notifications",
     "selfManagersBullet3": "Free to start, subscription tiers available",
-    "selfManagersCta": "See pricing and features"
+    "selfManagersCta": "See pricing and features",
+    "heroHeadingNew": "Houston Property Management",
+    "heroSubtitleNew": "Find a Houston rental. Hire us to manage your property. Or use our portal to self-manage your own."
   },
   "apply": {
     "title": "Carwoods - How to Apply",
@@ -117,7 +119,37 @@
     "para2Suffix": "page for steps and required documents.",
     "ctaButton": "Email Our Team",
     "ctaAriaLabel": "Email the Carwoods team",
-    "ctaEmailHref": "mailto:support@carwoods.com"
+    "ctaEmailHref": "mailto:support@carwoods.com",
+    "intro": "Have a question? Fill out the form below and our team will respond within one business day.",
+    "dbaNote": "Carwoods is a DBA of Alzoubi Motors LLC, a Texas limited liability company.",
+    "nameLabel": "Your Name",
+    "emailLabel": "Email Address",
+    "phoneLabel": "Phone Number (optional)",
+    "subjectLabel": "Subject",
+    "messageLabel": "Message",
+    "submitButton": "Send Message",
+    "submitting": "Sending…",
+    "successHeading": "Message Sent",
+    "successBody": "We'll be in touch within one business day.",
+    "recaptchaError": "Security check failed. Please try again.",
+    "errorBody": "Something went wrong. Please try again or email us at support@carwoods.com.",
+    "nameRequired": "Name is required",
+    "emailInvalid": "Please enter a valid email address",
+    "messageRequired": "Message is required",
+    "harIntro": "For brokerage information per Texas law:",
+    "harLinkText": "HAR Brokerage Information",
+    "harAriaLabel": "View HAR brokerage information (opens in new tab)",
+    "recaptchaDisclaimer": "This form is protected by reCAPTCHA. Google’s",
+    "recaptchaPrivacy": "Privacy Policy",
+    "recaptchaAnd": "and",
+    "recaptchaTerms": "Terms of Service",
+    "recaptchaApply": "apply.",
+    "subjects": {
+      "general": "General Inquiry",
+      "renter": "Renter / Applicant",
+      "propertyOwner": "Property Owner",
+      "portalSaas": "Portal / SaaS"
+    }
   },
   "privacy": {
     "title": "Carwoods - Privacy Policy",
@@ -165,7 +197,11 @@
     "contactBody": "If you have questions about these Terms, please contact us through our",
     "contactLink": "Contact Us",
     "contactBodySuffix": "page.",
-    "lastUpdated": "Last updated: April 2026"
+    "lastUpdated": "Last updated: April 2025",
+    "portalServicesHeading": "Portal and Subscription Services",
+    "portalServicesBody": "The Carwoods portal is offered as a subscription software service for property managers and independent landlords. A free tier is available with limited functionality. Paid subscription tiers are in development and will be offered subject to separate pricing terms. Access to the portal does not guarantee a specific level of service, uptime, or feature availability. We reserve the right to modify, suspend, or discontinue any tier with reasonable notice. Subscriptions are tied to the account holder; they are not transferable.",
+    "tenantDataHeading": "Tenant Data",
+    "tenantDataBody": "Property managers who use the Carwoods portal invite and manage their own tenants. The property manager, not Carwoods, is the data controller for their tenants’ personal information within the portal. Property managers are responsible for obtaining appropriate consent from their tenants and complying with applicable privacy laws. Carwoods processes tenant data solely to provide the portal services to the property manager."
   },
   "accessibility": {
     "title": "Carwoods - Accessibility Statement",
@@ -271,7 +307,12 @@
     "faq4Question": "Is there a contract or minimum commitment?",
     "faq4Answer": "No contracts. Paid plans will be monthly with the option to cancel anytime.",
     "faq5Question": "Can I import my properties?",
-    "faq5Answer": "You can add properties manually today. HAR.com listing sync is available for connected properties."
+    "faq5Answer": "You can add properties manually today. HAR.com listing sync is available for connected properties.",
+    "featureNotifications": "In-app & email notifications",
+    "featureSms": "SMS notifications",
+    "featureSmsStarter": "Included",
+    "featureSmsPro": "Included",
+    "featureSmsFree": "—"
   },
   "features": {
     "title": "Carwoods — Features",
@@ -769,56 +810,128 @@
       "employment": {
         "question": "What is your employment status?",
         "options": {
-          "employed": { "label": "Employed", "desc": "Working for an employer (W-2)" },
-          "selfEmployed": { "label": "Self-Employed", "desc": "Own a business or work as a contractor" },
-          "both": { "label": "Both", "desc": "Employed and also self-employed" },
-          "notEmployed": { "label": "Not currently employed", "desc": "Retired, student, or other" }
+          "employed": {
+            "label": "Employed",
+            "desc": "Working for an employer (W-2)"
+          },
+          "selfEmployed": {
+            "label": "Self-Employed",
+            "desc": "Own a business or work as a contractor"
+          },
+          "both": {
+            "label": "Both",
+            "desc": "Employed and also self-employed"
+          },
+          "notEmployed": {
+            "label": "Not currently employed",
+            "desc": "Retired, student, or other"
+          }
         }
       },
       "hasPets": {
         "question": "Do you have any pets or animals?",
         "options": {
-          "none": { "label": "No pets or animals", "desc": "" },
-          "pets": { "label": "Yes — pet(s)", "desc": "Cats, dogs, or other household pets" },
-          "service": { "label": "Yes — service animal", "desc": "Trained to perform tasks related to a disability" },
-          "esa": { "label": "Yes — ESA or assistance animal", "desc": "Emotional support or other assistance animal" }
+          "none": {
+            "label": "No pets or animals",
+            "desc": ""
+          },
+          "pets": {
+            "label": "Yes — pet(s)",
+            "desc": "Cats, dogs, or other household pets"
+          },
+          "service": {
+            "label": "Yes — service animal",
+            "desc": "Trained to perform tasks related to a disability"
+          },
+          "esa": {
+            "label": "Yes — ESA or assistance animal",
+            "desc": "Emotional support or other assistance animal"
+          }
         }
       },
       "benefits": {
         "question": "Are you receiving any government or other benefits?",
         "hint": "Select all that apply",
         "options": {
-          "none": { "label": "None", "desc": "" },
-          "va": { "label": "VA Benefits", "desc": "Veterans Affairs benefits" },
-          "ssaSsi": { "label": "Social Security (SSA / SSI)", "desc": "" },
-          "ssdi": { "label": "SSDI", "desc": "Social Security Disability Insurance" },
-          "retirement": { "label": "Retirement / Pension", "desc": "" },
-          "childSupport": { "label": "Child Support or Spousal Maintenance", "desc": "" },
-          "otherBenefits": { "label": "Other benefits", "desc": "Any other government or agency benefits" }
+          "none": {
+            "label": "None",
+            "desc": ""
+          },
+          "va": {
+            "label": "VA Benefits",
+            "desc": "Veterans Affairs benefits"
+          },
+          "ssaSsi": {
+            "label": "Social Security (SSA / SSI)",
+            "desc": ""
+          },
+          "ssdi": {
+            "label": "SSDI",
+            "desc": "Social Security Disability Insurance"
+          },
+          "retirement": {
+            "label": "Retirement / Pension",
+            "desc": ""
+          },
+          "childSupport": {
+            "label": "Child Support or Spousal Maintenance",
+            "desc": ""
+          },
+          "otherBenefits": {
+            "label": "Other benefits",
+            "desc": "Any other government or agency benefits"
+          }
         }
       },
       "section8": {
         "question": "Are you applying with housing assistance (Section 8 or similar)?",
         "options": {
-          "no": { "label": "No", "desc": "" },
-          "yes": { "label": "Yes", "desc": "I have a Housing Choice Voucher or similar" }
+          "no": {
+            "label": "No",
+            "desc": ""
+          },
+          "yes": {
+            "label": "Yes",
+            "desc": "I have a Housing Choice Voucher or similar"
+          }
         }
       },
       "guarantorCosigner": {
         "question": "Will you need a guarantor or co-signer?",
         "options": {
-          "neither": { "label": "Neither", "desc": "" },
-          "guarantor": { "label": "Guarantor", "desc": "Signs a separate guaranty agreement" },
-          "cosigner": { "label": "Co-Signer", "desc": "Signs the lease as a co-tenant" },
-          "notSure": { "label": "Not sure", "desc": "I may need one but am not certain" }
+          "neither": {
+            "label": "Neither",
+            "desc": ""
+          },
+          "guarantor": {
+            "label": "Guarantor",
+            "desc": "Signs a separate guaranty agreement"
+          },
+          "cosigner": {
+            "label": "Co-Signer",
+            "desc": "Signs the lease as a co-tenant"
+          },
+          "notSure": {
+            "label": "Not sure",
+            "desc": "I may need one but am not certain"
+          }
         }
       },
       "creditScore": {
         "question": "Do you know your approximate credit score?",
         "options": {
-          "unknown": { "label": "I don't know", "desc": "" },
-          "above650": { "label": "650 or above", "desc": "Meets the minimum credit requirement" },
-          "below650": { "label": "Below 650", "desc": "Below the standard minimum" }
+          "unknown": {
+            "label": "I don't know",
+            "desc": ""
+          },
+          "above650": {
+            "label": "650 or above",
+            "desc": "Meets the minimum credit requirement"
+          },
+          "below650": {
+            "label": "Below 650",
+            "desc": "Below the standard minimum"
+          }
         }
       }
     }

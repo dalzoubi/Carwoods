@@ -11,6 +11,7 @@ import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import rentersPhoto from '../assets/home/renters-space.jpg';
 import ownersPhoto from '../assets/home/owners-skyline.jpg';
+import managersPhoto from '../assets/home/managers-building.jpg';
 
 const listSx = {
     m: 0,
@@ -26,16 +27,18 @@ const cardImageSx = {
 };
 
 /** Full-card link tile */
-const audienceTileLinkSx = (theme) => ({
-    flex: '1 1 280px',
+const audienceTileLinkSx = (theme, featured) => ({
+    flex: featured ? '1 1 100%' : '1 1 280px',
     minWidth: 0,
-    maxWidth: '100%',
+    maxWidth: featured ? '100%' : '100%',
     boxSizing: 'border-box',
     p: 0,
     overflow: 'visible',
-    bgcolor: 'background.paper',
-    border: 1,
-    borderColor: 'divider',
+    bgcolor: featured
+        ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.1 : 0.04)
+        : 'background.paper',
+    border: featured ? 2 : 1,
+    borderColor: featured ? 'primary.main' : 'divider',
     borderLeftWidth: 5,
     borderLeftColor: 'primary.main',
     borderRadius: 3,
@@ -43,7 +46,7 @@ const audienceTileLinkSx = (theme) => ({
     boxShadow:
         theme.palette.mode === 'dark'
             ? `0 8px 24px ${alpha(theme.palette.common.black, 0.35)}`
-            : `0 10px 28px ${alpha(theme.palette.primary.main, 0.08)}`,
+            : `0 10px 28px ${alpha(theme.palette.primary.main, featured ? 0.12 : 0.08)}`,
     textDecoration: 'none',
     color: 'inherit',
     display: 'block',
@@ -70,15 +73,6 @@ const audienceTileLinkSx = (theme) => ({
     '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
 });
 
-const audienceTileImageFrameSx = {
-    position: 'relative',
-    width: '100%',
-    height: { xs: 200, sm: 220 },
-    borderRadius: '12px 12px 0 0',
-    overflow: 'hidden',
-    bgcolor: 'action.hover',
-};
-
 const audienceTitleSx = {
     mt: 0,
     mb: 1,
@@ -90,18 +84,26 @@ const audienceTitleSx = {
     fontWeight: 700,
 };
 
-function AudienceTile({ to, titleId, ctaId, image, imageAlt, imageSizes, title, body, bullets, cta }) {
+function AudienceTile({ to, titleId, ctaId, image, imageAlt, imageSizes, imageHeight, title, body, bullets, cta, featured }) {
     const theme = useTheme();
+    const imgFrameSx = {
+        position: 'relative',
+        width: '100%',
+        height: imageHeight ?? { xs: 200, sm: 220 },
+        borderRadius: '12px 12px 0 0',
+        overflow: 'hidden',
+        bgcolor: 'action.hover',
+    };
     return (
         <Paper
             component={Link}
             to={to}
             elevation={0}
             aria-labelledby={`${titleId} ${ctaId}`}
-            sx={audienceTileLinkSx(theme)}
+            sx={audienceTileLinkSx(theme, featured)}
         >
             {image && (
-                <Box data-print-hide sx={audienceTileImageFrameSx}>
+                <Box data-print-hide sx={imgFrameSx}>
                     <Box
                         component="img"
                         src={image}
@@ -114,7 +116,16 @@ function AudienceTile({ to, titleId, ctaId, image, imageAlt, imageSizes, title, 
                     />
                 </Box>
             )}
-            <Box sx={{ p: 2.75 }}>
+            <Box sx={{ p: featured ? { xs: 2.75, md: 3.5 } : 2.75 }}>
+                {featured && (
+                    <Typography
+                        variant="overline"
+                        component="p"
+                        sx={{ fontWeight: 800, color: 'primary.main', letterSpacing: 0.08, mb: 0.5, fontSize: '0.7rem' }}
+                    >
+                        {/* eslint-disable-next-line react/prop-types */}
+                    </Typography>
+                )}
                 <Typography id={titleId} component="h2" variant="h2" sx={audienceTitleSx}>
                     {title}
                 </Typography>
@@ -162,7 +173,7 @@ const Home = () => {
                 <meta name="description" content={t('home.metaDescription')} />
             </Helmet>
 
-            {/* Page header — audience selector intro */}
+            {/* Page header */}
             <Box
                 sx={{
                     textAlign: 'center',
@@ -176,19 +187,6 @@ const Home = () => {
                 }}
             >
                 <Typography
-                    variant="overline"
-                    component="p"
-                    sx={{
-                        fontWeight: 800,
-                        color: 'primary.main',
-                        letterSpacing: 0.08,
-                        mb: 0.75,
-                        fontSize: '0.75rem',
-                    }}
-                >
-                    Carwoods
-                </Typography>
-                <Typography
                     variant="h1"
                     component="h1"
                     sx={{
@@ -199,7 +197,7 @@ const Home = () => {
                         mb: 1.25,
                     }}
                 >
-                    Houston Property Management
+                    {t('home.heroHeadingNew', 'Houston Property Management')}
                 </Typography>
                 <Typography
                     variant="subtitle1"
@@ -212,57 +210,26 @@ const Home = () => {
                         fontSize: { xs: '0.95rem', sm: '1rem' },
                     }}
                 >
-                    Find a Houston rental. Hire us to manage your property. Or use our portal to self-manage your own.
+                    {t('home.heroSubtitleNew', 'Find a Houston rental. Hire us to manage your property. Or use our portal to self-manage your own.')}
                 </Typography>
             </Box>
 
-            {/* Audience picker — 3 full-card links */}
+            {/* Audience picker — featured SaaS tile, then renters + owners row */}
             <Stack
                 component="section"
                 aria-label={t('home.audienceLabel')}
-                direction={{ xs: 'column', md: 'row' }}
                 spacing={2.75}
                 useFlexGap
-                flexWrap="wrap"
                 sx={{ width: '100%', minWidth: 0 }}
             >
-                <AudienceTile
-                    to={withDarkPath(pathname, '/apply')}
-                    titleId="home-renters-title"
-                    ctaId="home-renters-cta"
-                    image={rentersPhoto}
-                    imageSizes="(max-width: 900px) 100vw, 33vw"
-                    title={t('home.rentersTitle')}
-                    body={t('home.rentersBody')}
-                    bullets={[
-                        t('home.rentersBullet1'),
-                        t('home.rentersBullet2'),
-                        t('home.rentersBullet3'),
-                    ]}
-                    cta={t('home.rentersCta')}
-                />
-
-                <AudienceTile
-                    to={withDarkPath(pathname, '/property-management')}
-                    titleId="home-owners-title"
-                    ctaId="home-owners-cta"
-                    image={ownersPhoto}
-                    imageSizes="(max-width: 900px) 100vw, 33vw"
-                    title={t('home.ownersTitle')}
-                    body={t('home.ownersBody')}
-                    bullets={[
-                        t('home.ownersBullet1'),
-                        t('home.ownersBullet2'),
-                        t('home.ownersBullet3'),
-                    ]}
-                    cta={t('home.ownersCta')}
-                />
-
+                {/* Featured: Self-Managing Landlords */}
                 <AudienceTile
                     to={withDarkPath(pathname, '/pricing')}
                     titleId="home-self-managers-title"
                     ctaId="home-self-managers-cta"
-                    image={null}
+                    image={managersPhoto}
+                    imageSizes="(max-width: 900px) 100vw, 80vw"
+                    imageHeight={{ xs: 220, sm: 300, md: 360 }}
                     title={t('home.selfManagersTitle')}
                     body={t('home.selfManagersBody')}
                     bullets={[
@@ -271,7 +238,49 @@ const Home = () => {
                         t('home.selfManagersBullet3'),
                     ]}
                     cta={t('home.selfManagersCta')}
+                    featured
                 />
+
+                {/* Supporting tiles: Renters + Property Owners */}
+                <Stack
+                    direction={{ xs: 'column', md: 'row' }}
+                    spacing={2.75}
+                    useFlexGap
+                    flexWrap="wrap"
+                    sx={{ width: '100%', minWidth: 0 }}
+                >
+                    <AudienceTile
+                        to={withDarkPath(pathname, '/apply')}
+                        titleId="home-renters-title"
+                        ctaId="home-renters-cta"
+                        image={rentersPhoto}
+                        imageSizes="(max-width: 900px) 100vw, 50vw"
+                        title={t('home.rentersTitle')}
+                        body={t('home.rentersBody')}
+                        bullets={[
+                            t('home.rentersBullet1'),
+                            t('home.rentersBullet2'),
+                            t('home.rentersBullet3'),
+                        ]}
+                        cta={t('home.rentersCta')}
+                    />
+
+                    <AudienceTile
+                        to={withDarkPath(pathname, '/property-management')}
+                        titleId="home-owners-title"
+                        ctaId="home-owners-cta"
+                        image={ownersPhoto}
+                        imageSizes="(max-width: 900px) 100vw, 50vw"
+                        title={t('home.ownersTitle')}
+                        body={t('home.ownersBody')}
+                        bullets={[
+                            t('home.ownersBullet1'),
+                            t('home.ownersBullet2'),
+                            t('home.ownersBullet3'),
+                        ]}
+                        cta={t('home.ownersCta')}
+                    />
+                </Stack>
             </Stack>
         </Stack>
     );

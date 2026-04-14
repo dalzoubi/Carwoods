@@ -136,41 +136,50 @@ const Pricing = () => {
     const { pathname } = useLocation();
 
     const freeFeatures = [
-        { label: '1 property', included: true },
-        { label: 'Unlimited maintenance requests', included: true },
-        { label: 'Tenant portal access', included: true },
-        { label: 'In-app & email notifications', included: true },
-        { label: 'AI maintenance routing', included: false },
-        { label: 'Document storage', included: false },
-        { label: 'Reports & CSV export', included: false },
+        { label: t('pricing.featurePropertiesFree', '1 property'), included: true },
+        { label: t('pricing.featureMaintenanceRequests', 'Maintenance requests'), included: true },
+        { label: t('pricing.featureTenantPortal', 'Tenant portal access'), included: true },
+        { label: t('pricing.featureNotifications', 'In-app & email notifications'), included: true },
+        { label: t('pricing.featureSms', 'SMS notifications'), included: false },
+        { label: t('pricing.featureAiRouting', 'AI maintenance routing'), included: false },
+        { label: t('pricing.featureDocStorage', 'Document storage'), included: false },
+        { label: t('pricing.featureReports', 'Reports & exports'), included: false },
+        { label: t('pricing.featureWhiteLabel', 'Custom branding'), included: false },
+        { label: t('pricing.featurePrioritySupport', 'Priority support'), included: false },
     ];
 
     const starterFeatures = [
-        { label: 'Up to 5 properties', included: true },
-        { label: 'Unlimited maintenance requests', included: true },
-        { label: 'Tenant portal access', included: true },
-        { label: 'In-app, email & SMS notifications', included: true },
-        { label: 'AI maintenance routing (ELSA)', included: true },
-        { label: 'Document storage', included: true },
-        { label: 'Reports & CSV export', included: true },
+        { label: t('pricing.featurePropertiesStarter', 'Up to 5 properties'), included: true },
+        { label: t('pricing.featureMaintenanceRequests', 'Maintenance requests'), included: true },
+        { label: t('pricing.featureTenantPortal', 'Tenant portal access'), included: true },
+        { label: t('pricing.featureNotifications', 'In-app & email notifications'), included: true },
+        { label: t('pricing.featureSms', 'SMS notifications'), included: true },
+        { label: t('pricing.featureAiRouting', 'AI maintenance routing'), included: true },
+        { label: t('pricing.featureDocStorage', 'Document storage'), included: true },
+        { label: t('pricing.featureReports', 'Reports & exports'), included: true },
+        { label: t('pricing.featureWhiteLabel', 'Custom branding'), included: false },
+        { label: t('pricing.featurePrioritySupport', 'Priority support'), included: false },
     ];
 
     const proFeatures = [
-        { label: 'Unlimited properties', included: true },
-        { label: 'Unlimited maintenance requests', included: true },
-        { label: 'Tenant portal access', included: true },
-        { label: 'In-app, email & SMS notifications', included: true },
-        { label: 'AI maintenance routing (ELSA)', included: true },
-        { label: 'Document storage', included: true },
-        { label: 'Reports & CSV export', included: true },
-        { label: 'Custom branding', included: true },
-        { label: 'Priority support', included: true },
+        { label: t('pricing.featurePropertiesPro', 'Unlimited properties'), included: true },
+        { label: t('pricing.featureMaintenanceRequests', 'Maintenance requests'), included: true },
+        { label: t('pricing.featureTenantPortal', 'Tenant portal access'), included: true },
+        { label: t('pricing.featureNotifications', 'In-app & email notifications'), included: true },
+        { label: t('pricing.featureSms', 'SMS notifications'), included: true },
+        { label: t('pricing.featureAiRouting', 'AI maintenance routing'), included: true },
+        { label: t('pricing.featureDocStorage', 'Document storage'), included: true },
+        { label: t('pricing.featureReports', 'Reports & exports'), included: true },
+        { label: t('pricing.featureWhiteLabel', 'Custom branding'), included: true },
+        { label: t('pricing.featurePrioritySupport', 'Priority support'), included: true },
     ];
 
     const featureRows = [
         { label: t('pricing.featureProperties'), free: t('pricing.featurePropertiesFree'), starter: t('pricing.featurePropertiesStarter'), pro: t('pricing.featurePropertiesPro') },
         { label: t('pricing.featureTenantPortal'), free: true, starter: true, pro: true },
-        { label: t('pricing.featureMaintenanceRequests'), free: t('pricing.featureMaintenanceRequestsFree'), starter: t('pricing.featureMaintenanceRequestsStarter'), pro: t('pricing.featureMaintenanceRequestsPro') },
+        { label: t('pricing.featureMaintenanceRequests'), free: true, starter: true, pro: true },
+        { label: t('pricing.featureNotifications'), free: true, starter: true, pro: true },
+        { label: t('pricing.featureSms'), free: false, starter: true, pro: true },
         { label: t('pricing.featureAiRouting'), free: false, starter: true, pro: true },
         { label: t('pricing.featureDocStorage'), free: false, starter: true, pro: true },
         { label: t('pricing.featureReports'), free: false, starter: true, pro: true },
@@ -217,7 +226,7 @@ const Pricing = () => {
                 spacing={2.5}
                 useFlexGap
                 justifyContent="center"
-                alignItems={{ xs: 'stretch', md: 'flex-start' }}
+                alignItems="stretch"
             >
                 <PlanCard
                     tier={t('pricing.freeTierLabel')}

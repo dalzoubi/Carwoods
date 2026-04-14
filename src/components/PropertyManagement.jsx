@@ -208,7 +208,7 @@ const PropertyManagement = () => {
                 >
                     {t('propertyManagement.whyCarwoodsHeading')}
                 </Typography>
-                <Typography color="text.secondary" sx={{ lineHeight: 1.65, maxWidth: 680 }}>
+                <Typography color="text.secondary" sx={{ lineHeight: 1.65 }}>
                     {t('propertyManagement.whyCarwoodsBody')}
                 </Typography>
             </Paper>
