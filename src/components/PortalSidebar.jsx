@@ -16,7 +16,6 @@ import {
   useTheme,
 } from '@mui/material';
 import Dashboard from '@mui/icons-material/Dashboard';
-import Build from '@mui/icons-material/Build';
 import Person from '@mui/icons-material/Person';
 import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
 import HomeWork from '@mui/icons-material/HomeWork';
@@ -64,11 +63,6 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
       ? [
           { key: 'properties', to: '/portal/properties', label: t('portalLayout.sidebar.properties'), icon: <HomeWork /> },
           { key: 'tenants', to: '/portal/tenants', label: t('portalLayout.sidebar.tenants'), icon: <People /> },
-        ]
-      : []),
-    ...(roleResolved && !isGuest
-      ? [
-          { key: 'requests', to: '/portal/requests', label: t('portalLayout.sidebar.requests'), icon: <Build /> },
         ]
       : []),
     ...(roleResolved && !isGuest

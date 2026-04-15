@@ -64,6 +64,30 @@ export function parsePortalRequestIdFromDeepLink(deepLink) {
  * @param {{ deep_link?: string|null, metadata_json?: unknown }} notification
  * @returns {{ requestId: string, highlight: { messageId?: string, attachmentId?: string, decisionId?: string } }}
  */
+/**
+ * Deep link for navigation, including legacy rows missing `hlLandlord` for new-landlord alerts.
+ *
+ * @param {{ deep_link?: string|null, metadata_json?: unknown, event_type_code?: string|null }} notification
+ * @returns {string}
+ */
+export function resolveNotificationDeepLink(notification) {
+  const raw = trimStr(notification?.deep_link);
+  if (!raw) return '';
+  const meta = notification?.metadata_json && typeof notification.metadata_json === 'object'
+    ? notification.metadata_json
+    : {};
+  const code = String(notification?.event_type_code ?? '').toUpperCase();
+  const landlordId = trimStr(meta.landlord_user_id);
+  const isLandlordAccount =
+    code === 'ACCOUNT_LANDLORD_CREATED' || meta.kind === 'landlord_account_created';
+  if (!isLandlordAccount || !landlordId) return raw;
+  if (raw.includes('hlLandlord=')) return raw;
+  const pathOnly = raw.split('?')[0].split('#')[0].replace(/\/$/, '') || raw;
+  if (pathOnly !== '/portal/admin/landlords') return raw;
+  const sep = raw.includes('?') ? '&' : '?';
+  return `${raw}${sep}hlLandlord=${encodeURIComponent(landlordId)}`;
+}
+
 export function notificationOpenTargetFromRow(notification) {
   const fromLink = parsePortalRequestDeepLink(notification?.deep_link);
   const meta = notification?.metadata_json && typeof notification.metadata_json === 'object'

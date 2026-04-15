@@ -130,7 +130,8 @@ function PortalRoutes() {
                     </PortalRouteGuard>
                 }
             >
-                <Route index element={<Navigate to="notifications" replace />} />
+                <Route index element={<Navigate to="requests" replace />} />
+                <Route path="requests" element={<PortalRequests />} />
                 <Route path="notifications" element={<PortalNotificationsInbox />} />
                 <Route path="contact" element={<PortalInboxContactGate />} />
             </Route>

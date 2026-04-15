@@ -27,6 +27,7 @@ import NotificationsNone from '@mui/icons-material/NotificationsNone';
 import PersonAdd from '@mui/icons-material/PersonAdd';
 import Science from '@mui/icons-material/Science';
 import ContactMail from '@mui/icons-material/ContactMail';
+import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
 import Update from '@mui/icons-material/Update';
 import Warning from '@mui/icons-material/Warning';
 import { useTranslation } from 'react-i18next';
@@ -34,7 +35,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { notificationsPollIntervalMs } from '../featureFlags';
 import { usePortalAuth } from '../PortalAuthContext';
 import { withDarkPath } from '../routePaths';
-import { notificationOpenTargetFromRow, relativeTime } from '../lib/notificationUtils';
+import {
+  notificationOpenTargetFromRow,
+  relativeTime,
+  resolveNotificationDeepLink,
+} from '../lib/notificationUtils';
 import { usePortalRequestDetailModal } from './PortalRequestDetailModalContext';
 import {
   addTrayHiddenIdForAccount,
@@ -64,6 +69,7 @@ function notificationEventIcon(eventTypeCode) {
   }
   if (code === 'ADMIN_NOTIFICATION_TEST') return <Science sx={{ fontSize: 16 }} />;
   if (code === 'CONTACT_REQUEST_CREATED') return <ContactMail sx={{ fontSize: 16 }} />;
+  if (code === 'ACCOUNT_LANDLORD_CREATED') return <SupervisorAccount sx={{ fontSize: 16 }} />;
   return <NotificationsNone sx={{ fontSize: 16 }} />;
 }
 
@@ -173,8 +179,11 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
       const highlightKeys = Object.keys(highlight);
       if (requestId && requestDetailModalAvailable) {
         openRequestDetail(requestId, highlightKeys.length ? highlight : null);
-      } else if (notification.deep_link) {
-        navigate(withDarkPath(pathname, notification.deep_link));
+      } else {
+        const target = resolveNotificationDeepLink(notification);
+        if (target) {
+          navigate(withDarkPath(pathname, target));
+        }
       }
     } catch (error) {
       handleApiForbidden?.(error);

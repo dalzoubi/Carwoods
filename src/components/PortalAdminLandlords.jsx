@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import {
   Alert,
@@ -29,6 +29,7 @@ import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined';
 import ReplayIcon from '@mui/icons-material/Replay';
 import ContactPageIcon from '@mui/icons-material/ContactPage';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
 import { Role } from '../domain/constants.js';
 import { validatePersonBasics, validatePersonField } from '../portalPersonValidation';
@@ -141,6 +142,11 @@ const PortalAdminLandlords = () => {
     selectedTierId: '',
   });
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hlLandlord = searchParams.get('hlLandlord');
+  const [flashLandlordId, setFlashLandlordId] = useState(null);
+  const hlExpandAttemptedRef = useRef(false);
+
   const sortedLandlords = useMemo(
     () =>
       [...landlordsState.landlords].sort((a, b) => {
@@ -178,6 +184,45 @@ const PortalAdminLandlords = () => {
   useEffect(() => {
     void loadLandlords();
   }, [loadLandlords]);
+
+  useEffect(() => {
+    if (!flashLandlordId) return undefined;
+    const timerId = window.setTimeout(() => setFlashLandlordId(null), 9000);
+    return () => window.clearTimeout(timerId);
+  }, [flashLandlordId]);
+
+  useEffect(() => {
+    const id = hlLandlord?.trim();
+    if (!id) {
+      hlExpandAttemptedRef.current = false;
+      return undefined;
+    }
+    if (landlordsState.status !== 'ok') return undefined;
+    const found = sortedLandlords.some((l) => String(l.id).toLowerCase() === id.toLowerCase());
+    if (!found) {
+      if (!showInactive && !hlExpandAttemptedRef.current) {
+        hlExpandAttemptedRef.current = true;
+        setShowInactive(true);
+      }
+      return undefined;
+    }
+    hlExpandAttemptedRef.current = false;
+
+    const rowId = sortedLandlords.find((l) => String(l.id).toLowerCase() === id.toLowerCase())?.id ?? id;
+    window.requestAnimationFrame(() => {
+      const el = document.getElementById(`landlord-row-${rowId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
+    setFlashLandlordId(String(rowId));
+
+    const next = new URLSearchParams(searchParams);
+    next.delete('hlLandlord');
+    setSearchParams(next, { replace: true });
+
+    return undefined;
+  }, [hlLandlord, landlordsState.status, sortedLandlords, showInactive, searchParams, setSearchParams]);
 
   const loadTiers = useCallback(async () => {
     if (!canUseModule || !baseUrl) {
@@ -593,11 +638,24 @@ const PortalAdminLandlords = () => {
             {sortedLandlords.map((landlord) => (
               <Box
                 key={landlord.id}
+                id={`landlord-row-${landlord.id}`}
                 sx={{
                   border: '1px solid',
-                  borderColor: 'divider',
+                  borderColor:
+                    flashLandlordId && String(landlord.id) === String(flashLandlordId)
+                      ? 'primary.main'
+                      : 'divider',
                   borderRadius: 1.5,
                   p: 1.5,
+                  boxShadow:
+                    flashLandlordId && String(landlord.id) === String(flashLandlordId)
+                      ? (theme) => `0 0 0 3px ${theme.palette.primary.main}40`
+                      : 'none',
+                  backgroundColor:
+                    flashLandlordId && String(landlord.id) === String(flashLandlordId)
+                      ? 'action.selected'
+                      : 'transparent',
+                  transition: 'box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease',
                 }}
               >
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between' }}>

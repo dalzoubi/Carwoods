@@ -4,6 +4,7 @@ import {
   notificationOpenTargetFromRow,
   parsePortalRequestDeepLink,
   parsePortalRequestIdFromDeepLink,
+  resolveNotificationDeepLink,
 } from './notificationUtils';
 
 describe('parsePortalRequestDeepLink', () => {
@@ -34,6 +35,36 @@ describe('parsePortalRequestDeepLink', () => {
 describe('parsePortalRequestIdFromDeepLink', () => {
   it('returns only request id', () => {
     expect(parsePortalRequestIdFromDeepLink('/portal/requests?id=x&hlMsg=y')).toBe('x');
+  });
+});
+
+describe('resolveNotificationDeepLink', () => {
+  it('appends hlLandlord for ACCOUNT_LANDLORD_CREATED when metadata has id', () => {
+    const url = resolveNotificationDeepLink({
+      event_type_code: 'ACCOUNT_LANDLORD_CREATED',
+      deep_link: '/portal/admin/landlords',
+      metadata_json: { landlord_user_id: 'abc-123', kind: 'landlord_account_created' },
+    });
+    expect(url).toBe('/portal/admin/landlords?hlLandlord=abc-123');
+  });
+
+  it('does not duplicate hlLandlord', () => {
+    const url = resolveNotificationDeepLink({
+      event_type_code: 'ACCOUNT_LANDLORD_CREATED',
+      deep_link: '/portal/admin/landlords?hlLandlord=already',
+      metadata_json: { landlord_user_id: 'x' },
+    });
+    expect(url).toBe('/portal/admin/landlords?hlLandlord=already');
+  });
+
+  it('returns deep_link unchanged for other events', () => {
+    expect(
+      resolveNotificationDeepLink({
+        event_type_code: 'REQUEST_CREATED',
+        deep_link: '/portal/requests?id=r1',
+        metadata_json: {},
+      })
+    ).toBe('/portal/requests?id=r1');
   });
 });
 

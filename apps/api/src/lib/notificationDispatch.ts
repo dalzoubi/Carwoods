@@ -236,14 +236,19 @@ function buildNotificationContent(
       source === 'ADMIN_INVITE'
         ? `An administrator created a new landlord account for ${display} (${email}).`
         : `A landlord self-registered in the portal: ${display} (${email}).`;
+    const landlordUserId = asString(payload.landlord_user_id);
+    const deepLink =
+      landlordUserId && landlordUserId.trim()
+        ? `/portal/admin/landlords?hlLandlord=${encodeURIComponent(landlordUserId.trim())}`
+        : '/portal/admin/landlords';
     return {
       title: 'New landlord account',
       body,
-      deepLink: '/portal/admin/landlords',
+      deepLink,
       requestId: null,
       metadata: {
         kind: 'landlord_account_created',
-        landlord_user_id: asString(payload.landlord_user_id),
+        landlord_user_id: landlordUserId,
         source: source.toLowerCase(),
       },
     };

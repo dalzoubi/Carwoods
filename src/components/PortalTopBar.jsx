@@ -39,6 +39,7 @@ function usePageTitle(t) {
     '/portal/admin/ai': t('portalLayout.sidebar.adminConfigurations'),
     '/portal/admin/config': t('portalLayout.sidebar.adminConfigurations'),
     '/portal/inbox': t('portalLayout.sidebar.inbox'),
+    '/portal/inbox/requests': t('portalLayout.sidebar.requests'),
     '/portal/inbox/notifications': t('portalNotificationsInbox.heading'),
     '/portal/inbox/contact': t('portalLayout.sidebar.adminContactUsMessages'),
     '/portal/properties': t('portalLayout.sidebar.properties'),

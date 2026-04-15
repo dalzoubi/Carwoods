@@ -22,6 +22,7 @@ import Email from '@mui/icons-material/Email';
 import Warning from '@mui/icons-material/Warning';
 import NotificationsNone from '@mui/icons-material/NotificationsNone';
 import ContactMail from '@mui/icons-material/ContactMail';
+import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
 import DoneAll from '@mui/icons-material/DoneAll';
 import Close from '@mui/icons-material/Close';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -36,6 +37,7 @@ import {
   formatNotificationAbsoluteTime,
   notificationOpenTargetFromRow,
   relativeTime,
+  resolveNotificationDeepLink,
 } from '../lib/notificationUtils';
 import { usePortalRequestDetailModal } from './PortalRequestDetailModalContext';
 import PortalRefreshButton from './PortalRefreshButton';
@@ -50,6 +52,7 @@ function eventIcon(eventTypeCode) {
   if (code === 'ACCOUNT_EMAIL_VERIFICATION') return <Email fontSize="small" />;
   if (code === 'SECURITY_NOTIFICATION_DELIVERY_FAILURE') return <Warning fontSize="small" color="warning" />;
   if (code === 'CONTACT_REQUEST_CREATED') return <ContactMail fontSize="small" />;
+  if (code === 'ACCOUNT_LANDLORD_CREATED') return <SupervisorAccount fontSize="small" />;
   return <NotificationsNone fontSize="small" />;
 }
 
@@ -141,13 +144,14 @@ const PortalNotificationsInbox = () => {
             : item
         )
       );
-      if (navigate_after && notification.deep_link) {
+      if (navigate_after) {
+        const target = resolveNotificationDeepLink(notification) || String(notification.deep_link ?? '').trim();
         const { requestId, highlight } = notificationOpenTargetFromRow(notification);
         const highlightKeys = Object.keys(highlight);
         if (requestId && requestDetailModalAvailable) {
           openRequestDetail(requestId, highlightKeys.length ? highlight : null);
-        } else {
-          navigate(withDarkPath(pathname, notification.deep_link));
+        } else if (target) {
+          navigate(withDarkPath(pathname, target));
         }
       }
     } catch (error) {
@@ -254,7 +258,13 @@ const PortalNotificationsInbox = () => {
             const isUnread = !notification.read_at;
             const isDismissing = dismissing.has(notification.id);
             const body = notificationBody(notification);
-            const hasLink = Boolean(notification.deep_link);
+            const resolvedLink = resolveNotificationDeepLink(notification)
+              || String(notification.deep_link ?? '').trim();
+            const { requestId: openRequestId } = notificationOpenTargetFromRow(notification);
+            const hasLink = Boolean(
+              (openRequestId && requestDetailModalAvailable)
+              || resolvedLink
+            );
             return (
               <React.Fragment key={notification.id}>
                 {idx > 0 && <Divider />}

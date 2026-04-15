@@ -11,7 +11,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import { usePortalAuth } from '../PortalAuthContext';
-import { normalizeRole, resolveRole } from '../portalUtils';
+import { isGuestRole, normalizeRole, resolveRole } from '../portalUtils';
 import { Role } from '../domain/constants.js';
 import { stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
 import PortalAdminContactRequests from './PortalAdminContactRequests';
@@ -61,7 +61,7 @@ export function PortalInboxContactGate() {
 }
 
 /**
- * Inbox shell: tabs (notifications + Contact Us for admins) and nested routes.
+ * Inbox shell: tabs (requests + notifications + Contact Us for admins) and nested routes.
  */
 export default function PortalInbox() {
   const { t } = useTranslation();
@@ -70,23 +70,30 @@ export default function PortalInbox() {
   const { account, meData, meStatus } = usePortalAuth();
 
   const normalizedPath = stripDarkPreviewPrefix(pathname);
-  const tabValue =
-    normalizedPath.endsWith('/contact') ? 'contact' : 'notifications';
+  const tabValue = normalizedPath.endsWith('/contact')
+    ? 'contact'
+    : normalizedPath.endsWith('/notifications')
+      ? 'notifications'
+      : 'requests';
 
-  const showContactTab =
-    meStatus !== 'loading' && normalizeRole(resolveRole(meData, account)) === Role.ADMIN;
+  const roleResolved = meStatus !== 'loading';
+  const role = roleResolved ? normalizeRole(resolveRole(meData, account)) : '';
+  const showInboxTabs = roleResolved && !isGuestRole(role);
+  const showContactTab = role === Role.ADMIN;
 
   const handleTabChange = (_e, value) => {
     if (value === 'contact') {
       navigate(withDarkPath(pathname, '/portal/inbox/contact'));
-    } else {
+    } else if (value === 'notifications') {
       navigate(withDarkPath(pathname, '/portal/inbox/notifications'));
+    } else {
+      navigate(withDarkPath(pathname, '/portal/inbox/requests'));
     }
   };
 
   return (
     <Box>
-      {showContactTab ? (
+      {showInboxTabs ? (
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
@@ -97,8 +104,11 @@ export default function PortalInbox() {
           }}
           aria-label={t('portalInbox.tabsLabel')}
         >
+          <Tab value="requests" label={t('portalLayout.sidebar.requests')} />
           <Tab value="notifications" label={t('portalLayout.sidebar.notifications')} />
-          <Tab value="contact" label={t('portalLayout.sidebar.adminContactUsMessages')} />
+          {showContactTab ? (
+            <Tab value="contact" label={t('portalLayout.sidebar.adminContactUsMessages')} />
+          ) : null}
         </Tabs>
       ) : null}
       <Outlet />
