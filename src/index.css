@@ -47,8 +47,11 @@
   overflow: visible;
   clip: auto;
   white-space: normal;
-  background: #fff;
-  color: #333;
+  background: var(--palette-background-paper, #fff);
+  color: var(--palette-text-primary, #333);
+  outline: 2px solid var(--palette-primary-light, #63a4ff);
+  outline-offset: 2px;
+  border-radius: var(--shape-border-radius, 8px);
   z-index: 9999;
 }
 
@@ -56,6 +59,21 @@
 
 html {
   scroll-padding-top: calc(var(--sticky-nav-offset, 48px) + 12px);
+}
+
+/* ── Respect prefers-reduced-motion globally ──
+   Neutralises animations and transitions for users who opt out of motion
+   at the OS level. Individual components that have already opted in to
+   reduced-motion handling remain unaffected (this rule is strictly stricter). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @media print {

@@ -390,6 +390,25 @@ const ResponsiveNavbar = () => {
                     <Print aria-hidden />
                 </IconButton>
             ) : null}
+            {showAppearanceMenu ? (
+                <Tooltip title={t('nav.appearance')} arrow>
+                    <IconButton
+                        color="inherit"
+                        type="button"
+                        size="small"
+                        id="appearance-menu-button-toolbar"
+                        data-appearance-trigger="toolbar"
+                        aria-label={t('nav.appearance')}
+                        aria-haspopup="true"
+                        aria-expanded={Boolean(appearanceAnchor)}
+                        aria-controls={appearanceAnchor ? 'appearance-menu' : undefined}
+                        onClick={handleAppearanceOpen}
+                        sx={toolbarChromeIconButtonSx}
+                    >
+                        <SettingsBrightness fontSize="small" aria-hidden />
+                    </IconButton>
+                </Tooltip>
+            ) : null}
             <Tooltip title={t('nav.language')} arrow>
                 <IconButton
                     color="inherit"

@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
+import { useBeforeUnload, useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -81,8 +82,21 @@ function profilePhotoErrorMessage(code, t, pickMaxMb) {
   return t('portalProfile.photoErrors.uploadFailed');
 }
 
+/** Full-width rows so email / in-app / SMS switches share one column (Tooltip SMS row matches). */
+const notificationPreferenceLabelSx = {
+  m: 0,
+  mx: 0,
+  width: '100%',
+  alignItems: 'flex-start',
+  gap: 1,
+};
+
+const notificationPreferenceSwitchSx = { mt: 0.25 };
+
 const PortalProfile = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const {
     baseUrl,
     isAuthenticated,
@@ -119,26 +133,29 @@ const PortalProfile = () => {
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoEditorOpen, setPhotoEditorOpen] = useState(false);
   const [pendingPhotoFile, setPendingPhotoFile] = useState(null);
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
   const fileInputRef = useRef(null);
+  const shouldWarnLeaveRef = useRef(false);
+  const leaveConfirmOpenRef = useRef(false);
+  const pendingNavigationRef = useRef('');
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
-  const initialForm = useMemo(
-    () => ({
+  const initialForm = useMemo(() => {
+    const tierAllowsSms = meData?.user?.sms_notifications_allowed !== false;
+    const dbSmsOn =
+      Boolean(meData?.user?.notification_preferences?.sms_enabled)
+      && Boolean(meData?.user?.notification_preferences?.sms_opt_in);
+    return {
       email: meData?.user?.email ?? '',
       firstName: meData?.user?.first_name ?? '',
       lastName: meData?.user?.last_name ?? '',
       phone: meData?.user?.phone ?? '',
       notificationsEmailEnabled: meData?.user?.notification_preferences?.email_enabled ?? true,
       notificationsInAppEnabled: meData?.user?.notification_preferences?.in_app_enabled ?? true,
-      notificationsSmsEnabled:
-        Boolean(meData?.user?.notification_preferences?.sms_enabled)
-        && Boolean(meData?.user?.notification_preferences?.sms_opt_in),
-      notificationsSmsOptIn:
-        Boolean(meData?.user?.notification_preferences?.sms_enabled)
-        && Boolean(meData?.user?.notification_preferences?.sms_opt_in),
-    }),
-    [meData]
-  );
+      notificationsSmsEnabled: tierAllowsSms && dbSmsOn,
+      notificationsSmsOptIn: tierAllowsSms && dbSmsOn,
+    };
+  }, [meData]);
   // Server-side appearance values (DB) — used as the baseline for change detection.
   const initialAppearance = useMemo(() => ({
     language: meData?.user?.ui_language ?? null,
@@ -159,6 +176,55 @@ const PortalProfile = () => {
       || pendingTheme !== initialAppearance.theme,
     [form, initialForm, pendingLanguage, pendingTheme, initialAppearance]
   );
+
+  const shouldWarnLeave = hasChanges && saveStatus !== 'saving';
+  shouldWarnLeaveRef.current = shouldWarnLeave;
+  leaveConfirmOpenRef.current = leaveConfirmOpen;
+
+  useBeforeUnload(
+    useCallback((event) => {
+      if (!shouldWarnLeaveRef.current) return;
+      event.preventDefault();
+      event.returnValue = '';
+    }, [])
+  );
+
+  useEffect(() => {
+    const onDocumentClickCapture = (event) => {
+      if (!shouldWarnLeaveRef.current || leaveConfirmOpenRef.current) return;
+      if (event.defaultPrevented) return;
+      if (event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const el = event.target;
+      if (!(el instanceof Element)) return;
+      if (el.closest('.MuiDialog-root, .MuiModal-root')) return;
+
+      const anchor = el.closest('a[href]');
+      if (!anchor || !(anchor instanceof HTMLAnchorElement)) return;
+      if (anchor.target === '_blank' || anchor.hasAttribute('download')) return;
+
+      let nextUrl;
+      try {
+        nextUrl = new URL(anchor.href);
+      } catch {
+        return;
+      }
+      if (nextUrl.origin !== window.location.origin) return;
+
+      const currentKey = `${location.pathname}${location.search}`;
+      const nextKey = `${nextUrl.pathname}${nextUrl.search}`;
+      if (currentKey === nextKey) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      const to = `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`;
+      pendingNavigationRef.current = to;
+      setLeaveConfirmOpen(true);
+    };
+
+    document.addEventListener('click', onDocumentClickCapture, true);
+    return () => document.removeEventListener('click', onDocumentClickCapture, true);
+  }, [location.pathname, location.search]);
 
   useEffect(() => {
     setForm(initialForm);
@@ -257,6 +323,18 @@ const PortalProfile = () => {
     setSmsOptInConfirmOpen(false);
   };
 
+  const confirmLeaveProfile = useCallback(() => {
+    const to = pendingNavigationRef.current;
+    pendingNavigationRef.current = '';
+    setLeaveConfirmOpen(false);
+    if (to) navigate(to);
+  }, [navigate]);
+
+  const cancelLeaveProfile = useCallback(() => {
+    pendingNavigationRef.current = '';
+    setLeaveConfirmOpen(false);
+  }, []);
+
   const onSubmit = async (event) => {
     event.preventDefault();
     const validationErrors = validateProfileForm(form, t);
@@ -283,6 +361,7 @@ const PortalProfile = () => {
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
       const normalizedEmail = form.email.trim().toLowerCase();
+      const tierAllowsSms = meData?.user?.sms_notifications_allowed !== false;
       const payload = await patchProfile(baseUrl, token, {
         emailHint,
         email: normalizedEmail,
@@ -292,8 +371,8 @@ const PortalProfile = () => {
         notification_preferences: {
           email_enabled: form.notificationsEmailEnabled,
           in_app_enabled: form.notificationsInAppEnabled,
-          sms_enabled: form.notificationsSmsEnabled,
-          sms_opt_in: form.notificationsSmsOptIn,
+          sms_enabled: tierAllowsSms && form.notificationsSmsEnabled,
+          sms_opt_in: tierAllowsSms && form.notificationsSmsOptIn,
         },
       });
       const savedUser = payload && typeof payload === 'object' ? payload.user : null;
@@ -359,6 +438,13 @@ const PortalProfile = () => {
           }));
           setSaveStatus('error');
           setSaveError(t('portalProfile.errors.phoneRequiredForSms'));
+          return;
+        }
+        if (error.code === 'sms_not_available') {
+          setFieldErrors({});
+          setSaveStatus('idle');
+          setSaveError('');
+          showFeedback(t('portalProfile.errors.smsNotOnPlan'), 'error');
           return;
         }
       }
@@ -608,46 +694,65 @@ const PortalProfile = () => {
                   helperText={fieldErrors.phone || ' '}
                   disabled={formDisabled}
                 />
-                <Stack spacing={0.5}>
+                <Stack spacing={1}>
                   <Typography variant="subtitle2" color="text.secondary">
                     {t('portalProfile.fields.notificationsHeading')}
                   </Typography>
-                  <FormControlLabel
-                    control={(
-                      <Switch
-                        checked={Boolean(form.notificationsEmailEnabled)}
-                        onChange={onToggle('notificationsEmailEnabled')}
-                        disabled={formDisabled}
-                      />
-                    )}
-                    label={t('portalProfile.fields.notificationsEmail')}
-                  />
-                  <FormControlLabel
-                    control={(
-                      <Switch
-                        checked={Boolean(form.notificationsInAppEnabled)}
-                        onChange={onToggle('notificationsInAppEnabled')}
-                        disabled={formDisabled}
-                      />
-                    )}
-                    label={t('portalProfile.fields.notificationsInApp')}
-                  />
-                  <Tooltip
-                    title={!smsNotificationsAllowed ? t('portalSubscription.freeTier.featureDisabled') : ''}
-                  >
-                    <span>
-                      <FormControlLabel
-                        control={(
-                          <Switch
-                            checked={Boolean(form.notificationsSmsEnabled)}
-                            onChange={onToggle('notificationsSmsEnabled')}
-                            disabled={formDisabled || !smsNotificationsAllowed}
-                          />
-                        )}
-                        label={t('portalProfile.fields.notificationsSms')}
-                      />
-                    </span>
-                  </Tooltip>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, width: '100%' }}>
+                    <FormControlLabel
+                      sx={notificationPreferenceLabelSx}
+                      control={(
+                        <Switch
+                          checked={Boolean(form.notificationsEmailEnabled)}
+                          onChange={onToggle('notificationsEmailEnabled')}
+                          disabled={formDisabled}
+                          sx={notificationPreferenceSwitchSx}
+                        />
+                      )}
+                      label={t('portalProfile.fields.notificationsEmail')}
+                    />
+                    <FormControlLabel
+                      sx={notificationPreferenceLabelSx}
+                      control={(
+                        <Switch
+                          checked={Boolean(form.notificationsInAppEnabled)}
+                          onChange={onToggle('notificationsInAppEnabled')}
+                          disabled={formDisabled}
+                          sx={notificationPreferenceSwitchSx}
+                        />
+                      )}
+                      label={t('portalProfile.fields.notificationsInApp')}
+                    />
+                    <Tooltip
+                      title={!smsNotificationsAllowed ? t('portalSubscription.freeTier.featureDisabled') : ''}
+                    >
+                      <Box
+                        component="span"
+                        sx={{
+                          display: 'inline-flex',
+                          width: '100%',
+                          maxWidth: '100%',
+                          verticalAlign: 'top',
+                        }}
+                      >
+                        <FormControlLabel
+                          sx={{
+                            ...notificationPreferenceLabelSx,
+                            maxWidth: '100%',
+                          }}
+                          control={(
+                            <Switch
+                              checked={Boolean(form.notificationsSmsEnabled)}
+                              onChange={onToggle('notificationsSmsEnabled')}
+                              disabled={formDisabled || !smsNotificationsAllowed}
+                              sx={notificationPreferenceSwitchSx}
+                            />
+                          )}
+                          label={t('portalProfile.fields.notificationsSms')}
+                        />
+                      </Box>
+                    </Tooltip>
+                  </Box>
                 </Stack>
 
                 <Stack spacing={1.5}>
@@ -731,9 +836,14 @@ const PortalProfile = () => {
           {t('portalProfile.smsOptInConfirm.title')}
         </DialogTitle>
         <DialogContent>
-          <Typography variant="body2">
-            {t('portalProfile.smsOptInConfirm.body')}
-          </Typography>
+          <Stack spacing={1.5}>
+            <Typography variant="body2">
+              {t('portalProfile.smsOptInConfirm.body')}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {t('portalProfile.smsOptInConfirm.saveReminder')}
+            </Typography>
+          </Stack>
         </DialogContent>
         <DialogActions>
           <Button type="button" onClick={cancelSmsOptIn}>
@@ -741,6 +851,28 @@ const PortalProfile = () => {
           </Button>
           <Button type="button" variant="contained" onClick={confirmSmsOptIn}>
             {t('portalProfile.smsOptInConfirm.confirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={leaveConfirmOpen}
+        onClose={cancelLeaveProfile}
+        aria-labelledby="portal-profile-unsaved-title"
+      >
+        <DialogTitle id="portal-profile-unsaved-title">
+          {t('portalProfile.unsavedChanges.title')}
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            {t('portalProfile.unsavedChanges.body')}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button type="button" onClick={cancelLeaveProfile}>
+            {t('portalProfile.unsavedChanges.stay')}
+          </Button>
+          <Button type="button" variant="contained" color="warning" onClick={confirmLeaveProfile}>
+            {t('portalProfile.unsavedChanges.leave')}
           </Button>
         </DialogActions>
       </Dialog>

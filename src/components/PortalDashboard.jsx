@@ -284,7 +284,7 @@ const OnboardingChecklist = ({ pathname, baseUrl, getAccessToken }) => {
           <Close fontSize="small" />
         </IconButton>
       )}
-      <Typography variant="h6" fontWeight={700} sx={{ mb: 0.5, pr: 4 }}>
+      <Typography variant="h6" component="h2" fontWeight={700} sx={{ mb: 0.5, pr: 4 }}>
         {t('portalDashboard.onboarding.heading')}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
@@ -411,6 +411,8 @@ const PortalDashboard = () => {
         <Alert
           severity="warning"
           onClose={() => setAccessDeniedOpen(false)}
+          role="alert"
+          aria-live="assertive"
           sx={{ width: '100%' }}
         >
           {t('portalDashboard.accessDenied')}
@@ -460,7 +462,7 @@ const PortalDashboard = () => {
 
             {/* Quick Actions */}
             <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-              <Typography variant="h6" fontWeight={600} gutterBottom>
+              <Typography variant="h6" component="h2" fontWeight={600} gutterBottom>
                 {t('portalDashboard.quickActions.heading')}
               </Typography>
               <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap" sx={{ gap: 1.5 }}>
@@ -538,7 +540,7 @@ const PortalDashboard = () => {
             {/* Recent Requests */}
             <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                <Typography variant="h6" fontWeight={600}>
+                <Typography variant="h6" component="h2" fontWeight={600}>
                   {t('portalDashboard.recentRequests.heading')}
                 </Typography>
                 <Stack direction="row" spacing={1} alignItems="center">

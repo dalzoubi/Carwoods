@@ -242,6 +242,50 @@ describe('PortalProfile', () => {
     expect(portalApiClient.deleteProfilePhoto).not.toHaveBeenCalled();
   });
 
+  it('sends SMS disabled when tier disallows SMS even if legacy DB prefs had SMS on', async () => {
+    mockAuthState.meData = {
+      role: 'TENANT',
+      user: {
+        email: 'tenant@carwoods.com',
+        first_name: 'Terry',
+        last_name: 'Tenant',
+        phone: '7135552222',
+        role: 'TENANT',
+        status: 'ACTIVE',
+        sms_notifications_allowed: false,
+        notification_preferences: {
+          email_enabled: true,
+          in_app_enabled: true,
+          sms_enabled: true,
+          sms_opt_in: true,
+        },
+      },
+    };
+
+    render(<WithAppTheme><PortalProfile /></WithAppTheme>);
+
+    const smsSwitch = screen.getByRole('checkbox', { name: /sms notifications/i });
+    expect(smsSwitch).not.toBeChecked();
+
+    const firstNameInput = screen.getByLabelText(/first name/i);
+    fireEvent.change(firstNameInput, { target: { value: 'Updated' } });
+    fireEvent.click(screen.getByRole('button', { name: /save profile/i }));
+
+    await waitFor(() => {
+      expect(portalApiClient.patchProfile).toHaveBeenCalledWith(
+        'https://api.carwoods.com',
+        'mock-token',
+        expect.objectContaining({
+          first_name: 'Updated',
+          notification_preferences: expect.objectContaining({
+            sms_enabled: false,
+            sms_opt_in: false,
+          }),
+        })
+      );
+    });
+  });
+
   it('requires mobile phone when SMS notifications are enabled', async () => {
     render(<WithAppTheme><PortalProfile /></WithAppTheme>);
 

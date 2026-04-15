@@ -291,12 +291,31 @@ const PortalNotificationsInbox = () => {
                   </Box>
 
                   <Box
+                    {...(hasLink
+                      ? {
+                          role: 'button',
+                          tabIndex: 0,
+                          onClick: () => { void handleDismiss(notification, true); },
+                          onKeyDown: (e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              void handleDismiss(notification, true);
+                            }
+                          },
+                          'aria-label': notification.title,
+                        }
+                      : {})}
                     sx={{
                       flex: 1,
                       minWidth: 0,
                       cursor: hasLink ? 'pointer' : 'default',
+                      borderRadius: 1,
+                      '&:focus-visible': {
+                        outline: '2px solid',
+                        outlineColor: 'primary.light',
+                        outlineOffset: '2px',
+                      },
                     }}
-                    onClick={() => hasLink && void handleDismiss(notification, true)}
                   >
                     <Typography
                       variant="body2"

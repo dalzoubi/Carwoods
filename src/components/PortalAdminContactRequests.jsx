@@ -40,6 +40,7 @@ import {
   deleteAdminContactRequest,
 } from '../lib/portalApiClient';
 import MailtoEmailLink from './MailtoEmailLink';
+import EmptyState from './EmptyState';
 
 const UUID_HASH_RE = /^#[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -76,6 +77,7 @@ export default function PortalAdminContactRequests() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [highlightId, setHighlightId] = useState('');
+  const [highlightAnnouncement, setHighlightAnnouncement] = useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -164,9 +166,27 @@ export default function PortalAdminContactRequests() {
     if (el && typeof el.scrollIntoView === 'function') {
       el.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
-    const tId = window.setTimeout(() => setHighlightId(''), 6000);
+    if (el && typeof el.focus === 'function') {
+      try {
+        el.focus({ preventScroll: true });
+      } catch {
+        el.focus();
+      }
+    }
+    const match = rows.find((r) => String(r.id).toLowerCase() === String(highlightId).toLowerCase());
+    if (match) {
+      setHighlightAnnouncement(
+        t('portalAdminContactRequests.highlightAnnouncement', {
+          name: String(match.first_name || match.last_name || match.email || '').trim() || match.id,
+        }),
+      );
+    }
+    const tId = window.setTimeout(() => {
+      setHighlightId('');
+      setHighlightAnnouncement('');
+    }, 6000);
     return () => window.clearTimeout(tId);
-  }, [highlightId, rows, hash]);
+  }, [highlightId, rows, hash, t]);
 
   const handleStatusChange = async (row, newStatus) => {
     if (!baseUrl) return;
@@ -231,6 +251,22 @@ export default function PortalAdminContactRequests() {
       </Helmet>
 
       <PortalFeedbackSnackbar feedback={feedback} onClose={closeFeedback} />
+
+      <Box
+        role="status"
+        aria-live="polite"
+        sx={{
+          position: 'absolute',
+          width: 1,
+          height: 1,
+          overflow: 'hidden',
+          clip: 'rect(0 0 0 0)',
+          clipPath: 'inset(50%)',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {highlightAnnouncement}
+      </Box>
 
       <StatusAlertSlot
         message={
@@ -297,18 +333,10 @@ export default function PortalAdminContactRequests() {
       ) : loadError ? (
         <Alert severity="error">{loadError}</Alert>
       ) : rows.length === 0 ? (
-        <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          justifyContent="center"
-          py={8}
-          gap={1}
-          color="text.secondary"
-        >
-          <ContactMail sx={{ fontSize: 48, opacity: 0.3 }} />
-          <Typography variant="body2">{t('portalAdminContactRequests.noRequests')}</Typography>
-        </Box>
+        <EmptyState
+          icon={<ContactMail sx={{ fontSize: 56 }} />}
+          title={t('portalAdminContactRequests.noRequests')}
+        />
       ) : (
         <List disablePadding>
           {rows.map((row, idx) => {
@@ -323,6 +351,8 @@ export default function PortalAdminContactRequests() {
                       if (el) rowRefs.current.set(row.id, el);
                       else rowRefs.current.delete(row.id);
                     }}
+                    id={`contact-request-row-${row.id}`}
+                    aria-current={isHi ? 'true' : undefined}
                     onClick={() => setSelected(row)}
                     sx={{
                       px: 2,

@@ -1030,8 +1030,15 @@
     "smsOptInConfirm": {
       "title": "Confirmer l'opt-in SMS",
       "body": "Confirmez-vous que vous acceptez explicitement de recevoir des notifications SMS liees a l'activite du portail ?",
+      "saveReminder": "Enregistrez ensuite le profil avec le bouton Enregistrer le profil en bas de cette page pour appliquer ce choix.",
       "cancel": "Annuler",
       "confirm": "Oui, j'accepte"
+    },
+    "unsavedChanges": {
+      "title": "Quitter le profil sans enregistrer ?",
+      "body": "Vous avez des modifications non enregistrees. Enregistrez d'abord votre profil, ou quittez et vous perdrez ces modifications.",
+      "stay": "Rester sur cette page",
+      "leave": "Quitter sans enregistrer"
     },
     "actions": {
       "save": "Enregistrer le profil",
@@ -1047,6 +1054,7 @@
       "emailExists": "Cette adresse e-mail est deja utilisee par un autre utilisateur.",
       "phoneRequiredForSms": "Le numero de mobile est obligatoire lorsque les notifications SMS sont activees.",
       "phoneInvalid": "Saisissez un numero de telephone valide.",
+      "smsNotOnPlan": "Les notifications SMS ne sont pas disponibles avec votre offre actuelle. Desactivez les notifications SMS puis enregistrez a nouveau.",
       "unknown": "Impossible de mettre a jour le profil."
     }
   },
@@ -1440,6 +1448,10 @@
       "showInactive": "Afficher les inactifs",
       "loading": "Chargement des propriétaires…",
       "empty": "Aucun propriétaire trouvé.",
+      "emptyTitle": "Pas encore de propriétaires",
+      "emptyDescription": "Ajoutez votre premier propriétaire pour lui donner accès au portail. Les propriétaires actifs sont affichés ici par défaut.",
+      "emptyAction": "Ajouter un propriétaire",
+      "highlightAnnouncement": "Propriétaire {{name}} mis en évidence.",
       "name": "Nom",
       "status": "Statut utilisateur",
       "tier": "Formule",
@@ -1485,7 +1497,8 @@
       "lastNameRequired": "Le nom est obligatoire.",
       "tierListFailed": "Impossible de charger les formules d'abonnement.",
       "tierSaveFailed": "Impossible de mettre à jour la formule d'abonnement.",
-      "tierPickRequired": "Choisissez une formule avant d'enregistrer."
+      "tierPickRequired": "Choisissez une formule avant d'enregistrer.",
+      "exportContactCardFailed": "Impossible de télécharger la carte de contact. Veuillez réessayer."
     }
   },
   "portalAdminConfigurations": {
@@ -1704,6 +1717,9 @@
       "landlordFilterAll": "Tous les propriétaires",
       "landlordFilterLoadError": "Impossible de charger les propriétaires.",
       "emptyLandlordFilter": "Aucune propriété ne correspond à ce propriétaire et aux filtres actuels.",
+      "emptyTitle": "Aucune propriété pour le moment",
+      "emptyDescription": "Utilisez le formulaire ci-dessus pour ajouter votre première propriété.",
+      "emptyLandlordFilterDescription": "Aucune propriété ne correspond à ce propriétaire et aux filtres actuels.",
       "editButton": "Modifier",
       "deleteButton": "Supprimer",
       "syncHarButton": "Synchroniser avec HAR",
@@ -1793,6 +1809,8 @@
       "emptyTrayFiltered": "Tout est à jour.",
       "unreadCount": "{{count}} non lues",
       "dismiss": "Ignorer",
+      "dismissError": "Impossible d'ignorer la notification. Veuillez réessayer.",
+      "dismissOfflineFallback": "Ignorée uniquement sur cet appareil — impossible de synchroniser avec les autres appareils.",
       "markAllRead": "Tout marquer comme lu",
       "viewAll": "Voir toutes les notifications"
     }
@@ -1840,6 +1858,7 @@
     "refresh": "Actualiser les messages",
     "heading": "Messages Contactez-nous",
     "intro": "Les demandes envoyées via le formulaire public Contactez-nous apparaissent ici.",
+    "highlightAnnouncement": "Message de {{name}} mis en évidence.",
     "unreadBadge": "{{count}} non lus",
     "filterAll": "Tous",
     "filterUnread": "Non lus",
@@ -1968,7 +1987,9 @@
     "list": {
       "heading": "Liste des locataires",
       "loading": "Chargement des locataires…",
-      "empty": "Aucun locataire trouvé. Utilisez le bouton Intégrer un locataire pour commencer."
+      "empty": "Aucun locataire trouvé. Utilisez le bouton Intégrer un locataire pour commencer.",
+      "emptyTitle": "Pas encore de locataires",
+      "emptyDescription": "Intégrez votre premier locataire pour gérer les baux et les demandes au même endroit."
     },
     "status": {
       "active": "Actif",
@@ -2078,7 +2099,8 @@
       "landlordRequired": "Veuillez sélectionner un propriétaire.",
       "propertyRequired": "Veuillez sélectionner une propriété.",
       "startDateRequired": "La date de début du bail est obligatoire.",
-      "endDateBeforeStart": "La date de fin doit être postérieure à la date de début."
+      "endDateBeforeStart": "La date de fin doit être postérieure à la date de début.",
+      "exportContactCardFailed": "Impossible de télécharger la carte de contact. Veuillez réessayer."
     }
   },
   "portalDialogs": {

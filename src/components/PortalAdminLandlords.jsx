@@ -28,6 +28,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined';
 import ReplayIcon from '@mui/icons-material/Replay';
 import ContactPageIcon from '@mui/icons-material/ContactPage';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -43,6 +44,8 @@ import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 import MailtoEmailLink from './MailtoEmailLink';
 import PortalRefreshButton from './PortalRefreshButton';
 import PortalUserAvatar from './PortalUserAvatar';
+import EmptyState from './EmptyState';
+import useHighlightRow from '../lib/useHighlightRow';
 
 const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 
@@ -73,7 +76,7 @@ function exportLandlordContactVCard(landlord, t) {
     org: VCARD_ORG_NAME,
     title: t('portalAdminLandlords.vCard.roleTitle'),
   });
-  downloadVCard(slugifyVCardFilenameBase(first, last, email), vcard);
+  return downloadVCard(slugifyVCardFilenameBase(first, last, email), vcard);
 }
 
 function tierChipColor(tierName) {
@@ -144,8 +147,9 @@ const PortalAdminLandlords = () => {
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
   const [searchParams, setSearchParams] = useSearchParams();
   const hlLandlord = searchParams.get('hlLandlord');
-  const [flashLandlordId, setFlashLandlordId] = useState(null);
   const hlExpandAttemptedRef = useRef(false);
+  const [highlightTargetId, setHighlightTargetId] = useState(null);
+  const [highlightAnnouncement, setHighlightAnnouncement] = useState('');
 
   const sortedLandlords = useMemo(
     () =>
@@ -186,20 +190,14 @@ const PortalAdminLandlords = () => {
   }, [loadLandlords]);
 
   useEffect(() => {
-    if (!flashLandlordId) return undefined;
-    const timerId = window.setTimeout(() => setFlashLandlordId(null), 9000);
-    return () => window.clearTimeout(timerId);
-  }, [flashLandlordId]);
-
-  useEffect(() => {
     const id = hlLandlord?.trim();
     if (!id) {
       hlExpandAttemptedRef.current = false;
       return undefined;
     }
     if (landlordsState.status !== 'ok') return undefined;
-    const found = sortedLandlords.some((l) => String(l.id).toLowerCase() === id.toLowerCase());
-    if (!found) {
+    const match = sortedLandlords.find((l) => String(l.id).toLowerCase() === id.toLowerCase());
+    if (!match) {
       if (!showInactive && !hlExpandAttemptedRef.current) {
         hlExpandAttemptedRef.current = true;
         setShowInactive(true);
@@ -208,21 +206,29 @@ const PortalAdminLandlords = () => {
     }
     hlExpandAttemptedRef.current = false;
 
-    const rowId = sortedLandlords.find((l) => String(l.id).toLowerCase() === id.toLowerCase())?.id ?? id;
-    window.requestAnimationFrame(() => {
-      const el = document.getElementById(`landlord-row-${rowId}`);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-    });
-    setFlashLandlordId(String(rowId));
+    setHighlightTargetId(String(match.id));
+    setHighlightAnnouncement(
+      t('portalAdminLandlords.list.highlightAnnouncement', { name: displayName(match) }),
+    );
 
     const next = new URLSearchParams(searchParams);
     next.delete('hlLandlord');
     setSearchParams(next, { replace: true });
 
     return undefined;
-  }, [hlLandlord, landlordsState.status, sortedLandlords, showInactive, searchParams, setSearchParams]);
+  }, [hlLandlord, landlordsState.status, sortedLandlords, showInactive, searchParams, setSearchParams, t]);
+
+  const {
+    flashId: flashLandlordId,
+    ariaAnnouncement: landlordHighlightAnnouncement,
+    getRowProps: getLandlordHighlightProps,
+  } = useHighlightRow({
+    targetId: highlightTargetId,
+    elementIdFor: (id) => `landlord-row-${id}`,
+    announcement: highlightAnnouncement,
+    durationMs: 9000,
+    ready: landlordsState.status === 'ok',
+  });
 
   const loadTiers = useCallback(async () => {
     if (!canUseModule || !baseUrl) {
@@ -558,6 +564,21 @@ const PortalAdminLandlords = () => {
         <meta name="description" content={t('portalAdminLandlords.metaDescription')} />
       </Helmet>
       <Stack spacing={2}>
+        <Box
+          role="status"
+          aria-live="polite"
+          sx={{
+            position: 'absolute',
+            width: 1,
+            height: 1,
+            overflow: 'hidden',
+            clip: 'rect(0 0 0 0)',
+            clipPath: 'inset(50%)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {landlordHighlightAnnouncement}
+        </Box>
         <Typography variant="h1" sx={{ fontSize: '2rem' }}>
           {t('portalAdminLandlords.heading')}
         </Typography>
@@ -633,12 +654,23 @@ const PortalAdminLandlords = () => {
                 : null}
             />
             {landlordsState.status !== 'loading' && landlordsState.landlords.length === 0 && (
-              <Typography color="text.secondary">{t('portalAdminLandlords.list.empty')}</Typography>
+              <EmptyState
+                icon={<SupervisorAccountIcon sx={{ fontSize: 56 }} />}
+                title={t('portalAdminLandlords.list.emptyTitle')}
+                description={t('portalAdminLandlords.list.emptyDescription')}
+                actionLabel={canUseModule ? t('portalAdminLandlords.list.emptyAction') : undefined}
+                onAction={canUseModule ? () => {
+                  setForm((prev) => ({ ...prev, tierId: '' }));
+                  setFieldErrors((prev) => ({ ...prev, tierId: '' }));
+                  setCreateDialogOpen(true);
+                } : undefined}
+              />
             )}
             {sortedLandlords.map((landlord) => (
               <Box
                 key={landlord.id}
                 id={`landlord-row-${landlord.id}`}
+                {...getLandlordHighlightProps(landlord.id)}
                 sx={{
                   border: '1px solid',
                   borderColor:
@@ -740,7 +772,12 @@ const PortalAdminLandlords = () => {
                           type="button"
                           size="small"
                           color="info"
-                          onClick={() => exportLandlordContactVCard(landlord, t)}
+                          onClick={() => {
+                            const ok = exportLandlordContactVCard(landlord, t);
+                            if (!ok) {
+                              showFeedback(t('portalAdminLandlords.errors.exportContactCardFailed'), 'error');
+                            }
+                          }}
                           aria-label={t('portalAdminLandlords.actions.exportContactCard')}
                           disabled={!canUseModule || submitState.status === 'saving'}
                         >

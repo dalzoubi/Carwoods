@@ -32,6 +32,7 @@ import Add from '@mui/icons-material/Add';
 import Sync from '@mui/icons-material/Sync';
 import Close from '@mui/icons-material/Close';
 import Home from '@mui/icons-material/Home';
+import HomeWorkOutlined from '@mui/icons-material/HomeWorkOutlined';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { normalizeRole, resolveRole } from '../portalUtils';
@@ -51,6 +52,7 @@ import {
 import StatusAlertSlot from './StatusAlertSlot';
 import PortalRefreshButton from './PortalRefreshButton';
 import PortalPersonWithAvatar from './PortalPersonWithAvatar';
+import EmptyState from './EmptyState';
 import { listingFromHarPreviewPayload, parseHarInput } from '../portalHarPreviewParse';
 import { fetchElsaSettings, fetchHarPreview, fetchLandlords, patchElsaPropertyPolicy } from '../lib/portalApiClient';
 import {
@@ -942,11 +944,11 @@ const PortalAdminProperties = () => {
     [filteredProperties]
   );
 
-  const gridEmptyMessage = useMemo(() => {
+  const gridEmptyDescription = useMemo(() => {
     if (isAdmin && adminLandlordFilterId && sortedFilteredProperties.length === 0 && properties.length > 0) {
-      return t('portalAdminProperties.grid.emptyLandlordFilter');
+      return t('portalAdminProperties.grid.emptyLandlordFilterDescription');
     }
-    return t('portalAdminProperties.grid.empty');
+    return t('portalAdminProperties.grid.emptyDescription');
   }, [sortedFilteredProperties.length, properties.length, isAdmin, adminLandlordFilterId, t]);
 
   return (
@@ -1154,9 +1156,11 @@ const PortalAdminProperties = () => {
               </Typography>
             </Box>
           ) : sortedFilteredProperties.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              {gridEmptyMessage}
-            </Typography>
+            <EmptyState
+              icon={<HomeWorkOutlined sx={{ fontSize: 56 }} />}
+              title={t('portalAdminProperties.grid.emptyTitle')}
+              description={gridEmptyDescription}
+            />
           ) : (
             <Grid container spacing={2}>
               {sortedFilteredProperties.map((property) => (

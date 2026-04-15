@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep -A 20 \"CREATE TABLE.*notification\" infra/db/migrations/*.sql)"
+      "Bash(grep -A 20 \"CREATE TABLE.*notification\" infra/db/migrations/*.sql)",
+      "Bash(npm test:*)",
+      "Bash(git status:*)"
     ]
   }
 }

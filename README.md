@@ -54,6 +54,24 @@ Installs the Chromium browser required by Playwright.
 
 Runs Playwright E2E tests against the built app.
 
+### `npm run dev:portal:local` (Windows)
+
+Starts the **local tenant portal stack** from `scripts/start-local-portal.ps1`: copies example env files if missing (`.env.portal.local`, `apps/api/local.settings.json`), **runs API database migrations** (`npm run db:migrate:local` in `apps/api` using your configured `DATABASE_URL`), then launches two new terminals — Azure Functions in `apps/api` and the Vite SPA with `npm run dev:portal`. See **`docs/portal/`** for portal setup.
+
+**Skip database migrations** when the schema is already up to date, you have no database URL, or you only need the SPA and API shells:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "scripts/start-local-portal.ps1" -SkipMigrations
+```
+
+From the repo root in an already-open PowerShell session (same effect):
+
+```powershell
+.\scripts\start-local-portal.ps1 -SkipMigrations
+```
+
+The script also accepts `-DryRun` to print steps without starting servers or running migrations.
+
 ## Deployment
 
 The app is deployed to [carwoods.com](https://carwoods.com). Vite builds to the `build` output directory and `gh-pages` publishes it. Run `npm run deploy` to build and publish.

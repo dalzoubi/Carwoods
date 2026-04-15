@@ -20,6 +20,14 @@ const typography = {
         fontSize: '1.1rem',
         lineHeight: 1.6,
     },
+    body2: {
+        fontSize: '0.875rem',
+        lineHeight: 1.5,
+    },
+    caption: {
+        fontSize: '0.75rem',
+        lineHeight: 1.4,
+    },
 };
 
 const shape = { borderRadius: 8 };

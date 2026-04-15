@@ -1030,8 +1030,15 @@
     "smsOptInConfirm": {
       "title": "Confirmar suscripción a notificaciones por SMS",
       "body": "¿Confirma que acepta explícitamente recibir notificaciones por SMS sobre actividad del portal?",
+      "saveReminder": "Esta elección no se guardará en su cuenta hasta que pulse Guardar perfil al final de esta página.",
       "cancel": "Cancelar",
       "confirm": "Sí, acepto"
+    },
+    "unsavedChanges": {
+      "title": "¿Salir del perfil sin guardar?",
+      "body": "Tiene cambios sin guardar. Guarde el perfil primero o salga y perderá esos cambios.",
+      "stay": "Permanecer en esta página",
+      "leave": "Salir sin guardar"
     },
     "actions": {
       "save": "Guardar perfil",
@@ -1047,6 +1054,7 @@
       "emailExists": "Ese correo electrónico ya está en uso por otro usuario. Por favor.",
       "phoneRequiredForSms": "El número de teléfono móvil es obligatorio cuando las notificaciones SMS están habilitadas.",
       "phoneInvalid": "Ingresa un número de teléfono válido.",
+      "smsNotOnPlan": "Las notificaciones por SMS no están disponibles en tu plan actual. Desactiva las notificaciones por SMS y vuelve a guardar.",
       "unknown": "No se pudo actualizar el perfil."
     }
   },
@@ -1440,6 +1448,10 @@
       "showInactive": "Mostrar inactivos",
       "loading": "Cargando propietarios…",
       "empty": "No se encontraron propietarios.",
+      "emptyTitle": "Aún no hay propietarios",
+      "emptyDescription": "Agrega tu primer propietario para darle acceso al portal. Los propietarios activos se muestran aquí por defecto.",
+      "emptyAction": "Agregar propietario",
+      "highlightAnnouncement": "Propietario {{name}} destacado.",
       "name": "Nombre",
       "status": "Estado del usuario",
       "tier": "Plan",
@@ -1485,7 +1497,8 @@
       "lastNameRequired": "El apellido es obligatorio.",
       "tierListFailed": "No se pudieron cargar los planes de suscripción.",
       "tierSaveFailed": "No se pudo actualizar el plan de suscripción.",
-      "tierPickRequired": "Elige un plan antes de guardar."
+      "tierPickRequired": "Elige un plan antes de guardar.",
+      "exportContactCardFailed": "No se pudo descargar la tarjeta de contacto. Inténtalo de nuevo."
     }
   },
   "portalAdminConfigurations": {
@@ -1704,6 +1717,9 @@
       "landlordFilterAll": "Todos los propietarios",
       "landlordFilterLoadError": "No se pudieron cargar los propietarios.",
       "emptyLandlordFilter": "No hay propiedades que coincidan con este propietario y los filtros actuales.",
+      "emptyTitle": "Aún no hay propiedades",
+      "emptyDescription": "Usa el formulario de arriba para agregar tu primera propiedad.",
+      "emptyLandlordFilterDescription": "No hay propiedades que coincidan con este propietario y los filtros actuales.",
       "editButton": "Editar",
       "deleteButton": "Eliminar",
       "syncHarButton": "Sincronizar con HAR",
@@ -1793,6 +1809,8 @@
       "emptyTrayFiltered": "Todo al día.",
       "unreadCount": "{{count}} sin leer",
       "dismiss": "Descartar",
+      "dismissError": "No se pudo descartar la notificación. Por favor, inténtalo de nuevo.",
+      "dismissOfflineFallback": "Descartada solo en este dispositivo — no se pudo sincronizar con otros dispositivos.",
       "markAllRead": "Marcar todo como leído",
       "viewAll": "Ver todas las notificaciones"
     }
@@ -1840,6 +1858,7 @@
     "refresh": "Actualizar mensajes",
     "heading": "Mensajes de Contacto",
     "intro": "Aquí aparecen las consultas enviadas desde el formulario público de Contacto.",
+    "highlightAnnouncement": "Mensaje de {{name}} destacado.",
     "unreadBadge": "{{count}} sin leer",
     "filterAll": "Todos",
     "filterUnread": "Sin leer",
@@ -1968,7 +1987,9 @@
     "list": {
       "heading": "Lista de inquilinos",
       "loading": "Cargando inquilinos…",
-      "empty": "No se encontraron inquilinos. Usa el botón Incorporar inquilino para comenzar."
+      "empty": "No se encontraron inquilinos. Usa el botón Incorporar inquilino para comenzar.",
+      "emptyTitle": "Aún no hay inquilinos",
+      "emptyDescription": "Incorpora a tu primer inquilino para gestionar contratos y solicitudes en un solo lugar."
     },
     "status": {
       "active": "Activo",
@@ -2078,7 +2099,8 @@
       "landlordRequired": "Por favor selecciona un propietario.",
       "propertyRequired": "Por favor selecciona una propiedad.",
       "startDateRequired": "La fecha de inicio del contrato es obligatoria.",
-      "endDateBeforeStart": "La fecha de fin debe ser posterior a la fecha de inicio."
+      "endDateBeforeStart": "La fecha de fin debe ser posterior a la fecha de inicio.",
+      "exportContactCardFailed": "No se pudo descargar la tarjeta de contacto. Inténtalo de nuevo."
     }
   },
   "portalDialogs": {

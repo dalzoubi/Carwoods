@@ -53,6 +53,8 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from '../lib/portalApiClient';
+import { usePortalFeedback } from '../hooks/usePortalFeedback';
+import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 
 function notificationEventIcon(eventTypeCode) {
   const code = String(eventTypeCode ?? '').toUpperCase();
@@ -115,6 +117,7 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
   const [dismissingIds, setDismissingIds] = useState(new Set());
   const [markingAll, setMarkingAll] = useState(false);
   const [trayHiddenIds, setTrayHiddenIds] = useState(() => new Set());
+  const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
   const trayPersistReady = trayStorageUserKeys(account).length > 0;
 
@@ -226,6 +229,16 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
       handleApiForbidden?.(error);
       if (trayPersistReady) {
         setTrayHiddenIds((prev) => addTrayHiddenIdForAccount(account, notification.id, prev));
+        /* Dismiss only persisted locally — warn the user it won't sync to other devices. */
+        showFeedback(
+          t('portalHeader.notifications.dismissOfflineFallback'),
+          'warning'
+        );
+      } else {
+        showFeedback(
+          t('portalHeader.notifications.dismissError'),
+          'error'
+        );
       }
     } finally {
       setDismissingIds((prev) => {
@@ -383,10 +396,20 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
         ) : trayNotifications.map((notification) => {
           const isUnread = !notification.read_at;
           const isDismissing = dismissingIds.has(notification.id);
+          const activateNotification = () => { void handleNotificationClick(notification); };
           return (
             <Box
               key={notification.id}
-              onClick={() => { void handleNotificationClick(notification); }}
+              role="button"
+              tabIndex={0}
+              onClick={activateNotification}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  activateNotification();
+                }
+              }}
+              aria-label={notification.title}
               sx={{
                 display: 'flex',
                 alignItems: 'flex-start',
@@ -396,6 +419,12 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
                 cursor: 'pointer',
                 backgroundColor: isUnread ? 'action.hover' : 'transparent',
                 '&:hover': { backgroundColor: 'action.focus' },
+                '&:focus-visible': {
+                  outline: '2px solid',
+                  outlineColor: 'primary.light',
+                  outlineOffset: '-2px',
+                  backgroundColor: 'action.focus',
+                },
                 transition: 'background-color 0.15s',
                 borderBottom: '1px solid',
                 borderColor: 'divider',
@@ -435,9 +464,15 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
                     onClick={(e) => { void handleDismissNotification(e, notification); }}
                     disabled={isDismissing}
                     aria-label={t('portalHeader.notifications.dismiss')}
-                    sx={{ mt: -0.5, flexShrink: 0 }}
+                    sx={{
+                      mt: -0.5,
+                      flexShrink: 0,
+                      /* Ensure at least 32x32 hit area on desktop; MUI IconButton pads
+                         to 40x40 on touch via density settings. */
+                      p: 0.75,
+                    }}
                   >
-                    {isDismissing ? <CircularProgress size={12} /> : <Close sx={{ fontSize: 14 }} />}
+                    {isDismissing ? <CircularProgress size={12} /> : <Close sx={{ fontSize: 16 }} />}
                   </IconButton>
                 </span>
               </Tooltip>
@@ -462,6 +497,7 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
           </Button>
         </Box>
       </Menu>
+      <PortalFeedbackSnackbar feedback={feedback} onClose={closeFeedback} />
     </>
   );
 });

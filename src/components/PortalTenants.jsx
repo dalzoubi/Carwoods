@@ -57,6 +57,8 @@ import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 import PortalRefreshButton from './PortalRefreshButton';
 import { buildVCard3, downloadVCard, slugifyVCardFilenameBase, VCARD_ORG_NAME } from '../lib/exportContactCard';
+import EmptyState from './EmptyState';
+import PeopleOutline from '@mui/icons-material/PeopleOutline';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -1035,6 +1037,7 @@ function TenantRow({
   onDeleteTenant,
   onLeaseSaved,
   onTenantUpdated,
+  onExportError,
   t,
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -1068,8 +1071,11 @@ function TenantRow({
       org: VCARD_ORG_NAME,
       title: t('portalTenants.vCard.roleTitle'),
     });
-    downloadVCard(slugifyVCardFilenameBase(first, last, email), vcard);
-  }, [tenant, t]);
+    const ok = downloadVCard(slugifyVCardFilenameBase(first, last, email), vcard);
+    if (!ok && typeof onExportError === 'function') {
+      onExportError();
+    }
+  }, [tenant, t, onExportError]);
 
   const sortedLeases = useMemo(
     () =>
@@ -2004,7 +2010,11 @@ const PortalTenants = () => {
                 : null}
             />
             {tenantsState.status === 'ok' && tenantsState.tenants.length === 0 && (
-              <Typography color="text.secondary">{t('portalTenants.list.empty')}</Typography>
+              <EmptyState
+                icon={<PeopleOutline sx={{ fontSize: 56 }} />}
+                title={t('portalTenants.list.emptyTitle')}
+                description={t('portalTenants.list.emptyDescription')}
+              />
             )}
             {sortedTenants.map((tenant, index) => (
               <TenantRow
@@ -2017,6 +2027,7 @@ const PortalTenants = () => {
                 onDeleteTenant={handleDeleteTenant}
                 onLeaseSaved={loadTenants}
                 onTenantUpdated={handleTenantUpdated}
+                onExportError={() => showFeedback(t('portalTenants.errors.exportContactCardFailed'), 'error')}
                 t={t}
               />
             ))}

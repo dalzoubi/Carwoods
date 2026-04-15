@@ -132,7 +132,7 @@ describe('PortalTenants', () => {
   it('shows empty state when no tenants', async () => {
     render(<WithAppTheme><PortalTenants /></WithAppTheme>);
     await waitFor(() => {
-      expect(screen.getByText(/no tenants found/i)).toBeInTheDocument();
+      expect(screen.getByText(/no tenants yet/i)).toBeInTheDocument();
     });
   });
 

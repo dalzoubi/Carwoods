@@ -1188,8 +1188,15 @@
     "smsOptInConfirm": {
       "title": "Confirm SMS notification opt-in",
       "body": "Do you affirm that you explicitly opt in to SMS notifications for portal activity?",
+      "saveReminder": "This choice is not saved to your account until you click Save profile at the bottom of this page.",
       "cancel": "Cancel",
       "confirm": "Yes, I opt in"
+    },
+    "unsavedChanges": {
+      "title": "Leave profile without saving?",
+      "body": "You have unsaved changes. Save your profile first, or leave and lose those changes.",
+      "stay": "Stay on this page",
+      "leave": "Leave without saving"
     },
     "actions": {
       "save": "Save profile",
@@ -1205,6 +1212,7 @@
       "emailExists": "That email is already in use by another user.",
       "phoneRequiredForSms": "Mobile phone is required when SMS notifications are enabled.",
       "phoneInvalid": "Enter a valid phone number.",
+      "smsNotOnPlan": "SMS notifications are not available on your current plan. Turn off SMS notifications and save again.",
       "unknown": "Unable to update profile."
     }
   },
@@ -1598,6 +1606,10 @@
       "showInactive": "Show inactive",
       "loading": "Loading landlords…",
       "empty": "No landlords found.",
+      "emptyTitle": "No landlords yet",
+      "emptyDescription": "Add your first landlord to get them into the portal. Active landlords are shown here by default.",
+      "emptyAction": "Add landlord",
+      "highlightAnnouncement": "Landlord {{name}} is highlighted.",
       "name": "Name",
       "status": "User status",
       "tier": "Plan",
@@ -1643,7 +1655,8 @@
       "lastNameRequired": "Last name is required.",
       "tierListFailed": "Unable to load subscription plans.",
       "tierSaveFailed": "Unable to update subscription plan.",
-      "tierPickRequired": "Choose a plan before saving."
+      "tierPickRequired": "Choose a plan before saving.",
+      "exportContactCardFailed": "Could not download the contact card. Please try again."
     }
   },
   "portalAdminConfigurations": {
@@ -1862,6 +1875,9 @@
       "landlordFilterAll": "All landlords",
       "landlordFilterLoadError": "Could not load landlords.",
       "emptyLandlordFilter": "No properties match this landlord and the current filters.",
+      "emptyTitle": "No properties yet",
+      "emptyDescription": "Use the form above to add your first property.",
+      "emptyLandlordFilterDescription": "No properties match this landlord and the current filters.",
       "editButton": "Edit",
       "deleteButton": "Delete",
       "syncHarButton": "Sync with HAR",
@@ -1951,6 +1967,8 @@
       "emptyTrayFiltered": "All caught up.",
       "unreadCount": "{{count}} unread",
       "dismiss": "Dismiss",
+      "dismissError": "Couldn't dismiss notification. Please try again.",
+      "dismissOfflineFallback": "Dismissed on this device only — couldn't sync to other devices.",
       "markAllRead": "Mark all as read",
       "viewAll": "View all notifications"
     }
@@ -1998,6 +2016,7 @@
     "refresh": "Refresh messages",
     "heading": "Contact Us messages",
     "intro": "Inquiries submitted through the public Contact Us form appear here.",
+    "highlightAnnouncement": "Message from {{name}} is highlighted.",
     "unreadBadge": "{{count}} unread",
     "filterAll": "All",
     "filterUnread": "Unread",
@@ -2126,7 +2145,9 @@
     "list": {
       "heading": "Tenant list",
       "loading": "Loading tenants…",
-      "empty": "No tenants found. Use the Onboard Tenant button to get started."
+      "empty": "No tenants found. Use the Onboard Tenant button to get started.",
+      "emptyTitle": "No tenants yet",
+      "emptyDescription": "Onboard your first tenant to start managing leases and requests in one place."
     },
     "status": {
       "active": "Active",
@@ -2236,7 +2257,8 @@
       "landlordRequired": "Please select a landlord.",
       "propertyRequired": "Please select a property.",
       "startDateRequired": "Lease start date is required.",
-      "endDateBeforeStart": "End date must be after start date."
+      "endDateBeforeStart": "End date must be after start date.",
+      "exportContactCardFailed": "Could not download the contact card. Please try again."
     }
   },
   "portalDialogs": {

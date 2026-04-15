@@ -106,17 +106,28 @@ export function slugifyVCardFilenameBase(...parts) {
 /**
  * @param {string} filenameBase
  * @param {string} vcardBody
+ * @returns {boolean} true when the download was triggered, false on any failure
  */
 export function downloadVCard(filenameBase, vcardBody) {
-  const safeBase = String(filenameBase ?? 'contact').replace(/\.vcf$/i, '') || 'contact';
-  const blob = new Blob([vcardBody], { type: 'text/vcard;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${safeBase}.vcf`;
-  a.rel = 'noopener';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  try {
+    const trimmedBase = String(filenameBase ?? 'contact').replace(/\.vcf$/i, '') || 'contact';
+    // Cap filename length for filesystem safety across OSes.
+    const safeBase = trimmedBase.slice(0, 200);
+    const blob = new Blob([vcardBody], { type: 'text/vcard;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    try {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${safeBase}.vcf`;
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+    return true;
+  } catch {
+    return false;
+  }
 }

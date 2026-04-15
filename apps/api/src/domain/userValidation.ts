@@ -12,13 +12,13 @@ export function validateProfileUpdate(input: {
   if (!isValidEmail(input.email)) {
     return fail('email', 'invalid_email');
   }
-  if (input.firstName !== undefined && input.firstName.length > 100) {
+  if (input.firstName != null && input.firstName.length > 100) {
     return fail('first_name', 'first_name_too_long');
   }
-  if (input.lastName !== undefined && input.lastName.length > 100) {
+  if (input.lastName != null && input.lastName.length > 100) {
     return fail('last_name', 'last_name_too_long');
   }
-  if (input.phone !== undefined) {
+  if (input.phone != null) {
     if (input.phone.length > 50) {
       return fail('phone', 'phone_too_long');
     }

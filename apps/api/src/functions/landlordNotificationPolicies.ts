@@ -6,9 +6,6 @@ import {
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
 import { jsonResponse, mapDomainError, requireLandlordOrAdmin } from '../lib/managementRequest.js';
-import { validationError } from '../domain/errors.js';
-import { getTierLimitsForUserId } from '../lib/subscriptionTierCapabilities.js';
-import { getTierByName } from '../lib/subscriptionTiersRepo.js';
 import {
   deriveEventCategory,
   listNotificationScopeOverrides,
@@ -402,26 +399,6 @@ async function patchNotificationPolicyHandler(
   const smsEnabled = asBoolOrNull(payload.sms_enabled);
   const smsOptIn = asBoolOrNull(payload.sms_opt_in);
   const activeValue = asBoolOrNull(payload.active);
-
-  try {
-    if (role !== Role.ADMIN) {
-      const wantsSms = smsEnabled === true || smsOptIn === true;
-      if (wantsSms) {
-        let lim = await getTierLimitsForUserId(getPool(), userId);
-        if (!lim) {
-          const free = await getTierByName(getPool(), 'FREE');
-          lim = free?.limits ?? null;
-        }
-        if (lim && !lim.notification_channels.includes('sms')) {
-          throw validationError('sms_not_available');
-        }
-      }
-    }
-  } catch (e) {
-    const mapped = mapDomainError(e, headers);
-    if (mapped) return mapped;
-    throw e;
-  }
 
   const client = await getPool().connect();
   try {

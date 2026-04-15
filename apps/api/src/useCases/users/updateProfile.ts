@@ -15,10 +15,7 @@ import {
 import { normalizeQuietHoursPreference } from '../../lib/notificationQuietHours.js';
 import { validateProfileUpdate } from '../../domain/userValidation.js';
 import { conflictError, notFound, validationError } from '../../domain/errors.js';
-import { Role } from '../../domain/constants.js';
 import type { Queryable } from '../types.js';
-import { getTierLimitsForTenantPrimaryLease, getTierLimitsForUserId } from '../../lib/subscriptionTierCapabilities.js';
-import { getTierByName } from '../../lib/subscriptionTiersRepo.js';
 
 export type UpdateProfileInput = {
   actorUserId: string;
@@ -56,23 +53,6 @@ export async function updateProfile(
   const normalizedPhone = String(input.phone ?? '').trim();
   if ((smsEnabled || smsOptIn) && !normalizedPhone) {
     throw validationError('sms_phone_required');
-  }
-
-  const role = String(input.actorRole ?? '').trim().toUpperCase();
-  const np = input.notificationPreferences;
-  const wantsSmsEnable = Boolean(np) && (np?.smsEnabled === true || np?.smsOptIn === true);
-  if (wantsSmsEnable) {
-    let lim =
-      role === Role.TENANT
-        ? await getTierLimitsForTenantPrimaryLease(db, input.actorUserId)
-        : await getTierLimitsForUserId(db, input.actorUserId);
-    if (!lim) {
-      const free = await getTierByName(db, 'FREE');
-      lim = free?.limits ?? null;
-    }
-    if (lim && !lim.notification_channels.includes('sms')) {
-      throw validationError('sms_not_available');
-    }
   }
 
   const validation = validateProfileUpdate({

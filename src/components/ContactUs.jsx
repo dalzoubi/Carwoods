@@ -14,6 +14,7 @@ import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import Link from '@mui/material/Link';
+import MailtoEmailLink from './MailtoEmailLink';
 import { useTranslation } from 'react-i18next';
 import { VITE_API_BASE_URL_RESOLVED } from '../featureFlags';
 
@@ -153,9 +154,7 @@ const ContactUs = () => {
                 {submitError === SUBMIT_ERROR_SUPPORT_MAILTO ? (
                   <>
                     {t('contact.errorBodyPrefix')}
-                    <Link href={`mailto:${t('contact.supportEmail')}`} sx={{ fontSize: 'inherit' }}>
-                      {t('contact.supportEmail')}
-                    </Link>
+                    <MailtoEmailLink email={t('contact.supportEmail')} />
                     {t('contact.errorBodySuffix')}
                   </>
                 ) : (
