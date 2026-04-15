@@ -65,7 +65,7 @@ export type QueryResult<T = Record<string, unknown>> = {
 // ---------------------------------------------------------------------------
 
 const JSON_COLUMNS = new Set([
-  'metadata', 'before_json', 'after_json', 'payload', 'additional_recipients', 'limits',
+  'metadata', 'before_json', 'after_json', 'payload', 'additional_recipients',
 ]);
 
 // ---------------------------------------------------------------------------

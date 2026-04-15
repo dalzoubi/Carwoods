@@ -1258,6 +1258,12 @@
       "saveFailed": "Unable to save notification override."
     }
   },
+  "portalSubscription": {
+    "freeTier": {
+      "featureDisabled": "This feature is not available on your current plan.",
+      "propertyLimitReached": "You have reached the maximum number of properties for your current plan."
+    }
+  },
   "portalRequests": {
     "title": "Carwoods - Portal Requests",
     "metaDescription": "Create and manage maintenance requests, messages, and attachments.",
@@ -1847,6 +1853,7 @@
       "deleteButton": "Delete",
       "syncHarButton": "Sync with HAR",
       "restoreButton": "Restore",
+      "restoreDisabledAtPropertyCap": "This plan allows only a limited number of active properties. Remove or keep one active slot before restoring another.",
       "deleteConfirmTitle": "Delete property?",
       "deleteConfirmBody": "This will remove \"{{address}}\" from your property list. This cannot be undone.",
       "deleteConfirmAction": "Delete",
@@ -1888,6 +1895,7 @@
       "saveFailed": "Could not save property: {{error}}",
       "deleteFailed": "Could not delete property: {{error}}",
       "restoreFailed": "Could not restore property: {{error}}",
+      "restorePropertyLimitReached": "Cannot restore: the maximum number of active properties for this plan has already been reached.",
       "visibilityFailed": "Could not update visibility: {{error}}",
       "syncHarFailed": "Could not refresh HAR listing: {{error}}",
       "elsaPolicyFailed": "Could not update Elsa property policy: {{error}}",

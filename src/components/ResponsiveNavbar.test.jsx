@@ -49,21 +49,21 @@ describe('ResponsiveNavbar', () => {
 
   it('renders Tenant dropdown with Apply, Selection Criteria, Required Documents', () => {
     renderWithProviders(<ResponsiveNavbar />);
-    fireEvent.click(screen.getByRole('button', { name: /tenant menu/i }));
+    fireEvent.click(screen.getByRole('button', { name: /renters menu/i }));
     expect(screen.getByRole('menuitem', { name: /^apply$/i })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: /selection criteria/i })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: /required documents/i })).toBeInTheDocument();
   });
 
-  it('renders Landlord dropdown with Property Management', () => {
+  it('renders For Landlords dropdown with product links', () => {
     renderWithProviders(<ResponsiveNavbar />);
-    fireEvent.click(screen.getByRole('button', { name: /landlord menu/i }));
-    expect(screen.getByRole('menuitem', { name: /property management/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /for landlords menu/i }));
+    expect(screen.getByRole('menuitem', { name: /for property managers/i })).toBeInTheDocument();
   });
 
-  it('renders Portal as a simple navigation link', () => {
+  it('renders Sign in in the toolbar to start portal authentication', () => {
     renderWithProviders(<ResponsiveNavbar />);
-    expect(screen.getByRole('link', { name: /^portal$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^sign in$/i })).toBeInTheDocument();
   });
 
   it('has accessible menu button on mobile', () => {

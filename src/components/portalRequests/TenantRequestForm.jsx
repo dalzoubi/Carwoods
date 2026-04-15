@@ -1,5 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { Box, Button, IconButton, Link, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  IconButton,
+  Link,
+  MenuItem,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +22,7 @@ const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: tr
 const TenantRequestForm = ({
   tenantForm,
   tenantDefaults,
+  subscriptionFeatures = null,
   categoryOptions,
   priorityOptions,
   lookupsStatus,
@@ -31,6 +42,9 @@ const TenantRequestForm = ({
 }) => {
   const { t } = useTranslation();
   const [isDropActive, setIsDropActive] = useState(false);
+  const allowAttachments =
+    subscriptionFeatures == null
+    || Boolean(subscriptionFeatures.request_photo_video_attachments_enabled);
   const mailSubject = encodeURIComponent('Issues creating a maintenance request via carwoods.com');
   const contactHref = lookupContact?.email
     ? `mailto:${lookupContact.email}?subject=${mailSubject}`
@@ -156,11 +170,18 @@ const TenantRequestForm = ({
           minRows={3}
           disabled={disabled}
         />
-        <Stack spacing={0.75}>
-          <Typography variant="body2" color="text.secondary">
-            {t('portalRequests.create.attachmentsLabel')}
-          </Typography>
-          <AttachmentUploadControl
+        <Tooltip title={!allowAttachments ? t('portalSubscription.freeTier.featureDisabled') : ''}>
+          <Box component="span" sx={{ display: 'block' }}>
+            <Stack
+              spacing={0.75}
+              sx={{
+                opacity: allowAttachments ? 1 : 0.5,
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                {t('portalRequests.create.attachmentsLabel')}
+              </Typography>
+              <AttachmentUploadControl
             instructions={t('portalRequests.attachments.instructions')}
             isDropActive={isDropActive}
             onDragOver={(event) => {
@@ -171,6 +192,7 @@ const TenantRequestForm = ({
             onDrop={(event) => {
               event.preventDefault();
               setIsDropActive(false);
+              if (!allowAttachments) return;
               const files = event.dataTransfer?.files;
               if (files && files.length > 0) {
                 onCreateAttachmentChange({ target: { files } });
@@ -180,7 +202,7 @@ const TenantRequestForm = ({
             multiple
             accept="image/*,video/*"
             onFileChange={onCreateAttachmentChange}
-            chooseDisabled={disabled}
+            chooseDisabled={disabled || !allowAttachments}
             selectedContent={createAttachmentFiles && createAttachmentFiles.length > 0 ? (
               <Stack spacing={0.5} sx={{ minWidth: 0 }}>
                 {createAttachmentFiles.map((file, index) => (
@@ -205,7 +227,7 @@ const TenantRequestForm = ({
                         size="small"
                         onClick={() => onRemoveCreateAttachment(index)}
                         aria-label={t('portalRequests.create.removeAttachment')}
-                        disabled={disabled}
+                        disabled={disabled || !allowAttachments}
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>
@@ -214,8 +236,10 @@ const TenantRequestForm = ({
                 ))}
               </Stack>
             ) : null}
-          />
-        </Stack>
+              />
+            </Stack>
+          </Box>
+        </Tooltip>
         <Stack
           direction="row"
           alignItems="center"

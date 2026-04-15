@@ -143,6 +143,79 @@ describe('PortalAdminProperties', () => {
     });
   });
 
+  it('defaults Visible on Apply page off and disables switch for Free-tier landlord', async () => {
+    mockAuthState.meData = {
+      role: 'LANDLORD',
+      user: {
+        first_name: 'Test',
+        last_name: 'Landlord',
+        role: 'LANDLORD',
+        status: 'ACTIVE',
+        tier: {
+          id: 'tier-free',
+          name: 'FREE',
+          display_name: 'Free',
+          limits: {
+            max_properties: 1,
+            max_tenants: 5,
+            ai_routing_enabled: false,
+            csv_export_enabled: false,
+            custom_notifications_enabled: false,
+            notification_channels: ['in_app'],
+            maintenance_request_history_days: 90,
+            request_photo_video_attachments_enabled: false,
+            property_apply_visibility_editable: false,
+            property_elsa_auto_send_editable: false,
+          },
+        },
+      },
+    };
+
+    render(<WithAppTheme><PortalAdminProperties /></WithAppTheme>);
+    await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole('button', { name: /add property/i }));
+    await waitFor(() => expect(screen.getByLabelText(/street address/i)).toBeInTheDocument());
+
+    const applySwitch = screen.getByRole('checkbox', { name: /visible on apply page/i });
+    expect(applySwitch).not.toBeChecked();
+    expect(applySwitch).toBeDisabled();
+  });
+
+  it('defaults Visible on Apply page off for admin when filtered landlord is Free tier', async () => {
+    mockAuthState.meData = {
+      role: 'ADMIN',
+      user: { first_name: 'Portal', last_name: 'Admin', role: 'ADMIN', status: 'ACTIVE' },
+    };
+    portalApiClient.fetchLandlords.mockResolvedValue({
+      landlords: [
+        {
+          id: 'landlord-free',
+          first_name: 'Fran',
+          last_name: 'Free',
+          email: 'fran@example.com',
+          tier_name: 'FREE',
+          tier_max_properties: 1,
+        },
+      ],
+    });
+    propertiesApiClient.listPropertiesApi.mockResolvedValue([]);
+
+    render(<WithAppTheme><PortalAdminProperties /></WithAppTheme>);
+    await waitFor(() => expect(portalApiClient.fetchLandlords).toHaveBeenCalled());
+
+    const landlordFilter = screen.getByLabelText(/filter by landlord/i);
+    fireEvent.mouseDown(landlordFilter);
+    fireEvent.click(screen.getByRole('option', { name: /fran free/i }));
+
+    fireEvent.click(screen.getByRole('button', { name: /add property/i }));
+    await waitFor(() => expect(screen.getByLabelText(/street address/i)).toBeInTheDocument());
+
+    const applySwitch = screen.getByRole('checkbox', { name: /visible on apply page/i });
+    expect(applySwitch).not.toBeChecked();
+    expect(applySwitch).toBeDisabled();
+  });
+
   it('calls createPropertyApi and resets form on valid submit', async () => {
     render(<WithAppTheme><PortalAdminProperties /></WithAppTheme>);
     await waitFor(() => expect(propertiesApiClient.listPropertiesApi).toHaveBeenCalled());
@@ -641,6 +714,81 @@ describe('PortalAdminProperties', () => {
         'db-restore-1'
       );
     });
+  });
+
+  it('disables restore when at active property cap (Free tier)', async () => {
+    mockAuthState.meData = {
+      role: 'LANDLORD',
+      user: {
+        id: 'u-free-cap',
+        first_name: 'Test',
+        last_name: 'Landlord',
+        role: 'LANDLORD',
+        status: 'ACTIVE',
+        tier: {
+          id: 'tier-free',
+          name: 'FREE',
+          display_name: 'Free',
+          limits: {
+            max_properties: 1,
+            max_tenants: 5,
+            ai_routing_enabled: false,
+            csv_export_enabled: false,
+            custom_notifications_enabled: false,
+            notification_channels: ['in_app'],
+            maintenance_request_history_days: 90,
+            request_photo_video_attachments_enabled: false,
+            property_apply_visibility_editable: false,
+            property_elsa_auto_send_editable: false,
+          },
+        },
+      },
+    };
+
+    propertiesApiClient.listPropertiesApi.mockResolvedValue([
+      makeApiRow({
+        id: 'db-active-cap',
+        landlord_user_id: 'u-free-cap',
+        deleted_at: null,
+        metadata: {
+          apply: {
+            addressLine: '100 Active St',
+            cityStateZip: 'Houston, TX 77001',
+            monthlyRentLabel: '',
+            photoUrl: '',
+            harListingUrl: '',
+            applyUrl: '',
+            detailLines: [],
+          },
+        },
+      }),
+      makeApiRow({
+        id: 'db-deleted-cap',
+        landlord_user_id: 'u-free-cap',
+        deleted_at: '2026-04-01T00:00:00Z',
+        metadata: {
+          apply: {
+            addressLine: '200 Deleted Ave',
+            cityStateZip: 'Houston, TX 77002',
+            monthlyRentLabel: '',
+            photoUrl: '',
+            harListingUrl: '',
+            applyUrl: '',
+            detailLines: [],
+          },
+        },
+      }),
+    ]);
+
+    render(<WithAppTheme><PortalAdminProperties /></WithAppTheme>);
+    await waitFor(() => expect(screen.getByText('100 Active St')).toBeInTheDocument());
+    fireEvent.click(screen.getByLabelText(/show deleted/i));
+    await waitFor(() => expect(screen.getByText('200 Deleted Ave')).toBeInTheDocument());
+
+    const deletedCard = screen.getByText('200 Deleted Ave').closest('.MuiCard-root');
+    expect(deletedCard).toBeTruthy();
+    const restoreInCard = within(deletedCard).getByRole('button', { name: /restore/i });
+    expect(restoreInCard).toBeDisabled();
   });
 
   it('syncs property with HAR from card action', async () => {

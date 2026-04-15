@@ -18,6 +18,8 @@ import { findUserById } from '../../lib/usersRepo.js';
 import { forbidden, notFound, unprocessable, validationError } from '../../domain/errors.js';
 import { hasLandlordAccess, Role } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
+import { getTierLimitsForUserId } from '../../lib/subscriptionTierCapabilities.js';
+import { getTierByName } from '../../lib/subscriptionTiersRepo.js';
 
 export type UpdatePropertyInput = {
   propertyId: string | undefined;
@@ -29,6 +31,7 @@ export type UpdatePropertyInput = {
   state?: string;
   zip?: string;
   apply_visible?: boolean;
+  apply_visible_present?: boolean;
   har_listing_id?: string | null;
   metadata?: unknown;
   refresh_har?: boolean;
@@ -113,6 +116,21 @@ export async function updateProperty(
       throw validationError('landlord_user_id must reference an active landlord');
     }
     patch.created_by = landlordUserId;
+  }
+
+  const ownerIdForApplyVisibility = patch.created_by ?? current.created_by;
+  if (ownerIdForApplyVisibility) {
+    let visibilityLimits = await getTierLimitsForUserId(db, ownerIdForApplyVisibility);
+    if (!visibilityLimits) {
+      const free = await getTierByName(db, 'FREE');
+      visibilityLimits = free?.limits ?? null;
+    }
+    if (visibilityLimits && !visibilityLimits.property_apply_visibility_editable) {
+      if (Boolean(input.apply_visible_present) && input.apply_visible === true) {
+        throw validationError('subscription_feature_not_available');
+      }
+      patch.apply_visible = false;
+    }
   }
 
   const client = await db.connect();

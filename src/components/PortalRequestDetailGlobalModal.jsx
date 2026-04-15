@@ -110,6 +110,7 @@ const PortalRequestDetailGlobalModal = () => {
     cancelStatus,
     cancelError,
     priorityOptions,
+    requestSubscriptionFeatures,
   } = usePortalRequests({
     baseUrl,
     isAuthenticated,
@@ -295,6 +296,7 @@ const PortalRequestDetailGlobalModal = () => {
               cancelStatus={cancelStatus}
               cancelError={cancelError}
               notificationHighlight={overlayHighlight}
+              subscriptionFeatures={requestSubscriptionFeatures}
             />
           ) : null}
         </DialogContent>

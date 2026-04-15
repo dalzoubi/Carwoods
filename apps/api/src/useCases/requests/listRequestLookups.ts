@@ -17,6 +17,12 @@ import {
 import { forbidden } from '../../domain/errors.js';
 import { Role } from '../../domain/constants.js';
 import type { Queryable } from '../types.js';
+import {
+  getTierLimitsForPropertyId,
+  tierLimitsToSubscriptionFeatures,
+  type SubscriptionFeaturesPayload,
+} from '../../lib/subscriptionTierCapabilities.js';
+import { getTierByName } from '../../lib/subscriptionTiersRepo.js';
 
 export type ListRequestLookupsInput = {
   actorUserId: string;
@@ -28,6 +34,7 @@ export type ListRequestLookupsOutput = {
   priorities: RequestLookupOption[];
   tenant_defaults: TenantRequestDefaults | null;
   landlord_contact: TenantLandlordContact | null;
+  subscription_features: SubscriptionFeaturesPayload | null;
 };
 
 export async function listRequestLookups(
@@ -55,5 +62,15 @@ export async function listRequestLookups(
     ]);
   }
 
-  return { categories, priorities, tenant_defaults, landlord_contact };
+  let subscription_features: SubscriptionFeaturesPayload | null = null;
+  if (role === Role.TENANT && tenant_defaults?.property_id) {
+    let lim = await getTierLimitsForPropertyId(db, tenant_defaults.property_id);
+    if (!lim) {
+      const free = await getTierByName(db, 'FREE');
+      lim = free?.limits ?? null;
+    }
+    if (lim) subscription_features = tierLimitsToSubscriptionFeatures(lim);
+  }
+
+  return { categories, priorities, tenant_defaults, landlord_contact, subscription_features };
 }

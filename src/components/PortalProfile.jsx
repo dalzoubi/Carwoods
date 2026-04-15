@@ -18,6 +18,7 @@ import {
   Stack,
   Switch,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -113,6 +114,7 @@ const PortalProfile = () => {
   const [saveError, setSaveError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [smsOptInConfirmOpen, setSmsOptInConfirmOpen] = useState(false);
+  const smsNotificationsAllowed = meData?.user?.sms_notifications_allowed !== false;
   const [removePhotoConfirmOpen, setRemovePhotoConfirmOpen] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoEditorOpen, setPhotoEditorOpen] = useState(false);
@@ -630,16 +632,22 @@ const PortalProfile = () => {
                     )}
                     label={t('portalProfile.fields.notificationsInApp')}
                   />
-                  <FormControlLabel
-                    control={(
-                      <Switch
-                        checked={Boolean(form.notificationsSmsEnabled)}
-                        onChange={onToggle('notificationsSmsEnabled')}
-                        disabled={formDisabled}
+                  <Tooltip
+                    title={!smsNotificationsAllowed ? t('portalSubscription.freeTier.featureDisabled') : ''}
+                  >
+                    <span>
+                      <FormControlLabel
+                        control={(
+                          <Switch
+                            checked={Boolean(form.notificationsSmsEnabled)}
+                            onChange={onToggle('notificationsSmsEnabled')}
+                            disabled={formDisabled || !smsNotificationsAllowed}
+                          />
+                        )}
+                        label={t('portalProfile.fields.notificationsSms')}
                       />
-                    )}
-                    label={t('portalProfile.fields.notificationsSms')}
-                  />
+                    </span>
+                  </Tooltip>
                 </Stack>
 
                 <Stack spacing={1.5}>

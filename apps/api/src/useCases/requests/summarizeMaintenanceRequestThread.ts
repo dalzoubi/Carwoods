@@ -10,6 +10,7 @@ import {
 } from '../../lib/requestsRepo.js';
 import { resolveAiAgentModels } from '../../lib/elsaRepo.js';
 import { getLlmClient } from '../../lib/llmClientFactory.js';
+import { assertAiRoutingEnabledForRequest } from '../../lib/subscriptionTierCapabilities.js';
 
 const PROMPT_VERSION = 'elsa-request-summary-v1';
 const MAX_MESSAGE_CHARS = 14_000;
@@ -135,6 +136,8 @@ export async function summarizeMaintenanceRequestThread(
   if (!ok) throw notFound();
   const request = await getRequestById(db, input.requestId);
   if (!request) throw notFound();
+
+  await assertAiRoutingEnabledForRequest(db, input.requestId);
 
   const messages = await listRequestMessages(db, input.requestId, true);
   const threadText = buildThreadSnippet(messages);

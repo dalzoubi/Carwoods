@@ -95,6 +95,7 @@ async function portalProfileHandler(
   try {
     const result = await updateProfile(getPool(), {
       actorUserId: user.id,
+      actorRole: String(user.role ?? '').trim().toUpperCase(),
       email: str(payload.email),
       firstName: str(payload.first_name) ?? null,
       lastName: str(payload.last_name) ?? null,

@@ -36,6 +36,15 @@ function portalRoleLabel(role, t) {
   return t('portalHeader.roles.unknown');
 }
 
+/** User-facing subscription label from `/api/portal/me` (`user.tier`). */
+function portalTierPillLabel(meData) {
+  const tier = meData?.user?.tier;
+  if (!tier || typeof tier !== 'object') return '';
+  const display = String(tier.display_name ?? '').trim();
+  if (display) return display;
+  return String(tier.name ?? '').trim();
+}
+
 /**
  * Avatar / loading placeholder that opens the shared portal account menu (same as PortalTopBar).
  */
@@ -115,6 +124,8 @@ export function PortalAccountMenu({ anchorEl, open, onClose, menuProps }) {
   const profileDisabled = roleResolved && isGuestRole(normalized);
   const displayName = resolveDisplayName(meData, account, t('portalHeader.notSignedIn'));
   const roleLabel = portalRoleLabel(role, t);
+  const tierLabel = portalTierPillLabel(meData);
+  const showTierPill = Boolean(tierLabel) && normalized !== Role.TENANT;
 
   const handleSignOutConfirm = async () => {
     setSignOutOpen(false);
@@ -151,13 +162,24 @@ export function PortalAccountMenu({ anchorEl, open, onClose, menuProps }) {
               <Typography variant="body2" fontWeight={600} noWrap>
                 {displayName}
               </Typography>
-              <Chip
-                label={roleLabel}
-                size="small"
-                color="primary"
-                variant="outlined"
-                sx={{ height: 20, fontSize: '0.7rem', mt: 0.5 }}
-              />
+              <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
+                <Chip
+                  label={roleLabel}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  sx={{ height: 20, fontSize: '0.7rem' }}
+                />
+                {showTierPill ? (
+                  <Chip
+                    label={tierLabel}
+                    size="small"
+                    color="secondary"
+                    variant="outlined"
+                    sx={{ height: 20, fontSize: '0.7rem' }}
+                  />
+                ) : null}
+              </Stack>
             </Box>
           </Stack>
         </Box>

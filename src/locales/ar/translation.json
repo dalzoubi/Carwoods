@@ -1101,6 +1101,12 @@
       "saveFailed": "تعذر حفظ تجاوز الإشعار."
     }
   },
+  "portalSubscription": {
+    "freeTier": {
+      "featureDisabled": "هذه الميزة غير متوفرة في خطتك الحالية.",
+      "propertyLimitReached": "لقد وصلت إلى الحد الأقصى لعدد العقارات المسموح به في خطتك الحالية."
+    }
+  },
   "portalRequests": {
     "title": "Carwoods - طلبات البوابة",
     "metaDescription": "إنشاء وإدارة طلبات الصيانة والرسائل والمرفقات.",
@@ -1690,6 +1696,7 @@
       "deleteButton": "حذف",
       "syncHarButton": "مزامنة مع HAR",
       "restoreButton": "استعادة",
+      "restoreDisabledAtPropertyCap": "خطتك تسمح بعدد محدود من العقارات النشطة. أخلِ مسارًا نشطًا قبل استعادة عقار آخر.",
       "deleteConfirmTitle": "حذف العقار؟",
       "deleteConfirmBody": "سيؤدي هذا إلى حذف «{{address}}» من قائمتك. لا يمكن التراجع عن هذا الإجراء.",
       "deleteConfirmAction": "حذف",
@@ -1731,6 +1738,7 @@
       "saveFailed": "تعذّر حفظ العقار: {{error}}",
       "deleteFailed": "تعذّر حذف العقار: {{error}}",
       "restoreFailed": "تعذّر استعادة العقار: {{error}}",
+      "restorePropertyLimitReached": "لا يمكن الاستعادة: بلوغ الحد الأقصى لعدد العقارات النشطة لهذه الخطة.",
       "visibilityFailed": "تعذّر تحديث حالة الظهور: {{error}}",
       "syncHarFailed": "تعذّر تحديث قائمة HAR: {{error}}",
       "elsaPolicyFailed": "تعذّر تحديث سياسة إلسا للعقار: {{error}}",

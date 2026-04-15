@@ -94,6 +94,14 @@ async function markMigrationApplied(pool, migrationName) {
     .query('INSERT INTO dbo.__migrations (name) VALUES (@name);');
 }
 
+/** SQL Server: columns added with ALTER TABLE are not visible to later statements in the same batch. */
+function splitSqlBatches(sql) {
+  return sql
+    .split(/^\s*GO\s*$/gim)
+    .map((chunk) => chunk.trim())
+    .filter((chunk) => chunk.length > 0);
+}
+
 async function applyMigration(pool, fileName) {
   const migrationName = path.basename(fileName, '.sql');
   if (await isMigrationApplied(pool, migrationName)) {
@@ -104,7 +112,10 @@ async function applyMigration(pool, fileName) {
   const migrationPath = path.join(migrationsDir, fileName);
   const sql = await fs.readFile(migrationPath, 'utf8');
   console.log(`  → Applying ${migrationName}`);
-  await pool.request().batch(sql);
+  const batches = splitSqlBatches(sql);
+  for (const batch of batches) {
+    await pool.request().batch(batch);
+  }
   await markMigrationApplied(pool, migrationName);
   console.log(`  ✓ ${migrationName} (done)`);
 }

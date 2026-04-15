@@ -24,6 +24,11 @@ import { getLlmClient } from '../../lib/llmClientFactory.js';
 import { evaluatePolicy } from './autoSendPolicyEngine.js';
 import { ElsaPolicyDecision, parseElsaSuggestion } from './elsaTypes.js';
 import { applyWaitingOnTenantAfterElsaTenantMessage } from './applyWaitingOnTenantAfterElsaMessage.js';
+import {
+  assertAiRoutingEnabledForRequest,
+  getTierLimitsForPropertyId,
+} from '../../lib/subscriptionTierCapabilities.js';
+import { getTierByName } from '../../lib/subscriptionTiersRepo.js';
 
 export type ProcessElsaAutoResponseInput = {
   requestId: string | undefined;
@@ -92,6 +97,8 @@ export async function processElsaAutoResponse(
   }
   const request = await getRequestById(db, input.requestId);
   if (!request) throw notFound();
+
+  await assertAiRoutingEnabledForRequest(db, input.requestId);
 
   // Elsa should evaluate only tenant-visible conversation history.
   const messages = await listRequestMessages(db, input.requestId, false);
@@ -192,6 +199,18 @@ export async function processElsaAutoResponse(
   );
   const propertyPolicy = propertyPolicies.find((row) => row.property_id === request.property_id);
 
+  let propertyAutoSendEnabledOverride: boolean | null = propertyPolicy?.auto_send_enabled_override ?? null;
+  if (request.property_id) {
+    let lim = await getTierLimitsForPropertyId(db, request.property_id);
+    if (!lim) {
+      const free = await getTierByName(db, 'FREE');
+      lim = free?.limits ?? null;
+    }
+    if (lim && !lim.property_elsa_auto_send_editable) {
+      propertyAutoSendEnabledOverride = false;
+    }
+  }
+
   const baseEvaluation = evaluatePolicy(
     {
       request,
@@ -200,7 +219,7 @@ export async function processElsaAutoResponse(
       categoryAutoSendEnabled: categoryPolicy ? Boolean(categoryPolicy.auto_send_enabled) : true,
       priorityAutoSendEnabled: priorityPolicy ? Boolean(priorityPolicy.auto_send_enabled) : true,
       priorityRequiresReview: priorityPolicy ? Boolean(priorityPolicy.require_admin_review) : false,
-      propertyAutoSendEnabledOverride: propertyPolicy?.auto_send_enabled_override ?? null,
+      propertyAutoSendEnabledOverride,
       propertyRequireReviewAll: Boolean(propertyPolicy?.require_review_all),
       allowlistCodes,
       hasScheduledWindow: Boolean(request.scheduled_from || request.scheduled_for),

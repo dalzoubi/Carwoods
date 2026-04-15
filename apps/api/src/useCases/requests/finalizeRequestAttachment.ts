@@ -32,6 +32,7 @@ import { validateVideoDurationSeconds } from '../../domain/requestAttachmentPoli
 import { forbidden, notFound, validationError } from '../../domain/errors.js';
 import { Role, hasLandlordAccess } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
+import { assertRequestPhotoVideoAttachmentsEnabled } from '../../lib/subscriptionTierCapabilities.js';
 
 export type FinalizeRequestAttachmentInput = {
   requestId: string | undefined;
@@ -70,6 +71,8 @@ export async function finalizeRequestAttachment(
     const allowed = await managementCanAccessRequest(db, requestId, role, input.actorUserId);
     if (!allowed) throw notFound();
   }
+
+  await assertRequestPhotoVideoAttachmentsEnabled(db, requestId);
 
   if (
     !input.storagePath

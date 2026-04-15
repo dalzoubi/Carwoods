@@ -11,6 +11,7 @@ import {
   IconButton,
   Paper,
   Stack,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -29,6 +30,7 @@ import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 import PortalConfirmDialog from './PortalConfirmDialog';
 import { fetchLandlords } from '../lib/portalApiClient';
 import { usePortalRequestDetailModal } from './PortalRequestDetailModalContext';
+import { allowsCsvExport, landlordTierLimits } from '../portalTierUtils';
 
 const PortalRequests = () => {
   const { t } = useTranslation();
@@ -60,6 +62,7 @@ const PortalRequests = () => {
   const isGuest = roleResolved && isGuestRole(role);
   const isManagement = hasLandlordAccess(role);
   const isAdmin = role === Role.ADMIN;
+  const csvExportAllowed = isAdmin || allowsCsvExport(landlordTierLimits(meData));
 
   const {
     requestsStatus,
@@ -67,6 +70,7 @@ const PortalRequests = () => {
     requests,
     tenantForm,
     tenantDefaults,
+    tenantSubscriptionFeatures,
     lookupStatus,
     lookupError,
     lookupContact,
@@ -258,19 +262,25 @@ const PortalRequests = () => {
             </Typography>
           </Box>
           {isManagement && (
-            <Button
-              type="button"
-              variant="outlined"
-              size="small"
-              onClick={onExportCsv}
-              disabled={exportStatus === 'loading'}
-              startIcon={exportStatus === 'loading' ? <CircularProgress size={16} color="inherit" /> : null}
-              sx={{ textTransform: 'none' }}
+            <Tooltip
+              title={!csvExportAllowed ? t('portalSubscription.freeTier.featureDisabled') : ''}
             >
-              {exportStatus === 'loading'
-                ? t('portalRequests.actions.exportingCsv')
-                : t('portalRequests.actions.exportCsv')}
-            </Button>
+              <span>
+                <Button
+                  type="button"
+                  variant="outlined"
+                  size="small"
+                  onClick={onExportCsv}
+                  disabled={exportStatus === 'loading' || !csvExportAllowed}
+                  startIcon={exportStatus === 'loading' ? <CircularProgress size={16} color="inherit" /> : null}
+                  sx={{ textTransform: 'none' }}
+                >
+                  {exportStatus === 'loading'
+                    ? t('portalRequests.actions.exportingCsv')
+                    : t('portalRequests.actions.exportCsv')}
+                </Button>
+              </span>
+            </Tooltip>
           )}
         </Stack>
 
@@ -320,6 +330,7 @@ const PortalRequests = () => {
               <TenantRequestForm
                 tenantForm={tenantForm}
                 tenantDefaults={tenantDefaults}
+                subscriptionFeatures={tenantSubscriptionFeatures}
                 lookupsStatus={lookupStatus}
                 lookupsError={lookupError}
                 lookupContact={lookupContact}

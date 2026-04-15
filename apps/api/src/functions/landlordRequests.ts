@@ -6,7 +6,7 @@ import {
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
 import { managementCanAccessRequest } from '../lib/requestsRepo.js';
-import { notFound } from '../domain/errors.js';
+import { notFound, validationError } from '../domain/errors.js';
 import { jsonResponse, mapDomainError, requireAdmin, requireLandlordOrAdmin } from '../lib/managementRequest.js';
 import { jsonResponseWithEtag } from '../lib/httpEtag.js';
 import { logError, logWarn } from '../lib/serverLogger.js';
@@ -22,6 +22,13 @@ import {
 } from '../lib/attachmentUploadConfigRepo.js';
 import { normalizeList, validateAttachmentUploadConfigInput } from '../domain/attachmentUploadConfig.js';
 
+import {
+  assertAiRoutingEnabledForRequest,
+  getEffectiveTierLimitsForRequest,
+  getTierLimitsForPropertyId,
+  tierLimitsToSubscriptionFeatures,
+} from '../lib/subscriptionTierCapabilities.js';
+import { getTierByName } from '../lib/subscriptionTiersRepo.js';
 import { listRequests } from '../useCases/requests/listRequests.js';
 import { getRequest } from '../useCases/requests/getRequest.js';
 import { updateRequestStatus } from '../useCases/requests/updateRequestStatus.js';
@@ -132,7 +139,9 @@ async function landlordRequestItem(
         actorUserId: ctx.user.id,
         actorRole: ctx.role,
       });
-      return jsonResponse(200, ctx.headers, { request: result.request });
+      const lim = await getEffectiveTierLimitsForRequest(getPool(), result.request.id);
+      const subscription_features = tierLimitsToSubscriptionFeatures(lim);
+      return jsonResponse(200, ctx.headers, { request: result.request, subscription_features });
     } catch (e) {
       const mapped = mapDomainError(e, ctx.headers);
       if (mapped) return mapped;
@@ -435,10 +444,30 @@ async function landlordElsaPropertyPolicy(
     return jsonResponse(400, ctx.headers, { error: 'missing_policy_fields' });
   }
 
+  let effectiveAutoOverride = autoOverride;
+  try {
+    let lim = await getTierLimitsForPropertyId(getPool(), propertyId);
+    if (!lim) {
+      const free = await getTierByName(getPool(), 'FREE');
+      lim = free?.limits ?? null;
+    }
+    if (lim && !lim.property_elsa_auto_send_editable) {
+      if (autoOverride === true) {
+        throw validationError('subscription_feature_not_available');
+      }
+      // Free tier: cannot turn auto-send on; persist inherit (null) as explicit off.
+      effectiveAutoOverride = false;
+    }
+  } catch (e) {
+    const mapped = mapDomainError(e, ctx.headers);
+    if (mapped) return mapped;
+    throw e;
+  }
+
   const client = await getPool().connect();
   try {
     await client.query('BEGIN');
-    await upsertPropertyPolicy(client, propertyId, autoOverride, requireReviewAll, ctx.user.id);
+    await upsertPropertyPolicy(client, propertyId, effectiveAutoOverride, requireReviewAll, ctx.user.id);
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');
@@ -474,6 +503,8 @@ async function landlordRequestElsaAutoRespond(
     const role = ctx.role.trim().toUpperCase();
     const ok = await managementCanAccessRequest(getPool(), requestId, role, ctx.user.id);
     if (!ok) throw notFound();
+
+    await assertAiRoutingEnabledForRequest(getPool(), requestId);
 
     const client = await getPool().connect();
     try {
@@ -513,16 +544,22 @@ async function landlordProcessElsa(
   const b = asRecord(body);
   const weatherSeverity = str(b.weather_severity) as 'NORMAL' | 'DANGEROUS_HEAT' | 'DANGEROUS_COLD' | undefined;
   const forceReview = bool(b.force_review);
-  const result = await processElsaAutoResponse(getPool(), {
-    requestId,
-    actorUserId: ctx.user.id,
-    actorRole: ctx.role,
-    triggeringEvent: 'MANUAL_REVIEW_ACTION',
-    forceReview: forceReview === undefined ? true : forceReview,
-    weatherSeverity,
-    logger: context,
-  });
-  return jsonResponse(200, ctx.headers, result);
+  try {
+    const result = await processElsaAutoResponse(getPool(), {
+      requestId,
+      actorUserId: ctx.user.id,
+      actorRole: ctx.role,
+      triggeringEvent: 'MANUAL_REVIEW_ACTION',
+      forceReview: forceReview === undefined ? true : forceReview,
+      weatherSeverity,
+      logger: context,
+    });
+    return jsonResponse(200, ctx.headers, result);
+  } catch (e) {
+    const mapped = mapDomainError(e, ctx.headers);
+    if (mapped) return mapped;
+    throw e;
+  }
 }
 
 async function landlordRequestElsaSummarize(

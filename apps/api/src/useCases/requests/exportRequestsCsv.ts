@@ -10,9 +10,11 @@ import {
   listRequestsForManagement,
 } from '../../lib/requestsRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
-import { forbidden } from '../../domain/errors.js';
+import { forbidden, validationError } from '../../domain/errors.js';
 import { Role, hasLandlordAccess } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
+import { getTierLimitsForUserId } from '../../lib/subscriptionTierCapabilities.js';
+import { getTierByName } from '../../lib/subscriptionTiersRepo.js';
 
 export type ExportRequestsCsvInput = {
   actorUserId: string;
@@ -38,6 +40,17 @@ export async function exportRequestsCsv(
   }
 
   const role = input.actorRole.trim().toUpperCase();
+  if (role === Role.LANDLORD) {
+    let lim = await getTierLimitsForUserId(db, input.actorUserId);
+    if (!lim) {
+      const free = await getTierByName(db, 'FREE');
+      lim = free?.limits ?? null;
+    }
+    if (lim && !lim.csv_export_enabled) {
+      throw validationError('csv_export_not_available');
+    }
+  }
+
   const rows =
     role === Role.ADMIN
       ? await listRequestsForManagement(db)

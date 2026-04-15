@@ -32,6 +32,7 @@ import { forbidden, notFound, unprocessable, validationError } from '../../domai
 import { Role, hasLandlordAccess } from '../../domain/constants.js';
 import type { Queryable } from '../types.js';
 import { buildAttachmentUploadUrl } from '../../lib/requestAttachmentStorage.js';
+import { assertRequestPhotoVideoAttachmentsEnabled } from '../../lib/subscriptionTierCapabilities.js';
 
 export type RequestUploadIntentInput = {
   requestId: string | undefined;
@@ -72,6 +73,8 @@ export async function requestUploadIntent(
     const allowed = await managementCanAccessRequest(db, requestId, role, input.actorUserId);
     if (!allowed) throw notFound();
   }
+
+  await assertRequestPhotoVideoAttachmentsEnabled(db, requestId);
 
   if (!input.filename || !input.contentType || !Number.isFinite(input.fileSizeBytes) || input.fileSizeBytes <= 0) {
     throw validationError('missing_or_invalid_file_fields');

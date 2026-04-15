@@ -1100,6 +1100,12 @@
       "saveFailed": "Impossible d'enregistrer la dérogation de notification."
     }
   },
+  "portalSubscription": {
+    "freeTier": {
+      "featureDisabled": "Cette fonctionnalité n'est pas disponible avec votre formule actuelle.",
+      "propertyLimitReached": "Vous avez atteint le nombre maximal de biens autorisé par votre formule actuelle."
+    }
+  },
   "portalRequests": {
     "title": "Carwoods - Demandes du portail",
     "metaDescription": "Creer et gerer les demandes de maintenance, messages et pieces jointes.",
@@ -1689,6 +1695,7 @@
       "deleteButton": "Supprimer",
       "syncHarButton": "Synchroniser avec HAR",
       "restoreButton": "Restaurer",
+      "restoreDisabledAtPropertyCap": "Votre formule n'autorise qu'un nombre limité de biens actifs. Libérez une place active avant d'en restaurer un autre.",
       "deleteConfirmTitle": "Supprimer la propriété ?",
       "deleteConfirmBody": "Cela supprimera « {{address}} » de votre liste. Cette action est irréversible.",
       "deleteConfirmAction": "Supprimer",
@@ -1730,6 +1737,7 @@
       "saveFailed": "Impossible d'enregistrer la propriété : {{error}}",
       "deleteFailed": "Impossible de supprimer la propriété : {{error}}",
       "restoreFailed": "Impossible de restaurer la propriété : {{error}}",
+      "restorePropertyLimitReached": "Restauration impossible : le nombre maximal de biens actifs prévu par cette formule est déjà atteint.",
       "visibilityFailed": "Impossible de mettre à jour la visibilité : {{error}}",
       "syncHarFailed": "Impossible d'actualiser l'annonce HAR : {{error}}",
       "elsaPolicyFailed": "Impossible de mettre à jour la politique Elsa de la propriété : {{error}}",

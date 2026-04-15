@@ -14,6 +14,7 @@ import {
   managementCanAccessRequest,
 } from '../../lib/requestsRepo.js';
 import { applyWaitingOnTenantAfterElsaTenantMessage } from './applyWaitingOnTenantAfterElsaMessage.js';
+import { assertAiRoutingEnabledForRequest } from '../../lib/subscriptionTierCapabilities.js';
 
 export type ReviewElsaDecisionInput = {
   requestId: string;
@@ -60,6 +61,8 @@ export async function reviewElsaDecision(
 
   const request = await getRequestById(db, input.requestId);
   if (!request) throw notFound();
+
+  await assertAiRoutingEnabledForRequest(db, input.requestId);
 
   const existingDecision = await getElsaDecisionForRequest(db, input.requestId, input.decisionId);
   if (!existingDecision) throw notFound();

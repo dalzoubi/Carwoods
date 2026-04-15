@@ -82,14 +82,15 @@ describe('ResponsiveNavbar sign-out confirmation', () => {
     expect(screen.queryByRole('menuitem', { name: /requests/i })).not.toBeInTheDocument();
   });
 
-  it('renders Portal as a simple link (portal has its own sidebar)', () => {
+  it('does not nest a portal chrome menu; signed-in users open the account menu instead', () => {
     render(
       <WithAppTheme>
         <ResponsiveNavbar />
       </WithAppTheme>
     );
 
-    expect(screen.getByRole('link', { name: /^portal$/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^sign in$/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /account menu/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /portal menu/i })).not.toBeInTheDocument();
   });
 });

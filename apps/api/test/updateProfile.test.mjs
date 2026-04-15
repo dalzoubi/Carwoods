@@ -32,6 +32,7 @@ test('updateProfile rejects when target email belongs to another user', async ()
   await assert.rejects(
     updateProfile(db, {
       actorUserId: 'actor-user',
+      actorRole: 'TENANT',
       email: 'duplicate@example.com',
       firstName: 'Test',
       lastName: 'User',
@@ -64,6 +65,7 @@ test('updateProfile maps DB unique-email race condition to conflict', async () =
   await assert.rejects(
     updateProfile(db, {
       actorUserId: 'actor-user',
+      actorRole: 'TENANT',
       email: 'taken@example.com',
       firstName: 'Test',
       lastName: 'User',
@@ -91,6 +93,7 @@ test('updateProfile requires phone when SMS notifications are enabled', async ()
   await assert.rejects(
     updateProfile(db, {
       actorUserId: 'actor-user',
+      actorRole: 'TENANT',
       email: 'self@example.com',
       firstName: 'Test',
       lastName: 'User',

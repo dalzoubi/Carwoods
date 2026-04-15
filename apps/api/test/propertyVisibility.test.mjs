@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { listProperties } from '../dist/src/useCases/properties/listProperties.js';
 import { getProperty } from '../dist/src/useCases/properties/getProperty.js';
 import { updateProperty } from '../dist/src/useCases/properties/updateProperty.js';
+import { createProperty } from '../dist/src/useCases/properties/createProperty.js';
 import { createLease } from '../dist/src/useCases/leases/createLease.js';
 import { DomainError } from '../dist/src/domain/errors.js';
 
@@ -98,6 +99,85 @@ test('lease creation checks property visibility for landlord', async () => {
 
   assert.match(capture.sql, /\(\$2 = 'ADMIN' OR created_by = \$3\)/);
   assert.deepEqual(capture.values, ['property-id', 'LANDLORD', 'landlord-user-id']);
+});
+
+test('createProperty rejects apply_visible when tier disallows Apply page visibility', async () => {
+  const db = {
+    async query(sql, values) {
+      if (/FROM users WHERE id = \$1/i.test(sql)) {
+        return {
+          rows: [
+            {
+              id: values[0],
+              external_auth_oid: 'oid',
+              email: 'l@example.com',
+              first_name: 'L',
+              last_name: 'L',
+              phone: null,
+              profile_photo_storage_path: null,
+              role: 'LANDLORD',
+              status: 'ACTIVE',
+              ui_language: null,
+              ui_color_scheme: null,
+              tier_id: 'tier-free',
+            },
+          ],
+          rowCount: 1,
+        };
+      }
+      if (/FROM subscription_tiers WHERE id = \$1/i.test(sql)) {
+        return {
+          rows: [
+            {
+              id: 'tier-free',
+              name: 'FREE',
+              display_name: 'Free',
+              description: null,
+              is_active: true,
+              created_at: new Date(),
+              max_properties: 10,
+              max_tenants: 10,
+              ai_routing_enabled: false,
+              csv_export_enabled: false,
+              custom_notifications_enabled: false,
+              notification_email_enabled: false,
+              notification_sms_enabled: false,
+              maintenance_request_history_days: 90,
+              request_photo_video_attachments_enabled: false,
+              property_apply_visibility_editable: false,
+              property_elsa_auto_send_editable: false,
+            },
+          ],
+          rowCount: 1,
+        };
+      }
+      if (/COUNT\(\*\)\s+AS c/i.test(sql) && /FROM properties/i.test(sql)) {
+        return { rows: [{ c: 0 }], rowCount: 1 };
+      }
+      throw new Error(`unexpected sql in createProperty test: ${sql}`);
+    },
+    async connect() {
+      throw new Error('connect should not run when apply_visible is rejected');
+    },
+  };
+
+  await assert.rejects(
+    createProperty(db, {
+      actorUserId: 'landlord-1',
+      actorRole: 'LANDLORD',
+      street: '1 Main St',
+      city: 'Houston',
+      state: 'TX',
+      zip: '77001',
+      apply_visible: true,
+    }),
+    (error) => {
+      assert.ok(error instanceof DomainError);
+      assert.equal(error.code, 'VALIDATION');
+      assert.equal(error.message, 'subscription_feature_not_available');
+      return true;
+    }
+  );
 });
 
 test('landlord cannot reassign property landlord on update', async () => {

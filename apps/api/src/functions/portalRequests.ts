@@ -14,6 +14,10 @@ import type { PortalRole } from '../lib/requestAccessPolicy.js';
 
 import { listRequests } from '../useCases/requests/listRequests.js';
 import { getRequest } from '../useCases/requests/getRequest.js';
+import {
+  getEffectiveTierLimitsForRequest,
+  tierLimitsToSubscriptionFeatures,
+} from '../lib/subscriptionTierCapabilities.js';
 import { createRequest } from '../useCases/requests/createRequest.js';
 import { cancelRequest } from '../useCases/requests/cancelRequest.js';
 import { listRequestLookups } from '../useCases/requests/listRequestLookups.js';
@@ -166,7 +170,9 @@ async function portalRequestItem(
         actorUserId: user.id,
         actorRole: role,
       });
-      return jsonResponse(200, headers, { request: result.request });
+      const lim = await getEffectiveTierLimitsForRequest(getPool(), result.request.id);
+      const subscription_features = tierLimitsToSubscriptionFeatures(lim);
+      return jsonResponse(200, headers, { request: result.request, subscription_features });
     } catch (e) {
       const mapped = mapDomainError(e, headers);
       if (mapped) return mapped;

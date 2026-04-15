@@ -24,6 +24,19 @@ const PortalAuthContext = createContext(null);
 
 const PORTAL_DEV_AUTH = import.meta.env.VITE_PORTAL_DEV_AUTH === 'true';
 
+const DEV_FREE_TIER_LIMITS = {
+  max_properties: 1,
+  max_tenants: 5,
+  ai_routing_enabled: false,
+  csv_export_enabled: false,
+  custom_notifications_enabled: false,
+  notification_channels: ['in_app'],
+  maintenance_request_history_days: 90,
+  request_photo_video_attachments_enabled: false,
+  property_apply_visibility_editable: false,
+  property_elsa_auto_send_editable: false,
+};
+
 /** How often (ms) to re-poll /me while a user is authenticated. */
 export const ME_POLL_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -44,7 +57,20 @@ const DEV_AUTH_VALUE = PORTAL_DEV_AUTH
       meStatus: 'ok',
       meData: {
         role: Role.LANDLORD,
-        user: { first_name: 'Dev', last_name: 'Landlord', role: Role.LANDLORD, status: 'ACTIVE' },
+        user: {
+          id: 'dev-user',
+          first_name: 'Dev',
+          last_name: 'Landlord',
+          role: Role.LANDLORD,
+          status: 'ACTIVE',
+          sms_notifications_allowed: false,
+          tier: {
+            id: 'dev-tier-free',
+            name: 'FREE',
+            display_name: 'Free',
+            limits: DEV_FREE_TIER_LIMITS,
+          },
+        },
       },
       meError: '',
       meErrorStatus: null,

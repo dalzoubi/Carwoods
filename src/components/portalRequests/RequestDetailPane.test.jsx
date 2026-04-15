@@ -93,6 +93,7 @@ function makeProps(overrides = {}) {
     onCancelRequest: async () => {},
     cancelStatus: 'idle',
     cancelError: '',
+    subscriptionFeatures: null,
     ...overrides,
   };
 }

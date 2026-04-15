@@ -5,7 +5,10 @@ import {
   type InvocationContext,
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
-import { jsonResponse, requireLandlordOrAdmin } from '../lib/managementRequest.js';
+import { jsonResponse, mapDomainError, requireLandlordOrAdmin } from '../lib/managementRequest.js';
+import { validationError } from '../domain/errors.js';
+import { getTierLimitsForUserId } from '../lib/subscriptionTierCapabilities.js';
+import { getTierByName } from '../lib/subscriptionTiersRepo.js';
 import {
   deriveEventCategory,
   listNotificationScopeOverrides,
@@ -114,40 +117,77 @@ async function landlordOwnsScope(
 async function listScopeUserOptions(
   scopeType: NotificationScopeType,
   scopeId: string,
-  context?: InvocationContext
+  context: InvocationContext | undefined,
+  actorRole: string
 ): Promise<NotificationPolicyUserOption[]> {
   const pool = getPool();
-  const scopePredicate = scopeType === 'PROPERTY'
-    ? `p.id = $1 AND p.deleted_at IS NULL`
-    : `mr.id = $1 AND mr.deleted_at IS NULL`;
-  const scopeUserCte = scopeType === 'PROPERTY'
-    ? `SELECT p.created_by AS user_id
-       FROM properties p
-       WHERE p.id = $1
-         AND p.deleted_at IS NULL
+  const scopePredicate =
+    scopeType === 'PROPERTY'
+      ? `p.id = $1 AND p.deleted_at IS NULL`
+      : `mr.id = $1 AND mr.deleted_at IS NULL`;
+
+  const isAdmin = actorRole.trim().toUpperCase() === Role.ADMIN;
+
+  const scopeUserCte = isAdmin
+    ? scopeType === 'PROPERTY'
+      ? `SELECT p.created_by AS user_id
+         FROM properties p
+         WHERE p.id = $1
+           AND p.deleted_at IS NULL
+         UNION
+         SELECT lt.user_id
+         FROM leases l
+         JOIN lease_tenants lt ON lt.lease_id = l.id
+         WHERE l.property_id = $1
+           AND l.deleted_at IS NULL`
+      : `SELECT mr.submitted_by_user_id AS user_id
+         FROM maintenance_requests mr
+         WHERE mr.id = $1
+           AND mr.deleted_at IS NULL
+         UNION
+         SELECT p.created_by AS user_id
+         FROM maintenance_requests mr
+         JOIN properties p ON p.id = mr.property_id
+         WHERE mr.id = $1
+           AND mr.deleted_at IS NULL
+           AND p.deleted_at IS NULL
+         UNION
+         SELECT lt.user_id
+         FROM maintenance_requests mr
+         JOIN lease_tenants lt ON lt.lease_id = mr.lease_id
+         WHERE mr.id = $1
+           AND mr.deleted_at IS NULL`
+    : scopeType === 'PROPERTY'
+      ? `SELECT lt.user_id
+         FROM leases l
+         JOIN lease_tenants lt ON lt.lease_id = l.id
+         WHERE l.property_id = $1
+           AND l.deleted_at IS NULL`
+      : `SELECT lt.user_id
+         FROM maintenance_requests mr
+         JOIN lease_tenants lt ON lt.lease_id = mr.lease_id
+         WHERE mr.id = $1
+           AND mr.deleted_at IS NULL
+         UNION
+         SELECT mr.submitted_by_user_id
+         FROM maintenance_requests mr
+         WHERE mr.id = $1
+           AND mr.deleted_at IS NULL
+           AND mr.submitted_by_user_id IS NOT NULL`;
+
+  const adminUnion = isAdmin
+    ? `
        UNION
-       SELECT lt.user_id
-       FROM leases l
-       JOIN lease_tenants lt ON lt.lease_id = l.id
-       WHERE l.property_id = $1
-         AND l.deleted_at IS NULL`
-    : `SELECT mr.submitted_by_user_id AS user_id
-       FROM maintenance_requests mr
-       WHERE mr.id = $1
-         AND mr.deleted_at IS NULL
-       UNION
-       SELECT p.created_by AS user_id
-       FROM maintenance_requests mr
-       JOIN properties p ON p.id = mr.property_id
-       WHERE mr.id = $1
-         AND mr.deleted_at IS NULL
-         AND p.deleted_at IS NULL
-       UNION
-       SELECT lt.user_id
-       FROM maintenance_requests mr
-       JOIN lease_tenants lt ON lt.lease_id = mr.lease_id
-       WHERE mr.id = $1
-         AND mr.deleted_at IS NULL`;
+       SELECT u.id AS user_id
+       FROM users u
+       WHERE UPPER(u.role) = '${Role.ADMIN}'
+         AND UPPER(ISNULL(u.status, '')) IN ('ACTIVE', 'INVITED')`
+    : '';
+
+  const tenantFilter = isAdmin
+    ? ''
+    : ` AND UPPER(ISNULL(u.role, '')) = '${Role.TENANT}'
+         AND UPPER(ISNULL(u.status, '')) IN ('ACTIVE', 'INVITED')`;
 
   const rows = await pool.query<NotificationPolicyUserOptionDb>(
     `WITH scoped_scope AS (
@@ -157,11 +197,7 @@ async function listScopeUserOptions(
      ),
      scoped_users AS (
        ${scopeUserCte}
-       UNION
-       SELECT u.id AS user_id
-       FROM users u
-       WHERE UPPER(u.role) = '${Role.ADMIN}'
-         AND UPPER(ISNULL(u.status, '')) IN ('ACTIVE', 'INVITED')
+       ${adminUnion}
      )
      SELECT DISTINCT
        u.id AS user_id,
@@ -177,6 +213,7 @@ async function listScopeUserOptions(
      JOIN scoped_users su ON 1 = 1
      JOIN users u ON u.id = su.user_id
      WHERE u.id IS NOT NULL
+       ${tenantFilter}
      ORDER BY display_name ASC`,
     [scopeId]
   );
@@ -184,6 +221,7 @@ async function listScopeUserOptions(
   logInfo(context, 'notification.policies.scope_users.resolved', {
     scopeType,
     scopeId,
+    actorRole: actorRole.trim().toUpperCase(),
     userCount: rows.rows.length,
   });
   return rows.rows.map((row) => {
@@ -193,6 +231,60 @@ async function listScopeUserOptions(
       profile_photo_url: profilePhotoReadUrlFromStoragePath(profile_photo_storage_path),
     };
   });
+}
+
+/** Non-admin callers may only set overrides for tenant users tied to the scope (not admins, landlords, or unrelated users). */
+async function isTenantPolicyTargetInScope(
+  scopeType: NotificationScopeType,
+  scopeId: string,
+  targetUserId: string
+): Promise<boolean> {
+  const pool = getPool();
+  const tenantRole = Role.TENANT;
+  if (scopeType === 'PROPERTY') {
+    const r = await pool.query<{ ok: number }>(
+      `SELECT TOP 1 1 AS ok
+       FROM leases l
+       JOIN lease_tenants lt ON lt.lease_id = l.id
+       JOIN users u ON u.id = lt.user_id
+       WHERE l.property_id = $1
+         AND l.deleted_at IS NULL
+         AND u.id = $2
+         AND UPPER(ISNULL(u.role, '')) = $3
+         AND UPPER(ISNULL(u.status, '')) IN ('ACTIVE', 'INVITED')`,
+      [scopeId, targetUserId, tenantRole]
+    );
+    return r.rows.length > 0;
+  }
+  const r = await pool.query<{ ok: number }>(
+    `SELECT TOP 1 1 AS ok
+     FROM maintenance_requests mr
+     WHERE mr.id = $1
+       AND mr.deleted_at IS NULL
+       AND (
+         EXISTS (
+           SELECT 1
+           FROM lease_tenants lt
+           JOIN users u ON u.id = lt.user_id
+           WHERE lt.lease_id = mr.lease_id
+             AND u.id = $2
+             AND UPPER(ISNULL(u.role, '')) = $3
+             AND UPPER(ISNULL(u.status, '')) IN ('ACTIVE', 'INVITED')
+         )
+         OR (
+           mr.submitted_by_user_id = $2
+           AND EXISTS (
+             SELECT 1
+             FROM users u
+             WHERE u.id = $2
+               AND UPPER(ISNULL(u.role, '')) = $3
+               AND UPPER(ISNULL(u.status, '')) IN ('ACTIVE', 'INVITED')
+           )
+         )
+       )`,
+    [scopeId, targetUserId, tenantRole]
+  );
+  return r.rows.length > 0;
 }
 
 async function listNotificationPoliciesHandler(
@@ -228,22 +320,26 @@ async function listNotificationPoliciesHandler(
     ? normalizeEventCategory(categoryRaw)
     : undefined;
 
+  const scopeUsers = await listScopeUserOptions(scopeType, scopeId, context, role);
+  const allowedTenantIds = new Set(scopeUsers.map((u) => u.user_id));
+
   const rows = await listNotificationScopeOverrides(getPool(), {
     scopeType,
     scopeId,
     userId: userIdFilter,
     eventCategory,
   });
-  const scopeUsers = await listScopeUserOptions(scopeType, scopeId, context);
+  const policies =
+    role === Role.ADMIN ? rows : rows.filter((row) => allowedTenantIds.has(row.user_id));
   logInfo(context, 'notification.policies.list.success', {
     actorUserId: userId,
     actorRole: role,
     scopeType,
     scopeId,
-    policiesCount: rows.length,
+    policiesCount: policies.length,
     usersCount: scopeUsers.length,
   });
-  return jsonResponse(200, headers, { policies: rows, users: scopeUsers });
+  return jsonResponse(200, headers, { policies, users: scopeUsers });
 }
 
 async function patchNotificationPolicyHandler(
@@ -289,6 +385,16 @@ async function patchNotificationPolicyHandler(
       logWarn(context, 'notification.policies.patch.forbidden_scope', { actorUserId: userId, scopeType, scopeId });
       return jsonResponse(403, headers, { error: 'forbidden' });
     }
+    const tenantOk = await isTenantPolicyTargetInScope(scopeType, scopeId, targetUserId);
+    if (!tenantOk) {
+      logWarn(context, 'notification.policies.patch.forbidden_target_user', {
+        actorUserId: userId,
+        scopeType,
+        scopeId,
+        targetUserId,
+      });
+      return jsonResponse(403, headers, { error: 'forbidden_target_user' });
+    }
   }
 
   const emailEnabled = asBoolOrNull(payload.email_enabled);
@@ -296,6 +402,26 @@ async function patchNotificationPolicyHandler(
   const smsEnabled = asBoolOrNull(payload.sms_enabled);
   const smsOptIn = asBoolOrNull(payload.sms_opt_in);
   const activeValue = asBoolOrNull(payload.active);
+
+  try {
+    if (role !== Role.ADMIN) {
+      const wantsSms = smsEnabled === true || smsOptIn === true;
+      if (wantsSms) {
+        let lim = await getTierLimitsForUserId(getPool(), userId);
+        if (!lim) {
+          const free = await getTierByName(getPool(), 'FREE');
+          lim = free?.limits ?? null;
+        }
+        if (lim && !lim.notification_channels.includes('sms')) {
+          throw validationError('sms_not_available');
+        }
+      }
+    }
+  } catch (e) {
+    const mapped = mapDomainError(e, headers);
+    if (mapped) return mapped;
+    throw e;
+  }
 
   const client = await getPool().connect();
   try {

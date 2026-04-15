@@ -25,6 +25,7 @@ import { Role, hasLandlordAccess } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
 import { getElsaRequestAutoRespond, getElsaSettings } from '../../lib/elsaRepo.js';
 import { processElsaAutoResponse } from './processElsaAutoResponse.js';
+import { assertAiRoutingEnabledForRequest } from '../../lib/subscriptionTierCapabilities.js';
 
 export type PostRequestMessageInput = {
   requestId: string | undefined;
@@ -120,6 +121,7 @@ export async function postRequestMessage(
     if (shouldTriggerElsa) {
       (async () => {
         try {
+          await assertAiRoutingEnabledForRequest(db, requestId);
           const [autoRespondEnabled, settings] = await Promise.all([
             getElsaRequestAutoRespond(db, requestId),
             getElsaSettings(db),

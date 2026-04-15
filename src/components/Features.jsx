@@ -147,13 +147,6 @@ const Features = () => {
                 </Typography>
             </Box>
 
-            {/* Feature cards */}
-            <Stack spacing={2}>
-                {featureSections.map((f, i) => (
-                    <FeatureSection key={i} icon={f.icon} heading={f.heading} body={f.body} />
-                ))}
-            </Stack>
-
             {/* Elsa spotlight */}
             <Paper
                 component="section"
@@ -225,6 +218,13 @@ const Features = () => {
                     </Box>
                 </Stack>
             </Paper>
+
+            {/* Feature cards */}
+            <Stack spacing={2}>
+                {featureSections.map((f, i) => (
+                    <FeatureSection key={i} icon={f.icon} heading={f.heading} body={f.body} />
+                ))}
+            </Stack>
 
             {/* Maintenance request statuses */}
             <Box

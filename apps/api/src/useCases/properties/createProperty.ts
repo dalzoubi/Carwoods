@@ -14,6 +14,11 @@ import { validateCreateProperty } from '../../domain/propertyValidation.js';
 import { forbidden, unprocessable, validationError } from '../../domain/errors.js';
 import { hasLandlordAccess, Role } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
+import {
+  countActivePropertiesForLandlord,
+  getTierLimitsForUserId,
+} from '../../lib/subscriptionTierCapabilities.js';
+import { getTierByName } from '../../lib/subscriptionTiersRepo.js';
 
 export type CreatePropertyInput = {
   actorUserId: string;
@@ -65,6 +70,27 @@ export async function createProperty(
     ownerUserId = landlordUserId;
   }
 
+  let tierLimits = await getTierLimitsForUserId(db, ownerUserId);
+  if (!tierLimits) {
+    const free = await getTierByName(db, 'FREE');
+    tierLimits = free?.limits ?? null;
+  }
+  const maxP = tierLimits?.max_properties ?? -1;
+  if (maxP >= 0) {
+    const n = await countActivePropertiesForLandlord(db, ownerUserId);
+    if (n >= maxP) {
+      throw validationError('property_limit_reached');
+    }
+  }
+
+  let applyVisible = input.apply_visible ?? false;
+  if (tierLimits && !tierLimits.property_apply_visibility_editable) {
+    if (applyVisible === true) {
+      throw validationError('subscription_feature_not_available');
+    }
+    applyVisible = false;
+  }
+
   let har: Awaited<ReturnType<typeof harColumnsForCreate>>;
   try {
     har = await harColumnsForCreate({
@@ -83,7 +109,7 @@ export async function createProperty(
     zip: input.zip!,
     har_listing_id: har.har_listing_id,
     listing_source: har.listing_source,
-    apply_visible: input.apply_visible ?? false,
+    apply_visible: applyVisible,
     metadata: har.metadata,
     har_sync_status: har.har_sync_status,
     har_sync_error: har.har_sync_error,

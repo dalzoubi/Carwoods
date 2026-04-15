@@ -53,6 +53,45 @@ import PortalRefreshButton from './PortalRefreshButton';
 import PortalPersonWithAvatar from './PortalPersonWithAvatar';
 import { listingFromHarPreviewPayload, parseHarInput } from '../portalHarPreviewParse';
 import { fetchElsaSettings, fetchHarPreview, fetchLandlords, patchElsaPropertyPolicy } from '../lib/portalApiClient';
+import {
+  allowsPropertyApplyVisibilityEdit,
+  allowsPropertyElsaAutoSendEdit,
+  landlordTierLimits,
+  maxPropertiesForLandlord,
+} from '../portalTierUtils';
+
+/** Admin: tier cap from landlord row; landlord self: from /me tier limits. */
+function maxPropertiesForLandlordContext(isAdmin, landlordUserId, landlordRows, selfLimits) {
+  if (isAdmin) {
+    const lid = String(landlordUserId ?? '').trim();
+    if (!lid) return -1;
+    const row = landlordRows.find((l) => l.id === lid);
+    if (!row) return -1;
+    const n = row.tier_max_properties;
+    if (n === null || n === undefined) return -1;
+    const num = Number(n);
+    return Number.isFinite(num) ? num : -1;
+  }
+  return maxPropertiesForLandlord(selfLimits);
+}
+
+function countActivePropertiesForLandlordInList(allProperties, landlordUserId) {
+  const lid = String(landlordUserId ?? '').trim();
+  if (!lid) return 0;
+  return allProperties.filter(
+    (p) => !p.deletedAt && String(p.landlordUserId ?? '').trim() === lid
+  ).length;
+}
+
+/** Deleted row: restore only if restoring would not exceed the owner's tier max active properties. */
+function canRestoreDeletedProperty(isAdmin, property, landlordRows, selfLimits, allProperties) {
+  if (!property?.deletedAt) return false;
+  const lid = String(property.landlordUserId ?? '').trim();
+  const maxP = maxPropertiesForLandlordContext(isAdmin, lid, landlordRows, selfLimits);
+  if (maxP < 0) return true;
+  const active = countActivePropertiesForLandlordInList(allProperties, lid);
+  return active < maxP;
+}
 
 const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 
@@ -81,6 +120,37 @@ const EMPTY_FORM = {
   showOnApplyPage: true,
   landlordUserId: '',
 };
+
+/** Create/edit dialog: can the user toggle Apply-page visibility (false for Free tier / tier limits). */
+function isFormApplyPageVisibilityEditable(isAdmin, formLandlordUserId, landlordRows, landlordLimits) {
+  if (isAdmin) {
+    const lid = String(formLandlordUserId ?? '').trim();
+    if (!lid) return true;
+    const row = landlordRows.find((l) => l.id === lid);
+    if (!row) return true;
+    return String(row.tier_name ?? '').toUpperCase() !== 'FREE';
+  }
+  return allowsPropertyApplyVisibilityEdit(landlordLimits);
+}
+
+/** Match PortalAdminProperties `resolveAllowElsaEdit` (used before hooks when building policy map). */
+function resolveAllowElsaEditForLandlord(isAdmin, landlordUserId, landlordRows, landlordLimits) {
+  if (isAdmin) {
+    const lid = String(landlordUserId ?? '').trim();
+    if (!lid) return true;
+    const row = landlordRows.find((l) => l.id === lid);
+    if (!row) return true;
+    return String(row.tier_name ?? '').toUpperCase() !== 'FREE';
+  }
+  return allowsPropertyElsaAutoSendEdit(landlordLimits);
+}
+
+/** Free tier: inherit (null) must display as off; paid: null inherits as on. */
+function elsaPropertyPolicyDisplayEnabled(isAdmin, landlordUserId, landlordRows, landlordLimits, apiOverride) {
+  const allow = resolveAllowElsaEditForLandlord(isAdmin, landlordUserId, landlordRows, landlordLimits);
+  if (allow) return apiOverride !== false;
+  return apiOverride === true;
+}
 
 function propertyToForm(p) {
   return {
@@ -130,6 +200,9 @@ const PropertyCard = ({
   property,
   isAdmin,
   landlordRow = null,
+  allowVisibleEdit = true,
+  allowElsaEdit = true,
+  allowRestore = true,
   syncingHar,
   onEdit,
   onDelete,
@@ -203,47 +276,66 @@ const PropertyCard = ({
           )}
         </Stack>
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1, minHeight: 32 }}>
-          <FormControlLabel
-            control={(
-              <Switch
-                size="small"
-                checked={Boolean(property.showOnApplyPage)}
-                disabled={isDeleted}
-                onChange={() => onToggleVisible(property)}
+          <Tooltip
+            title={!allowVisibleEdit && !isDeleted ? t('portalSubscription.freeTier.featureDisabled') : ''}
+          >
+            <span>
+              <FormControlLabel
+                control={(
+                  <Switch
+                    size="small"
+                    checked={Boolean(property.showOnApplyPage)}
+                    disabled={isDeleted || !allowVisibleEdit}
+                    onChange={() => onToggleVisible(property)}
+                  />
+                )}
+                label={t('portalAdminProperties.grid.visible')}
+                sx={{ m: 0 }}
               />
-            )}
-            label={t('portalAdminProperties.grid.visible')}
-            sx={{ m: 0 }}
-          />
+            </span>
+          </Tooltip>
           {isDeleted ? (
             <Chip label={t('portalAdminProperties.grid.deleted')} size="small" color="warning" variant="outlined" />
           ) : null}
         </Stack>
         {showElsaAutoSend && (
           <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1, minHeight: 32 }}>
-            <FormControlLabel
-              control={(
-                <Switch
-                  size="small"
-                  checked={Boolean(elsaAutoSendEnabled)}
-                  disabled={isDeleted || updatingElsaPolicy}
-                  onChange={() => onToggleElsaAutoSend(property)}
+            <Tooltip
+              title={!allowElsaEdit && !isDeleted ? t('portalSubscription.freeTier.featureDisabled') : ''}
+            >
+              <span>
+                <FormControlLabel
+                  control={(
+                    <Switch
+                      size="small"
+                      checked={Boolean(elsaAutoSendEnabled)}
+                      disabled={isDeleted || updatingElsaPolicy || !allowElsaEdit}
+                      onChange={() => onToggleElsaAutoSend(property)}
+                    />
+                  )}
+                  label={t('portalAdminProperties.grid.elsaAutoSend')}
+                  sx={{ m: 0 }}
                 />
-              )}
-              label={t('portalAdminProperties.grid.elsaAutoSend')}
-              sx={{ m: 0 }}
-            />
+              </span>
+            </Tooltip>
           </Stack>
         )}
       </CardContent>
       <Box sx={{ px: 2, pb: 2, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
         {isDeleted ? (
-          <Tooltip title={t('portalAdminProperties.grid.restoreButton')}>
+          <Tooltip
+            title={
+              allowRestore
+                ? t('portalAdminProperties.grid.restoreButton')
+                : t('portalAdminProperties.grid.restoreDisabledAtPropertyCap')
+            }
+          >
             <span>
               <IconButton
                 type="button"
                 size="small"
                 color="primary"
+                disabled={!allowRestore}
                 aria-label={t('portalAdminProperties.grid.restoreButton')}
                 onClick={() => onRestore(property)}
               >
@@ -363,9 +455,18 @@ const PortalAdminProperties = () => {
       const policyMap = {};
       const elsaPayload = await fetchElsaSettings(baseUrl, token);
       const propertyPolicies = Array.isArray(elsaPayload?.properties) ? elsaPayload.properties : [];
+      const limits = landlordTierLimits(meData);
       for (const row of propertyPolicies) {
         if (row && typeof row.property_id === 'string') {
-          policyMap[row.property_id] = row.auto_send_enabled_override !== false;
+          const prop = rows.find((p) => p.id === row.property_id);
+          const lid = typeof prop?.landlord_user_id === 'string' ? prop.landlord_user_id : '';
+          policyMap[row.property_id] = elsaPropertyPolicyDisplayEnabled(
+            isAdmin,
+            lid,
+            landlords,
+            limits,
+            row.auto_send_enabled_override
+          );
         }
       }
       if (signal?.aborted) return;
@@ -379,7 +480,7 @@ const PortalAdminProperties = () => {
     } finally {
       if (!signal?.aborted) setListLoading(false);
     }
-  }, [isAuthenticated, baseUrl, showDeleted]);
+  }, [isAuthenticated, baseUrl, showDeleted, isAdmin, landlords, meData]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -454,6 +555,10 @@ const PortalAdminProperties = () => {
 
   const handleEdit = (property) => {
     const nextForm = propertyToForm(property);
+    const limits = landlordTierLimits(meData);
+    if (!isFormApplyPageVisibilityEditable(isAdmin, nextForm.landlordUserId, landlords, limits)) {
+      nextForm.showOnApplyPage = false;
+    }
     setForm(nextForm);
     setEditingId(property.id);
     setFormOpen(true);
@@ -510,11 +615,16 @@ const PortalAdminProperties = () => {
       setRestoreStatus('idle');
       showFeedback(t('portalAdminProperties.messages.restored'));
       void refresh();
-    } catch {
+    } catch (err) {
       setRestoreStatus('error');
-      showFeedback(t('portalAdminProperties.errors.restoreFailed', {
-        error: t('portalSetup.errors.unknown'),
-      }), 'error');
+      const code = err && typeof err === 'object' ? err.code : '';
+      if (code === 'property_limit_reached') {
+        showFeedback(t('portalAdminProperties.errors.restorePropertyLimitReached'), 'error');
+      } else {
+        showFeedback(t('portalAdminProperties.errors.restoreFailed', {
+          error: t('portalSetup.errors.unknown'),
+        }), 'error');
+      }
     }
   };
 
@@ -552,27 +662,6 @@ const PortalAdminProperties = () => {
       }), 'error');
     } finally {
       setSyncHarTargetId('');
-    }
-  };
-
-  const handleToggleElsaAutoSend = async (property) => {
-    if (!property?.id) return;
-    const current = elsaPropertyPolicyById[property.id] !== false;
-    setElsaPolicyTargetId(property.id);
-    try {
-      const token = await getAccessToken();
-      await patchElsaPropertyPolicy(baseUrl, token, property.id, {
-        auto_send_enabled_override: !current,
-        require_review_all: false,
-      });
-      setElsaPropertyPolicyById((prev) => ({ ...prev, [property.id]: !current }));
-      showFeedback(t('portalAdminProperties.messages.elsaPolicyUpdated'));
-    } catch {
-      showFeedback(t('portalAdminProperties.errors.elsaPolicyFailed', {
-        error: t('portalSetup.errors.unknown'),
-      }), 'error');
-    } finally {
-      setElsaPolicyTargetId('');
     }
   };
 
@@ -668,13 +757,16 @@ const PortalAdminProperties = () => {
     setSubmitStatus('saving');
     setSubmitError('');
     const record = formToRecord(form);
+    const limits = landlordTierLimits(meData);
+    const visibilityEditable = isFormApplyPageVisibilityEditable(isAdmin, form.landlordUserId, landlords, limits);
+    const recordForApi = visibilityEditable ? record : { ...record, showOnApplyPage: false };
     try {
       const token = await getAccessToken();
       if (editingId) {
-        await updatePropertyApi(baseUrl, token, editingId, record);
+        await updatePropertyApi(baseUrl, token, editingId, recordForApi);
         showFeedback(t('portalAdminProperties.messages.updated'));
       } else {
-        await createPropertyApi(baseUrl, token, record);
+        await createPropertyApi(baseUrl, token, recordForApi);
         showFeedback(t('portalAdminProperties.messages.added'));
       }
       resetForm();
@@ -691,6 +783,115 @@ const PortalAdminProperties = () => {
     () =>
       [...landlords].sort((a, b) => collator.compare(landlordRowLabel(a), landlordRowLabel(b))),
     [landlords]
+  );
+
+  const myUserId = String(meData?.user?.id ?? '').trim();
+  const landlordLimits = useMemo(() => landlordTierLimits(meData), [meData]);
+
+  const applyPageVisibilityEditable = useMemo(
+    () => isFormApplyPageVisibilityEditable(isAdmin, form.landlordUserId, sortedLandlords, landlordLimits),
+    [isAdmin, form.landlordUserId, sortedLandlords, landlordLimits]
+  );
+
+  useEffect(() => {
+    if (!formOpen || applyPageVisibilityEditable) return;
+    setForm((prev) => (prev.showOnApplyPage ? { ...prev, showOnApplyPage: false } : prev));
+  }, [applyPageVisibilityEditable, formOpen]);
+
+  const effectiveLandlordIdForCap = useMemo(() => {
+    if (isAdmin) {
+      const fromForm = formOpen && !editingId ? String(form.landlordUserId ?? '').trim() : '';
+      if (fromForm) return fromForm;
+      return String(adminLandlordFilterId ?? '').trim();
+    }
+    return myUserId;
+  }, [isAdmin, formOpen, editingId, form.landlordUserId, adminLandlordFilterId, myUserId]);
+
+  const maxPropsForCap = useMemo(() => {
+    if (isAdmin) {
+      if (!effectiveLandlordIdForCap) return -1;
+      const row = sortedLandlords.find((l) => l.id === effectiveLandlordIdForCap);
+      const n = row?.tier_max_properties;
+      if (n === null || n === undefined) return -1;
+      const num = Number(n);
+      return Number.isFinite(num) ? num : -1;
+    }
+    return maxPropertiesForLandlord(landlordLimits);
+  }, [isAdmin, effectiveLandlordIdForCap, sortedLandlords, landlordLimits]);
+
+  const activeCountForCap = useMemo(() => {
+    if (!effectiveLandlordIdForCap) {
+      if (isAdmin) return 0;
+      return properties.filter((p) => !p.deletedAt).length;
+    }
+    return properties.filter(
+      (p) => !p.deletedAt && String(p.landlordUserId ?? '') === effectiveLandlordIdForCap
+    ).length;
+  }, [properties, effectiveLandlordIdForCap, isAdmin]);
+
+  const atPropertyCap = maxPropsForCap >= 0 && activeCountForCap >= maxPropsForCap;
+
+  const resolveAllowVisibleEdit = useCallback(
+    (property) => {
+      if (isAdmin) {
+        const row = sortedLandlords.find((l) => l.id === property.landlordUserId);
+        if (!row) return true;
+        return String(row.tier_name ?? '').toUpperCase() !== 'FREE';
+      }
+      return allowsPropertyApplyVisibilityEdit(landlordLimits);
+    },
+    [isAdmin, sortedLandlords, landlordLimits]
+  );
+
+  const resolveAllowElsaEdit = useCallback(
+    (property) => {
+      if (isAdmin) {
+        const row = sortedLandlords.find((l) => l.id === property.landlordUserId);
+        if (!row) return true;
+        return String(row.tier_name ?? '').toUpperCase() !== 'FREE';
+      }
+      return allowsPropertyElsaAutoSendEdit(landlordLimits);
+    },
+    [isAdmin, sortedLandlords, landlordLimits]
+  );
+
+  const resolveAllowRestore = useCallback(
+    (property) =>
+      canRestoreDeletedProperty(isAdmin, property, sortedLandlords, landlordLimits, properties),
+    [isAdmin, sortedLandlords, landlordLimits, properties]
+  );
+
+  const handleToggleElsaAutoSend = useCallback(
+    async (property) => {
+      if (!property?.id) return;
+      const allowElsa = resolveAllowElsaEdit(property);
+      const raw = elsaPropertyPolicyById[property.id];
+      const current = allowElsa ? raw !== false : raw === true;
+      setElsaPolicyTargetId(property.id);
+      try {
+        const token = await getAccessToken();
+        await patchElsaPropertyPolicy(baseUrl, token, property.id, {
+          auto_send_enabled_override: !current,
+          require_review_all: false,
+        });
+        setElsaPropertyPolicyById((prev) => ({ ...prev, [property.id]: !current }));
+        showFeedback(t('portalAdminProperties.messages.elsaPolicyUpdated'));
+      } catch {
+        showFeedback(t('portalAdminProperties.errors.elsaPolicyFailed', {
+          error: t('portalSetup.errors.unknown'),
+        }), 'error');
+      } finally {
+        setElsaPolicyTargetId('');
+      }
+    },
+    [
+      baseUrl,
+      elsaPropertyPolicyById,
+      getAccessToken,
+      resolveAllowElsaEdit,
+      showFeedback,
+      t,
+    ]
   );
 
   const filteredProperties = useMemo(
@@ -756,30 +957,44 @@ const PortalAdminProperties = () => {
         <StatusAlertSlot message={listError ? { severity: 'error', text: listError } : null} />
 
         <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
-          <Button
-            type="button"
-            variant="contained"
-            startIcon={<Add />}
-            disabled={!canManage}
-            onClick={() => {
-              setEditingId(null);
-              const nextForm = {
-                ...EMPTY_FORM,
-                landlordUserId: isAdmin && adminLandlordFilterId ? adminLandlordFilterId : '',
-              };
-              setForm(nextForm);
-              setFieldErrors({});
-              setHarSearchId('');
-              formBaselineRef.current = { form: nextForm, harSearchId: '' };
-              setHarStatus('idle');
-              setHarMessage('');
-              setSubmitStatus('idle');
-              setSubmitError('');
-              setFormOpen(true);
-            }}
+          <Tooltip
+            title={atPropertyCap ? t('portalSubscription.freeTier.propertyLimitReached') : ''}
           >
-            {t('portalAdminProperties.form.showForm')}
-          </Button>
+            <span>
+              <Button
+                type="button"
+                variant="contained"
+                startIcon={<Add />}
+                disabled={!canManage || atPropertyCap}
+                onClick={() => {
+                  setEditingId(null);
+                  const landlordIdForForm = isAdmin && adminLandlordFilterId ? adminLandlordFilterId : '';
+                  const defaultShowOnApply = isFormApplyPageVisibilityEditable(
+                    isAdmin,
+                    landlordIdForForm,
+                    sortedLandlords,
+                    landlordLimits
+                  );
+                  const nextForm = {
+                    ...EMPTY_FORM,
+                    landlordUserId: landlordIdForForm,
+                    showOnApplyPage: defaultShowOnApply,
+                  };
+                  setForm(nextForm);
+                  setFieldErrors({});
+                  setHarSearchId('');
+                  formBaselineRef.current = { form: nextForm, harSearchId: '' };
+                  setHarStatus('idle');
+                  setHarMessage('');
+                  setSubmitStatus('idle');
+                  setSubmitError('');
+                  setFormOpen(true);
+                }}
+              >
+                {t('portalAdminProperties.form.showForm')}
+              </Button>
+            </span>
+          </Tooltip>
           <FormControlLabel
             control={(
               <Switch
@@ -885,13 +1100,20 @@ const PortalAdminProperties = () => {
                     property={property}
                     isAdmin={isAdmin}
                     landlordRow={sortedLandlords.find((l) => l.id === property.landlordUserId) ?? null}
+                    allowVisibleEdit={resolveAllowVisibleEdit(property)}
+                    allowElsaEdit={resolveAllowElsaEdit(property)}
+                    allowRestore={resolveAllowRestore(property)}
                     syncingHar={syncHarTargetId === property.id}
                     onEdit={handleEdit}
                     onDelete={handleDeleteClick}
                     onRestore={handleRestoreClick}
                     onToggleVisible={handleVisibilityToggleClick}
                     onToggleElsaAutoSend={handleToggleElsaAutoSend}
-                    elsaAutoSendEnabled={elsaPropertyPolicyById[property.id] !== false}
+                    elsaAutoSendEnabled={
+                      resolveAllowElsaEdit(property)
+                        ? elsaPropertyPolicyById[property.id] !== false
+                        : elsaPropertyPolicyById[property.id] === true
+                    }
                     updatingElsaPolicy={elsaPolicyTargetId === property.id}
                     showElsaAutoSend
                     onSyncHar={handleSyncHar}
@@ -1168,15 +1390,22 @@ const PortalAdminProperties = () => {
               )}
             </Box>
 
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={form.showOnApplyPage}
-                  onChange={onChange('showOnApplyPage')}
+            <Tooltip
+              title={!applyPageVisibilityEditable ? t('portalSubscription.freeTier.featureDisabled') : ''}
+            >
+              <span>
+                <FormControlLabel
+                  control={(
+                    <Switch
+                      checked={form.showOnApplyPage}
+                      onChange={onChange('showOnApplyPage')}
+                      disabled={!applyPageVisibilityEditable}
+                    />
+                  )}
+                  label={t('portalAdminProperties.form.showOnApplyPage')}
                 />
-              }
-              label={t('portalAdminProperties.form.showOnApplyPage')}
-            />
+              </span>
+            </Tooltip>
 
             <StatusAlertSlot message={submitError ? { severity: 'error', text: submitError } : null} />
 

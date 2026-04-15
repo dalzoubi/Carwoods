@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Box, Button, Chip, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Chip, MenuItem, Paper, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { emailFromAccount, normalizeRole, resolveRole } from '../portalUtils';
@@ -15,6 +15,7 @@ import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 import StatusAlertSlot from './StatusAlertSlot';
 import PortalRefreshButton from './PortalRefreshButton';
 import PortalPersonWithAvatar from './PortalPersonWithAvatar';
+import { allowsSmsChannel, landlordTierLimits } from '../portalTierUtils';
 
 const CHANNEL_OPTIONS = ['inherit', 'enabled', 'disabled'];
 
@@ -65,7 +66,10 @@ const PortalNotificationPolicies = () => {
   const { t } = useTranslation();
   const { baseUrl, isAuthenticated, account, meData, getAccessToken, handleApiForbidden } = usePortalAuth();
   const role = normalizeRole(resolveRole(meData, account));
+  const isLandlordViewer = role === Role.LANDLORD;
   const canUseModule = isAuthenticated && Boolean(baseUrl) && (role === Role.ADMIN || role === Role.LANDLORD);
+  const landlordLimits = useMemo(() => landlordTierLimits(meData), [meData]);
+  const smsPolicyFieldsEnabled = role === Role.ADMIN || allowsSmsChannel(landlordLimits);
 
   const [status, setStatus] = useState('idle');
   const [properties, setProperties] = useState([]);
@@ -124,36 +128,40 @@ const PortalNotificationPolicies = () => {
     scopeRows.forEach((row) => {
       const submittedByUserId = String(row?.submitted_by_user_id ?? '').trim();
       if (!submittedByUserId) return;
+      const submittedRole = normalizeRole(row?.submitted_by_role);
+      if (isLandlordViewer && submittedRole !== Role.TENANT) return;
       const submittedByName = String(row?.submitted_by_display_name ?? '').trim() || submittedByUserId;
       byId.set(submittedByUserId, {
         id: submittedByUserId,
         displayName: submittedByName,
-        role: normalizeRole(row?.submitted_by_role),
+        role: submittedRole,
         profile_photo_url: String(row?.submitted_by_profile_photo_url ?? '').trim(),
         first_name: String(row?.submitted_by_first_name ?? ''),
         last_name: String(row?.submitted_by_last_name ?? ''),
       });
     });
 
-    const scopePropertyId = scopeType === 'PROPERTY'
-      ? scopeId
-      : String(scopeRows[0]?.property_id ?? '').trim();
-    const property = properties.find((row) => String(row?.id ?? '').trim() === scopePropertyId);
-    const landlordUserId = String(property?.landlord_user_id ?? property?.created_by ?? '').trim();
-    const landlordName = String(property?.landlord_name ?? '').trim();
-    if (landlordUserId) {
-      const split = splitNameForInitials(landlordName || landlordUserId);
-      byId.set(landlordUserId, {
-        id: landlordUserId,
-        displayName: landlordName || landlordUserId,
-        role: Role.LANDLORD,
-        profile_photo_url: '',
-        first_name: split.first,
-        last_name: split.last,
-      });
+    if (!isLandlordViewer) {
+      const scopePropertyId = scopeType === 'PROPERTY'
+        ? scopeId
+        : String(scopeRows[0]?.property_id ?? '').trim();
+      const property = properties.find((row) => String(row?.id ?? '').trim() === scopePropertyId);
+      const landlordUserId = String(property?.landlord_user_id ?? property?.created_by ?? '').trim();
+      const landlordName = String(property?.landlord_name ?? '').trim();
+      if (landlordUserId) {
+        const split = splitNameForInitials(landlordName || landlordUserId);
+        byId.set(landlordUserId, {
+          id: landlordUserId,
+          displayName: landlordName || landlordUserId,
+          role: Role.LANDLORD,
+          profile_photo_url: '',
+          first_name: split.first,
+          last_name: split.last,
+        });
+      }
     }
     return Array.from(byId.values());
-  }, [properties, requests, scopeId, scopeType]);
+  }, [isLandlordViewer, properties, requests, scopeId, scopeType]);
 
   const userOptionMap = useMemo(() => {
     const byId = new Map();
@@ -161,8 +169,9 @@ const PortalNotificationPolicies = () => {
       if (!user || typeof user !== 'object') return;
       const id = String(user.user_id ?? '').trim();
       if (!id) return;
-      const displayName = String(user.display_name ?? '').trim() || id;
       const normalizedRole = normalizeRole(user.role);
+      if (isLandlordViewer && normalizedRole !== Role.TENANT) return;
+      const displayName = String(user.display_name ?? '').trim() || id;
       byId.set(id, {
         id,
         displayName,
@@ -186,21 +195,23 @@ const PortalNotificationPolicies = () => {
         });
       });
     }
-    policies.forEach((policy) => {
-      const id = String(policy?.user_id ?? '').trim();
-      if (!id || byId.has(id)) return;
-      const split = splitNameForInitials(id);
-      byId.set(id, {
-        id,
-        displayName: id,
-        role: '',
-        profile_photo_url: '',
-        first_name: split.first,
-        last_name: split.last,
+    if (!isLandlordViewer) {
+      policies.forEach((policy) => {
+        const id = String(policy?.user_id ?? '').trim();
+        if (!id || byId.has(id)) return;
+        const split = splitNameForInitials(id);
+        byId.set(id, {
+          id,
+          displayName: id,
+          role: '',
+          profile_photo_url: '',
+          first_name: split.first,
+          last_name: split.last,
+        });
       });
-    });
+    }
     return byId;
-  }, [fallbackUsers, policies, scopeUsers]);
+  }, [fallbackUsers, isLandlordViewer, policies, scopeUsers]);
 
   const userOptions = useMemo(
     () =>
@@ -565,32 +576,36 @@ const PortalNotificationPolicies = () => {
                 ))}
               </TextField>
             </Stack>
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-              <TextField
-                select
-                label={t('portalNotificationPolicies.form.sms')}
-                value={smsMode}
-                onChange={(event) => setSmsMode(event.target.value)}
-                fullWidth
-                disabled={!canUseModule}
-              >
-                {CHANNEL_OPTIONS.map((option) => (
-                  <MenuItem key={option} value={option}>{t(`portalNotificationPolicies.form.mode.${option}`)}</MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                select
-                label={t('portalNotificationPolicies.form.smsOptIn')}
-                value={smsOptInMode}
-                onChange={(event) => setSmsOptInMode(event.target.value)}
-                fullWidth
-                disabled={!canUseModule}
-              >
-                {CHANNEL_OPTIONS.map((option) => (
-                  <MenuItem key={option} value={option}>{t(`portalNotificationPolicies.form.mode.${option}`)}</MenuItem>
-                ))}
-              </TextField>
-            </Stack>
+            <Tooltip
+              title={!smsPolicyFieldsEnabled ? t('portalSubscription.freeTier.featureDisabled') : ''}
+            >
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                <TextField
+                  select
+                  label={t('portalNotificationPolicies.form.sms')}
+                  value={smsMode}
+                  onChange={(event) => setSmsMode(event.target.value)}
+                  fullWidth
+                  disabled={!canUseModule || !smsPolicyFieldsEnabled}
+                >
+                  {CHANNEL_OPTIONS.map((option) => (
+                    <MenuItem key={option} value={option}>{t(`portalNotificationPolicies.form.mode.${option}`)}</MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  select
+                  label={t('portalNotificationPolicies.form.smsOptIn')}
+                  value={smsOptInMode}
+                  onChange={(event) => setSmsOptInMode(event.target.value)}
+                  fullWidth
+                  disabled={!canUseModule || !smsPolicyFieldsEnabled}
+                >
+                  {CHANNEL_OPTIONS.map((option) => (
+                    <MenuItem key={option} value={option}>{t(`portalNotificationPolicies.form.mode.${option}`)}</MenuItem>
+                  ))}
+                </TextField>
+              </Stack>
+            </Tooltip>
             <TextField
               select
               label={t('portalNotificationPolicies.form.active')}

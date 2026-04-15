@@ -198,6 +198,7 @@ async function landlordPropertiesItem(
         state: str(b.state),
         zip: str(b.zip),
         apply_visible: bool(b.apply_visible),
+        apply_visible_present: b.apply_visible !== undefined,
         har_listing_id: b.har_listing_id as string | null | undefined,
         har_listing_id_present: b.har_listing_id !== undefined,
         landlord_user_id: str(b.landlord_user_id),

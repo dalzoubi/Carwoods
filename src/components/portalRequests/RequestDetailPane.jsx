@@ -280,10 +280,15 @@ const RequestDetailPane = ({
   cancelStatus,
   cancelError,
   notificationHighlight = null,
+  subscriptionFeatures = null,
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const isDev = import.meta.env.DEV;
+  const allowAttachmentsForRequest = subscriptionFeatures == null
+    || Boolean(subscriptionFeatures.request_photo_video_attachments_enabled);
+  const allowAiForRequest = subscriptionFeatures == null
+    || Boolean(subscriptionFeatures.ai_routing_enabled);
   const requestPriorityTone = useMemo(() => priorityTone(requestDetail), [requestDetail]);
   const [activeTab, setActiveTab] = useState('details');
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -1107,12 +1112,21 @@ const RequestDetailPane = ({
 
       <SectionCard
         component="form"
-        onSubmit={onAttachmentSubmit}
+        onSubmit={allowAttachmentsForRequest ? onAttachmentSubmit : (e) => { e.preventDefault(); }}
       >
         <Stack spacing={1.5}>
-          <Typography variant="h3" sx={sectionHeadingSx}>
-            {t('portalRequests.attachments.heading')}
-          </Typography>
+          <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
+            <Typography variant="h3" sx={sectionHeadingSx}>
+              {t('portalRequests.attachments.heading')}
+            </Typography>
+            {!allowAttachmentsForRequest ? (
+              <Tooltip title={t('portalSubscription.freeTier.featureDisabled')}>
+                <Typography component="span" variant="caption" color="text.disabled" sx={{ cursor: 'help' }}>
+                  {t('portalSubscription.freeTier.featureDisabled')}
+                </Typography>
+              </Tooltip>
+            ) : null}
+          </Stack>
           <Box
             sx={(theme) => ({
               border: '1px solid',
@@ -1120,6 +1134,8 @@ const RequestDetailPane = ({
               borderRadius: 1.25,
               p: 1.5,
               backgroundColor: alpha(theme.palette.background.default, theme.palette.mode === 'dark' ? 0.32 : 0.65),
+              opacity: allowAttachmentsForRequest ? 1 : 0.5,
+              pointerEvents: allowAttachmentsForRequest ? 'auto' : 'none',
             })}
           >
             <Stack spacing={0.75}>
@@ -1491,7 +1507,7 @@ const RequestDetailPane = ({
               <Button
                 type="submit"
                 variant="contained"
-                disabled={!attachmentFile || attachmentStatus === 'saving'}
+                disabled={!allowAttachmentsForRequest || !attachmentFile || attachmentStatus === 'saving'}
                 startIcon={attachmentStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
                 sx={{ minHeight: 40, width: { xs: '100%', sm: 'auto' } }}
               >
@@ -1582,16 +1598,19 @@ const RequestDetailPane = ({
                 spacing={1}
                 sx={{ alignItems: { xs: 'stretch', md: 'center' }, justifyContent: 'space-between' }}
               >
-                <FormControlLabel
-                  control={(
-                    <Switch
-                      checked={Boolean(elsaAutoRespondEnabled)}
-                      onChange={(event) => onSetElsaAutoRespond(event.target.checked)}
-                    />
-                  )}
-                  label={t('portalRequests.elsa.autoRespondToggle')}
-                  sx={{ mr: 0 }}
-                />
+                <Tooltip title={!allowAiForRequest ? t('portalSubscription.freeTier.featureDisabled') : ''}>
+                  <FormControlLabel
+                    control={(
+                      <Switch
+                        checked={Boolean(elsaAutoRespondEnabled)}
+                        onChange={(event) => onSetElsaAutoRespond(event.target.checked)}
+                        disabled={!allowAiForRequest}
+                      />
+                    )}
+                    label={t('portalRequests.elsa.autoRespondToggle')}
+                    sx={{ mr: 0 }}
+                  />
+                </Tooltip>
                 <Stack
                   direction={{ xs: 'column', md: 'row' }}
                   spacing={1}
@@ -1604,7 +1623,7 @@ const RequestDetailPane = ({
                     type="button"
                     variant="outlined"
                     onClick={onSummarizeElsaRequest}
-                    disabled={elsaSummarizeStatus === 'loading' || elsaDecisionStatus === 'loading'}
+                    disabled={!allowAiForRequest || elsaSummarizeStatus === 'loading' || elsaDecisionStatus === 'loading'}
                     startIcon={elsaSummarizeStatus === 'loading' ? <CircularProgress size={16} /> : null}
                     sx={{ minHeight: 40, width: { xs: '100%', md: 'auto' } }}
                   >
@@ -1616,7 +1635,7 @@ const RequestDetailPane = ({
                     type="button"
                     variant="outlined"
                     onClick={onRunElsa}
-                    disabled={elsaDecisionStatus === 'loading'}
+                    disabled={!allowAiForRequest || elsaDecisionStatus === 'loading'}
                     startIcon={elsaDecisionStatus === 'loading' ? <CircularProgress size={16} /> : null}
                     sx={{ minHeight: 40, width: { xs: '100%', md: 'auto' } }}
                   >
@@ -1863,7 +1882,7 @@ const RequestDetailPane = ({
                             size="small"
                             variant="contained"
                             onClick={() => handleReviewElsaDecision(decision.id, 'SEND_AND_RESOLVE')}
-                            disabled={elsaDecisionActionStatus === 'saving'}
+                            disabled={!allowAiForRequest || elsaDecisionActionStatus === 'saving'}
                             startIcon={isElsaActionSaving(decision.id, 'SEND_AND_RESOLVE') ? <CircularProgress size={14} color="inherit" /> : null}
                             sx={{ minHeight: 36, flexShrink: 0 }}
                           >
@@ -1876,7 +1895,7 @@ const RequestDetailPane = ({
                             size="small"
                             variant="outlined"
                             onClick={() => handleUseSuggestedReply(decision, plannedReply)}
-                            disabled={elsaDecisionActionStatus === 'saving'}
+                            disabled={!allowAiForRequest || elsaDecisionActionStatus === 'saving'}
                             sx={{ minHeight: 36, flexShrink: 0 }}
                           >
                             {t('portalRequests.elsa.actions.copyToMessage')}
@@ -1889,7 +1908,7 @@ const RequestDetailPane = ({
                             color="warning"
                             variant="outlined"
                             onClick={() => handleReviewElsaDecision(decision.id, 'DISMISS')}
-                            disabled={elsaDecisionActionStatus === 'saving'}
+                            disabled={!allowAiForRequest || elsaDecisionActionStatus === 'saving'}
                             startIcon={isElsaActionSaving(decision.id, 'DISMISS') ? <CircularProgress size={14} color="inherit" /> : null}
                             sx={{ minHeight: 36, flexShrink: 0 }}
                           >

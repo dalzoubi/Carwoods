@@ -33,6 +33,8 @@ export type LandlordAdminListRow = Pick<
 > & {
   tier_name: string | null;
   tier_display_name: string | null;
+  /** From subscription_tiers.max_properties; null when landlord has no tier. */
+  tier_max_properties: number | null;
 };
 
 export type UpsertLandlordResult = {
@@ -215,7 +217,8 @@ const LANDLORD_LIST_SELECT = `
   u.status,
   u.tier_id,
   st.name AS tier_name,
-  st.display_name AS tier_display_name`;
+  st.display_name AS tier_display_name,
+  st.max_properties AS tier_max_properties`;
 
 export async function listLandlords(
   client: Queryable,

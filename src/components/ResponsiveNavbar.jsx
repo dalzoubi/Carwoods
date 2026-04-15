@@ -322,16 +322,30 @@ const ResponsiveNavbar = () => {
     const handleAccountClose = () => {
         setAccountAnchor(null);
     };
+    const navigateToPortal = () => {
+        navigate(withDarkPath(pathname, '/portal'));
+    };
+    const beginMarketingNavSignIn = () => {
+        signIn().then((didSignIn) => {
+            if (didSignIn) {
+                navigateToPortal();
+            }
+        });
+    };
     const handleAccountButtonClick = (e) => {
         if (!isAuthenticated) {
-            signIn().then((didSignIn) => {
-                if (didSignIn) {
-                    navigate(withDarkPath(pathname, '/portal'));
-                }
-            });
+            beginMarketingNavSignIn();
             return;
         }
         handleAccountOpen(e);
+    };
+    const handleDrawerSignInRowClick = () => {
+        handleDrawerToggle();
+        if (isAuthenticated) {
+            navigateToPortal();
+            return;
+        }
+        beginMarketingNavSignIn();
     };
     const rentersLinks = [
         { to: '/apply', label: t('tenantLinks.apply') },
@@ -425,13 +439,12 @@ const ResponsiveNavbar = () => {
                 <>
                     {!isMobile ? (
                         <Button
-                            component={RouterLink}
-                            to={withDarkPath(pathname, '/portal')}
                             type="button"
                             size="small"
                             variant="text"
                             id={PORTAL_ACCOUNT_MENU_BUTTON_ID}
                             aria-label={t('portalHeader.actions.signIn')}
+                            onClick={beginMarketingNavSignIn}
                             startIcon={<Login fontSize="small" aria-hidden />}
                             sx={{
                                 color: 'inherit',
@@ -448,11 +461,10 @@ const ResponsiveNavbar = () => {
                     ) : (
                         <Tooltip title={t('portalHeader.actions.signIn')} arrow>
                             <IconButton
-                                component={RouterLink}
-                                to={withDarkPath(pathname, '/portal')}
                                 type="button"
                                 size="small"
                                 aria-label={t('portalHeader.actions.signIn')}
+                                onClick={beginMarketingNavSignIn}
                                 sx={toolbarChromeIconButtonSx}
                             >
                                 <Login fontSize="small" aria-hidden />
@@ -570,10 +582,9 @@ const ResponsiveNavbar = () => {
                     </ListItemButton>
 
                     <ListItemButton
-                        component={RouterLink}
-                        to={withDarkPath(pathname, portalLinkTo)}
+                        type="button"
                         selected={isRouteActive(portalLinkTo)}
-                        onClick={handleDrawerToggle}
+                        onClick={handleDrawerSignInRowClick}
                         sx={listItemButtonSx}
                     >
                         <ListItemText primary={t('portalHeader.actions.signIn')} style={{ color: muiTheme.palette.drawer.text }} />

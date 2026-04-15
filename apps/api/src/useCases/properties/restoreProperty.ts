@@ -10,6 +10,11 @@ import { writeAudit } from '../../lib/auditRepo.js';
 import { forbidden, notFound, validationError } from '../../domain/errors.js';
 import { hasLandlordAccess } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
+import {
+  countActivePropertiesForLandlord,
+  getTierLimitsForUserId,
+} from '../../lib/subscriptionTierCapabilities.js';
+import { getTierByName } from '../../lib/subscriptionTiersRepo.js';
 
 export type RestorePropertyInput = {
   propertyId: string | undefined;
@@ -36,6 +41,24 @@ export async function restoreProperty(
     if (!before) {
       await client.query('ROLLBACK');
       throw notFound();
+    }
+    const ownerUserId = String(before.created_by ?? '').trim();
+    if (!ownerUserId) {
+      await client.query('ROLLBACK');
+      throw validationError('property_owner_missing');
+    }
+    let tierLimits = await getTierLimitsForUserId(client, ownerUserId);
+    if (!tierLimits) {
+      const free = await getTierByName(client, 'FREE');
+      tierLimits = free?.limits ?? null;
+    }
+    const maxP = tierLimits?.max_properties ?? -1;
+    if (maxP >= 0) {
+      const activeCount = await countActivePropertiesForLandlord(client, ownerUserId);
+      if (activeCount >= maxP) {
+        await client.query('ROLLBACK');
+        throw validationError('property_limit_reached');
+      }
     }
     const ok = await restorePropertyRepo(
       client as Parameters<typeof restorePropertyRepo>[0],

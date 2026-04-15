@@ -188,6 +188,10 @@ export function usePortalRequests({
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [priorityOptions, setPriorityOptions] = useState([]);
   const [tenantDefaults, setTenantDefaults] = useState(null);
+  /** From GET portal/requests/lookups — tenant create form (property owner's tier). */
+  const [tenantSubscriptionFeatures, setTenantSubscriptionFeatures] = useState(null);
+  /** From GET request detail — thread attachments + Elsa (property owner's tier). */
+  const [requestSubscriptionFeatures, setRequestSubscriptionFeatures] = useState(null);
 
   const [managementForm, setManagementForm] = useState({
     status_code: '',
@@ -321,13 +325,16 @@ export function usePortalRequests({
       const messagesPath = `/api/portal/requests/${encodeURIComponent(requestId)}/messages`;
       const attachmentsPath = `/api/portal/requests/${encodeURIComponent(requestId)}/attachments`;
 
-      const { detail, messagesPayload, attachmentsPayload } = await fetchRequestDetail(
+      const { detail, subscriptionFeatures, messagesPayload, attachmentsPayload } = await fetchRequestDetail(
         baseUrl,
         token,
         { detailPath, messagesPath, attachmentsPath, emailHint }
       );
 
       setRequestDetail(detail);
+      setRequestSubscriptionFeatures(
+        subscriptionFeatures && typeof subscriptionFeatures === 'object' ? subscriptionFeatures : null
+      );
       setThreadMessages(Array.isArray(messagesPayload?.messages) ? messagesPayload.messages : []);
       setAttachments(Array.isArray(attachmentsPayload?.attachments) ? attachmentsPayload.attachments : []);
       setManagementForm((prev) => ({
@@ -345,6 +352,7 @@ export function usePortalRequests({
     } catch (error) {
       handleApiForbidden(error);
       setDetailStatus('error');
+      setRequestSubscriptionFeatures(null);
       setDetailError(extractErrorMessage(error, t, 'portalRequests.errors.loadFailed'));
       throw error;
     }
@@ -626,6 +634,7 @@ export function usePortalRequests({
       setCategoryOptions([]);
       setPriorityOptions([]);
       setTenantDefaults(null);
+      setTenantSubscriptionFeatures(null);
       return;
     }
 
@@ -669,18 +678,22 @@ export function usePortalRequests({
           setCategoryOptions([]);
           setPriorityOptions([]);
           setTenantDefaults(null);
+          setTenantSubscriptionFeatures(null);
           return;
         }
         setLookupContact(null);
         setCategoryOptions(categories);
         setPriorityOptions(priorities);
         setTenantDefaults(defaults ?? null);
+        const sf = payload?.subscription_features;
+        setTenantSubscriptionFeatures(sf && typeof sf === 'object' ? sf : null);
         setLookupStatus('ok');
       } catch (error) {
         if (cancelled) return;
         handleApiForbidden(error);
         setLookupStatus('error');
         setLookupContact(null);
+        setTenantSubscriptionFeatures(null);
         setLookupError(extractErrorMessage(error, t, 'portalRequests.errors.loadFailed'));
       }
     };
@@ -1441,6 +1454,8 @@ export function usePortalRequests({
     attachments,
     tenantForm,
     tenantDefaults,
+    tenantSubscriptionFeatures,
+    requestSubscriptionFeatures,
     lookupStatus,
     lookupError,
     lookupContact,

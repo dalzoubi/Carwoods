@@ -15,6 +15,7 @@ import {
 import { findUserByClaims, autoAssignFreeTier, autoRegisterLandlordByClaims } from '../lib/usersRepo.js';
 import { getGlobalAttachmentUploadConfigCached } from '../lib/attachmentUploadConfigRepo.js';
 import { getTierById, getTierByName } from '../lib/subscriptionTiersRepo.js';
+import { getTierLimitsForTenantPrimaryLease } from '../lib/subscriptionTierCapabilities.js';
 import { addProfilePhotoReadUrl } from '../lib/userProfilePhotoUrl.js';
 import { ensureUserNotificationPreference } from '../lib/notificationPolicyRepo.js';
 import { enqueueNotification } from '../lib/notificationRepo.js';
@@ -236,6 +237,7 @@ export async function portalMeHandler(
 
   // Tier: auto-assign FREE for LANDLORD users who don't yet have a tier
   let tier: { id: string; name: string; display_name: string; limits: import('../lib/subscriptionTiersRepo.js').TierLimits } | null = null;
+  let sms_notifications_allowed = true;
   if (deps.hasDatabaseUrl()) {
     try {
       const pool = deps.getPool();
@@ -249,6 +251,18 @@ export async function portalMeHandler(
       } else if (user.tier_id) {
         const t = await getTierById(pool, user.tier_id);
         if (t) tier = { id: t.id, name: t.name, display_name: t.display_name, limits: t.limits };
+      }
+      if (user.role === Role.LANDLORD && tier?.limits) {
+        sms_notifications_allowed = tier.limits.notification_channels.includes('sms');
+      } else if (user.role === Role.TENANT) {
+        let lim = await getTierLimitsForTenantPrimaryLease(pool, user.id);
+        if (!lim) {
+          const free = await getTierByName(pool, 'FREE');
+          lim = free?.limits ?? null;
+        }
+        sms_notifications_allowed = Boolean(lim?.notification_channels.includes('sms'));
+      } else {
+        sms_notifications_allowed = true;
       }
     } catch (tierErr) {
       logWarn(context, 'portal.me.tier_lookup.failed', {
@@ -272,6 +286,7 @@ export async function portalMeHandler(
         ui_language: user.ui_language ?? null,
         ui_color_scheme: user.ui_color_scheme ?? null,
         tier,
+        sms_notifications_allowed,
       },
     },
   };

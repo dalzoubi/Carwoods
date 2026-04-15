@@ -173,6 +173,7 @@ export async function fetchRequestDetail(baseUrl, accessToken, params) {
 
   return {
     detail: detailPayload?.request ?? null,
+    subscriptionFeatures: detailPayload?.subscription_features ?? null,
     messagesPayload,
     attachmentsPayload,
   };
