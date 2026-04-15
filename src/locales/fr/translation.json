@@ -1697,7 +1697,7 @@
       "restoreButton": "Restaurer",
       "restoreDisabledAtPropertyCap": "Votre formule n'autorise qu'un nombre limité de biens actifs. Libérez une place active avant d'en restaurer un autre.",
       "deleteConfirmTitle": "Supprimer la propriété ?",
-      "deleteConfirmBody": "Cela supprimera « {{address}} » de votre liste. Cette action est irréversible.",
+      "deleteConfirmBody": "Cela supprimera « {{address}} » de votre liste.",
       "deleteConfirmAction": "Supprimer",
       "deleteCancel": "Annuler",
       "restoreConfirmTitle": "Restaurer la propriété ?",

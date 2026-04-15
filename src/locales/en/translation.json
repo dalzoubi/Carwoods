@@ -1855,7 +1855,7 @@
       "restoreButton": "Restore",
       "restoreDisabledAtPropertyCap": "This plan allows only a limited number of active properties. Remove or keep one active slot before restoring another.",
       "deleteConfirmTitle": "Delete property?",
-      "deleteConfirmBody": "This will remove \"{{address}}\" from your property list. This cannot be undone.",
+      "deleteConfirmBody": "This will remove \"{{address}}\" from your property list.",
       "deleteConfirmAction": "Delete",
       "deleteCancel": "Cancel",
       "restoreConfirmTitle": "Restore property?",

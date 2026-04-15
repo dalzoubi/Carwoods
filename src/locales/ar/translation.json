@@ -1698,7 +1698,7 @@
       "restoreButton": "استعادة",
       "restoreDisabledAtPropertyCap": "خطتك تسمح بعدد محدود من العقارات النشطة. أخلِ مسارًا نشطًا قبل استعادة عقار آخر.",
       "deleteConfirmTitle": "حذف العقار؟",
-      "deleteConfirmBody": "سيؤدي هذا إلى حذف «{{address}}» من قائمتك. لا يمكن التراجع عن هذا الإجراء.",
+      "deleteConfirmBody": "سيؤدي هذا إلى حذف «{{address}}» من قائمتك.",
       "deleteConfirmAction": "حذف",
       "deleteCancel": "إلغاء",
       "restoreConfirmTitle": "استعادة العقار؟",

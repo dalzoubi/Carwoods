@@ -1697,7 +1697,7 @@
       "restoreButton": "Restaurar",
       "restoreDisabledAtPropertyCap": "Tu plan solo permite un número limitado de propiedades activas. Libera una propiedad activa antes de restaurar otra.",
       "deleteConfirmTitle": "¿Eliminar propiedad?",
-      "deleteConfirmBody": "Esto eliminará \"{{address}}\" de tu lista. Esta acción no se puede deshacer.",
+      "deleteConfirmBody": "Esto eliminará \"{{address}}\" de tu lista.",
       "deleteConfirmAction": "Eliminar",
       "deleteCancel": "Cancelar",
       "restoreConfirmTitle": "¿Restaurar propiedad?",
