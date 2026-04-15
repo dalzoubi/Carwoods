@@ -10,8 +10,8 @@ import { jsonResponseWithEtag } from '../lib/httpEtag.js';
 import {
   countUnreadPortalNotifications,
   listPortalNotificationsForUser,
-  markPortalNotificationRead,
   markAllPortalNotificationsRead,
+  patchPortalNotificationForUser,
 } from '../lib/notificationCenterRepo.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
@@ -63,16 +63,20 @@ async function portalNotificationItem(
     return jsonResponse(400, headers, { error: 'invalid_json' });
   }
   const payload = asRecord(body);
-  if (payload.read !== true) {
+  const markRead = payload.read === true;
+  const dismissFromTray = payload.dismiss_from_tray === true;
+  if (!markRead && !dismissFromTray) {
     return jsonResponse(400, headers, { error: 'invalid_payload' });
   }
 
   const client = await getPool().connect();
   try {
     await client.query('BEGIN');
-    const updated = await markPortalNotificationRead(client, {
+    const updated = await patchPortalNotificationForUser(client, {
       notificationId: request.params.id,
       userId: user.id,
+      markRead,
+      dismissFromTray,
     });
     await client.query('COMMIT');
     if (!updated) {

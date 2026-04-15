@@ -28,11 +28,15 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
 import { withDarkPath } from '../routePaths';
 import {
+  dismissPortalNotificationFromTray,
   fetchNotifications,
-  markNotificationRead,
   markAllNotificationsRead,
 } from '../lib/portalApiClient';
-import { notificationOpenTargetFromRow, relativeTime } from '../lib/notificationUtils';
+import {
+  formatNotificationAbsoluteTime,
+  notificationOpenTargetFromRow,
+  relativeTime,
+} from '../lib/notificationUtils';
 import { usePortalRequestDetailModal } from './PortalRequestDetailModalContext';
 import PortalRefreshButton from './PortalRefreshButton';
 
@@ -124,11 +128,16 @@ const PortalNotificationsInbox = () => {
     setDismissing((prev) => new Set(prev).add(notification.id));
     try {
       const token = await getAccessToken();
-      await markNotificationRead(baseUrl, token, notification.id, { emailHint });
+      await dismissPortalNotificationFromTray(baseUrl, token, notification.id, { emailHint });
+      const nowIso = new Date().toISOString();
       setNotifications((items) =>
         items.map((item) =>
           item.id === notification.id
-            ? { ...item, read_at: item.read_at || new Date().toISOString() }
+            ? {
+              ...item,
+              read_at: item.read_at || nowIso,
+              dismissed_from_tray_at: nowIso,
+            }
             : item
         )
       );
@@ -298,9 +307,22 @@ const PortalNotificationsInbox = () => {
                     >
                       {body}
                     </Typography>
-                    <Typography variant="caption" color="text.disabled" sx={{ mt: 0.5, display: 'block' }}>
-                      {notification.created_at ? relativeTime(notification.created_at, i18n.language) : ''}
-                    </Typography>
+                    {notification.created_at ? (
+                      <Tooltip
+                        title={formatNotificationAbsoluteTime(notification.created_at, i18n.language)}
+                        arrow
+                        enterDelay={400}
+                      >
+                        <Typography
+                          component="span"
+                          variant="caption"
+                          color="text.disabled"
+                          sx={{ mt: 0.5, display: 'block', cursor: 'default', width: 'fit-content' }}
+                        >
+                          {relativeTime(notification.created_at, i18n.language)}
+                        </Typography>
+                      </Tooltip>
+                    ) : null}
                   </Box>
 
                   {isUnread && (

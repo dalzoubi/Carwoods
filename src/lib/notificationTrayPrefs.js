@@ -11,15 +11,19 @@ function parseTime(iso) {
   return Number.isFinite(t) ? t : 0;
 }
 
+function isDismissedFromTrayOnServer(n) {
+  return Boolean(n?.dismissed_from_tray_at);
+}
+
 /**
- * @param {Array<{ id?: string, read_at?: string|null, created_at?: string|null }>} notifications
- * @param {Set<string>|Iterable<string>} hiddenIds  Dismissed / removed from bell only
+ * @param {Array<{ id?: string, read_at?: string|null, created_at?: string|null, dismissed_from_tray_at?: string|null }>} notifications
+ * @param {Set<string>|Iterable<string>} hiddenIds  Legacy local-only dismissals (offline / pre-server)
  * @returns {Array} Newest unread first, then up to 2 most recently read (by read_at)
  */
 export function selectNotificationsForTray(notifications, hiddenIds) {
   const hidden = hiddenIds instanceof Set ? hiddenIds : new Set(hiddenIds);
   const visible = (Array.isArray(notifications) ? notifications : []).filter(
-    (n) => n && n.id != null && !hidden.has(String(n.id))
+    (n) => n && n.id != null && !hidden.has(String(n.id)) && !isDismissedFromTrayOnServer(n)
   );
 
   const unread = visible.filter((n) => !n.read_at);

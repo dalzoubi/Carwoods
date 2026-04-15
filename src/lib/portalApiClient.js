@@ -763,24 +763,65 @@ export async function fetchNotifications(baseUrl, accessToken, params) {
  * @param {{ emailHint?: string }} [params]
  * @returns {Promise<object>}
  */
-export async function markNotificationRead(baseUrl, accessToken, notificationId, params) {
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} notificationId
+ * @param {{ read?: boolean, dismiss_from_tray?: boolean }} body
+ * @param {{ emailHint?: string }} [params]
+ * @returns {Promise<object>}
+ */
+export async function patchPortalNotification(baseUrl, accessToken, notificationId, body, params) {
   const emailHint = params?.emailHint;
+  const read = body?.read === true;
+  const dismissFromTray = body?.dismiss_from_tray === true;
+  if (!read && !dismissFromTray) {
+    throw apiError(400, 'invalid_client_body', 'read or dismiss_from_tray required');
+  }
   const res = await fetch(
     buildUrl(baseUrl, `/api/portal/notifications/${encodeURIComponent(notificationId)}`),
     {
       method: 'PATCH',
       headers: jsonHeaders(accessToken, emailHint),
       credentials: 'omit',
-      body: JSON.stringify({ read: true }),
+      body: JSON.stringify({ read: read || undefined, dismiss_from_tray: dismissFromTray || undefined }),
     }
   );
   if (!res.ok) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  const readPayload = await res.json();
+  const payload = await res.json();
   invalidateNotificationsCacheForUser(baseUrl, emailHint);
-  return readPayload;
+  return payload;
+}
+
+export async function markNotificationRead(baseUrl, accessToken, notificationId, params) {
+  return patchPortalNotification(
+    baseUrl,
+    accessToken,
+    notificationId,
+    { read: true },
+    params ?? {}
+  );
+}
+
+/**
+ * Persist bell/inbox dismiss (read + hidden from tray); syncs across devices.
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} notificationId
+ * @param {{ emailHint?: string }} [params]
+ * @returns {Promise<object>}
+ */
+export async function dismissPortalNotificationFromTray(baseUrl, accessToken, notificationId, params) {
+  return patchPortalNotification(
+    baseUrl,
+    accessToken,
+    notificationId,
+    { dismiss_from_tray: true },
+    params ?? {}
+  );
 }
 
 /**

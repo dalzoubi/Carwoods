@@ -43,6 +43,7 @@ import {
   trayStorageUserKeys,
 } from '../lib/notificationTrayPrefs';
 import {
+  dismissPortalNotificationFromTray,
   fetchNotifications,
   markAllNotificationsRead,
   markNotificationRead,
@@ -184,26 +185,39 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
 
   const handleDismissNotification = async (e, notification) => {
     e.stopPropagation();
-    if (!trayPersistReady || dismissingIds.has(notification.id)) return;
+    if (dismissingIds.has(notification.id)) return;
+    if (!baseUrl && !trayPersistReady) return;
     setDismissingIds((prev) => new Set(prev).add(notification.id));
+    const emailHint = account?.username || undefined;
+    const nowIso = new Date().toISOString();
     try {
-      if (!notification.read_at && baseUrl) {
+      if (baseUrl) {
         const token = await getAccessToken();
-        const response = await markNotificationRead(baseUrl, token, notification.id, {
-          emailHint: account?.username || undefined,
+        const response = await dismissPortalNotificationFromTray(baseUrl, token, notification.id, {
+          emailHint,
         });
         if (typeof response?.unread_count === 'number') {
           setUnreadCount(response.unread_count);
-        } else {
+        } else if (!notification.read_at) {
           setUnreadCount((value) => Math.max(0, value - 1));
         }
         setNotifications((items) => items.map((item) => (
-          item.id === notification.id ? { ...item, read_at: item.read_at || new Date().toISOString() } : item
+          item.id === notification.id
+            ? {
+              ...item,
+              read_at: item.read_at || nowIso,
+              dismissed_from_tray_at: nowIso,
+            }
+            : item
         )));
+      } else if (trayPersistReady) {
+        setTrayHiddenIds((prev) => addTrayHiddenIdForAccount(account, notification.id, prev));
       }
-      setTrayHiddenIds((prev) => addTrayHiddenIdForAccount(account, notification.id, prev));
     } catch (error) {
       handleApiForbidden?.(error);
+      if (trayPersistReady) {
+        setTrayHiddenIds((prev) => addTrayHiddenIdForAccount(account, notification.id, prev));
+      }
     } finally {
       setDismissingIds((prev) => {
         const next = new Set(prev);

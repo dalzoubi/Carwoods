@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  formatNotificationAbsoluteTime,
   notificationOpenTargetFromRow,
   parsePortalRequestDeepLink,
   parsePortalRequestIdFromDeepLink,
@@ -33,6 +34,18 @@ describe('parsePortalRequestDeepLink', () => {
 describe('parsePortalRequestIdFromDeepLink', () => {
   it('returns only request id', () => {
     expect(parsePortalRequestIdFromDeepLink('/portal/requests?id=x&hlMsg=y')).toBe('x');
+  });
+});
+
+describe('formatNotificationAbsoluteTime', () => {
+  it('returns a non-empty locale string for a valid ISO timestamp', () => {
+    const s = formatNotificationAbsoluteTime('2020-06-15T14:30:00.000Z', 'en');
+    expect(s.length).toBeGreaterThan(5);
+    expect(s).toMatch(/\d/);
+  });
+
+  it('returns empty for invalid date', () => {
+    expect(formatNotificationAbsoluteTime('not-a-date', 'en')).toBe('');
   });
 });
 

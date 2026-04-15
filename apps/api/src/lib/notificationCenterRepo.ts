@@ -13,6 +13,7 @@ export type PortalNotificationRow = {
   request_id: string | null;
   metadata_json: unknown;
   read_at: Date | null;
+  dismissed_from_tray_at?: Date | null;
   created_at: Date;
 };
 
@@ -29,6 +30,7 @@ function normalizeRow(row: PortalNotificationRow): PortalNotificationRow {
   return {
     ...row,
     metadata_json: parseMetadata(row.metadata_json),
+    dismissed_from_tray_at: row.dismissed_from_tray_at ?? null,
   };
 }
 
@@ -69,7 +71,8 @@ export async function createPortalNotification(
        id, user_id, event_type_code, title, body, deep_link, request_id, metadata_json
      )
      OUTPUT INSERTED.id, INSERTED.user_id, INSERTED.event_type_code, INSERTED.title, INSERTED.body,
-            INSERTED.deep_link, INSERTED.request_id, INSERTED.metadata_json, INSERTED.read_at, INSERTED.created_at
+            INSERTED.deep_link, INSERTED.request_id, INSERTED.metadata_json, INSERTED.read_at,
+            INSERTED.dismissed_from_tray_at, INSERTED.created_at
      VALUES (NEWID(), $1, $2, $3, $4, $5, $6, $7)`,
     [
       params.userId,
@@ -92,7 +95,8 @@ export async function listPortalNotificationsForUser(
   const safeLimit = Math.max(1, Math.min(limit, 100));
   const r = await db.query<PortalNotificationRow>(
     `SELECT TOP (${safeLimit})
-        id, user_id, event_type_code, title, body, deep_link, request_id, metadata_json, read_at, created_at
+        id, user_id, event_type_code, title, body, deep_link, request_id, metadata_json, read_at,
+        dismissed_from_tray_at, created_at
      FROM portal_notifications
      WHERE user_id = $1
      ORDER BY created_at DESC`,
@@ -115,19 +119,48 @@ export async function countUnreadPortalNotifications(
   return Number(r.rows[0]?.count_value ?? 0);
 }
 
-export async function markPortalNotificationRead(
+/**
+ * Patch read / tray-dismiss for one row. At least one of markRead or dismissFromTray must be true.
+ * dismissFromTray also sets read_at when it was null (same UX as bell dismiss).
+ */
+export async function patchPortalNotificationForUser(
   client: PoolClient,
-  params: { notificationId: string; userId: string }
+  params: {
+    notificationId: string;
+    userId: string;
+    markRead: boolean;
+    dismissFromTray: boolean;
+  }
 ): Promise<boolean> {
+  if (!params.markRead && !params.dismissFromTray) return false;
+  const sets: string[] = [];
+  if (params.markRead || params.dismissFromTray) {
+    sets.push('read_at = COALESCE(read_at, SYSDATETIMEOFFSET())');
+  }
+  if (params.dismissFromTray) {
+    sets.push('dismissed_from_tray_at = COALESCE(dismissed_from_tray_at, SYSDATETIMEOFFSET())');
+  }
   const r = await client.query<{ id: string }>(
     `UPDATE portal_notifications
-        SET read_at = COALESCE(read_at, SYSDATETIMEOFFSET())
+        SET ${sets.join(', ')}
       OUTPUT INSERTED.id
       WHERE id = $1
         AND user_id = $2`,
     [params.notificationId, params.userId]
   );
   return r.rows.length > 0;
+}
+
+export async function markPortalNotificationRead(
+  client: PoolClient,
+  params: { notificationId: string; userId: string }
+): Promise<boolean> {
+  return patchPortalNotificationForUser(client, {
+    notificationId: params.notificationId,
+    userId: params.userId,
+    markRead: true,
+    dismissFromTray: false,
+  });
 }
 
 export async function markPortalNotificationsReadForRequest(

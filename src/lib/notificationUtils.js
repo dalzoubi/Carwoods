@@ -87,6 +87,26 @@ export function notificationOpenTargetFromRow(notification) {
   };
 }
 
+/**
+ * Locale-aware absolute date+time (for tooltips on relative-time labels).
+ *
+ * @param {string|Date} date
+ * @param {string} [locale]
+ * @returns {string}
+ */
+export function formatNotificationAbsoluteTime(date, locale) {
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return '';
+  try {
+    return new Intl.DateTimeFormat(locale ?? 'en', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(d);
+  } catch {
+    return d.toISOString();
+  }
+}
+
 export function relativeTime(date, locale) {
   const then = new Date(date).getTime();
   if (Number.isNaN(then)) return '';
