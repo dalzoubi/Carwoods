@@ -2,19 +2,18 @@ import React, { useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import {
+  Alert,
   Box,
-  Button,
-  CircularProgress,
   Dialog,
   DialogContent,
   DialogTitle,
   IconButton,
+  MenuItem,
   Paper,
   Stack,
-  Tooltip,
+  TextField,
   Typography,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
 import Close from '@mui/icons-material/Close';
 import { useSearchParams } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -63,14 +62,18 @@ const PortalRequests = () => {
   const isManagement = hasLandlordAccess(role);
   const isAdmin = role === Role.ADMIN;
   const csvExportAllowed = isAdmin || allowsCsvExport(landlordTierLimits(meData));
+  const [selectedLandlordId, setSelectedLandlordId] = useState('');
 
   const {
     requestsStatus,
     requestsError,
     requests,
     tenantForm,
-    tenantDefaults,
-    tenantSubscriptionFeatures,
+    tenantCreateDefaults,
+    tenantCreateSubscriptionFeatures,
+    managementCreateLeaseOptions,
+    managementCreateLeaseId,
+    setManagementCreateLeaseId,
     lookupStatus,
     lookupError,
     lookupContact,
@@ -102,6 +105,7 @@ const PortalRequests = () => {
     secureAttachmentDeepLink,
     syncDetailFromUrl: false,
     listSelectionHintId: selectedRequestFromUrl,
+    adminRequestLookupsLandlordId: isAdmin ? selectedLandlordId : '',
   });
 
   const { openRequestDetail, closeRequestDetail } = usePortalRequestDetailModal();
@@ -140,7 +144,6 @@ const PortalRequests = () => {
   const [discardCreateOpen, setDiscardCreateOpen] = useState(false);
   const [landlords, setLandlords] = useState([]);
   const [landlordsStatus, setLandlordsStatus] = useState('idle');
-  const [selectedLandlordId, setSelectedLandlordId] = useState('');
 
   React.useEffect(() => {
     if (!isAdmin || !baseUrl || !isAuthenticated || isGuest || meStatus !== 'ok') {
@@ -192,6 +195,7 @@ const PortalRequests = () => {
     priority_code: tenantForm.priority_code,
     title: tenantForm.title,
     description: tenantForm.description,
+    managementCreateLeaseId: isManagement ? managementCreateLeaseId : '',
     attachments: (createAttachmentFiles || []).map((file) => `${file.name}:${file.size}`),
   });
   const hasCreateUnsavedChanges = createOpen && createDraftSnapshot !== createBaselineRef.current;
@@ -252,37 +256,14 @@ const PortalRequests = () => {
       </Helmet>
 
       <Stack spacing={2}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ flexWrap: 'wrap', gap: 1 }}>
-          <Box>
-            <Typography variant="h5" component="h2" fontWeight={700}>
-              {t('portalRequests.heading')}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {t('portalRequests.intro')}
-            </Typography>
-          </Box>
-          {isManagement && (
-            <Tooltip
-              title={!csvExportAllowed ? t('portalSubscription.freeTier.featureDisabled') : ''}
-            >
-              <span>
-                <Button
-                  type="button"
-                  variant="outlined"
-                  size="small"
-                  onClick={onExportCsv}
-                  disabled={exportStatus === 'loading' || !csvExportAllowed}
-                  startIcon={exportStatus === 'loading' ? <CircularProgress size={16} color="inherit" /> : null}
-                  sx={{ textTransform: 'none' }}
-                >
-                  {exportStatus === 'loading'
-                    ? t('portalRequests.actions.exportingCsv')
-                    : t('portalRequests.actions.exportCsv')}
-                </Button>
-              </span>
-            </Tooltip>
-          )}
-        </Stack>
+        <Box>
+          <Typography variant="h5" component="h2" fontWeight={700}>
+            {t('portalRequests.heading')}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {t('portalRequests.intro')}
+          </Typography>
+        </Box>
 
         <StatusAlertSlot
           message={!baseUrl ? { severity: 'warning', text: t('portalRequests.errors.apiUnavailable') } : null}
@@ -297,17 +278,8 @@ const PortalRequests = () => {
             : null}
         />
 
-        {!isManagement && (
+        {!isGuest && (
           <Box>
-            <Button
-              type="button"
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={openCreateDialog}
-              disabled={!isAuthenticated || !baseUrl || isGuest}
-            >
-              {t('portalRequests.actions.newRequest')}
-            </Button>
             <Dialog
               open={createOpen}
               onClose={attemptCloseCreateDialog}
@@ -327,27 +299,63 @@ const PortalRequests = () => {
                 </IconButton>
               </DialogTitle>
               <DialogContent dividers>
-              <TenantRequestForm
-                tenantForm={tenantForm}
-                tenantDefaults={tenantDefaults}
-                subscriptionFeatures={tenantSubscriptionFeatures}
-                lookupsStatus={lookupStatus}
-                lookupsError={lookupError}
-                lookupContact={lookupContact}
-                categoryOptions={categoryOptions}
-                priorityOptions={priorityOptions}
-                onTenantField={onTenantField}
-                onCreateRequest={onCreateRequest}
-                tenantCreateStatus={tenantCreateStatus}
-                tenantCreateError={tenantCreateError}
-                createAttachmentFiles={createAttachmentFiles}
-                onCreateAttachmentChange={onCreateAttachmentChange}
-                onRemoveCreateAttachment={onRemoveCreateAttachment}
-                onCancel={attemptCloseCreateDialog}
-                disabled={!isAuthenticated || !baseUrl || tenantCreateStatus === 'saving' || isGuest}
-                hideHeading
-                framed={false}
-              />
+                {isManagement && isAdmin && !selectedLandlordId ? (
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    {t('portalRequests.create.adminSelectLandlordFirst')}
+                  </Alert>
+                ) : null}
+                {isManagement ? (
+                  <TextField
+                    select
+                    margin="dense"
+                    label={t('portalRequests.create.leaseForTenantsLabel')}
+                    value={managementCreateLeaseId}
+                    onChange={(event) => setManagementCreateLeaseId(event.target.value)}
+                    disabled={
+                      tenantCreateStatus === 'saving'
+                      || (isAdmin && !selectedLandlordId)
+                      || managementCreateLeaseOptions.length === 0
+                    }
+                    helperText={
+                      managementCreateLeaseOptions.length === 0
+                        ? isAdmin && !selectedLandlordId
+                          ? t('portalRequests.create.adminSelectLandlordFirst')
+                          : t('portalRequests.create.noLeasesForCreate')
+                        : ''
+                    }
+                    fullWidth
+                    sx={{ mb: 2 }}
+                  >
+                    {managementCreateLeaseOptions.map((opt) => (
+                      <MenuItem key={opt.lease_id} value={opt.lease_id}>
+                        {`${opt.tenant_names || t('portalRequests.create.tenantHousehold')} — ${opt.property_address || ''}`}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                ) : null}
+                <TenantRequestForm
+                  tenantForm={tenantForm}
+                  tenantDefaults={tenantCreateDefaults}
+                  subscriptionFeatures={tenantCreateSubscriptionFeatures}
+                  lookupsStatus={lookupStatus}
+                  lookupsError={lookupError}
+                  lookupContact={lookupContact}
+                  categoryOptions={categoryOptions}
+                  priorityOptions={priorityOptions}
+                  onTenantField={onTenantField}
+                  onCreateRequest={onCreateRequest}
+                  tenantCreateStatus={tenantCreateStatus}
+                  tenantCreateError={tenantCreateError}
+                  createAttachmentFiles={createAttachmentFiles}
+                  onCreateAttachmentChange={onCreateAttachmentChange}
+                  onRemoveCreateAttachment={onRemoveCreateAttachment}
+                  onCancel={attemptCloseCreateDialog}
+                  disabled={!isAuthenticated || !baseUrl || tenantCreateStatus === 'saving' || isGuest}
+                  hideHeading
+                  framed={false}
+                  showOnBehalfTenantHint={isManagement}
+                  missingLeaseSelection={isManagement && !tenantCreateDefaults}
+                />
               </DialogContent>
             </Dialog>
             <PortalConfirmDialog
@@ -379,8 +387,19 @@ const PortalRequests = () => {
             }}
             onReload={() => loadRequests({ keepSelection: true })}
             reloadDisabled={!isAuthenticated || !baseUrl || isGuest || requestsStatus === 'loading'}
+            showNewRequestButton
+            onNewRequest={openCreateDialog}
+            newRequestDisabled={
+              !isAuthenticated
+              || !baseUrl
+              || isGuest
+              || (isAdmin && !selectedLandlordId)
+            }
             isAdmin={isAdmin}
             isManagement={isManagement}
+            csvExportAllowed={csvExportAllowed}
+            exportStatus={exportStatus}
+            onExportCsv={onExportCsv}
             landlords={landlords}
             landlordsStatus={landlordsStatus}
             selectedLandlordId={selectedLandlordId}

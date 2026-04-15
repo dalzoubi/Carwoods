@@ -10,6 +10,7 @@ import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 import { withRateLimit } from '../lib/rateLimiter.js';
 import { isDomainError } from '../domain/errors.js';
 import { submitContactRequest } from '../useCases/contactRequests/submitContactRequest.js';
+import { notifyPortalAdminsNewContactRequest } from '../useCases/contactRequests/notifyPortalAdminsNewContactRequest.js';
 
 function asOptionalString(v: unknown): string | null {
   if (typeof v !== 'string') return null;
@@ -79,6 +80,7 @@ async function publicContactHandler(
       { name, email, phone, subject, message, recaptchaToken, ipAddress },
       context
     );
+    notifyPortalAdminsNewContactRequest(pool, row, context).catch(() => {});
     logInfo(context, 'public.contact.success', { id: row.id });
     return {
       status: 201,

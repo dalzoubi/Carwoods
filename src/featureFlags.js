@@ -4,8 +4,19 @@
  */
 export const FEATURE_DARK_THEME = import.meta.env.VITE_FEATURE_DARK_THEME !== 'false';
 
-/** Base URL for portal API (no trailing slash required). */
-export const VITE_API_BASE_URL_RESOLVED = (import.meta.env.VITE_API_BASE_URL ?? '').trim();
+/**
+ * Base URL for portal API (no trailing slash).
+ * Strips a mistaken trailing `/api` so paths like `/api/portal/me` do not become `/api/api/...`.
+ */
+export function normalizePortalApiBaseUrl(raw) {
+  let s = String(raw ?? '').trim().replace(/\/$/, '');
+  if (/\/api$/i.test(s)) {
+    s = s.slice(0, -4).replace(/\/$/, '');
+  }
+  return s;
+}
+
+export const VITE_API_BASE_URL_RESOLVED = normalizePortalApiBaseUrl(import.meta.env.VITE_API_BASE_URL ?? '');
 
 /**
  * Notification polling cadence for signed-in portal users.

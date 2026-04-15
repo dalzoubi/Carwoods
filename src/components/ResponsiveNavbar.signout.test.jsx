@@ -76,7 +76,7 @@ describe('ResponsiveNavbar sign-out confirmation', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: /account menu/i }));
-    expect(screen.getByRole('menuitem', { name: /profile/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /profile/i })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: /^sign out$/i })).toBeInTheDocument();
     expect(screen.queryByRole('menuitem', { name: /workspace/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('menuitem', { name: /requests/i })).not.toBeInTheDocument();

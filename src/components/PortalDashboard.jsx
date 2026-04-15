@@ -274,10 +274,12 @@ const OnboardingChecklist = ({ pathname, baseUrl, getAccessToken }) => {
     >
       {!basicsIncomplete && (
         <IconButton
+          type="button"
           size="small"
+          color="inherit"
           onClick={handleDismiss}
           aria-label={t('portalDashboard.onboarding.dismissAriaLabel')}
-          sx={{ position: 'absolute', top: 8, right: 8 }}
+          sx={{ position: 'absolute', top: 8, insetInlineEnd: 8 }}
         >
           <Close fontSize="small" />
         </IconButton>

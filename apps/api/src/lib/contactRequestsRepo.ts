@@ -50,12 +50,20 @@ export async function insertContactRequest(
   return r.rows[0];
 }
 
+function safePaging(opts?: { limit?: number; offset?: number }): { limit: number; offset: number } {
+  const rawLimit = Math.trunc(Number(opts?.limit ?? 50));
+  const rawOffset = Math.trunc(Number(opts?.offset ?? 0));
+  const limit =
+    Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 200) : 50;
+  const offset = Number.isFinite(rawOffset) && rawOffset >= 0 ? rawOffset : 0;
+  return { limit, offset };
+}
+
 export async function listContactRequests(
   db: Queryable,
   opts?: { status?: string; limit?: number; offset?: number }
 ): Promise<{ rows: ContactRequestRow[]; total: number }> {
-  const limit = opts?.limit ?? 50;
-  const offset = opts?.offset ?? 0;
+  const { limit, offset } = safePaging(opts);
   const params: unknown[] = [];
 
   let whereClause = '';
@@ -64,21 +72,18 @@ export async function listContactRequests(
     whereClause = `WHERE status = $1`;
   }
 
-  const countParams = [...params];
-  const rowParams = [...params, limit, offset];
-  const limitParam = `$${rowParams.length - 1}`;
-  const offsetParam = `$${rowParams.length}`;
-
+  // T-SQL requires integer row counts for OFFSET/FETCH; bound parameters can arrive as
+  // non-integer types and fail ("must be an integer"). Use validated literals here.
   const [countResult, rowResult] = await Promise.all([
     db.query<{ total: number }>(
       `SELECT COUNT(*) AS total FROM contact_requests ${whereClause}`,
-      countParams
+      [...params]
     ),
     db.query<ContactRequestRow>(
       `SELECT ${CONTACT_COLUMNS} FROM contact_requests ${whereClause}
        ORDER BY created_at DESC
-       OFFSET ${offsetParam} ROWS FETCH NEXT ${limitParam} ROWS ONLY`,
-      rowParams
+       OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY`,
+      [...params]
     ),
   ]);
 
@@ -121,4 +126,14 @@ export async function countUnreadContactRequests(db: Queryable): Promise<number>
     `SELECT COUNT(*) AS cnt FROM contact_requests WHERE status = 'UNREAD'`
   );
   return Number(r.rows[0]?.cnt ?? 0);
+}
+
+export async function deleteContactRequest(db: Queryable, id: string): Promise<boolean> {
+  const r = await db.query<{ id: string }>(
+    `DELETE FROM contact_requests
+     OUTPUT DELETED.id
+     WHERE id = $1`,
+    [id]
+  );
+  return Boolean(r.rows[0]?.id);
 }

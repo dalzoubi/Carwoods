@@ -126,7 +126,7 @@ async function adminNotificationTestHandler(
         eventTypeCode: EVENT_ADMIN_TEST,
         title,
         body: bodyText,
-        deepLink: '/portal/notifications',
+        deepLink: '/portal/inbox/notifications',
         requestId: null,
         metadata: {
           kind: 'admin_test',

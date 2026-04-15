@@ -27,16 +27,19 @@ import BlockIcon from '@mui/icons-material/Block';
 import EditIcon from '@mui/icons-material/Edit';
 import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined';
 import ReplayIcon from '@mui/icons-material/Replay';
+import ContactPageIcon from '@mui/icons-material/ContactPage';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { Role } from '../domain/constants.js';
 import { validatePersonBasics, validatePersonField } from '../portalPersonValidation';
 import { resolveRole, normalizeRole } from '../portalUtils';
 import { fetchLandlords, fetchAdminSubscriptionTiers, createLandlord, patchResource } from '../lib/portalApiClient';
+import { buildVCard3, downloadVCard, slugifyVCardFilenameBase, VCARD_ORG_NAME } from '../lib/exportContactCard';
 import PortalConfirmDialog from './PortalConfirmDialog';
 import StatusAlertSlot from './StatusAlertSlot';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
+import MailtoEmailLink from './MailtoEmailLink';
 import PortalRefreshButton from './PortalRefreshButton';
 import PortalUserAvatar from './PortalUserAvatar';
 
@@ -54,6 +57,22 @@ function displayName(landlord) {
 
 function isActiveStatus(status) {
   return String(status ?? '').toUpperCase() === 'ACTIVE';
+}
+
+function exportLandlordContactVCard(landlord, t) {
+  const first = String(landlord.first_name ?? '').trim();
+  const last = String(landlord.last_name ?? '').trim();
+  const email = String(landlord.email ?? '').trim();
+  const vcard = buildVCard3({
+    firstName: first,
+    lastName: last,
+    email: landlord.email,
+    phone: landlord.phone,
+    adr: null,
+    org: VCARD_ORG_NAME,
+    title: t('portalAdminLandlords.vCard.roleTitle'),
+  });
+  downloadVCard(slugifyVCardFilenameBase(first, last, email), vcard);
 }
 
 function tierChipColor(tierName) {
@@ -604,7 +623,7 @@ const PortalAdminLandlords = () => {
                         />
                       </Stack>
                       <Typography variant="body2" color="text.secondary">
-                        {landlord.email}
+                        <MailtoEmailLink email={landlord.email} color="inherit" sx={{ color: 'inherit' }} />
                       </Typography>
                       <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                         <Typography variant="body2" color="text.secondary" component="span" sx={{ fontWeight: 600 }}>
@@ -642,24 +661,42 @@ const PortalAdminLandlords = () => {
                     </Stack>
                     </Box>
                   </Stack>
-                  <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end', flexShrink: 0 }}>
-                    <IconButton
-                      type="button"
-                      size="small"
-                      onClick={() => beginEdit(landlord)}
-                      aria-label={t('portalAdminLandlords.actions.edit')}
-                      disabled={!canUseModule || submitState.status === 'saving'}
-                      color="primary"
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
+                  <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end', flexShrink: 0, alignItems: 'center' }}>
+                    <Tooltip title={t('portalAdminLandlords.actions.edit')}>
+                      <span>
+                        <IconButton
+                          type="button"
+                          size="small"
+                          color="primary"
+                          onClick={() => beginEdit(landlord)}
+                          aria-label={t('portalAdminLandlords.actions.edit')}
+                          disabled={!canUseModule || submitState.status === 'saving'}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title={t('portalAdminLandlords.actions.exportContactCard')}>
+                      <span>
+                        <IconButton
+                          type="button"
+                          size="small"
+                          color="info"
+                          onClick={() => exportLandlordContactVCard(landlord, t)}
+                          aria-label={t('portalAdminLandlords.actions.exportContactCard')}
+                          disabled={!canUseModule || submitState.status === 'saving'}
+                        >
+                          <ContactPageIcon fontSize="small" />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
                     {String(landlord.status ?? '').toUpperCase() === 'DISABLED' ? (
                       <Tooltip title={t('portalAdminLandlords.actions.reactivate')}>
                         <span>
                           <IconButton
                             type="button"
                             size="small"
-                            color="primary"
+                            color="success"
                             onClick={() => openConfirmDialog(landlord, true)}
                             aria-label={t('portalAdminLandlords.actions.reactivate')}
                             disabled={!canUseModule || submitState.status === 'saving'}

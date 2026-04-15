@@ -29,6 +29,7 @@ import Edit from '@mui/icons-material/Edit';
 import Block from '@mui/icons-material/Block';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
+import ContactPage from '@mui/icons-material/ContactPage';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { Role } from '../domain/constants.js';
@@ -46,6 +47,7 @@ import {
   fetchLandlordProperties,
   fetchTenant,
 } from '../lib/portalApiClient';
+import MailtoEmailLink from './MailtoEmailLink';
 import PortalConfirmDialog from './PortalConfirmDialog';
 import PortalUserAvatar from './PortalUserAvatar';
 import PortalPersonWithAvatar from './PortalPersonWithAvatar';
@@ -54,6 +56,7 @@ import StatusAlertSlot from './StatusAlertSlot';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 import PortalRefreshButton from './PortalRefreshButton';
+import { buildVCard3, downloadVCard, slugifyVCardFilenameBase, VCARD_ORG_NAME } from '../lib/exportContactCard';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -480,6 +483,7 @@ function LeaseRow({ lease, properties, onLeaseUpdated, t }) {
             <IconButton
               type="button"
               size="small"
+              color="primary"
               onClick={() => setEditOpen(true)}
               aria-label={t('portalTenants.actions.editLease')}
             >
@@ -950,7 +954,9 @@ function EditTenantDialog({
                         alignItems="center"
                       >
                         <Typography variant="body2" component="span">
-                          {displayName(l)} — {l.email}
+                          {displayName(l)}
+                          {' — '}
+                          <MailtoEmailLink email={l.email} color="inherit" sx={{ color: 'inherit' }} />
                         </Typography>
                       </PortalPersonWithAvatar>
                     </MenuItem>
@@ -1040,6 +1046,31 @@ function TenantRow({
   const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
   const emailHint = meData?.user?.email ?? account?.username ?? '';
   const isActive = isActiveStatus(tenant.status);
+
+  const handleExportContactCard = useCallback(() => {
+    const first = String(tenant.first_name ?? '').trim();
+    const last = String(tenant.last_name ?? '').trim();
+    const email = String(tenant.email ?? '').trim();
+    const street = String(tenant.property_street ?? '').trim();
+    const city = String(tenant.property_city ?? '').trim();
+    const state = String(tenant.property_state ?? '').trim();
+    const zip = String(tenant.property_zip ?? '').trim();
+    const adr =
+      street || city || state || zip
+        ? { street, locality: city, region: state, postalCode: zip }
+        : null;
+    const vcard = buildVCard3({
+      firstName: first,
+      lastName: last,
+      email: tenant.email,
+      phone: tenant.phone,
+      adr,
+      org: VCARD_ORG_NAME,
+      title: t('portalTenants.vCard.roleTitle'),
+    });
+    downloadVCard(slugifyVCardFilenameBase(first, last, email), vcard);
+  }, [tenant, t]);
+
   const sortedLeases = useMemo(
     () =>
       [...leasesState.leases].sort((a, b) => {
@@ -1144,7 +1175,7 @@ function TenantRow({
               />
             </Stack>
             <Typography variant="body2" color="text.secondary">
-              {tenant.email}
+              <MailtoEmailLink email={tenant.email} color="inherit" sx={{ color: 'inherit' }} />
             </Typography>
             {tenant.property_street && (
               <Typography variant="caption" color="text.secondary">
@@ -1159,10 +1190,22 @@ function TenantRow({
             <IconButton
               type="button"
               size="small"
+              color="primary"
               onClick={() => setEditOpen(true)}
               aria-label={t('portalTenants.actions.editTenant')}
             >
               <Edit fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t('portalTenants.actions.exportContactCard')}>
+            <IconButton
+              type="button"
+              size="small"
+              color="info"
+              onClick={handleExportContactCard}
+              aria-label={t('portalTenants.actions.exportContactCard')}
+            >
+              <ContactPage fontSize="small" />
             </IconButton>
           </Tooltip>
           {isActive ? (
@@ -1182,6 +1225,7 @@ function TenantRow({
               type="button"
               size="small"
               variant="outlined"
+              color="success"
               onClick={() => onToggleAccess(tenant.id, true)}
             >
               {t('portalTenants.actions.enable')}
@@ -1200,7 +1244,9 @@ function TenantRow({
           </Tooltip>
           <Tooltip title={expanded ? t('portalTenants.actions.collapse') : t('portalTenants.actions.expand')}>
             <IconButton
+              type="button"
               size="small"
+              color="secondary"
               onClick={handleExpand}
               aria-label={expanded ? t('portalTenants.actions.collapse') : t('portalTenants.actions.expand')}
             >
@@ -1565,7 +1611,9 @@ function OnboardTenantDialog({
                       alignItems="center"
                     >
                       <Typography variant="body2" component="span">
-                        {displayName(l)} — {l.email}
+                        {displayName(l)}
+                        {' — '}
+                        <MailtoEmailLink email={l.email} color="inherit" sx={{ color: 'inherit' }} />
                       </Typography>
                     </PortalPersonWithAvatar>
                   </MenuItem>
@@ -1907,7 +1955,9 @@ const PortalTenants = () => {
                       alignItems="center"
                     >
                       <Typography variant="body2" component="span">
-                        {displayName(l)} — {l.email}
+                        {displayName(l)}
+                        {' — '}
+                        <MailtoEmailLink email={l.email} color="inherit" sx={{ color: 'inherit' }} />
                       </Typography>
                     </PortalPersonWithAvatar>
                   </MenuItem>

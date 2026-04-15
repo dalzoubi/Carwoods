@@ -272,6 +272,7 @@ const PortalStatus = () => {
                   <IconButton
                     type="button"
                     size="small"
+                    color="info"
                     aria-label={t('portalSetup.actions.checkHealth')}
                     onClick={fetchHealth}
                     disabled={!baseUrl || health.state === 'loading'}
@@ -312,6 +313,7 @@ const PortalStatus = () => {
                   <IconButton
                     type="button"
                     size="small"
+                    color="info"
                     aria-label={t('portalSetup.actions.checkMe')}
                     onClick={() => refreshMe({ force: true })}
                     disabled={!isAuthenticated || meStatus === 'loading'}

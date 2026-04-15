@@ -15,6 +15,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import Link from '@mui/material/Link';
 import { useTranslation } from 'react-i18next';
+import { VITE_API_BASE_URL_RESOLVED } from '../featureFlags';
 
 const SUBJECTS = [
   { value: 'GENERAL', labelKey: 'contact.subjects.general' },
@@ -23,7 +24,10 @@ const SUBJECTS = [
   { value: 'PORTAL_SAAS', labelKey: 'contact.subjects.portalSaas' },
 ];
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
+const API_BASE = VITE_API_BASE_URL_RESOLVED;
+
+/** Internal sentinel for generic submit failure with support mailto in the alert. */
+const SUBMIT_ERROR_SUPPORT_MAILTO = '__contact_support_mailto__';
 
 const ContactUs = () => {
   const { t } = useTranslation();
@@ -103,14 +107,14 @@ const ContactUs = () => {
             ),
           );
         } else {
-          setSubmitError(t('contact.errorBody', 'Something went wrong. Please try again or email us at support@carwoods.com.'));
+          setSubmitError(SUBMIT_ERROR_SUPPORT_MAILTO);
         }
         return;
       }
 
       setSubmitted(true);
     } catch {
-      setSubmitError(t('contact.errorBody', 'Something went wrong. Please try again or email us at support@carwoods.com.'));
+      setSubmitError(SUBMIT_ERROR_SUPPORT_MAILTO);
     } finally {
       setSubmitting(false);
     }
@@ -145,7 +149,19 @@ const ContactUs = () => {
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <Stack spacing={2.5}>
             {submitError && (
-              <Alert severity="error">{submitError}</Alert>
+              <Alert severity="error">
+                {submitError === SUBMIT_ERROR_SUPPORT_MAILTO ? (
+                  <>
+                    {t('contact.errorBodyPrefix')}
+                    <Link href={`mailto:${t('contact.supportEmail')}`} sx={{ fontSize: 'inherit' }}>
+                      {t('contact.supportEmail')}
+                    </Link>
+                    {t('contact.errorBodySuffix')}
+                  </>
+                ) : (
+                  submitError
+                )}
+              </Alert>
             )}
 
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>

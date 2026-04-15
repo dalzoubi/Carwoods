@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import {
   Box,
@@ -334,7 +334,7 @@ const PropertyCard = ({
               <IconButton
                 type="button"
                 size="small"
-                color="primary"
+                color="success"
                 disabled={!allowRestore}
                 aria-label={t('portalAdminProperties.grid.restoreButton')}
                 onClick={() => onRestore(property)}
@@ -349,7 +349,7 @@ const PropertyCard = ({
             <IconButton
               type="button"
               size="small"
-              color="primary"
+              color="info"
               disabled={isDeleted || !property.harId || syncingHar}
               aria-label={t('portalAdminProperties.grid.syncHarButton')}
               onClick={() => onSyncHar(property)}
@@ -363,6 +363,7 @@ const PropertyCard = ({
             <IconButton
               type="button"
               size="small"
+              color="primary"
               disabled={isDeleted}
               aria-label={t('portalAdminProperties.grid.editButton')}
               onClick={() => onEdit(property)}
@@ -392,6 +393,7 @@ const PropertyCard = ({
 
 const PortalAdminProperties = () => {
   const { t } = useTranslation();
+  const showDeletedSwitchId = useId();
   const { isAuthenticated, account, meData, meStatus, baseUrl, getAccessToken, handleApiForbidden } = usePortalAuth();
 
   const role = normalizeRole(resolveRole(meData, account));
@@ -785,6 +787,26 @@ const PortalAdminProperties = () => {
     [landlords]
   );
 
+  const renderLandlordFilterValue = useCallback(
+    (selected) => {
+      if (!selected) return t('portalAdminProperties.grid.landlordFilterAll');
+      const landlord = sortedLandlords.find((l) => l.id === selected);
+      return landlord ? landlordRowLabel(landlord) : t('portalAdminProperties.grid.landlordFilterAll');
+    },
+    [sortedLandlords, t]
+  );
+
+  const renderVisibilityFilterValue = useCallback(
+    (value) => {
+      const v = String(value ?? 'all');
+      if (v === 'visible') return t('portalAdminProperties.grid.visibilityFilterVisible');
+      if (v === 'hidden') return t('portalAdminProperties.grid.visibilityFilterHidden');
+      if (v === 'deleted') return t('portalAdminProperties.grid.visibilityFilterDeleted');
+      return t('portalAdminProperties.grid.visibilityFilterAll');
+    },
+    [t]
+  );
+
   const myUserId = String(meData?.user?.id ?? '').trim();
   const landlordLimits = useMemo(() => landlordTierLimits(meData), [meData]);
 
@@ -956,11 +978,18 @@ const PortalAdminProperties = () => {
         )}
         <StatusAlertSlot message={listError ? { severity: 'error', text: listError } : null} />
 
-        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+        <Stack
+          direction="row"
+          flexWrap="wrap"
+          useFlexGap
+          spacing={1.5}
+          alignItems="center"
+          sx={{ width: '100%' }}
+        >
           <Tooltip
             title={atPropertyCap ? t('portalSubscription.freeTier.propertyLimitReached') : ''}
           >
-            <span>
+            <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', alignSelf: 'center' }}>
               <Button
                 type="button"
                 variant="contained"
@@ -993,31 +1022,54 @@ const PortalAdminProperties = () => {
               >
                 {t('portalAdminProperties.form.showForm')}
               </Button>
-            </span>
+            </Box>
           </Tooltip>
-          <FormControlLabel
-            control={(
-              <Switch
-                checked={showDeleted}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  setShowDeleted(checked);
-                  setVisibilityFilter((prev) => {
-                    if (checked) return 'deleted';
-                    return prev === 'deleted' ? 'all' : prev;
-                  });
-                }}
-              />
-            )}
-            label={t('portalAdminProperties.grid.showDeleted')}
-          />
+          <Box
+            component="label"
+            htmlFor={showDeletedSwitchId}
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              alignSelf: 'center',
+              gap: 1,
+              cursor: 'pointer',
+              flexShrink: 0,
+              m: 0,
+            }}
+          >
+            <Switch
+              id={showDeletedSwitchId}
+              checked={showDeleted}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setShowDeleted(checked);
+                setVisibilityFilter((prev) => {
+                  if (checked) return 'deleted';
+                  return prev === 'deleted' ? 'all' : prev;
+                });
+              }}
+            />
+            <Typography variant="body2" color="text.secondary" component="span">
+              {t('portalAdminProperties.grid.showDeleted')}
+            </Typography>
+          </Box>
           <TextField
             select
+            margin="none"
             label={t('portalAdminProperties.grid.visibilityFilterLabel')}
             value={visibilityFilter}
             onChange={(e) => setVisibilityFilter(e.target.value)}
             size="small"
-            sx={{ minWidth: 220 }}
+            helperText=" "
+            InputLabelProps={{ shrink: true }}
+            SelectProps={{ renderValue: renderVisibilityFilterValue }}
+            sx={{
+              alignSelf: 'center',
+              minWidth: 220,
+              flex: { xs: '1 1 220px', sm: '0 1 220px' },
+              maxWidth: { sm: 280 },
+              '& .MuiInputBase-root': { alignItems: 'center' },
+            }}
           >
             <MenuItem value="all">{t('portalAdminProperties.grid.visibilityFilterAll')}</MenuItem>
             <MenuItem value="visible">{t('portalAdminProperties.grid.visibilityFilterVisible')}</MenuItem>
@@ -1029,17 +1081,30 @@ const PortalAdminProperties = () => {
           {isAdmin ? (
             <TextField
               select
+              margin="none"
               label={t('portalAdminProperties.grid.landlordFilterLabel')}
               value={adminLandlordFilterId}
               onChange={(e) => setAdminLandlordFilterId(e.target.value)}
               size="small"
-              sx={{ minWidth: 260 }}
+              InputLabelProps={{ shrink: true }}
+              error={landlordsStatus === 'error'}
+              sx={{
+                alignSelf: 'center',
+                minWidth: 260,
+                flex: { xs: '1 1 240px', sm: '0 1 260px' },
+                maxWidth: { sm: 380 },
+                '& .MuiInputBase-root': { alignItems: 'center' },
+              }}
               disabled={landlordsStatus === 'loading'}
               helperText={
                 landlordsStatus === 'error'
                   ? t('portalAdminProperties.grid.landlordFilterLoadError')
                   : ' '
               }
+              SelectProps={{
+                displayEmpty: true,
+                renderValue: renderLandlordFilterValue,
+              }}
             >
               <MenuItem value="">{t('portalAdminProperties.grid.landlordFilterAll')}</MenuItem>
               {sortedLandlords.map((landlord) => (
@@ -1059,7 +1124,7 @@ const PortalAdminProperties = () => {
               ))}
             </TextField>
           ) : null}
-        </Box>
+        </Stack>
 
         {/* Properties Grid */}
         <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
@@ -1374,6 +1439,7 @@ const PortalAdminProperties = () => {
                   <IconButton
                     type="button"
                     size="small"
+                    color="warning"
                     aria-label={t('portalAdminProperties.form.cancel')}
                     onClick={() => setForm((prev) => ({ ...prev, photoUrl: '' }))}
                     sx={{

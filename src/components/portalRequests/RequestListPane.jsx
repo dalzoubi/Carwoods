@@ -3,17 +3,20 @@ import {
   Box,
   Chip,
   Button,
+  CircularProgress,
   List,
   ListItemButton,
   ListItemText,
   MenuItem,
   Select,
   Stack,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import StatusAlertSlot from '../StatusAlertSlot';
+import AddIcon from '@mui/icons-material/Add';
 import PortalRefreshButton from '../PortalRefreshButton';
 import PortalUserAvatar from '../PortalUserAvatar';
 import PortalPersonWithAvatar from '../PortalPersonWithAvatar';
@@ -117,6 +120,12 @@ const RequestListPane = ({
   reloadDisabled,
   isAdmin = false,
   isManagement = false,
+  showNewRequestButton = false,
+  onNewRequest,
+  newRequestDisabled = false,
+  csvExportAllowed = true,
+  exportStatus = 'idle',
+  onExportCsv,
   landlords = [],
   landlordsStatus = 'idle',
   selectedLandlordId = '',
@@ -185,81 +194,140 @@ const RequestListPane = ({
 
   return (
     <Stack spacing={2}>
-      <Stack direction="row" justifyContent="space-between" sx={{ flexWrap: 'wrap', gap: 1 }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ flexWrap: 'wrap', gap: 1 }}>
         <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
           {t('portalRequests.list.heading')}
         </Typography>
-        <PortalRefreshButton
-          label={t('portalRequests.actions.reload')}
-          onClick={onReload}
-          disabled={reloadDisabled}
-          loading={requestsStatus === 'loading'}
-        />
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ flexWrap: 'wrap' }}>
+          {showNewRequestButton && typeof onNewRequest === 'function' ? (
+            <Button
+              type="button"
+              variant="contained"
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={onNewRequest}
+              disabled={newRequestDisabled}
+              sx={{ textTransform: 'none' }}
+            >
+              {t('portalRequests.actions.newRequest')}
+            </Button>
+          ) : null}
+          {isManagement ? (
+            <Tooltip title={!csvExportAllowed ? t('portalSubscription.freeTier.featureDisabled') : ''}>
+              <span>
+                <Button
+                  type="button"
+                  variant="outlined"
+                  size="small"
+                  onClick={onExportCsv}
+                  disabled={exportStatus === 'loading' || !csvExportAllowed}
+                  startIcon={exportStatus === 'loading' ? <CircularProgress size={16} color="inherit" /> : null}
+                  sx={{ textTransform: 'none' }}
+                >
+                  {exportStatus === 'loading'
+                    ? t('portalRequests.actions.exportingCsv')
+                    : t('portalRequests.actions.exportCsv')}
+                </Button>
+              </span>
+            </Tooltip>
+          ) : null}
+          <PortalRefreshButton
+            label={t('portalRequests.actions.reload')}
+            onClick={onReload}
+            disabled={reloadDisabled}
+            loading={requestsStatus === 'loading'}
+          />
+        </Stack>
       </Stack>
       <StatusAlertSlot message={listStatusMessage} />
-      {isAdmin && (
-        <Stack spacing={1}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={2}
+        sx={{
+          alignItems: { xs: 'stretch', sm: 'flex-start' },
+          flexWrap: 'wrap',
+        }}
+      >
+        {isAdmin ? (
+          <Stack
+            spacing={1}
+            sx={{
+              flex: { sm: '1 1 240px' },
+              minWidth: 0,
+              width: { xs: '100%', sm: 'auto' },
+              maxWidth: { sm: 380 },
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              {t('portalRequests.list.landlordFilter.label')}
+            </Typography>
+            <Select
+              size="small"
+              value={selectedLandlordId}
+              onChange={(event) => {
+                onSelectLandlord?.(event.target.value);
+              }}
+              displayEmpty
+              disabled={landlordsStatus === 'loading' || landlords.length === 0}
+              sx={{ width: '100%' }}
+            >
+              <MenuItem value="">{t('portalRequests.list.landlordFilter.all')}</MenuItem>
+              {sortedLandlords.map((landlord) => {
+                const first = String(landlord.first_name ?? '').trim();
+                const last = String(landlord.last_name ?? '').trim();
+                const name = `${first} ${last}`.trim() || String(landlord.email ?? '').trim();
+                return (
+                  <MenuItem key={landlord.id} value={landlord.id}>
+                    <PortalPersonWithAvatar
+                      photoUrl={String(landlord.profile_photo_url ?? '').trim()}
+                      firstName={landlord.first_name ?? ''}
+                      lastName={landlord.last_name ?? ''}
+                      size={28}
+                      alignItems="center"
+                    >
+                      <Typography variant="body2" component="span">
+                        {name || t('portalRequests.list.landlordFilter.unknown')}
+                      </Typography>
+                    </PortalPersonWithAvatar>
+                  </MenuItem>
+                );
+              })}
+            </Select>
+          </Stack>
+        ) : null}
+        <Stack
+          spacing={1}
+          sx={{
+            flex: { sm: '1 1 220px' },
+            minWidth: 0,
+            width: { xs: '100%', sm: 'auto' },
+            maxWidth: { sm: 320 },
+          }}
+        >
           <Typography variant="body2" color="text.secondary">
-            {t('portalRequests.list.landlordFilter.label')}
+            {t('portalRequests.labels.status')}
           </Typography>
           <Select
             size="small"
-            value={selectedLandlordId}
+            value={statusFilter}
             onChange={(event) => {
-              onSelectLandlord?.(event.target.value);
+              setStatusFilter(event.target.value);
             }}
-            displayEmpty
-            disabled={landlordsStatus === 'loading' || landlords.length === 0}
-            sx={{ maxWidth: 320 }}
+            sx={{ width: '100%' }}
           >
-            <MenuItem value="">{t('portalRequests.list.landlordFilter.all')}</MenuItem>
-            {sortedLandlords.map((landlord) => {
-              const first = String(landlord.first_name ?? '').trim();
-              const last = String(landlord.last_name ?? '').trim();
-              const name = `${first} ${last}`.trim() || String(landlord.email ?? '').trim();
-              return (
-                <MenuItem key={landlord.id} value={landlord.id}>
-                  <PortalPersonWithAvatar
-                    photoUrl={String(landlord.profile_photo_url ?? '').trim()}
-                    firstName={landlord.first_name ?? ''}
-                    lastName={landlord.last_name ?? ''}
-                    size={28}
-                    alignItems="center"
-                  >
-                    <Typography variant="body2" component="span">
-                      {name || t('portalRequests.list.landlordFilter.unknown')}
-                    </Typography>
-                  </PortalPersonWithAvatar>
-                </MenuItem>
-              );
-            })}
+            <MenuItem value="all">{t('portalRequests.list.filters.all')}</MenuItem>
+            <MenuItem value="open">{t('portalRequests.list.filters.open')}</MenuItem>
+            <MenuItem value="inProgress">{t('portalRequests.list.filters.inProgress')}</MenuItem>
+            <MenuItem value="resolved">{t('portalRequests.list.filters.resolved')}</MenuItem>
+            <MenuItem value={RequestStatus.NOT_STARTED}>{t('portalRequests.statuses.NOT_STARTED')}</MenuItem>
+            <MenuItem value={RequestStatus.ACKNOWLEDGED}>{t('portalRequests.statuses.ACKNOWLEDGED')}</MenuItem>
+            <MenuItem value={RequestStatus.SCHEDULED}>{t('portalRequests.statuses.SCHEDULED')}</MenuItem>
+            <MenuItem value={RequestStatus.WAITING_ON_TENANT}>{t('portalRequests.statuses.WAITING_ON_TENANT')}</MenuItem>
+            <MenuItem value={RequestStatus.WAITING_ON_VENDOR}>{t('portalRequests.statuses.WAITING_ON_VENDOR')}</MenuItem>
+            <MenuItem value={RequestStatus.COMPLETE}>{t('portalRequests.statuses.COMPLETE')}</MenuItem>
+            <MenuItem value={RequestStatus.CANCELLED}>{t('portalRequests.statuses.CANCELLED')}</MenuItem>
           </Select>
         </Stack>
-      )}
-      <Stack spacing={1}>
-        <Typography variant="body2" color="text.secondary">
-          {t('portalRequests.labels.status')}
-        </Typography>
-        <Select
-          size="small"
-          value={statusFilter}
-          onChange={(event) => {
-            setStatusFilter(event.target.value);
-          }}
-          sx={{ maxWidth: 260 }}
-        >
-          <MenuItem value="all">{t('portalRequests.list.filters.all')}</MenuItem>
-          <MenuItem value="open">{t('portalRequests.list.filters.open')}</MenuItem>
-          <MenuItem value="inProgress">{t('portalRequests.list.filters.inProgress')}</MenuItem>
-          <MenuItem value="resolved">{t('portalRequests.list.filters.resolved')}</MenuItem>
-          <MenuItem value={RequestStatus.NOT_STARTED}>{t('portalRequests.statuses.NOT_STARTED')}</MenuItem>
-          <MenuItem value={RequestStatus.ACKNOWLEDGED}>{t('portalRequests.statuses.ACKNOWLEDGED')}</MenuItem>
-          <MenuItem value={RequestStatus.SCHEDULED}>{t('portalRequests.statuses.SCHEDULED')}</MenuItem>
-          <MenuItem value={RequestStatus.WAITING_ON_TENANT}>{t('portalRequests.statuses.WAITING_ON_TENANT')}</MenuItem>
-          <MenuItem value={RequestStatus.WAITING_ON_VENDOR}>{t('portalRequests.statuses.WAITING_ON_VENDOR')}</MenuItem>
-          <MenuItem value={RequestStatus.COMPLETE}>{t('portalRequests.statuses.COMPLETE')}</MenuItem>
-          <MenuItem value={RequestStatus.CANCELLED}>{t('portalRequests.statuses.CANCELLED')}</MenuItem>
-        </Select>
       </Stack>
       {requestsStatus === 'ok' && sortedRequests.length === 0 && (
         <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>

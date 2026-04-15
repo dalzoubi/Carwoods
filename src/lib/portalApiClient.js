@@ -582,12 +582,17 @@ export async function fetchRequestAttachmentFileWithToken(
 /**
  * @param {string} baseUrl
  * @param {string} accessToken
- * @param {{ emailHint?: string }} [params]
+ * @param {{ emailHint?: string, landlordId?: string }} [params]
  * @returns {Promise<object>}
  */
 export async function fetchRequestLookups(baseUrl, accessToken, params) {
   const emailHint = params?.emailHint;
-  const res = await fetch(buildUrl(baseUrl, '/api/portal/request-lookups'), {
+  const landlordId = typeof params?.landlordId === 'string' ? params.landlordId.trim() : '';
+  const path =
+    landlordId.length > 0
+      ? `/api/portal/request-lookups?${new URLSearchParams({ landlord_id: landlordId }).toString()}`
+      : '/api/portal/request-lookups';
+  const res = await fetch(buildUrl(baseUrl, path), {
     method: 'GET',
     headers: getHeaders(accessToken, emailHint),
     credentials: 'omit',
@@ -948,6 +953,76 @@ export async function fetchAdminSubscriptionTiers(baseUrl, accessToken) {
     throw apiError(res.status, code);
   }
   return res.json();
+}
+
+// ---------------------------------------------------------------------------
+// GET/PATCH/DELETE /api/portal/admin/contact-requests
+// ---------------------------------------------------------------------------
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ status?: string, emailHint?: string }} [params]
+ * @returns {Promise<{ contact_requests?: object[], total?: number, unread_count?: number }>}
+ */
+export async function fetchAdminContactRequests(baseUrl, accessToken, params) {
+  const emailHint = params?.emailHint;
+  const status = params?.status && params.status !== 'ALL' ? String(params.status) : '';
+  const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+  const res = await fetch(buildUrl(baseUrl, `/api/portal/admin/contact-requests${qs}`), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ requestId: string, status: string, emailHint?: string }} params
+ */
+export async function patchAdminContactRequestStatus(baseUrl, accessToken, params) {
+  const { requestId, status, emailHint } = params;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/admin/contact-requests/${encodeURIComponent(requestId)}`),
+    {
+      method: 'PATCH',
+      headers: jsonHeaders(accessToken, emailHint),
+      body: JSON.stringify({ status }),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ requestId: string, emailHint?: string }} params
+ */
+export async function deleteAdminContactRequest(baseUrl, accessToken, params) {
+  const { requestId, emailHint } = params;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/admin/contact-requests/${encodeURIComponent(requestId)}`),
+    {
+      method: 'DELETE',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
 }
 
 // ---------------------------------------------------------------------------

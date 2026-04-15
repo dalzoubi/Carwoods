@@ -12,6 +12,7 @@ import {
   getContactRequestById,
   setContactRequestStatus,
   countUnreadContactRequests,
+  deleteContactRequest,
 } from '../lib/contactRequestsRepo.js';
 
 // ---------------------------------------------------------------------------
@@ -30,8 +31,13 @@ async function adminContactRequestsCollectionHandler(
   }
 
   const status = request.query.get('status') ?? undefined;
-  const limit = Math.min(Number(request.query.get('limit') ?? 50), 200);
-  const offset = Math.max(Number(request.query.get('offset') ?? 0), 0);
+  const limitRaw = request.query.get('limit');
+  const offsetRaw = request.query.get('offset');
+  const limitParsed = Math.trunc(Number(limitRaw ?? 50));
+  const offsetParsed = Math.trunc(Number(offsetRaw ?? 0));
+  const limit =
+    Number.isFinite(limitParsed) && limitParsed > 0 ? Math.min(limitParsed, 200) : 50;
+  const offset = Number.isFinite(offsetParsed) && offsetParsed >= 0 ? offsetParsed : 0;
 
   try {
     const pool = getPool();
@@ -99,6 +105,30 @@ async function adminContactRequestsItemHandler(
     return jsonResponse(400, ctx.headers, { error: 'missing_id' });
   }
 
+  if (request.method === 'DELETE') {
+    try {
+      const pool = getPool();
+      const existing = await getContactRequestById(pool, id);
+      if (!existing) {
+        return jsonResponse(404, ctx.headers, { error: 'not_found' });
+      }
+      const deleted = await deleteContactRequest(pool, id);
+      if (!deleted) {
+        return jsonResponse(404, ctx.headers, { error: 'not_found' });
+      }
+      logInfo(context, 'admin.contact_requests.item.delete.success', {
+        actorUserId: ctx.user.id,
+        id,
+      });
+      return jsonResponse(204, ctx.headers, null);
+    } catch (err) {
+      logError(context, 'admin.contact_requests.item.delete.error', {
+        message: err instanceof Error ? err.message : 'unknown',
+      });
+      throw err;
+    }
+  }
+
   if (request.method !== 'PATCH') {
     return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
   }
@@ -159,7 +189,7 @@ app.http('adminContactRequestsUnreadCount', {
 });
 
 app.http('adminContactRequestsItem', {
-  methods: ['PATCH', 'OPTIONS'],
+  methods: ['PATCH', 'DELETE', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/contact-requests/{id}',
   handler: adminContactRequestsItemHandler,

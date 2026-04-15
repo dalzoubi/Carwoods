@@ -139,7 +139,9 @@
     "successBody": "شكراً! سنتواصل معك في غضون يوم عمل واحد.",
     "recaptchaError": "فشل التحقق الأمني. يرجى المحاولة مرة أخرى.",
     "recaptchaRequired": "لم يكتمل التحقق الأمني. يرجى تحديث الصفحة والمحاولة مرة أخرى.",
-    "errorBody": "حدث خطأ ما. يرجى المحاولة مرة أخرى أو مراسلتنا على support@carwoods.com.",
+    "errorBodyPrefix": "حدث خطأ ما. يرجى المحاولة مرة أخرى أو مراسلتنا على ",
+    "supportEmail": "support@carwoods.com",
+    "errorBodySuffix": ".",
     "nameRequired": "الاسم مطلوب",
     "emailInvalid": "يرجى إدخال عنوان بريد إلكتروني صحيح",
     "messageRequired": "الرسالة مطلوبة",
@@ -1104,6 +1106,7 @@
   "portalSubscription": {
     "freeTier": {
       "featureDisabled": "هذه الميزة غير متوفرة في خطتك الحالية.",
+      "attachmentsDisabled": "مرفقات الصور والفيديو غير مشمولة في الخطة المجانية. لا يزال بإمكانك عرض الملفات الموجودة مسبقاً على هذا الطلب.",
       "propertyLimitReached": "لقد وصلت إلى الحد الأقصى لعدد العقارات المسموح به في خطتك الحالية."
     }
   },
@@ -1125,6 +1128,7 @@
       "category": "الفئة",
       "priority": "الأولوية",
       "reportedBy": "أُبلغ بواسطة",
+      "filedByPropertyManagerNote": "فتح مدير العقار هذا الطلب نيابةً عنك.",
       "scheduledFor": "موعد الحضور المتوقع",
       "scheduledFrom": "موعد البدء المتوقع",
       "scheduledTo": "موعد الانتهاء المتوقع",
@@ -1212,7 +1216,12 @@
       "descriptionLabel": "وصف الطلب",
       "attachmentsLabel": "المرفقات (اختياري)",
       "removeAttachment": "إزالة المرفق",
-      "saved": "تم إنشاء الطلب."
+      "saved": "تم إنشاء الطلب.",
+      "onBehalfIntro": "أنت تنشئ هذا الطلب نيابة عن مستأجر في عقد الإيجار المحدد. سيرى المستأجرون المرتبطون بهذا العقد الطلب في بوابتهم.",
+      "leaseForTenantsLabel": "المستأجر وعقد الإيجار",
+      "adminSelectLandlordFirst": "استخدم \"تصفية حسب مالك العقار\" أعلى قائمة الطلبات، ثم أنشئ طلباً لمستأجر في عقارات ذلك المالك.",
+      "noLeasesForCreate": "لم يُعثر على عقود إيجار مع مستأجر نشط لهذا الاختيار.",
+      "tenantHousehold": "مستأجرو العقد"
     },
     "management": {
       "heading": "تحديثات الإدارة",
@@ -1444,7 +1453,11 @@
       "deactivate": "تعطيل",
       "reactivate": "إعادة التفعيل",
       "cancel": "إلغاء",
-      "changeTier": "تغيير خطة الاشتراك"
+      "changeTier": "تغيير خطة الاشتراك",
+      "exportContactCard": "تنزيل بطاقة جهة اتصال (.vcf)"
+    },
+    "vCard": {
+      "roleTitle": "بوابة مالك العقار"
     },
     "tierDialog": {
       "title": "خطة الاشتراك لـ {{name}}",
@@ -1788,17 +1801,23 @@
   "portalNotificationsInbox": {
     "pageTitle": "الإشعارات – بوابة Carwoods",
     "heading": "الإشعارات",
+    "refresh": "تحديث الإشعارات",
     "allRead": "لا يوجد شيء جديد",
     "markAllRead": "تحديد الكل كمقروء",
     "dismiss": "تجاهل"
+  },
+  "portalInbox": {
+    "tabsLabel": "أقسام البريد الوارد"
   },
   "portalLayout": {
     "sidebar": {
       "dashboard": "لوحة التحكم",
       "requests": "الطلبات",
       "notifications": "الإشعارات",
+      "inbox": "البريد الوارد",
       "profile": "الملف الشخصي",
       "adminLandlords": "الملاك",
+      "adminContactUsMessages": "رسائل اتصل بنا",
       "adminConfigurations": "الإعدادات",
       "adminAiConfig": "إعدادات الذكاء الاصطناعي",
       "notificationPolicies": "سياسات الإشعارات",
@@ -1815,6 +1834,45 @@
     "topBar": {
       "openMenu": "فتح التنقل",
       "accountMenu": "قائمة الحساب"
+    }
+  },
+  "portalAdminContactRequests": {
+    "title": "بوابة Carwoods — رسائل اتصل بنا",
+    "refresh": "تحديث الرسائل",
+    "heading": "رسائل اتصل بنا",
+    "intro": "تظهر هنا الاستفسارات المرسلة عبر نموذج «اتصل بنا» العام.",
+    "unreadBadge": "{{count}} غير مقروءة",
+    "filterAll": "الكل",
+    "filterUnread": "غير مقروءة",
+    "filterRead": "مقروءة",
+    "filterHandled": "تمت المعالجة",
+    "noRequests": "لا توجد رسائل اتصال.",
+    "columnDate": "التاريخ",
+    "columnName": "الاسم",
+    "columnEmail": "البريد الإلكتروني",
+    "columnSubject": "الموضوع",
+    "columnStatus": "الحالة",
+    "detailDialogTitle": "رسالة اتصال",
+    "fieldFrom": "من",
+    "fieldDate": "التاريخ",
+    "close": "إغلاق",
+    "markAsRead": "تعليم كمقروء",
+    "markAsHandled": "تعليم كمعالج",
+    "delete": "حذف نهائي",
+    "deleteConfirmTitle": "حذف هذه الرسالة؟",
+    "deleteConfirmBody": "سيؤدي ذلك إلى إزالة الرسالة نهائيًا من قاعدة البيانات. لا يمكن التراجع عن هذا الإجراء.",
+    "deleteConfirmAction": "حذف",
+    "deleteCancel": "إلغاء",
+    "showingCount": "عرض {{shown}} من {{total}}.",
+    "feedback": {
+      "statusUpdated": "تم تحديث الحالة إلى {{status}}.",
+      "deleted": "تم حذف الرسالة."
+    },
+    "errors": {
+      "apiUnavailable": "عيِّن VITE_API_BASE_URL لتحميل رسائل الاتصال.",
+      "loadFailed": "تعذر تحميل رسائل الاتصال.",
+      "saveFailed": "تعذر تحديث الحالة.",
+      "deleteFailed": "تعذر حذف الرسالة."
     }
   },
   "portalDashboard": {
@@ -1972,7 +2030,11 @@
       "refresh": "تحديث قائمة المستأجرين",
       "cancel": "إلغاء",
       "saving": "جارٍ الحفظ…",
-      "retry": "إعادة المحاولة"
+      "retry": "إعادة المحاولة",
+      "exportContactCard": "تنزيل بطاقة جهة اتصال (.vcf)"
+    },
+    "vCard": {
+      "roleTitle": "بوابة المستأجر"
     },
     "disableConfirm": {
       "title": "تعطيل وصول المستأجر؟",

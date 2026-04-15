@@ -52,7 +52,7 @@ const DEV_AUTH_VALUE = PORTAL_DEV_AUTH
       meUrl: '',
       authStatus: 'authenticated',
       authError: '',
-      account: { name: 'Dev Landlord', username: 'dev@carwoods.com' },
+      account: { uid: 'dev-user', name: 'Dev Landlord', username: 'dev@carwoods.com' },
       isAuthenticated: true,
       meStatus: 'ok',
       meData: {

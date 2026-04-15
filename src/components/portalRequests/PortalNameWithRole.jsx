@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Chip, Stack, Tooltip, Typography } from '@mui/material';
 import { Role } from '../../domain/constants.js';
 import { normalizeRole } from '../../portalUtils';
+import MailtoEmailLink, { isDisplayableEmail } from '../MailtoEmailLink';
 
 export function roleLabel(roleValue, t) {
   const role = normalizeRole(roleValue);
@@ -65,12 +66,13 @@ export default function PortalNameWithRole({
     >
       {avatar ? <Box sx={{ flexShrink: 0 }}>{avatar}</Box> : null}
       <Typography
+        component="div"
         sx={{
           fontWeight: 600,
+          minWidth: 0,
           ...(truncateName
             ? {
                 flex: 1,
-                minWidth: 0,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
@@ -78,7 +80,25 @@ export default function PortalNameWithRole({
             : {}),
         }}
       >
-        {name}
+        {typeof name === 'string' && isDisplayableEmail(name) ? (
+          <MailtoEmailLink
+            email={name}
+            color="inherit"
+            sx={{
+              fontWeight: 600,
+              ...(truncateName
+                ? {
+                    display: 'block',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }
+                : {}),
+            }}
+          />
+        ) : (
+          name
+        )}
       </Typography>
       {roleChipTooltip ? (
         <Tooltip title={roleChipTooltip}>

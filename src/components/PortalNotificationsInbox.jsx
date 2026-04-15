@@ -21,6 +21,7 @@ import PersonAdd from '@mui/icons-material/PersonAdd';
 import Email from '@mui/icons-material/Email';
 import Warning from '@mui/icons-material/Warning';
 import NotificationsNone from '@mui/icons-material/NotificationsNone';
+import ContactMail from '@mui/icons-material/ContactMail';
 import DoneAll from '@mui/icons-material/DoneAll';
 import Close from '@mui/icons-material/Close';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -33,6 +34,7 @@ import {
 } from '../lib/portalApiClient';
 import { notificationOpenTargetFromRow, relativeTime } from '../lib/notificationUtils';
 import { usePortalRequestDetailModal } from './PortalRequestDetailModalContext';
+import PortalRefreshButton from './PortalRefreshButton';
 
 function eventIcon(eventTypeCode) {
   const code = String(eventTypeCode ?? '').toUpperCase();
@@ -43,6 +45,7 @@ function eventIcon(eventTypeCode) {
   if (code === 'ACCOUNT_ONBOARDED_WELCOME') return <PersonAdd fontSize="small" />;
   if (code === 'ACCOUNT_EMAIL_VERIFICATION') return <Email fontSize="small" />;
   if (code === 'SECURITY_NOTIFICATION_DELIVERY_FAILURE') return <Warning fontSize="small" color="warning" />;
+  if (code === 'CONTACT_REQUEST_CREATED') return <ContactMail fontSize="small" />;
   return <NotificationsNone fontSize="small" />;
 }
 
@@ -63,6 +66,7 @@ const PortalNotificationsInbox = () => {
 
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [markingAll, setMarkingAll] = useState(false);
   const [dismissing, setDismissing] = useState(new Set());
 
@@ -82,6 +86,15 @@ const PortalNotificationsInbox = () => {
       if (!silent) setLoading(false);
     }
   }, [isAuthenticated, baseUrl, getAccessToken, emailHint, handleApiForbidden]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await load({ silent: true });
+    } finally {
+      setRefreshing(false);
+    }
+  }, [load]);
 
   useEffect(() => {
     void load();
@@ -188,17 +201,25 @@ const PortalNotificationsInbox = () => {
             </Typography>
           )}
         </Box>
-        {unreadCount > 0 && (
-          <Button
-            size="small"
-            startIcon={markingAll ? <CircularProgress size={14} /> : <DoneAll fontSize="small" />}
-            onClick={handleMarkAllRead}
-            disabled={markingAll}
-            variant="outlined"
-          >
-            {t('portalNotificationsInbox.markAllRead')}
-          </Button>
-        )}
+        <Stack direction="row" alignItems="center" gap={0.5} flexWrap="wrap">
+          <PortalRefreshButton
+            label={t('portalNotificationsInbox.refresh')}
+            onClick={() => { void handleRefresh(); }}
+            disabled={!isAuthenticated || !baseUrl}
+            loading={refreshing}
+          />
+          {unreadCount > 0 && (
+            <Button
+              size="small"
+              startIcon={markingAll ? <CircularProgress size={14} /> : <DoneAll fontSize="small" />}
+              onClick={handleMarkAllRead}
+              disabled={markingAll}
+              variant="outlined"
+            >
+              {t('portalNotificationsInbox.markAllRead')}
+            </Button>
+          )}
+        </Stack>
       </Stack>
 
       {loading ? (
@@ -286,7 +307,9 @@ const PortalNotificationsInbox = () => {
                     <Tooltip title={t('portalNotificationsInbox.dismiss')} arrow>
                       <span>
                         <IconButton
+                          type="button"
                           size="small"
+                          color="inherit"
                           onClick={() => void handleDismiss(notification, false)}
                           disabled={isDismissing}
                           aria-label={t('portalNotificationsInbox.dismiss')}

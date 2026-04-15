@@ -156,6 +156,8 @@ export function usePortalRequests({
   syncDetailFromUrl = true,
   /** Preferred id for list reload selection when `syncDetailFromUrl` is false (e.g. URL `id` on requests page). */
   listSelectionHintId = '',
+  /** When the actor is admin, scopes request-lookups `management_create_lease_options` to this landlord. */
+  adminRequestLookupsLandlordId = '',
 }) {
   const [requestsStatus, setRequestsStatus] = useState('idle');
   const [requestsError, setRequestsError] = useState('');
@@ -192,6 +194,28 @@ export function usePortalRequests({
   const [tenantSubscriptionFeatures, setTenantSubscriptionFeatures] = useState(null);
   /** From GET request detail — thread attachments + Elsa (property owner's tier). */
   const [requestSubscriptionFeatures, setRequestSubscriptionFeatures] = useState(null);
+  const [managementCreateLeaseOptions, setManagementCreateLeaseOptions] = useState([]);
+  const [managementCreateLeaseId, setManagementCreateLeaseId] = useState('');
+
+  const tenantCreateDefaults = useMemo(() => {
+    if (!isManagement) return tenantDefaults;
+    if (!managementCreateLeaseId || managementCreateLeaseOptions.length === 0) return null;
+    const row = managementCreateLeaseOptions.find((o) => o.lease_id === managementCreateLeaseId);
+    if (!row) return null;
+    return {
+      property_id: row.property_id,
+      lease_id: row.lease_id,
+      property_address: row.property_address,
+      lease_end_date: row.lease_end_date,
+      month_to_month: row.month_to_month,
+    };
+  }, [isManagement, tenantDefaults, managementCreateLeaseId, managementCreateLeaseOptions]);
+
+  const tenantCreateSubscriptionFeatures = useMemo(() => {
+    if (!isManagement) return tenantSubscriptionFeatures;
+    const row = managementCreateLeaseOptions.find((o) => o.lease_id === managementCreateLeaseId);
+    return row?.subscription_features ?? null;
+  }, [isManagement, tenantSubscriptionFeatures, managementCreateLeaseOptions, managementCreateLeaseId]);
 
   const [managementForm, setManagementForm] = useState({
     status_code: '',
@@ -635,6 +659,8 @@ export function usePortalRequests({
       setPriorityOptions([]);
       setTenantDefaults(null);
       setTenantSubscriptionFeatures(null);
+      setManagementCreateLeaseOptions([]);
+      setManagementCreateLeaseId('');
       return;
     }
 
@@ -645,7 +671,10 @@ export function usePortalRequests({
       try {
         const token = await getAccessToken();
         const emailHint = emailFromAccount(account);
-        const payload = await fetchRequestLookups(baseUrl, token, { emailHint });
+        const payload = await fetchRequestLookups(baseUrl, token, {
+          emailHint,
+          landlordId: isAdmin ? adminRequestLookupsLandlordId : undefined,
+        });
         if (cancelled) return;
         const categories = Array.isArray(payload?.categories) ? payload.categories : [];
         const priorities = Array.isArray(payload?.priorities) ? payload.priorities : [];
@@ -679,6 +708,8 @@ export function usePortalRequests({
           setPriorityOptions([]);
           setTenantDefaults(null);
           setTenantSubscriptionFeatures(null);
+          setManagementCreateLeaseOptions([]);
+          setManagementCreateLeaseId('');
           return;
         }
         setLookupContact(null);
@@ -687,6 +718,14 @@ export function usePortalRequests({
         setTenantDefaults(defaults ?? null);
         const sf = payload?.subscription_features;
         setTenantSubscriptionFeatures(sf && typeof sf === 'object' ? sf : null);
+        const mc = Array.isArray(payload?.management_create_lease_options)
+          ? payload.management_create_lease_options
+          : [];
+        setManagementCreateLeaseOptions(mc);
+        setManagementCreateLeaseId((prev) => {
+          if (prev && mc.some((o) => o.lease_id === prev)) return prev;
+          return mc[0]?.lease_id ?? '';
+        });
         setLookupStatus('ok');
       } catch (error) {
         if (cancelled) return;
@@ -694,6 +733,8 @@ export function usePortalRequests({
         setLookupStatus('error');
         setLookupContact(null);
         setTenantSubscriptionFeatures(null);
+        setManagementCreateLeaseOptions([]);
+        setManagementCreateLeaseId('');
         setLookupError(extractErrorMessage(error, t, 'portalRequests.errors.loadFailed'));
       }
     };
@@ -702,7 +743,19 @@ export function usePortalRequests({
     return () => {
       cancelled = true;
     };
-  }, [baseUrl, account, getAccessToken, handleApiForbidden, isAuthenticated, isGuest, isManagement, meStatus, t]);
+  }, [
+    adminRequestLookupsLandlordId,
+    baseUrl,
+    account,
+    getAccessToken,
+    handleApiForbidden,
+    isAdmin,
+    isAuthenticated,
+    isGuest,
+    isManagement,
+    meStatus,
+    t,
+  ]);
 
   useEffect(() => {
     if (lookupStatus !== 'ok') return;
@@ -847,7 +900,7 @@ export function usePortalRequests({
 
   const onCreateRequest = async (event) => {
     event.preventDefault();
-    if (!baseUrl || !tenantDefaults) return;
+    if (!baseUrl || !tenantCreateDefaults) return;
     if (createAttachmentFiles.length > MAX_ATTACHMENTS) {
       setTenantCreateStatus('error');
       setTenantCreateError(t('portalRequests.errors.attachmentLimitExceeded'));
@@ -860,8 +913,8 @@ export function usePortalRequests({
       const emailHint = emailFromAccount(account);
       const result = await createRequest(baseUrl, token, {
         emailHint,
-        property_id: tenantDefaults.property_id,
-        lease_id: tenantDefaults.lease_id,
+        property_id: tenantCreateDefaults.property_id,
+        lease_id: tenantCreateDefaults.lease_id,
         ...tenantForm,
         emergency_disclaimer_acknowledged: true,
       });
@@ -1454,6 +1507,11 @@ export function usePortalRequests({
     attachments,
     tenantForm,
     tenantDefaults,
+    tenantCreateDefaults,
+    tenantCreateSubscriptionFeatures,
+    managementCreateLeaseOptions,
+    managementCreateLeaseId,
+    setManagementCreateLeaseId,
     tenantSubscriptionFeatures,
     requestSubscriptionFeatures,
     lookupStatus,

@@ -134,7 +134,9 @@
     "successBody": "We'll be in touch within one business day.",
     "recaptchaError": "Security check failed. Please try again.",
     "recaptchaRequired": "Security verification did not complete. Please refresh the page and try again.",
-    "errorBody": "Something went wrong. Please try again or email us at support@carwoods.com.",
+    "errorBodyPrefix": "Something went wrong. Please try again or email us at ",
+    "supportEmail": "support@carwoods.com",
+    "errorBodySuffix": ".",
     "nameRequired": "Name is required",
     "emailInvalid": "Please enter a valid email address",
     "messageRequired": "Message is required",
@@ -1261,6 +1263,7 @@
   "portalSubscription": {
     "freeTier": {
       "featureDisabled": "This feature is not available on your current plan.",
+      "attachmentsDisabled": "Photo and video attachments are not included on the Free plan. You can still view files already on this request.",
       "propertyLimitReached": "You have reached the maximum number of properties for your current plan."
     }
   },
@@ -1282,6 +1285,7 @@
       "category": "Category",
       "priority": "Priority",
       "reportedBy": "Reported by",
+      "filedByPropertyManagerNote": "This request was opened by your property manager on your behalf.",
       "scheduledFor": "Scheduled for",
       "scheduledFrom": "Scheduled from",
       "scheduledTo": "Scheduled to",
@@ -1369,7 +1373,12 @@
       "descriptionLabel": "Request description",
       "attachmentsLabel": "Attachments (optional)",
       "removeAttachment": "Remove attachment",
-      "saved": "Request created."
+      "saved": "Request created.",
+      "onBehalfIntro": "You are creating this request for a tenant on the selected lease. Tenants on that lease will see it in their portal.",
+      "leaseForTenantsLabel": "Tenant & lease",
+      "adminSelectLandlordFirst": "Use \"Filter by landlord\" above the request list, then create a request for a tenant on that landlord's properties.",
+      "noLeasesForCreate": "No leases with an active tenant were found for this selection.",
+      "tenantHousehold": "Tenants on lease"
     },
     "management": {
       "heading": "Management updates",
@@ -1601,7 +1610,11 @@
       "deactivate": "Deactivate",
       "reactivate": "Reactivate",
       "cancel": "Cancel",
-      "changeTier": "Change subscription plan"
+      "changeTier": "Change subscription plan",
+      "exportContactCard": "Download contact card (.vcf)"
+    },
+    "vCard": {
+      "roleTitle": "Landlord portal"
     },
     "tierDialog": {
       "title": "Subscription plan for {{name}}",
@@ -1945,17 +1958,23 @@
   "portalNotificationsInbox": {
     "pageTitle": "Notifications – Carwoods Portal",
     "heading": "Notifications",
+    "refresh": "Refresh notifications",
     "allRead": "All caught up",
     "markAllRead": "Mark all as read",
     "dismiss": "Dismiss"
+  },
+  "portalInbox": {
+    "tabsLabel": "Inbox sections"
   },
   "portalLayout": {
     "sidebar": {
       "dashboard": "Dashboard",
       "requests": "Requests",
       "notifications": "Notifications",
+      "inbox": "Inbox",
       "profile": "Profile",
       "adminLandlords": "Landlords",
+      "adminContactUsMessages": "Contact Us messages",
       "adminConfigurations": "Configurations",
       "adminAiConfig": "AI Configuration",
       "notificationPolicies": "Notification Policies",
@@ -1972,6 +1991,45 @@
     "topBar": {
       "openMenu": "Open navigation",
       "accountMenu": "Account menu"
+    }
+  },
+  "portalAdminContactRequests": {
+    "title": "Carwoods Portal — Contact Us messages",
+    "refresh": "Refresh messages",
+    "heading": "Contact Us messages",
+    "intro": "Inquiries submitted through the public Contact Us form appear here.",
+    "unreadBadge": "{{count}} unread",
+    "filterAll": "All",
+    "filterUnread": "Unread",
+    "filterRead": "Read",
+    "filterHandled": "Handled",
+    "noRequests": "No contact messages found.",
+    "columnDate": "Date",
+    "columnName": "Name",
+    "columnEmail": "Email",
+    "columnSubject": "Subject",
+    "columnStatus": "Status",
+    "detailDialogTitle": "Contact message",
+    "fieldFrom": "From",
+    "fieldDate": "Date",
+    "close": "Close",
+    "markAsRead": "Mark as read",
+    "markAsHandled": "Mark as handled",
+    "delete": "Delete permanently",
+    "deleteConfirmTitle": "Delete this message?",
+    "deleteConfirmBody": "This permanently removes the message from the database. This cannot be undone.",
+    "deleteConfirmAction": "Delete",
+    "deleteCancel": "Cancel",
+    "showingCount": "Showing {{shown}} of {{total}}.",
+    "feedback": {
+      "statusUpdated": "Status updated to {{status}}.",
+      "deleted": "Message deleted."
+    },
+    "errors": {
+      "apiUnavailable": "Set VITE_API_BASE_URL to load contact messages.",
+      "loadFailed": "Failed to load contact messages.",
+      "saveFailed": "Failed to update status.",
+      "deleteFailed": "Failed to delete the message."
     }
   },
   "portalDashboard": {
@@ -2129,7 +2187,11 @@
       "refresh": "Refresh tenant list",
       "cancel": "Cancel",
       "saving": "Saving…",
-      "retry": "Retry"
+      "retry": "Retry",
+      "exportContactCard": "Download contact card (.vcf)"
+    },
+    "vCard": {
+      "roleTitle": "Tenant portal"
     },
     "disableConfirm": {
       "title": "Disable tenant access?",

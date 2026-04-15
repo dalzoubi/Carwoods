@@ -139,7 +139,9 @@
     "successBody": "¡Gracias! Nos pondremos en contacto en un día hábil.",
     "recaptchaError": "Error de verificación de seguridad. Por favor, inténtelo de nuevo.",
     "recaptchaRequired": "No se completó la verificación de seguridad. Actualice la página e inténtelo de nuevo.",
-    "errorBody": "Algo salió mal. Por favor, inténtelo de nuevo o envíenos un correo a support@carwoods.com.",
+    "errorBodyPrefix": "Algo salió mal. Por favor, inténtelo de nuevo o envíenos un correo a ",
+    "supportEmail": "support@carwoods.com",
+    "errorBodySuffix": ".",
     "nameRequired": "El nombre es obligatorio",
     "emailInvalid": "Por favor ingrese una dirección de correo electrónico válida",
     "messageRequired": "El mensaje es obligatorio",
@@ -1103,6 +1105,7 @@
   "portalSubscription": {
     "freeTier": {
       "featureDisabled": "Esta función no está disponible en tu plan actual.",
+      "attachmentsDisabled": "Los archivos adjuntos de foto y video no están incluidos en el plan gratuito. Aún puedes ver los archivos que ya estén en esta solicitud.",
       "propertyLimitReached": "Has alcanzado el número máximo de propiedades permitido por tu plan actual."
     }
   },
@@ -1124,6 +1127,7 @@
       "category": "Categoría",
       "priority": "Prioridad",
       "reportedBy": "Reportado por",
+      "filedByPropertyManagerNote": "Su administrador de la propiedad abrió esta solicitud en su nombre.",
       "scheduledFor": "Programado para",
       "scheduledFrom": "Programado desde",
       "scheduledTo": "Programado hasta",
@@ -1211,7 +1215,12 @@
       "descriptionLabel": "Descripción de solicitud",
       "attachmentsLabel": "Archivos adjuntos (opcional)",
       "removeAttachment": "Eliminar archivo adjunto",
-      "saved": "Solicitud creada."
+      "saved": "Solicitud creada.",
+      "onBehalfIntro": "Está creando esta solicitud en nombre de un inquilino del contrato seleccionado. Los inquilinos de ese contrato la verán en su portal.",
+      "leaseForTenantsLabel": "Inquilino y contrato",
+      "adminSelectLandlordFirst": "Use \"Filtrar por propietario\" encima de la lista de solicitudes y luego cree una solicitud para un inquilino de las propiedades de ese propietario.",
+      "noLeasesForCreate": "No se encontraron contratos con un inquilino activo para esta selección.",
+      "tenantHousehold": "Inquilinos del contrato"
     },
     "management": {
       "heading": "Actualizaciones de gestión",
@@ -1443,7 +1452,11 @@
       "deactivate": "Desactivar",
       "reactivate": "Reactivar",
       "cancel": "Cancelar",
-      "changeTier": "Cambiar plan de suscripción"
+      "changeTier": "Cambiar plan de suscripción",
+      "exportContactCard": "Descargar tarjeta de contacto (.vcf)"
+    },
+    "vCard": {
+      "roleTitle": "Portal del propietario"
     },
     "tierDialog": {
       "title": "Plan de suscripción de {{name}}",
@@ -1787,17 +1800,23 @@
   "portalNotificationsInbox": {
     "pageTitle": "Notificaciones – Portal Carwoods",
     "heading": "Notificaciones",
+    "refresh": "Actualizar notificaciones",
     "allRead": "Todo al día",
     "markAllRead": "Marcar todo como leído",
     "dismiss": "Descartar"
+  },
+  "portalInbox": {
+    "tabsLabel": "Secciones de la bandeja"
   },
   "portalLayout": {
     "sidebar": {
       "dashboard": "Panel",
       "requests": "Solicitudes",
       "notifications": "Notificaciones",
+      "inbox": "Bandeja",
       "profile": "Perfil",
       "adminLandlords": "Propietarios",
+      "adminContactUsMessages": "Mensajes de Contacto",
       "adminConfigurations": "Configuraciones",
       "adminAiConfig": "Configuración de IA",
       "notificationPolicies": "Políticas de notificación",
@@ -1814,6 +1833,45 @@
     "topBar": {
       "openMenu": "Abrir navegación",
       "accountMenu": "Menú de cuenta"
+    }
+  },
+  "portalAdminContactRequests": {
+    "title": "Portal Carwoods — Mensajes de Contacto",
+    "refresh": "Actualizar mensajes",
+    "heading": "Mensajes de Contacto",
+    "intro": "Aquí aparecen las consultas enviadas desde el formulario público de Contacto.",
+    "unreadBadge": "{{count}} sin leer",
+    "filterAll": "Todos",
+    "filterUnread": "Sin leer",
+    "filterRead": "Leídos",
+    "filterHandled": "Gestionados",
+    "noRequests": "No hay mensajes de contacto.",
+    "columnDate": "Fecha",
+    "columnName": "Nombre",
+    "columnEmail": "Correo",
+    "columnSubject": "Asunto",
+    "columnStatus": "Estado",
+    "detailDialogTitle": "Mensaje de contacto",
+    "fieldFrom": "De",
+    "fieldDate": "Fecha",
+    "close": "Cerrar",
+    "markAsRead": "Marcar como leído",
+    "markAsHandled": "Marcar como gestionado",
+    "delete": "Eliminar permanentemente",
+    "deleteConfirmTitle": "¿Eliminar este mensaje?",
+    "deleteConfirmBody": "Se eliminará permanentemente de la base de datos. Esta acción no se puede deshacer.",
+    "deleteConfirmAction": "Eliminar",
+    "deleteCancel": "Cancelar",
+    "showingCount": "Mostrando {{shown}} de {{total}}.",
+    "feedback": {
+      "statusUpdated": "Estado actualizado a {{status}}.",
+      "deleted": "Mensaje eliminado."
+    },
+    "errors": {
+      "apiUnavailable": "Configura VITE_API_BASE_URL para cargar los mensajes de contacto.",
+      "loadFailed": "No se pudieron cargar los mensajes de contacto.",
+      "saveFailed": "No se pudo actualizar el estado.",
+      "deleteFailed": "No se pudo eliminar el mensaje."
     }
   },
   "portalDashboard": {
@@ -1971,7 +2029,11 @@
       "refresh": "Actualizar lista de inquilinos",
       "cancel": "Cancelar",
       "saving": "Guardando…",
-      "retry": "Reintentar"
+      "retry": "Reintentar",
+      "exportContactCard": "Descargar tarjeta de contacto (.vcf)"
+    },
+    "vCard": {
+      "roleTitle": "Portal del inquilino"
     },
     "disableConfirm": {
       "title": "¿Desactivar acceso del inquilino?",

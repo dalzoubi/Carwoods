@@ -19,6 +19,7 @@ import { fetchAdminPortalUsers, postAdminNotificationTest } from '../lib/portalA
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 import StatusAlertSlot from './StatusAlertSlot';
+import MailtoEmailLink from './MailtoEmailLink';
 
 function errorMessageFromCode(t, code) {
   const key = `portalAdminNotificationTest.errors.${code}`;
@@ -128,12 +129,14 @@ const PortalAdminNotificationTest = () => {
     const rows = source.map((u) => {
       const id = String(u.id);
       const isSelf = id === selfId;
+      const recipientEmail = String(u.email ?? '').trim();
       return {
         id,
         primaryLabel: isSelf
           ? t('portalAdminNotificationTest.inApp.recipientYou')
           : userDisplayName(u),
-        secondaryLabel: `${String(u.email ?? '').trim() || '—'} · ${roleLabelForRecipient(t, u.role)}`,
+        recipientEmail,
+        roleLabel: roleLabelForRecipient(t, u.role),
         photoUrl: String(u.profile_photo_url ?? '').trim(),
         firstName: String(u.first_name ?? ''),
         lastName: String(u.last_name ?? ''),
@@ -325,7 +328,9 @@ const PortalAdminNotificationTest = () => {
               onChange={(_, v) => setInAppRecipient(v)}
               disabled={!canUse || meStatus === 'loading' || recipientsLoading}
               loading={recipientsLoading || meStatus === 'loading'}
-              getOptionLabel={(o) => (o ? `${o.primaryLabel} (${o.secondaryLabel})` : '')}
+              getOptionLabel={(o) => (
+                o ? `${o.primaryLabel} (${o.recipientEmail || '—'} · ${o.roleLabel})` : ''
+              )}
               isOptionEqualToValue={(a, b) => Boolean(a && b && a.id === b.id)}
               renderOption={(props, option) => (
                 <li {...props}>
@@ -341,7 +346,18 @@ const PortalAdminNotificationTest = () => {
                         {option.primaryLabel}
                       </Typography>
                       <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
-                        {option.secondaryLabel}
+                        {option.recipientEmail ? (
+                          <MailtoEmailLink
+                            email={option.recipientEmail}
+                            color="inherit"
+                            stopPropagation
+                            sx={{ fontSize: 'inherit' }}
+                          />
+                        ) : (
+                          '—'
+                        )}
+                        {' · '}
+                        {option.roleLabel}
                       </Typography>
                     </Box>
                   </Stack>

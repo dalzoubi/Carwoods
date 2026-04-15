@@ -45,7 +45,8 @@ import InlineActionStatus from '../InlineActionStatus';
 import PortalConfirmDialog from '../PortalConfirmDialog';
 import PortalUserAvatar from '../PortalUserAvatar';
 import { AttachmentUploadControl } from '..';
-import { RequestStatus } from '../../domain/constants.js';
+import { RequestStatus, Role } from '../../domain/constants.js';
+import { normalizeRole } from '../../portalUtils.js';
 import PortalNameWithRole from './PortalNameWithRole.jsx';
 import { getStatusChipSx } from './requestChipStyles';
 import { PortalMessageBody } from '../../lib/portalMessageBodyFormat';
@@ -287,6 +288,9 @@ const RequestDetailPane = ({
   const isDev = import.meta.env.DEV;
   const allowAttachmentsForRequest = subscriptionFeatures == null
     || Boolean(subscriptionFeatures.request_photo_video_attachments_enabled);
+  const attachmentsFreeTierLocked =
+    subscriptionFeatures != null
+    && subscriptionFeatures.request_photo_video_attachments_enabled === false;
   const allowAiForRequest = subscriptionFeatures == null
     || Boolean(subscriptionFeatures.ai_routing_enabled);
   const requestPriorityTone = useMemo(() => priorityTone(requestDetail), [requestDetail]);
@@ -834,22 +838,30 @@ const RequestDetailPane = ({
                 <DetailRow
                   label={`${t('portalRequests.labels.reportedBy')}:`}
                   value={(
-                    <PortalNameWithRole
-                      avatar={(
-                        <PortalUserAvatar
-                          photoUrl={requestDetail.submitted_by_profile_photo_url ?? ''}
-                          firstName={requestDetail.submitted_by_first_name ?? ''}
-                          lastName={requestDetail.submitted_by_last_name ?? ''}
-                          size={28}
-                        />
-                      )}
-                      name={displayNameWithFallback({
-                        displayName: requestDetail.submitted_by_display_name,
-                        userId: requestDetail.submitted_by_user_id,
-                      }, t('portalRequests.messages.senderUnknown'))}
-                      role={requestDetail.submitted_by_role}
-                      t={t}
-                    />
+                    <Stack spacing={0.5}>
+                      <PortalNameWithRole
+                        avatar={(
+                          <PortalUserAvatar
+                            photoUrl={requestDetail.submitted_by_profile_photo_url ?? ''}
+                            firstName={requestDetail.submitted_by_first_name ?? ''}
+                            lastName={requestDetail.submitted_by_last_name ?? ''}
+                            size={28}
+                          />
+                        )}
+                        name={displayNameWithFallback({
+                          displayName: requestDetail.submitted_by_display_name,
+                          userId: requestDetail.submitted_by_user_id,
+                        }, t('portalRequests.messages.senderUnknown'))}
+                        role={requestDetail.submitted_by_role}
+                        t={t}
+                      />
+                      {!isManagement
+                      && [Role.LANDLORD, Role.ADMIN].includes(normalizeRole(requestDetail.submitted_by_role)) ? (
+                        <Typography variant="caption" color="text.secondary">
+                          {t('portalRequests.labels.filedByPropertyManagerNote')}
+                        </Typography>
+                        ) : null}
+                    </Stack>
                   )}
                 />
                 <DetailRow
@@ -1114,30 +1126,36 @@ const RequestDetailPane = ({
         component="form"
         onSubmit={allowAttachmentsForRequest ? onAttachmentSubmit : (e) => { e.preventDefault(); }}
       >
-        <Stack spacing={1.5}>
-          <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
-            <Typography variant="h3" sx={sectionHeadingSx}>
-              {t('portalRequests.attachments.heading')}
-            </Typography>
-            {!allowAttachmentsForRequest ? (
-              <Tooltip title={t('portalSubscription.freeTier.featureDisabled')}>
-                <Typography component="span" variant="caption" color="text.disabled" sx={{ cursor: 'help' }}>
-                  {t('portalSubscription.freeTier.featureDisabled')}
-                </Typography>
-              </Tooltip>
-            ) : null}
-          </Stack>
+        <Tooltip
+          title={attachmentsFreeTierLocked ? t('portalSubscription.freeTier.attachmentsDisabled') : ''}
+          describeChild
+        >
           <Box
-            sx={(theme) => ({
-              border: '1px solid',
-              borderColor: 'divider',
-              borderRadius: 1.25,
-              p: 1.5,
-              backgroundColor: alpha(theme.palette.background.default, theme.palette.mode === 'dark' ? 0.32 : 0.65),
-              opacity: allowAttachmentsForRequest ? 1 : 0.5,
-              pointerEvents: allowAttachmentsForRequest ? 'auto' : 'none',
-            })}
+            component="span"
+            sx={{
+              display: 'block',
+              width: '100%',
+              ...(attachmentsFreeTierLocked && { cursor: 'not-allowed' }),
+            }}
           >
+            <Stack
+              spacing={1.5}
+              sx={attachmentsFreeTierLocked ? { opacity: 0.72 } : undefined}
+            >
+              <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
+                <Typography variant="h3" sx={sectionHeadingSx}>
+                  {t('portalRequests.attachments.heading')}
+                </Typography>
+              </Stack>
+              <Box
+                sx={(theme) => ({
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1.25,
+                  p: 1.5,
+                  backgroundColor: alpha(theme.palette.background.default, theme.palette.mode === 'dark' ? 0.32 : 0.65),
+                })}
+              >
             <Stack spacing={0.75}>
               {sortedAttachments.length === 0 && (
                 <Box
@@ -1449,13 +1467,15 @@ const RequestDetailPane = ({
           </Box>
           <AttachmentUploadControl
             instructions={t('portalRequests.attachments.instructions')}
-            isDropActive={isAttachmentDropActive}
+            isDropActive={allowAttachmentsForRequest && isAttachmentDropActive}
             onDragOver={(event) => {
+              if (!allowAttachmentsForRequest) return;
               event.preventDefault();
               setIsAttachmentDropActive(true);
             }}
             onDragLeave={() => setIsAttachmentDropActive(false)}
             onDrop={(event) => {
+              if (!allowAttachmentsForRequest) return;
               event.preventDefault();
               setIsAttachmentDropActive(false);
               const file = event.dataTransfer?.files?.[0];
@@ -1464,7 +1484,8 @@ const RequestDetailPane = ({
             chooseButtonLabel={t('portalRequests.actions.chooseFile')}
             inputKey={attachmentInputKey}
             accept="image/*,video/*"
-            onFileChange={onAttachmentChange}
+            onFileChange={allowAttachmentsForRequest ? onAttachmentChange : () => {}}
+            chooseDisabled={!allowAttachmentsForRequest}
             selectedContent={attachmentFile ? (
               <Box
                 sx={{
@@ -1558,6 +1579,8 @@ const RequestDetailPane = ({
             ) : null}
           </Stack>
         </Stack>
+          </Box>
+        </Tooltip>
       </SectionCard>
 
       {isManagement && (

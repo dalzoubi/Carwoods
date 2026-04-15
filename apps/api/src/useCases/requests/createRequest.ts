@@ -1,9 +1,12 @@
 /**
- * Create a new maintenance request (tenant-only action).
+ * Create a new maintenance request.
  *
  * Business rules enforced:
- * - Actor must have the TENANT role.
- * - Tenant must have an active lease for the requested lease_id.
+ * - Actor must be TENANT, LANDLORD, or ADMIN.
+ * - Tenants: active lease_tenants access for the requested lease_id.
+ * - Landlords: lease on a property they created, with at least one active tenant on the lease.
+ * - Admins: same as landlords without property ownership restriction.
+ * - `property_id` must match the lease row.
  * - All lookup codes (category, priority, status) must resolve in the DB.
  * - Field validation via domain/requestValidation.
  */
@@ -12,6 +15,8 @@ import {
   findSystemDefaultStatusId,
   getRequestById,
   insertMaintenanceRequest,
+  leasePropertyMatches,
+  managementCanCreateRequestForLease,
   tenantCanSubmitForLease,
   type RequestRow,
 } from '../../lib/requestsRepo.js';
@@ -57,8 +62,8 @@ export async function createRequest(
   input: CreateRequestInput
 ): Promise<CreateRequestOutput> {
   const role = input.actorRole.trim().toUpperCase();
-  if (role !== Role.TENANT) {
-    throw forbidden('only_tenants_can_create_requests');
+  if (role !== Role.TENANT && role !== Role.LANDLORD && role !== Role.ADMIN) {
+    throw forbidden('forbidden_create_request');
   }
 
   const fieldValidation = validateCreateRequest({
@@ -73,9 +78,26 @@ export async function createRequest(
     throw validationError(fieldValidation.message);
   }
 
-  const canSubmit = await tenantCanSubmitForLease(db, input.leaseId!, input.actorUserId);
-  if (!canSubmit) {
-    throw forbidden('forbidden_lease_access');
+  const leaseMatchesProperty = await leasePropertyMatches(db, input.leaseId!, input.propertyId!);
+  if (!leaseMatchesProperty) {
+    throw validationError('invalid_lease_property');
+  }
+
+  if (role === Role.TENANT) {
+    const canSubmit = await tenantCanSubmitForLease(db, input.leaseId!, input.actorUserId);
+    if (!canSubmit) {
+      throw forbidden('forbidden_lease_access');
+    }
+  } else {
+    const canSubmit = await managementCanCreateRequestForLease(
+      db,
+      input.leaseId!,
+      role,
+      input.actorUserId
+    );
+    if (!canSubmit) {
+      throw forbidden('forbidden_lease_access');
+    }
   }
 
   const [categoryId, priorityId, openStatusId] = await Promise.all([

@@ -1,6 +1,6 @@
 /**
  * In-app notification bell (top bar): which IDs the user removed from the tray
- * and how to limit read history shown there. Full history stays on /portal/notifications.
+ * and how to limit read history shown there. Full history stays on /portal/inbox/notifications.
  */
 
 const STORAGE_KEY_PREFIX = 'portal_notification_tray_hidden_v1';
@@ -64,6 +64,40 @@ export function loadTrayHiddenIds(userKey) {
 }
 
 /**
+ * Distinct localStorage key segments for this signed-in account (Firebase uid and/or email).
+ * Dismissals are written to every key so tray prefs survive `uid` vs email key changes.
+ *
+ * @param {{ uid?: string|null, username?: string|null }|null|undefined} account
+ * @returns {string[]}
+ */
+export function trayStorageUserKeys(account) {
+  if (!account || typeof account !== 'object') return [];
+  const uid = typeof account.uid === 'string' && account.uid.trim() ? account.uid.trim() : '';
+  const username =
+    typeof account.username === 'string' && account.username.trim() ? account.username.trim() : '';
+  const keys = [];
+  if (uid) keys.push(uid);
+  if (username && username !== uid) keys.push(username);
+  return keys;
+}
+
+/**
+ * @param {{ uid?: string|null, username?: string|null }|null|undefined} account
+ * @returns {Set<string>}
+ */
+export function loadMergedTrayHiddenIds(account) {
+  const keys = trayStorageUserKeys(account);
+  if (keys.length === 0 || typeof window === 'undefined') return new Set();
+  const merged = new Set();
+  for (const key of keys) {
+    for (const id of loadTrayHiddenIds(key)) {
+      merged.add(id);
+    }
+  }
+  return merged;
+}
+
+/**
  * @param {string} userKey
  * @param {Set<string>} ids
  */
@@ -84,5 +118,22 @@ export function addTrayHiddenId(userKey, notificationId, current) {
   const next = new Set(current);
   next.add(String(notificationId));
   saveTrayHiddenIds(userKey, next);
+  return next;
+}
+
+/**
+ * @param {{ uid?: string|null, username?: string|null }|null|undefined} account
+ * @param {string|number} notificationId
+ * @param {Set<string>} current
+ * @returns {Set<string>}
+ */
+export function addTrayHiddenIdForAccount(account, notificationId, current) {
+  const keys = trayStorageUserKeys(account);
+  if (keys.length === 0) return new Set(current);
+  const next = new Set(current);
+  next.add(String(notificationId));
+  for (const key of keys) {
+    saveTrayHiddenIds(key, next);
+  }
   return next;
 }

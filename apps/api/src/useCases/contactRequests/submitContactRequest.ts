@@ -71,7 +71,7 @@ async function sendAdminAlert(
           row.message,
           ``,
           `Submitted: ${row.created_at}`,
-          `View in portal: ${process.env.PORTAL_BASE_URL ?? 'https://carwoods.com'}/portal/admin/contact-requests`,
+          `View in portal: ${process.env.PORTAL_BASE_URL ?? 'https://carwoods.com'}/portal/inbox/contact`,
         ].join('\n'),
       },
     });

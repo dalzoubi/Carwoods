@@ -30,6 +30,7 @@ import { listRequestAttachments } from '../useCases/requests/listRequestAttachme
 import { deleteRequestAttachment } from '../useCases/requests/deleteRequestAttachment.js';
 import { createRequestAttachmentShareLink } from '../useCases/requests/createRequestAttachmentShareLink.js';
 import { downloadRequestAttachmentFile } from '../useCases/requests/downloadRequestAttachmentFile.js';
+import { Role } from '../domain/constants.js';
 
 const MESSAGE_BODY_MAX_BYTES = 512 * 1024;
 
@@ -129,8 +130,15 @@ async function portalRequestLookups(
     return jsonResponse(405, headers, { error: 'method_not_allowed' });
   }
 
+  const adminLandlordIdForCreateOptions =
+    role === Role.ADMIN ? request.query.get('landlord_id')?.trim() || null : null;
+
   try {
-    const result = await listRequestLookups(getPool(), { actorUserId: user.id, actorRole: role });
+    const result = await listRequestLookups(getPool(), {
+      actorUserId: user.id,
+      actorRole: role,
+      adminLandlordIdForCreateOptions,
+    });
     return jsonResponse(200, headers, result);
   } catch (e) {
     const mapped = mapDomainError(e, headers);

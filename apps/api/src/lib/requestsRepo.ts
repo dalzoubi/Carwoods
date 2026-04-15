@@ -240,6 +240,153 @@ export async function tenantCanSubmitForLease(
   return r.rows.length > 0;
 }
 
+/** Confirms lease exists and `propertyId` matches the lease row. */
+export async function leasePropertyMatches(
+  client: Queryable,
+  leaseId: string,
+  propertyId: string
+): Promise<boolean> {
+  const r = await client.query<{ ok: number }>(
+    `SELECT TOP 1 1 AS ok
+     FROM leases l
+     WHERE l.id = $1
+       AND l.property_id = $2
+       AND l.deleted_at IS NULL`,
+    [leaseId, propertyId]
+  );
+  return r.rows.length > 0;
+}
+
+export type ManagementCreateRequestLeaseOption = TenantRequestDefaults & {
+  /** Comma-separated tenant names/emails for the lease (active access only). */
+  tenant_names: string | null;
+};
+
+/**
+ * Leases a landlord (or filtered admin) may file a maintenance request against:
+ * property in scope, lease active, at least one linked tenant user with active access.
+ */
+export async function listManagementCreateRequestLeaseOptions(
+  client: Queryable,
+  params: {
+    actorRole: string;
+    actorUserId: string;
+    /** When actor is ADMIN, restrict to this landlord's properties; omit or null → no rows. */
+    adminLandlordUserId: string | null | undefined;
+  }
+): Promise<ManagementCreateRequestLeaseOption[]> {
+  const role = params.actorRole.trim().toUpperCase();
+  if (role === Role.LANDLORD) {
+    const r = await client.query<ManagementCreateRequestLeaseOption>(
+      `SELECT
+         l.id AS lease_id,
+         l.property_id,
+         CONCAT(p.street, ', ', p.city, ', ', p.state, ' ', p.zip) AS property_address,
+         CONVERT(NVARCHAR(10), l.end_date, 23) AS lease_end_date,
+         CAST(l.month_to_month AS BIT) AS month_to_month,
+         STUFF((
+           SELECT ', ' + COALESCE(
+             NULLIF(LTRIM(RTRIM(CONCAT(COALESCE(u2.first_name, N''), N' ', COALESCE(u2.last_name, N'')))), N''),
+             u2.email
+           )
+           FROM lease_tenants lt2
+           INNER JOIN users u2 ON u2.id = lt2.user_id AND UPPER(LTRIM(RTRIM(u2.role))) = '${Role.TENANT}'
+           WHERE lt2.lease_id = l.id
+             AND (lt2.access_end_at IS NULL OR lt2.access_end_at > SYSDATETIMEOFFSET())
+           FOR XML PATH(''), TYPE
+         ).value(N'.[1]', N'NVARCHAR(MAX)'), 1, 2, N'') AS tenant_names
+       FROM leases l
+       INNER JOIN properties p ON p.id = l.property_id AND p.deleted_at IS NULL
+       WHERE l.deleted_at IS NULL
+         AND p.created_by = $1
+         AND EXISTS (
+           SELECT 1
+             FROM lease_tenants lt
+             INNER JOIN users u ON u.id = lt.user_id AND UPPER(LTRIM(RTRIM(u.role))) = '${Role.TENANT}'
+            WHERE lt.lease_id = l.id
+              AND (lt.access_end_at IS NULL OR lt.access_end_at > SYSDATETIMEOFFSET())
+         )
+       ORDER BY property_address ASC, l.id ASC`,
+      [params.actorUserId]
+    );
+    return r.rows;
+  }
+
+  if (role === Role.ADMIN) {
+    const landlordId = params.adminLandlordUserId?.trim() || null;
+    if (!landlordId) {
+      return [];
+    }
+    const r = await client.query<ManagementCreateRequestLeaseOption>(
+      `SELECT
+         l.id AS lease_id,
+         l.property_id,
+         CONCAT(p.street, ', ', p.city, ', ', p.state, ' ', p.zip) AS property_address,
+         CONVERT(NVARCHAR(10), l.end_date, 23) AS lease_end_date,
+         CAST(l.month_to_month AS BIT) AS month_to_month,
+         STUFF((
+           SELECT ', ' + COALESCE(
+             NULLIF(LTRIM(RTRIM(CONCAT(COALESCE(u2.first_name, N''), N' ', COALESCE(u2.last_name, N'')))), N''),
+             u2.email
+           )
+           FROM lease_tenants lt2
+           INNER JOIN users u2 ON u2.id = lt2.user_id AND UPPER(LTRIM(RTRIM(u2.role))) = '${Role.TENANT}'
+           WHERE lt2.lease_id = l.id
+             AND (lt2.access_end_at IS NULL OR lt2.access_end_at > SYSDATETIMEOFFSET())
+           FOR XML PATH(''), TYPE
+         ).value(N'.[1]', N'NVARCHAR(MAX)'), 1, 2, N'') AS tenant_names
+       FROM leases l
+       INNER JOIN properties p ON p.id = l.property_id AND p.deleted_at IS NULL
+       WHERE l.deleted_at IS NULL
+         AND p.created_by = $1
+         AND EXISTS (
+           SELECT 1
+             FROM lease_tenants lt
+             INNER JOIN users u ON u.id = lt.user_id AND UPPER(LTRIM(RTRIM(u.role))) = '${Role.TENANT}'
+            WHERE lt.lease_id = l.id
+              AND (lt.access_end_at IS NULL OR lt.access_end_at > SYSDATETIMEOFFSET())
+         )
+       ORDER BY property_address ASC, l.id ASC`,
+      [landlordId]
+    );
+    return r.rows;
+  }
+
+  return [];
+}
+
+/**
+ * Whether management may create a request for this lease (tenant on lease, scope matches role).
+ */
+export async function managementCanCreateRequestForLease(
+  client: Queryable,
+  leaseId: string,
+  actorRole: string,
+  actorUserId: string
+): Promise<boolean> {
+  const role = actorRole.trim().toUpperCase();
+  const r = await client.query<{ ok: number }>(
+    `SELECT TOP 1 1 AS ok
+     FROM leases l
+     INNER JOIN properties p ON p.id = l.property_id AND p.deleted_at IS NULL
+     WHERE l.id = $1
+       AND l.deleted_at IS NULL
+       AND EXISTS (
+         SELECT 1
+           FROM lease_tenants lt
+           INNER JOIN users u ON u.id = lt.user_id AND UPPER(LTRIM(RTRIM(u.role))) = '${Role.TENANT}'
+          WHERE lt.lease_id = l.id
+            AND (lt.access_end_at IS NULL OR lt.access_end_at > SYSDATETIMEOFFSET())
+       )
+       AND (
+         ($2 = '${Role.ADMIN}')
+         OR ($2 = '${Role.LANDLORD}' AND p.created_by = $3)
+       )`,
+    [leaseId, role, actorUserId]
+  );
+  return r.rows.length > 0;
+}
+
 export async function findTenantRequestDefaults(
   client: Queryable,
   tenantUserId: string

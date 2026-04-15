@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   Box,
+  ButtonBase,
   Chip,
   CircularProgress,
   Divider,
@@ -13,9 +14,9 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import Person from '@mui/icons-material/Person';
 import Logout from '@mui/icons-material/Logout';
 import Dashboard from '@mui/icons-material/Dashboard';
+import Settings from '@mui/icons-material/Settings';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -126,6 +127,8 @@ export function PortalAccountMenu({ anchorEl, open, onClose, menuProps }) {
   const roleLabel = portalRoleLabel(role, t);
   const tierLabel = portalTierPillLabel(meData);
   const showTierPill = Boolean(tierLabel) && normalized !== Role.TENANT;
+  const showConfigurationsNav =
+    roleResolved && (normalized === Role.LANDLORD || normalized === Role.ADMIN);
 
   const handleSignOutConfirm = async () => {
     setSignOutOpen(false);
@@ -148,40 +151,60 @@ export function PortalAccountMenu({ anchorEl, open, onClose, menuProps }) {
         MenuListProps={{ 'aria-labelledby': PORTAL_ACCOUNT_MENU_BUTTON_ID }}
       >
         <Box sx={{ px: 2, pt: 1.5, pb: 1 }}>
-          <Stack direction="row" spacing={1.5} alignItems="flex-start">
-            <PortalUserAvatar
-              meData={meData}
-              firstName={meData?.user?.first_name}
-              lastName={meData?.user?.last_name}
-              fallbackPhotoUrl={account?.photoURL}
-              onProfilePhotoLoadError={refreshMe}
-              size={36}
-              sx={{ flexShrink: 0 }}
-            />
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="body2" fontWeight={600} noWrap>
-                {displayName}
-              </Typography>
-              <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
-                <Chip
-                  label={roleLabel}
-                  size="small"
-                  color="primary"
-                  variant="outlined"
-                  sx={{ height: 20, fontSize: '0.7rem' }}
-                />
-                {showTierPill ? (
+          <ButtonBase
+            type="button"
+            disabled={profileDisabled}
+            onClick={() => {
+              navigate(withDarkPath(pathname, '/portal/profile'));
+              onClose();
+            }}
+            aria-label={t('portalHeader.nav.profile')}
+            sx={{
+              width: '100%',
+              display: 'block',
+              textAlign: 'start',
+              borderRadius: 1,
+              px: 0,
+              py: 0,
+              mx: 0,
+              my: 0,
+            }}
+          >
+            <Stack direction="row" spacing={1.5} alignItems="flex-start">
+              <PortalUserAvatar
+                meData={meData}
+                firstName={meData?.user?.first_name}
+                lastName={meData?.user?.last_name}
+                fallbackPhotoUrl={account?.photoURL}
+                onProfilePhotoLoadError={refreshMe}
+                size={36}
+                sx={{ flexShrink: 0 }}
+              />
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="body2" fontWeight={600} noWrap>
+                  {displayName}
+                </Typography>
+                <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
                   <Chip
-                    label={tierLabel}
+                    label={roleLabel}
                     size="small"
-                    color="secondary"
+                    color="primary"
                     variant="outlined"
                     sx={{ height: 20, fontSize: '0.7rem' }}
                   />
-                ) : null}
-              </Stack>
-            </Box>
-          </Stack>
+                  {showTierPill ? (
+                    <Chip
+                      label={tierLabel}
+                      size="small"
+                      color="secondary"
+                      variant="outlined"
+                      sx={{ height: 20, fontSize: '0.7rem' }}
+                    />
+                  ) : null}
+                </Stack>
+              </Box>
+            </Stack>
+          </ButtonBase>
         </Box>
         <Divider />
         <MenuItem
@@ -195,20 +218,19 @@ export function PortalAccountMenu({ anchorEl, open, onClose, menuProps }) {
           </ListItemIcon>
           <ListItemText primary={t('portalHeader.nav.goToPortal')} />
         </MenuItem>
-        <MenuItem
-          onClick={() => {
-            if (!profileDisabled) {
-              navigate(withDarkPath(pathname, '/portal/profile'));
-            }
-            onClose();
-          }}
-          disabled={profileDisabled}
-        >
-          <ListItemIcon>
-            <Person fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary={t('portalHeader.nav.profile')} />
-        </MenuItem>
+        {showConfigurationsNav ? (
+          <MenuItem
+            onClick={() => {
+              navigate(withDarkPath(pathname, '/portal/admin/config'));
+              onClose();
+            }}
+          >
+            <ListItemIcon>
+              <Settings fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary={t('portalLayout.sidebar.adminConfigurations')} />
+          </MenuItem>
+        ) : null}
         <Divider />
         <MenuItem
           onClick={() => {

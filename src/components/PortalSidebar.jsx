@@ -19,14 +19,13 @@ import Dashboard from '@mui/icons-material/Dashboard';
 import Build from '@mui/icons-material/Build';
 import Person from '@mui/icons-material/Person';
 import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
-import Settings from '@mui/icons-material/Settings';
 import HomeWork from '@mui/icons-material/HomeWork';
 import People from '@mui/icons-material/People';
 import Logout from '@mui/icons-material/Logout';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import ChevronLeft from '@mui/icons-material/ChevronLeft';
 import ChevronRight from '@mui/icons-material/ChevronRight';
-import NotificationsNone from '@mui/icons-material/NotificationsNone';
+import Inbox from '@mui/icons-material/Inbox';
 import HealthAndSafety from '@mui/icons-material/HealthAndSafety';
 import Send from '@mui/icons-material/Send';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
@@ -56,11 +55,6 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
 
   const navItems = [
     { key: 'dashboard', to: '/portal', label: t('portalLayout.sidebar.dashboard'), icon: <Dashboard />, exact: true },
-    ...(roleResolved && (normalized === Role.ADMIN || normalized === Role.LANDLORD)
-      ? [
-          { key: 'admin-config', to: '/portal/admin/config', label: t('portalLayout.sidebar.adminConfigurations'), icon: <Settings /> },
-        ]
-      : []),
     ...(normalized === Role.ADMIN
       ? [
           { key: 'admin', to: '/portal/admin/landlords', label: t('portalLayout.sidebar.adminLandlords'), icon: <SupervisorAccount /> },
@@ -79,7 +73,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
       : []),
     ...(roleResolved && !isGuest
       ? [
-          { key: 'notifications', to: '/portal/notifications', label: t('portalLayout.sidebar.notifications'), icon: <NotificationsNone /> },
+          { key: 'inbox', to: '/portal/inbox', label: t('portalLayout.sidebar.inbox'), icon: <Inbox /> },
         ]
       : []),
     ...(roleResolved && !isGuest

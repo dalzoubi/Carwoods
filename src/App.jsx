@@ -23,6 +23,11 @@ import PortalProfile from './components/PortalProfile';
 import PortalRequests from './components/PortalRequests';
 import PortalAdminLandlords from './components/PortalAdminLandlords';
 import PortalNotificationsInbox from './components/PortalNotificationsInbox';
+import PortalInbox, {
+    PortalInboxContactGate,
+    RedirectLegacyContactRequestsToInbox,
+    RedirectPortalNotificationsToInbox,
+} from './components/PortalInbox';
 import PortalAdminAiSettings from './components/PortalAdminAiSettings';
 import PortalAdminProperties from './components/PortalAdminProperties';
 import PortalTenants from './components/PortalTenants';
@@ -115,12 +120,20 @@ function PortalRoutes() {
             />
             <Route
                 path="/portal/notifications"
+                element={<RedirectPortalNotificationsToInbox />}
+            />
+            <Route
+                path="/portal/inbox"
                 element={
                     <PortalRouteGuard allowedRoles={[Role.TENANT, Role.LANDLORD, Role.ADMIN]}>
-                        <PortalNotificationsInbox />
+                        <PortalInbox />
                     </PortalRouteGuard>
                 }
-            />
+            >
+                <Route index element={<Navigate to="notifications" replace />} />
+                <Route path="notifications" element={<PortalNotificationsInbox />} />
+                <Route path="contact" element={<PortalInboxContactGate />} />
+            </Route>
             <Route
                 path="/portal/admin"
                 element={<Navigate to="/portal/admin/config" replace />}
@@ -132,6 +145,10 @@ function PortalRoutes() {
                         <PortalAdminLandlords />
                     </PortalRouteGuard>
                 }
+            />
+            <Route
+                path="/portal/admin/contact-requests"
+                element={<RedirectLegacyContactRequestsToInbox />}
             />
             <Route
                 path="/portal/admin/ai"

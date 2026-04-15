@@ -2,7 +2,7 @@
  * Return lookup data needed by the create-request form.
  *
  * Tenants also receive their active-lease defaults and landlord contact.
- * Landlords / admins receive categories and priorities only.
+ * Landlords / admins also receive `management_create_lease_options` (leases with active tenants on their properties).
  */
 
 import {
@@ -10,6 +10,8 @@ import {
   findTenantRequestDefaults,
   listActiveRequestPriorities,
   listActiveServiceCategories,
+  listManagementCreateRequestLeaseOptions,
+  type ManagementCreateRequestLeaseOption,
   type RequestLookupOption,
   type TenantLandlordContact,
   type TenantRequestDefaults,
@@ -27,6 +29,12 @@ import { getTierByName } from '../../lib/subscriptionTiersRepo.js';
 export type ListRequestLookupsInput = {
   actorUserId: string;
   actorRole: string;
+  /** When actor is ADMIN, scope "create for tenant" lease list to this landlord's properties. */
+  adminLandlordIdForCreateOptions?: string | null;
+};
+
+export type ManagementCreateLeaseOptionPayload = ManagementCreateRequestLeaseOption & {
+  subscription_features: SubscriptionFeaturesPayload | null;
 };
 
 export type ListRequestLookupsOutput = {
@@ -35,6 +43,7 @@ export type ListRequestLookupsOutput = {
   tenant_defaults: TenantRequestDefaults | null;
   landlord_contact: TenantLandlordContact | null;
   subscription_features: SubscriptionFeaturesPayload | null;
+  management_create_lease_options: ManagementCreateLeaseOptionPayload[];
 };
 
 export async function listRequestLookups(
@@ -72,5 +81,32 @@ export async function listRequestLookups(
     if (lim) subscription_features = tierLimitsToSubscriptionFeatures(lim);
   }
 
-  return { categories, priorities, tenant_defaults, landlord_contact, subscription_features };
+  let management_create_lease_options: ManagementCreateLeaseOptionPayload[] = [];
+  if (role === Role.LANDLORD || role === Role.ADMIN) {
+    const raw = await listManagementCreateRequestLeaseOptions(db, {
+      actorRole: role,
+      actorUserId: input.actorUserId,
+      adminLandlordUserId: role === Role.ADMIN ? (input.adminLandlordIdForCreateOptions ?? null) : null,
+    });
+    management_create_lease_options = await Promise.all(
+      raw.map(async (row) => {
+        let lim = await getTierLimitsForPropertyId(db, row.property_id);
+        if (!lim) {
+          const free = await getTierByName(db, 'FREE');
+          lim = free?.limits ?? null;
+        }
+        const sf = lim ? tierLimitsToSubscriptionFeatures(lim) : null;
+        return { ...row, subscription_features: sf };
+      })
+    );
+  }
+
+  return {
+    categories,
+    priorities,
+    tenant_defaults,
+    landlord_contact,
+    subscription_features,
+    management_create_lease_options,
+  };
 }

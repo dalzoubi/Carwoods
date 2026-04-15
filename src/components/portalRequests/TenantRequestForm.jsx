@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
+  Alert,
   Box,
   Button,
   IconButton,
@@ -39,12 +40,19 @@ const TenantRequestForm = ({
   disabled,
   hideHeading = false,
   framed = true,
+  showOnBehalfTenantHint = false,
+  missingLeaseSelection = false,
 }) => {
   const { t } = useTranslation();
   const [isDropActive, setIsDropActive] = useState(false);
-  const allowAttachments =
-    subscriptionFeatures == null
-    || Boolean(subscriptionFeatures.request_photo_video_attachments_enabled);
+  /** Landlord/admin on-behalf create: require explicit tier payload (null → uploads off until loaded). */
+  const allowAttachments = showOnBehalfTenantHint
+    ? Boolean(subscriptionFeatures?.request_photo_video_attachments_enabled)
+    : (subscriptionFeatures == null
+      || Boolean(subscriptionFeatures.request_photo_video_attachments_enabled));
+  const attachmentsFreeTierLocked =
+    subscriptionFeatures != null
+    && subscriptionFeatures.request_photo_video_attachments_enabled === false;
   const mailSubject = encodeURIComponent('Issues creating a maintenance request via carwoods.com');
   const contactHref = lookupContact?.email
     ? `mailto:${lookupContact.email}?subject=${mailSubject}`
@@ -71,7 +79,11 @@ const TenantRequestForm = ({
           : (lookupsError || t('portalRequests.errors.loadFailed')),
       }
       : null;
-  const lookupsUnavailable = lookupsStatus !== 'ok' || categoryOptions.length === 0 || priorityOptions.length === 0;
+  const lookupsUnavailable =
+    lookupsStatus !== 'ok'
+    || categoryOptions.length === 0
+    || priorityOptions.length === 0
+    || missingLeaseSelection;
   const sortedCategoryOptions = useMemo(
     () =>
       [...categoryOptions].sort((a, b) =>
@@ -105,6 +117,11 @@ const TenantRequestForm = ({
             {t('portalRequests.create.heading')}
           </Typography>
         )}
+        {showOnBehalfTenantHint ? (
+          <Alert severity="info" sx={{ py: 0.5 }}>
+            {t('portalRequests.create.onBehalfIntro')}
+          </Alert>
+        ) : null}
         <StatusAlertSlot message={lookupsStatusMessage} />
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
           <TextField
@@ -170,12 +187,28 @@ const TenantRequestForm = ({
           minRows={3}
           disabled={disabled}
         />
-        <Tooltip title={!allowAttachments ? t('portalSubscription.freeTier.featureDisabled') : ''}>
-          <Box component="span" sx={{ display: 'block' }}>
+        <Tooltip
+          title={
+            !allowAttachments
+              ? (showOnBehalfTenantHint || attachmentsFreeTierLocked
+                ? t('portalSubscription.freeTier.attachmentsDisabled')
+                : t('portalSubscription.freeTier.featureDisabled'))
+              : ''
+          }
+        >
+          <Box
+            component="span"
+            sx={{
+              display: 'block',
+              ...(!allowAttachments && (attachmentsFreeTierLocked || showOnBehalfTenantHint) && {
+                cursor: 'not-allowed',
+              }),
+            }}
+          >
             <Stack
               spacing={0.75}
               sx={{
-                opacity: allowAttachments ? 1 : 0.5,
+                opacity: allowAttachments ? 1 : 0.72,
               }}
             >
               <Typography variant="body2" color="text.secondary">
@@ -183,16 +216,17 @@ const TenantRequestForm = ({
               </Typography>
               <AttachmentUploadControl
             instructions={t('portalRequests.attachments.instructions')}
-            isDropActive={isDropActive}
+            isDropActive={allowAttachments && isDropActive}
             onDragOver={(event) => {
+              if (!allowAttachments) return;
               event.preventDefault();
               setIsDropActive(true);
             }}
             onDragLeave={() => setIsDropActive(false)}
             onDrop={(event) => {
+              if (!allowAttachments) return;
               event.preventDefault();
               setIsDropActive(false);
-              if (!allowAttachments) return;
               const files = event.dataTransfer?.files;
               if (files && files.length > 0) {
                 onCreateAttachmentChange({ target: { files } });
@@ -201,7 +235,7 @@ const TenantRequestForm = ({
             chooseButtonLabel={t('portalRequests.actions.chooseFile')}
             multiple
             accept="image/*,video/*"
-            onFileChange={onCreateAttachmentChange}
+            onFileChange={allowAttachments ? onCreateAttachmentChange : () => {}}
             chooseDisabled={disabled || !allowAttachments}
             selectedContent={createAttachmentFiles && createAttachmentFiles.length > 0 ? (
               <Stack spacing={0.5} sx={{ minWidth: 0 }}>

@@ -26,6 +26,7 @@ import Notes from '@mui/icons-material/Notes';
 import NotificationsNone from '@mui/icons-material/NotificationsNone';
 import PersonAdd from '@mui/icons-material/PersonAdd';
 import Science from '@mui/icons-material/Science';
+import ContactMail from '@mui/icons-material/ContactMail';
 import Update from '@mui/icons-material/Update';
 import Warning from '@mui/icons-material/Warning';
 import { useTranslation } from 'react-i18next';
@@ -36,9 +37,10 @@ import { withDarkPath } from '../routePaths';
 import { notificationOpenTargetFromRow, relativeTime } from '../lib/notificationUtils';
 import { usePortalRequestDetailModal } from './PortalRequestDetailModalContext';
 import {
-  addTrayHiddenId,
-  loadTrayHiddenIds,
+  addTrayHiddenIdForAccount,
+  loadMergedTrayHiddenIds,
   selectNotificationsForTray,
+  trayStorageUserKeys,
 } from '../lib/notificationTrayPrefs';
 import {
   fetchNotifications,
@@ -60,6 +62,7 @@ function notificationEventIcon(eventTypeCode) {
     return <Warning sx={{ fontSize: 16 }} color="warning" />;
   }
   if (code === 'ADMIN_NOTIFICATION_TEST') return <Science sx={{ fontSize: 16 }} />;
+  if (code === 'CONTACT_REQUEST_CREATED') return <ContactMail sx={{ fontSize: 16 }} />;
   return <NotificationsNone sx={{ fontSize: 16 }} />;
 }
 
@@ -106,15 +109,15 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
   const [markingAll, setMarkingAll] = useState(false);
   const [trayHiddenIds, setTrayHiddenIds] = useState(() => new Set());
 
-  const trayUserKey = account?.uid || account?.username || '';
+  const trayPersistReady = trayStorageUserKeys(account).length > 0;
 
   useEffect(() => {
-    if (!trayUserKey) {
+    if (!trayPersistReady) {
       setTrayHiddenIds(new Set());
       return;
     }
-    setTrayHiddenIds(loadTrayHiddenIds(trayUserKey));
-  }, [trayUserKey]);
+    setTrayHiddenIds(loadMergedTrayHiddenIds(account));
+  }, [account, trayPersistReady]);
 
   const trayNotifications = useMemo(
     () => selectNotificationsForTray(notifications, trayHiddenIds),
@@ -181,7 +184,7 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
 
   const handleDismissNotification = async (e, notification) => {
     e.stopPropagation();
-    if (!trayUserKey || dismissingIds.has(notification.id)) return;
+    if (!trayPersistReady || dismissingIds.has(notification.id)) return;
     setDismissingIds((prev) => new Set(prev).add(notification.id));
     try {
       if (!notification.read_at && baseUrl) {
@@ -198,7 +201,7 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
           item.id === notification.id ? { ...item, read_at: item.read_at || new Date().toISOString() } : item
         )));
       }
-      setTrayHiddenIds((prev) => addTrayHiddenId(trayUserKey, notification.id, prev));
+      setTrayHiddenIds((prev) => addTrayHiddenIdForAccount(account, notification.id, prev));
     } catch (error) {
       handleApiForbidden?.(error);
     } finally {
@@ -237,7 +240,7 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
     void loadNotifications();
   }, [isAuthenticated, loadNotifications]);
 
-  const onNotificationsPage = pathname.includes('/portal/notifications');
+  const onNotificationsPage = pathname.includes('/portal/inbox/notifications');
 
   useEffect(() => {
     if (!isAuthenticated || onNotificationsPage) return undefined;
@@ -325,6 +328,7 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
                 <IconButton
                   type="button"
                   size="small"
+                  color="success"
                   onClick={() => { void handleMarkAllRead(); }}
                   disabled={markingAll}
                   aria-label={t('portalHeader.notifications.markAllRead')}
@@ -404,6 +408,7 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
                   <IconButton
                     type="button"
                     size="small"
+                    color="inherit"
                     onClick={(e) => { void handleDismissNotification(e, notification); }}
                     disabled={isDismissing}
                     aria-label={t('portalHeader.notifications.dismiss')}
@@ -421,11 +426,11 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
         <Box sx={{ px: 1, py: 0.5 }}>
           <Button
             component="a"
-            href={withDarkPath(pathname, '/portal/notifications')}
+            href={withDarkPath(pathname, '/portal/inbox/notifications')}
             onClick={(e) => {
               e.preventDefault();
               handleClose();
-              navigate(withDarkPath(pathname, '/portal/notifications'));
+              navigate(withDarkPath(pathname, '/portal/inbox/notifications'));
             }}
             size="small"
             sx={{ textTransform: 'none', width: '100%', justifyContent: 'center' }}

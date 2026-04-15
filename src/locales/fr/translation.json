@@ -139,7 +139,9 @@
     "successBody": "Merci ! Nous vous contacterons dans un jour ouvrable.",
     "recaptchaError": "Échec de la vérification de sécurité. Veuillez réessayer.",
     "recaptchaRequired": "La vérification de sécurité n’a pas abouti. Actualisez la page et réessayez.",
-    "errorBody": "Une erreur s'est produite. Veuillez réessayer ou nous envoyer un e-mail à support@carwoods.com.",
+    "errorBodyPrefix": "Une erreur s'est produite. Veuillez réessayer ou nous envoyer un e-mail à ",
+    "supportEmail": "support@carwoods.com",
+    "errorBodySuffix": ".",
     "nameRequired": "Le nom est obligatoire",
     "emailInvalid": "Veuillez saisir une adresse e-mail valide",
     "messageRequired": "Le message est obligatoire",
@@ -1103,6 +1105,7 @@
   "portalSubscription": {
     "freeTier": {
       "featureDisabled": "Cette fonctionnalité n'est pas disponible avec votre formule actuelle.",
+      "attachmentsDisabled": "Les pièces jointes photo et vidéo ne sont pas incluses dans l'offre gratuite. Vous pouvez toujours consulter les fichiers déjà associés à cette demande.",
       "propertyLimitReached": "Vous avez atteint le nombre maximal de biens autorisé par votre formule actuelle."
     }
   },
@@ -1124,6 +1127,7 @@
       "category": "Catégorie",
       "priority": "Priorité",
       "reportedBy": "Signalé par",
+      "filedByPropertyManagerNote": "Votre gestionnaire de l'immeuble a ouvert cette demande en votre nom.",
       "scheduledFor": "Planifié pour",
       "scheduledFrom": "Planifié à partir de",
       "scheduledTo": "Planifié jusqu'à",
@@ -1211,7 +1215,12 @@
       "descriptionLabel": "Description de la demande",
       "attachmentsLabel": "Pièces jointes (facultatif)",
       "removeAttachment": "Supprimer la pièce jointe",
-      "saved": "Demande creee."
+      "saved": "Demande creee.",
+      "onBehalfIntro": "Vous créez cette demande pour un locataire du bail sélectionné. Les locataires de ce bail la verront dans leur portail.",
+      "leaseForTenantsLabel": "Locataire et bail",
+      "adminSelectLandlordFirst": "Utilisez « Filtrer par propriétaire » au-dessus de la liste des demandes, puis créez une demande pour un locataire des biens de ce propriétaire.",
+      "noLeasesForCreate": "Aucun bail avec un locataire actif n’a été trouvé pour cette sélection.",
+      "tenantHousehold": "Locataires du bail"
     },
     "management": {
       "heading": "Mises a jour de gestion",
@@ -1443,7 +1452,11 @@
       "deactivate": "Désactiver",
       "reactivate": "Réactiver",
       "cancel": "Annuler",
-      "changeTier": "Modifier la formule d'abonnement"
+      "changeTier": "Modifier la formule d'abonnement",
+      "exportContactCard": "Télécharger la fiche contact (.vcf)"
+    },
+    "vCard": {
+      "roleTitle": "Portail propriétaire"
     },
     "tierDialog": {
       "title": "Formule d'abonnement pour {{name}}",
@@ -1787,17 +1800,23 @@
   "portalNotificationsInbox": {
     "pageTitle": "Notifications – Portail Carwoods",
     "heading": "Notifications",
+    "refresh": "Actualiser les notifications",
     "allRead": "Tout est à jour",
     "markAllRead": "Tout marquer comme lu",
     "dismiss": "Ignorer"
+  },
+  "portalInbox": {
+    "tabsLabel": "Sections de la boîte de réception"
   },
   "portalLayout": {
     "sidebar": {
       "dashboard": "Tableau de bord",
       "requests": "Demandes",
       "notifications": "Notifications",
+      "inbox": "Boîte de réception",
       "profile": "Profil",
       "adminLandlords": "Propriétaires",
+      "adminContactUsMessages": "Messages Contactez-nous",
       "adminConfigurations": "Configurations",
       "adminAiConfig": "Configuration IA",
       "notificationPolicies": "Politiques de notification",
@@ -1814,6 +1833,45 @@
     "topBar": {
       "openMenu": "Ouvrir la navigation",
       "accountMenu": "Menu du compte"
+    }
+  },
+  "portalAdminContactRequests": {
+    "title": "Portail Carwoods — Messages Contactez-nous",
+    "refresh": "Actualiser les messages",
+    "heading": "Messages Contactez-nous",
+    "intro": "Les demandes envoyées via le formulaire public Contactez-nous apparaissent ici.",
+    "unreadBadge": "{{count}} non lus",
+    "filterAll": "Tous",
+    "filterUnread": "Non lus",
+    "filterRead": "Lus",
+    "filterHandled": "Traités",
+    "noRequests": "Aucun message de contact.",
+    "columnDate": "Date",
+    "columnName": "Nom",
+    "columnEmail": "E-mail",
+    "columnSubject": "Objet",
+    "columnStatus": "Statut",
+    "detailDialogTitle": "Message de contact",
+    "fieldFrom": "De",
+    "fieldDate": "Date",
+    "close": "Fermer",
+    "markAsRead": "Marquer comme lu",
+    "markAsHandled": "Marquer comme traité",
+    "delete": "Supprimer définitivement",
+    "deleteConfirmTitle": "Supprimer ce message ?",
+    "deleteConfirmBody": "Cela supprime définitivement le message de la base de données. Cette action est irréversible.",
+    "deleteConfirmAction": "Supprimer",
+    "deleteCancel": "Annuler",
+    "showingCount": "Affichage de {{shown}} sur {{total}}.",
+    "feedback": {
+      "statusUpdated": "Statut mis à jour : {{status}}.",
+      "deleted": "Message supprimé."
+    },
+    "errors": {
+      "apiUnavailable": "Définissez VITE_API_BASE_URL pour charger les messages de contact.",
+      "loadFailed": "Impossible de charger les messages de contact.",
+      "saveFailed": "Impossible de mettre à jour le statut.",
+      "deleteFailed": "Impossible de supprimer le message."
     }
   },
   "portalDashboard": {
@@ -1971,7 +2029,11 @@
       "refresh": "Actualiser la liste des locataires",
       "cancel": "Annuler",
       "saving": "Enregistrement…",
-      "retry": "Réessayer"
+      "retry": "Réessayer",
+      "exportContactCard": "Télécharger la fiche contact (.vcf)"
+    },
+    "vCard": {
+      "roleTitle": "Portail locataire"
     },
     "disableConfirm": {
       "title": "Désactiver l'accès du locataire ?",
