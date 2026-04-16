@@ -119,6 +119,7 @@ test('createProperty rejects apply_visible when tier disallows Apply page visibi
               status: 'ACTIVE',
               ui_language: null,
               ui_color_scheme: null,
+              portal_tour_completed: false,
               tier_id: 'tier-free',
             },
           ],

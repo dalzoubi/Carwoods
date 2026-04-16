@@ -175,6 +175,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
             : normalizedPath.startsWith(item.to);
           const listItemButton = (
             <ListItemButton
+              id={`portal-tour-nav-${item.key}`}
               component={RouterLink}
               to={withDarkPath(pathname, item.to)}
               selected={isActive}
@@ -245,6 +246,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
             : normalizedPath.startsWith(item.to);
           const listItemButton = (
             <ListItemButton
+              id={`portal-tour-nav-${item.key}`}
               component={RouterLink}
               to={withDarkPath(pathname, item.to)}
               selected={isActive}

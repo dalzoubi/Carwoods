@@ -234,3 +234,59 @@ export async function insertNotificationDelivery(
   );
   return r.rows[0]!;
 }
+
+export type QueuedDeliveryRow = {
+  id: string;
+  outbox_id: string | null;
+  recipient_email: string;
+  template_id: string;
+  payload_json: string | null;
+  event_type_code: string | null;
+  outbox_payload: string | null;
+};
+
+export async function listQueuedDeliveries(
+  client: Queryable,
+  limit: number
+): Promise<QueuedDeliveryRow[]> {
+  const safeLimit = Math.max(1, Math.min(limit, 200));
+  const r = await client.query<QueuedDeliveryRow>(
+    `SELECT TOP (${safeLimit})
+       d.id, d.outbox_id, d.recipient_email, d.template_id, d.payload_json,
+       o.event_type_code, o.payload AS outbox_payload
+     FROM notification_deliveries d
+     LEFT JOIN notification_outbox o ON o.id = d.outbox_id
+     WHERE d.status = 'QUEUED'
+       AND (d.scheduled_send_at IS NULL OR d.scheduled_send_at <= SYSDATETIMEOFFSET())
+     ORDER BY d.created_at ASC`
+  );
+  return r.rows;
+}
+
+export async function markDeliverySent(
+  client: PoolClient,
+  id: string,
+  providerMessageId: string | null
+): Promise<void> {
+  await client.query(
+    `UPDATE notification_deliveries
+        SET status = 'SENT',
+            provider_message_id = $2
+      WHERE id = $1`,
+    [id, providerMessageId]
+  );
+}
+
+export async function markDeliveryFailed(
+  client: PoolClient,
+  id: string,
+  error: string
+): Promise<void> {
+  await client.query(
+    `UPDATE notification_deliveries
+        SET status = 'FAILED',
+            error = $2
+      WHERE id = $1`,
+    [id, error.slice(0, 2000)]
+  );
+}

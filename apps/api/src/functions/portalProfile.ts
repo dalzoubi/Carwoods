@@ -59,6 +59,7 @@ async function portalProfileHandler(
   const hasEmail = Object.prototype.hasOwnProperty.call(payload, 'email');
   const hasUiLanguage = Object.prototype.hasOwnProperty.call(payload, 'ui_language');
   const hasUiColorScheme = Object.prototype.hasOwnProperty.call(payload, 'ui_color_scheme');
+  const hasPortalTourCompleted = Object.prototype.hasOwnProperty.call(payload, 'portal_tour_completed');
 
   // UI-preferences-only PATCH: no email/name/phone/notification fields.
   // Bypass the full updateProfile flow (which requires a valid email) and write
@@ -68,14 +69,19 @@ async function portalProfileHandler(
     && !Object.prototype.hasOwnProperty.call(payload, 'last_name')
     && !Object.prototype.hasOwnProperty.call(payload, 'phone')
     && !Object.prototype.hasOwnProperty.call(payload, 'notification_preferences')
-    && (hasUiLanguage || hasUiColorScheme);
+    && (hasUiLanguage || hasUiColorScheme || hasPortalTourCompleted);
 
   if (isUiPrefsOnly) {
+    const portalTourCompleted = hasPortalTourCompleted ? bool(payload.portal_tour_completed) : undefined;
+    if (hasPortalTourCompleted && portalTourCompleted === undefined) {
+      return jsonResponse(400, headers, { error: 'invalid_portal_tour_completed' });
+    }
     try {
       const pool = getPool();
       const updated = await updateUserUiPreferences(pool, user.id, {
         ...(hasUiLanguage ? { uiLanguage: str(payload.ui_language) ?? null } : {}),
         ...(hasUiColorScheme ? { uiColorScheme: str(payload.ui_color_scheme) ?? null } : {}),
+        ...(portalTourCompleted !== undefined ? { portalTourCompleted } : {}),
       });
       const row = updated ?? (await findUserById(pool, user.id)) ?? user;
       return jsonResponse(200, headers, {
@@ -83,6 +89,7 @@ async function portalProfileHandler(
           ...addProfilePhotoReadUrl(row),
           ui_language: row.ui_language ?? null,
           ui_color_scheme: row.ui_color_scheme ?? null,
+          portal_tour_completed: Boolean(row.portal_tour_completed),
         },
       });
     } catch (e) {
@@ -140,6 +147,7 @@ async function portalProfileHandler(
         ...addProfilePhotoReadUrl(result.user),
         ui_language: result.user.ui_language ?? null,
         ui_color_scheme: result.user.ui_color_scheme ?? null,
+        portal_tour_completed: Boolean(result.user.portal_tour_completed),
       },
       notification_preferences: result.notificationPreferences,
     });

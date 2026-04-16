@@ -16,6 +16,7 @@ import StatusAlertSlot from './StatusAlertSlot';
 import PortalRefreshButton from './PortalRefreshButton';
 import PortalPersonWithAvatar from './PortalPersonWithAvatar';
 import { allowsSmsChannel, landlordTierLimits } from '../portalTierUtils';
+import { ConfigFieldWithHelp } from './PortalConfigOptionHelp';
 
 const CHANNEL_OPTIONS = ['inherit', 'enabled', 'disabled'];
 
@@ -406,48 +407,66 @@ const PortalNotificationPolicies = () => {
             </Stack>
 
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-              <TextField
-                select
-                label={t('portalNotificationPolicies.scope.scopeType')}
-                value={scopeType}
-                onChange={(event) => setScopeType(event.target.value)}
-                fullWidth
+              <ConfigFieldWithHelp
+                labelKey="portalNotificationPolicies.scope.scopeType"
+                bodyKey="portalNotificationPolicies.optionHelp.scope.scopeType"
                 disabled={!canUseModule || status === 'loading'}
               >
-                <MenuItem value="PROPERTY">{t('portalNotificationPolicies.scope.property')}</MenuItem>
-                <MenuItem value="REQUEST">{t('portalNotificationPolicies.scope.request')}</MenuItem>
-              </TextField>
+                <TextField
+                  select
+                  label={t('portalNotificationPolicies.scope.scopeType')}
+                  value={scopeType}
+                  onChange={(event) => setScopeType(event.target.value)}
+                  fullWidth
+                  disabled={!canUseModule || status === 'loading'}
+                >
+                  <MenuItem value="PROPERTY">{t('portalNotificationPolicies.scope.property')}</MenuItem>
+                  <MenuItem value="REQUEST">{t('portalNotificationPolicies.scope.request')}</MenuItem>
+                </TextField>
+              </ConfigFieldWithHelp>
 
               {scopeType === 'PROPERTY' ? (
-                <TextField
-                  select
-                  label={t('portalNotificationPolicies.scope.selectProperty')}
-                  value={selectedPropertyId}
-                  onChange={(event) => setSelectedPropertyId(event.target.value)}
-                  fullWidth
+                <ConfigFieldWithHelp
+                  labelKey="portalNotificationPolicies.scope.selectProperty"
+                  bodyKey="portalNotificationPolicies.optionHelp.scope.selectProperty"
                   disabled={!canUseModule || status === 'loading' || properties.length === 0}
                 >
-                  {propertyOptions.map((property) => (
-                    <MenuItem key={property.id} value={property.id}>
-                      {property.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                  <TextField
+                    select
+                    label={t('portalNotificationPolicies.scope.selectProperty')}
+                    value={selectedPropertyId}
+                    onChange={(event) => setSelectedPropertyId(event.target.value)}
+                    fullWidth
+                    disabled={!canUseModule || status === 'loading' || properties.length === 0}
+                  >
+                    {propertyOptions.map((property) => (
+                      <MenuItem key={property.id} value={property.id}>
+                        {property.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </ConfigFieldWithHelp>
               ) : (
-                <TextField
-                  select
-                  label={t('portalNotificationPolicies.scope.selectRequest')}
-                  value={selectedRequestId}
-                  onChange={(event) => setSelectedRequestId(event.target.value)}
-                  fullWidth
+                <ConfigFieldWithHelp
+                  labelKey="portalNotificationPolicies.scope.selectRequest"
+                  bodyKey="portalNotificationPolicies.optionHelp.scope.selectRequest"
                   disabled={!canUseModule || status === 'loading' || requestOptions.length === 0}
                 >
-                  {requestOptions.map((request) => (
-                    <MenuItem key={request.id} value={request.id}>
-                      {request.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                  <TextField
+                    select
+                    label={t('portalNotificationPolicies.scope.selectRequest')}
+                    value={selectedRequestId}
+                    onChange={(event) => setSelectedRequestId(event.target.value)}
+                    fullWidth
+                    disabled={!canUseModule || status === 'loading' || requestOptions.length === 0}
+                  >
+                    {requestOptions.map((request) => (
+                      <MenuItem key={request.id} value={request.id}>
+                        {request.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </ConfigFieldWithHelp>
               )}
             </Stack>
 
@@ -504,128 +523,184 @@ const PortalNotificationPolicies = () => {
         <Paper variant="outlined" sx={{ p: 2.5 }}>
           <Stack spacing={2}>
             <Typography variant="h6">{t('portalNotificationPolicies.form.heading')}</Typography>
-            <TextField
-              select
-              label={t('portalNotificationPolicies.form.userId')}
-              value={targetUserId}
-              onChange={(event) => setTargetUserId(event.target.value)}
+            <ConfigFieldWithHelp
+              labelKey="portalNotificationPolicies.form.userId"
+              bodyKey="portalNotificationPolicies.optionHelp.form.userId"
               disabled={!canUseModule || userOptions.length === 0}
-              fullWidth
             >
-              {userOptions.map((option) => (
-                <MenuItem key={option.id} value={option.id}>
-                  <PortalPersonWithAvatar
-                    photoUrl={String(option.profile_photo_url ?? '').trim()}
-                    firstName={option.first_name ?? ''}
-                    lastName={option.last_name ?? ''}
-                    size={28}
-                    alignItems="center"
-                  >
-                    <Stack direction="row" spacing={1} alignItems="center" sx={{ width: '100%', flexWrap: 'wrap' }}>
-                      <Typography variant="body2">{option.displayName}</Typography>
-                      <Chip
-                        size="small"
-                        color={roleColor(option.role)}
-                        label={roleLabel(option.role)}
-                      />
-                    </Stack>
-                  </PortalPersonWithAvatar>
-                </MenuItem>
-              ))}
-            </TextField>
+              <TextField
+                select
+                label={t('portalNotificationPolicies.form.userId')}
+                value={targetUserId}
+                onChange={(event) => setTargetUserId(event.target.value)}
+                disabled={!canUseModule || userOptions.length === 0}
+                fullWidth
+              >
+                {userOptions.map((option) => (
+                  <MenuItem key={option.id} value={option.id}>
+                    <PortalPersonWithAvatar
+                      photoUrl={String(option.profile_photo_url ?? '').trim()}
+                      firstName={option.first_name ?? ''}
+                      lastName={option.last_name ?? ''}
+                      size={28}
+                      alignItems="center"
+                    >
+                      <Stack direction="row" spacing={1} alignItems="center" sx={{ width: '100%', flexWrap: 'wrap' }}>
+                        <Typography variant="body2">{option.displayName}</Typography>
+                        <Chip
+                          size="small"
+                          color={roleColor(option.role)}
+                          label={roleLabel(option.role)}
+                        />
+                      </Stack>
+                    </PortalPersonWithAvatar>
+                  </MenuItem>
+                ))}
+              </TextField>
+            </ConfigFieldWithHelp>
             {userOptions.length === 0 && (
               <Typography variant="caption" color="text.secondary">
                 {t('portalNotificationPolicies.form.userOptionsEmpty')}
               </Typography>
             )}
-            <TextField
-              select
-              label={t('portalNotificationPolicies.form.eventCategory')}
-              value={eventCategory}
-              onChange={(event) => setEventCategory(event.target.value)}
-              fullWidth
+            <ConfigFieldWithHelp
+              labelKey="portalNotificationPolicies.form.eventCategory"
+              bodyKey="portalNotificationPolicies.optionHelp.form.eventCategory"
               disabled={!canUseModule}
             >
-              <MenuItem value="ONBOARDING">ONBOARDING</MenuItem>
-              <MenuItem value="MAINTENANCE">MAINTENANCE</MenuItem>
-              <MenuItem value="SECURITY_COMPLIANCE">SECURITY_COMPLIANCE</MenuItem>
-            </TextField>
+              <TextField
+                select
+                label={t('portalNotificationPolicies.form.eventCategory')}
+                value={eventCategory}
+                onChange={(event) => setEventCategory(event.target.value)}
+                fullWidth
+                disabled={!canUseModule}
+              >
+                <MenuItem value="ONBOARDING">ONBOARDING</MenuItem>
+                <MenuItem value="MAINTENANCE">MAINTENANCE</MenuItem>
+                <MenuItem value="SECURITY_COMPLIANCE">SECURITY_COMPLIANCE</MenuItem>
+              </TextField>
+            </ConfigFieldWithHelp>
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-              <TextField
-                select
-                label={t('portalNotificationPolicies.form.email')}
-                value={emailMode}
-                onChange={(event) => setEmailMode(event.target.value)}
-                fullWidth
+              <ConfigFieldWithHelp
+                labelKey="portalNotificationPolicies.form.email"
+                bodyKey="portalNotificationPolicies.optionHelp.form.email"
                 disabled={!canUseModule}
               >
-                {CHANNEL_OPTIONS.map((option) => (
-                  <MenuItem key={option} value={option}>{t(`portalNotificationPolicies.form.mode.${option}`)}</MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                select
-                label={t('portalNotificationPolicies.form.inApp')}
-                value={inAppMode}
-                onChange={(event) => setInAppMode(event.target.value)}
-                fullWidth
+                <TextField
+                  select
+                  label={t('portalNotificationPolicies.form.email')}
+                  value={emailMode}
+                  onChange={(event) => setEmailMode(event.target.value)}
+                  fullWidth
+                  disabled={!canUseModule}
+                >
+                  {CHANNEL_OPTIONS.map((option) => (
+                    <MenuItem key={option} value={option}>{t(`portalNotificationPolicies.form.mode.${option}`)}</MenuItem>
+                  ))}
+                </TextField>
+              </ConfigFieldWithHelp>
+              <ConfigFieldWithHelp
+                labelKey="portalNotificationPolicies.form.inApp"
+                bodyKey="portalNotificationPolicies.optionHelp.form.inApp"
                 disabled={!canUseModule}
               >
-                {CHANNEL_OPTIONS.map((option) => (
-                  <MenuItem key={option} value={option}>{t(`portalNotificationPolicies.form.mode.${option}`)}</MenuItem>
-                ))}
-              </TextField>
+                <TextField
+                  select
+                  label={t('portalNotificationPolicies.form.inApp')}
+                  value={inAppMode}
+                  onChange={(event) => setInAppMode(event.target.value)}
+                  fullWidth
+                  disabled={!canUseModule}
+                >
+                  {CHANNEL_OPTIONS.map((option) => (
+                    <MenuItem key={option} value={option}>{t(`portalNotificationPolicies.form.mode.${option}`)}</MenuItem>
+                  ))}
+                </TextField>
+              </ConfigFieldWithHelp>
             </Stack>
-            <Tooltip
-              title={!smsPolicyFieldsEnabled ? t('portalSubscription.freeTier.featureDisabled') : ''}
-            >
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                <TextField
-                  select
-                  label={t('portalNotificationPolicies.form.sms')}
-                  value={smsMode}
-                  onChange={(event) => setSmsMode(event.target.value)}
-                  fullWidth
-                  disabled={!canUseModule || !smsPolicyFieldsEnabled}
-                >
-                  {CHANNEL_OPTIONS.map((option) => (
-                    <MenuItem key={option} value={option}>{t(`portalNotificationPolicies.form.mode.${option}`)}</MenuItem>
-                  ))}
-                </TextField>
-                <TextField
-                  select
-                  label={t('portalNotificationPolicies.form.smsOptIn')}
-                  value={smsOptInMode}
-                  onChange={(event) => setSmsOptInMode(event.target.value)}
-                  fullWidth
-                  disabled={!canUseModule || !smsPolicyFieldsEnabled}
-                >
-                  {CHANNEL_OPTIONS.map((option) => (
-                    <MenuItem key={option} value={option}>{t(`portalNotificationPolicies.form.mode.${option}`)}</MenuItem>
-                  ))}
-                </TextField>
-              </Stack>
-            </Tooltip>
-            <TextField
-              select
-              label={t('portalNotificationPolicies.form.active')}
-              value={active ? 'true' : 'false'}
-              onChange={(event) => setActive(event.target.value === 'true')}
-              fullWidth
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+              <Tooltip
+                title={!smsPolicyFieldsEnabled ? t('portalSubscription.freeTier.featureDisabled') : ''}
+              >
+                <Box component="span" sx={{ display: 'block', width: '100%' }}>
+                  <ConfigFieldWithHelp
+                    labelKey="portalNotificationPolicies.form.sms"
+                    bodyKey="portalNotificationPolicies.optionHelp.form.sms"
+                    disabled={!canUseModule || !smsPolicyFieldsEnabled}
+                  >
+                    <TextField
+                      select
+                      label={t('portalNotificationPolicies.form.sms')}
+                      value={smsMode}
+                      onChange={(event) => setSmsMode(event.target.value)}
+                      fullWidth
+                      disabled={!canUseModule || !smsPolicyFieldsEnabled}
+                    >
+                      {CHANNEL_OPTIONS.map((option) => (
+                        <MenuItem key={option} value={option}>{t(`portalNotificationPolicies.form.mode.${option}`)}</MenuItem>
+                      ))}
+                    </TextField>
+                  </ConfigFieldWithHelp>
+                </Box>
+              </Tooltip>
+              <Tooltip
+                title={!smsPolicyFieldsEnabled ? t('portalSubscription.freeTier.featureDisabled') : ''}
+              >
+                <Box component="span" sx={{ display: 'block', width: '100%' }}>
+                  <ConfigFieldWithHelp
+                    labelKey="portalNotificationPolicies.form.smsOptIn"
+                    bodyKey="portalNotificationPolicies.optionHelp.form.smsOptIn"
+                    disabled={!canUseModule || !smsPolicyFieldsEnabled}
+                  >
+                    <TextField
+                      select
+                      label={t('portalNotificationPolicies.form.smsOptIn')}
+                      value={smsOptInMode}
+                      onChange={(event) => setSmsOptInMode(event.target.value)}
+                      fullWidth
+                      disabled={!canUseModule || !smsPolicyFieldsEnabled}
+                    >
+                      {CHANNEL_OPTIONS.map((option) => (
+                        <MenuItem key={option} value={option}>{t(`portalNotificationPolicies.form.mode.${option}`)}</MenuItem>
+                      ))}
+                    </TextField>
+                  </ConfigFieldWithHelp>
+                </Box>
+              </Tooltip>
+            </Stack>
+            <ConfigFieldWithHelp
+              labelKey="portalNotificationPolicies.form.active"
+              bodyKey="portalNotificationPolicies.optionHelp.form.active"
               disabled={!canUseModule}
             >
-              <MenuItem value="true">{t('portalNotificationPolicies.form.activeEnabled')}</MenuItem>
-              <MenuItem value="false">{t('portalNotificationPolicies.form.activeDisabled')}</MenuItem>
-            </TextField>
-            <TextField
-              label={t('portalNotificationPolicies.form.overrideReason')}
-              value={overrideReason}
-              onChange={(event) => setOverrideReason(event.target.value)}
-              fullWidth
-              multiline
-              minRows={2}
+              <TextField
+                select
+                label={t('portalNotificationPolicies.form.active')}
+                value={active ? 'true' : 'false'}
+                onChange={(event) => setActive(event.target.value === 'true')}
+                fullWidth
+                disabled={!canUseModule}
+              >
+                <MenuItem value="true">{t('portalNotificationPolicies.form.activeEnabled')}</MenuItem>
+                <MenuItem value="false">{t('portalNotificationPolicies.form.activeDisabled')}</MenuItem>
+              </TextField>
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalNotificationPolicies.form.overrideReason"
+              bodyKey="portalNotificationPolicies.optionHelp.form.overrideReason"
               disabled={!canUseModule}
-            />
+            >
+              <TextField
+                label={t('portalNotificationPolicies.form.overrideReason')}
+                value={overrideReason}
+                onChange={(event) => setOverrideReason(event.target.value)}
+                fullWidth
+                multiline
+                minRows={2}
+                disabled={!canUseModule}
+              />
+            </ConfigFieldWithHelp>
 
             <Stack direction="row" justifyContent="flex-end">
               <Button

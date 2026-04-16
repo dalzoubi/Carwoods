@@ -1109,6 +1109,23 @@
       "loadFailed": "Impossible de charger les données de portée.",
       "loadPoliciesFailed": "Impossible de charger les dérogations de notification.",
       "saveFailed": "Impossible d'enregistrer la dérogation de notification."
+    },
+    "optionHelp": {
+      "scope": {
+        "scopeType": "Indique si les règles s'appliquent à tout un bien ou à une seule demande d'entretien.",
+        "selectProperty": "Le bien dont vous consultez ou modifiez les dérogations de notification.",
+        "selectRequest": "La demande précise dont vous consultez ou modifiez les dérogations."
+      },
+      "form": {
+        "userId": "La personne concernée par la dérogation (locataire, bailleur ou autre utilisateur lié à la portée).",
+        "eventCategory": "La famille de notifications concernée (par exemple entretien vs intégration).",
+        "email": "Hériter suit la préférence par défaut ; Activé autorise toujours l'e-mail pour cette dérogation ; Désactivé le coupe pour cette catégorie.",
+        "inApp": "Contrôle les notifications dans le portail pour cet utilisateur et cette catégorie.",
+        "sms": "Contrôle l'envoi SMS pour cette dérogation ; peut être verrouillé par l'abonnement pour les bailleurs.",
+        "smsOptIn": "Indique si l'utilisateur est considéré comme opt-in SMS pour cette ligne de politique.",
+        "active": "Une dérogation inactive est ignorée jusqu'à réactivation ; utile pour retirer une règle sans effacer l'historique.",
+        "overrideReason": "Brève justification enregistrée dans les journaux d'audit pour expliquer l'exception."
+      }
     }
   },
   "portalSubscription": {
@@ -1513,6 +1530,10 @@
       "agents": "Agents",
       "attachments": "Pieces jointes",
       "notifications": "Politiques de notifications"
+    },
+    "optionHelp": {
+      "close": "Compris",
+      "moreAbout": "Aide : {{option}}"
     }
   },
   "portalAdminAiConfig": {
@@ -1573,6 +1594,33 @@
       "customBadge": "Personnalisé",
       "customConfigCount": "{{count}} personnalisé",
       "customConfigTooltip": "Propriétés avec une configuration IA personnalisée"
+    },
+    "optionHelp": {
+      "global": {
+        "elsaEnabled": "Interrupteur principal d'Elsa IA dans le portail. Désactivé : pas d'automatisation ni de réponses assistées par IA.",
+        "autoSendEnabled": "Autorise Elsa à envoyer automatiquement les réponses éligibles lorsque confiance, catégorie, priorité, mots-clés et règles de bien le permettent.",
+        "emergencyTemplateEnabled": "Si un message semble urgent (mots-clés d'urgence), Elsa peut utiliser un modèle d'urgence plutôt qu'un brouillon normal.",
+        "confidenceThreshold": "Confiance minimale du modèle (0–1) avant envoi automatique. Plus la valeur est élevée, moins il y a d'envois automatiques mais plus ils sont prudents.",
+        "similarReplyThreshold": "Si un nouveau brouillon ressemble fortement à une réponse passée du fil, l'envoi automatique peut être bloqué pour éviter les répétitions.",
+        "maxQuestions": "Nombre maximal de questions de relance qu'Elsa peut poser dans une conversation avant de s'arrêter.",
+        "maxSteps": "Limite le nombre d'étapes internes du flux lors du traitement d'une demande.",
+        "allowedCategories": "Seules ces catégories de demande peuvent être traitées automatiquement. Un code par ligne ou séparés par des virgules.",
+        "allowedPriorities": "Seuls ces codes de priorité peuvent être automatisés ; les autres restent en général pour un humain.",
+        "blockedKeywords": "Si le texte contient l'un de ces termes (une entrée par ligne ou virgules), l'envoi automatique est bloqué pour revue.",
+        "emergencyKeywords": "Termes qui signalent l'urgence et orientent vers la gestion d'urgence et les alertes.",
+        "adminAlertRecipients": "Adresses e-mail (une par ligne ou virgules) recevant des alertes administratives pour certains événements Elsa."
+      },
+      "categories": {
+        "autoSend": "Pour ce code de catégorie, autoriser ou interdire les envois automatiques, en combinaison avec les règles globales."
+      },
+      "priorities": {
+        "autoSend": "Pour cette priorité, autoriser ou interdire les envois automatiques lorsque les autres contrôles passent.",
+        "requireReview": "Si activé, les messages de cette priorité exigent toujours une validation administrateur avant envoi."
+      },
+      "properties": {
+        "autoSendOverride": "Hériter suit les réglages globaux ; Activé/Désactivé force le comportement pour ce bien uniquement.",
+        "requireReviewAll": "Si activé, chaque réponse IA pour ce bien doit être relue avant envoi, quels que soient les autres réglages."
+      }
     }
   },
   "portalAdminAiAgents": {
@@ -1605,6 +1653,18 @@
       "primaryModel": "Modèle principal",
       "fallbackAgent": "Nom de l'agent de secours",
       "fallbackModel": "Modèle de secours"
+    },
+    "optionHelp": {
+      "routing": {
+        "primary": "L'agent (et son modèle par défaut) utilisé en premier par Elsa. Seuls les agents activés apparaissent.",
+        "fallback": "Agent de secours optionnel si le principal est indisponible ou en erreur. Ne peut pas être identique au principal."
+      },
+      "details": {
+        "primaryAgent": "Résumé en lecture seule de l'agent principal sélectionné ci-dessus.",
+        "primaryModel": "Identifiant de modèle en lecture seule configuré pour l'agent principal.",
+        "fallbackAgent": "Résumé en lecture seule de l'agent de secours, ou Aucun.",
+        "fallbackModel": "Modèle en lecture seule de l'agent de secours lorsqu'il est défini."
+      }
     }
   },
   "portalAdminAttachmentConfig": {
@@ -1655,6 +1715,22 @@
       "body": "Enregistrer cette modification de configuration des pieces jointes ? Cette action sera tracee dans les journaux d'audit.",
       "cancel": "Annuler",
       "confirm": "Confirmer"
+    },
+    "optionHelp": {
+      "fields": {
+        "maxAttachments": "Nombre maximal de fichiers joints à une seule demande. Des valeurs plus basses réduisent stockage et charge de modération.",
+        "maxImageBytes": "Taille maximale par image en mégaoctets. Les très grosses images ralentissent les envois sur mobile.",
+        "maxVideoBytes": "Taille maximale par vidéo en mégaoctets. Équilibrez qualité, durée d'upload et stockage.",
+        "maxVideoDurationSeconds": "Durée maximale d'un clip vidéo téléversé.",
+        "allowedMimeTypes": "Motifs MIME autorisés (ex. image/*, video/*). Un motif par ligne ou séparés par des virgules.",
+        "allowedExtensions": "Extensions autorisées sans point, une par ligne ou virgules ; complète les contrôles MIME.",
+        "shareEnabled": "Autorise ou non des liens de partage temporaires pour les pièces jointes.",
+        "shareExpirySeconds": "Durée de validité des liens de partage, en secondes (86400 = 24 heures).",
+        "malwareScanRequired": "Si requis, les fichiers doivent passer l'analyse anti-malware avant acceptation (peut ajouter de la latence)."
+      },
+      "overrides": {
+        "landlord": "Choisissez un bailleur pour modifier des règles qui remplacent les valeurs globales uniquement pour ses envois."
+      }
     }
   },
   "portalAdminProperties": {
@@ -1852,6 +1928,80 @@
     "topBar": {
       "openMenu": "Ouvrir la navigation",
       "accountMenu": "Menu du compte"
+    }
+  },
+  "portalTour": {
+    "helpTooltip": "Visite guidée du portail",
+    "helpAria": "Ouvrir la visite guidée du portail",
+    "close": "Fermer la visite",
+    "next": "Suivant",
+    "back": "Retour",
+    "done": "Terminé",
+    "skip": "Ignorer la visite",
+    "persistError": "Impossible d’enregistrer la préférence. Réessayez dans un instant.",
+    "steps": {
+      "mobileMenu": {
+        "title": "Menu de navigation",
+        "body": "Ouvrez ce menu pour parcourir les sections du portail sur les petits écrans."
+      },
+      "nav": {
+        "dashboard": {
+          "title": "Tableau de bord",
+          "body": "Revenez ici pour un aperçu rapide et des raccourcis vers les tâches courantes."
+        },
+        "admin": {
+          "title": "Propriétaires (admin)",
+          "body": "Consultez et gérez les comptes propriétaires liés à la plateforme."
+        },
+        "properties": {
+          "title": "Propriétés",
+          "body": "Ajoutez et gérez les logements, la visibilité sur Postuler et les paramètres associés."
+        },
+        "tenants": {
+          "title": "Locataires",
+          "body": "Voir les locataires liés à vos biens et gérer les invitations."
+        },
+        "inbox": {
+          "title": "Boîte de réception",
+          "body": "Ouvrez les fils d’entretien, les notifications du portail et les messages Contactez-nous pour les administrateurs."
+        },
+        "profile": {
+          "title": "Profil",
+          "body": "Mettez à jour vos coordonnées, préférences de notification et affichage."
+        },
+        "healthStatus": {
+          "title": "État du système",
+          "body": "Consultez les indicateurs de santé opérationnelle du portail."
+        },
+        "healthNotificationTest": {
+          "title": "Test des notifications",
+          "body": "Envoyez une notification de test pour vérifier la livraison (administrateurs)."
+        }
+      },
+      "appearance": {
+        "title": "Apparence",
+        "body": "Passez du thème clair au sombre ou suivez le réglage de l’appareil."
+      },
+      "help": {
+        "title": "Aide",
+        "body": "Relancez cette visite à tout moment après la première présentation."
+      },
+      "language": {
+        "title": "Langue",
+        "body": "Changez la langue de l’interface. L’arabe active la mise en page de droite à gauche."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "body": "Consultez les alertes récentes et accédez aux éléments liés dans la boîte de réception."
+      },
+      "account": {
+        "title": "Menu du compte",
+        "body": "Raccourcis profil, détails d’abonnement et déconnexion."
+      },
+      "pageContent": {
+        "title": "Contenu de la page",
+        "body": "Chaque page affiche les détails et actions correspondant à votre sélection dans la barre latérale ou la boîte de réception."
+      }
     }
   },
   "portalAdminContactRequests": {

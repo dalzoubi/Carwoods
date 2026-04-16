@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Box, useMediaQuery, useTheme } from '@mui/material';
 import { keyframes } from '@emotion/react';
 import { useLocation } from 'react-router-dom';
+import { PortalShellProvider } from '../PortalShellContext';
+import { PortalTourProvider } from '../PortalTourContext';
 import PortalSidebar from './PortalSidebar';
 import PortalTopBar from './PortalTopBar';
 
@@ -16,49 +18,55 @@ const PortalLayout = ({ children }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { pathname } = useLocation();
+  const openMobileSidebar = useCallback(() => setMobileOpen(true), []);
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: 'background.default' }}>
-      <PortalSidebar
-        open={mobileOpen}
-        onClose={() => setMobileOpen(false)}
-        isMobile={isMobile}
-        collapsed={desktopSidebarCollapsed}
-        onSidebarToggle={() => setDesktopSidebarCollapsed((prev) => !prev)}
-      />
+    <PortalShellProvider isMobile={isMobile} openMobileSidebar={openMobileSidebar}>
+      <PortalTourProvider>
+        <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: 'background.default' }}>
+          <PortalSidebar
+            open={mobileOpen}
+            onClose={() => setMobileOpen(false)}
+            isMobile={isMobile}
+            collapsed={desktopSidebarCollapsed}
+            onSidebarToggle={() => setDesktopSidebarCollapsed((prev) => !prev)}
+          />
 
-      <Box
-        component="main"
-        id="main-content"
-        sx={{
-          flexGrow: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: '100vh',
-          minWidth: 0,
-        }}
-      >
-        <PortalTopBar
-          onMenuClick={() => setMobileOpen(true)}
-          isMobile={isMobile}
-        />
+          <Box
+            component="main"
+            id="main-content"
+            sx={{
+              flexGrow: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: '100vh',
+              minWidth: 0,
+            }}
+          >
+            <PortalTopBar
+              onMenuClick={() => setMobileOpen(true)}
+              isMobile={isMobile}
+            />
 
-        <Box
-          key={pathname}
-          sx={{
-            flexGrow: 1,
-            p: { xs: 2, sm: 3 },
-            maxWidth: 1080,
-            width: '100%',
-            boxSizing: 'border-box',
-            mx: 'auto',
-            animation: `${portalPageIn} 0.22s ease-out`,
-          }}
-        >
-          {children}
+            <Box
+              id="portal-tour-page-content"
+              key={pathname}
+              sx={{
+                flexGrow: 1,
+                p: { xs: 2, sm: 3 },
+                maxWidth: 1080,
+                width: '100%',
+                boxSizing: 'border-box',
+                mx: 'auto',
+                animation: `${portalPageIn} 0.22s ease-out`,
+              }}
+            >
+              {children}
+            </Box>
+          </Box>
         </Box>
-      </Box>
-    </Box>
+      </PortalTourProvider>
+    </PortalShellProvider>
   );
 };
 

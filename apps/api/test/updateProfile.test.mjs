@@ -15,6 +15,10 @@ function makeUserRow(overrides = {}) {
     profile_photo_storage_path: null,
     role: 'TENANT',
     status: 'ACTIVE',
+    ui_language: null,
+    ui_color_scheme: null,
+    portal_tour_completed: false,
+    tier_id: null,
     ...overrides,
   };
 }

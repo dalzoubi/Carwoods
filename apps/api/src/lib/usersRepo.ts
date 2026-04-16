@@ -15,6 +15,7 @@ export type UserRow = {
   ui_language: string | null;
   tier_id: string | null;
   ui_color_scheme: string | null;
+  portal_tour_completed: boolean;
 };
 
 /** Landlord row returned by {@link listLandlords} (admin list), including joined tier labels. */
@@ -72,7 +73,7 @@ export async function findUserBySubject(
   externalAuthOid: string
 ): Promise<UserRow | null> {
   const r = await client.query<UserRow>(
-    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status, ui_language, ui_color_scheme, tier_id
+    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status, ui_language, ui_color_scheme, portal_tour_completed, tier_id
      FROM users WHERE external_auth_oid = $1`,
     [externalAuthOid]
   );
@@ -85,7 +86,7 @@ export async function findUserByEmail(
 ): Promise<UserRow | null> {
   const normalized = normalizeEmail(email);
   const r = await client.query<UserRow>(
-    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status, ui_language, ui_color_scheme, tier_id
+    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status, ui_language, ui_color_scheme, portal_tour_completed, tier_id
      FROM users
      WHERE LOWER(email) = $1`,
     [normalized]
@@ -134,7 +135,7 @@ export async function upsertLandlordUserByEmail(
         OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
                INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
                INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
-               INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
+               INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.portal_tour_completed, INSERTED.tier_id
         WHERE id = $1`,
       [existing.id, firstName, lastName, placeholderExternalAuthOidForLandlordEmail(normalizedEmail), phone]
     );
@@ -149,7 +150,7 @@ export async function upsertLandlordUserByEmail(
      OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
             INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
             INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
-            INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
+            INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.portal_tour_completed, INSERTED.tier_id
      VALUES (NEWID(), $1, $2, $3, $4, $5, '${Role.LANDLORD}', 'ACTIVE')`,
     [placeholderExternalAuthOidForLandlordEmail(normalizedEmail), normalizedEmail, firstName, lastName, phone]
   );
@@ -197,7 +198,7 @@ export async function autoRegisterLandlordByClaims(
      OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
             INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
             INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
-            INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
+            INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.portal_tour_completed, INSERTED.tier_id
      VALUES (NEWID(), $1, $2, $3, $4, '${Role.LANDLORD}', 'ACTIVE')`,
     [externalAuthOid, normalizedEmail, firstName, lastName]
   );
@@ -255,7 +256,7 @@ export async function listUsersForAdminNotificationRecipients(
 ): Promise<UserRow[]> {
   const roleFilter = `role IN ('${Role.ADMIN}', '${Role.LANDLORD}', '${Role.TENANT}')`;
   const orderBy = `ORDER BY role, status DESC, last_name ASC, first_name ASC, email ASC`;
-  const columns = `id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status, ui_language, ui_color_scheme, tier_id`;
+  const columns = `id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status, ui_language, ui_color_scheme, portal_tour_completed, tier_id`;
   if (options?.includeInactive) {
     const r = await client.query<UserRow>(
       `SELECT ${columns}
@@ -288,7 +289,7 @@ export async function setLandlordActiveStatus(
       OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
              INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
              INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
-             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
+             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.portal_tour_completed, INSERTED.tier_id
       WHERE id = $1
         AND role = '${Role.LANDLORD}'`,
     [id, nextStatus]
@@ -301,7 +302,7 @@ export async function findUserById(
   id: string
 ): Promise<UserRow | null> {
   const r = await client.query<UserRow>(
-    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status, ui_language, ui_color_scheme, tier_id
+    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status, ui_language, ui_color_scheme, portal_tour_completed, tier_id
      FROM users WHERE id = $1`,
     [id]
   );
@@ -426,7 +427,7 @@ export async function updateUserProfile(
       OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
              INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
              INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
-             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
+             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.portal_tour_completed, INSERTED.tier_id
       WHERE id = $1
         AND (
           LOWER(email) <> $2
@@ -472,7 +473,7 @@ export async function ensureManagementUser(
      OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
             INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
             INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
-            INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id;`,
+            INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.portal_tour_completed, INSERTED.tier_id;`,
     [sub, email, firstName, lastName, role]
   );
   return r.rows[0]!;
@@ -482,7 +483,7 @@ const ALLOWED_LANGUAGES = new Set(['en', 'es', 'fr', 'ar']);
 const ALLOWED_COLOR_SCHEMES = new Set(['light', 'dark']);
 
 /**
- * Persists UI language and/or color-scheme preference for a user.
+ * Persists UI language, color-scheme, and/or portal tour completion for a user.
  * Only fields that are explicitly provided (non-undefined) are written.
  * Invalid / unrecognised values are stored as NULL so the client falls back
  * to its local default rather than applying a bad value.
@@ -493,11 +494,13 @@ export async function updateUserUiPreferences(
   prefs: {
     uiLanguage?: string | null;
     uiColorScheme?: string | null;
+    portalTourCompleted?: boolean;
   }
 ): Promise<UserRow | null> {
   const hasLanguage = Object.prototype.hasOwnProperty.call(prefs, 'uiLanguage');
   const hasColorScheme = Object.prototype.hasOwnProperty.call(prefs, 'uiColorScheme');
-  if (!hasLanguage && !hasColorScheme) {
+  const hasPortalTourCompleted = Object.prototype.hasOwnProperty.call(prefs, 'portalTourCompleted');
+  if (!hasLanguage && !hasColorScheme && !hasPortalTourCompleted) {
     return findUserById(client, userId);
   }
 
@@ -507,6 +510,10 @@ export async function updateUserUiPreferences(
   const schemeValue = hasColorScheme
     ? (prefs.uiColorScheme && ALLOWED_COLOR_SCHEMES.has(prefs.uiColorScheme) ? prefs.uiColorScheme : null)
     : undefined;
+  const tourDone =
+    hasPortalTourCompleted && typeof prefs.portalTourCompleted === 'boolean'
+      ? prefs.portalTourCompleted
+      : undefined;
 
   const setClauses: string[] = [];
   const params: unknown[] = [userId];
@@ -518,6 +525,14 @@ export async function updateUserUiPreferences(
     params.push(schemeValue);
     setClauses.push(`ui_color_scheme = $${params.length}`);
   }
+  if (tourDone !== undefined) {
+    params.push(tourDone ? 1 : 0);
+    setClauses.push(`portal_tour_completed = $${params.length}`);
+  }
+
+  if (setClauses.length === 0) {
+    return findUserById(client, userId);
+  }
 
   const r = await client.query<UserRow>(
     `UPDATE users
@@ -525,7 +540,7 @@ export async function updateUserUiPreferences(
       OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
              INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
              INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
-             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
+             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.portal_tour_completed, INSERTED.tier_id
       WHERE id = $1`,
     params
   );
@@ -544,7 +559,7 @@ export async function updateUserProfilePhotoPath(
       OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
              INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
              INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
-             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
+             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.portal_tour_completed, INSERTED.tier_id
       WHERE id = $1`,
     [userId, storagePath]
   );
@@ -563,7 +578,7 @@ export async function setUserTier(
       OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
              INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
              INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
-             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.tier_id
+             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.portal_tour_completed, INSERTED.tier_id
       WHERE id = $1`,
     [userId, tierId]
   );

@@ -11,6 +11,7 @@ import {
   Typography,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import HelpOutline from '@mui/icons-material/HelpOutline';
 import SettingsBrightness from '@mui/icons-material/SettingsBrightness';
 import LightMode from '@mui/icons-material/LightMode';
 import DarkMode from '@mui/icons-material/DarkMode';
@@ -25,6 +26,7 @@ import { useLanguage } from '../LanguageContext';
 import { FEATURE_DARK_THEME } from '../featureFlags';
 import PortalNotificationsTray from './PortalNotificationsTray';
 import { PortalAccountMenu, PortalAccountMenuAvatarTrigger } from './PortalAccountMenu';
+import { usePortalTour } from '../PortalTourContext';
 
 function usePageTitle(t) {
   const { pathname } = useLocation();
@@ -54,6 +56,7 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { isAuthenticated } = usePortalAuth();
+  const { openTour } = usePortalTour();
   const notificationsTrayRef = useRef(null);
   const pageTitle = usePageTitle(t);
 
@@ -119,6 +122,7 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
           <IconButton
             type="button"
             edge="start"
+            id="portal-tour-mobile-menu"
             aria-label={t('portalLayout.topBar.openMenu')}
             onClick={onMenuClick}
             sx={{ marginInlineEnd: 1 }}
@@ -147,6 +151,24 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
               </IconButton>
             </Tooltip>
           )}
+
+          <Tooltip title={t('portalTour.helpTooltip')} arrow>
+            <IconButton
+              type="button"
+              size="small"
+              id="portal-tour-help"
+              onClick={() => {
+                setAppearanceAnchor(null);
+                setLanguageAnchor(null);
+                setAccountAnchor(null);
+                notificationsTrayRef.current?.close();
+                openTour();
+              }}
+              aria-label={t('portalTour.helpAria')}
+            >
+              <HelpOutline fontSize="small" />
+            </IconButton>
+          </Tooltip>
 
           <Tooltip title={t('nav.language')} arrow>
             <IconButton

@@ -639,7 +639,7 @@ export async function patchProfile(baseUrl, accessToken, payload) {
  *
  * @param {string} baseUrl
  * @param {string} accessToken
- * @param {{ emailHint?: string, ui_language?: string|null, ui_color_scheme?: string|null }} payload
+ * @param {{ emailHint?: string, ui_language?: string|null, ui_color_scheme?: string|null, portal_tour_completed?: boolean }} payload
  * @returns {Promise<object>}
  */
 export async function patchUiPreferences(baseUrl, accessToken, payload) {

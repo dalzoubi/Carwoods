@@ -30,6 +30,7 @@ import {
 } from '../lib/portalApiClient';
 import StatusAlertSlot from './StatusAlertSlot';
 import PortalRefreshButton from './PortalRefreshButton';
+import PortalConfigOptionHelp, { ConfigFieldWithHelp } from './PortalConfigOptionHelp';
 
 const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 
@@ -342,101 +343,188 @@ const PortalAdminAiConfig = () => {
             <Typography variant="h3" sx={{ fontSize: '1.05rem' }}>
               {t('portalAdminAiConfig.global.heading')}
             </Typography>
-            <FormControlLabel
-              control={<Switch checked={Boolean(form.elsa_enabled)} onChange={onField('elsa_enabled')} />}
-              label={t('portalAdminAiConfig.global.elsaEnabled')}
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ flexWrap: 'wrap' }}>
+              <FormControlLabel
+                sx={{ flex: 1, minWidth: 0, m: 0 }}
+                control={<Switch checked={Boolean(form.elsa_enabled)} onChange={onField('elsa_enabled')} />}
+                label={t('portalAdminAiConfig.global.elsaEnabled')}
+                disabled={!canUseModule || globalStatus === 'saving'}
+              />
+              <PortalConfigOptionHelp
+                labelKey="portalAdminAiConfig.global.elsaEnabled"
+                bodyKey="portalAdminAiConfig.optionHelp.global.elsaEnabled"
+                disabled={!canUseModule || globalStatus === 'saving'}
+              />
+            </Stack>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ flexWrap: 'wrap' }}>
+              <FormControlLabel
+                sx={{ flex: 1, minWidth: 0, m: 0 }}
+                control={<Switch checked={Boolean(form.elsa_auto_send_enabled)} onChange={onField('elsa_auto_send_enabled')} />}
+                label={t('portalAdminAiConfig.global.autoSendEnabled')}
+                disabled={!canUseModule || globalStatus === 'saving'}
+              />
+              <PortalConfigOptionHelp
+                labelKey="portalAdminAiConfig.global.autoSendEnabled"
+                bodyKey="portalAdminAiConfig.optionHelp.global.autoSendEnabled"
+                disabled={!canUseModule || globalStatus === 'saving'}
+              />
+            </Stack>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ flexWrap: 'wrap' }}>
+              <FormControlLabel
+                sx={{ flex: 1, minWidth: 0, m: 0 }}
+                control={<Switch checked={Boolean(form.elsa_emergency_template_enabled)} onChange={onField('elsa_emergency_template_enabled')} />}
+                label={t('portalAdminAiConfig.global.emergencyTemplateEnabled')}
+                disabled={!canUseModule || globalStatus === 'saving'}
+              />
+              <PortalConfigOptionHelp
+                labelKey="portalAdminAiConfig.global.emergencyTemplateEnabled"
+                bodyKey="portalAdminAiConfig.optionHelp.global.emergencyTemplateEnabled"
+                disabled={!canUseModule || globalStatus === 'saving'}
+              />
+            </Stack>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAiConfig.global.confidenceThreshold"
+              bodyKey="portalAdminAiConfig.optionHelp.global.confidenceThreshold"
               disabled={!canUseModule || globalStatus === 'saving'}
-            />
-            <FormControlLabel
-              control={<Switch checked={Boolean(form.elsa_auto_send_enabled)} onChange={onField('elsa_auto_send_enabled')} />}
-              label={t('portalAdminAiConfig.global.autoSendEnabled')}
+            >
+              <TextField
+                fullWidth
+                label={t('portalAdminAiConfig.global.confidenceThreshold')}
+                value={form.elsa_auto_send_confidence_threshold}
+                onChange={onField('elsa_auto_send_confidence_threshold')}
+                disabled={!canUseModule || globalStatus === 'saving'}
+                type="number"
+                inputProps={{ min: 0, max: 1, step: 0.01 }}
+                error={toNullableNumber(form.elsa_auto_send_confidence_threshold) !== null
+                  && (toNullableNumber(form.elsa_auto_send_confidence_threshold) < 0
+                    || toNullableNumber(form.elsa_auto_send_confidence_threshold) > 1)}
+                helperText={t('portalAdminAiConfig.global.confidenceHelp')}
+              />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAiConfig.global.similarReplyThreshold"
+              bodyKey="portalAdminAiConfig.optionHelp.global.similarReplyThreshold"
               disabled={!canUseModule || globalStatus === 'saving'}
-            />
-            <FormControlLabel
-              control={<Switch checked={Boolean(form.elsa_emergency_template_enabled)} onChange={onField('elsa_emergency_template_enabled')} />}
-              label={t('portalAdminAiConfig.global.emergencyTemplateEnabled')}
+            >
+              <TextField
+                fullWidth
+                label={t('portalAdminAiConfig.global.similarReplyThreshold')}
+                value={form.elsa_similar_reply_threshold}
+                onChange={onField('elsa_similar_reply_threshold')}
+                disabled={!canUseModule || globalStatus === 'saving'}
+                type="number"
+                inputProps={{ min: 0, max: 1, step: 0.01 }}
+                error={toNullableNumber(form.elsa_similar_reply_threshold) !== null
+                  && (toNullableNumber(form.elsa_similar_reply_threshold) < 0
+                    || toNullableNumber(form.elsa_similar_reply_threshold) > 1)}
+                helperText={t('portalAdminAiConfig.global.similarReplyThresholdHelp')}
+              />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAiConfig.global.maxQuestions"
+              bodyKey="portalAdminAiConfig.optionHelp.global.maxQuestions"
               disabled={!canUseModule || globalStatus === 'saving'}
-            />
-            <TextField
-              label={t('portalAdminAiConfig.global.confidenceThreshold')}
-              value={form.elsa_auto_send_confidence_threshold}
-              onChange={onField('elsa_auto_send_confidence_threshold')}
+            >
+              <TextField
+                fullWidth
+                label={t('portalAdminAiConfig.global.maxQuestions')}
+                value={form.elsa_max_questions}
+                onChange={onField('elsa_max_questions')}
+                disabled={!canUseModule || globalStatus === 'saving'}
+                type="number"
+                inputProps={{ min: 0, step: 1 }}
+              />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAiConfig.global.maxSteps"
+              bodyKey="portalAdminAiConfig.optionHelp.global.maxSteps"
               disabled={!canUseModule || globalStatus === 'saving'}
-              type="number"
-              inputProps={{ min: 0, max: 1, step: 0.01 }}
-              error={toNullableNumber(form.elsa_auto_send_confidence_threshold) !== null
-                && (toNullableNumber(form.elsa_auto_send_confidence_threshold) < 0
-                  || toNullableNumber(form.elsa_auto_send_confidence_threshold) > 1)}
-              helperText={t('portalAdminAiConfig.global.confidenceHelp')}
-            />
-            <TextField
-              label={t('portalAdminAiConfig.global.similarReplyThreshold')}
-              value={form.elsa_similar_reply_threshold}
-              onChange={onField('elsa_similar_reply_threshold')}
+            >
+              <TextField
+                fullWidth
+                label={t('portalAdminAiConfig.global.maxSteps')}
+                value={form.elsa_max_steps}
+                onChange={onField('elsa_max_steps')}
+                disabled={!canUseModule || globalStatus === 'saving'}
+                type="number"
+                inputProps={{ min: 0, step: 1 }}
+              />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAiConfig.global.allowedCategories"
+              bodyKey="portalAdminAiConfig.optionHelp.global.allowedCategories"
               disabled={!canUseModule || globalStatus === 'saving'}
-              type="number"
-              inputProps={{ min: 0, max: 1, step: 0.01 }}
-              error={toNullableNumber(form.elsa_similar_reply_threshold) !== null
-                && (toNullableNumber(form.elsa_similar_reply_threshold) < 0
-                  || toNullableNumber(form.elsa_similar_reply_threshold) > 1)}
-              helperText={t('portalAdminAiConfig.global.similarReplyThresholdHelp')}
-            />
-            <TextField
-              label={t('portalAdminAiConfig.global.maxQuestions')}
-              value={form.elsa_max_questions}
-              onChange={onField('elsa_max_questions')}
+            >
+              <TextField
+                fullWidth
+                label={t('portalAdminAiConfig.global.allowedCategories')}
+                value={form.elsa_allowed_categories}
+                onChange={onField('elsa_allowed_categories')}
+                disabled={!canUseModule || globalStatus === 'saving'}
+                multiline
+                minRows={2}
+              />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAiConfig.global.allowedPriorities"
+              bodyKey="portalAdminAiConfig.optionHelp.global.allowedPriorities"
               disabled={!canUseModule || globalStatus === 'saving'}
-              type="number"
-              inputProps={{ min: 0, step: 1 }}
-            />
-            <TextField
-              label={t('portalAdminAiConfig.global.maxSteps')}
-              value={form.elsa_max_steps}
-              onChange={onField('elsa_max_steps')}
+            >
+              <TextField
+                fullWidth
+                label={t('portalAdminAiConfig.global.allowedPriorities')}
+                value={form.elsa_allowed_priorities}
+                onChange={onField('elsa_allowed_priorities')}
+                disabled={!canUseModule || globalStatus === 'saving'}
+                multiline
+                minRows={2}
+              />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAiConfig.global.blockedKeywords"
+              bodyKey="portalAdminAiConfig.optionHelp.global.blockedKeywords"
               disabled={!canUseModule || globalStatus === 'saving'}
-              type="number"
-              inputProps={{ min: 0, step: 1 }}
-            />
-            <TextField
-              label={t('portalAdminAiConfig.global.allowedCategories')}
-              value={form.elsa_allowed_categories}
-              onChange={onField('elsa_allowed_categories')}
+            >
+              <TextField
+                fullWidth
+                label={t('portalAdminAiConfig.global.blockedKeywords')}
+                value={form.elsa_blocked_keywords}
+                onChange={onField('elsa_blocked_keywords')}
+                disabled={!canUseModule || globalStatus === 'saving'}
+                multiline
+                minRows={2}
+              />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAiConfig.global.emergencyKeywords"
+              bodyKey="portalAdminAiConfig.optionHelp.global.emergencyKeywords"
               disabled={!canUseModule || globalStatus === 'saving'}
-              multiline
-              minRows={2}
-            />
-            <TextField
-              label={t('portalAdminAiConfig.global.allowedPriorities')}
-              value={form.elsa_allowed_priorities}
-              onChange={onField('elsa_allowed_priorities')}
+            >
+              <TextField
+                fullWidth
+                label={t('portalAdminAiConfig.global.emergencyKeywords')}
+                value={form.elsa_emergency_keywords}
+                onChange={onField('elsa_emergency_keywords')}
+                disabled={!canUseModule || globalStatus === 'saving'}
+                multiline
+                minRows={2}
+              />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAiConfig.global.adminAlertRecipients"
+              bodyKey="portalAdminAiConfig.optionHelp.global.adminAlertRecipients"
               disabled={!canUseModule || globalStatus === 'saving'}
-              multiline
-              minRows={2}
-            />
-            <TextField
-              label={t('portalAdminAiConfig.global.blockedKeywords')}
-              value={form.elsa_blocked_keywords}
-              onChange={onField('elsa_blocked_keywords')}
-              disabled={!canUseModule || globalStatus === 'saving'}
-              multiline
-              minRows={2}
-            />
-            <TextField
-              label={t('portalAdminAiConfig.global.emergencyKeywords')}
-              value={form.elsa_emergency_keywords}
-              onChange={onField('elsa_emergency_keywords')}
-              disabled={!canUseModule || globalStatus === 'saving'}
-              multiline
-              minRows={2}
-            />
-            <TextField
-              label={t('portalAdminAiConfig.global.adminAlertRecipients')}
-              value={form.elsa_admin_alert_recipients}
-              onChange={onField('elsa_admin_alert_recipients')}
-              disabled={!canUseModule || globalStatus === 'saving'}
-              multiline
-              minRows={2}
-            />
+            >
+              <TextField
+                fullWidth
+                label={t('portalAdminAiConfig.global.adminAlertRecipients')}
+                value={form.elsa_admin_alert_recipients}
+                onChange={onField('elsa_admin_alert_recipients')}
+                disabled={!canUseModule || globalStatus === 'saving'}
+                multiline
+                minRows={2}
+              />
+            </ConfigFieldWithHelp>
             <Stack direction="row" spacing={1.25} sx={{ flexWrap: 'wrap' }}>
               <Button
                 type="button"
@@ -473,21 +561,29 @@ const PortalAdminAiConfig = () => {
                 <Box sx={{ minWidth: 180 }}>
                   <Typography sx={{ fontWeight: 600 }}>{row.category_code || '-'}</Typography>
                 </Box>
-                <FormControlLabel
-                  control={(
-                    <Switch
-                      checked={Boolean(row.auto_send_enabled)}
-                      onChange={(event) => {
-                        const next = event.target.checked;
-                        setCategoryPolicies((prev) => prev.map((item) => (
-                          item.category_code === row.category_code ? { ...item, auto_send_enabled: next } : item
-                        )));
-                      }}
-                    />
-                  )}
-                  label={t('portalAdminAiConfig.categories.autoSend')}
-                  disabled={!canUseModule || categorySaving === row.category_code}
-                />
+                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                  <FormControlLabel
+                    sx={{ flex: 1, minWidth: 0, m: 0 }}
+                    control={(
+                      <Switch
+                        checked={Boolean(row.auto_send_enabled)}
+                        onChange={(event) => {
+                          const next = event.target.checked;
+                          setCategoryPolicies((prev) => prev.map((item) => (
+                            item.category_code === row.category_code ? { ...item, auto_send_enabled: next } : item
+                          )));
+                        }}
+                      />
+                    )}
+                    label={t('portalAdminAiConfig.categories.autoSend')}
+                    disabled={!canUseModule || categorySaving === row.category_code}
+                  />
+                  <PortalConfigOptionHelp
+                    labelKey="portalAdminAiConfig.categories.autoSend"
+                    bodyKey="portalAdminAiConfig.optionHelp.categories.autoSend"
+                    disabled={!canUseModule || categorySaving === row.category_code}
+                  />
+                </Stack>
                 <Button
                   type="button"
                   variant="outlined"
@@ -515,36 +611,52 @@ const PortalAdminAiConfig = () => {
                 <Box sx={{ minWidth: 180 }}>
                   <Typography sx={{ fontWeight: 600 }}>{row.priority_code || '-'}</Typography>
                 </Box>
-                <FormControlLabel
-                  control={(
-                    <Switch
-                      checked={Boolean(row.auto_send_enabled)}
-                      onChange={(event) => {
-                        const next = event.target.checked;
-                        setPriorityPolicies((prev) => prev.map((item) => (
-                          item.priority_code === row.priority_code ? { ...item, auto_send_enabled: next } : item
-                        )));
-                      }}
-                    />
-                  )}
-                  label={t('portalAdminAiConfig.priorities.autoSend')}
-                  disabled={!canUseModule || prioritySaving === row.priority_code}
-                />
-                <FormControlLabel
-                  control={(
-                    <Switch
-                      checked={Boolean(row.require_admin_review)}
-                      onChange={(event) => {
-                        const next = event.target.checked;
-                        setPriorityPolicies((prev) => prev.map((item) => (
-                          item.priority_code === row.priority_code ? { ...item, require_admin_review: next } : item
-                        )));
-                      }}
-                    />
-                  )}
-                  label={t('portalAdminAiConfig.priorities.requireReview')}
-                  disabled={!canUseModule || prioritySaving === row.priority_code}
-                />
+                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                  <FormControlLabel
+                    sx={{ flex: 1, minWidth: 0, m: 0 }}
+                    control={(
+                      <Switch
+                        checked={Boolean(row.auto_send_enabled)}
+                        onChange={(event) => {
+                          const next = event.target.checked;
+                          setPriorityPolicies((prev) => prev.map((item) => (
+                            item.priority_code === row.priority_code ? { ...item, auto_send_enabled: next } : item
+                          )));
+                        }}
+                      />
+                    )}
+                    label={t('portalAdminAiConfig.priorities.autoSend')}
+                    disabled={!canUseModule || prioritySaving === row.priority_code}
+                  />
+                  <PortalConfigOptionHelp
+                    labelKey="portalAdminAiConfig.priorities.autoSend"
+                    bodyKey="portalAdminAiConfig.optionHelp.priorities.autoSend"
+                    disabled={!canUseModule || prioritySaving === row.priority_code}
+                  />
+                </Stack>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                  <FormControlLabel
+                    sx={{ flex: 1, minWidth: 0, m: 0 }}
+                    control={(
+                      <Switch
+                        checked={Boolean(row.require_admin_review)}
+                        onChange={(event) => {
+                          const next = event.target.checked;
+                          setPriorityPolicies((prev) => prev.map((item) => (
+                            item.priority_code === row.priority_code ? { ...item, require_admin_review: next } : item
+                          )));
+                        }}
+                      />
+                    )}
+                    label={t('portalAdminAiConfig.priorities.requireReview')}
+                    disabled={!canUseModule || prioritySaving === row.priority_code}
+                  />
+                  <PortalConfigOptionHelp
+                    labelKey="portalAdminAiConfig.priorities.requireReview"
+                    bodyKey="portalAdminAiConfig.optionHelp.priorities.requireReview"
+                    disabled={!canUseModule || prioritySaving === row.priority_code}
+                  />
+                </Stack>
                 <Button
                   type="button"
                   variant="outlined"
@@ -612,40 +724,54 @@ const PortalAdminAiConfig = () => {
                       />
                     )}
                   </Stack>
-                  <FormControl size="small" sx={{ minWidth: 180 }}>
-                    <InputLabel id={`property-override-${idx}`}>{t('portalAdminAiConfig.properties.autoSendOverride')}</InputLabel>
-                    <Select
-                      labelId={`property-override-${idx}`}
-                      label={t('portalAdminAiConfig.properties.autoSendOverride')}
-                      value={row.auto_send_enabled_override}
-                      onChange={(event) => {
-                        const next = event.target.value;
-                        setPropertyPolicies((prev) => prev.map((item) => (
-                          item.property_id === row.property_id ? { ...item, auto_send_enabled_override: next } : item
-                        )));
-                      }}
-                      disabled={!canUseModule || propertySaving === row.property_id}
-                    >
-                      <MenuItem value="inherit">{t('portalAdminAiConfig.properties.inherit')}</MenuItem>
-                      <MenuItem value="enabled">{t('portalAdminAiConfig.properties.enabled')}</MenuItem>
-                      <MenuItem value="disabled">{t('portalAdminAiConfig.properties.disabled')}</MenuItem>
-                    </Select>
-                  </FormControl>
-                  <FormControlLabel
-                    control={(
-                      <Switch
-                        checked={Boolean(row.require_review_all)}
+                  <ConfigFieldWithHelp
+                    labelKey="portalAdminAiConfig.properties.autoSendOverride"
+                    bodyKey="portalAdminAiConfig.optionHelp.properties.autoSendOverride"
+                    disabled={!canUseModule || propertySaving === row.property_id}
+                  >
+                    <FormControl size="small" fullWidth sx={{ minWidth: { md: 180 } }}>
+                      <InputLabel id={`property-override-${idx}`}>{t('portalAdminAiConfig.properties.autoSendOverride')}</InputLabel>
+                      <Select
+                        labelId={`property-override-${idx}`}
+                        label={t('portalAdminAiConfig.properties.autoSendOverride')}
+                        value={row.auto_send_enabled_override}
                         onChange={(event) => {
-                          const next = event.target.checked;
+                          const next = event.target.value;
                           setPropertyPolicies((prev) => prev.map((item) => (
-                            item.property_id === row.property_id ? { ...item, require_review_all: next } : item
+                            item.property_id === row.property_id ? { ...item, auto_send_enabled_override: next } : item
                           )));
                         }}
-                      />
-                    )}
-                    label={t('portalAdminAiConfig.properties.requireReviewAll')}
-                    disabled={!canUseModule || propertySaving === row.property_id}
-                  />
+                        disabled={!canUseModule || propertySaving === row.property_id}
+                      >
+                        <MenuItem value="inherit">{t('portalAdminAiConfig.properties.inherit')}</MenuItem>
+                        <MenuItem value="enabled">{t('portalAdminAiConfig.properties.enabled')}</MenuItem>
+                        <MenuItem value="disabled">{t('portalAdminAiConfig.properties.disabled')}</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </ConfigFieldWithHelp>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                    <FormControlLabel
+                      sx={{ flex: 1, minWidth: 0, m: 0 }}
+                      control={(
+                        <Switch
+                          checked={Boolean(row.require_review_all)}
+                          onChange={(event) => {
+                            const next = event.target.checked;
+                            setPropertyPolicies((prev) => prev.map((item) => (
+                              item.property_id === row.property_id ? { ...item, require_review_all: next } : item
+                            )));
+                          }}
+                        />
+                      )}
+                      label={t('portalAdminAiConfig.properties.requireReviewAll')}
+                      disabled={!canUseModule || propertySaving === row.property_id}
+                    />
+                    <PortalConfigOptionHelp
+                      labelKey="portalAdminAiConfig.properties.requireReviewAll"
+                      bodyKey="portalAdminAiConfig.optionHelp.properties.requireReviewAll"
+                      disabled={!canUseModule || propertySaving === row.property_id}
+                    />
+                  </Stack>
                   <Button
                     type="button"
                     variant="outlined"

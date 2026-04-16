@@ -64,6 +64,7 @@ const DEV_AUTH_VALUE = PORTAL_DEV_AUTH
           role: Role.LANDLORD,
           status: 'ACTIVE',
           sms_notifications_allowed: false,
+          portal_tour_completed: false,
           tier: {
             id: 'dev-tier-free',
             name: 'FREE',

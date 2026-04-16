@@ -7,7 +7,11 @@
       "Bash(npm install:*)",
       "Bash(npm uninstall:*)",
       "Bash(npx vitest:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(xargs wc:*)",
+      "Bash(xargs grep:*)",
+      "Bash(grep -E \"\\\\.\\(ts|sql|js\\)$\")",
+      "Bash(npx tsc:*)"
     ]
   }
 }

@@ -175,7 +175,7 @@ function contentForRequestMessageCreated(
   };
 }
 
-function buildNotificationContent(
+export function buildNotificationContent(
   eventTypeCode: string,
   payload: Record<string, unknown>,
   aiBundle: NotificationDispatchAiBundle | null

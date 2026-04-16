@@ -19,6 +19,7 @@ import { Role } from '../domain/constants.js';
 import { fetchElsaSettings, patchElsaSettings } from '../lib/portalApiClient';
 import StatusAlertSlot from './StatusAlertSlot';
 import PortalRefreshButton from './PortalRefreshButton';
+import PortalConfigOptionHelp, { ConfigFieldWithHelp } from './PortalConfigOptionHelp';
 
 const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 
@@ -172,60 +173,72 @@ const PortalAdminAiAgents = () => {
             <Typography variant="h3" sx={{ fontSize: '1.05rem' }}>
               {t('portalAdminAiAgents.routing.heading')}
             </Typography>
-            <FormControl>
-              <InputLabel id="primary-agent-label">{t('portalAdminAiAgents.routing.primary')}</InputLabel>
-              <Select
-                labelId="primary-agent-label"
-                label={t('portalAdminAiAgents.routing.primary')}
-                value={routing.primary_agent_id}
-                onChange={(event) => {
-                  const nextPrimaryId = String(event.target.value || '');
-                  setRouting((prev) => ({
-                    primary_agent_id: nextPrimaryId,
-                    fallback_agent_id: prev.fallback_agent_id === nextPrimaryId ? '' : prev.fallback_agent_id,
-                  }));
-                  if (saveStatus !== 'saving') {
-                    setSaveStatus('idle');
-                    setSaveMessage('');
-                  }
-                }}
-                disabled={!canUseModule || saveStatus === 'saving'}
-              >
-                {enabledAgents.map((agent) => (
-                  <MenuItem key={agent.id} value={agent.id}>
-                    {agent.display_name} ({agent.primary_model})
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl>
-              <InputLabel id="fallback-agent-label">{t('portalAdminAiAgents.routing.fallback')}</InputLabel>
-              <Select
-                labelId="fallback-agent-label"
-                label={t('portalAdminAiAgents.routing.fallback')}
-                value={routing.fallback_agent_id}
-                onChange={(event) => {
-                  setRouting((prev) => ({
-                    ...prev,
-                    fallback_agent_id: String(event.target.value || ''),
-                  }));
-                  if (saveStatus !== 'saving') {
-                    setSaveStatus('idle');
-                    setSaveMessage('');
-                  }
-                }}
-                disabled={!canUseModule || saveStatus === 'saving'}
-              >
-                <MenuItem value="">{t('portalAdminAiAgents.routing.none')}</MenuItem>
-                {enabledAgents
-                  .filter((agent) => String(agent.id) !== routing.primary_agent_id)
-                  .map((agent) => (
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAiAgents.routing.primary"
+              bodyKey="portalAdminAiAgents.optionHelp.routing.primary"
+              disabled={!canUseModule || saveStatus === 'saving'}
+            >
+              <FormControl fullWidth>
+                <InputLabel id="primary-agent-label">{t('portalAdminAiAgents.routing.primary')}</InputLabel>
+                <Select
+                  labelId="primary-agent-label"
+                  label={t('portalAdminAiAgents.routing.primary')}
+                  value={routing.primary_agent_id}
+                  onChange={(event) => {
+                    const nextPrimaryId = String(event.target.value || '');
+                    setRouting((prev) => ({
+                      primary_agent_id: nextPrimaryId,
+                      fallback_agent_id: prev.fallback_agent_id === nextPrimaryId ? '' : prev.fallback_agent_id,
+                    }));
+                    if (saveStatus !== 'saving') {
+                      setSaveStatus('idle');
+                      setSaveMessage('');
+                    }
+                  }}
+                  disabled={!canUseModule || saveStatus === 'saving'}
+                >
+                  {enabledAgents.map((agent) => (
                     <MenuItem key={agent.id} value={agent.id}>
                       {agent.display_name} ({agent.primary_model})
                     </MenuItem>
                   ))}
-              </Select>
-            </FormControl>
+                </Select>
+              </FormControl>
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAiAgents.routing.fallback"
+              bodyKey="portalAdminAiAgents.optionHelp.routing.fallback"
+              disabled={!canUseModule || saveStatus === 'saving'}
+            >
+              <FormControl fullWidth>
+                <InputLabel id="fallback-agent-label">{t('portalAdminAiAgents.routing.fallback')}</InputLabel>
+                <Select
+                  labelId="fallback-agent-label"
+                  label={t('portalAdminAiAgents.routing.fallback')}
+                  value={routing.fallback_agent_id}
+                  onChange={(event) => {
+                    setRouting((prev) => ({
+                      ...prev,
+                      fallback_agent_id: String(event.target.value || ''),
+                    }));
+                    if (saveStatus !== 'saving') {
+                      setSaveStatus('idle');
+                      setSaveMessage('');
+                    }
+                  }}
+                  disabled={!canUseModule || saveStatus === 'saving'}
+                >
+                  <MenuItem value="">{t('portalAdminAiAgents.routing.none')}</MenuItem>
+                  {enabledAgents
+                    .filter((agent) => String(agent.id) !== routing.primary_agent_id)
+                    .map((agent) => (
+                      <MenuItem key={agent.id} value={agent.id}>
+                        {agent.display_name} ({agent.primary_model})
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+            </ConfigFieldWithHelp>
 
             <Stack direction="row" spacing={1.25}>
               <Button
@@ -257,26 +270,54 @@ const PortalAdminAiAgents = () => {
             <Typography variant="h3" sx={{ fontSize: '1.05rem' }}>
               {t('portalAdminAiAgents.details.heading')}
             </Typography>
-            <TextField
-              label={t('portalAdminAiAgents.details.primaryAgent')}
-              value={selectedPrimary ? selectedPrimary.display_name : '-'}
-              InputProps={{ readOnly: true }}
-            />
-            <TextField
-              label={t('portalAdminAiAgents.details.primaryModel')}
-              value={selectedPrimary ? selectedPrimary.primary_model : '-'}
-              InputProps={{ readOnly: true }}
-            />
-            <TextField
-              label={t('portalAdminAiAgents.details.fallbackAgent')}
-              value={selectedFallback ? selectedFallback.display_name : t('portalAdminAiAgents.routing.none')}
-              InputProps={{ readOnly: true }}
-            />
-            <TextField
-              label={t('portalAdminAiAgents.details.fallbackModel')}
-              value={selectedFallback ? selectedFallback.primary_model : '-'}
-              InputProps={{ readOnly: true }}
-            />
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAiAgents.details.primaryAgent"
+              bodyKey="portalAdminAiAgents.optionHelp.details.primaryAgent"
+              disabled={!canUseModule}
+            >
+              <TextField
+                fullWidth
+                label={t('portalAdminAiAgents.details.primaryAgent')}
+                value={selectedPrimary ? selectedPrimary.display_name : '-'}
+                InputProps={{ readOnly: true }}
+              />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAiAgents.details.primaryModel"
+              bodyKey="portalAdminAiAgents.optionHelp.details.primaryModel"
+              disabled={!canUseModule}
+            >
+              <TextField
+                fullWidth
+                label={t('portalAdminAiAgents.details.primaryModel')}
+                value={selectedPrimary ? selectedPrimary.primary_model : '-'}
+                InputProps={{ readOnly: true }}
+              />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAiAgents.details.fallbackAgent"
+              bodyKey="portalAdminAiAgents.optionHelp.details.fallbackAgent"
+              disabled={!canUseModule}
+            >
+              <TextField
+                fullWidth
+                label={t('portalAdminAiAgents.details.fallbackAgent')}
+                value={selectedFallback ? selectedFallback.display_name : t('portalAdminAiAgents.routing.none')}
+                InputProps={{ readOnly: true }}
+              />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAiAgents.details.fallbackModel"
+              bodyKey="portalAdminAiAgents.optionHelp.details.fallbackModel"
+              disabled={!canUseModule}
+            >
+              <TextField
+                fullWidth
+                label={t('portalAdminAiAgents.details.fallbackModel')}
+                value={selectedFallback ? selectedFallback.primary_model : '-'}
+                InputProps={{ readOnly: true }}
+              />
+            </ConfigFieldWithHelp>
           </Stack>
         </Paper>
       </Stack>

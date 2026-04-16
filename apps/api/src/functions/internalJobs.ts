@@ -11,6 +11,7 @@ import { logInfo, logWarn } from '../lib/serverLogger.js';
 import { listAttachmentBlobPaths, deleteAttachmentBlobIfExists } from '../lib/requestAttachmentStorage.js';
 import { writeAudit } from '../lib/auditRepo.js';
 import { processNotificationOutboxBatch } from '../lib/processNotificationOutboxBatch.js';
+import { processNotificationDeliveryBatch } from '../lib/processNotificationDeliveryBatch.js';
 
 const SYSTEM_TIMER_ACTOR_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -18,14 +19,28 @@ function notificationOutboxTimerDisabled(): boolean {
   return String(process.env.NOTIFICATION_OUTBOX_TIMER_DISABLED ?? '').trim().toLowerCase() === 'true';
 }
 
+function notificationDeliveryTimerDisabled(): boolean {
+  return String(process.env.NOTIFICATION_DELIVERY_TIMER_DISABLED ?? '').trim().toLowerCase() === 'true';
+}
+
 function notificationOutboxTimerSchedule(): string {
   const raw = process.env.NOTIFICATION_OUTBOX_TIMER_CRON?.trim();
+  return raw && raw.length > 0 ? raw : '0 */1 * * * *';
+}
+
+function notificationDeliveryTimerSchedule(): string {
+  const raw = process.env.NOTIFICATION_DELIVERY_TIMER_CRON?.trim();
   return raw && raw.length > 0 ? raw : '0 */1 * * * *';
 }
 
 function notificationOutboxTimerBatchLimit(): number {
   const n = parseInt(process.env.NOTIFICATION_OUTBOX_TIMER_BATCH_LIMIT ?? '25', 10);
   return Number.isFinite(n) ? n : 25;
+}
+
+function notificationDeliveryTimerBatchLimit(): number {
+  const n = parseInt(process.env.NOTIFICATION_DELIVERY_TIMER_BATCH_LIMIT ?? '50', 10);
+  return Number.isFinite(n) ? n : 50;
 }
 
 async function notificationOutboxOnTimer(_timer: Timer, context: InvocationContext): Promise<void> {
@@ -216,6 +231,57 @@ if (!notificationOutboxTimerDisabled()) {
     handler: notificationOutboxOnTimer,
   });
 }
+
+async function notificationDeliveryOnTimer(_timer: Timer, context: InvocationContext): Promise<void> {
+  if (notificationDeliveryTimerDisabled()) {
+    return;
+  }
+  try {
+    const result = await processNotificationDeliveryBatch(context, {
+      limit: notificationDeliveryTimerBatchLimit(),
+      auditActorUserId: SYSTEM_TIMER_ACTOR_ID,
+    });
+    if (result.attempted > 0) {
+      logInfo(context, 'delivery.timer.batch_complete', result);
+    }
+  } catch (error) {
+    logWarn(context, 'delivery.timer.batch_failed', {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+async function processNotificationDeliveries(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireLandlordOrAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  if (request.method !== 'POST') {
+    return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+  }
+  const limit = Number(request.query.get('limit') ?? 50);
+  const result = await processNotificationDeliveryBatch(context, {
+    limit: Number.isFinite(limit) ? limit : 50,
+    auditActorUserId: ctx.user.id,
+  });
+  return jsonResponse(200, ctx.headers, result);
+}
+
+if (!notificationDeliveryTimerDisabled()) {
+  app.timer('notificationDeliveryTimer', {
+    schedule: notificationDeliveryTimerSchedule(),
+    handler: notificationDeliveryOnTimer,
+  });
+}
+
+app.http('internalDeliveriesProcess', {
+  methods: ['POST', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'internal/jobs/process-deliveries',
+  handler: processNotificationDeliveries,
+});
 
 app.http('internalRevokeExpiredLeases', {
   methods: ['POST', 'OPTIONS'],

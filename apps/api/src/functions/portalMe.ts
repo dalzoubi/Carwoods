@@ -273,6 +273,7 @@ export async function portalMeHandler(
         notification_preferences: notificationPreferences,
         ui_language: user.ui_language ?? null,
         ui_color_scheme: user.ui_color_scheme ?? null,
+        portal_tour_completed: Boolean(user.portal_tour_completed),
         tier,
         sms_notifications_allowed,
       },

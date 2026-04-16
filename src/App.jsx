@@ -1,5 +1,6 @@
 import React, { useEffect, useLayoutEffect, useMemo } from 'react';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Navigate, Routes, Route, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell, Container, Content, scrollToHashAnchor } from './styles';
@@ -211,6 +212,7 @@ function MarketingApp() {
             </Container>
             <Footer />
             <Analytics />
+            <SpeedInsights />
         </AppShell>
     );
 }
@@ -227,6 +229,7 @@ function PortalApp() {
                 </PortalRequestDetailModalProvider>
             </PortalAuthGate>
             <Analytics />
+            <SpeedInsights />
         </>
     );
 }

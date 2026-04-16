@@ -1109,6 +1109,23 @@
       "loadFailed": "No se pudieron cargar los datos del alcance.",
       "loadPoliciesFailed": "No se pudieron cargar las anulaciones de notificación.",
       "saveFailed": "No se pudo guardar la anulación de notificación."
+    },
+    "optionHelp": {
+      "scope": {
+        "scopeType": "Elige si las políticas aplican a toda una propiedad o a un solo hilo de solicitud de mantenimiento.",
+        "selectProperty": "La propiedad cuyas anulaciones de notificación estás viendo o editando.",
+        "selectRequest": "La solicitud concreta cuyas anulaciones de notificación estás viendo o editando."
+      },
+      "form": {
+        "userId": "La persona a la que aplica esta anulación (inquilino, propietario u otro usuario vinculado al alcance).",
+        "eventCategory": "Qué familia de notificaciones afecta esta regla (por ejemplo mantenimiento frente a incorporación).",
+        "email": "Heredar usa la preferencia predeterminada; Habilitado siempre permite correo para esta anulación; Deshabilitado lo apaga para esta categoría.",
+        "inApp": "Controla las notificaciones en el portal para este usuario y categoría. Heredar sigue los valores salvo que anules.",
+        "sms": "Controla el envío por SMS para esta anulación. En cuentas de propietario puede estar bloqueado por la suscripción.",
+        "smsOptIn": "Si el usuario se considera dado de alta para SMS en esta fila de política. Suele usarse junto con el canal SMS.",
+        "active": "Las anulaciones inactivas se ignoran hasta reactivarlas; sirve para retirar una regla sin borrar el historial.",
+        "overrideReason": "Breve explicación guardada en auditoría para que otros administradores sepan por qué existe esta excepción."
+      }
     }
   },
   "portalSubscription": {
@@ -1513,6 +1530,10 @@
       "agents": "Agentes",
       "attachments": "Adjuntos",
       "notifications": "Políticas de notificaciones"
+    },
+    "optionHelp": {
+      "close": "Entendido",
+      "moreAbout": "Ayuda: {{option}}"
     }
   },
   "portalAdminAiConfig": {
@@ -1573,6 +1594,33 @@
       "customBadge": "Personalizado",
       "customConfigCount": "{{count}} personalizado",
       "customConfigTooltip": "Propiedades con configuración de IA personalizada"
+    },
+    "optionHelp": {
+      "global": {
+        "elsaEnabled": "Interruptor general de Elsa AI en el portal. Si está desactivado, no se usa la automatización ni los borradores asistidos por IA.",
+        "autoSendEnabled": "Permite que Elsa envíe respuestas elegibles automáticamente cuando la confianza, categoría, prioridad, palabras clave y reglas de propiedad lo permitan. Puedes endurecer reglas abajo.",
+        "emergencyTemplateEnabled": "Si un mensaje parece urgente (p. ej. coincide con palabras clave de emergencia), Elsa puede usar una plantilla de emergencia en lugar de un borrador normal.",
+        "confidenceThreshold": "Confianza mínima del modelo (0–1) para permitir un envío automático. Valores más altos implican menos envíos automáticos pero más prudencia.",
+        "similarReplyThreshold": "Si un borrador nuevo es muy parecido a una respuesta anterior del hilo, puede suprimirse el autoenvío para evitar repeticiones. Valores más altos exigen mayor similitud antes de suprimir.",
+        "maxQuestions": "Número máximo de preguntas de seguimiento que Elsa puede hacer en una conversación antes de detenerse.",
+        "maxSteps": "Limita cuántos pasos internos de flujo puede ejecutar Elsa al gestionar una solicitud.",
+        "allowedCategories": "Solo estas categorías de solicitud pueden automatizarse con Elsa. Un código por línea o separados por comas.",
+        "allowedPriorities": "Solo estos códigos de prioridad pueden automatizarse; el resto suele quedar para revisión humana.",
+        "blockedKeywords": "Si el texto entrante coincide con alguno de estos términos (uno por línea o separados por comas), se bloquea el autoenvío para que el personal revise temas sensibles.",
+        "emergencyKeywords": "Términos que marcan un mensaje como urgente y lo encaminan a manejo de emergencia y alertas.",
+        "adminAlertRecipients": "Direcciones de correo (una por línea o separadas por comas) que reciben alertas administrativas para ciertos eventos de Elsa."
+      },
+      "categories": {
+        "autoSend": "Para este código de categoría, permite o bloquea envíos automáticos. Las reglas de categoría se combinan con umbrales globales y palabras clave."
+      },
+      "priorities": {
+        "autoSend": "Para esta prioridad, permite o bloquea envíos automáticos cuando pasen las demás comprobaciones globales.",
+        "requireReview": "Si está activo, los mensajes de esta prioridad siempre requieren revisión de un administrador antes de enviarse, aunque el autoenvío esté permitido en otros casos."
+      },
+      "properties": {
+        "autoSendOverride": "Usa Heredar para seguir la configuración global, o fuerza Habilitado/Deshabilitado solo para esta propiedad.",
+        "requireReviewAll": "Si está activo, cada respuesta de IA para esta propiedad debe revisarse antes de enviarse, independientemente de otros ajustes de autoenvío."
+      }
     }
   },
   "portalAdminAiAgents": {
@@ -1605,6 +1653,18 @@
       "primaryModel": "Modelo primario",
       "fallbackAgent": "Nombre del agente de respaldo",
       "fallbackModel": "Modelo de respaldo"
+    },
+    "optionHelp": {
+      "routing": {
+        "primary": "El agente (y su modelo predeterminado) que Elsa usa primero. Solo aparecen agentes habilitados.",
+        "fallback": "Segundo agente opcional si el principal no está disponible o falla. No puede ser el mismo agente que el principal."
+      },
+      "details": {
+        "primaryAgent": "Resumen de solo lectura del agente principal seleccionado arriba.",
+        "primaryModel": "Identificador de modelo de solo lectura configurado para el agente principal.",
+        "fallbackAgent": "Resumen de solo lectura del agente de respaldo, o Ninguno si no hay.",
+        "fallbackModel": "Modelo de solo lectura del agente de respaldo cuando hay uno seleccionado."
+      }
     }
   },
   "portalAdminAttachmentConfig": {
@@ -1655,6 +1715,22 @@
       "body": "¿Guardar este cambio de configuración de adjuntos? Esta acción se registrará en auditoría.",
       "cancel": "Cancelar",
       "confirm": "Confirmar"
+    },
+    "optionHelp": {
+      "fields": {
+        "maxAttachments": "Número máximo de archivos que un usuario puede adjuntar a una sola solicitud. Valores más bajos reducen almacenamiento y carga de moderación.",
+        "maxImageBytes": "Límite superior por imagen en megabytes. Imágenes muy grandes ralentizan las subidas en redes móviles.",
+        "maxVideoBytes": "Límite superior por archivo de video en megabytes. Equilibra calidad con tiempo de subida y almacenamiento.",
+        "maxVideoDurationSeconds": "Duración máxima de un solo clip de video que pueden subir los usuarios.",
+        "allowedMimeTypes": "Patrones MIME permitidos (por ejemplo image/*, video/*). Un patrón por línea o separados por comas.",
+        "allowedExtensions": "Extensiones permitidas sin punto, una por línea o separadas por comas. Complementa los MIME para bloquear tipos inesperados.",
+        "shareEnabled": "Si se pueden generar enlaces compartidos temporales para adjuntos. Desactívalo si no quieres enlaces de estilo público.",
+        "shareExpirySeconds": "Cuánto tiempo siguen siendo válidos los enlaces compartidos, en segundos (86400 = 24 horas).",
+        "malwareScanRequired": "Si es obligatorio, las cargas deben pasar el escaneo de malware antes de aceptarse. Puede añadir latencia pero mejora la seguridad."
+      },
+      "overrides": {
+        "landlord": "Elige un propietario para ver o editar reglas de adjuntos que sustituyen los valores globales solo en sus cargas."
+      }
     }
   },
   "portalAdminProperties": {
@@ -1852,6 +1928,80 @@
     "topBar": {
       "openMenu": "Abrir navegación",
       "accountMenu": "Menú de cuenta"
+    }
+  },
+  "portalTour": {
+    "helpTooltip": "Tour guiado del portal",
+    "helpAria": "Abrir tour guiado del portal",
+    "close": "Cerrar tour",
+    "next": "Siguiente",
+    "back": "Atrás",
+    "done": "Listo",
+    "skip": "Omitir tour",
+    "persistError": "No se pudo guardar la preferencia. Inténtelo de nuevo en un momento.",
+    "steps": {
+      "mobileMenu": {
+        "title": "Menú de navegación",
+        "body": "Abra este menú para moverse entre las secciones del portal en pantallas pequeñas."
+      },
+      "nav": {
+        "dashboard": {
+          "title": "Panel",
+          "body": "Vuelva aquí para un resumen rápido y accesos a tareas habituales."
+        },
+        "admin": {
+          "title": "Propietarios (admin)",
+          "body": "Revise y administre cuentas de propietarios vinculadas a la plataforma."
+        },
+        "properties": {
+          "title": "Propiedades",
+          "body": "Añada y administre unidades, visibilidad en Solicitar y ajustes relacionados."
+        },
+        "tenants": {
+          "title": "Inquilinos",
+          "body": "Vea inquilinos conectados a sus propiedades y gestione invitaciones."
+        },
+        "inbox": {
+          "title": "Bandeja",
+          "body": "Abra conversaciones de mantenimiento, notificaciones del portal y mensajes de contacto para administradores."
+        },
+        "profile": {
+          "title": "Perfil",
+          "body": "Actualice datos de contacto, preferencias de notificación y apariencia."
+        },
+        "healthStatus": {
+          "title": "Estado del sistema",
+          "body": "Consulte señales de salud operativa del entorno del portal."
+        },
+        "healthNotificationTest": {
+          "title": "Prueba de notificaciones",
+          "body": "Envíe una notificación de prueba para verificar la entrega (administradores)."
+        }
+      },
+      "appearance": {
+        "title": "Apariencia",
+        "body": "Cambie entre tema claro y oscuro o siga el dispositivo."
+      },
+      "help": {
+        "title": "Ayuda",
+        "body": "Vuelva a ver este tour cuando quiera después de completar la primera visita."
+      },
+      "language": {
+        "title": "Idioma",
+        "body": "Cambie el idioma de la interfaz. El árabe activa diseño de derecha a izquierda."
+      },
+      "notifications": {
+        "title": "Notificaciones",
+        "body": "Vea alertas recientes y acceda a elementos relacionados en la bandeja."
+      },
+      "account": {
+        "title": "Menú de cuenta",
+        "body": "Accesos al perfil, detalles de suscripción y cierre de sesión."
+      },
+      "pageContent": {
+        "title": "Contenido de la página",
+        "body": "Cada página muestra detalles y acciones según lo seleccionado en la barra lateral o la bandeja."
+      }
     }
   },
   "portalAdminContactRequests": {

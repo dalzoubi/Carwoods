@@ -1268,6 +1268,23 @@
       "loadFailed": "Unable to load scope data.",
       "loadPoliciesFailed": "Unable to load notification overrides.",
       "saveFailed": "Unable to save notification override."
+    },
+    "optionHelp": {
+      "scope": {
+        "scopeType": "Choose whether policies apply to a whole property or to a single maintenance request thread.",
+        "selectProperty": "The property whose notification overrides you are viewing or editing.",
+        "selectRequest": "The specific request whose notification overrides you are viewing or editing."
+      },
+      "form": {
+        "userId": "The person this override applies to (tenant, landlord, or other user tied to the scope).",
+        "eventCategory": "Which notification family this rule affects (for example maintenance vs onboarding).",
+        "email": "Inherit uses the default preference; Enabled always allows email for this override; Disabled turns email off for this category.",
+        "inApp": "Controls in-app / portal notifications for this user and category. Inherit follows defaults unless you override.",
+        "sms": "Controls SMS delivery for this override. May be locked by subscription on landlord accounts.",
+        "smsOptIn": "Whether the user is treated as opted in for SMS for this policy row. Often used together with the SMS channel toggle.",
+        "active": "Inactive overrides are ignored until turned back on; use this to retire a rule without deleting history.",
+        "overrideReason": "Short explanation stored in audit logs so future admins know why this exception exists."
+      }
     }
   },
   "portalSubscription": {
@@ -1672,6 +1689,10 @@
       "agents": "Agents",
       "attachments": "Attachments",
       "notifications": "Notification Policies"
+    },
+    "optionHelp": {
+      "close": "Got it",
+      "moreAbout": "Help: {{option}}"
     }
   },
   "portalAdminAiConfig": {
@@ -1732,6 +1753,33 @@
       "customBadge": "Custom",
       "customConfigCount": "{{count}} custom",
       "customConfigTooltip": "Properties with overridden AI settings"
+    },
+    "optionHelp": {
+      "global": {
+        "elsaEnabled": "Master switch for Elsa AI in the portal. When off, Elsa automation and AI-assisted replies are not used.",
+        "autoSendEnabled": "Allows Elsa to send eligible replies automatically when confidence, category, priority, keywords, and property rules all allow it. You can still tighten rules below.",
+        "emergencyTemplateEnabled": "When messages look urgent (for example they match emergency keywords), Elsa can use a dedicated emergency template instead of a normal draft.",
+        "confidenceThreshold": "Minimum model confidence (0–1) required before an automatic send is allowed. Higher values mean fewer auto-sends but safer sends.",
+        "similarReplyThreshold": "If a new draft is very similar to a past reply for the thread, auto-send may be suppressed to avoid repetitive answers. Higher values require a closer match before suppression.",
+        "maxQuestions": "Maximum number of follow-up questions Elsa may ask the user in one conversation before stopping.",
+        "maxSteps": "Caps how many internal workflow steps Elsa may take when handling a request.",
+        "allowedCategories": "Only these request categories may be auto-handled by Elsa. Enter one code per line or separate with commas. Leave behavior aligned with your ticketing categories.",
+        "allowedPriorities": "Only these priority codes may be auto-handled. Others typically stay for human review.",
+        "blockedKeywords": "If incoming text matches any of these terms (one per line or comma-separated), auto-send is blocked so staff can review sensitive topics.",
+        "emergencyKeywords": "Terms that flag a message as urgent and route it toward emergency handling and alerts.",
+        "adminAlertRecipients": "Email addresses (one per line or comma-separated) that receive administrative alerts for certain Elsa events."
+      },
+      "categories": {
+        "autoSend": "For this category code, allow or block automatic sends. Category rules combine with global thresholds and keywords."
+      },
+      "priorities": {
+        "autoSend": "For this priority, allow or block automatic sends when other global checks pass.",
+        "requireReview": "When on, messages at this priority always need an admin review before sending, even if auto-send is otherwise allowed."
+      },
+      "properties": {
+        "autoSendOverride": "Use Inherit to follow global settings, or force Enabled/Disabled for this property only.",
+        "requireReviewAll": "When on, every AI reply for this property must be reviewed before it is sent, regardless of other auto-send settings."
+      }
     }
   },
   "portalAdminAiAgents": {
@@ -1764,6 +1812,18 @@
       "primaryModel": "Primary model",
       "fallbackAgent": "Fallback agent name",
       "fallbackModel": "Fallback model"
+    },
+    "optionHelp": {
+      "routing": {
+        "primary": "The agent (and its default model) used first for Elsa. Only enabled agents appear here.",
+        "fallback": "Optional second agent used if the primary is unavailable or errors. Cannot be the same agent as the primary."
+      },
+      "details": {
+        "primaryAgent": "Read-only summary of the primary agent you selected above.",
+        "primaryModel": "Read-only model identifier configured for the primary agent.",
+        "fallbackAgent": "Read-only summary of the fallback agent, or None if not set.",
+        "fallbackModel": "Read-only model for the fallback agent when one is selected."
+      }
     }
   },
   "portalAdminAttachmentConfig": {
@@ -1814,6 +1874,22 @@
       "body": "Save this attachment configuration change? This action will be recorded in audit logs.",
       "cancel": "Cancel",
       "confirm": "Confirm"
+    },
+    "optionHelp": {
+      "fields": {
+        "maxAttachments": "Maximum number of files a user can attach to a single request. Lower values reduce storage and moderation load.",
+        "maxImageBytes": "Upper size limit per image in megabytes. Very large images slow uploads on mobile networks.",
+        "maxVideoBytes": "Upper size limit per video file in megabytes. Balance quality with upload time and storage.",
+        "maxVideoDurationSeconds": "Maximum length of a single video clip users may upload.",
+        "allowedMimeTypes": "MIME patterns allowed for uploads (for example image/*, video/*). One pattern per line or comma-separated.",
+        "allowedExtensions": "File extensions users may upload, without dots, one per line or comma-separated. Works with MIME checks to block unexpected types.",
+        "shareEnabled": "Whether time-limited share links can be generated for attachments. Disable if you do not want public-style links at all.",
+        "shareExpirySeconds": "How long generated share links remain valid, in seconds (for example 86400 is 24 hours).",
+        "malwareScanRequired": "When required, uploads must pass malware scanning before they are accepted. May add latency but improves safety."
+      },
+      "overrides": {
+        "landlord": "Pick a landlord to view or edit attachment rules that override global defaults for their uploads only."
+      }
     }
   },
   "portalAdminProperties": {
@@ -2011,6 +2087,80 @@
     "topBar": {
       "openMenu": "Open navigation",
       "accountMenu": "Account menu"
+    }
+  },
+  "portalTour": {
+    "helpTooltip": "Portal guided tour",
+    "helpAria": "Open portal guided tour",
+    "close": "Close tour",
+    "next": "Next",
+    "back": "Back",
+    "done": "Done",
+    "skip": "Skip tour",
+    "persistError": "Could not save your preference. Try again in a moment.",
+    "steps": {
+      "mobileMenu": {
+        "title": "Navigation menu",
+        "body": "Open this menu to move between areas of the portal on smaller screens."
+      },
+      "nav": {
+        "dashboard": {
+          "title": "Dashboard",
+          "body": "Return here for a quick overview and shortcuts to common tasks."
+        },
+        "admin": {
+          "title": "Landlords (admin)",
+          "body": "Review and manage landlord accounts linked to the platform."
+        },
+        "properties": {
+          "title": "Properties",
+          "body": "Add and manage rental units, visibility on Apply, and related settings."
+        },
+        "tenants": {
+          "title": "Tenants",
+          "body": "See tenants connected to your properties and manage invitations."
+        },
+        "inbox": {
+          "title": "Inbox",
+          "body": "Open maintenance threads, portal notifications, and admin contact messages in one place."
+        },
+        "profile": {
+          "title": "Profile",
+          "body": "Update your contact details, notification preferences, and display settings."
+        },
+        "healthStatus": {
+          "title": "System status",
+          "body": "Check operational health signals for the portal environment."
+        },
+        "healthNotificationTest": {
+          "title": "Notification test",
+          "body": "Send a test notification to verify delivery for administrators."
+        }
+      },
+      "appearance": {
+        "title": "Appearance",
+        "body": "Switch between light and dark themes or follow your device setting."
+      },
+      "help": {
+        "title": "Help",
+        "body": "Replay this guided tour any time after you finish the first-time walkthrough."
+      },
+      "language": {
+        "title": "Language",
+        "body": "Change interface language. Arabic enables right-to-left layout."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "body": "See recent alerts and jump to related items in your inbox."
+      },
+      "account": {
+        "title": "Account menu",
+        "body": "Open profile shortcuts, subscription details, and sign out."
+      },
+      "pageContent": {
+        "title": "Page content",
+        "body": "Each page shows details and actions for what you selected in the sidebar or inbox."
+      }
     }
   },
   "portalAdminContactRequests": {

@@ -28,6 +28,7 @@ import {
 import StatusAlertSlot from './StatusAlertSlot';
 import PortalRefreshButton from './PortalRefreshButton';
 import PortalPersonWithAvatar from './PortalPersonWithAvatar';
+import { ConfigFieldWithHelp } from './PortalConfigOptionHelp';
 
 const collator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 const BYTES_PER_MB = 1024 * 1024;
@@ -279,31 +280,87 @@ const PortalAdminAttachmentConfig = () => {
             <Typography variant="h3" sx={{ fontSize: '1.05rem' }}>
               {t('portalAdminAttachmentConfig.global.heading')}
             </Typography>
-            <TextField label={t('portalAdminAttachmentConfig.fields.maxAttachments')} type="number" value={globalForm.max_attachments} onChange={onGlobalField('max_attachments')} />
-            <TextField label={t('portalAdminAttachmentConfig.fields.maxImageBytes')} type="number" value={globalForm.max_image_mb} onChange={onGlobalField('max_image_mb')} />
-            <TextField label={t('portalAdminAttachmentConfig.fields.maxVideoBytes')} type="number" value={globalForm.max_video_mb} onChange={onGlobalField('max_video_mb')} />
-            <TextField label={t('portalAdminAttachmentConfig.fields.maxVideoDurationSeconds')} type="number" value={globalForm.max_video_duration_seconds} onChange={onGlobalField('max_video_duration_seconds')} />
-            <TextField label={t('portalAdminAttachmentConfig.fields.allowedMimeTypes')} multiline minRows={2} value={globalForm.allowed_mime_types} onChange={onGlobalField('allowed_mime_types')} />
-            <TextField label={t('portalAdminAttachmentConfig.fields.allowedExtensions')} multiline minRows={2} value={globalForm.allowed_extensions} onChange={onGlobalField('allowed_extensions')} />
-            <TextField label={t('portalAdminAttachmentConfig.fields.shareExpirySeconds')} type="number" value={globalForm.share_expiry_seconds} onChange={onGlobalField('share_expiry_seconds')} />
-            <TextField
-              select
-              label={t('portalAdminAttachmentConfig.fields.shareEnabled')}
-              value={globalForm.share_enabled ? 'true' : 'false'}
-              onChange={(event) => setGlobalForm((prev) => ({ ...prev, share_enabled: event.target.value === 'true' }))}
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAttachmentConfig.fields.maxAttachments"
+              bodyKey="portalAdminAttachmentConfig.optionHelp.fields.maxAttachments"
+              disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
             >
-              <MenuItem value="true">{t('portalAdminAttachmentConfig.common.enabled')}</MenuItem>
-              <MenuItem value="false">{t('portalAdminAttachmentConfig.common.disabled')}</MenuItem>
-            </TextField>
-            <TextField
-              select
-              label={t('portalAdminAttachmentConfig.fields.malwareScanRequired')}
-              value={globalForm.malware_scan_required ? 'true' : 'false'}
-              onChange={(event) => setGlobalForm((prev) => ({ ...prev, malware_scan_required: event.target.value === 'true' }))}
+              <TextField fullWidth label={t('portalAdminAttachmentConfig.fields.maxAttachments')} type="number" value={globalForm.max_attachments} onChange={onGlobalField('max_attachments')} />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAttachmentConfig.fields.maxImageBytes"
+              bodyKey="portalAdminAttachmentConfig.optionHelp.fields.maxImageBytes"
+              disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
             >
-              <MenuItem value="true">{t('portalAdminAttachmentConfig.common.required')}</MenuItem>
-              <MenuItem value="false">{t('portalAdminAttachmentConfig.common.optional')}</MenuItem>
-            </TextField>
+              <TextField fullWidth label={t('portalAdminAttachmentConfig.fields.maxImageBytes')} type="number" value={globalForm.max_image_mb} onChange={onGlobalField('max_image_mb')} />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAttachmentConfig.fields.maxVideoBytes"
+              bodyKey="portalAdminAttachmentConfig.optionHelp.fields.maxVideoBytes"
+              disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
+            >
+              <TextField fullWidth label={t('portalAdminAttachmentConfig.fields.maxVideoBytes')} type="number" value={globalForm.max_video_mb} onChange={onGlobalField('max_video_mb')} />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAttachmentConfig.fields.maxVideoDurationSeconds"
+              bodyKey="portalAdminAttachmentConfig.optionHelp.fields.maxVideoDurationSeconds"
+              disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
+            >
+              <TextField fullWidth label={t('portalAdminAttachmentConfig.fields.maxVideoDurationSeconds')} type="number" value={globalForm.max_video_duration_seconds} onChange={onGlobalField('max_video_duration_seconds')} />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAttachmentConfig.fields.allowedMimeTypes"
+              bodyKey="portalAdminAttachmentConfig.optionHelp.fields.allowedMimeTypes"
+              disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
+            >
+              <TextField fullWidth label={t('portalAdminAttachmentConfig.fields.allowedMimeTypes')} multiline minRows={2} value={globalForm.allowed_mime_types} onChange={onGlobalField('allowed_mime_types')} />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAttachmentConfig.fields.allowedExtensions"
+              bodyKey="portalAdminAttachmentConfig.optionHelp.fields.allowedExtensions"
+              disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
+            >
+              <TextField fullWidth label={t('portalAdminAttachmentConfig.fields.allowedExtensions')} multiline minRows={2} value={globalForm.allowed_extensions} onChange={onGlobalField('allowed_extensions')} />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAttachmentConfig.fields.shareExpirySeconds"
+              bodyKey="portalAdminAttachmentConfig.optionHelp.fields.shareExpirySeconds"
+              disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
+            >
+              <TextField fullWidth label={t('portalAdminAttachmentConfig.fields.shareExpirySeconds')} type="number" value={globalForm.share_expiry_seconds} onChange={onGlobalField('share_expiry_seconds')} />
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAttachmentConfig.fields.shareEnabled"
+              bodyKey="portalAdminAttachmentConfig.optionHelp.fields.shareEnabled"
+              disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
+            >
+              <TextField
+                fullWidth
+                select
+                label={t('portalAdminAttachmentConfig.fields.shareEnabled')}
+                value={globalForm.share_enabled ? 'true' : 'false'}
+                onChange={(event) => setGlobalForm((prev) => ({ ...prev, share_enabled: event.target.value === 'true' }))}
+              >
+                <MenuItem value="true">{t('portalAdminAttachmentConfig.common.enabled')}</MenuItem>
+                <MenuItem value="false">{t('portalAdminAttachmentConfig.common.disabled')}</MenuItem>
+              </TextField>
+            </ConfigFieldWithHelp>
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAttachmentConfig.fields.malwareScanRequired"
+              bodyKey="portalAdminAttachmentConfig.optionHelp.fields.malwareScanRequired"
+              disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
+            >
+              <TextField
+                fullWidth
+                select
+                label={t('portalAdminAttachmentConfig.fields.malwareScanRequired')}
+                value={globalForm.malware_scan_required ? 'true' : 'false'}
+                onChange={(event) => setGlobalForm((prev) => ({ ...prev, malware_scan_required: event.target.value === 'true' }))}
+              >
+                <MenuItem value="true">{t('portalAdminAttachmentConfig.common.required')}</MenuItem>
+                <MenuItem value="false">{t('portalAdminAttachmentConfig.common.optional')}</MenuItem>
+              </TextField>
+            </ConfigFieldWithHelp>
             <Stack direction="row" spacing={1}>
               <Button
                 type="button"
@@ -322,60 +379,123 @@ const PortalAdminAttachmentConfig = () => {
             <Typography variant="h3" sx={{ fontSize: '1.05rem' }}>
               {t('portalAdminAttachmentConfig.overrides.heading')}
             </Typography>
-            <TextField
-              select
-              label={t('portalAdminAttachmentConfig.overrides.landlord')}
-              value={selectedLandlordId}
-              onChange={(event) => setSelectedLandlordId(event.target.value)}
+            <ConfigFieldWithHelp
+              labelKey="portalAdminAttachmentConfig.overrides.landlord"
+              bodyKey="portalAdminAttachmentConfig.optionHelp.overrides.landlord"
+              disabled={!canUseModule}
             >
-              {sortedLandlords.map((landlord) => {
-                const first = String(landlord.first_name ?? '').trim();
-                const last = String(landlord.last_name ?? '').trim();
-                const label = `${first} ${last}`.trim() || String(landlord.email ?? landlord.name ?? landlord.id ?? '').trim();
-                return (
-                  <MenuItem key={landlord.id} value={landlord.id}>
-                    <PortalPersonWithAvatar
-                      photoUrl={String(landlord.profile_photo_url ?? '').trim()}
-                      firstName={landlord.first_name ?? ''}
-                      lastName={landlord.last_name ?? ''}
-                      size={28}
-                      alignItems="center"
-                    >
-                      <Typography variant="body2" component="span">
-                        {label}
-                      </Typography>
-                    </PortalPersonWithAvatar>
-                  </MenuItem>
-                );
-              })}
-            </TextField>
+              <TextField
+                fullWidth
+                select
+                label={t('portalAdminAttachmentConfig.overrides.landlord')}
+                value={selectedLandlordId}
+                onChange={(event) => setSelectedLandlordId(event.target.value)}
+              >
+                {sortedLandlords.map((landlord) => {
+                  const first = String(landlord.first_name ?? '').trim();
+                  const last = String(landlord.last_name ?? '').trim();
+                  const label = `${first} ${last}`.trim() || String(landlord.email ?? landlord.name ?? landlord.id ?? '').trim();
+                  return (
+                    <MenuItem key={landlord.id} value={landlord.id}>
+                      <PortalPersonWithAvatar
+                        photoUrl={String(landlord.profile_photo_url ?? '').trim()}
+                        firstName={landlord.first_name ?? ''}
+                        lastName={landlord.last_name ?? ''}
+                        size={28}
+                        alignItems="center"
+                      >
+                        <Typography variant="body2" component="span">
+                          {label}
+                        </Typography>
+                      </PortalPersonWithAvatar>
+                    </MenuItem>
+                  );
+                })}
+              </TextField>
+            </ConfigFieldWithHelp>
             {selectedLandlordId && (
               <>
-                <TextField label={t('portalAdminAttachmentConfig.fields.maxAttachments')} type="number" value={landlordForm.max_attachments} onChange={onLandlordField('max_attachments')} />
-                <TextField label={t('portalAdminAttachmentConfig.fields.maxImageBytes')} type="number" value={landlordForm.max_image_mb} onChange={onLandlordField('max_image_mb')} />
-                <TextField label={t('portalAdminAttachmentConfig.fields.maxVideoBytes')} type="number" value={landlordForm.max_video_mb} onChange={onLandlordField('max_video_mb')} />
-                <TextField label={t('portalAdminAttachmentConfig.fields.maxVideoDurationSeconds')} type="number" value={landlordForm.max_video_duration_seconds} onChange={onLandlordField('max_video_duration_seconds')} />
-                <TextField label={t('portalAdminAttachmentConfig.fields.allowedMimeTypes')} multiline minRows={2} value={landlordForm.allowed_mime_types} onChange={onLandlordField('allowed_mime_types')} />
-                <TextField label={t('portalAdminAttachmentConfig.fields.allowedExtensions')} multiline minRows={2} value={landlordForm.allowed_extensions} onChange={onLandlordField('allowed_extensions')} />
-                <TextField label={t('portalAdminAttachmentConfig.fields.shareExpirySeconds')} type="number" value={landlordForm.share_expiry_seconds} onChange={onLandlordField('share_expiry_seconds')} />
-                <TextField
-                  select
-                  label={t('portalAdminAttachmentConfig.fields.shareEnabled')}
-                  value={landlordForm.share_enabled ? 'true' : 'false'}
-                  onChange={(event) => setLandlordForm((prev) => ({ ...prev, share_enabled: event.target.value === 'true' }))}
+                <ConfigFieldWithHelp
+                  labelKey="portalAdminAttachmentConfig.fields.maxAttachments"
+                  bodyKey="portalAdminAttachmentConfig.optionHelp.fields.maxAttachments"
+                  disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
                 >
-                  <MenuItem value="true">{t('portalAdminAttachmentConfig.common.enabled')}</MenuItem>
-                  <MenuItem value="false">{t('portalAdminAttachmentConfig.common.disabled')}</MenuItem>
-                </TextField>
-                <TextField
-                  select
-                  label={t('portalAdminAttachmentConfig.fields.malwareScanRequired')}
-                  value={landlordForm.malware_scan_required ? 'true' : 'false'}
-                  onChange={(event) => setLandlordForm((prev) => ({ ...prev, malware_scan_required: event.target.value === 'true' }))}
+                  <TextField fullWidth label={t('portalAdminAttachmentConfig.fields.maxAttachments')} type="number" value={landlordForm.max_attachments} onChange={onLandlordField('max_attachments')} />
+                </ConfigFieldWithHelp>
+                <ConfigFieldWithHelp
+                  labelKey="portalAdminAttachmentConfig.fields.maxImageBytes"
+                  bodyKey="portalAdminAttachmentConfig.optionHelp.fields.maxImageBytes"
+                  disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
                 >
-                  <MenuItem value="true">{t('portalAdminAttachmentConfig.common.required')}</MenuItem>
-                  <MenuItem value="false">{t('portalAdminAttachmentConfig.common.optional')}</MenuItem>
-                </TextField>
+                  <TextField fullWidth label={t('portalAdminAttachmentConfig.fields.maxImageBytes')} type="number" value={landlordForm.max_image_mb} onChange={onLandlordField('max_image_mb')} />
+                </ConfigFieldWithHelp>
+                <ConfigFieldWithHelp
+                  labelKey="portalAdminAttachmentConfig.fields.maxVideoBytes"
+                  bodyKey="portalAdminAttachmentConfig.optionHelp.fields.maxVideoBytes"
+                  disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
+                >
+                  <TextField fullWidth label={t('portalAdminAttachmentConfig.fields.maxVideoBytes')} type="number" value={landlordForm.max_video_mb} onChange={onLandlordField('max_video_mb')} />
+                </ConfigFieldWithHelp>
+                <ConfigFieldWithHelp
+                  labelKey="portalAdminAttachmentConfig.fields.maxVideoDurationSeconds"
+                  bodyKey="portalAdminAttachmentConfig.optionHelp.fields.maxVideoDurationSeconds"
+                  disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
+                >
+                  <TextField fullWidth label={t('portalAdminAttachmentConfig.fields.maxVideoDurationSeconds')} type="number" value={landlordForm.max_video_duration_seconds} onChange={onLandlordField('max_video_duration_seconds')} />
+                </ConfigFieldWithHelp>
+                <ConfigFieldWithHelp
+                  labelKey="portalAdminAttachmentConfig.fields.allowedMimeTypes"
+                  bodyKey="portalAdminAttachmentConfig.optionHelp.fields.allowedMimeTypes"
+                  disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
+                >
+                  <TextField fullWidth label={t('portalAdminAttachmentConfig.fields.allowedMimeTypes')} multiline minRows={2} value={landlordForm.allowed_mime_types} onChange={onLandlordField('allowed_mime_types')} />
+                </ConfigFieldWithHelp>
+                <ConfigFieldWithHelp
+                  labelKey="portalAdminAttachmentConfig.fields.allowedExtensions"
+                  bodyKey="portalAdminAttachmentConfig.optionHelp.fields.allowedExtensions"
+                  disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
+                >
+                  <TextField fullWidth label={t('portalAdminAttachmentConfig.fields.allowedExtensions')} multiline minRows={2} value={landlordForm.allowed_extensions} onChange={onLandlordField('allowed_extensions')} />
+                </ConfigFieldWithHelp>
+                <ConfigFieldWithHelp
+                  labelKey="portalAdminAttachmentConfig.fields.shareExpirySeconds"
+                  bodyKey="portalAdminAttachmentConfig.optionHelp.fields.shareExpirySeconds"
+                  disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
+                >
+                  <TextField fullWidth label={t('portalAdminAttachmentConfig.fields.shareExpirySeconds')} type="number" value={landlordForm.share_expiry_seconds} onChange={onLandlordField('share_expiry_seconds')} />
+                </ConfigFieldWithHelp>
+                <ConfigFieldWithHelp
+                  labelKey="portalAdminAttachmentConfig.fields.shareEnabled"
+                  bodyKey="portalAdminAttachmentConfig.optionHelp.fields.shareEnabled"
+                  disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
+                >
+                  <TextField
+                    fullWidth
+                    select
+                    label={t('portalAdminAttachmentConfig.fields.shareEnabled')}
+                    value={landlordForm.share_enabled ? 'true' : 'false'}
+                    onChange={(event) => setLandlordForm((prev) => ({ ...prev, share_enabled: event.target.value === 'true' }))}
+                  >
+                    <MenuItem value="true">{t('portalAdminAttachmentConfig.common.enabled')}</MenuItem>
+                    <MenuItem value="false">{t('portalAdminAttachmentConfig.common.disabled')}</MenuItem>
+                  </TextField>
+                </ConfigFieldWithHelp>
+                <ConfigFieldWithHelp
+                  labelKey="portalAdminAttachmentConfig.fields.malwareScanRequired"
+                  bodyKey="portalAdminAttachmentConfig.optionHelp.fields.malwareScanRequired"
+                  disabled={!canUseModule || saveStatus === 'saving' || status === 'loading'}
+                >
+                  <TextField
+                    fullWidth
+                    select
+                    label={t('portalAdminAttachmentConfig.fields.malwareScanRequired')}
+                    value={landlordForm.malware_scan_required ? 'true' : 'false'}
+                    onChange={(event) => setLandlordForm((prev) => ({ ...prev, malware_scan_required: event.target.value === 'true' }))}
+                  >
+                    <MenuItem value="true">{t('portalAdminAttachmentConfig.common.required')}</MenuItem>
+                    <MenuItem value="false">{t('portalAdminAttachmentConfig.common.optional')}</MenuItem>
+                  </TextField>
+                </ConfigFieldWithHelp>
                 <Stack direction="row" spacing={1}>
                   <Button
                     type="button"
