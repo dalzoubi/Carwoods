@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import ApplicationRequiredDocuments from './ApplicationRequiredDocuments';
 
 const STORAGE_KEY = 'carwoods_applicant_profile';
@@ -8,10 +9,12 @@ const STORAGE_KEY = 'carwoods_applicant_profile';
 /** Mirrors App shell: #page-top lives above routed page content (see App.jsx Content). */
 const renderWithRouter = (ui) =>
     render(
+        <HelmetProvider>
         <BrowserRouter>
             <span id="page-top" />
             {ui}
         </BrowserRouter>
+        </HelmetProvider>
     );
 
 const renderWithHash = (hash) => {
@@ -51,9 +54,11 @@ describe('ApplicationRequiredDocuments', () => {
 
   it('keeps dark preview prefix on apply flow links', () => {
     render(
+      <HelmetProvider>
       <MemoryRouter initialEntries={['/dark/application-required-documents']}>
         <ApplicationRequiredDocuments />
       </MemoryRouter>
+      </HelmetProvider>
     );
     expect(screen.getByRole('link', { name: /^back to how to apply$/i })).toHaveAttribute('href', '/dark/apply');
     expect(screen.getByRole('link', { name: /step 1: tenant selection criteria/i })).toHaveAttribute(

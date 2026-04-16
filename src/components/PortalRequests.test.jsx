@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import i18n from '../i18n';
 import { LanguageProvider } from '../LanguageContext';
 import { ThemeModeProvider } from '../ThemeModeContext';
@@ -121,6 +122,7 @@ vi.mock('./portalRequests/RequestDetailPane', () => ({
 describe('PortalRequests create dialog routing', () => {
   function renderAtRoute(path) {
     return render(
+      <HelmetProvider>
       <MemoryRouter initialEntries={[path]}>
         <LanguageProvider>
           <ThemeModeProvider>
@@ -128,6 +130,7 @@ describe('PortalRequests create dialog routing', () => {
           </ThemeModeProvider>
         </LanguageProvider>
       </MemoryRouter>
+      </HelmetProvider>
     );
   }
 

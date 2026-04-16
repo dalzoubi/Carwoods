@@ -1,5 +1,6 @@
 import React from 'react';
-import { Helmet } from 'react-helmet';
+import SeoHead from './SeoHead';
+import { organizationSchema } from '../seo/structuredData';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Heading, SubHeading, Paragraph, InlineLink } from '../styles';
@@ -10,10 +11,13 @@ const Accessibility = () => {
     const { t } = useTranslation();
     return (
         <div>
-            <Helmet>
-                <title>{t('accessibility.title')}</title>
-                <meta name="description" content={t('accessibility.metaDescription')} />
-            </Helmet>
+            <SeoHead
+                title={t('accessibility.title')}
+                description={t('accessibility.metaDescription')}
+                path="/accessibility"
+                noIndex
+                jsonLd={organizationSchema}
+            />
             <Heading>{t('accessibility.heading')}</Heading>
             <Paragraph>
                 {t('accessibility.intro')}

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <url>
+    <loc>https://carwoods.com/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://carwoods.com/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://carwoods.com/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://carwoods.com/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://carwoods.com/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://carwoods.com/" />
+  </url>
+
+  <url>
+    <loc>https://carwoods.com/property-management</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://carwoods.com/property-management" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://carwoods.com/property-management" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://carwoods.com/property-management" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://carwoods.com/property-management" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://carwoods.com/property-management" />
+  </url>
+
+  <url>
+    <loc>https://carwoods.com/features</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://carwoods.com/features" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://carwoods.com/features" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://carwoods.com/features" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://carwoods.com/features" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://carwoods.com/features" />
+  </url>
+
+  <url>
+    <loc>https://carwoods.com/pricing</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://carwoods.com/pricing" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://carwoods.com/pricing" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://carwoods.com/pricing" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://carwoods.com/pricing" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://carwoods.com/pricing" />
+  </url>
+
+  <url>
+    <loc>https://carwoods.com/for-property-managers</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://carwoods.com/for-property-managers" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://carwoods.com/for-property-managers" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://carwoods.com/for-property-managers" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://carwoods.com/for-property-managers" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://carwoods.com/for-property-managers" />
+  </url>
+
+  <url>
+    <loc>https://carwoods.com/apply</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://carwoods.com/apply" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://carwoods.com/apply" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://carwoods.com/apply" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://carwoods.com/apply" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://carwoods.com/apply" />
+  </url>
+
+  <url>
+    <loc>https://carwoods.com/tenant-selection-criteria</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://carwoods.com/tenant-selection-criteria" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://carwoods.com/tenant-selection-criteria" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://carwoods.com/tenant-selection-criteria" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://carwoods.com/tenant-selection-criteria" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://carwoods.com/tenant-selection-criteria" />
+  </url>
+
+  <url>
+    <loc>https://carwoods.com/application-required-documents</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://carwoods.com/application-required-documents" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://carwoods.com/application-required-documents" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://carwoods.com/application-required-documents" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://carwoods.com/application-required-documents" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://carwoods.com/application-required-documents" />
+  </url>
+
+  <url>
+    <loc>https://carwoods.com/contact-us</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://carwoods.com/contact-us" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://carwoods.com/contact-us" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://carwoods.com/contact-us" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://carwoods.com/contact-us" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://carwoods.com/contact-us" />
+  </url>
+
+  <url>
+    <loc>https://carwoods.com/privacy</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://carwoods.com/privacy" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://carwoods.com/privacy" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://carwoods.com/privacy" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://carwoods.com/privacy" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://carwoods.com/privacy" />
+  </url>
+
+  <url>
+    <loc>https://carwoods.com/terms-of-service</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://carwoods.com/terms-of-service" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://carwoods.com/terms-of-service" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://carwoods.com/terms-of-service" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://carwoods.com/terms-of-service" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://carwoods.com/terms-of-service" />
+  </url>
+
+  <url>
+    <loc>https://carwoods.com/accessibility</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://carwoods.com/accessibility" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://carwoods.com/accessibility" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://carwoods.com/accessibility" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://carwoods.com/accessibility" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://carwoods.com/accessibility" />
+  </url>
+
+</urlset>

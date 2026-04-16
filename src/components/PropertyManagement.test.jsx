@@ -1,15 +1,18 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import PropertyManagement from './PropertyManagement';
 
 /** Mirrors App shell: #page-top lives above routed page content (see App.jsx Content). */
 const renderWithRouter = (ui) =>
     render(
+        <HelmetProvider>
         <BrowserRouter>
             <span id="page-top" />
             {ui}
         </BrowserRouter>
+        </HelmetProvider>
     );
 
 const renderWithHash = (hash) => {

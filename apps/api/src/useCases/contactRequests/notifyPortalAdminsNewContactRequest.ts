@@ -12,6 +12,10 @@ const SUBJECT_TITLE: Record<string, string> = {
   RENTER: 'Renter / Applicant',
   PROPERTY_OWNER: 'Property Owner',
   PORTAL_SAAS: 'Portal / SaaS',
+  PAID_SUBSCRIPTION: 'Paid Subscription',
+  /** Legacy stored subject values — same display label as PAID_SUBSCRIPTION */
+  PRICING_PAY_AS_YOU_GROW: 'Paid Subscription',
+  PRICING_PRO: 'Paid Subscription',
 };
 
 function subjectTitle(subject: string): string {

@@ -1,9 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import Privacy from './Privacy';
 
-const renderWithRouter = (ui) => render(<BrowserRouter>{ui}</BrowserRouter>);
+const renderWithRouter = (ui) => render(<HelmetProvider><BrowserRouter>{ui}</BrowserRouter></HelmetProvider>);
 
 describe('Privacy', () => {
   it('renders heading', () => {

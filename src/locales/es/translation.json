@@ -157,7 +157,8 @@
       "general": "Consulta general",
       "renter": "Arrendatario / Solicitante",
       "propertyOwner": "Propietario",
-      "portalSaas": "Portal / SaaS"
+      "portalSaas": "Portal / SaaS",
+      "paidSubscription": "Suscripción de pago"
     }
   },
   "privacy": {
@@ -2147,6 +2148,7 @@
     "proTierPricePeriod": "· tarifa mensual fija",
     "proTierCta": "Unirse a la Lista de Espera",
     "proTierCtaAria": "Unirse a la lista de espera del plan Pro",
+    "closeWaitlistDialog": "Cerrar formulario de lista de espera",
     "featureTableHeading": "Comparar planes",
     "featureProperties": "Propiedades",
     "featurePropertiesFree": "1 propiedad",

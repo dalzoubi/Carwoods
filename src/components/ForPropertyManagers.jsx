@@ -19,7 +19,8 @@ import TaskAlt from '@mui/icons-material/TaskAlt';
 import FormatQuote from '@mui/icons-material/FormatQuote';
 import AutoAwesome from '@mui/icons-material/AutoAwesome';
 import { alpha, useTheme } from '@mui/material/styles';
-import { Helmet } from 'react-helmet';
+import SeoHead from './SeoHead';
+import { organizationSchema, softwareApplicationSchema } from '../seo/structuredData';
 import { Heading } from '../styles';
 import { useTranslation } from 'react-i18next';
 import { withDarkPath } from '../routePaths';
@@ -93,10 +94,12 @@ const ForPropertyManagers = () => {
 
     return (
         <Stack component="article" spacing={4.5}>
-            <Helmet>
-                <title>{t('forPropertyManagers.title')}</title>
-                <meta name="description" content={t('forPropertyManagers.metaDescription')} />
-            </Helmet>
+            <SeoHead
+                title={t('forPropertyManagers.title')}
+                description={t('forPropertyManagers.metaDescription')}
+                path="/for-property-managers"
+                jsonLd={[organizationSchema, softwareApplicationSchema]}
+            />
 
             {/* Hero */}
             <Box

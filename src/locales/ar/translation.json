@@ -157,7 +157,8 @@
       "general": "استفسار عام",
       "renter": "مستأجر / متقدم",
       "propertyOwner": "مالك العقار",
-      "portalSaas": "البوابة / SaaS"
+      "portalSaas": "البوابة / SaaS",
+      "paidSubscription": "اشتراك مدفوع"
     }
   },
   "privacy": {
@@ -2148,6 +2149,7 @@
     "proTierPricePeriod": "· رسوم شهرية ثابتة",
     "proTierCta": "انضم لقائمة الانتظار",
     "proTierCtaAria": "انضم لقائمة انتظار الخطة الاحترافية",
+    "closeWaitlistDialog": "إغلاق نموذج قائمة الانتظار",
     "featureTableHeading": "مقارنة الخطط",
     "featureProperties": "العقارات",
     "featurePropertiesFree": "عقار واحد",

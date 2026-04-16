@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Helmet } from 'react-helmet';
+import SeoHead from './SeoHead';
+import { organizationSchema } from '../seo/structuredData';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Heading, SubHeading, Paragraph, InlineLink, BackToTop, nestedListStyle, nestedUlStyle, PrintHeader, PrintHeaderLogo, PrintHeaderLogoPrint, PageHeader, FilteredSection } from '../styles';
@@ -87,9 +88,12 @@ const ApplicationRequiredDocuments = () => {
 
   return (
     <div>
-      <Helmet>
-        <title>{t('requiredDocs.title')}</title>
-      </Helmet>
+      <SeoHead
+          title={t('requiredDocs.title')}
+          description={t('requiredDocs.title')}
+          path="/application-required-documents"
+          jsonLd={organizationSchema}
+      />
 
       <PrintHeader>
         <PrintHeaderLogo src={carwoodsLogo} alt="" aria-hidden />

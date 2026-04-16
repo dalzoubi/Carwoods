@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useMemo } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { Navigate, Routes, Route, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -235,6 +235,11 @@ const App = () => {
     const location = useLocation();
     const isPortal = isPortalRoute(location.pathname);
     useProfilePreferenceSync();
+
+    useEffect(() => {
+        document.dispatchEvent(new Event('prerender-ready'));
+    }, []);
+
     return isPortal ? <PortalApp /> : <MarketingApp />;
 };
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
     Accordion,
@@ -7,7 +7,11 @@ import {
     Box,
     Button,
     Chip,
+    Dialog,
+    DialogContent,
+    DialogTitle,
     Divider,
+    IconButton,
     Paper,
     Stack,
     Table,
@@ -22,13 +26,33 @@ import Check from '@mui/icons-material/Check';
 import Remove from '@mui/icons-material/Remove';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import RocketLaunch from '@mui/icons-material/RocketLaunch';
+import Close from '@mui/icons-material/Close';
 import { alpha, useTheme } from '@mui/material/styles';
-import { Helmet } from 'react-helmet';
+import SeoHead from './SeoHead';
+import ContactUs from './ContactUs';
+import { organizationSchema, softwareApplicationSchema, buildFaqSchema } from '../seo/structuredData';
 import { Heading } from '../styles';
 import { useTranslation } from 'react-i18next';
 import { withDarkPath } from '../routePaths';
 
-const PlanCard = ({ tier, tagline, capacity, price, pricePeriod, features, cta, ctaAria, ctaTo, highlighted, comingSoon, comingSoonLabel }) => {
+const WAITLIST_SUBJECT = 'PAID_SUBSCRIPTION';
+
+const PlanCard = ({
+    tier,
+    tagline,
+    capacity,
+    price,
+    pricePeriod,
+    features,
+    cta,
+    ctaAria,
+    ctaTo,
+    highlighted,
+    comingSoon,
+    comingSoonLabel,
+    waitlistSubject,
+    onWaitlistClick,
+}) => {
     const theme = useTheme();
     return (
         <Paper
@@ -142,14 +166,28 @@ const PlanCard = ({ tier, tagline, capacity, price, pricePeriod, features, cta, 
                 ))}
             </Stack>
             {comingSoon ? (
-                <Button
-                    variant="outlined"
-                    fullWidth
-                    disabled
-                    sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2 }}
-                >
-                    {cta}
-                </Button>
+                waitlistSubject && onWaitlistClick ? (
+                    <Button
+                        type="button"
+                        variant={highlighted ? 'contained' : 'outlined'}
+                        fullWidth
+                        onClick={() => onWaitlistClick(waitlistSubject)}
+                        aria-label={ctaAria}
+                        startIcon={<RocketLaunch />}
+                        sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2, py: 1.1 }}
+                    >
+                        {cta}
+                    </Button>
+                ) : (
+                    <Button
+                        variant="outlined"
+                        fullWidth
+                        disabled
+                        sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2 }}
+                    >
+                        {cta}
+                    </Button>
+                )
             ) : (
                 <Button
                     component={Link}
@@ -171,6 +209,20 @@ const Pricing = () => {
     const { t } = useTranslation();
     const theme = useTheme();
     const { pathname } = useLocation();
+
+    const [waitlistOpen, setWaitlistOpen] = useState(false);
+    const [waitlistSubject, setWaitlistSubject] = useState(WAITLIST_SUBJECT);
+    const [waitlistSession, setWaitlistSession] = useState(0);
+
+    const handleOpenWaitlist = useCallback((subject) => {
+        setWaitlistSubject(subject);
+        setWaitlistSession((n) => n + 1);
+        setWaitlistOpen(true);
+    }, []);
+
+    const handleCloseWaitlist = useCallback(() => {
+        setWaitlistOpen(false);
+    }, []);
 
     const sharedFeatures = [
         { key: 'featureTenantPortal', label: t('pricing.featureTenantPortal', 'Tenant portal access') },
@@ -251,10 +303,58 @@ const Pricing = () => {
 
     return (
         <Stack component="article" spacing={5}>
-            <Helmet>
-                <title>{t('pricing.title')}</title>
-                <meta name="description" content={t('pricing.metaDescription')} />
-            </Helmet>
+            <Dialog
+                open={waitlistOpen}
+                onClose={handleCloseWaitlist}
+                fullWidth
+                maxWidth="sm"
+                scroll="paper"
+                aria-labelledby="pricing-waitlist-dialog-title"
+            >
+                <DialogTitle
+                    id="pricing-waitlist-dialog-title"
+                    sx={{
+                        position: 'relative',
+                        pr: 6,
+                        fontWeight: 800,
+                        backgroundImage: 'none',
+                    }}
+                >
+                    {t('contact.heading')}
+                    <IconButton
+                        type="button"
+                        onClick={handleCloseWaitlist}
+                        aria-label={t('pricing.closeWaitlistDialog', 'Close join waitlist form')}
+                        sx={{
+                            position: 'absolute',
+                            insetBlockStart: 8,
+                            insetInlineEnd: 8,
+                            color: 'text.secondary',
+                        }}
+                        size="small"
+                    >
+                        <Close />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent
+                    dividers
+                    sx={{
+                        backgroundImage: 'none',
+                        pt: 2,
+                    }}
+                >
+                    {waitlistOpen ? (
+                        <ContactUs embedded initialSubject={waitlistSubject} key={waitlistSession} />
+                    ) : null}
+                </DialogContent>
+            </Dialog>
+
+            <SeoHead
+                title={t('pricing.title')}
+                description={t('pricing.metaDescription')}
+                path="/pricing"
+                jsonLd={[organizationSchema, softwareApplicationSchema, buildFaqSchema(faqs.map(f => ({ question: f.q, answer: f.a })))]}
+            />
 
             {/* Hero */}
             <Box sx={{ textAlign: 'center', py: { xs: 1, sm: 2 } }}>
@@ -302,6 +402,8 @@ const Pricing = () => {
                     highlighted={true}
                     comingSoon={true}
                     comingSoonLabel={t('pricing.comingSoonBadge', 'Coming Soon')}
+                    waitlistSubject={WAITLIST_SUBJECT}
+                    onWaitlistClick={handleOpenWaitlist}
                 />
                 <PlanCard
                     tier={t('pricing.proTierLabel')}
@@ -315,6 +417,8 @@ const Pricing = () => {
                     highlighted={false}
                     comingSoon={true}
                     comingSoonLabel={t('pricing.comingSoonBadge', 'Coming Soon')}
+                    waitlistSubject={WAITLIST_SUBJECT}
+                    onWaitlistClick={handleOpenWaitlist}
                 />
             </Stack>
 

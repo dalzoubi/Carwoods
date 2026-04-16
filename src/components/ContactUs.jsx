@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from 'react';
-import { Helmet } from 'react-helmet';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import SeoHead from './SeoHead';
+import { organizationSchema } from '../seo/structuredData';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -23,28 +24,51 @@ const SUBJECTS = [
   { value: 'RENTER', labelKey: 'contact.subjects.renter' },
   { value: 'PROPERTY_OWNER', labelKey: 'contact.subjects.propertyOwner' },
   { value: 'PORTAL_SAAS', labelKey: 'contact.subjects.portalSaas' },
+  { value: 'PAID_SUBSCRIPTION', labelKey: 'contact.subjects.paidSubscription' },
 ];
+
+const SUBJECT_VALUES = new Set(SUBJECTS.map((s) => s.value));
+
+/** Legacy pricing waitlist codes — normalize to PAID_SUBSCRIPTION for the form. */
+const LEGACY_PRICING_SUBJECTS = new Set(['PRICING_PAY_AS_YOU_GROW', 'PRICING_PRO']);
+
+function normalizeInitialSubject(initialSubject) {
+  const v = String(initialSubject ?? 'GENERAL').toUpperCase();
+  if (LEGACY_PRICING_SUBJECTS.has(v)) return 'PAID_SUBSCRIPTION';
+  return SUBJECT_VALUES.has(v) ? v : 'GENERAL';
+}
 
 const API_BASE = VITE_API_BASE_URL_RESOLVED;
 
 /** Internal sentinel for generic submit failure with support mailto in the alert. */
 const SUBMIT_ERROR_SUPPORT_MAILTO = '__contact_support_mailto__';
 
-const ContactUs = () => {
+const ContactUs = ({ embedded = false, initialSubject: initialSubjectProp = 'GENERAL' }) => {
   const { t } = useTranslation();
   const { executeRecaptcha } = useGoogleReCaptcha();
+
+  const initialSubject = useMemo(
+    () => normalizeInitialSubject(initialSubjectProp),
+    [initialSubjectProp],
+  );
 
   const [form, setForm] = useState({
     name: '',
     email: '',
     phone: '',
-    subject: 'GENERAL',
+    subject: initialSubject,
     message: '',
   });
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState('');
+
+  useEffect(() => {
+    setForm((prev) => ({ ...prev, subject: initialSubject }));
+  }, [initialSubject]);
+
+  const subjectLabelId = embedded ? 'contact-subject-label-embedded' : 'subject-label';
 
   const validate = (f) => {
     const e = {};
@@ -123,15 +147,21 @@ const ContactUs = () => {
   }, [form, executeRecaptcha, t]);
 
   return (
-    <Box component="article" sx={{ maxWidth: 680 }}>
-      <Helmet>
-        <title>{t('contact.title', 'Carwoods — Contact Us')}</title>
-        <meta name="description" content={t('contact.metaDescription', 'Get in touch with the Carwoods team.')} />
-      </Helmet>
+    <Box component={embedded ? 'div' : 'article'} sx={{ maxWidth: embedded ? 'none' : 680 }}>
+      {!embedded && (
+        <SeoHead
+          title={t('contact.title', 'Carwoods — Contact Us')}
+          description={t('contact.metaDescription', 'Get in touch with the Carwoods team.')}
+          path="/contact-us"
+          jsonLd={organizationSchema}
+        />
+      )}
 
-      <Typography variant="h1" component="h1" sx={{ fontSize: { xs: '1.65rem', sm: '2rem' }, fontWeight: 800, mb: 1 }}>
-        {t('contact.heading', 'Contact Us')}
-      </Typography>
+      {!embedded && (
+        <Typography variant="h1" component="h1" sx={{ fontSize: { xs: '1.65rem', sm: '2rem' }, fontWeight: 800, mb: 1 }}>
+          {t('contact.heading', 'Contact Us')}
+        </Typography>
+      )}
       <Typography color="text.secondary" sx={{ mb: 0.5 }}>
         {t('contact.intro', 'Have a question? Fill out the form below and our team will respond within one business day.')}
       </Typography>
@@ -199,9 +229,9 @@ const ContactUs = () => {
                 autoComplete="tel"
               />
               <FormControl fullWidth required>
-                <InputLabel id="subject-label">{t('contact.subjectLabel', 'Subject')}</InputLabel>
+                <InputLabel id={subjectLabelId}>{t('contact.subjectLabel', 'Subject')}</InputLabel>
                 <Select
-                  labelId="subject-label"
+                  labelId={subjectLabelId}
                   name="subject"
                   value={form.subject}
                   label={t('contact.subjectLabel', 'Subject')}

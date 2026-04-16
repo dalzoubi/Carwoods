@@ -5,7 +5,7 @@ import React, {
   useLayoutEffect,
   useRef,
 } from 'react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -56,6 +56,9 @@ function subjectTranslationKey(subject) {
     RENTER: 'renter',
     PROPERTY_OWNER: 'propertyOwner',
     PORTAL_SAAS: 'portalSaas',
+    PAID_SUBSCRIPTION: 'paidSubscription',
+    PRICING_PAY_AS_YOU_GROW: 'paidSubscription',
+    PRICING_PRO: 'paidSubscription',
   };
   return map[String(subject ?? '').toUpperCase()] ?? 'general';
 }

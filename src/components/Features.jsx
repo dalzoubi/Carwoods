@@ -18,7 +18,8 @@ import Check from '@mui/icons-material/Check';
 import ArrowForward from '@mui/icons-material/ArrowForward';
 import AutoAwesome from '@mui/icons-material/AutoAwesome';
 import { alpha, useTheme } from '@mui/material/styles';
-import { Helmet } from 'react-helmet';
+import SeoHead from './SeoHead';
+import { organizationSchema, softwareApplicationSchema } from '../seo/structuredData';
 import { Heading } from '../styles';
 import { useTranslation } from 'react-i18next';
 import { withDarkPath } from '../routePaths';
@@ -120,10 +121,12 @@ const Features = () => {
 
     return (
         <Stack component="article" spacing={4}>
-            <Helmet>
-                <title>{t('features.title')}</title>
-                <meta name="description" content={t('features.metaDescription')} />
-            </Helmet>
+            <SeoHead
+                title={t('features.title')}
+                description={t('features.metaDescription')}
+                path="/features"
+                jsonLd={[organizationSchema, softwareApplicationSchema]}
+            />
 
             {/* Hero */}
             <Box

@@ -157,7 +157,8 @@
       "general": "Demande générale",
       "renter": "Locataire / Candidat",
       "propertyOwner": "Propriétaire",
-      "portalSaas": "Portail / SaaS"
+      "portalSaas": "Portail / SaaS",
+      "paidSubscription": "Abonnement payant"
     }
   },
   "privacy": {
@@ -2147,6 +2148,7 @@
     "proTierPricePeriod": "· tarif mensuel fixe",
     "proTierCta": "Rejoindre la Liste d'attente",
     "proTierCtaAria": "Rejoindre la liste d'attente du plan Pro",
+    "closeWaitlistDialog": "Fermer le formulaire d'inscription à la liste d'attente",
     "featureTableHeading": "Comparer les plans",
     "featureProperties": "Propriétés",
     "featurePropertiesFree": "1 propriété",

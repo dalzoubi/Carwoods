@@ -8,7 +8,8 @@ import Typography from '@mui/material/Typography';
 import { alpha, useTheme } from '@mui/material/styles';
 import ChevronRight from '@mui/icons-material/ChevronRight';
 import { withDarkPath } from '../routePaths';
-import { Helmet } from 'react-helmet';
+import SeoHead from './SeoHead';
+import { organizationSchema } from '../seo/structuredData';
 import { useTranslation } from 'react-i18next';
 import rentersPhoto from '../assets/home/renters-space.jpg';
 import ownersPhoto from '../assets/home/owners-skyline.jpg';
@@ -174,10 +175,12 @@ const Home = () => {
 
     return (
         <Stack component="article" spacing={3.5}>
-            <Helmet>
-                <title>{t('home.title')}</title>
-                <meta name="description" content={t('home.metaDescription')} />
-            </Helmet>
+            <SeoHead
+                title={t('home.title')}
+                description={t('home.metaDescription')}
+                path="/"
+                jsonLd={organizationSchema}
+            />
 
             {/* Page header — minimal, tiles carry the detail */}
             <Box sx={{ textAlign: 'center', pt: { xs: 1.5, sm: 2 }, pb: 0, px: { xs: 1, sm: 2 } }}>

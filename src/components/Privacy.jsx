@@ -1,5 +1,6 @@
 import React from 'react';
-import { Helmet } from 'react-helmet';
+import SeoHead from './SeoHead';
+import { organizationSchema } from '../seo/structuredData';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Heading, SubHeading, Paragraph, InlineLink } from '../styles';
@@ -10,10 +11,13 @@ const Privacy = () => {
     const { t } = useTranslation();
     return (
         <div>
-            <Helmet>
-                <title>{t('privacy.title')}</title>
-                <meta name="description" content={t('privacy.metaDescription')} />
-            </Helmet>
+            <SeoHead
+                title={t('privacy.title')}
+                description={t('privacy.metaDescription')}
+                path="/privacy"
+                noIndex
+                jsonLd={organizationSchema}
+            />
             <Heading>{t('privacy.heading')}</Heading>
             <Paragraph>
                 {t('privacy.intro')}

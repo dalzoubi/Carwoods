@@ -1,9 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import ContactUs from './ContactUs';
 
-const renderWithRouter = (ui) => render(<BrowserRouter>{ui}</BrowserRouter>);
+const renderWithRouter = (ui) => render(<HelmetProvider><BrowserRouter>{ui}</BrowserRouter></HelmetProvider>);
 
 describe('ContactUs', () => {
   it('renders heading', () => {
@@ -33,9 +34,11 @@ describe('ContactUs', () => {
 
   it('keeps dark preview prefix on Apply link', () => {
     render(
+      <HelmetProvider>
       <MemoryRouter initialEntries={['/dark/contact-us']}>
         <ContactUs />
       </MemoryRouter>
+      </HelmetProvider>
     );
     const applyLink = screen.getByRole('link', { name: /^apply$/i });
     expect(applyLink).toHaveAttribute('href', '/dark/apply');

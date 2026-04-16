@@ -152,7 +152,8 @@
       "general": "General Inquiry",
       "renter": "Renter / Applicant",
       "propertyOwner": "Property Owner",
-      "portalSaas": "Portal / SaaS"
+      "portalSaas": "Portal / SaaS",
+      "paidSubscription": "Paid Subscription"
     }
   },
   "privacy": {
@@ -271,6 +272,7 @@
     "proTierPricePeriod": "· flat monthly rate",
     "proTierCta": "Join Waitlist",
     "proTierCtaAria": "Join the waitlist for the Pro plan",
+    "closeWaitlistDialog": "Close join waitlist form",
     "featureTableHeading": "Compare plans",
     "featureProperties": "Properties",
     "featurePropertiesFree": "1 property",

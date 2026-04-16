@@ -1,5 +1,6 @@
 import React from 'react';
-import { Helmet } from 'react-helmet';
+import SeoHead from './SeoHead';
+import { organizationSchema, localBusinessSchema } from '../seo/structuredData';
 import { Link, useLocation } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -33,10 +34,12 @@ const PropertyManagement = () => {
 
     return (
         <Stack component="article" spacing={4}>
-            <Helmet>
-                <title>{t('propertyManagement.title')}</title>
-                <meta name="description" content={t('propertyManagement.metaDescription')} />
-            </Helmet>
+            <SeoHead
+                title={t('propertyManagement.title')}
+                description={t('propertyManagement.metaDescription')}
+                path="/property-management"
+                jsonLd={[organizationSchema, localBusinessSchema]}
+            />
 
             {/* Hero section */}
             <Box

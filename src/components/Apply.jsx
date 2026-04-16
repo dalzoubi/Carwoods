@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { withDarkPath } from '../routePaths';
-import { Helmet } from 'react-helmet';
+import SeoHead from './SeoHead';
+import { organizationSchema } from '../seo/structuredData';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { Heading, Paragraph, PageHeader } from '../styles';
@@ -128,10 +129,12 @@ const Apply = () => {
     const { t } = useTranslation();
     return (
         <div>
-            <Helmet>
-                <title>{t('apply.title')}</title>
-                <meta name="description" content={t('apply.metaDescription')} />
-            </Helmet>
+            <SeoHead
+                title={t('apply.title')}
+                description={t('apply.metaDescription')}
+                path="/apply"
+                jsonLd={organizationSchema}
+            />
             <PageHeader>
                 <Heading>{t('apply.heading')}</Heading>
             </PageHeader>

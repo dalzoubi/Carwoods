@@ -15,6 +15,7 @@ import {
 } from './languagePreferenceStorage';
 
 const LanguageContext = createContext(null);
+export { LanguageContext };
 
 export function LanguageProvider({ children }) {
     const { i18n } = useTranslation();

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Helmet } from 'react-helmet';
+import SeoHead from './SeoHead';
+import { organizationSchema } from '../seo/structuredData';
 import { useTranslation } from 'react-i18next';
 import { Heading, SubHeading, SectionHeading, Paragraph, BackToTop, nestedListStyle, nestedUlStyle, PrintHeader, PrintHeaderLogo, PrintHeaderLogoPrint, PrintFilterSummary, PageHeader, FilteredSection } from '../styles';
 import { TocPageLayout } from './TocPageLayout';
@@ -71,9 +72,12 @@ const TenantSelectionCriteria = () => {
 
   return (
     <div className="tenant-criteria">
-      <Helmet>
-        <title>{t('tenantCriteria.title')}</title>
-      </Helmet>
+      <SeoHead
+          title={t('tenantCriteria.title')}
+          description={t('tenantCriteria.title')}
+          path="/tenant-selection-criteria"
+          jsonLd={organizationSchema}
+      />
 
       <PrintHeader>
         <PrintHeaderLogo src={carwoodsLogo} alt="" aria-hidden />

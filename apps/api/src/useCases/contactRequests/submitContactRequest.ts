@@ -3,7 +3,13 @@ import { validationError } from '../../domain/errors.js';
 import { logError, logWarn } from '../../lib/serverLogger.js';
 import type { InvocationContext } from '@azure/functions';
 
-const VALID_SUBJECTS = new Set(['GENERAL', 'RENTER', 'PROPERTY_OWNER', 'PORTAL_SAAS']);
+const VALID_SUBJECTS = new Set([
+  'GENERAL',
+  'RENTER',
+  'PROPERTY_OWNER',
+  'PORTAL_SAAS',
+  'PAID_SUBSCRIPTION',
+]);
 const RECAPTCHA_MIN_SCORE = 0.3;
 
 function isValidEmail(email: string): boolean {

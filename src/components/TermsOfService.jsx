@@ -1,5 +1,6 @@
 import React from 'react';
-import { Helmet } from 'react-helmet';
+import SeoHead from './SeoHead';
+import { organizationSchema } from '../seo/structuredData';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Heading, SubHeading, Paragraph, InlineLink } from '../styles';
@@ -11,10 +12,13 @@ const TermsOfService = () => {
 
     return (
         <div>
-            <Helmet>
-                <title>{t('terms.title')}</title>
-                <meta name="description" content={t('terms.metaDescription')} />
-            </Helmet>
+            <SeoHead
+                title={t('terms.title')}
+                description={t('terms.metaDescription')}
+                path="/terms-of-service"
+                noIndex
+                jsonLd={organizationSchema}
+            />
 
             <Heading>{t('terms.heading')}</Heading>
             <Paragraph>{t('terms.intro')}</Paragraph>
