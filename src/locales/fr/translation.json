@@ -912,7 +912,11 @@
       "target_user_not_found": "Cet utilisateur est introuvable.",
       "forbidden": "Vous n’avez pas l’autorisation d’exécuter des tests de notification.",
       "unauthorized": "Reconnectez-vous, puis réessayez.",
-      "invalid_token": "Session expirée. Reconnectez-vous."
+      "invalid_token": "Session expirée. Reconnectez-vous.",
+      "acs_not_configured": "Le service de messagerie n'est pas configuré. Définissez ACS_CONNECTION_STRING dans l'environnement du serveur.",
+      "sms_from_number_not_configured": "Le SMS n'est pas configuré. Un numéro de téléphone (ACS_SMS_FROM_NUMBER) doit être provisionné dans Azure Communication Services.",
+      "email_send_failed": "L'envoi de l'e-mail a échoué. Vérifiez la configuration d'Azure Communication Services.",
+      "sms_send_failed": "L'envoi du SMS a échoué. Vérifiez le numéro de téléphone et la configuration d'Azure Communication Services."
     }
   },
   "portalStatus": {

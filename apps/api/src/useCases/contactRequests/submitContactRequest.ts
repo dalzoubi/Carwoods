@@ -59,7 +59,7 @@ async function sendAdminAlert(
     // Dynamic import to avoid issues if ACS is not configured
     const { EmailClient } = await import('@azure/communication-email');
     const client = new EmailClient(acsConnStr);
-    const sender = process.env.ACS_SENDER_ADDRESS ?? 'noreply@carwoods.com';
+    const sender = process.env.ACS_SENDER_ADDRESS ?? 'DoNotReply@carwoods.com';
     await client.beginSend({
       senderAddress: sender,
       recipients: { to: [{ address: adminEmail }] },

@@ -912,7 +912,11 @@
       "target_user_not_found": "No se encontró ese usuario.",
       "forbidden": "No tiene permiso para ejecutar pruebas de notificación.",
       "unauthorized": "Vuelva a iniciar sesión e inténtelo de nuevo.",
-      "invalid_token": "Sesión caducada. Vuelva a iniciar sesión."
+      "invalid_token": "Sesión caducada. Vuelva a iniciar sesión.",
+      "acs_not_configured": "El servicio de correo electrónico no está configurado. Configure ACS_CONNECTION_STRING en el entorno del servidor.",
+      "sms_from_number_not_configured": "SMS no está configurado. Se debe aprovisionar un número de teléfono (ACS_SMS_FROM_NUMBER) en Azure Communication Services.",
+      "email_send_failed": "Error al enviar el correo electrónico. Verifique la configuración de Azure Communication Services.",
+      "sms_send_failed": "Error al enviar el SMS. Verifique el número de teléfono y la configuración de Azure Communication Services."
     }
   },
   "portalStatus": {

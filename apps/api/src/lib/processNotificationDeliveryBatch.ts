@@ -89,10 +89,10 @@ async function sendEmail(
   if (!acsConnStr) throw new Error('ACS_CONNECTION_STRING not configured');
 
   const { EmailClient } = await import('@azure/communication-email');
-  const client = new EmailClient(acsConnStr);
-  const sender = process.env.ACS_SENDER_ADDRESS ?? 'noreply@carwoods.com';
+  const emailClient = new EmailClient(acsConnStr);
+  const sender = process.env.ACS_SENDER_ADDRESS ?? 'DoNotReply@carwoods.com';
 
-  const poller = await client.beginSend({
+  const poller = await emailClient.beginSend({
     senderAddress: sender,
     recipients: { to: [{ address: recipientEmail }] },
     content: {
@@ -101,8 +101,20 @@ async function sendEmail(
     },
   });
 
-  const result = await poller.pollUntilDone();
-  return result.id ?? null;
+  // Poll up to ~30s for the background timer (more generous than the HTTP handler)
+  const POLL_TIMEOUT_MS = 30_000;
+  const start = Date.now();
+  while (!poller.isDone() && Date.now() - start < POLL_TIMEOUT_MS) {
+    await poller.poll();
+    if (!poller.isDone()) {
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+  }
+  const result = poller.getResult();
+  if (result?.status === 'Failed') {
+    throw new Error(result.error?.message ?? 'email_send_failed');
+  }
+  return result?.id ?? null;
 }
 
 async function sendSms(

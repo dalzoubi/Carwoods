@@ -166,7 +166,7 @@ async function adminNotificationTestHandler(
       try {
         const { EmailClient } = await import('@azure/communication-email');
         const emailClient = new EmailClient(acsConnStr);
-        const sender = process.env.ACS_SENDER_ADDRESS ?? 'noreply@carwoods.com';
+        const sender = process.env.ACS_SENDER_ADDRESS ?? 'DoNotReply@carwoods.com';
         const poller = await emailClient.beginSend({
           senderAddress: sender,
           recipients: { to: [{ address: targetEmail }] },
@@ -175,8 +175,21 @@ async function adminNotificationTestHandler(
             plainText: bodyText,
           },
         });
-        const result = await poller.pollUntilDone();
-        providerMessageId = result.id ?? null;
+        // Poll briefly (up to ~15s) to check for immediate failures, but don't block forever
+        const POLL_TIMEOUT_MS = 15_000;
+        const start = Date.now();
+        while (!poller.isDone() && Date.now() - start < POLL_TIMEOUT_MS) {
+          await poller.poll();
+          if (!poller.isDone()) {
+            await new Promise((r) => setTimeout(r, 1000));
+          }
+        }
+        const result = poller.getResult();
+        if (result?.status === 'Failed') {
+          sendError = result.error?.message ?? 'email_send_failed';
+        } else {
+          providerMessageId = result?.id ?? null;
+        }
       } catch (err) {
         sendError = err instanceof Error ? err.message : String(err);
       }
