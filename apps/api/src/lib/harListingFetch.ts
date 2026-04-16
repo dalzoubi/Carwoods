@@ -1,6 +1,6 @@
 /**
  * Server-side HAR listing HTML fetch + JSON-LD / apply.link parse.
- * Mirrors scripts/fetchHarRentalApplyTiles.mjs (blocking on property writes).
+ * Blocking HAR HTML fetch + JSON-LD parse on property writes (admin POST/PATCH with har_listing_id).
  */
 
 const UA = 'Mozilla/5.0 (compatible; CarwoodsPortal/1.0; +https://carwoods.com)';

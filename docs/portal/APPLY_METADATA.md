@@ -23,4 +23,4 @@ Optional overrides (else derived from columns):
 
 **`metadata.apply.id`** (optional): display id for the tile; default is `prop-{uuid}`.
 
-Admin **POST/PATCH** with **`har_listing_id`** triggers a **blocking** HAR fetch; on success `listing_source` is set to **`HAR_SYNC`** and `metadata.apply` is filled from HAR HTML (same logic as `scripts/fetchHarRentalApplyTiles.mjs`).
+Admin **POST/PATCH** with **`har_listing_id`** triggers a **blocking** HAR fetch; on success `listing_source` is set to **`HAR_SYNC`** and `metadata.apply` is filled from HAR HTML (`apps/api/src/lib/harListingFetch.ts`).

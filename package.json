@@ -43,7 +43,6 @@
     "start": "vite",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
-    "update-rental-tiles": "node scripts/fetchHarRentalApplyTiles.mjs",
     "prebuild": "node scripts/generatePublicIcons.mjs",
     "build": "vite build",
     "postbuild": "node scripts/prerender.mjs",
@@ -100,10 +99,12 @@
     "jest-axe": "^9.0.0",
     "jsdom": "^28.1.0",
     "png-to-ico": "^3.0.1",
-    "puppeteer": "^24.41.0",
     "serve": "^14.2.4",
     "sharp": "^0.34.5",
     "vite": "^7.3.2",
     "vitest": "^4.0.18"
+  },
+  "optionalDependencies": {
+    "puppeteer": "^24.41.0"
   }
 }

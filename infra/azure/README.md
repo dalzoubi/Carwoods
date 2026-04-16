@@ -349,8 +349,7 @@ Save and allow the app to restart.
 
 In Vercel / `.env` for production builds:
 
-- `VITE_API_BASE_URL=https://<AZURE_FUNCTION_APP_NAME>.azurewebsites.net`
-- Keep `VITE_FEATURE_APPLY_API` unset or not `false` so `/apply` can use the API (it will show an empty list until the DB endpoint returns rows).
+- `VITE_API_BASE_URL=https://<AZURE_FUNCTION_APP_NAME>.azurewebsites.net` so `/apply` can load tiles from `GET /api/public/apply-properties` (empty list until the DB has `apply_visible` properties).
 
 ### G5. Database migrations
 

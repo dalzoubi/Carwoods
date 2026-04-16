@@ -44,7 +44,7 @@ Endpoints (local default port **7071**):
 | POST, OPTIONS | `/api/internal/jobs/process-notifications` | Notification outbox processor with retries/idempotency status |
 | POST, OPTIONS | `/api/internal/jobs/revoke-expired-leases` | Lease access revocation job (ended + non-month-to-month) |
 
-**HAR:** `POST`/`PATCH` on properties with non-empty `har_listing_id` runs a **blocking** HAR fetch (same parsing as `scripts/fetchHarRentalApplyTiles.mjs`). Failure → **422** `har_sync_failed` (no row created/updated).
+**HAR:** `POST`/`PATCH` on properties with non-empty `har_listing_id` runs a **blocking** HAR fetch (`harListingFetch.ts`). Failure → **422** `har_sync_failed` (no row created/updated).
 
 See [`docs/portal/ENV_CONTRACT.md`](../../docs/portal/ENV_CONTRACT.md) and [`docs/portal/APPLY_METADATA.md`](../../docs/portal/APPLY_METADATA.md).
 Phase 2 API contract: [`docs/portal/PHASE2_API_CONTRACT.md`](../../docs/portal/PHASE2_API_CONTRACT.md).

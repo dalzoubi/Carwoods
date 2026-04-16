@@ -11,7 +11,7 @@
 - [x] Entra JWT validation on a smoke endpoint; `GET /api/portal/me` returns 401 without token.
 - [x] Landlord/Admin CRUD for properties / leases / tenant links (API).
 - [x] **`GET /api/public/apply-properties`** returns only `apply_visible` rows; **no PII**.
-- [x] **`/apply`** supports feature-flag switch between generated file and API.
+- [x] **`/apply`** loads public listings from **`GET /api/public/apply-properties`** (no static generated fallback).
 - [x] **HAR blocking sync:** create/update with `har_listing_id` persists normalized `metadata` or returns explicit error.
 
 ## Phase 2 — Requests + messaging + uploads + mail + portal UX

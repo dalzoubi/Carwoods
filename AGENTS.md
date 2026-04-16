@@ -16,7 +16,6 @@ Carwoods is a static React 18 website (no backend/database) for property managem
 | Lint | `npx eslint src/` |
 | E2E tests (Playwright) | `npm run test:e2e` |
 | Install E2E browser | `npm run test:e2e:install` |
-| Refresh HAR listings | `npm run update-rental-tiles` |
 
 ## Project structure
 
@@ -34,9 +33,6 @@ src/
 ├── featureFlags.js         # VITE_FEATURE_DARK_THEME flag
 ├── testUtils.jsx           # WithAppTheme test helper
 ├── locales/{en,es,fr,ar}/translation.json
-├── data/
-│   ├── harRentalListingIds.js
-│   └── rentalPropertyApplyTiles.generated.js  ← DO NOT DELETE
 ├── components/
 │   ├── Home.jsx, Apply.jsx, ContactUs.jsx, Privacy.jsx, Accessibility.jsx
 │   ├── ResponsiveNavbar.jsx, Footer.jsx, ApplyFlowSubnav.jsx
@@ -45,7 +41,6 @@ src/
 │   ├── ApplicationRequiredDocuments.jsx, TocPageLayout.jsx
 │   └── *.test.jsx (co-located unit tests)
 scripts/
-├── fetchHarRentalApplyTiles.mjs   # prebuild — falls back to committed file on 403
 └── generatePublicIcons.mjs
 e2e/
 └── critical-path.spec.mjs         # Playwright E2E (ESM)
@@ -63,7 +58,6 @@ e2e/
 **Never:**
 - Hard-code English text in JSX
 - Hard-code hex colors in components
-- Delete `src/data/rentalPropertyApplyTiles.generated.js`
 - Pass `isRTL` as a prop to `ThemeModeProvider` (it reads from `LanguageContext` internally)
 - Reverse provider order: `LanguageProvider` must wrap `ThemeModeProvider`
 - Use physical CSS directions (`margin-left`) in styled-components or print rules
@@ -86,8 +80,7 @@ e2e/
 - Vite dev server uses `usePolling: true` (container compatibility).
 - No secrets or API keys; `.env` only contains `CHOKIDAR_USEPOLLING=true`.
 - `homepage` in `package.json` is `https://carwoods.com` (GitHub Pages); does not affect dev server.
-- **HAR listing fetch**: `scripts/fetchHarRentalApplyTiles.mjs` runs as `prebuild`. May get 403 in CI. Falls back to committed generated file. **Never delete the generated file.**
-- **Apply page API (optional):** If `VITE_API_BASE_URL` is set and `VITE_FEATURE_APPLY_API` is not `false`, `/apply` loads tiles from `GET {base}/api/public/apply-properties` first, then falls back to the generated file. In dev, API vs generated differences log to the console unless `VITE_FEATURE_APPLY_DUAL_SOURCE=false`.
+- **Apply page listings:** `/apply` loads rental tiles from `GET {VITE_API_BASE_URL}/api/public/apply-properties` (see `RentalPropertyApplyTiles.jsx`, `publicApplyProperties.js`). With no base URL or on fetch failure, the grid shows the empty or error state from i18n — there is no static generated fallback in the repo.
 - 2 pre-existing `no-restricted-globals` lint errors in `src/styles.js` (`history`) — not regressions.
 - E2E files must be ESM (`.mjs`) because `package.json` has `"type": "module"`.
 

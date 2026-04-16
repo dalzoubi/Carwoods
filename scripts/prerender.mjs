@@ -6,13 +6,19 @@
  *
  * Usage: node scripts/prerender.mjs
  * Runs automatically as part of `npm run build` (postbuild hook).
+ * Skips automatically on CI/Vercel where headless Chrome is unavailable.
  */
 
 import { createServer } from 'http';
 import { readFile, mkdir, writeFile } from 'fs/promises';
 import { join, dirname, extname } from 'path';
 import { fileURLToPath } from 'url';
-import puppeteer from 'puppeteer';
+
+// Skip in CI environments where Puppeteer can't run
+if (process.env.CI || process.env.VERCEL || process.env.NETLIFY) {
+  console.log('Pre-render skipped (CI environment detected). Pages render client-side.');
+  process.exit(0);
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BUILD_DIR = join(__dirname, '..', 'build');
@@ -69,11 +75,14 @@ function startServer() {
 }
 
 async function prerender() {
+  // Dynamic import so the module isn't resolved at all in CI
+  const puppeteer = await import('puppeteer');
+
   console.log('Starting pre-render server...');
   const server = await startServer();
 
   console.log('Launching browser...');
-  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
+  const browser = await puppeteer.default.launch({ headless: true, args: ['--no-sandbox'] });
 
   for (const route of routes) {
     const url = `http://localhost:${PORT}${route}`;
@@ -104,7 +113,7 @@ async function prerender() {
 }
 
 prerender().catch((err) => {
-  // Gracefully skip pre-rendering in CI environments (e.g. Vercel) where
+  // Gracefully skip pre-rendering in environments where
   // Chrome/Puppeteer system dependencies are unavailable.
   console.warn('Pre-render skipped:', err.message);
   console.warn('The build will still work — pages render client-side via React.');

@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   APPLY_PROPERTIES_SESSION_KEY,
   fetchPublicApplyProperties,
-  logDualSourceApplyMismatch,
   normalizeApplyPropertyTile,
 } from './publicApplyProperties';
 
@@ -70,14 +69,5 @@ describe('fetchPublicApplyProperties', () => {
     } finally {
       vi.unstubAllGlobals();
     }
-  });
-});
-
-describe('logDualSourceApplyMismatch', () => {
-  it('warns when ids differ', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    logDualSourceApplyMismatch([valid], []);
-    expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
   });
 });

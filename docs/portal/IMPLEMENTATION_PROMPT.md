@@ -81,7 +81,7 @@ All future work should follow **spec-driven development**. Treat this as mandato
    - If present, backend **fetches and parses HAR in the same request**, normalizes metadata, persists to `properties.metadata` (with `last_synced_at`, `sync_source`, `sync_confidence`) **atomically with the property row** before returning success.
    - On failure: return a clear **integration/validation error**; do not silently succeed with empty/stale HAR data for a **new** property that required HAR.
 4. **Manual overrides:** admin can lock selected fields; sync must respect locks.
-5. **`/apply` migration:** keep existing generated tile data as fallback behind a feature flag until API parity tests pass; then default to `GET /api/public/apply-properties` and remove dependency on generated file when stable.
+5. **`/apply`:** marketing site loads tiles only from **`GET /api/public/apply-properties`** (`RentalPropertyApplyTiles.jsx` + `publicApplyProperties.js`).
 
 ## Security & RBAC
 
@@ -92,7 +92,7 @@ All future work should follow **spec-driven development**. Treat this as mandato
 
 ## Phasing
 
-1. **Phase 1:** IaC (RG `carwoods.com`), schema/migrations, Entra integration, RBAC, properties/leases/tenants landlord/admin CRUD, public apply-properties API, `/apply` behind flag.
+1. **Phase 1:** IaC (RG `carwoods.com`), schema/migrations, Entra integration, RBAC, properties/leases/tenants landlord/admin CRUD, public apply-properties API, `/apply` consuming that API from the marketing site.
 2. **Phase 2:** Requests, uploads, tenant + landlord/admin UI, threading, canned replies, statuses, notifications.
 3. **Phase 3:** Gemini suggest-reply, CSV export, HAR hardening (retries, observability), lease revocation job, vendor enhancements, optional realtime.
 

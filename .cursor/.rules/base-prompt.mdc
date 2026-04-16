@@ -44,4 +44,4 @@ Present options (conservative / recommended / faster-but-riskier) with benefits,
 
 - **Always safe**: fixing typos, adding tests, updating translations in all four locales
 - **Ask first**: new dependencies, route changes, form field/payload changes, design token changes, SEO metadata changes, analytics contract changes
-- **Never**: expose secrets in client code, delete `src/data/rentalPropertyApplyTiles.generated.js`, force-push to main
+- **Never**: expose secrets in client code, force-push to main

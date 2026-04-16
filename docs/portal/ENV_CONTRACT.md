@@ -54,7 +54,7 @@ Manual Azure setup checklist: `docs/portal/AZURE_MANUAL_SETUP_CHECKLIST.md`.
 | --------------------------- | -------------------------------------------------------------- |
 | `FEATURE_HAR_IDX_SYNC`      | Enable credentialed IDX provider when available                |
 | `FEATURE_VENDOR_PORTAL`     | Vendor self-service UI + endpoints                             |
-| `FEATURE_APPLY_API_DEFAULT` | Use `GET /api/public/apply-properties` as primary for `/apply` |
+| `FEATURE_APPLY_API_DEFAULT` | Reserved name in config; **not read** by the current API or Vite bundle. `/apply` uses `VITE_API_BASE_URL` + `GET /api/public/apply-properties` on the client. |
 
 
 ## Frontend (Vite — public only)
@@ -62,12 +62,10 @@ Manual Azure setup checklist: `docs/portal/AZURE_MANUAL_SETUP_CHECKLIST.md`.
 
 | Variable                 | Description                                                      |
 | ------------------------ | ---------------------------------------------------------------- |
-| `VITE_API_BASE_URL`      | Base URL for portal/public API (no trailing slash). Production example: `https://carwoods-com-api.azurewebsites.net` until a custom domain is used. |
+| `VITE_API_BASE_URL`      | Base URL for portal/public API (no trailing slash). Production example: `https://carwoods-com-api.azurewebsites.net` until a custom domain is used. The marketing `/apply` page loads rental tiles from `GET {base}/api/public/apply-properties`; if the request fails or returns an empty list, the UI shows the localized empty or error state. |
 | `VITE_FIREBASE_API_KEY`     | Firebase web API key used to initialize the Firebase client SDK |
 | `VITE_FIREBASE_AUTH_DOMAIN` | Firebase auth domain, usually `{project}.firebaseapp.com` |
 | `VITE_FIREBASE_PROJECT_ID`  | Firebase project ID; should match API `FIREBASE_PROJECT_ID` |
-| `VITE_FEATURE_APPLY_API` | When **not** `false`, and `VITE_API_BASE_URL` is set, `/apply` uses `GET /api/public/apply-properties` first; falls back to the generated file on error or empty API response. |
-| `VITE_FEATURE_APPLY_DUAL_SOURCE` | Dev only: set to `false` to disable console compare of API vs generated tiles. |
 | `VITE_NOTIFICATIONS_POLL_MS` | Optional notification poll cadence in ms for signed-in users (main site + portal headers). Default `60000`; clamped to min `10000`, max `300000`. When the notification tray is open, polling uses at most **8s** (still respects a shorter base interval if configured). |
 | `VITE_MESSAGES_POLL_MS` | Optional cadence in ms for refreshing the open maintenance request thread (portal). Default `15000`; clamped to min `10000`, max `300000`. |
 
