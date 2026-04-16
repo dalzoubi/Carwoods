@@ -84,6 +84,63 @@ test('updateProfile maps DB unique-email race condition to conflict', async () =
   );
 });
 
+test('updateProfile persists portalTourCompleted alongside core profile fields', async () => {
+  let sawPortalTourUpdate = false;
+  const selfRow = makeUserRow({
+    id: 'actor-user',
+    email: 'self@example.com',
+    portal_tour_completed: false,
+  });
+  const afterTourRow = { ...selfRow, portal_tour_completed: true };
+  const db = {
+    async query(sql) {
+      if (/FROM users\s+WHERE LOWER\(email\) = \$1/i.test(sql)) {
+        return { rows: [selfRow], rowCount: 1 };
+      }
+      if (/UPDATE users/i.test(sql) && /SET email = \$2/i.test(sql)) {
+        return { rows: [selfRow], rowCount: 1 };
+      }
+      if (/UPDATE users/i.test(sql) && /portal_tour_completed =/i.test(sql)) {
+        sawPortalTourUpdate = true;
+        return { rows: [afterTourRow], rowCount: 1 };
+      }
+      if (/MERGE user_notification_preferences/i.test(sql)) {
+        return {
+          rows: [
+            {
+              user_id: 'actor-user',
+              email_enabled: true,
+              in_app_enabled: true,
+              sms_enabled: false,
+              sms_opt_in: false,
+              quiet_hours_timezone: null,
+              quiet_hours_start_minute: null,
+              quiet_hours_end_minute: null,
+              created_at: new Date(),
+              updated_at: new Date(),
+            },
+          ],
+          rowCount: 1,
+        };
+      }
+      throw new Error(`Unexpected query: ${String(sql).slice(0, 160)}`);
+    },
+  };
+
+  const out = await updateProfile(db, {
+    actorUserId: 'actor-user',
+    actorRole: 'TENANT',
+    email: 'self@example.com',
+    firstName: 'Test',
+    lastName: 'User',
+    phone: '555-010-0000',
+    portalTourCompleted: true,
+  });
+
+  assert.equal(sawPortalTourUpdate, true);
+  assert.equal(out.user.portal_tour_completed, true);
+});
+
 test('updateProfile requires phone when SMS notifications are enabled', async () => {
   const db = {
     async query(sql) {

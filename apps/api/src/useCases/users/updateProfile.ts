@@ -26,6 +26,8 @@ export type UpdateProfileInput = {
   phone?: string | null;
   uiLanguage?: string | null;
   uiColorScheme?: string | null;
+  /** When present (hasOwnProperty), persisted via `updateUserUiPreferences`. */
+  portalTourCompleted?: boolean;
   notificationPreferences?: {
     emailEnabled?: boolean;
     inAppEnabled?: boolean;
@@ -89,10 +91,12 @@ export async function updateProfile(
 
   const hasUiLanguage = Object.prototype.hasOwnProperty.call(input, 'uiLanguage');
   const hasUiColorScheme = Object.prototype.hasOwnProperty.call(input, 'uiColorScheme');
-  if (hasUiLanguage || hasUiColorScheme) {
+  const hasPortalTourCompleted = Object.prototype.hasOwnProperty.call(input, 'portalTourCompleted');
+  if (hasUiLanguage || hasUiColorScheme || hasPortalTourCompleted) {
     const withPrefs = await updateUserUiPreferences(db, input.actorUserId, {
       ...(hasUiLanguage ? { uiLanguage: input.uiLanguage ?? null } : {}),
       ...(hasUiColorScheme ? { uiColorScheme: input.uiColorScheme ?? null } : {}),
+      ...(hasPortalTourCompleted ? { portalTourCompleted: input.portalTourCompleted } : {}),
     });
     if (withPrefs) updated = withPrefs;
   }

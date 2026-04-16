@@ -60,6 +60,10 @@ async function portalProfileHandler(
   const hasUiLanguage = Object.prototype.hasOwnProperty.call(payload, 'ui_language');
   const hasUiColorScheme = Object.prototype.hasOwnProperty.call(payload, 'ui_color_scheme');
   const hasPortalTourCompleted = Object.prototype.hasOwnProperty.call(payload, 'portal_tour_completed');
+  const portalTourCompletedParsed = hasPortalTourCompleted ? bool(payload.portal_tour_completed) : undefined;
+  if (hasPortalTourCompleted && portalTourCompletedParsed === undefined) {
+    return jsonResponse(400, headers, { error: 'invalid_portal_tour_completed' });
+  }
 
   // UI-preferences-only PATCH: no email/name/phone/notification fields.
   // Bypass the full updateProfile flow (which requires a valid email) and write
@@ -72,16 +76,12 @@ async function portalProfileHandler(
     && (hasUiLanguage || hasUiColorScheme || hasPortalTourCompleted);
 
   if (isUiPrefsOnly) {
-    const portalTourCompleted = hasPortalTourCompleted ? bool(payload.portal_tour_completed) : undefined;
-    if (hasPortalTourCompleted && portalTourCompleted === undefined) {
-      return jsonResponse(400, headers, { error: 'invalid_portal_tour_completed' });
-    }
     try {
       const pool = getPool();
       const updated = await updateUserUiPreferences(pool, user.id, {
         ...(hasUiLanguage ? { uiLanguage: str(payload.ui_language) ?? null } : {}),
         ...(hasUiColorScheme ? { uiColorScheme: str(payload.ui_color_scheme) ?? null } : {}),
-        ...(portalTourCompleted !== undefined ? { portalTourCompleted } : {}),
+        ...(portalTourCompletedParsed !== undefined ? { portalTourCompleted: portalTourCompletedParsed } : {}),
       });
       const row = updated ?? (await findUserById(pool, user.id)) ?? user;
       return jsonResponse(200, headers, {
@@ -109,6 +109,7 @@ async function portalProfileHandler(
       phone: str(payload.phone) ?? null,
       ...(hasUiLanguage ? { uiLanguage: str(payload.ui_language) ?? null } : {}),
       ...(hasUiColorScheme ? { uiColorScheme: str(payload.ui_color_scheme) ?? null } : {}),
+      ...(hasPortalTourCompleted ? { portalTourCompleted: portalTourCompletedParsed } : {}),
       notificationPreferences: (() => {
         const raw = asRecord(payload.notification_preferences);
         const emailEnabled = bool(raw.email_enabled);

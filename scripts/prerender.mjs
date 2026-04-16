@@ -104,6 +104,9 @@ async function prerender() {
 }
 
 prerender().catch((err) => {
-  console.error('Pre-render failed:', err);
-  process.exit(1);
+  // Gracefully skip pre-rendering in CI environments (e.g. Vercel) where
+  // Chrome/Puppeteer system dependencies are unavailable.
+  console.warn('Pre-render skipped:', err.message);
+  console.warn('The build will still work — pages render client-side via React.');
+  console.warn('Run "npm run prerender" locally before deploying for full SEO support.');
 });

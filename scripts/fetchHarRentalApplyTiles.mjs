@@ -1,6 +1,6 @@
 /**
  * Fetches each HAR listing by numeric id, parses JSON-LD + apply.link from HTML,
- * and writes src/data/rentalPropertyApplyTiles.generated.js for the Apply page.
+ * and writes src/data/rentalPropertyApplyTiles.generated.js (test fixture; /apply loads from API).
  *
  * HAR does not allow browser cross-origin fetches to listing pages, so this runs in Node.
  */

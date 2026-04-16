@@ -48,10 +48,10 @@ function buildEmailContent(
   row: QueuedDeliveryRow
 ): { subject: string; plainText: string } {
   const override = parsePayloadJson(row.payload_json);
-  if (override?.subject && override?.body) {
+  if (override?.subject && (override?.body || override?.body_text)) {
     return {
       subject: String(override.subject),
-      plainText: String(override.body),
+      plainText: String(override.body_text ?? override.body),
     };
   }
 

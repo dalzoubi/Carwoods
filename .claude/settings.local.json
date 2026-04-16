@@ -11,7 +11,8 @@
       "Bash(xargs wc:*)",
       "Bash(xargs grep:*)",
       "Bash(grep -E \"\\\\.\\(ts|sql|js\\)$\")",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)"
     ]
   }
 }

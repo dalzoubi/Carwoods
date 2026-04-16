@@ -156,59 +156,150 @@ async function adminNotificationTestHandler(
     }
 
     if (channel === 'email' && targetEmail) {
-      const payloadJson = JSON.stringify({
-        subject: title,
-        body_text: bodyText,
-        html_hint: `<p>${bodyText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`,
-      });
+      const acsConnStr = process.env.ACS_CONNECTION_STRING;
+      if (!acsConnStr) {
+        return jsonResponse(500, ctx.headers, { error: 'acs_not_configured' });
+      }
+
+      let providerMessageId: string | null = null;
+      let sendError: string | null = null;
+      try {
+        const { EmailClient } = await import('@azure/communication-email');
+        const emailClient = new EmailClient(acsConnStr);
+        const sender = process.env.ACS_SENDER_ADDRESS ?? 'noreply@carwoods.com';
+        const poller = await emailClient.beginSend({
+          senderAddress: sender,
+          recipients: { to: [{ address: targetEmail }] },
+          content: {
+            subject: title,
+            plainText: bodyText,
+          },
+        });
+        const result = await poller.pollUntilDone();
+        providerMessageId = result.id ?? null;
+      } catch (err) {
+        sendError = err instanceof Error ? err.message : String(err);
+      }
+
+      const deliveryStatus = sendError ? 'FAILED' : 'SENT';
       await client.query('BEGIN');
       const delivery = await insertNotificationDelivery(client, {
         outboxId: null,
         recipientTarget: targetEmail,
         templateId: TEMPLATE_EMAIL,
-        status: 'QUEUED',
-        payloadJson,
+        status: deliveryStatus as 'QUEUED' | 'SENT' | 'FAILED',
+        providerMessageId,
+        error: sendError,
+        payloadJson: JSON.stringify({
+          subject: title,
+          body_text: bodyText,
+        }),
       });
       await writeAudit(client, {
         actorUserId: ctx.user.id,
         entityType: 'NOTIFICATION_DELIVERY',
         entityId: delivery.id,
-        action: 'ADMIN_TEST_EMAIL_QUEUED',
+        action: sendError ? 'ADMIN_TEST_EMAIL_FAILED' : 'ADMIN_TEST_EMAIL_SENT',
         before: null,
-        after: { recipient: targetEmail, template_id: TEMPLATE_EMAIL },
+        after: {
+          recipient: targetEmail,
+          template_id: TEMPLATE_EMAIL,
+          provider_message_id: providerMessageId,
+          error: sendError,
+        },
       });
       await client.query('COMMIT');
-      logInfo(context, 'admin.notification_test.email', { userId: ctx.user.id, deliveryId: delivery.id });
+      logInfo(context, 'admin.notification_test.email', {
+        userId: ctx.user.id,
+        deliveryId: delivery.id,
+        status: deliveryStatus,
+      });
+
+      if (sendError) {
+        return jsonResponse(502, ctx.headers, {
+          channel: 'email',
+          delivery_id: delivery.id,
+          error: sendError,
+        });
+      }
       return jsonResponse(200, ctx.headers, {
         channel: 'email',
         delivery_id: delivery.id,
-        queued: true,
+        sent: true,
+        provider_message_id: providerMessageId,
       });
     }
 
-    const smsPayload = JSON.stringify({ body: bodyText });
+    const acsConnStr = process.env.ACS_CONNECTION_STRING;
+    const smsFrom = process.env.ACS_SMS_FROM_NUMBER;
+    if (!acsConnStr || !smsFrom) {
+      return jsonResponse(500, ctx.headers, {
+        error: !acsConnStr ? 'acs_not_configured' : 'sms_from_number_not_configured',
+      });
+    }
+
+    let providerMessageId: string | null = null;
+    let sendError: string | null = null;
+    try {
+      const { SmsClient } = await import('@azure/communication-sms');
+      const smsClient = new SmsClient(acsConnStr);
+      const [result] = await smsClient.send({
+        from: smsFrom,
+        to: [targetPhone!],
+        message: bodyText.slice(0, 160),
+      });
+      if (!result.successful) {
+        sendError = result.errorMessage ?? 'sms_send_failed';
+      } else {
+        providerMessageId = result.messageId ?? null;
+      }
+    } catch (err) {
+      sendError = err instanceof Error ? err.message : String(err);
+    }
+
+    const smsStatus = sendError ? 'FAILED' : 'SENT';
     await client.query('BEGIN');
     const delivery = await insertNotificationDelivery(client, {
       outboxId: null,
       recipientTarget: targetPhone!,
       templateId: TEMPLATE_SMS,
-      status: 'QUEUED',
-      payloadJson: smsPayload,
+      status: smsStatus as 'QUEUED' | 'SENT' | 'FAILED',
+      providerMessageId,
+      error: sendError,
+      payloadJson: JSON.stringify({ body: bodyText }),
     });
     await writeAudit(client, {
       actorUserId: ctx.user.id,
       entityType: 'NOTIFICATION_DELIVERY',
       entityId: delivery.id,
-      action: 'ADMIN_TEST_SMS_QUEUED',
+      action: sendError ? 'ADMIN_TEST_SMS_FAILED' : 'ADMIN_TEST_SMS_SENT',
       before: null,
-      after: { recipient: targetPhone, template_id: TEMPLATE_SMS },
+      after: {
+        recipient: targetPhone,
+        template_id: TEMPLATE_SMS,
+        provider_message_id: providerMessageId,
+        error: sendError,
+      },
     });
     await client.query('COMMIT');
-    logInfo(context, 'admin.notification_test.sms', { userId: ctx.user.id, deliveryId: delivery.id });
+    logInfo(context, 'admin.notification_test.sms', {
+      userId: ctx.user.id,
+      deliveryId: delivery.id,
+      status: smsStatus,
+    });
+
+    if (sendError) {
+      return jsonResponse(502, ctx.headers, {
+        channel: 'sms',
+        delivery_id: delivery.id,
+        error: sendError,
+      });
+    }
     return jsonResponse(200, ctx.headers, {
       channel: 'sms',
       delivery_id: delivery.id,
-      queued: true,
+      sent: true,
+      provider_message_id: providerMessageId,
     });
   } catch (e) {
     try {
