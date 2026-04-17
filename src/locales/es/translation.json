@@ -175,11 +175,13 @@
     "thirdPartyBody": "Nuestro sitio puede enlazar a servicios externos (p. ej., Texas Real Estate Commission, HAR.com). No somos responsables de sus prácticas de privacidad. Revise sus políticas antes de compartir información.",
     "notificationsHeading": "Preferencias de notificaciones y avisos obligatorios",
     "notificationsBody": "Puede controlar muchas configuraciones de notificación del portal en su perfil, incluidas las preferencias de correo electrónico, en la aplicación y SMS. Los avisos de seguridad y cumplimiento pueden seguir enviándose cuando lo exijan la ley, las políticas o la protección de la cuenta.",
+    "aiHeading": "Funciones de IA y tratamiento de datos",
+    "aiBody": "El portal de Carwoods utiliza inteligencia artificial para ayudar a los propietarios y administradores a redactar respuestas a las comunicaciones de los inquilinos, incluidas las solicitudes de mantenimiento. Para generar sugerencias, la IA puede procesar información como descripciones de solicitudes, historial de mensajes y contexto de la propiedad. Estos datos pueden transmitirse a proveedores externos de servicios de IA que operan bajo obligaciones de confidencialidad. El contenido generado por la IA no se almacena más allá de lo necesario para prestar el servicio. Los propietarios y administradores no deben incluir información personal sensible en las comunicaciones si prefieren que dichos datos no sean procesados por sistemas de IA.",
     "contactHeading": "Contacto",
     "contactBody": "Para preguntas relacionadas con la privacidad o para solicitar acceso a su información, contáctenos a través de nuestra página de",
     "contactLink": "Contáctenos",
     "contactBodySuffix": "",
-    "lastUpdated": "Última actualización: febrero de 2025"
+    "lastUpdated": "Última actualización: abril de 2026"
   },
   "terms": {
     "title": "Carwoods - Términos del Servicio",
@@ -208,11 +210,13 @@
     "contactBody": "Si tiene preguntas sobre estos Términos, contáctenos a través de nuestra página de",
     "contactLink": "Contáctenos",
     "contactBodySuffix": "",
-    "lastUpdated": "Última actualización: abril de 2025",
+    "lastUpdated": "Última actualización: abril de 2026",
     "portalServicesHeading": "Servicios de Portal y Suscripción",
     "portalServicesBody": "El portal de Carwoods se ofrece como servicio de software por suscripción para administradores de propiedades y propietarios independientes. Hay un nivel gratuito con funcionalidad limitada disponible. Los niveles de suscripción pagados están en desarrollo. El acceso al portal no garantiza un nivel específico de servicio, tiempo de actividad o disponibilidad de funciones.",
     "tenantDataHeading": "Datos de Inquilinos",
-    "tenantDataBody": "Los administradores que usan el portal de Carwoods invitan y gestionan a sus propios inquilinos. El administrador, y no Carwoods, es el responsable del tratamiento de datos personales de sus inquilinos dentro del portal. Los administradores son responsables de obtener el consentimiento apropiado de sus inquilinos."
+    "tenantDataBody": "Los administradores que usan el portal de Carwoods invitan y gestionan a sus propios inquilinos. El administrador, y no Carwoods, es el responsable del tratamiento de datos personales de sus inquilinos dentro del portal. Los administradores son responsables de obtener el consentimiento apropiado de sus inquilinos.",
+    "aiResponsesHeading": "Respuestas asistidas por IA",
+    "aiResponsesBody": "El portal de Carwoods incluye un asistente de inteligencia artificial que puede sugerir borradores de respuestas a las solicitudes de mantenimiento y otras comunicaciones de los inquilinos. Estas sugerencias se generan automáticamente y se ofrecen únicamente como una herramienta de apoyo. El propietario o administrador de la propiedad es el único responsable de revisar, editar, aprobar y enviar cualquier respuesta al inquilino, incluido cualquier borrador generado por la IA. Al enviar un mensaje sugerido por la IA, el propietario o administrador acepta la plena responsabilidad de su contenido. Carwoods no garantiza que las sugerencias generadas por la IA sean precisas, completas, legalmente conformes o adecuadas para ninguna situación particular. Las respuestas de la IA no constituyen asesoramiento legal, de seguridad, médico ni profesional. Los propietarios y administradores deben ejercer su propio juicio antes de comunicarse con los inquilinos y consultar a profesionales cualificados cuando sea necesario."
   },
   "accessibility": {
     "title": "Carwoods - Declaración de Accesibilidad",

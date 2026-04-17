@@ -175,11 +175,13 @@
     "thirdPartyBody": "Notre site peut renvoyer à des services externes (p. ex., Texas Real Estate Commission, HAR.com). Nous ne sommes pas responsables de leurs pratiques en matière de confidentialité. Veuillez consulter leurs politiques avant de partager des informations.",
     "notificationsHeading": "Préférences de notification et avis obligatoires",
     "notificationsBody": "Vous pouvez contrôler de nombreux paramètres de notification du portail dans votre profil, y compris les préférences e-mail, in-app et SMS. Les avis de sécurité et de conformité peuvent tout de même être envoyés lorsqu'ils sont requis par la loi, la politique ou la protection du compte.",
+    "aiHeading": "Fonctionnalités IA et traitement des données",
+    "aiBody": "Le portail Carwoods utilise l'intelligence artificielle pour aider les bailleurs et gestionnaires immobiliers à rédiger des réponses aux communications des locataires, notamment les demandes de maintenance. Pour générer des suggestions, l'IA peut traiter des informations telles que les descriptions de demandes, l'historique des messages et le contexte de la propriété. Ces données peuvent être transmises à des prestataires de services IA tiers opérant sous des obligations de confidentialité. Le contenu généré par l'IA n'est pas conservé au-delà de ce qui est nécessaire pour fournir le service. Les bailleurs et gestionnaires ne doivent pas inclure d'informations personnelles sensibles dans leurs communications s'ils préfèrent que ces données ne soient pas traitées par des systèmes d'IA.",
     "contactHeading": "Contact",
     "contactBody": "Pour les questions liées à la confidentialité ou pour demander l'accès à vos informations, contactez-nous via notre page",
     "contactLink": "Contactez-nous",
     "contactBodySuffix": "",
-    "lastUpdated": "Dernière mise à jour : février 2025"
+    "lastUpdated": "Dernière mise à jour : avril 2026"
   },
   "terms": {
     "title": "Carwoods - Conditions d'utilisation",
@@ -208,11 +210,13 @@
     "contactBody": "Si vous avez des questions sur ces Conditions, veuillez nous contacter via notre page",
     "contactLink": "Contactez-nous",
     "contactBodySuffix": "",
-    "lastUpdated": "Dernière mise à jour : avril 2025",
+    "lastUpdated": "Dernière mise à jour : avril 2026",
     "portalServicesHeading": "Services de Portail et d'Abonnement",
     "portalServicesBody": "Le portail Carwoods est proposé comme service logiciel par abonnement pour les gestionnaires immobiliers et les propriétaires indépendants. Un niveau gratuit avec des fonctionnalités limitées est disponible. Les niveaux payants sont en développement. L'accès au portail ne garantit pas un niveau de service, une disponibilité ou des fonctionnalités spécifiques.",
     "tenantDataHeading": "Données des Locataires",
-    "tenantDataBody": "Les gestionnaires qui utilisent le portail Carwoods invitent et gèrent leurs propres locataires. Le gestionnaire, et non Carwoods, est le responsable du traitement des données personnelles de ses locataires au sein du portail. Les gestionnaires sont responsables d'obtenir le consentement approprié de leurs locataires."
+    "tenantDataBody": "Les gestionnaires qui utilisent le portail Carwoods invitent et gèrent leurs propres locataires. Le gestionnaire, et non Carwoods, est le responsable du traitement des données personnelles de ses locataires au sein du portail. Les gestionnaires sont responsables d'obtenir le consentement approprié de leurs locataires.",
+    "aiResponsesHeading": "Réponses assistées par IA",
+    "aiResponsesBody": "Le portail Carwoods intègre un assistant d'intelligence artificielle susceptible de proposer des ébauches de réponses aux demandes de maintenance des locataires et autres communications. Ces suggestions sont générées automatiquement et sont proposées uniquement à titre d'aide. Le bailleur ou le gestionnaire immobilier est seul responsable de l'examen, de la modification, de l'approbation et de l'envoi de toute réponse à un locataire, y compris tout brouillon généré par l'IA. En envoyant un message suggéré par l'IA, le bailleur ou le gestionnaire accepte l'entière responsabilité de son contenu. Carwoods ne garantit pas que les suggestions générées par l'IA sont exactes, complètes, conformes à la loi ou adaptées à une situation particulière. Les réponses de l'IA ne constituent pas des conseils juridiques, de sécurité, médicaux ou professionnels. Les bailleurs et gestionnaires doivent exercer leur propre jugement avant de communiquer avec les locataires et consulter des professionnels qualifiés lorsque nécessaire."
   },
   "accessibility": {
     "title": "Carwoods - Déclaration d'accessibilité",
