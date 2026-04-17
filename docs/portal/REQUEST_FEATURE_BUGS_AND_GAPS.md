@@ -231,14 +231,14 @@ No test for `onMessageSubmit`.
 
 ### IMPLEMENTATION PRIORITIES
 
-**Phase 1 — Critical bugs (must fix):**
-1. BUG-1: Switch `current_status_id` → `status_code` in dashboard
-2. BUG-2: Exclude CANCELLED from open count (add stat or bucket with resolved)
-3. BUG-3: Replace `.replace()` i18n hack with dedicated key
-4. BUG-4: Make cancel success visible
-5. BUG-5: Isolate detail-load errors from list status
-6. BUG-6 through BUG-11: Reset per-request transient state on selection change
-7. GAP-18: Fix `RequestStatus` constants
+**Phase 1 — Critical bugs (must fix):** ✅ All complete
+1. ~~BUG-1: Switch `current_status_id` → `status_code` in dashboard~~ ✅
+2. ~~BUG-2: Exclude CANCELLED from open count (add stat or bucket with resolved)~~ ✅
+3. ~~BUG-3: Replace `.replace()` i18n hack with dedicated key~~ ✅
+4. ~~BUG-4: Make cancel success visible~~ ✅ Fixed in `RequestDetailPane.jsx` — success alert now shown at top of detail pane using `portalRequests.cancel.cancelled`
+5. ~~BUG-5: Isolate detail-load errors from list status~~ ✅
+6. ~~BUG-6 through BUG-11: Reset per-request transient state on selection change~~ ✅
+7. ~~GAP-18: Fix `RequestStatus` constants~~ ✅ Constants in `packages/domain/src/index.ts` are canonical and correct
 
 **Phase 2 — High-value UX gaps:**
 8. GAP-3, GAP-4: Add timestamps, category, priority to detail pane
