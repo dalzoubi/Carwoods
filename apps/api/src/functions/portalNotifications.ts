@@ -56,6 +56,23 @@ async function portalNotificationItem(
     return jsonResponse(405, headers, { error: 'method_not_allowed' });
   }
 
+  // Bulk action routed through the same {id} pattern to avoid Azure Functions
+  // static-vs-parameterised route conflicts.
+  if (request.params.id === 'mark-all-read') {
+    const client = await getPool().connect();
+    try {
+      await client.query('BEGIN');
+      const dismissed = await markAllPortalNotificationsRead(client, user.id);
+      await client.query('COMMIT');
+      return jsonResponse(200, headers, { ok: true, dismissed });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -97,39 +114,6 @@ app.http('portalNotificationsCollection', {
   authLevel: 'anonymous',
   route: 'portal/notifications',
   handler: portalNotificationsCollection,
-});
-
-async function portalNotificationsMarkAllRead(
-  request: HttpRequest,
-  context: InvocationContext
-): Promise<HttpResponseInit> {
-  const gate = await requirePortalUser(request, context);
-  if (!gate.ok) return gate.response;
-  const { user, headers } = gate.ctx;
-
-  if (request.method !== 'PATCH') {
-    return jsonResponse(405, headers, { error: 'method_not_allowed' });
-  }
-
-  const client = await getPool().connect();
-  try {
-    await client.query('BEGIN');
-    const dismissed = await markAllPortalNotificationsRead(client, user.id);
-    await client.query('COMMIT');
-    return jsonResponse(200, headers, { ok: true, dismissed });
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
-  }
-}
-
-app.http('portalNotificationsMarkAllRead', {
-  methods: ['PATCH', 'OPTIONS'],
-  authLevel: 'anonymous',
-  route: 'portal/notifications/mark-all-read',
-  handler: portalNotificationsMarkAllRead,
 });
 
 app.http('portalNotificationItem', {
