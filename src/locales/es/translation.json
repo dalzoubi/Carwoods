@@ -2116,7 +2116,23 @@
     "backToSite": "Volver a carwoods.com",
     "configWarning": "La autenticación del portal aún no está configurada.",
     "accountDisabled": "Tu cuenta ha sido desactivada. Comunícate con tu administrador de propiedad para obtener ayuda.",
-    "noPortalAccess": "Tu cuenta no tiene acceso a este portal. Comunícate con tu administrador de propiedad si crees que esto es un error."
+    "noPortalAccess": "Tu cuenta no tiene acceso a este portal. Comunícate con tu administrador de propiedad si crees que esto es un error.",
+    "keepSignedIn": "Mantener sesión iniciada",
+    "keepSignedInHelp": "Desactívalo en dispositivos compartidos o públicos. Se cerrará la sesión tras un período de inactividad.",
+    "acceptTerms": "Acepto los <termsLink>Términos de Uso</termsLink> y la <privacyLink>Política de Privacidad</privacyLink>.",
+    "acceptTermsAriaLabel": "Acepto los Términos de Uso y la Política de Privacidad",
+    "sessionEnded": {
+      "idle": "Se cerró la sesión por inactividad. Vuelve a iniciar sesión para continuar.",
+      "absolute": "Tu sesión ha expirado. Vuelve a iniciar sesión para continuar."
+    }
+  },
+  "session": {
+    "expiring": {
+      "title": "¿Sigues ahí?",
+      "body": "Por seguridad, se cerrará tu sesión en {{seconds}} segundos por inactividad.",
+      "stay": "Mantener sesión",
+      "signOut": "Cerrar sesión ahora"
+    }
   },
   "socialSignIn": {
     "prompt": "Iniciar sesión con",

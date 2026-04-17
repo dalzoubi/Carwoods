@@ -64,6 +64,9 @@ vi.mock('firebase/auth', () => ({
   onAuthStateChanged: mockOnAuthStateChanged,
   signInWithPopup: vi.fn(async () => ({ user: authState.currentUser })),
   signOut: mockFirebaseSignOut,
+  setPersistence: vi.fn(async () => undefined),
+  browserLocalPersistence: { type: 'LOCAL' },
+  browserSessionPersistence: { type: 'SESSION' },
 }));
 
 vi.mock('./featureFlags', () => ({
@@ -351,5 +354,301 @@ describe('PortalAuthContext — handleApiForbidden', () => {
     await new Promise((r) => setTimeout(r, 50));
     expect(screen.getByTestId('authStatus').textContent).toBe('authenticated');
     expect(mockFirebaseSignOut).not.toHaveBeenCalled();
+  });
+});
+
+// eslint-disable-next-line import/first
+import {
+  browserLocalPersistence,
+  browserSessionPersistence,
+  setPersistence,
+  signInWithPopup,
+} from 'firebase/auth';
+// eslint-disable-next-line import/first
+import {
+  ABSOLUTE_SESSION_DEFAULT_MS,
+  ABSOLUTE_SESSION_PERSIST_MS,
+  PERSIST_CHOICE_KEY,
+  SESSION_BROADCAST_CHANNEL,
+  SIGNED_IN_AT_KEY,
+} from './sessionConfig';
+
+function TriggerSignIn({ keepSignedIn }) {
+  const ctx = usePortalAuth();
+  return (
+    <div>
+      <span data-testid="authStatus">{ctx.authStatus}</span>
+      <span data-testid="lockoutReason">{ctx.lockoutReason ?? 'none'}</span>
+      <span data-testid="persistChoice">{ctx.persistChoice ? 'yes' : 'no'}</span>
+      <button
+        type="button"
+        data-testid="doSignIn"
+        onClick={() => ctx.signIn({ keepSignedIn })}
+      >
+        sign in
+      </button>
+    </div>
+  );
+}
+
+describe('PortalAuthContext — sign-in persistence', () => {
+  beforeEach(async () => {
+    meProfileState.meStatus = 'ok';
+    meProfileState.meData = { role: 'TENANT', user: { status: 'ACTIVE' } };
+    meProfileState.meError = '';
+    meProfileState.meErrorStatus = null;
+    meProfileState.meErrorCode = null;
+
+    authState.currentUser = {
+      uid: 'acc-1',
+      displayName: 'Test User',
+      email: 'user@example.com',
+      getIdToken: vi.fn().mockResolvedValue('token-abc'),
+    };
+    mockAuth.currentUser = authState.currentUser;
+    mockFirebaseSignOut.mockClear();
+    setPersistence.mockClear();
+    signInWithPopup.mockClear();
+    signInWithPopup.mockImplementation(async () => ({ user: authState.currentUser }));
+    mockOnAuthStateChanged.mockImplementation((_auth, onNext) => {
+      onNext(null);
+      return () => {};
+    });
+    try {
+      window.localStorage.clear();
+      window.sessionStorage.clear();
+    } catch {
+      // Ignore in non-browser envs.
+    }
+    await i18n.changeLanguage('en');
+  });
+
+  it('uses browserSessionPersistence by default (no "keep me signed in")', async () => {
+    render(
+      <PortalAuthProvider>
+        <TriggerSignIn keepSignedIn={false} />
+      </PortalAuthProvider>
+    );
+
+    // Ignore the mount-time migration call; only assert on the sign-in call.
+    setPersistence.mockClear();
+    screen.getByTestId('doSignIn').click();
+
+    await waitFor(() => expect(setPersistence).toHaveBeenCalled());
+    const [, persistence] = setPersistence.mock.calls[0];
+    expect(persistence).toBe(browserSessionPersistence);
+    await waitFor(() =>
+      expect(window.sessionStorage.getItem(SIGNED_IN_AT_KEY)).not.toBeNull()
+    );
+    expect(window.localStorage.getItem(SIGNED_IN_AT_KEY)).toBeNull();
+    expect(window.localStorage.getItem(PERSIST_CHOICE_KEY)).toBe('false');
+  });
+
+  it('uses browserLocalPersistence when keepSignedIn is true', async () => {
+    render(
+      <PortalAuthProvider>
+        <TriggerSignIn keepSignedIn={true} />
+      </PortalAuthProvider>
+    );
+
+    setPersistence.mockClear();
+    screen.getByTestId('doSignIn').click();
+
+    await waitFor(() => expect(setPersistence).toHaveBeenCalled());
+    const [, persistence] = setPersistence.mock.calls[0];
+    expect(persistence).toBe(browserLocalPersistence);
+    await waitFor(() =>
+      expect(window.localStorage.getItem(SIGNED_IN_AT_KEY)).not.toBeNull()
+    );
+    expect(window.localStorage.getItem(PERSIST_CHOICE_KEY)).toBe('true');
+  });
+
+  it('migrates legacy sessions to browserSessionPersistence on mount when no keepSignedIn choice is stored', async () => {
+    mockOnAuthStateChanged.mockImplementation((_auth, onNext) => {
+      onNext(authState.currentUser);
+      return () => {};
+    });
+
+    render(
+      <PortalAuthProvider>
+        <TriggerSignIn keepSignedIn={false} />
+      </PortalAuthProvider>
+    );
+
+    await waitFor(() => expect(setPersistence).toHaveBeenCalled());
+    const [, persistence] = setPersistence.mock.calls[0];
+    expect(persistence).toBe(browserSessionPersistence);
+  });
+
+  it('honors a stored keepSignedIn=true choice on mount (keeps localStorage)', async () => {
+    window.localStorage.setItem(PERSIST_CHOICE_KEY, 'true');
+    mockOnAuthStateChanged.mockImplementation((_auth, onNext) => {
+      onNext(authState.currentUser);
+      return () => {};
+    });
+
+    render(
+      <PortalAuthProvider>
+        <TriggerSignIn keepSignedIn={false} />
+      </PortalAuthProvider>
+    );
+
+    await waitFor(() => expect(setPersistence).toHaveBeenCalled());
+    const [, persistence] = setPersistence.mock.calls[0];
+    expect(persistence).toBe(browserLocalPersistence);
+  });
+
+  it('backfills signedInAt for legacy sessions that have none', async () => {
+    mockOnAuthStateChanged.mockImplementation((_auth, onNext) => {
+      onNext(authState.currentUser);
+      return () => {};
+    });
+
+    render(
+      <PortalAuthProvider>
+        <TriggerSignIn keepSignedIn={false} />
+      </PortalAuthProvider>
+    );
+
+    await waitFor(() =>
+      expect(window.sessionStorage.getItem(SIGNED_IN_AT_KEY)).not.toBeNull()
+    );
+  });
+});
+
+function AbsoluteInspector() {
+  const ctx = usePortalAuth();
+  return (
+    <div>
+      <span data-testid="authStatus">{ctx.authStatus}</span>
+      <span data-testid="lockoutReason">{ctx.lockoutReason ?? 'none'}</span>
+    </div>
+  );
+}
+
+describe('PortalAuthContext — absolute session cap', () => {
+  beforeEach(async () => {
+    meProfileState.meStatus = 'ok';
+    meProfileState.meData = { role: 'TENANT', user: { status: 'ACTIVE' } };
+    meProfileState.meError = '';
+    meProfileState.meErrorStatus = null;
+    meProfileState.meErrorCode = null;
+
+    authState.currentUser = {
+      uid: 'acc-1',
+      displayName: 'Test User',
+      email: 'user@example.com',
+      getIdToken: vi.fn().mockResolvedValue('token-abc'),
+    };
+    mockAuth.currentUser = authState.currentUser;
+    mockFirebaseSignOut.mockClear();
+    mockFirebaseSignOut.mockImplementation(async () => {
+      authState.currentUser = null;
+      mockAuth.currentUser = null;
+    });
+    mockOnAuthStateChanged.mockImplementation((_auth, onNext) => {
+      onNext(authState.currentUser);
+      return () => {};
+    });
+    try {
+      window.localStorage.clear();
+      window.sessionStorage.clear();
+    } catch {
+      // Ignore in non-browser envs.
+    }
+    await i18n.changeLanguage('en');
+  });
+
+  it('signs out with absolute_timeout when signedInAt is older than the default cap', async () => {
+    const past = Date.now() - ABSOLUTE_SESSION_DEFAULT_MS - 5_000;
+    window.sessionStorage.setItem(SIGNED_IN_AT_KEY, String(past));
+
+    render(
+      <PortalAuthProvider>
+        <AbsoluteInspector />
+      </PortalAuthProvider>
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('lockoutReason').textContent).toBe('absolute_timeout')
+    );
+    expect(mockFirebaseSignOut).toHaveBeenCalled();
+  });
+
+  it('does not sign out when signedInAt is within the 7-day cap for persisted sessions', async () => {
+    // Timestamp older than the 12h default cap but within the 7-day persist cap.
+    const inBetween = Date.now() - (ABSOLUTE_SESSION_DEFAULT_MS + 60_000);
+    window.localStorage.setItem(SIGNED_IN_AT_KEY, String(inBetween));
+    window.localStorage.setItem(PERSIST_CHOICE_KEY, 'true');
+    expect(inBetween).toBeGreaterThan(Date.now() - ABSOLUTE_SESSION_PERSIST_MS);
+
+    render(
+      <PortalAuthProvider>
+        <AbsoluteInspector />
+      </PortalAuthProvider>
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('authStatus').textContent).toBe('authenticated')
+    );
+    // Give the effect a tick to run check() without triggering signout.
+    await new Promise((r) => setTimeout(r, 50));
+    expect(screen.getByTestId('lockoutReason').textContent).toBe('none');
+    expect(mockFirebaseSignOut).not.toHaveBeenCalled();
+  });
+});
+
+describe('PortalAuthContext — cross-tab signout', () => {
+  beforeEach(async () => {
+    meProfileState.meStatus = 'ok';
+    meProfileState.meData = { role: 'TENANT', user: { status: 'ACTIVE' } };
+    meProfileState.meError = '';
+    meProfileState.meErrorStatus = null;
+    meProfileState.meErrorCode = null;
+
+    authState.currentUser = {
+      uid: 'acc-1',
+      displayName: 'Test User',
+      email: 'user@example.com',
+      getIdToken: vi.fn().mockResolvedValue('token-abc'),
+    };
+    mockAuth.currentUser = authState.currentUser;
+    mockFirebaseSignOut.mockClear();
+    mockOnAuthStateChanged.mockImplementation((_auth, onNext) => {
+      onNext(authState.currentUser);
+      return () => {};
+    });
+    try {
+      window.localStorage.clear();
+      window.sessionStorage.clear();
+    } catch {
+      // Ignore in non-browser envs.
+    }
+    await i18n.changeLanguage('en');
+  });
+
+  it('drops to unauthenticated when another tab broadcasts a signout', async () => {
+    if (typeof window.BroadcastChannel !== 'function') {
+      // jsdom may not implement BroadcastChannel; skip gracefully.
+      return;
+    }
+
+    render(
+      <PortalAuthProvider>
+        <Inspector />
+      </PortalAuthProvider>
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('authStatus').textContent).toBe('authenticated')
+    );
+
+    const other = new window.BroadcastChannel(SESSION_BROADCAST_CHANNEL);
+    other.postMessage({ type: 'signout' });
+
+    await waitFor(() =>
+      expect(screen.getByTestId('authStatus').textContent).toBe('unauthenticated')
+    );
+    other.close();
   });
 });

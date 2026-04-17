@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import {
   Box,
   Button,
+  Checkbox,
   CircularProgress,
   Divider,
+  FormControlLabel,
+  Link as MuiLink,
   Paper,
   Stack,
   Typography,
@@ -15,11 +18,34 @@ import ManageAccounts from '@mui/icons-material/ManageAccounts';
 import Login from '@mui/icons-material/Login';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { withDarkPath } from '../routePaths';
+import { PERSIST_CHECKBOX_DEFAULT, TERMS_ACCEPTED_KEY } from '../sessionConfig';
 import carwoodsLogo from '../assets/carwoods-logo.png';
 import StatusAlertSlot from './StatusAlertSlot';
+
+function readStoredTermsAccepted() {
+  if (typeof window === 'undefined') return false;
+  try {
+    return window.localStorage?.getItem(TERMS_ACCEPTED_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function writeStoredTermsAccepted(accepted) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (accepted) {
+      window.localStorage?.setItem(TERMS_ACCEPTED_KEY, 'true');
+    } else {
+      window.localStorage?.removeItem(TERMS_ACCEPTED_KEY);
+    }
+  } catch {
+    // Ignore storage errors.
+  }
+}
 
 const featureItems = [
   { key: 'requests', icon: <Build sx={{ fontSize: 28 }} /> },
@@ -31,6 +57,12 @@ const PortalLoginLanding = () => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const { authStatus, isAuthenticated, meStatus, signIn, lockoutReason } = usePortalAuth();
+  const [keepSignedIn, setKeepSignedIn] = useState(PERSIST_CHECKBOX_DEFAULT);
+  const [termsAccepted, setTermsAccepted] = useState(() => readStoredTermsAccepted());
+
+  useEffect(() => {
+    writeStoredTermsAccepted(termsAccepted);
+  }, [termsAccepted]);
   const isUnconfigured = authStatus === 'unconfigured';
   // Show spinner during Firebase auth init/sign-in and while /me is in-flight.
   const isLoading =
@@ -39,6 +71,8 @@ const PortalLoginLanding = () => {
     (isAuthenticated && meStatus === 'loading');
   const isAccountDisabled = lockoutReason === 'account_disabled';
   const isNoPortalAccess = lockoutReason === 'no_portal_access';
+  const isIdleTimeout = lockoutReason === 'idle_timeout';
+  const isAbsoluteTimeout = lockoutReason === 'absolute_timeout';
   const isLockedOut = isAccountDisabled || isNoPortalAccess;
 
   return (
@@ -113,6 +147,14 @@ const PortalLoginLanding = () => {
           />
 
           <StatusAlertSlot
+            message={isIdleTimeout ? { severity: 'info', text: t('portalLogin.sessionEnded.idle') } : null}
+          />
+
+          <StatusAlertSlot
+            message={isAbsoluteTimeout ? { severity: 'info', text: t('portalLogin.sessionEnded.absolute') } : null}
+          />
+
+          <StatusAlertSlot
             message={isUnconfigured ? { severity: 'warning', text: t('portalLogin.configWarning') } : null}
           />
 
@@ -128,17 +170,77 @@ const PortalLoginLanding = () => {
           )}
 
           {!isUnconfigured && !isLockedOut && !isLoading && (
-            <Button
-              type="button"
-              variant="contained"
-              fullWidth
-              size="large"
-              startIcon={<Login />}
-              onClick={signIn}
-              sx={{ textTransform: 'none', py: 1.3, fontWeight: 600 }}
-            >
-              {t('portalHeader.actions.signIn')}
-            </Button>
+            <Stack spacing={1} sx={{ width: '100%' }}>
+              <FormControlLabel
+                control={(
+                  <Checkbox
+                    size="small"
+                    checked={termsAccepted}
+                    onChange={(event) => setTermsAccepted(event.target.checked)}
+                    inputProps={{ 'aria-label': t('portalLogin.acceptTermsAriaLabel') }}
+                  />
+                )}
+                label={(
+                  <Typography variant="body2" color="text.secondary">
+                    <Trans
+                      i18nKey="portalLogin.acceptTerms"
+                      components={{
+                        termsLink: (
+                          <MuiLink
+                            component={RouterLink}
+                            to={withDarkPath(pathname, '/terms-of-service')}
+                            target="_blank"
+                            rel="noopener"
+                            underline="hover"
+                          />
+                        ),
+                        privacyLink: (
+                          <MuiLink
+                            component={RouterLink}
+                            to={withDarkPath(pathname, '/privacy')}
+                            target="_blank"
+                            rel="noopener"
+                            underline="hover"
+                          />
+                        ),
+                      }}
+                    />
+                  </Typography>
+                )}
+                sx={{ alignItems: 'center', mt: 0, mx: 0 }}
+              />
+              <FormControlLabel
+                control={(
+                  <Checkbox
+                    size="small"
+                    checked={keepSignedIn}
+                    onChange={(event) => setKeepSignedIn(event.target.checked)}
+                    inputProps={{ 'aria-label': t('portalLogin.keepSignedIn') }}
+                  />
+                )}
+                label={(
+                  <Typography variant="body2" color="text.secondary">
+                    {t('portalLogin.keepSignedIn')}
+                  </Typography>
+                )}
+                sx={{ mt: 0, mx: 0 }}
+              />
+              <Typography variant="caption" color="text.secondary">
+                {t('portalLogin.keepSignedInHelp')}
+              </Typography>
+              <Button
+                type="button"
+                variant="contained"
+                fullWidth
+                size="large"
+                startIcon={<Login />}
+                onClick={() => signIn({ keepSignedIn })}
+                disabled={!termsAccepted}
+                sx={{ textTransform: 'none', py: 1.3, fontWeight: 600, mt: 1 }}
+              >
+                {t('portalHeader.actions.signIn')}
+              </Button>
+            </Stack>
           )}
 
           <Button

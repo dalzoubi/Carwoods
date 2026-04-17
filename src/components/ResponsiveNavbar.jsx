@@ -145,7 +145,7 @@ const ResponsiveNavbar = () => {
         storedLanguageOverride,
         resetLanguagePreference,
     } = useLanguage();
-    const { isAuthenticated, signIn } = usePortalAuth();
+    const { isAuthenticated } = usePortalAuth();
     const { t } = useTranslation();
     const portalLinkTo = '/portal';
 
@@ -322,30 +322,16 @@ const ResponsiveNavbar = () => {
     const handleAccountClose = () => {
         setAccountAnchor(null);
     };
+    // Unauthenticated users are routed to /portal, where the auth gate renders
+    // the login screen with the Terms/Privacy agreement and "Keep me signed in"
+    // option. Calling Firebase's signIn directly from the marketing navbar
+    // would skip that flow.
     const navigateToPortal = () => {
         navigate(withDarkPath(pathname, '/portal'));
     };
-    const beginMarketingNavSignIn = () => {
-        signIn().then((didSignIn) => {
-            if (didSignIn) {
-                navigateToPortal();
-            }
-        });
-    };
-    const handleAccountButtonClick = (e) => {
-        if (!isAuthenticated) {
-            beginMarketingNavSignIn();
-            return;
-        }
-        handleAccountOpen(e);
-    };
     const handleDrawerSignInRowClick = () => {
         handleDrawerToggle();
-        if (isAuthenticated) {
-            navigateToPortal();
-            return;
-        }
-        beginMarketingNavSignIn();
+        navigateToPortal();
     };
     const rentersLinks = [
         { to: '/apply', label: t('tenantLinks.apply') },
@@ -465,7 +451,7 @@ const ResponsiveNavbar = () => {
                             variant="text"
                             id={PORTAL_ACCOUNT_MENU_BUTTON_ID}
                             aria-label={t('portalHeader.actions.signIn')}
-                            onClick={beginMarketingNavSignIn}
+                            onClick={navigateToPortal}
                             startIcon={<Login fontSize="small" aria-hidden />}
                             sx={{
                                 color: 'inherit',
@@ -485,7 +471,7 @@ const ResponsiveNavbar = () => {
                                 type="button"
                                 size="small"
                                 aria-label={t('portalHeader.actions.signIn')}
-                                onClick={beginMarketingNavSignIn}
+                                onClick={navigateToPortal}
                                 sx={toolbarChromeIconButtonSx}
                             >
                                 <Login fontSize="small" aria-hidden />
