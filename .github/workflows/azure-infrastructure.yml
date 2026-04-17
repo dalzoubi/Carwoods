@@ -324,16 +324,14 @@ jobs:
           esac
 
           for ROLE_NAME in "${ROLE_NAMES[@]}"; do
+            # Scope-only query avoids --assignee-principal-type (not supported on older Azure CLI, including some ubuntu-latest images).
             EXISTING_ASSIGNMENT_COUNT=$(az role assignment list \
-              --assignee-object-id "$PRINCIPAL_ID" \
-              --assignee-principal-type ServicePrincipal \
               --scope "$ACS_SCOPE" \
-              --query "length([?roleDefinitionName=='$ROLE_NAME'])" -o tsv)
+              --query "length([?principalId=='$PRINCIPAL_ID' && roleDefinitionName=='$ROLE_NAME'])" -o tsv)
 
             if [ "$EXISTING_ASSIGNMENT_COUNT" = "0" ]; then
               az role assignment create \
                 --assignee-object-id "$PRINCIPAL_ID" \
-                --assignee-principal-type ServicePrincipal \
                 --scope "$ACS_SCOPE" \
                 --role "$ROLE_NAME" \
                 --output none
