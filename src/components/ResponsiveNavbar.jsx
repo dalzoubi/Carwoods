@@ -390,7 +390,7 @@ const ResponsiveNavbar = () => {
                     <Print aria-hidden />
                 </IconButton>
             ) : null}
-            {showAppearanceMenu ? (
+            {showAppearanceMenu && !isMobile ? (
                 <Tooltip title={t('nav.appearance')} arrow>
                     <IconButton
                         color="inherit"
@@ -409,23 +409,25 @@ const ResponsiveNavbar = () => {
                     </IconButton>
                 </Tooltip>
             ) : null}
-            <Tooltip title={t('nav.language')} arrow>
-                <IconButton
-                    color="inherit"
-                    type="button"
-                    size="small"
-                    id="language-menu-button-toolbar"
-                    data-language-trigger="toolbar"
-                    aria-label={t('nav.selectLanguage')}
-                    aria-haspopup="true"
-                    aria-expanded={Boolean(languageAnchor)}
-                    aria-controls={languageAnchor ? 'language-menu' : undefined}
-                    onClick={handleLanguageOpen}
-                    sx={toolbarChromeIconButtonSx}
-                >
-                    <Language aria-hidden />
-                </IconButton>
-            </Tooltip>
+            {!isMobile ? (
+                <Tooltip title={t('nav.language')} arrow>
+                    <IconButton
+                        color="inherit"
+                        type="button"
+                        size="small"
+                        id="language-menu-button-toolbar"
+                        data-language-trigger="toolbar"
+                        aria-label={t('nav.selectLanguage')}
+                        aria-haspopup="true"
+                        aria-expanded={Boolean(languageAnchor)}
+                        aria-controls={languageAnchor ? 'language-menu' : undefined}
+                        onClick={handleLanguageOpen}
+                        sx={toolbarChromeIconButtonSx}
+                    >
+                        <Language aria-hidden />
+                    </IconButton>
+                </Tooltip>
+            ) : null}
             {isAuthenticated ? (
                 <PortalNotificationsTray
                     ref={notificationsTrayRef}
@@ -503,7 +505,7 @@ const ResponsiveNavbar = () => {
                             px: isMobile ? 1.1 : signInCtaButtonSx.px,
                         }}
                     >
-                        {t('nav.getStarted')}
+                        {isMobile ? t('nav.getStartedShort') : t('nav.getStarted')}
                     </Button>
                 </>
             )}
@@ -638,6 +640,17 @@ const ResponsiveNavbar = () => {
                             <ListItemText primary={t('nav.appearance')} style={{ color: muiTheme.palette.drawer.text }} />
                         </ListItemButton>
                     )}
+                    <ListItemButton
+                        id="language-menu-button-drawer"
+                        data-language-trigger="drawer"
+                        onClick={handleLanguageOpen}
+                        sx={listItemButtonSx}
+                    >
+                        <ListItemIcon sx={{ minWidth: 36, color: muiTheme.palette.drawer.text }}>
+                            <Language fontSize="small" aria-hidden />
+                        </ListItemIcon>
+                        <ListItemText primary={t('nav.language')} style={{ color: muiTheme.palette.drawer.text }} />
+                    </ListItemButton>
                 </List>
             </nav>
         </div>
