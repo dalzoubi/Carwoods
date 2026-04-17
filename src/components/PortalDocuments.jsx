@@ -906,17 +906,16 @@ const PortalDocuments = () => {
               />
             </Stack>
           )}
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems={{ md: 'flex-start' }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'flex-start' }}>
             <TextField
-              fullWidth
               size="small"
               label={t('portalDocuments.search')}
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               InputProps={{ startAdornment: <Search fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} /> }}
-              sx={{ flex: { md: 1 }, minWidth: 0 }}
+              sx={{ flex: '1 1 200px', minWidth: 0 }}
             />
-            <FormControl size="small" sx={{ minWidth: { md: 200 }, width: { xs: '100%', md: 'auto' } }}>
+            <FormControl size="small" sx={{ flex: '1 1 160px', minWidth: 0 }}>
               <InputLabel id="documents-filter-doc-type">{t('portalDocuments.type')}</InputLabel>
               <Select
                 labelId="documents-filter-doc-type"
@@ -931,7 +930,7 @@ const PortalDocuments = () => {
               </Select>
             </FormControl>
             {isTenant && tenantPropertyChoices.length > 0 ? (
-              <FormControl size="small" sx={{ minWidth: { md: 200 }, width: { xs: '100%', md: 'auto' } }}>
+              <FormControl size="small" sx={{ flex: '1 1 160px', minWidth: 0 }}>
                 <InputLabel id="documents-filter-property-tenant">{t('portalDocuments.property')}</InputLabel>
                 <Select
                   labelId="documents-filter-property-tenant"
@@ -950,7 +949,7 @@ const PortalDocuments = () => {
               </FormControl>
             ) : null}
             {isTenant && eligibleLeases.length > 0 ? (
-              <FormControl size="small" sx={{ minWidth: { md: 220 }, width: { xs: '100%', md: 'auto' } }}>
+              <FormControl size="small" sx={{ flex: '1 1 160px', minWidth: 0 }}>
                 <InputLabel id="documents-filter-lease-tenant">{t('portalDocuments.lease')}</InputLabel>
                 <Select
                   labelId="documents-filter-lease-tenant"
@@ -974,7 +973,7 @@ const PortalDocuments = () => {
                   size="small"
                   onClick={clearDocFilters}
                   aria-label={t('portalDocuments.clearFilters')}
-                  sx={{ ...portalToolbarIconBtnSx, alignSelf: { md: 'center' }, color: 'primary.main' }}
+                  sx={{ ...portalToolbarIconBtnSx, alignSelf: 'center', color: 'primary.main' }}
                 >
                   <FilterAltOff fontSize="small" />
                 </IconButton>
@@ -982,7 +981,7 @@ const PortalDocuments = () => {
             ) : null}
             {!isTenant ? (
               <>
-                <FormControl size="small" sx={{ minWidth: { md: 200 }, width: { xs: '100%', md: 'auto' } }}>
+                <FormControl size="small" sx={{ flex: '1 1 160px', minWidth: 0 }}>
                   <InputLabel id="documents-filter-property">{t('portalDocuments.property')}</InputLabel>
                   <Select
                     labelId="documents-filter-property"
@@ -1005,7 +1004,7 @@ const PortalDocuments = () => {
                 <FormControl
                   size="small"
                   disabled={!filterPropertyId}
-                  sx={{ minWidth: { md: 200 }, width: { xs: '100%', md: 'auto' } }}
+                  sx={{ flex: '1 1 160px', minWidth: 0 }}
                 >
                   <InputLabel id="documents-filter-tenant">{t('portalDocuments.tenantFilter')}</InputLabel>
                   <Select
@@ -1027,7 +1026,7 @@ const PortalDocuments = () => {
                 <FormControl
                   size="small"
                   disabled={!filterTenantUserId}
-                  sx={{ minWidth: { md: 220 }, width: { xs: '100%', md: 'auto' } }}
+                  sx={{ flex: '1 1 160px', minWidth: 0 }}
                 >
                   <InputLabel id="documents-filter-lease">{t('portalDocuments.lease')}</InputLabel>
                   <Select
@@ -1045,20 +1044,22 @@ const PortalDocuments = () => {
                     ))}
                   </Select>
                 </FormControl>
-                <Tooltip title={t('portalDocuments.clearFilters')}>
-                  <IconButton
-                    type="button"
-                    size="small"
-                    onClick={clearDocFilters}
-                    aria-label={t('portalDocuments.clearFilters')}
-                    sx={{ ...portalToolbarIconBtnSx, alignSelf: { md: 'center' }, color: 'primary.main' }}
-                  >
-                    <FilterAltOff fontSize="small" />
-                  </IconButton>
-                </Tooltip>
+                {(filterPropertyId || filterTenantUserId || filterLeaseId || filterDocumentType) ? (
+                  <Tooltip title={t('portalDocuments.clearFilters')}>
+                    <IconButton
+                      type="button"
+                      size="small"
+                      onClick={clearDocFilters}
+                      aria-label={t('portalDocuments.clearFilters')}
+                      sx={{ ...portalToolbarIconBtnSx, alignSelf: 'center', color: 'primary.main' }}
+                    >
+                      <FilterAltOff fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                ) : null}
               </>
             ) : null}
-          </Stack>
+          </Box>
         </Stack>
       </Paper>
 
