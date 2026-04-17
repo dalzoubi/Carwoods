@@ -2057,6 +2057,8 @@
       "dismissError": "Couldn't dismiss notification. Please try again.",
       "dismissOfflineFallback": "Dismissed on this device only — couldn't sync to other devices.",
       "markAllRead": "Mark all as read",
+      "dismissAll": "Dismiss all",
+      "dismissAllError": "Couldn't dismiss all notifications. Please try again.",
       "viewAll": "View all notifications"
     }
   },
