@@ -380,6 +380,14 @@ function RealPortalAuthProvider({ children }) {
     }
     setAuthStatus('initializing');
     setAuthError('');
+    // Migrate existing Firebase sessions to the persistence tier the user
+    // actually chose. This is what makes the "close tab = signed out" rule
+    // apply to users who signed in BEFORE this feature shipped (their
+    // Firebase session lives in localStorage until we move it).
+    const desired = readPersistChoice() ? browserLocalPersistence : browserSessionPersistence;
+    setPersistence(auth, desired).catch(() => {
+      // Best-effort migration; Firebase falls back to its current persistence.
+    });
     const unsubscribe = onAuthStateChanged(
       auth,
       (user) => {
@@ -399,6 +407,12 @@ function RealPortalAuthProvider({ children }) {
           return nextAcc;
         });
         setAuthStatus(user ? 'authenticated' : 'unauthenticated');
+        // Backfill signedInAt for users whose session predates this feature
+        // so the absolute-session cap starts ticking from first sight instead
+        // of letting them stay indefinitely.
+        if (user && readSignedInAt() == null) {
+          writeSignedInAt(readPersistChoice(), Date.now());
+        }
       },
       (error) => {
         setAccount(null);

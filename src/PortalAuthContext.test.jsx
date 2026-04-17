@@ -430,6 +430,8 @@ describe('PortalAuthContext — sign-in persistence', () => {
       </PortalAuthProvider>
     );
 
+    // Ignore the mount-time migration call; only assert on the sign-in call.
+    setPersistence.mockClear();
     screen.getByTestId('doSignIn').click();
 
     await waitFor(() => expect(setPersistence).toHaveBeenCalled());
@@ -449,6 +451,7 @@ describe('PortalAuthContext — sign-in persistence', () => {
       </PortalAuthProvider>
     );
 
+    setPersistence.mockClear();
     screen.getByTestId('doSignIn').click();
 
     await waitFor(() => expect(setPersistence).toHaveBeenCalled());
@@ -458,6 +461,58 @@ describe('PortalAuthContext — sign-in persistence', () => {
       expect(window.localStorage.getItem(SIGNED_IN_AT_KEY)).not.toBeNull()
     );
     expect(window.localStorage.getItem(PERSIST_CHOICE_KEY)).toBe('true');
+  });
+
+  it('migrates legacy sessions to browserSessionPersistence on mount when no keepSignedIn choice is stored', async () => {
+    mockOnAuthStateChanged.mockImplementation((_auth, onNext) => {
+      onNext(authState.currentUser);
+      return () => {};
+    });
+
+    render(
+      <PortalAuthProvider>
+        <TriggerSignIn keepSignedIn={false} />
+      </PortalAuthProvider>
+    );
+
+    await waitFor(() => expect(setPersistence).toHaveBeenCalled());
+    const [, persistence] = setPersistence.mock.calls[0];
+    expect(persistence).toBe(browserSessionPersistence);
+  });
+
+  it('honors a stored keepSignedIn=true choice on mount (keeps localStorage)', async () => {
+    window.localStorage.setItem(PERSIST_CHOICE_KEY, 'true');
+    mockOnAuthStateChanged.mockImplementation((_auth, onNext) => {
+      onNext(authState.currentUser);
+      return () => {};
+    });
+
+    render(
+      <PortalAuthProvider>
+        <TriggerSignIn keepSignedIn={false} />
+      </PortalAuthProvider>
+    );
+
+    await waitFor(() => expect(setPersistence).toHaveBeenCalled());
+    const [, persistence] = setPersistence.mock.calls[0];
+    expect(persistence).toBe(browserLocalPersistence);
+  });
+
+  it('backfills signedInAt for legacy sessions that have none', async () => {
+    mockOnAuthStateChanged.mockImplementation((_auth, onNext) => {
+      onNext(authState.currentUser);
+      return () => {};
+    });
+
+    render(
+      <PortalAuthProvider>
+        <TriggerSignIn keepSignedIn={false} />
+      </PortalAuthProvider>
+    );
+
+    await waitFor(() =>
+      expect(window.sessionStorage.getItem(SIGNED_IN_AT_KEY)).not.toBeNull()
+    );
   });
 });
 
