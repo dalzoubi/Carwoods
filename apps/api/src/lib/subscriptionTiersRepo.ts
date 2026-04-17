@@ -12,6 +12,7 @@ export type TierLimits = {
   request_photo_video_attachments_enabled: boolean;
   property_apply_visibility_editable: boolean;
   property_elsa_auto_send_editable: boolean;
+  document_center_enabled: boolean;
 };
 
 export type TierRow = {
@@ -42,6 +43,7 @@ type TierRowRaw = {
   request_photo_video_attachments_enabled: boolean | Buffer;
   property_apply_visibility_editable: boolean | Buffer;
   property_elsa_auto_send_editable: boolean | Buffer;
+  document_center_enabled: boolean | Buffer;
 };
 
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
@@ -50,7 +52,8 @@ const TIER_COLUMNS = `id, name, display_name, description, is_active, created_at
   max_properties, max_tenants, ai_routing_enabled, csv_export_enabled,
   custom_notifications_enabled, notification_email_enabled, notification_sms_enabled,
   maintenance_request_history_days, request_photo_video_attachments_enabled,
-  property_apply_visibility_editable, property_elsa_auto_send_editable`;
+  property_apply_visibility_editable, property_elsa_auto_send_editable,
+  document_center_enabled`;
 
 function asBool(v: boolean | Buffer | undefined): boolean {
   if (typeof v === 'boolean') return v;
@@ -78,6 +81,7 @@ function rawToLimits(raw: TierRowRaw): TierLimits {
     request_photo_video_attachments_enabled: asBool(raw.request_photo_video_attachments_enabled),
     property_apply_visibility_editable: asBool(raw.property_apply_visibility_editable),
     property_elsa_auto_send_editable: asBool(raw.property_elsa_auto_send_editable),
+    document_center_enabled: asBool(raw.document_center_enabled),
   };
 }
 
@@ -112,6 +116,8 @@ function mergeLimits(current: TierLimits, patch: Partial<TierLimits>): TierLimit
       patch.property_apply_visibility_editable ?? current.property_apply_visibility_editable,
     property_elsa_auto_send_editable:
       patch.property_elsa_auto_send_editable ?? current.property_elsa_auto_send_editable,
+    document_center_enabled:
+      patch.document_center_enabled ?? current.document_center_enabled,
   };
 }
 
@@ -127,6 +133,7 @@ function limitsToDbValues(l: TierLimits): {
   request_photo_video_attachments_enabled: boolean;
   property_apply_visibility_editable: boolean;
   property_elsa_auto_send_editable: boolean;
+  document_center_enabled: boolean;
 } {
   return {
     max_properties: l.max_properties,
@@ -140,6 +147,7 @@ function limitsToDbValues(l: TierLimits): {
     request_photo_video_attachments_enabled: l.request_photo_video_attachments_enabled,
     property_apply_visibility_editable: l.property_apply_visibility_editable,
     property_elsa_auto_send_editable: l.property_elsa_auto_send_editable,
+    document_center_enabled: l.document_center_enabled,
   };
 }
 
@@ -201,14 +209,16 @@ export async function updateTier(
          maintenance_request_history_days = $11,
          request_photo_video_attachments_enabled = $12,
          property_apply_visibility_editable = $13,
-         property_elsa_auto_send_editable = $14
+         property_elsa_auto_send_editable = $14,
+         document_center_enabled = $15
      OUTPUT INSERTED.id, INSERTED.name, INSERTED.display_name, INSERTED.description, INSERTED.is_active,
             INSERTED.created_at,
             INSERTED.max_properties, INSERTED.max_tenants, INSERTED.ai_routing_enabled,
             INSERTED.csv_export_enabled, INSERTED.custom_notifications_enabled,
             INSERTED.notification_email_enabled, INSERTED.notification_sms_enabled,
             INSERTED.maintenance_request_history_days, INSERTED.request_photo_video_attachments_enabled,
-            INSERTED.property_apply_visibility_editable, INSERTED.property_elsa_auto_send_editable
+            INSERTED.property_apply_visibility_editable, INSERTED.property_elsa_auto_send_editable,
+            INSERTED.document_center_enabled
      WHERE id = $1`,
     [
       id,
@@ -225,6 +235,7 @@ export async function updateTier(
       cols.request_photo_video_attachments_enabled ? 1 : 0,
       cols.property_apply_visibility_editable ? 1 : 0,
       cols.property_elsa_auto_send_editable ? 1 : 0,
+      cols.document_center_enabled ? 1 : 0,
     ]
   );
   const raw = r.rows[0];

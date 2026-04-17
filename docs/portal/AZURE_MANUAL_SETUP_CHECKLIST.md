@@ -44,6 +44,10 @@ Set repository variables:
 7. `AZURE_LOCATION` = `eastus2` (recommended explicit)
 8. `AZURE_SQL_ADMIN_USER` (optional; defaults to `carwoodsadmin`)
 9. `AZURE_SQL_DATABASE_NAME` (optional; defaults to `carwoods_portal_prod`)
+10. `AZURE_STORAGE_CONTAINER_NAME` (optional; defaults to `carwoods-portal-prod` in the infra workflow)
+11. `DOCUMENT_STORAGE_CONTAINER_NAME` (optional; defaults to `carwoods-documents-prod` in the infra workflow)
+12. `DOCUMENT_CENTER_ENABLED` (optional; defaults to `true`)
+13. `DOCUMENT_CENTER_SCAN_BYPASS` (optional; production should be `false`)
 
 ## 5) Run infrastructure workflow
 
@@ -72,9 +76,14 @@ Set repository variables:
 1. Set/verify required app settings from `docs/portal/ENV_CONTRACT.md`, especially:
    1. `DATABASE_URL`
    2. storage settings (`AzureWebJobsStorage`, blob config)
-   3. `ACS_CONNECTION_STRING` (or MI equivalent)
-   4. `FIREBASE_PROJECT_ID`
-   5. CORS via `CORS_ALLOWED_ORIGINS`
+   3. Document Center settings:
+      1. `DOCUMENT_STORAGE_CONTAINER_NAME=carwoods-documents-prod`
+      2. `DOCUMENT_CENTER_ENABLED=true`
+      3. `DOCUMENT_CENTER_SCAN_BYPASS=false`
+      4. `NODE_ENV=production`
+   4. `ACS_CONNECTION_STRING` (or MI equivalent)
+   5. `FIREBASE_PROJECT_ID`
+   6. CORS via `CORS_ALLOWED_ORIGINS`
 2. Restart app if needed after setting updates.
 
 ## 8) Run SQL migrations
@@ -92,6 +101,7 @@ Set repository variables:
 1. Sign in to portal with a valid role.
 2. Create/view a maintenance request.
 3. Confirm notification and request endpoints return expected results.
+4. For Document Center, confirm the Function App has a private `carwoods-documents-prod` blob container (or the value you set in `DOCUMENT_STORAGE_CONTAINER_NAME`) and that uploads remain scan-gated in production (`DOCUMENT_CENTER_SCAN_BYPASS=false`) until Defender scan callbacks are wired.
 
 ## 11) ACS follow-up (often manual)
 

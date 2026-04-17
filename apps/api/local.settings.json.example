@@ -18,6 +18,10 @@
     "AZURE_STORAGE_ACCOUNT_KEY": "<storage-account-key>",
     "AZURE_STORAGE_CONTAINER_NAME": "carwoods-portal-dev",
 
+    "DOCUMENT_STORAGE_CONTAINER_NAME": "carwoods-documents-dev",
+    "DOCUMENT_CENTER_ENABLED": "true",
+    "DOCUMENT_CENTER_SCAN_BYPASS": "true",
+
     "ACS_CONNECTION_STRING": "Endpoint=https://<your-acs-resource>.communication.azure.com/;AccessKey=<primary-key>",
     "ACS_ENDPOINT": "https://<your-acs-resource>.communication.azure.com/",
     "ACS_AUTH_MODE": "connection_string",

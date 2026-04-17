@@ -35,6 +35,7 @@ function usePageTitle(t) {
   const titles = {
     '/portal': t('portalLayout.sidebar.dashboard'),
     '/portal/requests': t('portalLayout.sidebar.requests'),
+    '/portal/documents': t('portalLayout.sidebar.documents'),
     '/portal/profile': t('portalLayout.sidebar.profile'),
     '/portal/admin': t('portalLayout.sidebar.adminLandlords'),
     '/portal/admin/landlords': t('portalLayout.sidebar.adminLandlords'),

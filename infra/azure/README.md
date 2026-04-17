@@ -176,6 +176,10 @@ Open the **Variables** tab → **New repository variable**.
 | `AZURE_LOCATION`             | **Recommended.** Set to `eastus2` so push-triggered runs use the same region as your resource group. If unset, the workflow defaults to `eastus2`. | `eastus2`           |
 | `AZURE_SQL_ADMIN_USER`       | **Optional.** Admin login used by the SQL migrations workflow. If unset, defaults to `carwoodsadmin` (the Bicep param default). Only needed if you deployed with a custom `sqlAdminUser`. | `carwoodsadmin`     |
 | `AZURE_SQL_DATABASE_NAME`    | **Optional.** Database name used by the SQL migrations workflow. If unset, defaults to `carwoods_portal_prod` (the Bicep param default). | `carwoods_portal_prod`   |
+| `AZURE_STORAGE_CONTAINER_NAME` | **Optional.** Private container for maintenance request attachments. If unset, the infrastructure workflow uses `carwoods-portal-prod`. | `carwoods-portal-prod` |
+| `DOCUMENT_STORAGE_CONTAINER_NAME` | **Optional.** Private container for Document Center files. If unset, the infrastructure workflow uses `carwoods-documents-prod`. | `carwoods-documents-prod` |
+| `DOCUMENT_CENTER_ENABLED` | **Optional.** API kill switch. If unset, the infrastructure workflow sets `true`. | `true` |
+| `DOCUMENT_CENTER_SCAN_BYPASS` | **Optional.** Must be `false` in production until malware scan callbacks are fully wired. If unset, the infrastructure workflow sets `false`. | `false` |
 
 
 **Check name availability (CLI, after `az login`):**
@@ -202,6 +206,7 @@ az sql server list --query "[].name" -o tsv
 **Success:** The infrastructure workflow runs one job:
 
 1. **Deploy Bicep to carwoods.com** — provisions/updates Azure resources and prints JSON outputs (`functionAppHost`, `sqlServerFqdn`, etc.).
+2. **Configure storage containers/app settings** — creates the private maintenance and Document Center blob containers if missing, sets storage account app settings for SAS generation, sets `NODE_ENV=production`, and sets Document Center kill-switch/scan-bypass settings.
 
 SQL migrations now run in a dedicated workflow: **Azure SQL migrations** (`.github/workflows/azure-sql-migrations.yml`).
 
@@ -213,6 +218,7 @@ SQL migrations now run in a dedicated workflow: **Azure SQL migrations** (`.gith
 | **No subscriptions found** (often for `***`) | See [below](#troubleshooting-no-subscriptions-found) — wrong subscription/tenant secret, or app has **no RBAC** on that subscription. |
 | `Authorization failed` / 403 | RBAC: app must be **Contributor** (or equivalent) on **carwoods.com** or subscription. |
 | Storage name invalid / taken | `AZURE_STORAGE_ACCOUNT_NAME`: length, lowercase, global uniqueness. |
+| Document Center uploads available before scan | Confirm Function App settings include `NODE_ENV=production` and `DOCUMENT_CENTER_SCAN_BYPASS=false`. |
 | SQL server name invalid / taken | `AZURE_SQL_SERVER_NAME`: 1–63 chars, lowercase, hyphens OK, globally unique. |
 | Missing SQL password | Set secret `AZURE_SQL_ADMIN_PASSWORD` (≥ 8 chars, complexity required). |
 | Wrong subscription | `AZURE_SUBSCRIPTION_ID` must be the subscription where `carwoods.com` lives. |
@@ -379,7 +385,19 @@ done
 
 **Adding new migrations:** create `infra/db/migrations/003_….sql` and push to `main`. The SQL workflow will pick it up automatically. Name must start with a unique numeric prefix that sorts after existing migrations.
 
-### G6. Later: more Azure resources
+### G6. Document Center storage and scanning
+
+Document Center stores files in a dedicated private blob container. The infrastructure workflow defaults to:
+
+- `AZURE_STORAGE_CONTAINER_NAME=carwoods-portal-prod`
+- `DOCUMENT_STORAGE_CONTAINER_NAME=carwoods-documents-prod`
+- `DOCUMENT_CENTER_ENABLED=true`
+- `DOCUMENT_CENTER_SCAN_BYPASS=false`
+- `NODE_ENV=production`
+
+Before paid launch, enable Azure Defender for Storage on the storage account and wire scan-result callbacks/jobs to update `documents.scan_status`. The API already blocks preview/download/share for files that are not `CLEAN`, but production should not invite real documents until scanning and operational runbooks are complete.
+
+### G7. Later: more Azure resources
 
 - **Blob / ACS** — add in **carwoods.com**, **East US 2**, or extend Bicep.
 
@@ -403,6 +421,10 @@ done
 | Variable | `AZURE_LOCATION` (recommended: `eastus2`) |
 | Variable | `AZURE_SQL_ADMIN_USER` (optional: defaults to `carwoodsadmin`) |
 | Variable | `AZURE_SQL_DATABASE_NAME` (optional: defaults to `carwoods_portal_prod`) |
+| Variable | `AZURE_STORAGE_CONTAINER_NAME` (optional: defaults to `carwoods-portal-prod`) |
+| Variable | `DOCUMENT_STORAGE_CONTAINER_NAME` (optional: defaults to `carwoods-documents-prod`) |
+| Variable | `DOCUMENT_CENTER_ENABLED` (optional: defaults to `true`) |
+| Variable | `DOCUMENT_CENTER_SCAN_BYPASS` (optional: production should be `false`) |
 
 
 ---

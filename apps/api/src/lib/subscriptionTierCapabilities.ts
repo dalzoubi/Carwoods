@@ -15,6 +15,7 @@ export type SubscriptionFeaturesPayload = {
   csv_export_enabled: boolean;
   sms_channel_enabled: boolean;
   notification_email_enabled: boolean;
+  document_center_enabled: boolean;
 };
 
 export function tierLimitsToSubscriptionFeatures(limits: TierLimits): SubscriptionFeaturesPayload {
@@ -24,6 +25,7 @@ export function tierLimitsToSubscriptionFeatures(limits: TierLimits): Subscripti
     csv_export_enabled: limits.csv_export_enabled,
     sms_channel_enabled: limits.notification_channels.includes('sms'),
     notification_email_enabled: limits.notification_channels.includes('email'),
+    document_center_enabled: limits.document_center_enabled,
   };
 }
 
@@ -140,6 +142,21 @@ export async function assertRequestPhotoVideoAttachmentsEnabled(
 ): Promise<void> {
   const lim = await getEffectiveTierLimitsForRequest(db, requestId);
   if (!lim.request_photo_video_attachments_enabled) {
+    throw validationError('subscription_feature_not_available');
+  }
+}
+
+export async function assertDocumentCenterEnabledForProperty(
+  db: Queryable,
+  propertyId: string
+): Promise<void> {
+  let lim = await getTierLimitsForPropertyId(db, propertyId);
+  if (!lim) {
+    const free = await getTierByName(db, 'FREE');
+    lim = free?.limits ?? null;
+  }
+  if (!lim) throw validationError('tier_configuration_missing');
+  if (!lim.document_center_enabled) {
     throw validationError('subscription_feature_not_available');
   }
 }

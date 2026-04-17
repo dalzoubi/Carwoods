@@ -41,6 +41,12 @@ export function allowsRequestPhotoVideoAttachments(limits) {
 }
 
 /** @param {unknown} limits */
+export function allowsDocumentCenter(limits) {
+  if (!limits || typeof limits !== 'object') return true;
+  return limits.document_center_enabled !== false;
+}
+
+/** @param {unknown} limits */
 export function allowsPropertyApplyVisibilityEdit(limits) {
   if (!limits || typeof limits !== 'object') return true;
   return limits.property_apply_visibility_editable !== false;

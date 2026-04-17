@@ -1394,6 +1394,188 @@ export async function deleteAttachmentUploadLandlordConfig(baseUrl, accessToken,
 }
 
 // ---------------------------------------------------------------------------
+// Document Center
+// ---------------------------------------------------------------------------
+
+export async function fetchDocuments(baseUrl, accessToken, params = {}) {
+  const emailHint = params?.emailHint;
+  const query = new URLSearchParams();
+  if (params?.q) query.set('q', params.q);
+  if (params?.list === 'active' || params?.list === 'deleted') query.set('list', params.list);
+  if (params?.property_id) query.set('property_id', params.property_id);
+  if (params?.lease_id) query.set('lease_id', params.lease_id);
+  if (params?.tenant_user_id) query.set('tenant_user_id', params.tenant_user_id);
+  if (params?.document_type) query.set('document_type', params.document_type);
+  const qs = query.toString();
+  const res = await fetch(buildUrl(baseUrl, `/api/portal/documents${qs ? `?${qs}` : ''}`), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function requestDocumentUploadIntent(baseUrl, accessToken, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(buildUrl(baseUrl, '/api/portal/documents/uploads/intent'), {
+    method: 'POST',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function finalizeDocumentUpload(baseUrl, accessToken, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(buildUrl(baseUrl, '/api/portal/documents/finalize'), {
+    method: 'POST',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function fetchDocumentFileUrl(baseUrl, accessToken, documentId, params = {}) {
+  const emailHint = params?.emailHint;
+  const q = new URLSearchParams();
+  if (params?.disposition) q.set('disposition', params.disposition);
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/documents/${encodeURIComponent(documentId)}/file-url?${q.toString()}`),
+    {
+      method: 'GET',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function deleteDocument(baseUrl, accessToken, documentId, params = {}) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(buildUrl(baseUrl, `/api/portal/documents/${encodeURIComponent(documentId)}`), {
+    method: 'DELETE',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * PATCH /api/portal/documents/:id
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} documentId
+ * @param {{ emailHint?: string, title?: string|null, note?: string|null, document_type?: string, share_with_tenants?: boolean }} [payload]
+ * @returns {Promise<object>}
+ */
+export async function patchPortalDocument(baseUrl, accessToken, documentId, payload = {}) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(buildUrl(baseUrl, `/api/portal/documents/${encodeURIComponent(documentId)}`), {
+    method: 'PATCH',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function restoreDocument(baseUrl, accessToken, documentId, params = {}) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/documents/${encodeURIComponent(documentId)}/restore`),
+    {
+      method: 'POST',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function createDocumentShareLink(baseUrl, accessToken, documentId, payload = {}) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/documents/${encodeURIComponent(documentId)}/share-links`),
+    {
+      method: 'POST',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function fetchDocumentShareLinks(baseUrl, accessToken, documentId, params = {}) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/documents/${encodeURIComponent(documentId)}/share-links`),
+    {
+      method: 'GET',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function revokeDocumentShareLink(baseUrl, accessToken, linkId, params = {}) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/document-share-links/${encodeURIComponent(linkId)}`),
+    {
+      method: 'DELETE',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
 // GET /api/landlord/exports/requests.csv
 // ---------------------------------------------------------------------------
 

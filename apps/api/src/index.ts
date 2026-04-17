@@ -12,6 +12,7 @@ import './functions/portalRequests.js';
 import './functions/portalProfile.js';
 import './functions/portalProfilePhoto.js';
 import './functions/portalNotifications.js';
+import './functions/documentCenter.js';
 import './functions/landlordRequests.js';
 import './functions/landlordNotificationPolicies.js';
 import './functions/internalJobs.js';

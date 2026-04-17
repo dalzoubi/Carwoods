@@ -119,6 +119,8 @@ export type TenantRequestDefaults = {
   property_id: string;
   lease_id: string;
   property_address: string | null;
+  /** ISO date YYYY-MM-DD */
+  lease_start_date: string | null;
   lease_end_date: string | null;
   month_to_month: boolean;
 };
@@ -260,6 +262,8 @@ export async function leasePropertyMatches(
 export type ManagementCreateRequestLeaseOption = TenantRequestDefaults & {
   /** Comma-separated tenant names/emails for the lease (active access only). */
   tenant_names: string | null;
+  /** Lowercase UUIDs, comma-separated, for tenants with active access on this lease (portal filters). */
+  tenant_user_ids: string | null;
 };
 
 /**
@@ -282,6 +286,7 @@ export async function listManagementCreateRequestLeaseOptions(
          l.id AS lease_id,
          l.property_id,
          CONCAT(p.street, ', ', p.city, ', ', p.state, ' ', p.zip) AS property_address,
+         CONVERT(NVARCHAR(10), l.start_date, 23) AS lease_start_date,
          CONVERT(NVARCHAR(10), l.end_date, 23) AS lease_end_date,
          CAST(l.month_to_month AS BIT) AS month_to_month,
          STUFF((
@@ -294,7 +299,15 @@ export async function listManagementCreateRequestLeaseOptions(
            WHERE lt2.lease_id = l.id
              AND (lt2.access_end_at IS NULL OR lt2.access_end_at > SYSDATETIMEOFFSET())
            FOR XML PATH(''), TYPE
-         ).value(N'.[1]', N'NVARCHAR(MAX)'), 1, 2, N'') AS tenant_names
+         ).value(N'.[1]', N'NVARCHAR(MAX)'), 1, 2, N'') AS tenant_names,
+         STUFF((
+           SELECT ',' + LOWER(CAST(lt3.user_id AS NVARCHAR(36)))
+           FROM lease_tenants lt3
+           INNER JOIN users u3 ON u3.id = lt3.user_id AND UPPER(LTRIM(RTRIM(u3.role))) = '${Role.TENANT}'
+           WHERE lt3.lease_id = l.id
+             AND (lt3.access_end_at IS NULL OR lt3.access_end_at > SYSDATETIMEOFFSET())
+           FOR XML PATH(''), TYPE
+         ).value(N'.[1]', N'NVARCHAR(MAX)'), 1, 1, N'') AS tenant_user_ids
        FROM leases l
        INNER JOIN properties p ON p.id = l.property_id AND p.deleted_at IS NULL
        WHERE l.deleted_at IS NULL
@@ -322,6 +335,7 @@ export async function listManagementCreateRequestLeaseOptions(
          l.id AS lease_id,
          l.property_id,
          CONCAT(p.street, ', ', p.city, ', ', p.state, ' ', p.zip) AS property_address,
+         CONVERT(NVARCHAR(10), l.start_date, 23) AS lease_start_date,
          CONVERT(NVARCHAR(10), l.end_date, 23) AS lease_end_date,
          CAST(l.month_to_month AS BIT) AS month_to_month,
          STUFF((
@@ -334,7 +348,15 @@ export async function listManagementCreateRequestLeaseOptions(
            WHERE lt2.lease_id = l.id
              AND (lt2.access_end_at IS NULL OR lt2.access_end_at > SYSDATETIMEOFFSET())
            FOR XML PATH(''), TYPE
-         ).value(N'.[1]', N'NVARCHAR(MAX)'), 1, 2, N'') AS tenant_names
+         ).value(N'.[1]', N'NVARCHAR(MAX)'), 1, 2, N'') AS tenant_names,
+         STUFF((
+           SELECT ',' + LOWER(CAST(lt3.user_id AS NVARCHAR(36)))
+           FROM lease_tenants lt3
+           INNER JOIN users u3 ON u3.id = lt3.user_id AND UPPER(LTRIM(RTRIM(u3.role))) = '${Role.TENANT}'
+           WHERE lt3.lease_id = l.id
+             AND (lt3.access_end_at IS NULL OR lt3.access_end_at > SYSDATETIMEOFFSET())
+           FOR XML PATH(''), TYPE
+         ).value(N'.[1]', N'NVARCHAR(MAX)'), 1, 1, N'') AS tenant_user_ids
        FROM leases l
        INNER JOIN properties p ON p.id = l.property_id AND p.deleted_at IS NULL
        WHERE l.deleted_at IS NULL
@@ -396,6 +418,7 @@ export async function findTenantRequestDefaults(
         l.property_id,
         lt.lease_id,
         CONCAT(p.street, ', ', p.city, ', ', p.state, ' ', p.zip) AS property_address,
+        CONVERT(NVARCHAR(10), l.start_date, 23) AS lease_start_date,
         CONVERT(NVARCHAR(10), l.end_date, 23) AS lease_end_date,
         CAST(l.month_to_month AS BIT) AS month_to_month
      FROM lease_tenants lt

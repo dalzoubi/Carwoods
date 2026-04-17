@@ -21,8 +21,13 @@ Manual Azure setup checklist: `docs/portal/AZURE_MANUAL_SETUP_CHECKLIST.md`.
 | `FUNCTIONS_WORKER_RUNTIME`                        | Yes         | `node`                                                |
 | `AzureWebJobsStorage`                             | Yes (Azure) | Storage account connection string for the Functions host (timer leases, internal state). Local: same format as portal **Access keys** connection string, or `UseDevelopmentStorage=true` with Azurite.      |
 | `DATABASE_URL`                                    | Yes         | Azure SQL ADO.NET connection string set by Bicep (Server=<host>,1433;Database=<db>;User Id=<user>;Password=<pass>;Encrypt=yes;TrustServerCertificate=no)             |
-| `BLOB_CONNECTION_STRING` or managed identity vars | Yes         | Blob access for SAS generation                        |
-| `BLOB_ACCOUNT_URL`                                | If using MI | `https://{account}.blob.core.windows.net`             |
+| `AZURE_STORAGE_ACCOUNT_NAME`                       | Yes         | Storage account name used for request attachment SAS generation. |
+| `AZURE_STORAGE_ACCOUNT_KEY`                        | Yes         | Storage account key used for request attachment and Document Center SAS generation. Store only in Function App settings or Key Vault-backed settings. |
+| `AZURE_STORAGE_CONTAINER_NAME`                     | Yes         | Private blob container for maintenance request attachments. Recommended production value: `carwoods-portal-prod`; local example: `carwoods-portal-dev`. |
+| `DOCUMENT_STORAGE_CONTAINER_NAME`                  | Recommended | Private blob container for Document Center files. Defaults to `carwoods-documents-prod` if unset. Local/dev may override with e.g. `carwoods-documents-dev`. |
+| `DOCUMENT_CENTER_ENABLED`                          | No          | API kill switch. Any value except `false` enables Document Center endpoints. Set `false` to disable uploads/listing/share-link access while preserving stored metadata/blobs. |
+| `DOCUMENT_CENTER_SCAN_BYPASS`                      | Production: Yes | Must be `false` or unset only when `NODE_ENV=production`. For local dev, `true` marks uploads clean immediately. In Azure, explicitly set `false` until Defender/webhook scanning is wired. |
+| `NODE_ENV`                                        | Recommended | Set to `production` in Azure Functions. This avoids local-only behavior, including Document Center scan bypass defaults. |
 | `ACS_CONNECTION_STRING` or ACS + MI               | Yes (email) | Azure Communication Services connection details       |
 | `ACS_ENDPOINT`                                    | Recommended | ACS endpoint/host used by SDK clients; set automatically by infra workflow when ACS is provisioned |
 | `ACS_AUTH_MODE`                                   | Recommended | `connection_string` (default workflow behavior) or `managed_identity` when `AZURE_ACS_USE_MANAGED_IDENTITY=true` |
@@ -70,11 +75,19 @@ Manual Azure setup checklist: `docs/portal/AZURE_MANUAL_SETUP_CHECKLIST.md`.
 | `VITE_MESSAGES_POLL_MS` | Optional cadence in ms for refreshing the open maintenance request thread (portal). Default `15000`; clamped to min `10000`, max `300000`. |
 
 
-**Never** set `GEMINI_API_KEY`, `DATABASE_URL`, `BLOB_`* secrets, or ACS secrets in `VITE_*`.
+**Never** set `GEMINI_API_KEY`, `DATABASE_URL`, storage account keys, Document Center storage keys, or ACS secrets in `VITE_*`.
 
 ## Local development
 
 1. Root: start from `.env.example` if you need a tracked baseline; add `CHOKIDAR_USEPOLLING=true` as needed.
 2. Portal + API: `.env.portal.local.example` → `.env.portal.local` (Vite `portal` mode) and `apps/api/local.settings.json.example` → `local.settings.json` (gitignored). See `scripts/start-local-portal.ps1` for Docker SQL + migration helper.
 3. Use a local SQL Server instance (or `mcr.microsoft.com/mssql/server:2022-latest` via Docker). For `func start`, set `AzureWebJobsStorage` to a **real storage connection string** (see `local.settings.json.example`) or run **Azurite** with `UseDevelopmentStorage=true`. Enabling the notification outbox **timer** (`NOTIFICATION_OUTBOX_TIMER_DISABLED` not `true`) requires working storage either way; the example defaults the timer to disabled for simpler local startup.
+
+## Document Center storage and scan notes
+
+- Document Center intentionally reuses `AZURE_STORAGE_ACCOUNT_NAME` and `AZURE_STORAGE_ACCOUNT_KEY`; only the container differs.
+- `AZURE_STORAGE_CONTAINER_NAME` and `DOCUMENT_STORAGE_CONTAINER_NAME` should be separate private containers. Do not point Document Center at the maintenance attachment container.
+- Local development may use `DOCUMENT_CENTER_SCAN_BYPASS=true` so newly uploaded files can be previewed/downloaded without Defender callbacks.
+- Production must set `NODE_ENV=production` and `DOCUMENT_CENTER_SCAN_BYPASS=false` until malware scanning webhook support is complete. Otherwise uploads may become available without a clean scan result.
+- Azure Defender for Storage should be enabled on the storage account before broad paid launch. The current API honors `scan_status`, but the production scan-result webhook/job remains a launch blocker.
 

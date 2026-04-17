@@ -202,6 +202,48 @@ jobs:
           echo "function_principal_id=$FUNCTION_PRINCIPAL_ID" >> "$GITHUB_OUTPUT"
           echo "deployed=true" >> "$GITHUB_OUTPUT"
 
+      - name: Configure Function App storage and Document Center settings
+        if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true') }}
+        env:
+          FUNCTION_APP_NAME: ${{ vars.AZURE_FUNCTION_APP_NAME }}
+          STORAGE_ACCOUNT_NAME: ${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}
+          PORTAL_STORAGE_CONTAINER_NAME: ${{ vars.AZURE_STORAGE_CONTAINER_NAME || 'carwoods-portal-prod' }}
+          DOCUMENT_STORAGE_CONTAINER_NAME: ${{ vars.DOCUMENT_STORAGE_CONTAINER_NAME || 'carwoods-documents-prod' }}
+          DOCUMENT_CENTER_ENABLED: ${{ vars.DOCUMENT_CENTER_ENABLED || 'true' }}
+          DOCUMENT_CENTER_SCAN_BYPASS: ${{ vars.DOCUMENT_CENTER_SCAN_BYPASS || 'false' }}
+        run: |
+          STORAGE_KEY=$(az storage account keys list \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --account-name "$STORAGE_ACCOUNT_NAME" \
+            --query '[0].value' -o tsv)
+
+          az storage container create \
+            --name "$PORTAL_STORAGE_CONTAINER_NAME" \
+            --account-name "$STORAGE_ACCOUNT_NAME" \
+            --account-key "$STORAGE_KEY" \
+            --public-access off \
+            --output none
+
+          az storage container create \
+            --name "$DOCUMENT_STORAGE_CONTAINER_NAME" \
+            --account-name "$STORAGE_ACCOUNT_NAME" \
+            --account-key "$STORAGE_KEY" \
+            --public-access off \
+            --output none
+
+          az functionapp config appsettings set \
+            --name "$FUNCTION_APP_NAME" \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --settings \
+              NODE_ENV="production" \
+              AZURE_STORAGE_ACCOUNT_NAME="$STORAGE_ACCOUNT_NAME" \
+              AZURE_STORAGE_ACCOUNT_KEY="$STORAGE_KEY" \
+              AZURE_STORAGE_CONTAINER_NAME="$PORTAL_STORAGE_CONTAINER_NAME" \
+              DOCUMENT_STORAGE_CONTAINER_NAME="$DOCUMENT_STORAGE_CONTAINER_NAME" \
+              DOCUMENT_CENTER_ENABLED="$DOCUMENT_CENTER_ENABLED" \
+              DOCUMENT_CENTER_SCAN_BYPASS="$DOCUMENT_CENTER_SCAN_BYPASS" \
+            --output none
+
       - name: Configure Function App ACS settings
         if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true') && vars.AZURE_COMMUNICATION_SERVICE_NAME != '' }}
         env:

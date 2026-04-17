@@ -35,6 +35,7 @@ const DEV_FREE_TIER_LIMITS = {
   request_photo_video_attachments_enabled: false,
   property_apply_visibility_editable: false,
   property_elsa_auto_send_editable: false,
+  document_center_enabled: false,
 };
 
 /** How often (ms) to re-poll /me while a user is authenticated. */

@@ -192,6 +192,7 @@ const OnboardingChecklist = ({ pathname, baseUrl, getAccessToken }) => {
   );
   const [hasProperties, setHasProperties] = useState(false);
   const [hasTenants, setHasTenants] = useState(false);
+  const [basicsFetched, setBasicsFetched] = useState(false);
   const [hasSettings, setHasSettings] = useState(
     () => localStorage.getItem(ONBOARDING_SETTINGS_VISITED_KEY) === 'true'
   );
@@ -200,10 +201,16 @@ const OnboardingChecklist = ({ pathname, baseUrl, getAccessToken }) => {
   const basicsIncomplete = !hasProperties || !hasTenants;
 
   useEffect(() => {
-    if (!baseUrl || !getAccessToken) return;
+    if (!baseUrl || !getAccessToken) {
+      setBasicsFetched(true);
+      return;
+    }
     // Avoid re-fetch loops: do not depend on hasProperties/hasTenants. Skip only when the user
     // dismissed after completing basics (both lists non-empty from the last fetch).
-    if (dismissed && hasProperties && hasTenants) return;
+    if (dismissed && hasProperties && hasTenants) {
+      setBasicsFetched(true);
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
@@ -218,7 +225,11 @@ const OnboardingChecklist = ({ pathname, baseUrl, getAccessToken }) => {
         setHasProperties(props.length > 0);
         setHasTenants(tens.length > 0);
       } catch {
-        // non-critical — checklist degrades gracefully
+        // non-critical — checklist degrades gracefully; assume empty so dismiss logic can settle
+        setHasProperties(false);
+        setHasTenants(false);
+      } finally {
+        if (!cancelled) setBasicsFetched(true);
       }
     })();
     return () => { cancelled = true; };
@@ -236,7 +247,9 @@ const OnboardingChecklist = ({ pathname, baseUrl, getAccessToken }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allDone]);
 
-  if (dismissed && !basicsIncomplete) return null;
+  // While dismissed is true, hasProperties/hasTenants start false until the fetch runs; without
+  // basicsFetched we would flash the card then hide once the API confirms basics are complete.
+  if (dismissed && (!basicsFetched || !basicsIncomplete)) return null;
 
   const steps = [
     {

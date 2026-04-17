@@ -16,12 +16,14 @@ import ContactUs from './components/ContactUs';
 import Privacy from './components/Privacy';
 import Accessibility from './components/Accessibility';
 import TermsOfService from './components/TermsOfService';
+import PublicDocumentShare from './components/PublicDocumentShare';
 import Footer from './components/Footer';
 import ResponsiveNavbar from './components/ResponsiveNavbar';
 import PortalDashboard from './components/PortalDashboard';
 import PortalStatus from './components/PortalStatus';
 import PortalProfile from './components/PortalProfile';
 import PortalRequests from './components/PortalRequests';
+import PortalDocuments from './components/PortalDocuments';
 import PortalAdminLandlords from './components/PortalAdminLandlords';
 import PortalNotificationsInbox from './components/PortalNotificationsInbox';
 import PortalInbox, {
@@ -86,6 +88,8 @@ function MarketingRoutes() {
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/accessibility" element={<Accessibility />} />
+            <Route path="/d/:token" element={<PublicDocumentShare />} />
+            <Route path="/shared-documents/:token" element={<PublicDocumentShare />} />
         </Routes>
     );
 }
@@ -116,6 +120,14 @@ function PortalRoutes() {
                 element={
                     <PortalRouteGuard allowedRoles={[Role.TENANT, Role.LANDLORD, Role.ADMIN]}>
                         <PortalRequests />
+                    </PortalRouteGuard>
+                }
+            />
+            <Route
+                path="/portal/documents"
+                element={
+                    <PortalRouteGuard allowedRoles={[Role.TENANT, Role.LANDLORD, Role.ADMIN]}>
+                        <PortalDocuments />
                     </PortalRouteGuard>
                 }
             />

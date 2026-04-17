@@ -18,6 +18,8 @@ func start
 
 **Storage / timer:** Set `AzureWebJobsStorage` to a **full storage account connection string** from the Azure portal (Storage account → Access keys → Connection string). The example uses the same placeholders as `AZURE_STORAGE_ACCOUNT_NAME` / `AZURE_STORAGE_ACCOUNT_KEY` when those point at one account. Alternatively, `UseDevelopmentStorage=true` works only if **[Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite)** is running (blob port **10000**). `local.settings.json.example` sets `NOTIFICATION_OUTBOX_TIMER_DISABLED` to `true` so the outbox timer is not registered; drain with `POST /api/internal/jobs/process-notifications` when testing, or set the flag to `false` once storage is available for timer leases.
 
+**Document Center storage:** Document Center reuses `AZURE_STORAGE_ACCOUNT_NAME` and `AZURE_STORAGE_ACCOUNT_KEY`, but writes to a separate private container from maintenance attachments. If unset, the API defaults `DOCUMENT_STORAGE_CONTAINER_NAME` to `carwoods-documents-prod`. For local Functions, `local.settings.json` usually sets `AZURE_STORAGE_CONTAINER_NAME=carwoods-portal-dev` for request attachments and `DOCUMENT_STORAGE_CONTAINER_NAME=carwoods-documents-dev` for documents. Local development may set `DOCUMENT_CENTER_SCAN_BYPASS=true`; production must set `NODE_ENV=production` and `DOCUMENT_CENTER_SCAN_BYPASS=false`.
+
 Endpoints (local default port **7071**):
 
 | Method | Path | Auth |
@@ -31,6 +33,15 @@ Endpoints (local default port **7071**):
 | POST, OPTIONS | `/api/portal/requests/{id}/uploads/intent` | Server-side file validation + short-lived upload intent |
 | GET, OPTIONS | `/api/portal/requests/{id}/attachments` | List request attachment metadata |
 | POST, OPTIONS | `/api/portal/requests/{id}/attachments/finalize` | Persist request attachment metadata |
+| GET, OPTIONS | `/api/portal/documents` | Document Center list + eligible tenant leases |
+| POST, OPTIONS | `/api/portal/documents/uploads/intent` | Document Center direct-to-blob upload intent |
+| POST, OPTIONS | `/api/portal/documents/finalize` | Persist uploaded Document Center file metadata |
+| GET, PATCH, DELETE, OPTIONS | `/api/portal/documents/{documentId}` | Document detail, metadata update, soft delete |
+| POST, OPTIONS | `/api/portal/documents/{documentId}/restore` | Restore a soft-deleted document during cleanup window |
+| GET, OPTIONS | `/api/portal/documents/{documentId}/file-url` | Authorized short-lived preview/download URL; requires clean scan status |
+| GET, POST, OPTIONS | `/api/portal/documents/{documentId}/share-links` | List/create expiring document share links |
+| DELETE, OPTIONS | `/api/portal/document-share-links/{linkId}` | Revoke a document share link |
+| POST, OPTIONS | `/api/public/document-shares/{token}` | Public shared-document URL resolver with optional passcode + notice acknowledgement |
 | GET, POST, OPTIONS | `/api/landlord/properties` | Landlord or Admin Bearer JWT + onboarded `users` row (email match) |
 | GET, PATCH, DELETE, OPTIONS | `/api/landlord/properties/{id}` | Landlord or Admin (onboarded email role) |
 | GET, POST, OPTIONS | `/api/landlord/leases` | Landlord or Admin (onboarded email role; `GET ?property_id=` filters) |
