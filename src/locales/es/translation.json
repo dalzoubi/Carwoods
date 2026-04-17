@@ -1438,7 +1438,8 @@
       "when": "Cuándo",
       "changedFields": "Campos cambiados",
       "before": "Antes",
-      "after": "Después"
+      "after": "Después",
+      "actorUnknown": "Desconocido"
     }
   },
   "portalAdminLandlords": {
@@ -1932,6 +1933,7 @@
       "status": "Estado del sistema",
       "healthGroup": "Salud",
       "notificationTest": "Prueba de notificaciones",
+      "rentLedger": "Libro de rentas",
       "collapse": "Contraer barra lateral",
       "expand": "Expandir barra lateral",
       "signOut": "Cerrar sesión",
@@ -2280,6 +2282,74 @@
       "startDateRequired": "La fecha de inicio del contrato es obligatoria.",
       "endDateBeforeStart": "La fecha de fin debe ser posterior a la fecha de inicio.",
       "exportContactCardFailed": "No se pudo descargar la tarjeta de contacto. Inténtalo de nuevo."
+    }
+  },
+  "portalRentLedger": {
+    "title": "Libro de rentas",
+    "heading": "Libro de rentas",
+    "metaDescription": "Consulta y gestiona el historial de pagos de renta de tu contrato.",
+    "introManagement": "Registra y controla los pagos de renta de cada contrato.",
+    "introTenant": "Consulta tu historial de pagos de renta a continuación.",
+    "loading": "Cargando libro…",
+    "empty": "No se encontraron entradas en el libro.",
+    "tableAriaLabel": "Libro de rentas",
+    "columns": {
+      "period": "Período",
+      "amountDue": "Monto adeudado",
+      "amountPaid": "Monto pagado",
+      "dueDate": "Fecha de vencimiento",
+      "paidDate": "Fecha de pago",
+      "method": "Método",
+      "status": "Estado"
+    },
+    "labels": {
+      "selectLease": "Seleccionar contrato"
+    },
+    "actions": {
+      "addEntry": "Registrar pago",
+      "editEntry": "Editar entrada",
+      "save": "Guardar",
+      "saving": "Guardando…",
+      "cancel": "Cancelar"
+    },
+    "fields": {
+      "periodStart": "Inicio del período",
+      "periodStartHelper": "Primer día del mes de facturación (p. ej. 2025-05-01)",
+      "amountDue": "Monto adeudado",
+      "amountPaid": "Monto pagado",
+      "dueDate": "Fecha de vencimiento",
+      "paidDate": "Fecha de pago",
+      "paymentMethod": "Método de pago",
+      "paymentMethodNone": "— Ninguno —",
+      "notes": "Notas"
+    },
+    "paymentMethods": {
+      "CHECK": "Cheque",
+      "CASH": "Efectivo",
+      "BANK_TRANSFER": "Transferencia bancaria",
+      "ZELLE": "Zelle",
+      "VENMO": "Venmo",
+      "OTHER": "Otro"
+    },
+    "paymentStatus": {
+      "PAID": "Pagado",
+      "PARTIAL": "Parcial",
+      "OVERDUE": "Vencido",
+      "PENDING": "Pendiente"
+    },
+    "dialog": {
+      "createTitle": "Registrar pago",
+      "editTitle": "Editar entrada de pago"
+    },
+    "feedback": {
+      "saved": "Pago registrado.",
+      "updated": "Entrada actualizada."
+    },
+    "errors": {
+      "apiUnavailable": "La API no está configurada.",
+      "loadFailed": "No se pudieron cargar las entradas del libro.",
+      "saveFailed": "No se pudo guardar la entrada. Inténtalo de nuevo.",
+      "noLeases": "No se encontraron contratos."
     }
   },
   "portalDocuments": {

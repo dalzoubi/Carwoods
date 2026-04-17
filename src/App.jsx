@@ -33,6 +33,7 @@ import PortalInbox, {
 } from './components/PortalInbox';
 import PortalAdminAiSettings from './components/PortalAdminAiSettings';
 import PortalAdminProperties from './components/PortalAdminProperties';
+import PortalRentLedger from './components/PortalRentLedger';
 import PortalTenants from './components/PortalTenants';
 import PortalAdminNotificationTest from './components/PortalAdminNotificationTest';
 import PortalLayout from './components/PortalLayout';
@@ -128,6 +129,14 @@ function PortalRoutes() {
                 element={
                     <PortalRouteGuard allowedRoles={[Role.TENANT, Role.LANDLORD, Role.ADMIN]}>
                         <PortalDocuments />
+                    </PortalRouteGuard>
+                }
+            />
+            <Route
+                path="/portal/rent-ledger"
+                element={
+                    <PortalRouteGuard allowedRoles={[Role.TENANT, Role.LANDLORD, Role.ADMIN]}>
+                        <PortalRentLedger />
                     </PortalRouteGuard>
                 }
             />

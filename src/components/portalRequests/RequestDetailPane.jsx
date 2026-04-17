@@ -311,9 +311,11 @@ const RequestDetailPane = ({
   const managementStatusMessage = managementUpdateStatus === 'error'
     ? { severity: 'error', text: managementUpdateError || t('portalRequests.errors.saveFailed') }
     : null;
-  const messageStatusMessage = messageStatus === 'error'
-    ? { severity: 'error', text: messageError || t('portalRequests.errors.saveFailed') }
-    : null;
+  const messageStatusMessage = messageStatus === 'success'
+    ? { severity: 'success', text: t('portalRequests.messages.sent') }
+    : messageStatus === 'error'
+      ? { severity: 'error', text: messageError || t('portalRequests.errors.saveFailed') }
+      : null;
   const messageDeleteStatusMessage = messageDeleteStatus === 'error'
     ? { severity: 'error', text: messageDeleteError || t('portalRequests.errors.saveFailed') }
     : null;
@@ -719,7 +721,7 @@ const RequestDetailPane = ({
                     {event.action} - {event.entity_type}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {t('portalRequests.audit.actor')}: {event.actor_display_name || event.actor_user_id}
+                    {t('portalRequests.audit.actor')}: {event.actor_display_name || t('portalRequests.audit.actorUnknown')}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {t('portalRequests.audit.when')}: {formatDateTime(event.created_at)}

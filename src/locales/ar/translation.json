@@ -1439,7 +1439,8 @@
       "when": "الوقت",
       "changedFields": "الحقول المتغيرة",
       "before": "قبل",
-      "after": "بعد"
+      "after": "بعد",
+      "actorUnknown": "غير معروف"
     }
   },
   "portalAdminLandlords": {
@@ -1933,6 +1934,7 @@
       "status": "حالة النظام",
       "healthGroup": "الصحة",
       "notificationTest": "اختبار الإشعارات",
+      "rentLedger": "دفتر الإيجار",
       "collapse": "طي الشريط الجانبي",
       "expand": "توسيع الشريط الجانبي",
       "signOut": "تسجيل الخروج",
@@ -2281,6 +2283,74 @@
       "startDateRequired": "تاريخ بدء عقد الإيجار مطلوب.",
       "endDateBeforeStart": "يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء.",
       "exportContactCardFailed": "تعذّر تنزيل بطاقة جهة الاتصال. يرجى المحاولة مرة أخرى."
+    }
+  },
+  "portalRentLedger": {
+    "title": "دفتر الإيجار",
+    "heading": "دفتر الإيجار",
+    "metaDescription": "عرض وإدارة سجل مدفوعات الإيجار لعقدك.",
+    "introManagement": "سجّل ومتابعة مدفوعات الإيجار لكل عقد.",
+    "introTenant": "راجع سجل مدفوعات الإيجار أدناه.",
+    "loading": "جارٍ تحميل الدفتر…",
+    "empty": "لا توجد إدخالات في الدفتر.",
+    "tableAriaLabel": "دفتر الإيجار",
+    "columns": {
+      "period": "الفترة",
+      "amountDue": "المبلغ المستحق",
+      "amountPaid": "المبلغ المدفوع",
+      "dueDate": "تاريخ الاستحقاق",
+      "paidDate": "تاريخ الدفع",
+      "method": "الطريقة",
+      "status": "الحالة"
+    },
+    "labels": {
+      "selectLease": "اختر عقداً"
+    },
+    "actions": {
+      "addEntry": "تسجيل دفعة",
+      "editEntry": "تعديل الإدخال",
+      "save": "حفظ",
+      "saving": "جارٍ الحفظ…",
+      "cancel": "إلغاء"
+    },
+    "fields": {
+      "periodStart": "بداية الفترة",
+      "periodStartHelper": "أول يوم من شهر الفوترة (مثال: 2025-05-01)",
+      "amountDue": "المبلغ المستحق",
+      "amountPaid": "المبلغ المدفوع",
+      "dueDate": "تاريخ الاستحقاق",
+      "paidDate": "تاريخ الدفع",
+      "paymentMethod": "طريقة الدفع",
+      "paymentMethodNone": "— لا شيء —",
+      "notes": "ملاحظات"
+    },
+    "paymentMethods": {
+      "CHECK": "شيك",
+      "CASH": "نقداً",
+      "BANK_TRANSFER": "تحويل بنكي",
+      "ZELLE": "زيل",
+      "VENMO": "فينمو",
+      "OTHER": "أخرى"
+    },
+    "paymentStatus": {
+      "PAID": "مدفوع",
+      "PARTIAL": "جزئي",
+      "OVERDUE": "متأخر",
+      "PENDING": "معلق"
+    },
+    "dialog": {
+      "createTitle": "تسجيل دفعة",
+      "editTitle": "تعديل إدخال الدفعة"
+    },
+    "feedback": {
+      "saved": "تم تسجيل الدفعة.",
+      "updated": "تم تحديث الإدخال."
+    },
+    "errors": {
+      "apiUnavailable": "واجهة برمجة التطبيقات غير مهيأة.",
+      "loadFailed": "تعذّر تحميل إدخالات الدفتر.",
+      "saveFailed": "تعذّر حفظ الإدخال. يرجى المحاولة مرة أخرى.",
+      "noLeases": "لم يتم العثور على عقود."
     }
   },
   "portalDocuments": {

@@ -1438,7 +1438,8 @@
       "when": "Quand",
       "changedFields": "Champs modifies",
       "before": "Avant",
-      "after": "Apres"
+      "after": "Apres",
+      "actorUnknown": "Inconnu"
     }
   },
   "portalAdminLandlords": {
@@ -1932,6 +1933,7 @@
       "status": "État du système",
       "healthGroup": "Santé",
       "notificationTest": "Test des notifications",
+      "rentLedger": "Grand livre des loyers",
       "collapse": "Réduire la barre latérale",
       "expand": "Développer la barre latérale",
       "signOut": "Se déconnecter",
@@ -2280,6 +2282,74 @@
       "startDateRequired": "La date de début du bail est obligatoire.",
       "endDateBeforeStart": "La date de fin doit être postérieure à la date de début.",
       "exportContactCardFailed": "Impossible de télécharger la carte de contact. Veuillez réessayer."
+    }
+  },
+  "portalRentLedger": {
+    "title": "Grand livre des loyers",
+    "heading": "Grand livre des loyers",
+    "metaDescription": "Consultez et gérez l'historique des paiements de loyer de votre bail.",
+    "introManagement": "Enregistrez et suivez les paiements de loyer pour chaque bail.",
+    "introTenant": "Consultez votre historique de paiements de loyer ci-dessous.",
+    "loading": "Chargement du grand livre…",
+    "empty": "Aucune entrée trouvée dans le grand livre.",
+    "tableAriaLabel": "Grand livre des loyers",
+    "columns": {
+      "period": "Période",
+      "amountDue": "Montant dû",
+      "amountPaid": "Montant payé",
+      "dueDate": "Date d'échéance",
+      "paidDate": "Date de paiement",
+      "method": "Méthode",
+      "status": "Statut"
+    },
+    "labels": {
+      "selectLease": "Sélectionner un bail"
+    },
+    "actions": {
+      "addEntry": "Enregistrer un paiement",
+      "editEntry": "Modifier l'entrée",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "cancel": "Annuler"
+    },
+    "fields": {
+      "periodStart": "Début de période",
+      "periodStartHelper": "Premier jour du mois de facturation (ex. 2025-05-01)",
+      "amountDue": "Montant dû",
+      "amountPaid": "Montant payé",
+      "dueDate": "Date d'échéance",
+      "paidDate": "Date de paiement",
+      "paymentMethod": "Mode de paiement",
+      "paymentMethodNone": "— Aucun —",
+      "notes": "Notes"
+    },
+    "paymentMethods": {
+      "CHECK": "Chèque",
+      "CASH": "Espèces",
+      "BANK_TRANSFER": "Virement bancaire",
+      "ZELLE": "Zelle",
+      "VENMO": "Venmo",
+      "OTHER": "Autre"
+    },
+    "paymentStatus": {
+      "PAID": "Payé",
+      "PARTIAL": "Partiel",
+      "OVERDUE": "En retard",
+      "PENDING": "En attente"
+    },
+    "dialog": {
+      "createTitle": "Enregistrer un paiement",
+      "editTitle": "Modifier l'entrée de paiement"
+    },
+    "feedback": {
+      "saved": "Paiement enregistré.",
+      "updated": "Entrée mise à jour."
+    },
+    "errors": {
+      "apiUnavailable": "L'API n'est pas configurée.",
+      "loadFailed": "Impossible de charger les entrées du grand livre.",
+      "saveFailed": "Impossible d'enregistrer l'entrée. Veuillez réessayer.",
+      "noLeases": "Aucun bail trouvé."
     }
   },
   "portalDocuments": {

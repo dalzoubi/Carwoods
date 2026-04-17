@@ -1597,7 +1597,8 @@
       "when": "When",
       "changedFields": "Changed fields",
       "before": "Before",
-      "after": "After"
+      "after": "After",
+      "actorUnknown": "Unknown"
     }
   },
   "portalAdminLandlords": {
@@ -2091,6 +2092,7 @@
       "status": "System Status",
       "healthGroup": "Health",
       "notificationTest": "Notification test",
+      "rentLedger": "Rent Ledger",
       "collapse": "Collapse sidebar",
       "expand": "Expand sidebar",
       "signOut": "Sign out",
@@ -2439,6 +2441,74 @@
       "startDateRequired": "Lease start date is required.",
       "endDateBeforeStart": "End date must be after start date.",
       "exportContactCardFailed": "Could not download the contact card. Please try again."
+    }
+  },
+  "portalRentLedger": {
+    "title": "Rent Ledger",
+    "heading": "Rent Ledger",
+    "metaDescription": "View and manage rent payment history for your lease.",
+    "introManagement": "Record and track rent payments for each lease.",
+    "introTenant": "Review your rent payment history below.",
+    "loading": "Loading ledger…",
+    "empty": "No ledger entries found.",
+    "tableAriaLabel": "Rent ledger",
+    "columns": {
+      "period": "Period",
+      "amountDue": "Amount Due",
+      "amountPaid": "Amount Paid",
+      "dueDate": "Due Date",
+      "paidDate": "Paid Date",
+      "method": "Method",
+      "status": "Status"
+    },
+    "labels": {
+      "selectLease": "Select lease"
+    },
+    "actions": {
+      "addEntry": "Record payment",
+      "editEntry": "Edit entry",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel"
+    },
+    "fields": {
+      "periodStart": "Period start",
+      "periodStartHelper": "First day of the billing month (e.g. 2025-05-01)",
+      "amountDue": "Amount due",
+      "amountPaid": "Amount paid",
+      "dueDate": "Due date",
+      "paidDate": "Paid date",
+      "paymentMethod": "Payment method",
+      "paymentMethodNone": "— None —",
+      "notes": "Notes"
+    },
+    "paymentMethods": {
+      "CHECK": "Check",
+      "CASH": "Cash",
+      "BANK_TRANSFER": "Bank transfer",
+      "ZELLE": "Zelle",
+      "VENMO": "Venmo",
+      "OTHER": "Other"
+    },
+    "paymentStatus": {
+      "PAID": "Paid",
+      "PARTIAL": "Partial",
+      "OVERDUE": "Overdue",
+      "PENDING": "Pending"
+    },
+    "dialog": {
+      "createTitle": "Record payment",
+      "editTitle": "Edit payment entry"
+    },
+    "feedback": {
+      "saved": "Payment recorded.",
+      "updated": "Entry updated."
+    },
+    "errors": {
+      "apiUnavailable": "API is not configured.",
+      "loadFailed": "Could not load ledger entries.",
+      "saveFailed": "Could not save entry. Please try again.",
+      "noLeases": "No leases found."
     }
   },
   "portalDocuments": {
