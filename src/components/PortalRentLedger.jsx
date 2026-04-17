@@ -30,14 +30,19 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import Close from '@mui/icons-material/Close';
+import Lock from '@mui/icons-material/Lock';
+import { useLocation } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
 import { hasLandlordAccess } from '../domain/roleUtils.js';
 import { isGuestRole, normalizeRole, resolveRole, emailFromAccount } from '../portalUtils';
+import { allowsRentLedger, landlordTierLimits } from '../portalTierUtils';
+import { withDarkPath } from '../routePaths';
 import { fetchLandlordProperties, fetchRequests } from '../lib/portalApiClient';
 import { usePortalRentLedger } from './portalRentLedger/usePortalRentLedger';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import StatusAlertSlot from './StatusAlertSlot';
+import EmptyState from './EmptyState';
 
 const PAYMENT_STATUS_COLOR = {
   PAID: 'success',
@@ -70,6 +75,7 @@ function formatPeriod(isoDate) {
 
 const PortalRentLedger = () => {
   const { t } = useTranslation();
+  const { pathname } = useLocation();
   const {
     baseUrl,
     isAuthenticated,
@@ -83,6 +89,7 @@ const PortalRentLedger = () => {
   const role = normalizeRole(resolveRole(meData, account));
   const isGuest = isGuestRole(role);
   const isManagement = hasLandlordAccess(role);
+  const showLocked = isManagement && !allowsRentLedger(landlordTierLimits(meData));
 
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
@@ -177,6 +184,33 @@ const PortalRentLedger = () => {
     : false;
 
   const handleOpenCreate = () => openCreateForm(selectedLeaseId);
+
+  if (showLocked) {
+    return (
+      <Box>
+        <Helmet>
+          <title>{t('portalRentLedger.title')}</title>
+          <meta name="description" content={t('portalRentLedger.metaDescription')} />
+        </Helmet>
+        <Stack spacing={3}>
+          <Box>
+            <Typography variant="h5" component="h1" fontWeight={700}>
+              {t('portalRentLedger.heading')}
+            </Typography>
+          </Box>
+          <Paper variant="outlined" sx={{ borderRadius: 2 }}>
+            <EmptyState
+              icon={<Lock sx={{ fontSize: 56 }} />}
+              title={t('portalRentLedger.lockedTitle')}
+              description={t('portalRentLedger.lockedBody')}
+              actionLabel={t('portalRentLedger.pricingLink')}
+              actionHref={withDarkPath(pathname, '/pricing')}
+            />
+          </Paper>
+        </Stack>
+      </Box>
+    );
+  }
 
   return (
     <Box>

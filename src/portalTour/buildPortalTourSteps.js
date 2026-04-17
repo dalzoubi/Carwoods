@@ -10,7 +10,7 @@ export function getPortalTourNavKeys({ normalizedRole, isGuest, roleResolved }) 
     keys.push('properties', 'tenants');
   }
   if (roleResolved && !isGuest) {
-    keys.push('inbox', 'profile');
+    keys.push('inbox', 'rent-ledger', 'profile');
   }
   if (roleResolved && normalizedRole === Role.ADMIN) {
     keys.push('health-status', 'health-notification-test');
@@ -24,6 +24,7 @@ const NAV_I18N = {
   properties: 'properties',
   tenants: 'tenants',
   inbox: 'inbox',
+  'rent-ledger': 'rentLedger',
   profile: 'profile',
   'health-status': 'healthStatus',
   'health-notification-test': 'healthNotificationTest',
