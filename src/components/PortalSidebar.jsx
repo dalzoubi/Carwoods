@@ -26,6 +26,7 @@ import ChevronLeft from '@mui/icons-material/ChevronLeft';
 import ChevronRight from '@mui/icons-material/ChevronRight';
 import Inbox from '@mui/icons-material/Inbox';
 import Description from '@mui/icons-material/Description';
+import Payments from '@mui/icons-material/Payments';
 import HealthAndSafety from '@mui/icons-material/HealthAndSafety';
 import Send from '@mui/icons-material/Send';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
@@ -70,6 +71,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
       ? [
           { key: 'inbox', to: '/portal/inbox', label: t('portalLayout.sidebar.inbox'), icon: <Inbox /> },
           { key: 'documents', to: '/portal/documents', label: t('portalLayout.sidebar.documents'), icon: <Description /> },
+          { key: 'rent-ledger', to: '/portal/rent-ledger', label: t('portalLayout.sidebar.rentLedger'), icon: <Payments /> },
         ]
       : []),
     ...(roleResolved && !isGuest

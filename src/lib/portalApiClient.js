@@ -1926,3 +1926,50 @@ export async function fetchHealth(baseUrl) {
   }
   return res.json();
 }
+
+// ---------------------------------------------------------------------------
+// Rent Ledger
+// ---------------------------------------------------------------------------
+
+export async function fetchRentLedger(baseUrl, accessToken, { path, emailHint }) {
+  const res = await fetch(buildUrl(baseUrl, path), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function createRentLedgerEntry(baseUrl, accessToken, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(buildUrl(baseUrl, '/api/landlord/rent-ledger'), {
+    method: 'POST',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function updateRentLedgerEntry(baseUrl, accessToken, entryId, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(buildUrl(baseUrl, `/api/landlord/rent-ledger/${encodeURIComponent(entryId)}`), {
+    method: 'PATCH',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
