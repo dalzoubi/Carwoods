@@ -2286,7 +2286,7 @@
     "type": "نوع المستند",
     "title": "العنوان (اختياري)",
     "note": "ملاحظة (اختياري)",
-    "uploadPropertyOptional": "العقار (اختياري)",
+    "uploadSelectProperty": "اختر عقارًا",
     "uploadTenantOptional": "المستأجر (اختياري)",
     "uploadLeaseOptional": "العقد (اختياري)",
     "uploadSelectNone": "بدون",
@@ -2332,6 +2332,11 @@
     "revoking": "جارٍ الإلغاء…",
     "deleteTitle": "حذف هذا المستند؟",
     "deleteDescription": "ستتم إزالة {{name}} من العروض العادية فورًا. يتوقف وصول المستأجرين وروابط المشاركة الآن. يمكن للملاك والمسؤولين استعادته خلال نافذة التنظيف لمدة 30 يومًا.",
+    "purgeTitle": "حذف هذا المستند نهائيًا؟",
+    "purgeDescription": "ستُزال {{name}} نهائيًا. لا يمكن استعادة الملف أو روابط المشاركة. هذا لا يُغني عن متطلبات الاحتفاظ القانونية أو التنظيمية.",
+    "purgeConfirm": "حذف نهائي",
+    "purgePhraseHint": "اكتب delete بأحرف صغيرة للتأكيد.",
+    "purgePermanent": "حذف نهائي",
     "scopes": { "LEASE": "العقد", "PROPERTY": "العقار" },
     "types": {
       "LEASE": "العقد",
@@ -2344,7 +2349,7 @@
       "OTHER": "أخرى"
     },
     "scan": { "PENDING": "جارٍ الفحص", "CLEAN": "نجح الفحص", "BLOCKED": "محظور", "FAILED": "فشل الفحص" },
-    "messages": { "uploaded": "تم رفع المستند.", "deleted": "تم حذف المستند.", "restored": "تمت استعادة المستند.", "shareCreated": "تم إنشاء رابط المشاركة.", "shareRevoked": "تم إلغاء رابط المشاركة.", "sharingUpdated": "تم تحديث ظهور المستند للمستأجرين.", "shareUrlCopied": "تم نسخ الرابط إلى الحافظة.", "sharePasscodeCopied": "تم نسخ رمز المرور إلى الحافظة.", "clipboardFallback": "اضغط Ctrl+C للنسخ من مربع الحوار." },
+    "messages": { "uploaded": "تم رفع المستند.", "deleted": "تم حذف المستند.", "restored": "تمت استعادة المستند.", "purged": "تم حذف المستند نهائيًا.", "shareCreated": "تم إنشاء رابط المشاركة.", "shareRevoked": "تم إلغاء رابط المشاركة.", "sharingUpdated": "تم تحديث ظهور المستند للمستأجرين.", "shareUrlCopied": "تم نسخ الرابط إلى الحافظة.", "sharePasscodeCopied": "تم نسخ رمز المرور إلى الحافظة.", "clipboardFallback": "اضغط Ctrl+C للنسخ من مربع الحوار." },
     "errors": {
       "loadFailed": "تعذر تحميل المستندات.",
       "fileRequired": "اختر ملفًا قبل الرفع.",
@@ -2357,6 +2362,7 @@
       "openFailed": "تعذر فتح المستند.",
       "deleteFailed": "تعذر حذف المستند.",
       "restoreFailed": "تعذر استعادة المستند.",
+      "purgeFailed": "تعذر الحذف النهائي للمستند.",
       "shareFailed": "تعذر إنشاء رابط مشاركة.",
       "shareLinksFailed": "تعذر تحميل روابط المشاركة.",
       "shareRevokeFailed": "تعذر إلغاء رابط المشاركة.",

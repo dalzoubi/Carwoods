@@ -15,7 +15,7 @@ import { Role, hasLandlordAccess } from '../domain/constants.js';
 import { forbidden, notFound, unprocessable, validationError } from '../domain/errors.js';
 import { isValidUuid } from '../domain/validation.js';
 import { assertDocumentCenterEnabledForProperty } from '../lib/subscriptionTierCapabilities.js';
-import { buildDocumentReadUrl, buildDocumentUploadUrl, ensureDocumentContainer } from '../lib/documentStorage.js';
+import { buildDocumentReadUrl, buildDocumentUploadUrl, deleteDocumentBlobIfExists, ensureDocumentContainer } from '../lib/documentStorage.js';
 import {
   DOCUMENT_TYPES,
   addDefaultVisibilityGrant,
@@ -37,6 +37,7 @@ import {
   randomToken,
   recordShareLinkAccess,
   restoreDocument,
+  purgeSoftDeletedDocument,
   revokeShareLink,
   sha256Base64Url,
   softDeleteDocument,
@@ -560,6 +561,67 @@ async function portalDocumentRestore(request: HttpRequest, context: InvocationCo
   }
 }
 
+async function portalDocumentPurge(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+  const gate = await requirePortalUser(request, context);
+  if (!gate.ok) return gate.response;
+  const { user, headers } = gate.ctx;
+  const role = String(user.role ?? '').toUpperCase();
+  const documentId = request.params.documentId;
+  if (!documentId || !isValidUuid(documentId)) return jsonResponse(400, headers, { error: 'invalid_document_id' });
+  if (request.method !== 'POST') return jsonResponse(405, headers, { error: 'method_not_allowed' });
+  try {
+    const body = await readJsonBody(request);
+    const b = asRecord(body);
+    if (str(b.confirmation) !== 'delete') {
+      return jsonResponse(400, headers, { error: 'invalid_confirmation' });
+    }
+    const doc = await getDocumentById(getPool(), documentId);
+    if (!doc) throw notFound();
+    if (role !== Role.ADMIN && !(role === Role.LANDLORD && doc.landlord_id === user.id)) throw forbidden();
+    if (!doc.deleted_at) return jsonResponse(400, headers, { error: 'document_not_deleted' });
+    if (doc.purged_at) throw notFound();
+    if (doc.legal_hold_at) return jsonResponse(400, headers, { error: 'document_on_legal_hold' });
+
+    const client = await getPool().connect();
+    let purgedOk = false;
+    try {
+      await client.query('BEGIN');
+      purgedOk = await purgeSoftDeletedDocument(client, doc.id, user.id);
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
+
+    if (!purgedOk) return jsonResponse(409, headers, { error: 'purge_failed' });
+
+    const after = await getDocumentById(getPool(), doc.id);
+    try {
+      await deleteDocumentBlobIfExists(doc.storage_path);
+    } catch (blobErr) {
+      logWarn(context, 'document_blob_delete_after_purge_failed', { documentId: doc.id, err: String(blobErr) });
+    }
+
+    await writeDocumentAudit(getPool(), {
+      documentId: doc.id,
+      actorUserId: user.id,
+      actorRole: role,
+      eventType: 'DOCUMENT_PURGED',
+      before: doc,
+      after: after,
+      ipAddress: clientIp(request),
+      userAgent: userAgent(request),
+    });
+    return jsonResponse(200, headers, { ok: true });
+  } catch (e) {
+    const mapped = mapDomainError(e, headers);
+    if (mapped) return mapped;
+    throw e;
+  }
+}
+
 async function portalDocumentFileUrl(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   const gate = await requirePortalUser(request, context);
   if (!gate.ok) return gate.response;
@@ -722,7 +784,7 @@ async function publicSharedDocument(request: HttpRequest): Promise<HttpResponseI
     }
     if (bool(b.notice_accepted) !== true) return jsonResponse(400, headers, { error: 'share_notice_required' });
     const doc = await getDocumentById(getPool(), link.document_id);
-    if (!doc || doc.deleted_at || doc.scan_status !== 'CLEAN') throw notFound();
+    if (!doc || doc.deleted_at || doc.purged_at || doc.scan_status !== 'CLEAN') throw notFound();
     const url = buildDocumentReadUrl(doc.storage_path, READ_URL_SECONDS);
     if (!url) throw unprocessable('storage_not_configured');
     await recordShareLinkAccess(getPool(), link.id, false);
@@ -797,6 +859,13 @@ app.http('portalDocumentRestore', {
   authLevel: 'anonymous',
   route: 'portal/documents/{documentId}/restore',
   handler: withRateLimit(portalDocumentRestore),
+});
+
+app.http('portalDocumentPurge', {
+  methods: ['POST', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'portal/documents/{documentId}/purge',
+  handler: withRateLimit(portalDocumentPurge),
 });
 
 app.http('portalDocumentFileUrl', {

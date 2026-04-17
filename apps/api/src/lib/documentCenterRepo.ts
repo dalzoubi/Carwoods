@@ -702,6 +702,29 @@ export async function restoreDocument(db: Queryable, documentId: string, actorUs
   return getDocumentById(db, documentId);
 }
 
+/** Irreversible: soft-deleted document only; revokes share links then marks purged (blob removed by API). */
+export async function purgeSoftDeletedDocument(db: Queryable, documentId: string, actorUserId: string): Promise<boolean> {
+  await db.query(
+    `UPDATE document_share_links
+     SET revoked_at = SYSDATETIMEOFFSET(), revoked_by = $2
+     WHERE document_id = $1 AND revoked_at IS NULL`,
+    [documentId, actorUserId]
+  );
+  const r = await db.query(
+    `UPDATE documents
+     SET blob_deleted_at = SYSDATETIMEOFFSET(),
+         purged_at = SYSDATETIMEOFFSET(),
+         purged_by = $2,
+         updated_at = SYSDATETIMEOFFSET()
+     WHERE id = $1
+       AND deleted_at IS NOT NULL
+       AND purged_at IS NULL
+       AND legal_hold_at IS NULL`,
+    [documentId, actorUserId]
+  );
+  return (r.rowCount ?? 0) > 0;
+}
+
 export async function updateDocumentMetadata(db: Queryable, documentId: string, title: string | null, note: string | null, documentType: string): Promise<DocumentRow | null> {
   await db.query(
     `UPDATE documents

@@ -31,6 +31,7 @@ import ContentCopy from '@mui/icons-material/ContentCopy';
 import UploadFile from '@mui/icons-material/UploadFile';
 import Search from '@mui/icons-material/Search';
 import Delete from '@mui/icons-material/Delete';
+import DeleteForever from '@mui/icons-material/DeleteForever';
 import FilterAltOff from '@mui/icons-material/FilterAltOff';
 import LinkOff from '@mui/icons-material/LinkOff';
 import Restore from '@mui/icons-material/Restore';
@@ -53,6 +54,7 @@ import EmptyState from './EmptyState';
 import {
   createDocumentShareLink,
   deleteDocument,
+  purgePortalDocument,
   fetchDocumentFileUrl,
   fetchDocumentShareLinks,
   fetchDocuments,
@@ -228,6 +230,8 @@ const PortalDocuments = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [preview, setPreview] = useState({ open: false, doc: null, url: '' });
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [confirmPurge, setConfirmPurge] = useState(null);
+  const [purgeLoading, setPurgeLoading] = useState(false);
   const [confirmTenantVisibility, setConfirmTenantVisibility] = useState(null);
   const [tenantVisibilityConfirmLoading, setTenantVisibilityConfirmLoading] = useState(false);
   const [shareDoc, setShareDoc] = useState(null);
@@ -525,6 +529,10 @@ const PortalDocuments = () => {
         base.uploadPropertyId = filterPropertyId?.trim() || '';
         base.uploadTenantUserId = filterTenantUserId?.trim() || '';
         base.uploadLeaseId = filterLeaseId?.trim() || '';
+        if (base.uploadLeaseId && !base.uploadPropertyId) {
+          const row = leaseOptions.find((l) => String(l.lease_id) === String(base.uploadLeaseId));
+          if (row?.property_id) base.uploadPropertyId = String(row.property_id);
+        }
       } else {
         base.uploadLeaseId = filterLeaseId?.trim() || '';
       }
@@ -537,6 +545,7 @@ const PortalDocuments = () => {
     filterPropertyId,
     filterTenantUserId,
     isTenant,
+    leaseOptions,
   ]);
 
   const closeUpload = () => {
@@ -594,12 +603,12 @@ const PortalDocuments = () => {
       return;
     }
     if (!isTenant) {
-      if (upload.uploadTenantUserId && !upload.uploadLeaseId) {
-        showFeedback(t('portalDocuments.errors.leaseRequiredWhenTenant'), 'error');
+      if (!String(upload.uploadPropertyId || '').trim()) {
+        showFeedback(t('portalDocuments.errors.propertyRequired'), 'error');
         return;
       }
-      if (!upload.uploadLeaseId && !upload.uploadPropertyId) {
-        showFeedback(t('portalDocuments.errors.scopeRequired'), 'error');
+      if (upload.uploadTenantUserId && !upload.uploadLeaseId) {
+        showFeedback(t('portalDocuments.errors.leaseRequiredWhenTenant'), 'error');
         return;
       }
     }
@@ -703,6 +712,23 @@ const PortalDocuments = () => {
     } catch (error) {
       handleApiForbidden(error);
       showFeedback(t('portalDocuments.errors.restoreFailed'), 'error');
+    }
+  };
+
+  const handlePurgePermanent = async () => {
+    if (!confirmPurge) return;
+    setPurgeLoading(true);
+    try {
+      const token = await getAccessToken();
+      await purgePortalDocument(baseUrl, token, confirmPurge.id, { emailHint });
+      showFeedback(t('portalDocuments.messages.purged'), 'success');
+      setConfirmPurge(null);
+      await loadDocuments();
+    } catch (error) {
+      handleApiForbidden(error);
+      showFeedback(t('portalDocuments.errors.purgeFailed'), 'error');
+    } finally {
+      setPurgeLoading(false);
     }
   };
 
@@ -1128,17 +1154,33 @@ const PortalDocuments = () => {
                       </Tooltip>
                     ) : null}
                     {!isTenant && doc.deleted_at ? (
-                      <Tooltip title={t('portalDocuments.restore')}>
-                        <IconButton
-                          type="button"
-                          size="small"
-                          onClick={() => handleRestore(doc)}
-                          aria-label={t('portalDocuments.restore')}
-                          sx={{ ...portalToolbarIconBtnSx, color: 'primary.main' }}
-                        >
-                          <Restore fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                      <>
+                        <Tooltip title={t('portalDocuments.restore')}>
+                          <IconButton
+                            type="button"
+                            size="small"
+                            onClick={() => handleRestore(doc)}
+                            aria-label={t('portalDocuments.restore')}
+                            sx={{ ...portalToolbarIconBtnSx, color: 'primary.main' }}
+                          >
+                            <Restore fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        {docListView === 'deleted' ? (
+                          <Tooltip title={t('portalDocuments.purgePermanent')}>
+                            <IconButton
+                              type="button"
+                              size="small"
+                              color="error"
+                              onClick={() => setConfirmPurge(doc)}
+                              aria-label={t('portalDocuments.purgePermanent')}
+                              sx={portalToolbarIconBtnSx}
+                            >
+                              <DeleteForever fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        ) : null}
+                      </>
                     ) : null}
                     {!isTenant && !doc.deleted_at ? (
                       <Tooltip title={t('portalDocuments.delete')}>
@@ -1199,11 +1241,12 @@ const PortalDocuments = () => {
           <Stack spacing={2} sx={{ pt: 1 }}>
             {!isTenant ? (
               <>
-                <FormControl fullWidth size="small">
-                  <InputLabel id="document-upload-property-label">{t('portalDocuments.uploadPropertyOptional')}</InputLabel>
+                <FormControl fullWidth size="small" required>
+                  <InputLabel id="document-upload-property-label">{t('portalDocuments.property')}</InputLabel>
                   <Select
                     labelId="document-upload-property-label"
-                    label={t('portalDocuments.uploadPropertyOptional')}
+                    label={t('portalDocuments.property')}
+                    required
                     value={upload.uploadPropertyId}
                     onChange={(e) => {
                       const v = e.target.value;
@@ -1215,7 +1258,9 @@ const PortalDocuments = () => {
                       }));
                     }}
                   >
-                    <MenuItem value="">{t('portalDocuments.uploadSelectNone')}</MenuItem>
+                    <MenuItem value="" disabled>
+                      <em>{t('portalDocuments.uploadSelectProperty')}</em>
+                    </MenuItem>
                     {propertyOptions.map((property) => (
                       <MenuItem key={property.id} value={property.id}>
                         {property.addressLine || property.street || property.name || property.id}
@@ -1550,6 +1595,19 @@ const PortalDocuments = () => {
         confirmColor="error"
         onClose={() => setConfirmDelete(null)}
         onConfirm={handleDelete}
+      />
+
+      <PortalConfirmDialog
+        open={Boolean(confirmPurge)}
+        title={t('portalDocuments.purgeTitle')}
+        body={confirmPurge ? t('portalDocuments.purgeDescription', { name: displayName(confirmPurge) }) : ''}
+        confirmPhrase="delete"
+        confirmPhraseHint={t('portalDocuments.purgePhraseHint')}
+        confirmLabel={t('portalDocuments.purgeConfirm')}
+        confirmColor="error"
+        loading={purgeLoading}
+        onClose={() => { if (!purgeLoading) setConfirmPurge(null); }}
+        onConfirm={() => { void handlePurgePermanent(); }}
       />
 
       <PortalFeedbackSnackbar feedback={feedback} onClose={closeFeedback} />

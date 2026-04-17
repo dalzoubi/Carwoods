@@ -2285,7 +2285,7 @@
     "type": "Type de document",
     "title": "Titre (facultatif)",
     "note": "Note (facultative)",
-    "uploadPropertyOptional": "Propriété (facultatif)",
+    "uploadSelectProperty": "Sélectionnez une propriété",
     "uploadTenantOptional": "Locataire (facultatif)",
     "uploadLeaseOptional": "Bail (facultatif)",
     "uploadSelectNone": "Aucun",
@@ -2331,6 +2331,11 @@
     "revoking": "Révocation…",
     "deleteTitle": "Supprimer ce document ?",
     "deleteDescription": "{{name}} sera retiré des vues normales immédiatement. L'accès des locataires et les liens de partage s'arrêtent maintenant. Les propriétaires et admins peuvent le restaurer pendant la fenêtre de 30 jours.",
+    "purgeTitle": "Supprimer définitivement ce document ?",
+    "purgeDescription": "{{name}} sera supprimé définitivement. Le fichier et les liens de partage ne pourront pas être récupérés. Cela ne remplace pas les obligations légales ou réglementaires de conservation.",
+    "purgeConfirm": "Supprimer définitivement",
+    "purgePhraseHint": "Tapez delete en minuscules pour confirmer.",
+    "purgePermanent": "Supprimer définitivement",
     "scopes": { "LEASE": "Bail", "PROPERTY": "Propriété" },
     "types": {
       "LEASE": "Bail",
@@ -2343,7 +2348,7 @@
       "OTHER": "Autre"
     },
     "scan": { "PENDING": "Analyse", "CLEAN": "Analyse réussie", "BLOCKED": "Bloqué", "FAILED": "Échec de l'analyse" },
-    "messages": { "uploaded": "Document téléversé.", "deleted": "Document supprimé.", "restored": "Document restauré.", "shareCreated": "Lien de partage créé.", "shareRevoked": "Lien de partage révoqué.", "sharingUpdated": "Visibilité pour les locataires mise à jour.", "shareUrlCopied": "Lien copié dans le presse-papiers.", "sharePasscodeCopied": "Code copié dans le presse-papiers.", "clipboardFallback": "Utilisez Ctrl+C pour copier depuis la boîte de dialogue." },
+    "messages": { "uploaded": "Document téléversé.", "deleted": "Document supprimé.", "restored": "Document restauré.", "purged": "Document supprimé définitivement.", "shareCreated": "Lien de partage créé.", "shareRevoked": "Lien de partage révoqué.", "sharingUpdated": "Visibilité pour les locataires mise à jour.", "shareUrlCopied": "Lien copié dans le presse-papiers.", "sharePasscodeCopied": "Code copié dans le presse-papiers.", "clipboardFallback": "Utilisez Ctrl+C pour copier depuis la boîte de dialogue." },
     "errors": {
       "loadFailed": "Impossible de charger les documents.",
       "fileRequired": "Choisissez un fichier avant de téléverser.",
@@ -2356,6 +2361,7 @@
       "openFailed": "Impossible d'ouvrir le document.",
       "deleteFailed": "Impossible de supprimer le document.",
       "restoreFailed": "Impossible de restaurer le document.",
+      "purgeFailed": "Impossible de supprimer définitivement le document.",
       "shareFailed": "Impossible de créer un lien de partage.",
       "shareLinksFailed": "Impossible de charger les liens de partage.",
       "shareRevokeFailed": "Impossible de révoquer le lien de partage.",

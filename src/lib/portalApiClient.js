@@ -1523,6 +1523,22 @@ export async function restoreDocument(baseUrl, accessToken, documentId, params =
   return res.json();
 }
 
+/** POST permanently removes a soft-deleted document (body must include confirmation: "delete"). */
+export async function purgePortalDocument(baseUrl, accessToken, documentId, params = {}) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(buildUrl(baseUrl, `/api/portal/documents/${encodeURIComponent(documentId)}/purge`), {
+    method: 'POST',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify({ confirmation: 'delete' }),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
 export async function createDocumentShareLink(baseUrl, accessToken, documentId, payload = {}) {
   const { emailHint, ...body } = payload;
   const res = await fetch(

@@ -2285,7 +2285,7 @@
     "type": "Tipo de documento",
     "title": "Título (opcional)",
     "note": "Nota (opcional)",
-    "uploadPropertyOptional": "Propiedad (opcional)",
+    "uploadSelectProperty": "Seleccione una propiedad",
     "uploadTenantOptional": "Inquilino (opcional)",
     "uploadLeaseOptional": "Contrato (opcional)",
     "uploadSelectNone": "Ninguno",
@@ -2331,6 +2331,11 @@
     "revoking": "Revocando…",
     "deleteTitle": "¿Eliminar este documento?",
     "deleteDescription": "{{name}} se quitará de las vistas normales de inmediato. El acceso de inquilinos y los enlaces compartidos se detienen ahora. Propietarios y administradores pueden restaurarlo durante la ventana de limpieza de 30 días.",
+    "purgeTitle": "¿Eliminar este documento de forma permanente?",
+    "purgeDescription": "{{name}} se eliminará por completo. El archivo y los enlaces compartidos no se podrán recuperar. Esto no sustituye los requisitos legales o normativos de conservación.",
+    "purgeConfirm": "Eliminar permanentemente",
+    "purgePhraseHint": "Escribe delete en minúsculas para confirmar.",
+    "purgePermanent": "Eliminar permanentemente",
     "scopes": { "LEASE": "Contrato", "PROPERTY": "Propiedad" },
     "types": {
       "LEASE": "Contrato",
@@ -2343,7 +2348,7 @@
       "OTHER": "Otro"
     },
     "scan": { "PENDING": "Escaneando", "CLEAN": "Escaneo correcto", "BLOCKED": "Bloqueado", "FAILED": "Escaneo fallido" },
-    "messages": { "uploaded": "Documento subido.", "deleted": "Documento eliminado.", "restored": "Documento restaurado.", "shareCreated": "Enlace compartido creado.", "shareRevoked": "Enlace compartido revocado.", "sharingUpdated": "Visibilidad para inquilinos actualizada.", "shareUrlCopied": "Enlace copiado al portapapeles.", "sharePasscodeCopied": "Código copiado al portapapeles.", "clipboardFallback": "Usa Ctrl+C para copiar desde el cuadro de diálogo." },
+    "messages": { "uploaded": "Documento subido.", "deleted": "Documento eliminado.", "restored": "Documento restaurado.", "purged": "Documento eliminado permanentemente.", "shareCreated": "Enlace compartido creado.", "shareRevoked": "Enlace compartido revocado.", "sharingUpdated": "Visibilidad para inquilinos actualizada.", "shareUrlCopied": "Enlace copiado al portapapeles.", "sharePasscodeCopied": "Código copiado al portapapeles.", "clipboardFallback": "Usa Ctrl+C para copiar desde el cuadro de diálogo." },
     "errors": {
       "loadFailed": "No se pudieron cargar los documentos.",
       "fileRequired": "Elige un archivo antes de subir.",
@@ -2356,6 +2361,7 @@
       "openFailed": "No se pudo abrir el documento.",
       "deleteFailed": "No se pudo eliminar el documento.",
       "restoreFailed": "No se pudo restaurar el documento.",
+      "purgeFailed": "No se pudo eliminar el documento de forma permanente.",
       "shareFailed": "No se pudo crear el enlace.",
       "shareLinksFailed": "No se pudieron cargar los enlaces compartidos.",
       "shareRevokeFailed": "No se pudo revocar el enlace.",
