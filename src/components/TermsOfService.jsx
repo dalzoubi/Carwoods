@@ -56,6 +56,9 @@ const TermsOfService = () => {
             <SubHeading>{t('terms.tenantDataHeading')}</SubHeading>
             <Paragraph>{t('terms.tenantDataBody')}</Paragraph>
 
+            <SubHeading>{t('terms.aiResponsesHeading')}</SubHeading>
+            <Paragraph>{t('terms.aiResponsesBody')}</Paragraph>
+
             <SubHeading>{t('terms.contactHeading')}</SubHeading>
             <Paragraph>
                 {t('terms.contactBody')}{' '}

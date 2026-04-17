@@ -170,11 +170,13 @@
     "thirdPartyBody": "Our site may link to external services (e.g., Texas Real Estate Commission, HAR.com). We are not responsible for their privacy practices. Please review their policies before sharing information.",
     "notificationsHeading": "Notification Preferences and Mandatory Notices",
     "notificationsBody": "You may control many portal notification settings in your profile, including email, in-app, and SMS preferences. Security and compliance notices may still be sent when required by law, policy, or account protection needs.",
+    "aiHeading": "AI Features and Data Processing",
+    "aiBody": "The Carwoods portal uses AI to assist landlords and property managers with drafting responses to tenant communications, including maintenance requests. To generate suggestions, the AI may process information such as request descriptions, message history, and property context. This data may be transmitted to third-party AI service providers operating under confidentiality obligations. AI-generated content is not stored beyond what is necessary to deliver the service. Landlords and property managers should not include sensitive personal information in communications if they prefer that data not be processed by AI systems.",
     "contactHeading": "Contact",
     "contactBody": "For privacy-related questions or to request access to your information, contact us through our",
     "contactLink": "Contact Us",
     "contactBodySuffix": "page.",
-    "lastUpdated": "Last updated: February 2025"
+    "lastUpdated": "Last updated: April 2026"
   },
   "terms": {
     "title": "Carwoods - Terms of Service",
@@ -203,11 +205,13 @@
     "contactBody": "If you have questions about these Terms, please contact us through our",
     "contactLink": "Contact Us",
     "contactBodySuffix": "page.",
-    "lastUpdated": "Last updated: April 2025",
+    "lastUpdated": "Last updated: April 2026",
     "portalServicesHeading": "Portal and Subscription Services",
     "portalServicesBody": "The Carwoods portal is offered as a subscription software service for property managers and independent landlords. A free tier is available with limited functionality. Paid subscription tiers are in development and will be offered subject to separate pricing terms. Access to the portal does not guarantee a specific level of service, uptime, or feature availability. We reserve the right to modify, suspend, or discontinue any tier with reasonable notice. Subscriptions are tied to the account holder; they are not transferable.",
     "tenantDataHeading": "Tenant Data",
-    "tenantDataBody": "Property managers who use the Carwoods portal invite and manage their own tenants. The property manager, not Carwoods, is the data controller for their tenants’ personal information within the portal. Property managers are responsible for obtaining appropriate consent from their tenants and complying with applicable privacy laws. Carwoods processes tenant data solely to provide the portal services to the property manager."
+    "tenantDataBody": "Property managers who use the Carwoods portal invite and manage their own tenants. The property manager, not Carwoods, is the data controller for their tenants’ personal information within the portal. Property managers are responsible for obtaining appropriate consent from their tenants and complying with applicable privacy laws. Carwoods processes tenant data solely to provide the portal services to the property manager.",
+    "aiResponsesHeading": "AI-Assisted Responses",
+    "aiResponsesBody": "The Carwoods portal includes an AI assistant that may suggest draft responses to tenant maintenance requests and other communications. These suggestions are generated automatically and are offered as a convenience only. The landlord or property manager is solely responsible for reviewing, editing, approving, and sending any response to a tenant — including any AI-generated draft. By sending an AI-suggested message, the landlord or property manager accepts full responsibility for its content. Carwoods makes no warranty that AI-generated suggestions are accurate, complete, legally compliant, or appropriate for any particular situation. AI responses do not constitute legal, safety, medical, or professional advice. Landlords and property managers should exercise independent judgment before communicating with tenants and should consult qualified professionals when required."
   },
   "accessibility": {
     "title": "Carwoods - Accessibility Statement",
