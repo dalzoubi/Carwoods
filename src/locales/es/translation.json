@@ -1438,7 +1438,8 @@
       "when": "Cuándo",
       "changedFields": "Campos cambiados",
       "before": "Antes",
-      "after": "Después"
+      "after": "Después",
+      "actorUnknown": "Desconocido"
     }
   },
   "portalAdminLandlords": {

@@ -1439,7 +1439,8 @@
       "when": "الوقت",
       "changedFields": "الحقول المتغيرة",
       "before": "قبل",
-      "after": "بعد"
+      "after": "بعد",
+      "actorUnknown": "غير معروف"
     }
   },
   "portalAdminLandlords": {

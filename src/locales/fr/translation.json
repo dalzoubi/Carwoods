@@ -1438,7 +1438,8 @@
       "when": "Quand",
       "changedFields": "Champs modifies",
       "before": "Avant",
-      "after": "Apres"
+      "after": "Apres",
+      "actorUnknown": "Inconnu"
     }
   },
   "portalAdminLandlords": {

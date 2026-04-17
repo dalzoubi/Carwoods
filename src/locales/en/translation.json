@@ -1597,7 +1597,8 @@
       "when": "When",
       "changedFields": "Changed fields",
       "before": "Before",
-      "after": "After"
+      "after": "After",
+      "actorUnknown": "Unknown"
     }
   },
   "portalAdminLandlords": {

@@ -248,12 +248,21 @@ No test for `onMessageSubmit`.
 12. ~~GAP-10: Deep-link from dashboard to specific request~~ ✅
 13. ~~GAP-12: Add detail loading state~~ ✅
 
-**Phase 3 — Polish:**
-14. GAP-1, GAP-2: Status filter and chips in list pane
-15. GAP-11: Attachment download/preview
-16. GAP-13, GAP-14, GAP-15, GAP-16, GAP-17: Various UX improvements
+**Phase 3 — Polish:** ✅ All complete
+14. ~~GAP-1, GAP-2: Status filter and chips in list pane~~ ✅
+15. ~~GAP-11: Attachment download/preview~~ ✅
+16. GAP-13 through GAP-17: Various UX improvements
+    - ~~GAP-13: Export CSV loading indicator~~ ✅
+    - ~~GAP-14: Audit tab raw data~~ ✅ — (a) created_at formatted, (b) actor falls back to `portalRequests.audit.actorUnknown` (all 4 locales), (c) JSON formatted with JSON.stringify
+    - ~~GAP-15: No mobile back-to-list navigation~~ ✅ — resolved by modal architecture; detail opens in a Dialog so closing it returns to list
+    - ~~GAP-16: File input not reset after upload~~ ✅
+    - ~~GAP-17: No upload progress indicator~~ ✅
 
-**Phase 4 — Test coverage:**
-17. GAP-19 through GAP-23: Add missing tests
+**Phase 4 — Test coverage:** ✅ All complete
+17. ~~GAP-19: No tests for dashboard status counting logic~~ ✅
+18. ~~GAP-20: No component-level tests~~ ✅ (RequestListPane, RequestDetailPane, TenantRequestForm, PortalRequests all have test files)
+19. ~~GAP-21: Hook test missing cancel flow~~ ✅
+20. ~~GAP-22: Hook test missing management update flow~~ ✅
+21. ~~GAP-23: Hook test missing message posting~~ ✅
 
 Please follow the project conventions in AGENTS.md: use i18n for all new strings (all 4 locales), use MUI theme tokens (no hardcoded hex), use logical CSS properties, and run `npx vitest run` + `npx eslint src/` after changes.

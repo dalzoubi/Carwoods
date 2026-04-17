@@ -721,7 +721,7 @@ const RequestDetailPane = ({
                     {event.action} - {event.entity_type}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {t('portalRequests.audit.actor')}: {event.actor_display_name || event.actor_user_id}
+                    {t('portalRequests.audit.actor')}: {event.actor_display_name || t('portalRequests.audit.actorUnknown')}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {t('portalRequests.audit.when')}: {formatDateTime(event.created_at)}
