@@ -2274,7 +2274,23 @@
     "backToSite": "Back to carwoods.com",
     "configWarning": "Portal authentication is not configured yet.",
     "accountDisabled": "Your account has been disabled. Please contact your property manager for assistance.",
-    "noPortalAccess": "Your account does not have access to this portal. Please contact your property manager if you believe this is an error."
+    "noPortalAccess": "Your account does not have access to this portal. Please contact your property manager if you believe this is an error.",
+    "keepSignedIn": "Keep me signed in",
+    "keepSignedInHelp": "Uncheck on shared or public devices. You'll still be signed out after periods of inactivity.",
+    "acceptTerms": "I agree to the <termsLink>Terms of Use</termsLink> and <privacyLink>Privacy Policy</privacyLink>.",
+    "acceptTermsAriaLabel": "I agree to the Terms of Use and Privacy Policy",
+    "sessionEnded": {
+      "idle": "You were signed out due to inactivity. Sign in again to continue.",
+      "absolute": "Your session has expired. Please sign in again to continue."
+    }
+  },
+  "session": {
+    "expiring": {
+      "title": "Still there?",
+      "body": "For your security, you'll be signed out in {{seconds}} seconds due to inactivity.",
+      "stay": "Stay signed in",
+      "signOut": "Sign out now"
+    }
   },
   "socialSignIn": {
     "prompt": "Sign in with",

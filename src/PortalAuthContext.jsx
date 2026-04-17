@@ -7,7 +7,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
+import {
+  browserLocalPersistence,
+  browserSessionPersistence,
+  onAuthStateChanged,
+  setPersistence,
+  signInWithPopup,
+  signOut as firebaseSignOut,
+} from 'firebase/auth';
 import { VITE_API_BASE_URL_RESOLVED } from './featureFlags';
 import {
   FIREBASE_AUTH_CONFIGURED,
@@ -19,6 +26,18 @@ import {
 } from './firebaseAuth';
 import { Role } from './domain/constants.js';
 import { useMeProfile } from './hooks/useMeProfile';
+import { useIdleTimeout } from './hooks/useIdleTimeout';
+import SessionExpiringModal from './components/SessionExpiringModal';
+import {
+  ABSOLUTE_CHECK_INTERVAL_MS,
+  ABSOLUTE_SESSION_DEFAULT_MS,
+  ABSOLUTE_SESSION_PERSIST_MS,
+  IDLE_TIMEOUT_MS,
+  IDLE_WARNING_MS,
+  PERSIST_CHOICE_KEY,
+  SESSION_BROADCAST_CHANNEL,
+  SIGNED_IN_AT_KEY,
+} from './sessionConfig';
 
 const PortalAuthContext = createContext(null);
 
@@ -78,6 +97,10 @@ const DEV_AUTH_VALUE = PORTAL_DEV_AUTH
       meErrorStatus: null,
       meErrorCode: null,
       lockoutReason: null,
+      persistChoice: false,
+      sessionWarningOpen: false,
+      sessionWarningDeadlineAt: null,
+      extendSession: () => {},
       signIn: () => Promise.resolve(true),
       signInWithProvider: () => Promise.resolve(true),
       signOut: () => Promise.resolve(),
@@ -86,6 +109,64 @@ const DEV_AUTH_VALUE = PORTAL_DEV_AUTH
       handleApiForbidden: () => {},
     }
   : null;
+
+function readPersistChoice() {
+  if (typeof window === 'undefined') return false;
+  try {
+    return window.localStorage?.getItem(PERSIST_CHOICE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function readSignedInAt() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw =
+      window.localStorage?.getItem(SIGNED_IN_AT_KEY)
+      ?? window.sessionStorage?.getItem(SIGNED_IN_AT_KEY);
+    if (!raw) return null;
+    const parsed = Number.parseInt(raw, 10);
+    return Number.isFinite(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeSignedInAt(persist, now) {
+  if (typeof window === 'undefined') return;
+  try {
+    const value = String(now);
+    if (persist) {
+      window.localStorage?.setItem(SIGNED_IN_AT_KEY, value);
+      window.sessionStorage?.removeItem(SIGNED_IN_AT_KEY);
+    } else {
+      window.sessionStorage?.setItem(SIGNED_IN_AT_KEY, value);
+      window.localStorage?.removeItem(SIGNED_IN_AT_KEY);
+    }
+  } catch {
+    // Storage may be unavailable (private mode, quota). Absolute cap becomes best-effort.
+  }
+}
+
+function clearSignedInAt() {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage?.removeItem(SIGNED_IN_AT_KEY);
+    window.sessionStorage?.removeItem(SIGNED_IN_AT_KEY);
+  } catch {
+    // Ignore storage errors on sign-out.
+  }
+}
+
+function writePersistChoice(persist) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage?.setItem(PERSIST_CHOICE_KEY, persist ? 'true' : 'false');
+  } catch {
+    // Ignore storage errors.
+  }
+}
 
 function toSafeAuthErrorCode(error, fallbackCode) {
   if (error && typeof error === 'object' && typeof error.code === 'string' && error.code.trim()) {
@@ -102,7 +183,11 @@ function RealPortalAuthProvider({ children }) {
   const [account, setAccount] = useState(null);
   const [refreshTick, setRefreshTick] = useState(0);
   const [lockoutReason, setLockoutReason] = useState(null);
+  const [persistChoice, setPersistChoiceState] = useState(() => readPersistChoice());
+  const [sessionWarningOpen, setSessionWarningOpen] = useState(false);
+  const [sessionWarningDeadlineAt, setSessionWarningDeadlineAt] = useState(null);
   const lastSoftMeRefreshAtRef = useRef(0);
+  const broadcastRef = useRef(null);
 
   const baseUrl = VITE_API_BASE_URL_RESOLVED || '';
   const meUrl = baseUrl ? `${baseUrl.replace(/\/$/, '')}/api/portal/me` : '';
@@ -126,37 +211,66 @@ function RealPortalAuthProvider({ children }) {
     }
   }, []);
 
-  const signInWithProvider = useCallback(async (providerId) => {
-    if (!auth) {
-      setAuthStatus('unconfigured');
-      return false;
-    }
-    setAuthStatus('authenticating');
-    setAuthError('');
-    setLockoutReason(null);
-    try {
-      const providerById = {
-        'google.com': googleProvider,
-        'apple.com': appleProvider,
-        'microsoft.com': microsoftProvider,
-        'facebook.com': facebookProvider,
-      };
-      const provider = providerById[providerId] ?? googleProvider;
-      applyAccountChooserPrompt(provider, providerId);
-      const result = await signInWithPopup(auth, provider);
-      const nextUser = result?.user ?? null;
-      setAccount(toPortalAccount(nextUser));
-      setAuthStatus(nextUser ? 'authenticated' : 'unauthenticated');
-      setRefreshTick((x) => x + 1);
-      return true;
-    } catch (error) {
-      setAuthStatus('error');
-      setAuthError(toSafeAuthErrorCode(error, 'auth_failed'));
-      return false;
-    }
-  }, [applyAccountChooserPrompt, toPortalAccount]);
+  const signInWithProvider = useCallback(
+    async (providerId, options) => {
+      if (!auth) {
+        setAuthStatus('unconfigured');
+        return false;
+      }
+      const keepSignedIn = Boolean(
+        options && typeof options === 'object' && options.keepSignedIn === true
+      );
+      setAuthStatus('authenticating');
+      setAuthError('');
+      setLockoutReason(null);
+      try {
+        await setPersistence(
+          auth,
+          keepSignedIn ? browserLocalPersistence : browserSessionPersistence
+        );
+        const providerById = {
+          'google.com': googleProvider,
+          'apple.com': appleProvider,
+          'microsoft.com': microsoftProvider,
+          'facebook.com': facebookProvider,
+        };
+        const provider = providerById[providerId] ?? googleProvider;
+        applyAccountChooserPrompt(provider, providerId);
+        const result = await signInWithPopup(auth, provider);
+        const nextUser = result?.user ?? null;
+        if (nextUser) {
+          writePersistChoice(keepSignedIn);
+          writeSignedInAt(keepSignedIn, Date.now());
+          setPersistChoiceState(keepSignedIn);
+        }
+        setAccount(toPortalAccount(nextUser));
+        setAuthStatus(nextUser ? 'authenticated' : 'unauthenticated');
+        setRefreshTick((x) => x + 1);
+        return true;
+      } catch (error) {
+        setAuthStatus('error');
+        setAuthError(toSafeAuthErrorCode(error, 'auth_failed'));
+        return false;
+      }
+    },
+    [applyAccountChooserPrompt, toPortalAccount]
+  );
 
-  const signIn = useCallback(() => signInWithProvider('google.com'), [signInWithProvider]);
+  const signIn = useCallback(
+    (options) => signInWithProvider('google.com', options),
+    [signInWithProvider]
+  );
+
+  const broadcastSignout = useCallback(() => {
+    const channel = broadcastRef.current;
+    if (channel) {
+      try {
+        channel.postMessage({ type: 'signout' });
+      } catch {
+        // Ignore BroadcastChannel errors.
+      }
+    }
+  }, []);
 
   const signOut = useCallback(async () => {
     if (!auth) {
@@ -168,27 +282,44 @@ function RealPortalAuthProvider({ children }) {
     } catch {
       // Best-effort sign out; local state reset below handles the rest.
     }
+    clearSignedInAt();
     setAccount(null);
     setAuthError('');
     setLockoutReason(null);
     setAuthStatus('unauthenticated');
-  }, []);
+    setSessionWarningOpen(false);
+    broadcastSignout();
+  }, [broadcastSignout]);
 
-  const signOutDueToDisabledAccount = useCallback(async (reason = 'account_disabled') => {
-    if (!auth) {
-      setAuthStatus('unconfigured');
-      return;
-    }
-    try {
-      await firebaseSignOut(auth);
-    } catch {
-      // Best-effort; local state reset below handles the rest.
-    }
-    setAccount(null);
-    setAuthError('');
-    setAuthStatus('unauthenticated');
-    setLockoutReason(reason);
-  }, []);
+  const signOutDueToDisabledAccount = useCallback(
+    async (reason = 'account_disabled') => {
+      if (!auth) {
+        setAuthStatus('unconfigured');
+        return;
+      }
+      try {
+        await firebaseSignOut(auth);
+      } catch {
+        // Best-effort; local state reset below handles the rest.
+      }
+      clearSignedInAt();
+      setAccount(null);
+      setAuthError('');
+      setAuthStatus('unauthenticated');
+      setLockoutReason(reason);
+      setSessionWarningOpen(false);
+      broadcastSignout();
+    },
+    [broadcastSignout]
+  );
+
+  const signOutDueToIdleTimeout = useCallback(() => {
+    void signOutDueToDisabledAccount('idle_timeout');
+  }, [signOutDueToDisabledAccount]);
+
+  const signOutDueToAbsoluteTimeout = useCallback(() => {
+    void signOutDueToDisabledAccount('absolute_timeout');
+  }, [signOutDueToDisabledAccount]);
 
   /**
    * Re-run GET /api/portal/me (via useMeProfile). By default coalesced so duplicate
@@ -308,6 +439,82 @@ function RealPortalAuthProvider({ children }) {
     return () => clearInterval(id);
   }, [authStatus, baseUrl]);
 
+  // Cross-tab signout: one tab signing out (idle/absolute/manual) forces the
+  // others back to the login screen within a tick.
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.BroadcastChannel !== 'function') {
+      return undefined;
+    }
+    const channel = new window.BroadcastChannel(SESSION_BROADCAST_CHANNEL);
+    broadcastRef.current = channel;
+    channel.onmessage = (event) => {
+      const data = event?.data;
+      if (data && data.type === 'signout') {
+        clearSignedInAt();
+        setAccount(null);
+        setAuthError('');
+        setAuthStatus('unauthenticated');
+        setSessionWarningOpen(false);
+      }
+    };
+    return () => {
+      broadcastRef.current = null;
+      try {
+        channel.close();
+      } catch {
+        // Ignore close errors.
+      }
+    };
+  }, []);
+
+  // Idle-timeout: sign out after IDLE_TIMEOUT_MS of no user activity.
+  // Applies regardless of the "Keep me signed in" choice — the persistence
+  // flag governs browser-close behavior, not how long an unattended session
+  // can stay open.
+  const isAuthenticated = authStatus === 'authenticated';
+
+  const handleIdleWarn = useCallback(() => {
+    setSessionWarningDeadlineAt(Date.now() + IDLE_WARNING_MS);
+    setSessionWarningOpen(true);
+  }, []);
+
+  const extendSession = useCallback(() => {
+    setSessionWarningOpen(false);
+    setSessionWarningDeadlineAt(null);
+  }, []);
+
+  useIdleTimeout({
+    enabled: isAuthenticated,
+    idleMs: IDLE_TIMEOUT_MS,
+    warningMs: IDLE_WARNING_MS,
+    onWarn: handleIdleWarn,
+    onTimeout: signOutDueToIdleTimeout,
+  });
+
+  // Absolute-session cap: even active users are forced to re-auth after
+  // ABSOLUTE_SESSION_DEFAULT_MS (or ABSOLUTE_SESSION_PERSIST_MS when "Keep me
+  // signed in" was ticked) since the signedInAt timestamp.
+  useEffect(() => {
+    if (!isAuthenticated) return undefined;
+    const cap = persistChoice ? ABSOLUTE_SESSION_PERSIST_MS : ABSOLUTE_SESSION_DEFAULT_MS;
+    const check = () => {
+      const signedInAt = readSignedInAt();
+      if (signedInAt == null) return;
+      if (Date.now() - signedInAt >= cap) {
+        signOutDueToAbsoluteTimeout();
+      }
+    };
+    check();
+    const id = setInterval(check, ABSOLUTE_CHECK_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [isAuthenticated, persistChoice, signOutDueToAbsoluteTimeout]);
+
+  const setPersistChoice = useCallback((next) => {
+    const value = Boolean(next);
+    setPersistChoiceState(value);
+    writePersistChoice(value);
+  }, []);
+
   const value = useMemo(
     () => ({
       baseUrl,
@@ -315,13 +522,18 @@ function RealPortalAuthProvider({ children }) {
       authStatus,
       authError,
       account,
-      isAuthenticated: authStatus === 'authenticated',
+      isAuthenticated,
       meStatus,
       meData,
       meError,
       meErrorStatus,
       meErrorCode,
       lockoutReason,
+      persistChoice,
+      sessionWarningOpen,
+      sessionWarningDeadlineAt,
+      extendSession,
+      setPersistChoice,
       signIn,
       signInWithProvider,
       signOut,
@@ -334,6 +546,8 @@ function RealPortalAuthProvider({ children }) {
       authError,
       authStatus,
       baseUrl,
+      extendSession,
+      isAuthenticated,
       lockoutReason,
       meData,
       meError,
@@ -341,7 +555,11 @@ function RealPortalAuthProvider({ children }) {
       meErrorStatus,
       meStatus,
       meUrl,
+      persistChoice,
       refreshMe,
+      sessionWarningDeadlineAt,
+      sessionWarningOpen,
+      setPersistChoice,
       getAccessToken,
       handleApiForbidden,
       signIn,
@@ -350,7 +568,17 @@ function RealPortalAuthProvider({ children }) {
     ]
   );
 
-  return <PortalAuthContext.Provider value={value}>{children}</PortalAuthContext.Provider>;
+  return (
+    <PortalAuthContext.Provider value={value}>
+      {children}
+      <SessionExpiringModal
+        open={sessionWarningOpen && isAuthenticated}
+        deadlineAt={sessionWarningDeadlineAt}
+        onStay={extendSession}
+        onSignOut={signOut}
+      />
+    </PortalAuthContext.Provider>
+  );
 }
 
 export const PortalAuthProvider = ({ children }) => {

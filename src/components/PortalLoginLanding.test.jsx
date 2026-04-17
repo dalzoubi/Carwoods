@@ -33,6 +33,11 @@ describe('PortalLoginLanding', () => {
     authState.authStatus = 'unauthenticated';
     authState.isAuthenticated = false;
     authState.meStatus = 'idle';
+    try {
+      window.localStorage.clear();
+    } catch {
+      // Ignore in non-browser envs.
+    }
     await i18n.changeLanguage('en');
   });
 
@@ -45,6 +50,53 @@ describe('PortalLoginLanding', () => {
     expect(screen.queryByText(/your account has been disabled/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/does not have access/i)).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
+  });
+
+  it('disables sign-in until the Terms/Privacy agreement is checked', async () => {
+    const { default: userEvent } = await import('@testing-library/user-event');
+    const user = userEvent.setup();
+
+    render(
+      <WithAppTheme>
+        <PortalLoginLanding />
+      </WithAppTheme>
+    );
+
+    const signInButton = screen.getByRole('button', { name: /sign in/i });
+    expect(signInButton).toBeDisabled();
+
+    await user.click(screen.getByRole('checkbox', { name: /terms of use and privacy policy/i }));
+
+    expect(signInButton).toBeEnabled();
+  });
+
+  it('links the agreement to /terms-of-service and /privacy', () => {
+    render(
+      <WithAppTheme>
+        <PortalLoginLanding />
+      </WithAppTheme>
+    );
+
+    const termsLink = screen.getByRole('link', { name: /terms of use/i });
+    const privacyLink = screen.getByRole('link', { name: /privacy policy/i });
+    expect(termsLink).toHaveAttribute('href', expect.stringMatching(/\/terms-of-service$/));
+    expect(privacyLink).toHaveAttribute('href', expect.stringMatching(/\/privacy$/));
+  });
+
+  it('remembers the accepted-terms choice across renders via localStorage', () => {
+    window.localStorage.setItem('carwoods.termsAccepted', 'true');
+
+    render(
+      <WithAppTheme>
+        <PortalLoginLanding />
+      </WithAppTheme>
+    );
+
+    const agreementCheckbox = screen.getByRole('checkbox', {
+      name: /terms of use and privacy policy/i,
+    });
+    expect(agreementCheckbox).toBeChecked();
+    expect(screen.getByRole('button', { name: /sign in/i })).toBeEnabled();
   });
 
   it('shows a spinner and no sign-in button while initializing', () => {
@@ -114,6 +166,77 @@ describe('PortalLoginLanding', () => {
 
     expect(screen.getByText(/does not have access to this portal/i)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /sign in/i })).not.toBeInTheDocument();
+  });
+
+  it('renders the "Keep me signed in" checkbox unchecked by default', () => {
+    render(
+      <WithAppTheme>
+        <PortalLoginLanding />
+      </WithAppTheme>
+    );
+
+    const checkbox = screen.getByRole('checkbox', { name: /keep me signed in/i });
+    expect(checkbox).toBeInTheDocument();
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('passes keepSignedIn=true to signIn when the checkbox is ticked', async () => {
+    const { default: userEvent } = await import('@testing-library/user-event');
+    const user = userEvent.setup();
+    authState.signIn.mockClear();
+
+    render(
+      <WithAppTheme>
+        <PortalLoginLanding />
+      </WithAppTheme>
+    );
+
+    await user.click(screen.getByRole('checkbox', { name: /terms of use and privacy policy/i }));
+    await user.click(screen.getByRole('checkbox', { name: /keep me signed in/i }));
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(authState.signIn).toHaveBeenCalledWith({ keepSignedIn: true });
+  });
+
+  it('passes keepSignedIn=false to signIn when the checkbox is not ticked', async () => {
+    const { default: userEvent } = await import('@testing-library/user-event');
+    const user = userEvent.setup();
+    authState.signIn.mockClear();
+
+    render(
+      <WithAppTheme>
+        <PortalLoginLanding />
+      </WithAppTheme>
+    );
+
+    await user.click(screen.getByRole('checkbox', { name: /terms of use and privacy policy/i }));
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(authState.signIn).toHaveBeenCalledWith({ keepSignedIn: false });
+  });
+
+  it('shows the idle-timeout notice when the user was signed out due to inactivity', () => {
+    authState.lockoutReason = 'idle_timeout';
+
+    render(
+      <WithAppTheme>
+        <PortalLoginLanding />
+      </WithAppTheme>
+    );
+
+    expect(screen.getByText(/signed out due to inactivity/i)).toBeInTheDocument();
+  });
+
+  it('shows the absolute-timeout notice when the session hit the max lifetime', () => {
+    authState.lockoutReason = 'absolute_timeout';
+
+    render(
+      <WithAppTheme>
+        <PortalLoginLanding />
+      </WithAppTheme>
+    );
+
+    expect(screen.getByText(/session has expired/i)).toBeInTheDocument();
   });
 
   it('shows configWarning when authStatus is unconfigured', () => {
