@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import Build from '@mui/icons-material/Build';
 import Chat from '@mui/icons-material/Chat';
+import ClearAll from '@mui/icons-material/ClearAll';
 import Close from '@mui/icons-material/Close';
 import DoneAll from '@mui/icons-material/DoneAll';
 import Email from '@mui/icons-material/Email';
@@ -116,6 +117,7 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [dismissingIds, setDismissingIds] = useState(new Set());
   const [markingAll, setMarkingAll] = useState(false);
+  const [dismissingAll, setDismissingAll] = useState(false);
   const [trayHiddenIds, setTrayHiddenIds] = useState(() => new Set());
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
@@ -267,6 +269,67 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
     }
   };
 
+  const handleDismissAll = async () => {
+    if (dismissingAll || trayNotifications.length === 0) return;
+    if (!baseUrl && !trayPersistReady) return;
+    setDismissingAll(true);
+    const emailHint = account?.username || undefined;
+    const nowIso = new Date().toISOString();
+    const ids = trayNotifications.map((n) => n.id);
+    try {
+      if (baseUrl) {
+        const token = await getAccessToken();
+        const results = await Promise.allSettled(
+          ids.map((id) => dismissPortalNotificationFromTray(baseUrl, token, id, { emailHint }))
+        );
+        let lastUnreadCount = null;
+        const succeededIds = new Set();
+        results.forEach((result, i) => {
+          if (result.status === 'fulfilled') {
+            succeededIds.add(ids[i]);
+            if (typeof result.value?.unread_count === 'number') {
+              lastUnreadCount = result.value.unread_count;
+            }
+          }
+        });
+        if (succeededIds.size > 0) {
+          setNotifications((items) => items.map((item) => (
+            succeededIds.has(item.id)
+              ? { ...item, read_at: item.read_at || nowIso, dismissed_from_tray_at: nowIso }
+              : item
+          )));
+          if (lastUnreadCount !== null) {
+            setUnreadCount(lastUnreadCount);
+          }
+        }
+        const failedIds = ids.filter((id) => !succeededIds.has(id));
+        if (failedIds.length > 0) {
+          if (trayPersistReady) {
+            setTrayHiddenIds((prev) => {
+              let next = prev;
+              failedIds.forEach((id) => { next = addTrayHiddenIdForAccount(account, id, next); });
+              return next;
+            });
+            showFeedback(t('portalHeader.notifications.dismissOfflineFallback'), 'warning');
+          } else if (succeededIds.size === 0) {
+            showFeedback(t('portalHeader.notifications.dismissAllError'), 'error');
+          }
+        }
+      } else if (trayPersistReady) {
+        setTrayHiddenIds((prev) => {
+          let next = prev;
+          ids.forEach((id) => { next = addTrayHiddenIdForAccount(account, id, next); });
+          return next;
+        });
+      }
+    } catch (error) {
+      handleApiForbidden?.(error);
+      showFeedback(t('portalHeader.notifications.dismissAllError'), 'error');
+    } finally {
+      setDismissingAll(false);
+    }
+  };
+
   useEffect(() => {
     if (!isAuthenticated) {
       setNotifications([]);
@@ -358,22 +421,40 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
               </Typography>
             )}
           </Box>
-          {unreadCount > 0 && (
-            <Tooltip title={t('portalHeader.notifications.markAllRead')} arrow>
-              <span>
-                <IconButton
-                  type="button"
-                  size="small"
-                  color="success"
-                  onClick={() => { void handleMarkAllRead(); }}
-                  disabled={markingAll}
-                  aria-label={t('portalHeader.notifications.markAllRead')}
-                >
-                  {markingAll ? <CircularProgress size={14} /> : <DoneAll fontSize="small" />}
-                </IconButton>
-              </span>
-            </Tooltip>
-          )}
+          <Box sx={{ display: 'flex', gap: 0.5 }}>
+            {trayNotifications.length > 0 && (
+              <Tooltip title={t('portalHeader.notifications.dismissAll')} arrow>
+                <span>
+                  <IconButton
+                    type="button"
+                    size="small"
+                    color="inherit"
+                    onClick={() => { void handleDismissAll(); }}
+                    disabled={dismissingAll}
+                    aria-label={t('portalHeader.notifications.dismissAll')}
+                  >
+                    {dismissingAll ? <CircularProgress size={14} /> : <ClearAll fontSize="small" />}
+                  </IconButton>
+                </span>
+              </Tooltip>
+            )}
+            {unreadCount > 0 && (
+              <Tooltip title={t('portalHeader.notifications.markAllRead')} arrow>
+                <span>
+                  <IconButton
+                    type="button"
+                    size="small"
+                    color="success"
+                    onClick={() => { void handleMarkAllRead(); }}
+                    disabled={markingAll}
+                    aria-label={t('portalHeader.notifications.markAllRead')}
+                  >
+                    {markingAll ? <CircularProgress size={14} /> : <DoneAll fontSize="small" />}
+                  </IconButton>
+                </span>
+              </Tooltip>
+            )}
+          </Box>
         </Box>
         <Divider />
 

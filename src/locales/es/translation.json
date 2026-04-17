@@ -1898,6 +1898,8 @@
       "dismissError": "No se pudo descartar la notificación. Por favor, inténtalo de nuevo.",
       "dismissOfflineFallback": "Descartada solo en este dispositivo — no se pudo sincronizar con otros dispositivos.",
       "markAllRead": "Marcar todo como leído",
+      "dismissAll": "Descartar todo",
+      "dismissAllError": "No se pudieron descartar todas las notificaciones. Por favor, inténtalo de nuevo.",
       "viewAll": "Ver todas las notificaciones"
     }
   },

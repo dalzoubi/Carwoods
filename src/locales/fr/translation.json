@@ -1898,6 +1898,8 @@
       "dismissError": "Impossible d'ignorer la notification. Veuillez réessayer.",
       "dismissOfflineFallback": "Ignorée uniquement sur cet appareil — impossible de synchroniser avec les autres appareils.",
       "markAllRead": "Tout marquer comme lu",
+      "dismissAll": "Tout ignorer",
+      "dismissAllError": "Impossible d'ignorer toutes les notifications. Veuillez réessayer.",
       "viewAll": "Voir toutes les notifications"
     }
   },
