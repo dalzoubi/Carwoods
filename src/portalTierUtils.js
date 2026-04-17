@@ -58,9 +58,13 @@ export function allowsPropertyElsaAutoSendEdit(limits) {
   return limits.property_elsa_auto_send_editable !== false;
 }
 
+/** @param {unknown} limits */
+export function allowsRentLedger(limits) {
+  if (!limits || typeof limits !== 'object') return true;
+  return limits.rent_ledger_enabled !== false;
+}
+
 /**
- * @param {unknown} limits
- * @returns {number} -1 = unlimited
  */
 export function maxPropertiesForLandlord(limits) {
   if (!limits || typeof limits !== 'object') return -1;

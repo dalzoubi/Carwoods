@@ -14,6 +14,7 @@ import HomeWork from '@mui/icons-material/HomeWork';
 import People from '@mui/icons-material/People';
 import Build from '@mui/icons-material/Build';
 import Notifications from '@mui/icons-material/Notifications';
+import Payments from '@mui/icons-material/Payments';
 import Check from '@mui/icons-material/Check';
 import ArrowForward from '@mui/icons-material/ArrowForward';
 import AutoAwesome from '@mui/icons-material/AutoAwesome';
@@ -80,6 +81,7 @@ const Features = () => {
         { icon: <HomeWork />, heading: t('features.propertiesFeatureHeading'), body: t('features.propertiesFeatureBody') },
         { icon: <People />, heading: t('features.tenantsFeatureHeading'), body: t('features.tenantsFeatureBody') },
         { icon: <Build />, heading: t('features.requestsFeatureHeading'), body: t('features.requestsFeatureBody') },
+        { icon: <Payments />, heading: t('features.rentLedgerFeatureHeading'), body: t('features.rentLedgerFeatureBody') },
         { icon: <Notifications />, heading: t('features.notificationsFeatureHeading'), body: t('features.notificationsFeatureBody') },
     ];
 
@@ -107,6 +109,7 @@ const Features = () => {
         t('features.managerGets3'),
         t('features.managerGets4'),
         t('features.managerGets5'),
+        t('features.managerGets6'),
     ];
 
     const tenantGets = [
@@ -115,6 +118,7 @@ const Features = () => {
         t('features.tenantGets3'),
         t('features.tenantGets4'),
         t('features.tenantGets5'),
+        t('features.tenantGets6'),
     ];
 
     const heroTint = alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.06);
