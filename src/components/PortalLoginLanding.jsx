@@ -207,7 +207,7 @@ const PortalLoginLanding = () => {
                     />
                   </Typography>
                 )}
-                sx={{ alignItems: 'flex-start', mt: 0, mx: 0 }}
+                sx={{ alignItems: 'center', mt: 0, mx: 0 }}
               />
               <FormControlLabel
                 control={(
