@@ -311,9 +311,11 @@ const RequestDetailPane = ({
   const managementStatusMessage = managementUpdateStatus === 'error'
     ? { severity: 'error', text: managementUpdateError || t('portalRequests.errors.saveFailed') }
     : null;
-  const messageStatusMessage = messageStatus === 'error'
-    ? { severity: 'error', text: messageError || t('portalRequests.errors.saveFailed') }
-    : null;
+  const messageStatusMessage = messageStatus === 'success'
+    ? { severity: 'success', text: t('portalRequests.messages.sent') }
+    : messageStatus === 'error'
+      ? { severity: 'error', text: messageError || t('portalRequests.errors.saveFailed') }
+      : null;
   const messageDeleteStatusMessage = messageDeleteStatus === 'error'
     ? { severity: 'error', text: messageDeleteError || t('portalRequests.errors.saveFailed') }
     : null;

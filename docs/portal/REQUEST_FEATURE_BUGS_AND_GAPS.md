@@ -240,13 +240,13 @@ No test for `onMessageSubmit`.
 6. ~~BUG-6 through BUG-11: Reset per-request transient state on selection change~~ ✅
 7. ~~GAP-18: Fix `RequestStatus` constants~~ ✅ Constants in `packages/domain/src/index.ts` are canonical and correct
 
-**Phase 2 — High-value UX gaps:**
-8. GAP-3, GAP-4: Add timestamps, category, priority to detail pane
-9. GAP-5, GAP-6: Show sender name and timestamps in messages
-10. GAP-7: Add message send success feedback
-11. GAP-8, GAP-9: Convert status code to dropdown, list all valid statuses
-12. GAP-10: Deep-link from dashboard to specific request
-13. GAP-12: Add detail loading state
+**Phase 2 — High-value UX gaps:** ✅ All complete
+8. ~~GAP-3, GAP-4: Add timestamps, category, priority to detail pane~~ ✅
+9. ~~GAP-5, GAP-6: Show sender name and timestamps in messages~~ ✅
+10. ~~GAP-7: Add message send success feedback~~ ✅ Fixed in `RequestDetailPane.jsx` — `messageStatusMessage` now includes a success case using `portalRequests.messages.sent`
+11. ~~GAP-8, GAP-9: Convert status code to dropdown, list all valid statuses~~ ✅
+12. ~~GAP-10: Deep-link from dashboard to specific request~~ ✅
+13. ~~GAP-12: Add detail loading state~~ ✅
 
 **Phase 3 — Polish:**
 14. GAP-1, GAP-2: Status filter and chips in list pane
