@@ -658,9 +658,11 @@ const RequestDetailPane = ({
     <Stack spacing={2} sx={{ flex: 1 }}>
       <StatusAlertSlot
         message={
-          cancelStatus === 'error'
-            ? { severity: 'error', text: cancelError || t('portalRequests.errors.saveFailed') }
-            : null
+          cancelStatus === 'success'
+            ? { severity: 'success', text: t('portalRequests.cancel.cancelled') }
+            : cancelStatus === 'error'
+              ? { severity: 'error', text: cancelError || t('portalRequests.errors.saveFailed') }
+              : null
         }
       />
       {detailStatus === 'loading' && (
