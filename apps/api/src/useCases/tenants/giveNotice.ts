@@ -13,6 +13,7 @@ import {
   type NoticeScope,
 } from '../../lib/tenantLifecycleRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
+import { enqueueNotification } from '../../lib/notificationRepo.js';
 import { conflictError, forbidden, notFound, validationError } from '../../domain/errors.js';
 import type { TransactionPool } from '../types.js';
 
@@ -93,6 +94,19 @@ export async function giveNotice(db: TransactionPool, input: GiveNoticeInput) {
       before: null,
       after: notice,
     });
+
+    if (!needsCoSign) {
+      await enqueueNotification(client as Parameters<typeof enqueueNotification>[0], {
+        eventTypeCode: 'LEASE_NOTICE_GIVEN',
+        payload: {
+          notice_id: notice.id,
+          lease_id: leaseId,
+          planned_move_out_date: plannedMoveOutDate,
+          actor_user_id: input.actorUserId,
+        },
+        idempotencyKey: `lease-notice-given:${notice.id}`,
+      });
+    }
 
     await client.query('COMMIT');
     return { notice };

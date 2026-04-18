@@ -15,6 +15,7 @@ import {
   listRequestNotificationRecipients,
   type RequestNotificationRecipient,
 } from './requestsRepo.js';
+import { listLeaseNotificationRecipients } from './leasesRepo.js';
 import { resolveNotificationPolicy, getUserQuietHoursPreference } from './notificationPolicyRepo.js';
 import { listActiveAdminNotificationRecipients } from './usersRepo.js';
 import { Role } from '../domain/constants.js';
@@ -429,6 +430,75 @@ export function buildNotificationContent(
     };
   }
 
+  if (
+    normalizedEvent === 'LEASE_NOTICE_GIVEN'
+    || normalizedEvent === 'LEASE_NOTICE_CO_SIGNED'
+    || normalizedEvent === 'LEASE_NOTICE_RESPONDED'
+    || normalizedEvent === 'LEASE_NOTICE_WITHDRAWN'
+  ) {
+    const addressParts = [
+      asString(payload.property_street),
+      asString(payload.property_city),
+      asString(payload.property_state),
+      asString(payload.property_zip),
+    ].filter(Boolean);
+    const address = addressParts.length ? addressParts.join(', ') : 'your lease';
+    const planned = asString(payload.planned_move_out_date);
+    const plannedSuffix = planned ? ` (planned move-out ${planned})` : '';
+
+    if (normalizedEvent === 'LEASE_NOTICE_GIVEN') {
+      return {
+        title: 'Move-out notice received',
+        body: `A tenant submitted a notice to vacate ${address}${plannedSuffix}.`,
+        deepLink: '/portal/notices',
+        requestId: null,
+        metadata: { kind: 'lease_notice_given', notice_id: asString(payload.notice_id) },
+      };
+    }
+    if (normalizedEvent === 'LEASE_NOTICE_CO_SIGNED') {
+      return {
+        title: 'Move-out notice fully signed',
+        body: `All co-tenants on ${address} have signed the move-out notice${plannedSuffix}. It is now awaiting your response.`,
+        deepLink: '/portal/notices',
+        requestId: null,
+        metadata: { kind: 'lease_notice_co_signed', notice_id: asString(payload.notice_id) },
+      };
+    }
+    if (normalizedEvent === 'LEASE_NOTICE_RESPONDED') {
+      const decision = (asString(payload.decision) ?? '').toLowerCase();
+      const counterDate = asString(payload.counter_date);
+      let body: string;
+      if (decision === 'accept') {
+        body = `Your landlord accepted the move-out notice for ${address}${plannedSuffix}.`;
+      } else if (decision === 'reject') {
+        body = `Your landlord rejected the move-out notice for ${address}.`;
+      } else if (decision === 'counter') {
+        const counterSuffix = counterDate ? ` and proposed ${counterDate} instead` : '';
+        body = `Your landlord proposed a different move-out date for ${address}${counterSuffix}.`;
+      } else {
+        body = `Your landlord responded to the move-out notice for ${address}.`;
+      }
+      return {
+        title: 'Landlord responded to move-out notice',
+        body,
+        deepLink: '/portal/my-lease',
+        requestId: null,
+        metadata: {
+          kind: 'lease_notice_responded',
+          notice_id: asString(payload.notice_id),
+          decision,
+        },
+      };
+    }
+    return {
+      title: 'Move-out notice withdrawn',
+      body: `The move-out notice for ${address} was withdrawn by the tenant.`,
+      deepLink: '/portal/notices',
+      requestId: null,
+      metadata: { kind: 'lease_notice_withdrawn', notice_id: asString(payload.notice_id) },
+    };
+  }
+
   if (normalizedEvent === 'LANDLORD_MESSAGE_POSTED') {
     const source = (asString(payload.source) ?? '').trim().toUpperCase();
     const isElsaAuto = source === 'ELSA_AUTO_SENT' || source === 'SYSTEM';
@@ -507,6 +577,36 @@ async function resolveRecipientsForEvent(
       phone: row.phone,
       role: row.role,
     }));
+  }
+
+  if (
+    normalizedEvent === 'LEASE_NOTICE_GIVEN'
+    || normalizedEvent === 'LEASE_NOTICE_CO_SIGNED'
+    || normalizedEvent === 'LEASE_NOTICE_RESPONDED'
+    || normalizedEvent === 'LEASE_NOTICE_WITHDRAWN'
+  ) {
+    const leaseId = asString(payload.lease_id);
+    if (!leaseId) return [];
+    const rows = await listLeaseNotificationRecipients(db, leaseId);
+    const actorUserId = asString(payload.actor_user_id);
+    const landlordOnly =
+      normalizedEvent === 'LEASE_NOTICE_GIVEN'
+      || normalizedEvent === 'LEASE_NOTICE_CO_SIGNED'
+      || normalizedEvent === 'LEASE_NOTICE_WITHDRAWN';
+    const tenantsOnly = normalizedEvent === 'LEASE_NOTICE_RESPONDED';
+    return rows
+      .filter((row) => {
+        if (actorUserId && row.user_id === actorUserId) return false;
+        if (landlordOnly) return Boolean(row.is_landlord);
+        if (tenantsOnly) return !row.is_landlord;
+        return true;
+      })
+      .map((row) => ({
+        userId: row.user_id,
+        email: row.email,
+        phone: row.phone,
+        role: row.role,
+      }));
   }
 
   const requestId = asRequestId(payload);

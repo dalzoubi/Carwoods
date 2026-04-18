@@ -5,6 +5,7 @@
 
 import { getNoticeById, setNoticeStatus } from '../../lib/tenantLifecycleRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
+import { enqueueNotification } from '../../lib/notificationRepo.js';
 import { conflictError, forbidden, notFound, validationError } from '../../domain/errors.js';
 import type { TransactionPool } from '../types.js';
 
@@ -46,6 +47,17 @@ export async function withdrawNotice(db: TransactionPool, input: WithdrawNoticeI
       action: 'WITHDRAW_NOTICE',
       before: notice,
       after: updated,
+    });
+
+    await enqueueNotification(client as Parameters<typeof enqueueNotification>[0], {
+      eventTypeCode: 'LEASE_NOTICE_WITHDRAWN',
+      payload: {
+        notice_id: noticeId,
+        lease_id: notice.lease_id,
+        planned_move_out_date: notice.planned_move_out_date,
+        actor_user_id: input.actorUserId,
+      },
+      idempotencyKey: `lease-notice-withdrawn:${noticeId}`,
     });
 
     await client.query('COMMIT');

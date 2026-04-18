@@ -542,6 +542,42 @@ export async function listLeaseTenantUserIds(client: Queryable, leaseId: string)
   return r.rows.map((row) => row.user_id);
 }
 
+export type LeaseNotificationRecipientRow = {
+  user_id: string;
+  email: string | null;
+  phone: string | null;
+  role: string;
+  is_landlord: boolean;
+};
+
+/**
+ * Landlord (property owner) + all tenants on a lease, with contact fields for
+ * the notification dispatcher. Returns an empty list if the lease is missing.
+ */
+export async function listLeaseNotificationRecipients(
+  client: Queryable,
+  leaseId: string
+): Promise<LeaseNotificationRecipientRow[]> {
+  const r = await client.query<LeaseNotificationRecipientRow>(
+    `SELECT u.id AS user_id, u.email, u.phone, u.role,
+            CAST(1 AS BIT) AS is_landlord
+       FROM leases l
+       JOIN properties p ON p.id = l.property_id
+       JOIN users u      ON u.id = p.created_by
+      WHERE l.id = $1
+        AND l.deleted_at IS NULL
+        AND p.deleted_at IS NULL
+     UNION
+     SELECT u.id AS user_id, u.email, u.phone, u.role,
+            CAST(0 AS BIT) AS is_landlord
+       FROM lease_tenants lt
+       JOIN users u ON u.id = lt.user_id
+      WHERE lt.lease_id = $1`,
+    [leaseId]
+  );
+  return r.rows;
+}
+
 /**
  * True if another lease on the same property overlaps the given date range and has a tenant
  * outside `allowedUserIds` (tenants who may share this occupancy window, e.g. same household).

@@ -11,6 +11,7 @@ import {
   setNoticeCounterProposal,
 } from '../../lib/tenantLifecycleRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
+import { enqueueNotification } from '../../lib/notificationRepo.js';
 import { conflictError, forbidden, notFound, validationError } from '../../domain/errors.js';
 import { hasLandlordAccess } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
@@ -100,6 +101,19 @@ export async function respondToNotice(db: TransactionPool, input: RespondToNotic
             : 'COUNTER_NOTICE',
       before: notice,
       after: updated,
+    });
+
+    await enqueueNotification(client as Parameters<typeof enqueueNotification>[0], {
+      eventTypeCode: 'LEASE_NOTICE_RESPONDED',
+      payload: {
+        notice_id: noticeId,
+        lease_id: notice.lease_id,
+        planned_move_out_date: notice.planned_move_out_date,
+        decision: input.decision,
+        counter_date: input.decision === 'counter' ? input.counterDate ?? null : null,
+        actor_user_id: input.actorUserId,
+      },
+      idempotencyKey: `lease-notice-responded:${noticeId}:${input.decision}`,
     });
 
     await client.query('COMMIT');

@@ -10,6 +10,7 @@ import {
   setNoticeStatus,
 } from '../../lib/tenantLifecycleRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
+import { enqueueNotification } from '../../lib/notificationRepo.js';
 import { conflictError, forbidden, notFound, validationError } from '../../domain/errors.js';
 import type { TransactionPool } from '../types.js';
 
@@ -63,6 +64,19 @@ export async function coSignNotice(db: TransactionPool, input: CoSignNoticeInput
       before: notice,
       after: updated,
     });
+
+    if (remaining === 0) {
+      await enqueueNotification(client as Parameters<typeof enqueueNotification>[0], {
+        eventTypeCode: 'LEASE_NOTICE_CO_SIGNED',
+        payload: {
+          notice_id: noticeId,
+          lease_id: notice.lease_id,
+          planned_move_out_date: notice.planned_move_out_date,
+          actor_user_id: input.actorUserId,
+        },
+        idempotencyKey: `lease-notice-co-signed:${noticeId}`,
+      });
+    }
 
     await client.query('COMMIT');
     return { notice: updated, pending_co_signers_remaining: remaining };

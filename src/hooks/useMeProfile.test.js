@@ -9,6 +9,7 @@ function baseParams(overrides = {}) {
     baseUrl: 'https://api.example.com',
     getAccessToken: vi.fn().mockResolvedValue('test-token'),
     refreshTick: 0,
+    silentRefreshTick: 0,
     ...overrides,
   };
 }
@@ -104,5 +105,59 @@ describe('useMeProfile', () => {
     await waitFor(() => expect(result.current.meStatus).toBe('idle'));
     expect(result.current.meErrorStatus).toBeNull();
     expect(result.current.meErrorCode).toBeNull();
+  });
+
+  it('silent refresh updates data without setting meStatus to loading', async () => {
+    global.fetch.mockResolvedValueOnce(
+      jsonResponse({ role: 'TENANT', user: { status: 'ACTIVE' } })
+    );
+
+    const params = baseParams();
+    const { result, rerender } = renderHook((p) => useMeProfile(p), {
+      initialProps: params,
+    });
+
+    await waitFor(() => expect(result.current.meStatus).toBe('ok'));
+    expect(result.current.meData?.role).toBe('TENANT');
+
+    global.fetch.mockResolvedValueOnce(
+      jsonResponse({ role: 'TENANT', user: { status: 'ACTIVE', first_name: 'Pat' } })
+    );
+    rerender({ ...params, silentRefreshTick: 1 });
+
+    await waitFor(() =>
+      expect(result.current.meData?.user?.first_name).toBe('Pat')
+    );
+    expect(result.current.meStatus).toBe('ok');
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('silent refresh ignores transient errors but still handles 403', async () => {
+    global.fetch.mockResolvedValueOnce(
+      jsonResponse({ role: 'TENANT', user: { status: 'ACTIVE' } })
+    );
+
+    const params = baseParams();
+    const { result, rerender } = renderHook((p) => useMeProfile(p), {
+      initialProps: params,
+    });
+
+    await waitFor(() => expect(result.current.meStatus).toBe('ok'));
+
+    global.fetch.mockRejectedValueOnce(Object.assign(new Error('upstream'), { status: 503 }));
+    rerender({ ...params, silentRefreshTick: 1 });
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(result.current.meStatus).toBe('ok'));
+    expect(result.current.meData?.role).toBe('TENANT');
+
+    global.fetch.mockResolvedValueOnce(
+      jsonResponse({ error: 'account_disabled' }, 403)
+    );
+    rerender({ ...params, silentRefreshTick: 2 });
+
+    await waitFor(() => expect(result.current.meStatus).toBe('error'));
+    expect(result.current.meErrorStatus).toBe(403);
+    expect(result.current.meErrorCode).toBe('account_disabled');
   });
 });

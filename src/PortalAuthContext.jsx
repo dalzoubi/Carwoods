@@ -62,7 +62,8 @@ export const ME_POLL_INTERVAL_MS = 5 * 60 * 1000;
 
 /**
  * Soft /me refresh coalescing (profile photo error → refreshMe, duplicate avatars, etc.).
- * Use refreshMe({ force: true }) from explicit UI (status page, after profile save).
+ * Soft refreshes use the silent tick (no loading UI). Use `refreshMe({ force: true })` after
+ * explicit UI actions (status page, profile save).
  */
 export const ME_REFRESH_COALESCE_MS = 3000;
 
@@ -182,6 +183,7 @@ function RealPortalAuthProvider({ children }) {
   const [authError, setAuthError] = useState('');
   const [account, setAccount] = useState(null);
   const [refreshTick, setRefreshTick] = useState(0);
+  const [silentRefreshTick, setSilentRefreshTick] = useState(0);
   const [lockoutReason, setLockoutReason] = useState(null);
   const [persistChoice, setPersistChoiceState] = useState(() => readPersistChoice());
   const [sessionWarningOpen, setSessionWarningOpen] = useState(false);
@@ -328,7 +330,7 @@ function RealPortalAuthProvider({ children }) {
   /**
    * Re-run GET /api/portal/me (via useMeProfile). By default coalesced so duplicate
    * PortalUserAvatar instances or other burst callers cannot hammer the API.
-   * @param {{ force?: boolean }} [opts]  Pass `{ force: true }` for explicit user actions.
+   * @param {{ force?: boolean }} [opts]  `force: true` — loud refresh (loading UI). Otherwise silent.
    */
   const refreshMe = useCallback((opts) => {
     const force = Boolean(opts && typeof opts === 'object' && opts.force === true);
@@ -340,7 +342,11 @@ function RealPortalAuthProvider({ children }) {
       }
     }
     lastSoftMeRefreshAtRef.current = now;
-    setRefreshTick((x) => x + 1);
+    if (force) {
+      setRefreshTick((x) => x + 1);
+    } else {
+      setSilentRefreshTick((x) => x + 1);
+    }
   }, []);
 
   /**
@@ -433,7 +439,18 @@ function RealPortalAuthProvider({ children }) {
     baseUrl,
     getAccessToken,
     refreshTick,
+    silentRefreshTick,
   });
+
+  useEffect(() => {
+    if (authStatus !== 'authenticated') {
+      setSilentRefreshTick(0);
+    }
+  }, [authStatus]);
+
+  useEffect(() => {
+    setSilentRefreshTick(0);
+  }, [account?.uid]);
 
   // Auto-lockout: sign out immediately when /me returns 403.
   // The error code distinguishes a disabled account from a user with no portal
@@ -452,7 +469,7 @@ function RealPortalAuthProvider({ children }) {
     if (authStatus !== 'authenticated' || !isPortalApiReachable(baseUrl)) return;
     const id = setInterval(() => {
       if (!auth?.currentUser) return;
-      setRefreshTick((x) => x + 1);
+      setSilentRefreshTick((x) => x + 1);
     }, ME_POLL_INTERVAL_MS);
     return () => clearInterval(id);
   }, [authStatus, baseUrl]);

@@ -5,14 +5,17 @@ import { fetchMe } from '../lib/portalApiClient';
 
 /**
  * Fetches /api/portal/me whenever the account is authenticated and a baseUrl
- * is available. Re-fetches when refreshTick changes (triggered by refreshMe).
+ * is available.
+ * - `refreshTick` — user-driven / sign-in reloads (shows loading).
+ * - `silentRefreshTick` — background polls and soft refreshMe calls (no loading flash).
  *
  * @param {object} params
  * @param {object|null} params.account - Active portal auth account object
  * @param {string} params.authStatus - Current auth status string
  * @param {string} params.baseUrl - API base URL (empty string = disabled)
  * @param {() => Promise<string>} params.getAccessToken - Returns a Bearer token
- * @param {number} params.refreshTick - Increment to trigger a re-fetch
+ * @param {number} params.refreshTick - Increment to trigger a loud re-fetch
+ * @param {number} [params.silentRefreshTick] - Increment to refresh without loading UI
  * @returns {{ meStatus: string, meData: object|null, meError: string, meErrorStatus: number|null, meErrorCode: string|null }}
  */
 function accountStableKey(account) {
@@ -25,7 +28,14 @@ function accountStableKey(account) {
   ].join('\0');
 }
 
-export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, refreshTick }) {
+export function useMeProfile({
+  account,
+  authStatus,
+  baseUrl,
+  getAccessToken,
+  refreshTick,
+  silentRefreshTick = 0,
+}) {
   const [meStatus, setMeStatus] = useState('idle');
   const [meData, setMeData] = useState(null);
   const [meError, setMeError] = useState('');
@@ -39,6 +49,13 @@ export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, ref
 
   const accountRef = useRef(account);
   accountRef.current = account;
+
+  const authStatusRef = useRef(authStatus);
+  const baseUrlRef = useRef(baseUrl);
+  const accountKeyRef = useRef(accountKey);
+  authStatusRef.current = authStatus;
+  baseUrlRef.current = baseUrl;
+  accountKeyRef.current = accountKey;
 
   const buildSafeMeErrorMessage = useCallback((error) => {
     const status = error && typeof error === 'object' && typeof error.status === 'number'
@@ -97,6 +114,51 @@ export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, ref
     run();
     return () => controller.abort();
   }, [accountKey, authStatus, baseUrl, buildSafeMeErrorMessage, clearMe, getAccessToken, refreshTick]);
+
+  useEffect(() => {
+    if (silentRefreshTick === 0) return;
+    if (
+      !isPortalApiReachable(baseUrlRef.current)
+      || authStatusRef.current !== 'authenticated'
+      || !accountKeyRef.current
+    ) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const run = async () => {
+      try {
+        const accessToken = await getAccessToken();
+        const hint = emailFromAccount(accountRef.current);
+        const payload = await fetchMe(baseUrlRef.current, accessToken, hint, controller.signal);
+        setMeStatus('ok');
+        setMeData(payload ?? null);
+        setMeError('');
+        setMeErrorStatus(null);
+        setMeErrorCode(null);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        const status =
+          error && typeof error === 'object' && typeof error.status === 'number'
+            ? error.status
+            : null;
+        if (status === 403) {
+          setMeStatus('error');
+          setMeData(null);
+          setMeError(buildSafeMeErrorMessage(error));
+          setMeErrorStatus(403);
+          setMeErrorCode(
+            error && typeof error === 'object' && typeof error.code === 'string' && error.code
+              ? error.code
+              : null
+          );
+        }
+      }
+    };
+
+    void run();
+    return () => controller.abort();
+  }, [silentRefreshTick, buildSafeMeErrorMessage, getAccessToken]);
 
   return { meStatus, meData, meError, meErrorStatus, meErrorCode };
 }
