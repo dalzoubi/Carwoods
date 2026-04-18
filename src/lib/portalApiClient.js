@@ -1968,6 +1968,69 @@ export async function deleteLease(baseUrl, accessToken, leaseId, params) {
 }
 
 /**
+ * POST /api/landlord/leases/{leaseId}/move-out — finalize lease move-out.
+ */
+export async function moveOutLease(baseUrl, accessToken, leaseId, payload, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/leases/${encodeURIComponent(leaseId)}/move-out`),
+    {
+      method: 'POST',
+      headers: { ...getHeaders(accessToken, emailHint), 'content-type': 'application/json' },
+      credentials: 'omit',
+      body: JSON.stringify(payload ?? {}),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  invalidateAllTenantDetailCachesForUser(baseUrl, emailHint);
+  return res.json();
+}
+
+/**
+ * POST /api/landlord/leases/{leaseId}/terminate — eviction or early termination.
+ */
+export async function terminateLease(baseUrl, accessToken, leaseId, payload, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/leases/${encodeURIComponent(leaseId)}/terminate`),
+    {
+      method: 'POST',
+      headers: { ...getHeaders(accessToken, emailHint), 'content-type': 'application/json' },
+      credentials: 'omit',
+      body: JSON.stringify(payload ?? {}),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  invalidateAllTenantDetailCachesForUser(baseUrl, emailHint);
+  return res.json();
+}
+
+/**
+ * GET /api/landlord/past-tenants — list tenants with no active/upcoming lease under this landlord.
+ */
+export async function fetchPastTenants(baseUrl, accessToken, params) {
+  const emailHint = params?.emailHint;
+  const landlordRaw = typeof params?.landlordId === 'string' ? params.landlordId.trim() : '';
+  const qs = landlordRaw.length > 0 ? `?landlord_id=${encodeURIComponent(landlordRaw)}` : '';
+  const res = await fetch(buildUrl(baseUrl, `/api/landlord/past-tenants${qs}`), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
  * GET /api/landlord/properties  (reusable for property selection dropdowns)
  *
  * @param {string} baseUrl

@@ -30,6 +30,8 @@ import Close from '@mui/icons-material/Close';
 import Delete from '@mui/icons-material/Delete';
 import Edit from '@mui/icons-material/Edit';
 import Block from '@mui/icons-material/Block';
+import ExitToApp from '@mui/icons-material/ExitToApp';
+import Gavel from '@mui/icons-material/Gavel';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ContactPage from '@mui/icons-material/ContactPage';
@@ -49,6 +51,8 @@ import {
   unlinkTenantFromLease,
   updateLease,
   deleteLease,
+  moveOutLease,
+  terminateLease,
   fetchLandlords,
   fetchLandlordProperties,
   fetchLandlordLeases,
@@ -717,6 +721,8 @@ function LeaseRow({ lease, properties, directoryTenants, onLeaseUpdated, t }) {
   const [unlinkConfirm, setUnlinkConfirm] = useState(null);
   const [unlinkState, setUnlinkState] = useState({ status: 'idle', detail: '' });
   const [deleteState, setDeleteState] = useState({ status: 'idle', detail: '' });
+  const [moveOutOpen, setMoveOutOpen] = useState(false);
+  const [terminateOpen, setTerminateOpen] = useState(false);
   const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
   const emailHint = meData?.user?.email ?? account?.username ?? '';
 
@@ -871,6 +877,28 @@ function LeaseRow({ lease, properties, directoryTenants, onLeaseUpdated, t }) {
               <Edit fontSize="small" />
             </IconButton>
           </Tooltip>
+          <Tooltip title={t('portalTenants.actions.moveOutLease')}>
+            <IconButton
+              type="button"
+              size="small"
+              color="warning"
+              onClick={() => setMoveOutOpen(true)}
+              aria-label={t('portalTenants.actions.moveOutLease')}
+            >
+              <ExitToApp fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t('portalTenants.actions.terminateLease')}>
+            <IconButton
+              type="button"
+              size="small"
+              color="error"
+              onClick={() => setTerminateOpen(true)}
+              aria-label={t('portalTenants.actions.terminateLease')}
+            >
+              <Gavel fontSize="small" />
+            </IconButton>
+          </Tooltip>
           <Tooltip title={t('portalTenants.actions.deleteLease')}>
             <IconButton
               type="button"
@@ -912,6 +940,28 @@ function LeaseRow({ lease, properties, directoryTenants, onLeaseUpdated, t }) {
         confirmLabel={t('portalTenants.deleteLeaseConfirm.confirm')}
         cancelLabel={t('portalTenants.actions.cancel')}
         loading={deleteState.status === 'saving'}
+      />
+
+      <MoveOutLeaseDialog
+        open={moveOutOpen}
+        onClose={() => setMoveOutOpen(false)}
+        lease={lease}
+        baseUrl={baseUrl}
+        getAccessToken={getAccessToken}
+        emailHint={emailHint}
+        onDone={() => { setMoveOutOpen(false); onLeaseUpdated(); }}
+        t={t}
+      />
+
+      <TerminateLeaseDialog
+        open={terminateOpen}
+        onClose={() => setTerminateOpen(false)}
+        lease={lease}
+        baseUrl={baseUrl}
+        getAccessToken={getAccessToken}
+        emailHint={emailHint}
+        onDone={() => { setTerminateOpen(false); onLeaseUpdated(); }}
+        t={t}
       />
 
       <PortalConfirmDialog
@@ -2680,5 +2730,276 @@ const PortalTenants = () => {
     </Box>
   );
 };
+
+// ---------------------------------------------------------------------------
+// MoveOutLeaseDialog — finalize end-of-term / mutual move-out
+// ---------------------------------------------------------------------------
+
+function MoveOutLeaseDialog({ open, onClose, lease, baseUrl, getAccessToken, emailHint, onDone, t }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [endedOn, setEndedOn] = useState(today);
+  const [endedReason, setEndedReason] = useState('end_of_term');
+  const [finalBalance, setFinalBalance] = useState('');
+  const [inspectionNotes, setInspectionNotes] = useState('');
+  const [internalNotes, setInternalNotes] = useState('');
+  const [fwd, setFwd] = useState({ street: '', street2: '', city: '', state: '', zip: '' });
+  const [state, setState] = useState({ status: 'idle', detail: '' });
+
+  useEffect(() => {
+    if (open) {
+      setEndedOn(today);
+      setEndedReason('end_of_term');
+      setFinalBalance('');
+      setInspectionNotes('');
+      setInternalNotes('');
+      setFwd({ street: '', street2: '', city: '', state: '', zip: '' });
+      setState({ status: 'idle', detail: '' });
+    }
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSubmit = async () => {
+    setState({ status: 'saving', detail: '' });
+    try {
+      const accessToken = await getAccessToken();
+      const trimmed = Object.fromEntries(
+        Object.entries(fwd).map(([k, v]) => [k, v.trim().length ? v.trim() : null]),
+      );
+      const hasForwarding = Object.values(trimmed).some((v) => v !== null);
+      await moveOutLease(
+        baseUrl,
+        accessToken,
+        lease.id,
+        {
+          ended_on: endedOn,
+          ended_reason: endedReason,
+          final_balance_amount: finalBalance === '' ? null : Number(finalBalance),
+          inspection_notes: inspectionNotes || null,
+          internal_notes: internalNotes || null,
+          forwarding: hasForwarding ? trimmed : null,
+        },
+        { emailHint },
+      );
+      onDone();
+    } catch (error) {
+      setState({ status: 'error', detail: tenantApiErrorMessage(error, t) });
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>{t('portalTenants.moveOut.title')}</DialogTitle>
+      <DialogContent>
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          <TextField
+            label={t('portalTenants.moveOut.endedOn')}
+            type="date"
+            value={endedOn}
+            onChange={(e) => setEndedOn(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+          />
+          <FormControl fullWidth>
+            <InputLabel id="move-out-reason-label">{t('portalTenants.moveOut.reason')}</InputLabel>
+            <Select
+              labelId="move-out-reason-label"
+              value={endedReason}
+              label={t('portalTenants.moveOut.reason')}
+              onChange={(e) => setEndedReason(e.target.value)}
+            >
+              <MenuItem value="end_of_term">{t('portalTenants.moveOut.reasonEndOfTerm')}</MenuItem>
+              <MenuItem value="mutual">{t('portalTenants.moveOut.reasonMutual')}</MenuItem>
+              <MenuItem value="other">{t('portalTenants.moveOut.reasonOther')}</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            label={t('portalTenants.moveOut.finalBalance')}
+            type="number"
+            value={finalBalance}
+            onChange={(e) => setFinalBalance(e.target.value)}
+            fullWidth
+          />
+          <TextField
+            label={t('portalTenants.moveOut.forwardingStreet')}
+            value={fwd.street}
+            onChange={(e) => setFwd({ ...fwd, street: e.target.value })}
+            fullWidth
+          />
+          <Stack direction="row" spacing={1}>
+            <TextField
+              label={t('portalTenants.moveOut.forwardingCity')}
+              value={fwd.city}
+              onChange={(e) => setFwd({ ...fwd, city: e.target.value })}
+              fullWidth
+            />
+            <TextField
+              label={t('portalTenants.moveOut.forwardingState')}
+              value={fwd.state}
+              onChange={(e) => setFwd({ ...fwd, state: e.target.value })}
+              sx={{ width: 100 }}
+            />
+            <TextField
+              label={t('portalTenants.moveOut.forwardingZip')}
+              value={fwd.zip}
+              onChange={(e) => setFwd({ ...fwd, zip: e.target.value })}
+              sx={{ width: 140 }}
+            />
+          </Stack>
+          <TextField
+            label={t('portalTenants.moveOut.inspectionNotes')}
+            value={inspectionNotes}
+            onChange={(e) => setInspectionNotes(e.target.value)}
+            multiline
+            minRows={2}
+            fullWidth
+          />
+          <TextField
+            label={t('portalTenants.moveOut.internalNotes')}
+            value={internalNotes}
+            onChange={(e) => setInternalNotes(e.target.value)}
+            multiline
+            minRows={2}
+            fullWidth
+          />
+          {state.status === 'error' && <Alert severity="error">{state.detail}</Alert>}
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} disabled={state.status === 'saving'}>
+          {t('portalTenants.actions.cancel')}
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          variant="contained"
+          color="warning"
+          disabled={state.status === 'saving' || !endedOn}
+        >
+          {t('portalTenants.moveOut.submit')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// TerminateLeaseDialog — eviction or early termination (minimal form; expand later)
+// ---------------------------------------------------------------------------
+
+function TerminateLeaseDialog({ open, onClose, lease, baseUrl, getAccessToken, emailHint, onDone, t }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [kind, setKind] = useState('early_termination');
+  const [endedOn, setEndedOn] = useState(today);
+  const [caseNumber, setCaseNumber] = useState('');
+  const [judgmentAmount, setJudgmentAmount] = useState('');
+  const [notes, setNotes] = useState('');
+  const [state, setState] = useState({ status: 'idle', detail: '' });
+
+  useEffect(() => {
+    if (open) {
+      setKind('early_termination');
+      setEndedOn(today);
+      setCaseNumber('');
+      setJudgmentAmount('');
+      setNotes('');
+      setState({ status: 'idle', detail: '' });
+    }
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSubmit = async () => {
+    setState({ status: 'saving', detail: '' });
+    try {
+      const accessToken = await getAccessToken();
+      await terminateLease(
+        baseUrl,
+        accessToken,
+        lease.id,
+        {
+          kind,
+          ended_on: endedOn,
+          ended_notes: notes || null,
+          case_number: kind === 'eviction' ? (caseNumber || null) : null,
+          judgment_amount:
+            kind === 'eviction' && judgmentAmount !== '' ? Number(judgmentAmount) : null,
+          eviction_details: kind === 'eviction' ? (notes || null) : null,
+        },
+        { emailHint },
+      );
+      onDone();
+    } catch (error) {
+      setState({ status: 'error', detail: tenantApiErrorMessage(error, t) });
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>{t('portalTenants.terminate.title')}</DialogTitle>
+      <DialogContent>
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          <FormControl fullWidth>
+            <InputLabel id="terminate-kind-label">{t('portalTenants.terminate.kind')}</InputLabel>
+            <Select
+              labelId="terminate-kind-label"
+              value={kind}
+              label={t('portalTenants.terminate.kind')}
+              onChange={(e) => setKind(e.target.value)}
+            >
+              <MenuItem value="early_termination">
+                {t('portalTenants.terminate.kindEarlyTermination')}
+              </MenuItem>
+              <MenuItem value="eviction">{t('portalTenants.terminate.kindEviction')}</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            label={t('portalTenants.terminate.endedOn')}
+            type="date"
+            value={endedOn}
+            onChange={(e) => setEndedOn(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+          />
+          {kind === 'eviction' && (
+            <>
+              <TextField
+                label={t('portalTenants.terminate.caseNumber')}
+                value={caseNumber}
+                onChange={(e) => setCaseNumber(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                label={t('portalTenants.terminate.judgmentAmount')}
+                type="number"
+                value={judgmentAmount}
+                onChange={(e) => setJudgmentAmount(e.target.value)}
+                fullWidth
+              />
+              <Alert severity="warning">{t('portalTenants.terminate.evictionWarning')}</Alert>
+            </>
+          )}
+          <TextField
+            label={t('portalTenants.terminate.notes')}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            multiline
+            minRows={2}
+            fullWidth
+          />
+          {state.status === 'error' && <Alert severity="error">{state.detail}</Alert>}
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} disabled={state.status === 'saving'}>
+          {t('portalTenants.actions.cancel')}
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          variant="contained"
+          color="error"
+          disabled={state.status === 'saving' || !endedOn}
+        >
+          {t('portalTenants.terminate.submit')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
 
 export default PortalTenants;

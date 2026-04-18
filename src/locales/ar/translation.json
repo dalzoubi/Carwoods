@@ -2257,7 +2257,9 @@
       "deleteTenant": "حذف المستأجر",
       "addLease": "إضافة عقد إيجار",
       "editLease": "تعديل عقد الإيجار",
-      "deleteLease": "حذف عقد الإيجار",
+      "deleteLease": "حذف عقد الإيجار (أُضيف بالخطأ)",
+      "moveOutLease": "إخلاء (إنهاء العقد)…",
+      "terminateLease": "إنهاء (إخلاء قضائي / إنهاء مبكر)…",
       "linkCoTenant": "إضافة طرف إلى العقد",
       "removeLeaseholder": "إزالة طرف من العقد",
       "expand": "عرض عقود الإيجار",
@@ -2282,8 +2284,36 @@
     },
     "deleteLeaseConfirm": {
       "title": "حذف عقد الإيجار؟",
-      "body": "سيؤدي هذا إلى حذف سجل عقد الإيجار نهائياً. لا يمكن التراجع عن هذا الإجراء.",
+      "body": "استخدم هذا فقط لعقود أُضيفت بالخطأ. إذا أخلى المستأجر المكان أو جرى إخلاؤه قضائياً، فاستخدم تلك الإجراءات للحفاظ على السجل.",
       "confirm": "حذف عقد الإيجار"
+    },
+    "moveOut": {
+      "title": "إخلاء (إنهاء العقد)",
+      "endedOn": "تاريخ الإخلاء",
+      "reason": "السبب",
+      "reasonEndOfTerm": "انتهاء المدة",
+      "reasonMutual": "اتفاق متبادل",
+      "reasonOther": "أخرى",
+      "finalBalance": "الرصيد النهائي (موجب = المستأجر مدين)",
+      "forwardingStreet": "عنوان التحويل — الشارع",
+      "forwardingCity": "المدينة",
+      "forwardingState": "الولاية",
+      "forwardingZip": "الرمز البريدي",
+      "inspectionNotes": "ملاحظات المعاينة",
+      "internalNotes": "ملاحظات داخلية",
+      "submit": "إنهاء الإخلاء"
+    },
+    "terminate": {
+      "title": "إنهاء العقد",
+      "kind": "النوع",
+      "kindEarlyTermination": "إنهاء مبكر",
+      "kindEviction": "إخلاء قضائي",
+      "endedOn": "تاريخ الإنهاء",
+      "caseNumber": "رقم القضية",
+      "judgmentAmount": "مبلغ الحكم",
+      "notes": "ملاحظات",
+      "evictionWarning": "الإخلاء القضائي يلغي وصول البوابة فوراً ويمنع تأجير العقار لهذا المستأجر مستقبلاً ما لم يتجاوز ذلك المسؤول.",
+      "submit": "إنهاء العقد"
     },
     "removeLeaseholderConfirm": {
       "title": "إزالة طرف من العقد؟",

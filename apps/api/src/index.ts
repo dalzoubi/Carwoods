@@ -8,6 +8,7 @@ import './functions/landlordProperties.js';
 import './functions/landlordLeases.js';
 import './functions/landlordLeaseTenants.js';
 import './functions/landlordTenants.js';
+import './functions/landlordLeaseLifecycle.js';
 import './functions/portalRequests.js';
 import './functions/portalProfile.js';
 import './functions/portalProfilePhoto.js';

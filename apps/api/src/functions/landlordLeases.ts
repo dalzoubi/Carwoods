@@ -13,7 +13,8 @@ import { listLeases } from '../useCases/leases/listLeases.js';
 import { getLease } from '../useCases/leases/getLease.js';
 import { createLease } from '../useCases/leases/createLease.js';
 import { updateLease } from '../useCases/leases/updateLease.js';
-import { deleteLease } from '../useCases/leases/deleteLease.js';
+import { deleteLeaseAsMistake } from '../useCases/tenants/deleteLeaseAsMistake.js';
+import { Role } from '../domain/constants.js';
 
 // ---------------------------------------------------------------------------
 // Parsing helpers
@@ -205,12 +206,16 @@ async function landlordLeasesItem(
 
   if (request.method === 'DELETE') {
     try {
-      await deleteLease(getPool(), {
+      const force =
+        ctx.role === Role.ADMIN &&
+        (request.query.get('force') === '1' || request.query.get('force') === 'true');
+      await deleteLeaseAsMistake(getPool(), {
         leaseId: id,
         actorUserId: ctx.user.id,
         actorRole: ctx.role,
+        force,
       });
-      logInfo(context, 'leases.item.delete.success', { userId: ctx.user.id, leaseId: id });
+      logInfo(context, 'leases.item.delete.success', { userId: ctx.user.id, leaseId: id, force });
       return jsonResponse(204, ctx.headers, null);
     } catch (e) {
       const mapped = mapDomainError(e, ctx.headers);

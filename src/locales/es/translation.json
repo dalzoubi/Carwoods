@@ -2256,7 +2256,9 @@
       "deleteTenant": "Eliminar inquilino",
       "addLease": "Añadir contrato",
       "editLease": "Editar contrato",
-      "deleteLease": "Eliminar contrato",
+      "deleteLease": "Eliminar contrato (añadido por error)",
+      "moveOutLease": "Salida (finalizar contrato)…",
+      "terminateLease": "Rescindir (desalojo / anticipada)…",
       "linkCoTenant": "Añadir titular",
       "removeLeaseholder": "Quitar titular del contrato",
       "expand": "Ver contratos",
@@ -2281,8 +2283,36 @@
     },
     "deleteLeaseConfirm": {
       "title": "¿Eliminar contrato?",
-      "body": "Esto eliminará permanentemente este registro de contrato. Esta acción no se puede deshacer.",
+      "body": "Usa esta opción solo para contratos añadidos por error. Si el inquilino se mudó o fue desalojado, usa esas acciones para conservar el historial.",
       "confirm": "Eliminar contrato"
+    },
+    "moveOut": {
+      "title": "Salida (finalizar contrato)",
+      "endedOn": "Fecha de salida",
+      "reason": "Motivo",
+      "reasonEndOfTerm": "Fin del plazo",
+      "reasonMutual": "Acuerdo mutuo",
+      "reasonOther": "Otro",
+      "finalBalance": "Saldo final (positivo = el inquilino adeuda)",
+      "forwardingStreet": "Dirección de reenvío — Calle",
+      "forwardingCity": "Ciudad",
+      "forwardingState": "Estado",
+      "forwardingZip": "Código postal",
+      "inspectionNotes": "Notas de inspección",
+      "internalNotes": "Notas internas",
+      "submit": "Finalizar salida"
+    },
+    "terminate": {
+      "title": "Rescindir contrato",
+      "kind": "Tipo",
+      "kindEarlyTermination": "Rescisión anticipada",
+      "kindEviction": "Desalojo",
+      "endedOn": "Fecha de finalización",
+      "caseNumber": "Número de expediente",
+      "judgmentAmount": "Importe de la sentencia",
+      "notes": "Notas",
+      "evictionWarning": "El desalojo revoca el acceso al portal de inmediato y bloquea futuros alquileres a este inquilino salvo que un administrador lo autorice.",
+      "submit": "Rescindir contrato"
     },
     "removeLeaseholderConfirm": {
       "title": "¿Quitar titular?",

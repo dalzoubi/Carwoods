@@ -2423,7 +2423,9 @@
       "deleteTenant": "Delete tenant",
       "addLease": "Add lease",
       "editLease": "Edit lease",
-      "deleteLease": "Delete lease",
+      "deleteLease": "Delete lease (added by mistake)",
+      "moveOutLease": "Move out (end lease)…",
+      "terminateLease": "Terminate (eviction / early)…",
       "linkCoTenant": "Add leaseholder",
       "removeLeaseholder": "Remove leaseholder",
       "expand": "Show leases",
@@ -2448,8 +2450,36 @@
     },
     "deleteLeaseConfirm": {
       "title": "Delete lease?",
-      "body": "This will permanently remove this lease record. This cannot be undone.",
+      "body": "Only use this for leases added by mistake. If the tenant moved out or was evicted, use those actions instead so the history is preserved.",
       "confirm": "Delete lease"
+    },
+    "moveOut": {
+      "title": "Move out (end lease)",
+      "endedOn": "Move-out date",
+      "reason": "Reason",
+      "reasonEndOfTerm": "End of term",
+      "reasonMutual": "Mutual agreement",
+      "reasonOther": "Other",
+      "finalBalance": "Final balance (positive = tenant owes)",
+      "forwardingStreet": "Forwarding street",
+      "forwardingCity": "City",
+      "forwardingState": "State",
+      "forwardingZip": "ZIP",
+      "inspectionNotes": "Inspection notes",
+      "internalNotes": "Internal notes",
+      "submit": "Finalize move-out"
+    },
+    "terminate": {
+      "title": "Terminate lease",
+      "kind": "Type",
+      "kindEarlyTermination": "Early termination",
+      "kindEviction": "Eviction",
+      "endedOn": "End date",
+      "caseNumber": "Court case number",
+      "judgmentAmount": "Judgment amount",
+      "notes": "Notes",
+      "evictionWarning": "Eviction revokes portal access immediately and blocks future rentals to this tenant unless an admin overrides.",
+      "submit": "Terminate lease"
     },
     "removeLeaseholderConfirm": {
       "title": "Remove leaseholder?",

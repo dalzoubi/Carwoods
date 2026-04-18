@@ -2256,7 +2256,9 @@
       "deleteTenant": "Supprimer le locataire",
       "addLease": "Ajouter un bail",
       "editLease": "Modifier le bail",
-      "deleteLease": "Supprimer le bail",
+      "deleteLease": "Supprimer le bail (ajouté par erreur)",
+      "moveOutLease": "Départ (terminer le bail)…",
+      "terminateLease": "Résilier (expulsion / anticipée)…",
       "linkCoTenant": "Ajouter un titulaire",
       "removeLeaseholder": "Retirer le titulaire",
       "expand": "Afficher les baux",
@@ -2281,8 +2283,36 @@
     },
     "deleteLeaseConfirm": {
       "title": "Supprimer le bail ?",
-      "body": "Cela supprimera définitivement cet enregistrement de bail. Cette action est irréversible.",
+      "body": "À n'utiliser que pour les baux ajoutés par erreur. Si le locataire a déménagé ou a été expulsé, utilisez plutôt ces actions pour conserver l'historique.",
       "confirm": "Supprimer le bail"
+    },
+    "moveOut": {
+      "title": "Départ (terminer le bail)",
+      "endedOn": "Date de départ",
+      "reason": "Motif",
+      "reasonEndOfTerm": "Fin du terme",
+      "reasonMutual": "Accord mutuel",
+      "reasonOther": "Autre",
+      "finalBalance": "Solde final (positif = le locataire doit)",
+      "forwardingStreet": "Adresse de réexpédition — rue",
+      "forwardingCity": "Ville",
+      "forwardingState": "Région",
+      "forwardingZip": "Code postal",
+      "inspectionNotes": "Notes d'inspection",
+      "internalNotes": "Notes internes",
+      "submit": "Finaliser le départ"
+    },
+    "terminate": {
+      "title": "Résilier le bail",
+      "kind": "Type",
+      "kindEarlyTermination": "Résiliation anticipée",
+      "kindEviction": "Expulsion",
+      "endedOn": "Date de fin",
+      "caseNumber": "Numéro de dossier",
+      "judgmentAmount": "Montant du jugement",
+      "notes": "Notes",
+      "evictionWarning": "L'expulsion révoque immédiatement l'accès au portail et bloque toute location future à ce locataire sauf dérogation d'un administrateur.",
+      "submit": "Résilier le bail"
     },
     "removeLeaseholderConfirm": {
       "title": "Retirer un titulaire ?",
