@@ -3,12 +3,13 @@ import React, { createContext, useContext } from 'react';
 const PortalShellContext = createContext({
   isMobile: false,
   openMobileSidebar: () => {},
+  closeMobileSidebar: () => {},
 });
 
-export function PortalShellProvider({ isMobile, openMobileSidebar, children }) {
+export function PortalShellProvider({ isMobile, openMobileSidebar, closeMobileSidebar, children }) {
   const value = React.useMemo(
-    () => ({ isMobile, openMobileSidebar }),
-    [isMobile, openMobileSidebar]
+    () => ({ isMobile, openMobileSidebar, closeMobileSidebar }),
+    [isMobile, openMobileSidebar, closeMobileSidebar]
   );
   return <PortalShellContext.Provider value={value}>{children}</PortalShellContext.Provider>;
 }

@@ -36,10 +36,10 @@ import { usePortalAuth } from '../PortalAuthContext';
 import { hasLandlordAccess } from '../domain/roleUtils.js';
 import { isGuestRole, normalizeRole, resolveRole, emailFromAccount } from '../portalUtils';
 import { isPortalApiReachable } from '../featureFlags';
-import { allowsRentLedger, landlordTierLimits } from '../portalTierUtils';
+import { allowsPayments, landlordTierLimits } from '../portalTierUtils';
 import { withDarkPath } from '../routePaths';
 import { fetchLandlordLeases, fetchLandlordProperties } from '../lib/portalApiClient';
-import { usePortalRentLedger } from './portalRentLedger/usePortalRentLedger';
+import { usePortalPayments } from './portalPayments/usePortalPayments';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import StatusAlertSlot from './StatusAlertSlot';
@@ -98,7 +98,7 @@ function propertyAddressOneLine(property) {
 }
 
 /** @param {{ start_date?: string, end_date?: string|null, month_to_month?: boolean, id?: string } | null} lease */
-function rentLedgerLeaseDropdownLabel(property, lease) {
+function paymentsLeaseDropdownLabel(property, lease) {
   const addr = propertyAddressOneLine(property);
   const start = lease?.start_date;
   const end = lease?.end_date;
@@ -132,7 +132,7 @@ function formatPeriod(isoDate) {
   return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long' });
 }
 
-const PortalRentLedger = () => {
+const PortalPayments = () => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const {
@@ -148,7 +148,7 @@ const PortalRentLedger = () => {
   const role = normalizeRole(resolveRole(meData, account));
   const isGuest = isGuestRole(role);
   const isManagement = hasLandlordAccess(role);
-  const showLocked = isManagement && !allowsRentLedger(landlordTierLimits(meData));
+  const showLocked = isManagement && !allowsPayments(landlordTierLimits(meData));
 
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
@@ -175,7 +175,7 @@ const PortalRentLedger = () => {
         const byPropertyId = new Map(propRows.map((p) => [p.id, p]));
         const leaseList = leaseRows.map((lease) => ({
           id: lease.id,
-          label: rentLedgerLeaseDropdownLabel(byPropertyId.get(lease.property_id), lease),
+          label: paymentsLeaseDropdownLabel(byPropertyId.get(lease.property_id), lease),
         }));
         leaseList.sort((a, b) => leaseDropdownCollator.compare(a.label, b.label));
         setLeases(leaseList);
@@ -204,7 +204,7 @@ const PortalRentLedger = () => {
     openEditForm,
     closeForm,
     onSaveEntry,
-  } = usePortalRentLedger({
+  } = usePortalPayments({
     baseUrl,
     isAuthenticated,
     isGuest,
@@ -228,8 +228,8 @@ const PortalRentLedger = () => {
     if (saveStatus === 'success') {
       showFeedback(
         editingEntryId
-          ? t('portalRentLedger.feedback.updated')
-          : t('portalRentLedger.feedback.saved')
+          ? t('portalPayments.feedback.updated')
+          : t('portalPayments.feedback.saved')
       );
       closeForm();
     }
@@ -245,21 +245,21 @@ const PortalRentLedger = () => {
     return (
       <Box>
         <Helmet>
-          <title>{t('portalRentLedger.title')}</title>
-          <meta name="description" content={t('portalRentLedger.metaDescription')} />
+          <title>{t('portalPayments.title')}</title>
+          <meta name="description" content={t('portalPayments.metaDescription')} />
         </Helmet>
         <Stack spacing={3}>
           <Box>
             <Typography variant="h5" component="h1" fontWeight={700}>
-              {t('portalRentLedger.heading')}
+              {t('portalPayments.heading')}
             </Typography>
           </Box>
           <Paper variant="outlined" sx={{ borderRadius: 2 }}>
             <EmptyState
               icon={<Lock sx={{ fontSize: 56 }} />}
-              title={t('portalRentLedger.lockedTitle')}
-              description={t('portalRentLedger.lockedBody')}
-              actionLabel={t('portalRentLedger.pricingLink')}
+              title={t('portalPayments.lockedTitle')}
+              description={t('portalPayments.lockedBody')}
+              actionLabel={t('portalPayments.pricingLink')}
               actionHref={withDarkPath(pathname, '/pricing')}
             />
           </Paper>
@@ -271,27 +271,27 @@ const PortalRentLedger = () => {
   return (
     <Box>
       <Helmet>
-        <title>{t('portalRentLedger.title')}</title>
-        <meta name="description" content={t('portalRentLedger.metaDescription')} />
+        <title>{t('portalPayments.title')}</title>
+        <meta name="description" content={t('portalPayments.metaDescription')} />
       </Helmet>
 
       <Stack spacing={3}>
         <Box>
           <Typography variant="h5" component="h1" fontWeight={700}>
-            {t('portalRentLedger.heading')}
+            {t('portalPayments.heading')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {isManagement
-              ? t('portalRentLedger.introManagement')
-              : t('portalRentLedger.introTenant')}
+              ? t('portalPayments.introManagement')
+              : t('portalPayments.introTenant')}
           </Typography>
         </Box>
 
         <StatusAlertSlot
-          message={!isPortalApiReachable(baseUrl) ? { severity: 'warning', text: t('portalRentLedger.errors.apiUnavailable') } : null}
+          message={!isPortalApiReachable(baseUrl) ? { severity: 'warning', text: t('portalPayments.errors.apiUnavailable') } : null}
         />
         <StatusAlertSlot
-          message={entriesStatus === 'error' ? { severity: 'error', text: entriesError || t('portalRentLedger.errors.loadFailed') } : null}
+          message={entriesStatus === 'error' ? { severity: 'error', text: entriesError || t('portalPayments.errors.loadFailed') } : null}
         />
 
         {/* Lease selector (management only) */}
@@ -301,10 +301,10 @@ const PortalRentLedger = () => {
               <CircularProgress size={20} />
             ) : leases.length > 0 ? (
               <FormControl size="small" sx={{ minWidth: 300 }}>
-                <InputLabel>{t('portalRentLedger.labels.selectLease')}</InputLabel>
+                <InputLabel>{t('portalPayments.labels.selectLease')}</InputLabel>
                 <Select
                   value={selectedLeaseId}
-                  label={t('portalRentLedger.labels.selectLease')}
+                  label={t('portalPayments.labels.selectLease')}
                   onChange={(e) => setSelectedLeaseId(e.target.value)}
                 >
                   {leases.map((l) => (
@@ -314,7 +314,7 @@ const PortalRentLedger = () => {
               </FormControl>
             ) : leasesStatus === 'ok' ? (
               <Typography variant="body2" color="text.secondary">
-                {t('portalRentLedger.errors.noLeases')}
+                {t('portalPayments.errors.noLeases')}
               </Typography>
             ) : null}
 
@@ -326,41 +326,41 @@ const PortalRentLedger = () => {
                 onClick={handleOpenCreate}
                 sx={{ textTransform: 'none' }}
               >
-                {t('portalRentLedger.actions.addEntry')}
+                {t('portalPayments.actions.addEntry')}
               </Button>
             )}
           </Stack>
         )}
 
-        {/* Ledger table */}
+        {/* Payments table */}
         <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
           {entriesStatus === 'loading' && (
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ p: 3 }}>
               <CircularProgress size={20} />
               <Typography variant="body2" color="text.secondary">
-                {t('portalRentLedger.loading')}
+                {t('portalPayments.loading')}
               </Typography>
             </Stack>
           )}
 
           {entriesStatus !== 'loading' && entries.length === 0 && (
             <Typography variant="body2" color="text.secondary" sx={{ p: 3 }}>
-              {t('portalRentLedger.empty')}
+              {t('portalPayments.empty')}
             </Typography>
           )}
 
           {entries.length > 0 && (
             <TableContainer>
-              <Table size="small" aria-label={t('portalRentLedger.tableAriaLabel')}>
+              <Table size="small" aria-label={t('portalPayments.tableAriaLabel')}>
                 <TableHead>
                   <TableRow>
-                    <TableCell>{t('portalRentLedger.columns.period')}</TableCell>
-                    <TableCell align="right">{t('portalRentLedger.columns.amountDue')}</TableCell>
-                    <TableCell align="right">{t('portalRentLedger.columns.amountPaid')}</TableCell>
-                    <TableCell>{t('portalRentLedger.columns.dueDate')}</TableCell>
-                    <TableCell>{t('portalRentLedger.columns.paidDate')}</TableCell>
-                    <TableCell>{t('portalRentLedger.columns.method')}</TableCell>
-                    <TableCell>{t('portalRentLedger.columns.status')}</TableCell>
+                    <TableCell>{t('portalPayments.columns.period')}</TableCell>
+                    <TableCell align="right">{t('portalPayments.columns.amountDue')}</TableCell>
+                    <TableCell align="right">{t('portalPayments.columns.amountPaid')}</TableCell>
+                    <TableCell>{t('portalPayments.columns.dueDate')}</TableCell>
+                    <TableCell>{t('portalPayments.columns.paidDate')}</TableCell>
+                    <TableCell>{t('portalPayments.columns.method')}</TableCell>
+                    <TableCell>{t('portalPayments.columns.status')}</TableCell>
                     {isManagement && <TableCell />}
                   </TableRow>
                 </TableHead>
@@ -374,12 +374,12 @@ const PortalRentLedger = () => {
                       <TableCell>{formatDate(entry.paid_date)}</TableCell>
                       <TableCell>
                         {entry.payment_method
-                          ? t(`portalRentLedger.paymentMethods.${entry.payment_method}`, { defaultValue: entry.payment_method })
+                          ? t(`portalPayments.paymentMethods.${entry.payment_method}`, { defaultValue: entry.payment_method })
                           : '—'}
                       </TableCell>
                       <TableCell>
                         <Chip
-                          label={t(`portalRentLedger.paymentStatus.${entry.payment_status}`, { defaultValue: entry.payment_status })}
+                          label={t(`portalPayments.paymentStatus.${entry.payment_status}`, { defaultValue: entry.payment_status })}
                           size="small"
                           color={PAYMENT_STATUS_COLOR[entry.payment_status] ?? 'default'}
                           variant={entry.payment_status === 'PAID' ? 'filled' : 'outlined'}
@@ -389,7 +389,7 @@ const PortalRentLedger = () => {
                         <TableCell align="right">
                           <IconButton
                             size="small"
-                            aria-label={t('portalRentLedger.actions.editEntry')}
+                            aria-label={t('portalPayments.actions.editEntry')}
                             onClick={() => openEditForm(entry)}
                           >
                             <EditIcon fontSize="small" />
@@ -410,7 +410,7 @@ const PortalRentLedger = () => {
         <Dialog open={dialogOpen} onClose={closeForm} fullWidth maxWidth="sm">
           <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
             <Typography component="span">
-              {editingEntryId ? t('portalRentLedger.dialog.editTitle') : t('portalRentLedger.dialog.createTitle')}
+              {editingEntryId ? t('portalPayments.dialog.editTitle') : t('portalPayments.dialog.createTitle')}
             </Typography>
             <IconButton size="small" onClick={closeForm} disabled={saveStatus === 'saving'} aria-label={t('portalDialogs.closeForm')}>
               <Close fontSize="small" />
@@ -419,21 +419,21 @@ const PortalRentLedger = () => {
           <DialogContent dividers>
             <Stack spacing={2} sx={{ pt: 0.5 }}>
               {saveStatus === 'error' && (
-                <Alert severity="error">{saveError || t('portalRentLedger.errors.saveFailed')}</Alert>
+                <Alert severity="error">{saveError || t('portalPayments.errors.saveFailed')}</Alert>
               )}
               <TextField
-                label={t('portalRentLedger.fields.periodStart')}
+                label={t('portalPayments.fields.periodStart')}
                 type="date"
                 value={form.period_start}
                 onChange={onFormField('period_start')}
                 disabled={saveStatus === 'saving' || !!editingEntryId}
                 fullWidth
                 InputLabelProps={{ shrink: true }}
-                helperText={t('portalRentLedger.fields.periodStartHelper')}
+                helperText={t('portalPayments.fields.periodStartHelper')}
               />
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <TextField
-                  label={t('portalRentLedger.fields.amountDue')}
+                  label={t('portalPayments.fields.amountDue')}
                   type="number"
                   inputProps={{ min: 0, step: '0.01' }}
                   value={form.amount_due}
@@ -442,7 +442,7 @@ const PortalRentLedger = () => {
                   fullWidth
                 />
                 <TextField
-                  label={t('portalRentLedger.fields.amountPaid')}
+                  label={t('portalPayments.fields.amountPaid')}
                   type="number"
                   inputProps={{ min: 0, step: '0.01' }}
                   value={form.amount_paid}
@@ -453,7 +453,7 @@ const PortalRentLedger = () => {
               </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <TextField
-                  label={t('portalRentLedger.fields.dueDate')}
+                  label={t('portalPayments.fields.dueDate')}
                   type="date"
                   value={form.due_date}
                   onChange={onFormField('due_date')}
@@ -462,7 +462,7 @@ const PortalRentLedger = () => {
                   InputLabelProps={{ shrink: true }}
                 />
                 <TextField
-                  label={t('portalRentLedger.fields.paidDate')}
+                  label={t('portalPayments.fields.paidDate')}
                   type="date"
                   value={form.paid_date}
                   onChange={onFormField('paid_date')}
@@ -472,22 +472,22 @@ const PortalRentLedger = () => {
                 />
               </Stack>
               <FormControl fullWidth disabled={saveStatus === 'saving'}>
-                <InputLabel>{t('portalRentLedger.fields.paymentMethod')}</InputLabel>
+                <InputLabel>{t('portalPayments.fields.paymentMethod')}</InputLabel>
                 <Select
                   value={form.payment_method}
-                  label={t('portalRentLedger.fields.paymentMethod')}
+                  label={t('portalPayments.fields.paymentMethod')}
                   onChange={onFormField('payment_method')}
                 >
-                  <MenuItem value="">{t('portalRentLedger.fields.paymentMethodNone')}</MenuItem>
+                  <MenuItem value="">{t('portalPayments.fields.paymentMethodNone')}</MenuItem>
                   {PAYMENT_METHODS.map((m) => (
                     <MenuItem key={m} value={m}>
-                      {t(`portalRentLedger.paymentMethods.${m}`, { defaultValue: m })}
+                      {t(`portalPayments.paymentMethods.${m}`, { defaultValue: m })}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
               <TextField
-                label={t('portalRentLedger.fields.notes')}
+                label={t('portalPayments.fields.notes')}
                 value={form.notes}
                 onChange={onFormField('notes')}
                 disabled={saveStatus === 'saving'}
@@ -500,7 +500,7 @@ const PortalRentLedger = () => {
           </DialogContent>
           <DialogActions>
             <Button type="button" onClick={closeForm} disabled={saveStatus === 'saving'}>
-              {t('portalRentLedger.actions.cancel')}
+              {t('portalPayments.actions.cancel')}
             </Button>
             <Button
               type="button"
@@ -509,7 +509,7 @@ const PortalRentLedger = () => {
               disabled={saveStatus === 'saving' || !form.period_start || !form.amount_due || !form.due_date}
               startIcon={saveStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
             >
-              {saveStatus === 'saving' ? t('portalRentLedger.actions.saving') : t('portalRentLedger.actions.save')}
+              {saveStatus === 'saving' ? t('portalPayments.actions.saving') : t('portalPayments.actions.save')}
             </Button>
           </DialogActions>
         </Dialog>
@@ -520,4 +520,4 @@ const PortalRentLedger = () => {
   );
 };
 
-export default PortalRentLedger;
+export default PortalPayments;

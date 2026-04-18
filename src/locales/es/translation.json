@@ -1933,7 +1933,7 @@
       "status": "Estado del sistema",
       "healthGroup": "Salud",
       "notificationTest": "Prueba de notificaciones",
-      "rentLedger": "Libro de rentas",
+      "payments": "Pagos",
       "collapse": "Contraer barra lateral",
       "expand": "Expandir barra lateral",
       "signOut": "Cerrar sesión",
@@ -1979,9 +1979,13 @@
           "title": "Bandeja",
           "body": "Abra conversaciones de mantenimiento, notificaciones del portal y mensajes de contacto para administradores."
         },
-        "rentLedger": {
-          "title": "Libro de rentas",
-          "body": "Consulta tu historial completo de pagos de renta. Los propietarios lo usan para registrar y controlar pagos por contrato."
+        "documents": {
+          "title": "Centro de documentos",
+          "body": "Suba, descargue y organice documentos relacionados con el arrendamiento en un solo lugar."
+        },
+        "payments": {
+          "title": "Pagos",
+          "body": "Consulta montos adeudados, pagados y el estado por período. Los propietarios registran pagos aquí; los inquilinos ven su historial."
         },
         "profile": {
           "title": "Perfil",
@@ -2320,15 +2324,15 @@
       "invalidRentAmount": "Introduce una renta mensual válida (0 o más, hasta dos decimales)."
     }
   },
-  "portalRentLedger": {
-    "title": "Libro de rentas",
-    "heading": "Libro de rentas",
+  "portalPayments": {
+    "title": "Pagos",
+    "heading": "Pagos",
     "metaDescription": "Consulta y gestiona el historial de pagos de renta de tu contrato.",
     "introManagement": "Registra y controla los pagos de renta de cada contrato.",
     "introTenant": "Consulta tu historial de pagos de renta a continuación.",
-    "loading": "Cargando libro…",
-    "empty": "No se encontraron entradas en el libro.",
-    "tableAriaLabel": "Libro de rentas",
+    "loading": "Cargando pagos…",
+    "empty": "No hay pagos registrados.",
+    "tableAriaLabel": "Pagos",
     "columns": {
       "period": "Período",
       "amountDue": "Monto adeudado",
@@ -2383,11 +2387,11 @@
     },
     "errors": {
       "apiUnavailable": "La API no está configurada.",
-      "loadFailed": "No se pudieron cargar las entradas del libro.",
+      "loadFailed": "No se pudieron cargar los pagos.",
       "saveFailed": "No se pudo guardar la entrada. Inténtalo de nuevo.",
       "noLeases": "No se encontraron contratos."
     },
-    "lockedTitle": "El libro de rentas está disponible en planes pagos",
+    "lockedTitle": "Los pagos están disponibles en planes pagos",
     "lockedBody": "Registra pagos de renta y brinda a los inquilinos un historial completo. Esta función está disponible para suscriptores pagos.",
     "pricingLink": "Ver precios"
   },
@@ -2575,7 +2579,7 @@
     "featureSms": "Notificaciones SMS",
     "featureAiRouting": "Enrutamiento IA de mantenimiento",
     "featureDocStorage": "Almacenamiento de documentos",
-    "featureRentLedger": "Libro de rentas y registro de pagos",
+    "featurePayments": "Seguimiento de pagos",
     "featureReports": "Informes y exportaciones",
     "featureWhiteLabel": "Marca personalizada",
     "featurePrioritySupport": "Soporte prioritario",
@@ -2609,8 +2613,8 @@
     "tenantsFeatureBody": "Invita a inquilinos por correo electrónico, realiza el seguimiento de contratos activos y controla el acceso al portal, todo desde un único registro de inquilinos.",
     "requestsFeatureHeading": "Solicitudes de Mantenimiento",
     "requestsFeatureBody": "Los inquilinos envían solicitudes a través del portal. Tú haces el seguimiento del estado, envías mensajes, adjuntas fotos y asignas proveedores, todo en un mismo hilo.",
-    "rentLedgerFeatureHeading": "Libro de rentas",
-    "rentLedgerFeatureBody": "Registra y controla cada pago de renta en un solo lugar. Los propietarios apuntan el método, la fecha y el monto; los inquilinos ven su historial completo en cualquier momento.",
+    "paymentsFeatureHeading": "Pagos",
+    "paymentsFeatureBody": "Registra y controla cada pago de renta en un solo lugar. Los propietarios apuntan el método, la fecha y el monto; los inquilinos ven su historial cuando quieran.",
     "notificationsFeatureHeading": "Notificaciones",
     "notificationsFeatureBody": "Las notificaciones dentro de la app, por correo electrónico y SMS mantienen informados a ti y a tus inquilinos en cada etapa de una solicitud.",
     "aiFeatureHeading": "Configuración de IA (ELSA)",
@@ -2639,13 +2643,13 @@
     "managerGets3": "Exportación CSV e informes",
     "managerGets4": "Controles de política de notificaciones",
     "managerGets5": "Gestión de contratos y documentos",
-    "managerGets6": "Libro de rentas — registra y controla pagos",
+    "managerGets6": "Pagos — registra y controla la renta",
     "tenantGets1": "Enviar solicitudes de mantenimiento",
     "tenantGets2": "Mensajería directa con el gestor",
     "tenantGets3": "Actualizaciones del estado de la solicitud",
     "tenantGets4": "Alertas por correo, dentro de la app y SMS",
     "tenantGets5": "Preferencias de perfil y notificaciones",
-    "tenantGets6": "Historial de pagos de renta y vista del libro",
+    "tenantGets6": "Historial de pagos de renta",
     "ctaHeading": "¿Listo para empezar?",
     "ctaBody": "Regístrate gratis y añade tu primera propiedad hoy.",
     "ctaButton": "Ver precios",

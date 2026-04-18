@@ -12,7 +12,9 @@
       "Bash(xargs grep:*)",
       "Bash(grep -E \"\\\\.\\(ts|sql|js\\)$\")",
       "Bash(npx tsc:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(sed -n '50,65p' src/routePaths.js)",
+      "Bash(sed -n '25,84p' src/components/EmptyState.jsx)"
     ]
   }
 }

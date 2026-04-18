@@ -1,6 +1,6 @@
--- Rent ledger: tracks rent due and payments received per lease period.
+-- Lease-scoped rent payment records (due vs paid) per billing period.
 
-CREATE TABLE rent_ledger_entries (
+CREATE TABLE lease_payment_entries (
     id              UNIQUEIDENTIFIER  NOT NULL DEFAULT NEWID()  PRIMARY KEY,
     lease_id        UNIQUEIDENTIFIER  NOT NULL REFERENCES leases (id) ON DELETE NO ACTION,
     -- First day of the billing period (e.g. 2026-05-01 for May 2026).
@@ -16,8 +16,8 @@ CREATE TABLE rent_ledger_entries (
     created_at      DATETIMEOFFSET    NOT NULL DEFAULT SYSDATETIMEOFFSET(),
     updated_at      DATETIMEOFFSET    NOT NULL DEFAULT SYSDATETIMEOFFSET(),
     deleted_at      DATETIMEOFFSET    NULL,
-    CONSTRAINT uq_rent_ledger_lease_period UNIQUE (lease_id, period_start)
+    CONSTRAINT uq_lease_payment_lease_period UNIQUE (lease_id, period_start)
 );
 
-CREATE INDEX idx_rent_ledger_lease_id ON rent_ledger_entries (lease_id)
+CREATE INDEX idx_lease_payment_lease_id ON lease_payment_entries (lease_id)
     WHERE deleted_at IS NULL;

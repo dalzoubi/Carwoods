@@ -2027,10 +2027,10 @@ export async function fetchHealth(baseUrl) {
 }
 
 // ---------------------------------------------------------------------------
-// Rent Ledger
+// Lease payment entries (portal + landlord APIs)
 // ---------------------------------------------------------------------------
 
-export async function fetchRentLedger(baseUrl, accessToken, { path, emailHint }) {
+export async function fetchPaymentsApi(baseUrl, accessToken, { path, emailHint }) {
   const url = buildUrl(baseUrl, path);
   let res;
   try {
@@ -2063,9 +2063,9 @@ export async function fetchRentLedger(baseUrl, accessToken, { path, emailHint })
   }
 }
 
-export async function createRentLedgerEntry(baseUrl, accessToken, payload) {
+export async function createLeasePaymentEntry(baseUrl, accessToken, payload) {
   const { emailHint, ...body } = payload;
-  const res = await fetch(buildUrl(baseUrl, '/api/landlord/rent-ledger'), {
+  const res = await fetch(buildUrl(baseUrl, '/api/landlord/payments'), {
     method: 'POST',
     headers: jsonHeaders(accessToken, emailHint),
     credentials: 'omit',
@@ -2078,9 +2078,9 @@ export async function createRentLedgerEntry(baseUrl, accessToken, payload) {
   return res.json();
 }
 
-export async function updateRentLedgerEntry(baseUrl, accessToken, entryId, payload) {
+export async function updateLeasePaymentEntry(baseUrl, accessToken, entryId, payload) {
   const { emailHint, ...body } = payload;
-  const res = await fetch(buildUrl(baseUrl, `/api/landlord/rent-ledger/${encodeURIComponent(entryId)}`), {
+  const res = await fetch(buildUrl(baseUrl, `/api/landlord/payments/${encodeURIComponent(entryId)}`), {
     method: 'PATCH',
     headers: jsonHeaders(accessToken, emailHint),
     credentials: 'omit',

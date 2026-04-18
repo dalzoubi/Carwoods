@@ -1,4 +1,4 @@
-import type { RentLedgerEntryRow } from './rentLedgerRepo.js';
+import type { LeasePaymentEntryRow } from './paymentEntriesRepo.js';
 
 /**
  * MSSQL/Tedious sometimes returns DECIMAL and DATE values in shapes that confuse
@@ -39,7 +39,7 @@ function toIsoDateTime(value: unknown): string | null {
   return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
 
-export function rentLedgerEntryToApiJson(row: RentLedgerEntryRow): Record<string, unknown> {
+export function paymentEntryToApiJson(row: LeasePaymentEntryRow): Record<string, unknown> {
   const paidRaw = row.paid_date;
   const paidStr = paidRaw != null && paidRaw !== '' ? toDateOnlyString(paidRaw) : '';
   return {
@@ -59,6 +59,6 @@ export function rentLedgerEntryToApiJson(row: RentLedgerEntryRow): Record<string
   };
 }
 
-export function rentLedgerEntriesToApiJson(entries: RentLedgerEntryRow[]): Record<string, unknown>[] {
-  return entries.map(rentLedgerEntryToApiJson);
+export function paymentEntriesToApiJson(entries: LeasePaymentEntryRow[]): Record<string, unknown>[] {
+  return entries.map(paymentEntryToApiJson);
 }

@@ -1,6 +1,6 @@
 import type { QueryResult } from './db.js';
 
-export type RentLedgerEntryRow = {
+export type LeasePaymentEntryRow = {
   id: string;
   lease_id: string;
   period_start: string;       // ISO date YYYY-MM-DD
@@ -38,10 +38,10 @@ const SELECT_COLS = `
 export async function listEntriesForLease(
   client: Queryable,
   leaseId: string
-): Promise<RentLedgerEntryRow[]> {
-  const r = await client.query<RentLedgerEntryRow>(
+): Promise<LeasePaymentEntryRow[]> {
+  const r = await client.query<LeasePaymentEntryRow>(
     `SELECT ${SELECT_COLS}
-     FROM rent_ledger_entries
+     FROM lease_payment_entries
      WHERE lease_id = $1 AND deleted_at IS NULL
      ORDER BY period_start DESC`,
     [leaseId]
@@ -52,13 +52,13 @@ export async function listEntriesForLease(
 export async function listEntriesForTenant(
   client: Queryable,
   actorUserId: string
-): Promise<RentLedgerEntryRow[]> {
-  const r = await client.query<RentLedgerEntryRow>(
+): Promise<LeasePaymentEntryRow[]> {
+  const r = await client.query<LeasePaymentEntryRow>(
     `SELECT ${SELECT_COLS}
-     FROM rent_ledger_entries rle
-     JOIN lease_tenants lt ON lt.lease_id = rle.lease_id
-     WHERE lt.user_id = $1 AND rle.deleted_at IS NULL
-     ORDER BY rle.period_start DESC`,
+     FROM lease_payment_entries lpe
+     JOIN lease_tenants lt ON lt.lease_id = lpe.lease_id
+     WHERE lt.user_id = $1 AND lpe.deleted_at IS NULL
+     ORDER BY lpe.period_start DESC`,
     [actorUserId]
   );
   return r.rows;
@@ -67,10 +67,10 @@ export async function listEntriesForTenant(
 export async function getEntryById(
   client: Queryable,
   id: string
-): Promise<RentLedgerEntryRow | null> {
-  const r = await client.query<RentLedgerEntryRow>(
+): Promise<LeasePaymentEntryRow | null> {
+  const r = await client.query<LeasePaymentEntryRow>(
     `SELECT ${SELECT_COLS}
-     FROM rent_ledger_entries
+     FROM lease_payment_entries
      WHERE id = $1 AND deleted_at IS NULL`,
     [id]
   );
@@ -90,9 +90,9 @@ export async function insertEntry(
     notes: string | null;
     recorded_by: string;
   }
-): Promise<RentLedgerEntryRow> {
-  const r = await client.query<RentLedgerEntryRow>(
-    `INSERT INTO rent_ledger_entries
+): Promise<LeasePaymentEntryRow> {
+  const r = await client.query<LeasePaymentEntryRow>(
+    `INSERT INTO lease_payment_entries
        (id, lease_id, period_start, amount_due, amount_paid, due_date,
         paid_date, payment_method, notes, recorded_by)
      OUTPUT
@@ -137,9 +137,9 @@ export async function updateEntry(
     notes: string | null;
     recorded_by: string;
   }
-): Promise<RentLedgerEntryRow | null> {
-  const r = await client.query<RentLedgerEntryRow>(
-    `UPDATE rent_ledger_entries
+): Promise<LeasePaymentEntryRow | null> {
+  const r = await client.query<LeasePaymentEntryRow>(
+    `UPDATE lease_payment_entries
      SET amount_due     = $1,
          amount_paid    = $2,
          due_date       = $3,

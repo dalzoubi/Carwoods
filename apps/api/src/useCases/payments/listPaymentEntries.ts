@@ -4,40 +4,39 @@ import {
   listEntriesForLease,
   listEntriesForTenant,
   leaseAccessibleByLandlord,
-  type RentLedgerEntryRow,
-} from '../../lib/rentLedgerRepo.js';
+  type LeasePaymentEntryRow,
+} from '../../lib/paymentEntriesRepo.js';
 import { logInfo } from '../../lib/serverLogger.js';
 import type { TransactionPool } from '../types.js';
 
-export type ListRentLedgerInput = {
+export type ListPaymentEntriesInput = {
   actorUserId: string;
   actorRole: string;
   leaseId?: string;
 };
 
-export type ListRentLedgerOutput = {
-  entries: RentLedgerEntryRow[];
+export type ListPaymentEntriesOutput = {
+  entries: LeasePaymentEntryRow[];
 };
 
-export async function listRentLedger(
+export async function listPaymentEntries(
   db: TransactionPool,
-  input: ListRentLedgerInput
-): Promise<ListRentLedgerOutput> {
+  input: ListPaymentEntriesInput
+): Promise<ListPaymentEntriesOutput> {
   const role = String(input.actorRole ?? '').trim().toUpperCase();
   const leaseId = input.leaseId?.trim();
   const branch =
     hasLandlordAccess(role) && leaseId ? ('landlord_lease' as const) : ('tenant' as const);
 
-  logInfo(undefined, 'rentLedger.listRentLedger.begin', {
+  logInfo(undefined, 'payments.listPaymentEntries.begin', {
     actorUserId: input.actorUserId,
     actorRole: role,
     leaseId: leaseId ?? null,
     branch,
   });
 
-  // Landlord management list is scoped by lease when lease_id is provided (GET /api/landlord/rent-ledger).
-  // Portal GET /api/portal/rent-ledger never passes lease_id — always use tenant scope for that route,
-  // even when the user is ADMIN/LANDLORD (those roles use the landlord API when viewing by lease).
+  // Landlord list when lease_id is provided (GET /api/landlord/payments?lease_id=).
+  // Portal GET /api/portal/payments never passes lease_id — tenant scope only.
   if (hasLandlordAccess(role) && leaseId) {
     const accessible = await leaseAccessibleByLandlord(
       db,
@@ -47,7 +46,7 @@ export async function listRentLedger(
     );
     if (!accessible) throw forbidden();
     const entries = await listEntriesForLease(db, leaseId);
-    logInfo(undefined, 'rentLedger.listRentLedger.complete', {
+    logInfo(undefined, 'payments.listPaymentEntries.complete', {
       actorUserId: input.actorUserId,
       branch: 'landlord_lease',
       leaseId,
@@ -57,7 +56,7 @@ export async function listRentLedger(
   }
 
   const entries = await listEntriesForTenant(db, input.actorUserId);
-  logInfo(undefined, 'rentLedger.listRentLedger.complete', {
+  logInfo(undefined, 'payments.listPaymentEntries.complete', {
     actorUserId: input.actorUserId,
     branch: 'tenant',
     leaseId: null,

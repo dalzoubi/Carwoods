@@ -81,7 +81,7 @@ const Features = () => {
         { icon: <HomeWork />, heading: t('features.propertiesFeatureHeading'), body: t('features.propertiesFeatureBody') },
         { icon: <People />, heading: t('features.tenantsFeatureHeading'), body: t('features.tenantsFeatureBody') },
         { icon: <Build />, heading: t('features.requestsFeatureHeading'), body: t('features.requestsFeatureBody') },
-        { icon: <Payments />, heading: t('features.rentLedgerFeatureHeading'), body: t('features.rentLedgerFeatureBody') },
+        { icon: <Payments />, heading: t('features.paymentsFeatureHeading'), body: t('features.paymentsFeatureBody') },
         { icon: <Notifications />, heading: t('features.notificationsFeatureHeading'), body: t('features.notificationsFeatureBody') },
     ];
 

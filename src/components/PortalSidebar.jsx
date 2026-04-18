@@ -71,7 +71,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
       ? [
           { key: 'inbox', to: '/portal/inbox', label: t('portalLayout.sidebar.inbox'), icon: <Inbox /> },
           { key: 'documents', to: '/portal/documents', label: t('portalLayout.sidebar.documents'), icon: <Description /> },
-          { key: 'rent-ledger', to: '/portal/rent-ledger', label: t('portalLayout.sidebar.rentLedger'), icon: <Payments /> },
+          { key: 'payments', to: '/portal/payments', label: t('portalLayout.sidebar.payments'), icon: <Payments /> },
         ]
       : []),
     ...(roleResolved && !isGuest

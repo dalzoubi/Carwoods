@@ -15,9 +15,9 @@ import {
 import { readJsonBody } from '../lib/readBody.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 
-import { rentLedgerEntriesToApiJson, rentLedgerEntryToApiJson } from '../lib/rentLedgerApiJson.js';
-import { listRentLedger } from '../useCases/rentLedger/listRentLedger.js';
-import { recordPayment, updatePayment } from '../useCases/rentLedger/recordPayment.js';
+import { paymentEntriesToApiJson, paymentEntryToApiJson } from '../lib/paymentEntriesApiJson.js';
+import { listPaymentEntries } from '../useCases/payments/listPaymentEntries.js';
+import { recordPayment, updatePayment } from '../useCases/payments/recordPayment.js';
 
 /** HTTP status from Azure Functions response shape (for logs). */
 function responseStatus(r: HttpResponseInit): number | undefined {
@@ -25,7 +25,7 @@ function responseStatus(r: HttpResponseInit): number | undefined {
 }
 
 /** Fields safe to log for support (message + truncated stack + domain error metadata). */
-function rentLedgerErrorFields(error: unknown): Record<string, unknown> {
+function paymentsErrorFields(error: unknown): Record<string, unknown> {
   const fields: Record<string, unknown> = {
     errType: error instanceof Error ? error.name : typeof error,
     errMessage: error instanceof Error ? error.message : String(error),
@@ -60,17 +60,17 @@ function num(v: unknown): number | undefined {
 }
 
 // ---------------------------------------------------------------------------
-// GET /api/portal/rent-ledger  — tenant views their own ledger
+// GET /api/portal/payments  — tenant views their lease payment entries
 // ---------------------------------------------------------------------------
 
-async function portalRentLedgerCollection(
+async function portalPaymentsCollection(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  logInfo(context, 'portal.rentLedger.collection.start', { method: request.method });
+  logInfo(context, 'portal.payments.collection.start', { method: request.method });
   const gate = await requirePortalUser(request, context);
   if (!gate.ok) {
-    logWarn(context, 'portal.rentLedger.collection.authFailed', {
+    logWarn(context, 'portal.payments.collection.authFailed', {
       httpStatus: responseStatus(gate.response),
     });
     return gate.response;
@@ -79,25 +79,24 @@ async function portalRentLedgerCollection(
 
   if (request.method === 'GET') {
     const actorRole = String(ctx.user.role ?? '');
-    logInfo(context, 'portal.rentLedger.collection.list.begin', {
+    logInfo(context, 'portal.payments.collection.list.begin', {
       userId: ctx.user.id,
       actorRole,
       listScope: 'tenant',
     });
     try {
-      const result = await listRentLedger(getPool(), {
+      const result = await listPaymentEntries(getPool(), {
         actorUserId: ctx.user.id,
-        // Portal auth context has no ctx.role — use the DB user row (see PortalContext).
         actorRole,
       });
-      logInfo(context, 'portal.rentLedger.collection.list.success', {
+      logInfo(context, 'portal.payments.collection.list.success', {
         userId: ctx.user.id,
         actorRole,
         count: result.entries.length,
         listScope: 'tenant',
       });
       return jsonResponse(200, ctx.headers, {
-        entries: rentLedgerEntriesToApiJson(result.entries),
+        entries: paymentEntriesToApiJson(result.entries),
       });
     } catch (e) {
       const mapped = mapDomainError(e, ctx.headers);
@@ -105,15 +104,15 @@ async function portalRentLedgerCollection(
         userId: ctx.user.id,
         actorRole,
         listScope: 'tenant',
-        ...rentLedgerErrorFields(e),
+        ...paymentsErrorFields(e),
         mappedToHttp: Boolean(mapped),
         httpStatus: mapped ? responseStatus(mapped) : undefined,
       };
       if (mapped) {
-        logWarn(context, 'portal.rentLedger.collection.list.failed', fields);
+        logWarn(context, 'portal.payments.collection.list.failed', fields);
         return mapped;
       }
-      logError(context, 'portal.rentLedger.collection.list.unhandled', fields);
+      logError(context, 'portal.payments.collection.list.unhandled', fields);
       throw e;
     }
   }
@@ -122,15 +121,15 @@ async function portalRentLedgerCollection(
 }
 
 // ---------------------------------------------------------------------------
-// GET /api/landlord/rent-ledger?lease_id=X  — landlord views a lease ledger
-// POST /api/landlord/rent-ledger             — landlord records an entry
+// GET /api/landlord/payments?lease_id=X
+// POST /api/landlord/payments
 // ---------------------------------------------------------------------------
 
-async function landlordRentLedgerCollection(
+async function landlordPaymentsCollection(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  logInfo(context, 'landlord.rentLedger.collection.start', { method: request.method });
+  logInfo(context, 'landlord.payments.collection.start', { method: request.method });
   const gate = await requireLandlordOrAdmin(request, context);
   if (!gate.ok) return gate.response;
   const { ctx } = gate;
@@ -138,29 +137,29 @@ async function landlordRentLedgerCollection(
   if (request.method === 'GET') {
     const leaseId = request.query.get('lease_id')?.trim();
     if (!leaseId) {
-      logWarn(context, 'landlord.rentLedger.collection.list.missingLeaseId', {
+      logWarn(context, 'landlord.payments.collection.list.missingLeaseId', {
         userId: ctx.user.id,
       });
       return jsonResponse(400, ctx.headers, { error: 'lease_id_required' });
     }
-    logInfo(context, 'landlord.rentLedger.collection.list.begin', {
+    logInfo(context, 'landlord.payments.collection.list.begin', {
       userId: ctx.user.id,
       leaseId,
       actorRole: ctx.role,
     });
     try {
-      const result = await listRentLedger(getPool(), {
+      const result = await listPaymentEntries(getPool(), {
         actorUserId: ctx.user.id,
         actorRole: ctx.role,
         leaseId,
       });
-      logInfo(context, 'landlord.rentLedger.collection.list.success', {
+      logInfo(context, 'landlord.payments.collection.list.success', {
         userId: ctx.user.id,
         leaseId,
         count: result.entries.length,
       });
       return jsonResponse(200, ctx.headers, {
-        entries: rentLedgerEntriesToApiJson(result.entries),
+        entries: paymentEntriesToApiJson(result.entries),
       });
     } catch (e) {
       const mapped = mapDomainError(e, ctx.headers);
@@ -168,15 +167,15 @@ async function landlordRentLedgerCollection(
         userId: ctx.user.id,
         leaseId,
         actorRole: ctx.role,
-        ...rentLedgerErrorFields(e),
+        ...paymentsErrorFields(e),
         mappedToHttp: Boolean(mapped),
         httpStatus: mapped ? responseStatus(mapped) : undefined,
       };
       if (mapped) {
-        logWarn(context, 'landlord.rentLedger.collection.list.failed', fields);
+        logWarn(context, 'landlord.payments.collection.list.failed', fields);
         return mapped;
       }
-      logError(context, 'landlord.rentLedger.collection.list.unhandled', fields);
+      logError(context, 'landlord.payments.collection.list.unhandled', fields);
       throw e;
     }
   }
@@ -206,18 +205,18 @@ async function landlordRentLedgerCollection(
         payment_method: str(b.payment_method) ?? null,
         notes: str(b.notes) ?? null,
       });
-      logInfo(context, 'landlord.rentLedger.collection.create.success', {
+      logInfo(context, 'landlord.payments.collection.create.success', {
         userId: ctx.user.id,
         entryId: result.entry.id,
       });
-      return jsonResponse(201, ctx.headers, { entry: rentLedgerEntryToApiJson(result.entry) });
+      return jsonResponse(201, ctx.headers, { entry: paymentEntryToApiJson(result.entry) });
     } catch (e) {
       const mapped = mapDomainError(e, ctx.headers);
       if (mapped) {
-        logWarn(context, 'landlord.rentLedger.collection.create.validation', { userId: ctx.user.id });
+        logWarn(context, 'landlord.payments.collection.create.validation', { userId: ctx.user.id });
         return mapped;
       }
-      logError(context, 'landlord.rentLedger.collection.create.error', {
+      logError(context, 'landlord.payments.collection.create.error', {
         userId: ctx.user.id,
         message: e instanceof Error ? e.message : 'unknown_error',
       });
@@ -229,15 +228,15 @@ async function landlordRentLedgerCollection(
 }
 
 // ---------------------------------------------------------------------------
-// PATCH /api/landlord/rent-ledger/{id}  — landlord edits an entry
+// PATCH /api/landlord/payments/{id}
 // ---------------------------------------------------------------------------
 
-async function landlordRentLedgerItem(
+async function landlordPaymentsItem(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   const entryId = request.params.id;
-  logInfo(context, 'landlord.rentLedger.item.start', { method: request.method, entryId });
+  logInfo(context, 'landlord.payments.item.start', { method: request.method, entryId });
   const gate = await requireLandlordOrAdmin(request, context);
   if (!gate.ok) return gate.response;
   const { ctx } = gate;
@@ -266,15 +265,15 @@ async function landlordRentLedgerItem(
         payment_method: b.payment_method !== undefined ? (str(b.payment_method) ?? null) : undefined,
         notes: b.notes !== undefined ? (str(b.notes) ?? null) : undefined,
       });
-      logInfo(context, 'landlord.rentLedger.item.patch.success', { userId: ctx.user.id, entryId });
-      return jsonResponse(200, ctx.headers, { entry: rentLedgerEntryToApiJson(result.entry) });
+      logInfo(context, 'landlord.payments.item.patch.success', { userId: ctx.user.id, entryId });
+      return jsonResponse(200, ctx.headers, { entry: paymentEntryToApiJson(result.entry) });
     } catch (e) {
       const mapped = mapDomainError(e, ctx.headers);
       if (mapped) {
-        logWarn(context, 'landlord.rentLedger.item.patch.validation', { userId: ctx.user.id, entryId });
+        logWarn(context, 'landlord.payments.item.patch.validation', { userId: ctx.user.id, entryId });
         return mapped;
       }
-      logError(context, 'landlord.rentLedger.item.patch.error', {
+      logError(context, 'landlord.payments.item.patch.error', {
         userId: ctx.user.id,
         entryId,
         message: e instanceof Error ? e.message : 'unknown_error',
@@ -290,23 +289,23 @@ async function landlordRentLedgerItem(
 // Azure Function registrations
 // ---------------------------------------------------------------------------
 
-app.http('portalRentLedgerCollection', {
+app.http('portalPaymentsCollection', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'portal/rent-ledger',
-  handler: portalRentLedgerCollection,
+  route: 'portal/payments',
+  handler: portalPaymentsCollection,
 });
 
-app.http('landlordRentLedgerCollection', {
+app.http('landlordPaymentsCollection', {
   methods: ['GET', 'POST', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'landlord/rent-ledger',
-  handler: landlordRentLedgerCollection,
+  route: 'landlord/payments',
+  handler: landlordPaymentsCollection,
 });
 
-app.http('landlordRentLedgerItem', {
+app.http('landlordPaymentsItem', {
   methods: ['PATCH', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'landlord/rent-ledger/{id}',
-  handler: landlordRentLedgerItem,
+  route: 'landlord/payments/{id}',
+  handler: landlordPaymentsItem,
 });

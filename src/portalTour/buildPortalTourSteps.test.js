@@ -3,13 +3,13 @@ import { Role } from '../domain/constants.js';
 import { buildPortalTourSteps, getPortalTourNavKeys } from './buildPortalTourSteps.js';
 
 describe('getPortalTourNavKeys', () => {
-  it('includes dashboard and inbox for active tenant', () => {
+  it('includes dashboard, inbox, documents, and ledger for active tenant', () => {
     const keys = getPortalTourNavKeys({
       normalizedRole: Role.TENANT,
       isGuest: false,
       roleResolved: true,
     });
-    expect(keys).toEqual(['dashboard', 'inbox', 'profile']);
+    expect(keys).toEqual(['dashboard', 'inbox', 'documents', 'payments', 'profile']);
   });
 
   it('omits inbox and profile for guests', () => {

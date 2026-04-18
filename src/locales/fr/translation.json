@@ -1933,7 +1933,7 @@
       "status": "État du système",
       "healthGroup": "Santé",
       "notificationTest": "Test des notifications",
-      "rentLedger": "Grand livre des loyers",
+      "payments": "Paiements",
       "collapse": "Réduire la barre latérale",
       "expand": "Développer la barre latérale",
       "signOut": "Se déconnecter",
@@ -1979,9 +1979,13 @@
           "title": "Boîte de réception",
           "body": "Ouvrez les fils d’entretien, les notifications du portail et les messages Contactez-nous pour les administrateurs."
         },
-        "rentLedger": {
-          "title": "Grand livre des loyers",
-          "body": "Consultez votre historique complet de paiements de loyer. Les propriétaires l’utilisent pour enregistrer et suivre les paiements par bail."
+        "documents": {
+          "title": "Centre de documents",
+          "body": "Téléversez, téléchargez et organisez les documents liés au bail au même endroit."
+        },
+        "payments": {
+          "title": "Paiements",
+          "body": "Consultez les montants dus, payés et le statut par période. Les propriétaires enregistrent les paiements ici ; les locataires voient leur historique."
         },
         "profile": {
           "title": "Profil",
@@ -2320,15 +2324,15 @@
       "invalidRentAmount": "Saisissez un loyer mensuel valide (0 ou plus, jusqu'à deux décimales)."
     }
   },
-  "portalRentLedger": {
-    "title": "Grand livre des loyers",
-    "heading": "Grand livre des loyers",
+  "portalPayments": {
+    "title": "Paiements",
+    "heading": "Paiements",
     "metaDescription": "Consultez et gérez l'historique des paiements de loyer de votre bail.",
     "introManagement": "Enregistrez et suivez les paiements de loyer pour chaque bail.",
     "introTenant": "Consultez votre historique de paiements de loyer ci-dessous.",
-    "loading": "Chargement du grand livre…",
-    "empty": "Aucune entrée trouvée dans le grand livre.",
-    "tableAriaLabel": "Grand livre des loyers",
+    "loading": "Chargement des paiements…",
+    "empty": "Aucun paiement enregistré.",
+    "tableAriaLabel": "Paiements",
     "columns": {
       "period": "Période",
       "amountDue": "Montant dû",
@@ -2383,11 +2387,11 @@
     },
     "errors": {
       "apiUnavailable": "L'API n'est pas configurée.",
-      "loadFailed": "Impossible de charger les entrées du grand livre.",
+      "loadFailed": "Impossible de charger les paiements.",
       "saveFailed": "Impossible d'enregistrer l'entrée. Veuillez réessayer.",
       "noLeases": "Aucun bail trouvé."
     },
-    "lockedTitle": "Le grand livre des loyers est disponible avec les forfaits payants",
+    "lockedTitle": "Les paiements sont disponibles avec les forfaits payants",
     "lockedBody": "Enregistrez les paiements de loyer et offrez aux locataires un historique complet. Cette fonction est disponible pour les abonnés payants.",
     "pricingLink": "Voir les tarifs"
   },
@@ -2575,7 +2579,7 @@
     "featureSms": "Notifications SMS",
     "featureAiRouting": "Routage IA de la maintenance",
     "featureDocStorage": "Stockage de documents",
-    "featureRentLedger": "Grand livre des loyers et suivi des paiements",
+    "featurePayments": "Suivi des paiements",
     "featureReports": "Rapports et exports",
     "featureWhiteLabel": "Marque personnalisée",
     "featurePrioritySupport": "Support prioritaire",
@@ -2610,8 +2614,8 @@
     "requestsFeatureHeading": "Demandes de Maintenance",
     "requestsFeatureBody": "Les locataires soumettent des demandes via le portail. Vous suivez le statut, envoyez des messages, joignez des photos et assignez des prestataires, le tout dans un seul fil.",
     "notificationsFeatureHeading": "Notifications",
-    "rentLedgerFeatureHeading": "Grand livre des loyers",
-    "rentLedgerFeatureBody": "Enregistrez et suivez chaque paiement de loyer en un seul endroit. Les propriétaires notent le mode de paiement, la date et le montant ; les locataires consultent leur historique complet à tout moment.",
+    "paymentsFeatureHeading": "Paiements",
+    "paymentsFeatureBody": "Enregistrez et suivez chaque paiement de loyer en un seul endroit. Les propriétaires notent le mode de paiement, la date et le montant ; les locataires consultent leur historique à tout moment.",
     "notificationsFeatureBody": "Les notifications dans l'application, par e-mail et SMS vous tiennent informés, vous et vos locataires, à chaque étape d'une demande.",
     "aiFeatureHeading": "Configuration IA (ELSA)",
     "aiFeatureBody": "Configurez ELSA, l'assistant de maintenance IA, pour trier et router automatiquement les demandes selon la catégorie, la priorité et vos préférences.",
@@ -2639,13 +2643,13 @@
     "managerGets3": "Export CSV et rapports",
     "managerGets4": "Contrôles de politique de notifications",
     "managerGets5": "Gestion des baux et documents",
-    "managerGets6": "Grand livre des loyers — enregistrement et suivi des paiements",
+    "managerGets6": "Paiements — enregistrer et suivre les loyers",
     "tenantGets1": "Soumettre des demandes de maintenance",
     "tenantGets2": "Messagerie directe avec le gestionnaire",
     "tenantGets3": "Mises à jour du statut de la demande",
     "tenantGets4": "Alertes par e-mail, dans l'application et SMS",
     "tenantGets5": "Préférences de profil et de notifications",
-    "tenantGets6": "Historique des paiements de loyer et vue du grand livre",
+    "tenantGets6": "Historique des paiements de loyer",
     "ctaHeading": "Prêt à commencer ?",
     "ctaBody": "Inscrivez-vous gratuitement et ajoutez votre première propriété aujourd'hui.",
     "ctaButton": "Voir les tarifs",

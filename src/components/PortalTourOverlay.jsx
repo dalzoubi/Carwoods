@@ -102,8 +102,12 @@ const PortalTourOverlay = () => {
   useLayoutEffect(() => {
     if (!isOpen || !currentStep) return undefined;
 
-    if (shell.isMobile && currentStep.targetId.startsWith('portal-tour-nav-')) {
-      shell.openMobileSidebar();
+    if (shell.isMobile) {
+      if (currentStep.targetId.startsWith('portal-tour-nav-')) {
+        shell.openMobileSidebar();
+      } else {
+        shell.closeMobileSidebar();
+      }
     }
 
     let cancelled = false;
@@ -188,6 +192,12 @@ const PortalTourOverlay = () => {
   const goBack = useCallback(() => {
     setStepIndex((i) => Math.max(0, i - 1));
   }, [setStepIndex]);
+
+  useEffect(() => {
+    if (!isOpen && shell.isMobile) {
+      shell.closeMobileSidebar();
+    }
+  }, [isOpen, shell.isMobile, shell.closeMobileSidebar]);
 
   if (!isOpen || !currentStep) {
     return null;

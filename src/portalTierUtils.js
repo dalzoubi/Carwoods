@@ -59,9 +59,9 @@ export function allowsPropertyElsaAutoSendEdit(limits) {
 }
 
 /** @param {unknown} limits */
-export function allowsRentLedger(limits) {
+export function allowsPayments(limits) {
   if (!limits || typeof limits !== 'object') return true;
-  return limits.rent_ledger_enabled !== false;
+  return limits.payments_enabled !== false;
 }
 
 /**

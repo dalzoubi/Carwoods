@@ -6,8 +6,8 @@ import {
   updateEntry,
   getEntryById,
   leaseAccessibleByLandlord,
-  type RentLedgerEntryRow,
-} from '../../lib/rentLedgerRepo.js';
+  type LeasePaymentEntryRow,
+} from '../../lib/paymentEntriesRepo.js';
 import type { TransactionPool } from '../types.js';
 
 const VALID_METHODS = new Set(['CHECK', 'CASH', 'BANK_TRANSFER', 'ZELLE', 'VENMO', 'OTHER']);
@@ -52,7 +52,7 @@ export type RecordPaymentInput = {
   notes?: string | null;
 };
 
-export type RecordPaymentOutput = { entry: RentLedgerEntryRow };
+export type RecordPaymentOutput = { entry: LeasePaymentEntryRow };
 
 export async function recordPayment(
   db: TransactionPool,
@@ -97,7 +97,7 @@ export async function recordPayment(
     });
     await writeAudit(client, {
       actorUserId: input.actorUserId,
-      entityType: 'RENT_LEDGER_ENTRY',
+      entityType: 'LEASE_PAYMENT_ENTRY',
       entityId: row.id,
       action: 'CREATE',
       before: null,
@@ -125,7 +125,7 @@ export type UpdatePaymentInput = {
   notes?: string | null;
 };
 
-export type UpdatePaymentOutput = { entry: RentLedgerEntryRow };
+export type UpdatePaymentOutput = { entry: LeasePaymentEntryRow };
 
 export async function updatePayment(
   db: TransactionPool,
@@ -174,7 +174,7 @@ export async function updatePayment(
     if (!updated) throw notFound();
     await writeAudit(client, {
       actorUserId: input.actorUserId,
-      entityType: 'RENT_LEDGER_ENTRY',
+      entityType: 'LEASE_PAYMENT_ENTRY',
       entityId: input.entryId,
       action: 'UPDATE',
       before: current,

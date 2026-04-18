@@ -19,9 +19,14 @@ const PortalLayout = ({ children }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { pathname } = useLocation();
   const openMobileSidebar = useCallback(() => setMobileOpen(true), []);
+  const closeMobileSidebar = useCallback(() => setMobileOpen(false), []);
 
   return (
-    <PortalShellProvider isMobile={isMobile} openMobileSidebar={openMobileSidebar}>
+    <PortalShellProvider
+      isMobile={isMobile}
+      openMobileSidebar={openMobileSidebar}
+      closeMobileSidebar={closeMobileSidebar}
+    >
       <PortalTourProvider>
         <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: 'background.default' }}>
           <PortalSidebar

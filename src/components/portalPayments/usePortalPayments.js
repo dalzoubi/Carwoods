@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { isPortalApiReachable } from '../../featureFlags';
 import { emailFromAccount } from '../../portalUtils';
 import {
-  fetchRentLedger,
-  createRentLedgerEntry,
-  updateRentLedgerEntry,
+  fetchPaymentsApi,
+  createLeasePaymentEntry,
+  updateLeasePaymentEntry,
 } from '../../lib/portalApiClient';
 
 const EMPTY_FORM = {
@@ -27,7 +27,7 @@ function extractError(error, t, fallbackKey) {
   return base;
 }
 
-export function usePortalRentLedger({
+export function usePortalPayments({
   baseUrl,
   isAuthenticated,
   isGuest,
@@ -47,7 +47,7 @@ export function usePortalRentLedger({
   const [saveStatus, setSaveStatus] = useState('idle');
   const [saveError, setSaveError] = useState('');
 
-  const listPath = isManagement ? null : '/api/portal/rent-ledger';
+  const listPath = isManagement ? null : '/api/portal/payments';
 
   const loadEntries = useCallback(async (opts = {}) => {
     const { leaseId } = opts;
@@ -61,13 +61,13 @@ export function usePortalRentLedger({
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
       const path = isManagement
-        ? `/api/landlord/rent-ledger?lease_id=${encodeURIComponent(leaseId)}`
+        ? `/api/landlord/payments?lease_id=${encodeURIComponent(leaseId)}`
         : listPath;
-      const data = await fetchRentLedger(baseUrl, token, { path, emailHint });
+      const data = await fetchPaymentsApi(baseUrl, token, { path, emailHint });
       setEntries(Array.isArray(data?.entries) ? data.entries : []);
       setEntriesStatus('ok');
     } catch (error) {
-      console.error('[RentLedger] loadEntries failed', {
+      console.error('[Payments] loadEntries failed', {
         scope: isManagement ? 'landlord' : 'portal',
         leaseId: isManagement ? leaseId : undefined,
         status: error?.status,
@@ -76,7 +76,7 @@ export function usePortalRentLedger({
       });
       handleApiForbidden(error);
       setEntriesStatus('error');
-      setEntriesError(extractError(error, t, 'portalRentLedger.errors.loadFailed'));
+      setEntriesError(extractError(error, t, 'portalPayments.errors.loadFailed'));
     }
   }, [baseUrl, isAuthenticated, isGuest, isManagement, meStatus, getAccessToken, account, handleApiForbidden, t, listPath]);
 
@@ -142,15 +142,15 @@ export function usePortalRentLedger({
       };
 
       if (editingEntryId) {
-        await updateRentLedgerEntry(baseUrl, token, editingEntryId, payload);
+        await updateLeasePaymentEntry(baseUrl, token, editingEntryId, payload);
       } else {
-        await createRentLedgerEntry(baseUrl, token, payload);
+        await createLeasePaymentEntry(baseUrl, token, payload);
       }
 
       setSaveStatus('success');
       await loadEntries({ leaseId: form.lease_id });
     } catch (error) {
-      console.error('[RentLedger] save failed', {
+      console.error('[Payments] save failed', {
         leaseId: form.lease_id,
         editingEntryId,
         status: error?.status,
@@ -159,7 +159,7 @@ export function usePortalRentLedger({
       });
       handleApiForbidden(error);
       setSaveStatus('error');
-      setSaveError(extractError(error, t, 'portalRentLedger.errors.saveFailed'));
+      setSaveError(extractError(error, t, 'portalPayments.errors.saveFailed'));
     }
   };
 

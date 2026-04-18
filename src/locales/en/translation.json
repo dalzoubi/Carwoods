@@ -299,10 +299,10 @@
     "featureDocStorageFree": "—",
     "featureDocStorageStarter": "Included",
     "featureDocStoragePro": "Included",
-    "featureRentLedger": "Rent ledger & payment tracking",
-    "featureRentLedgerFree": "—",
-    "featureRentLedgerStarter": "Included",
-    "featureRentLedgerPro": "Included",
+    "featurePayments": "Payments tracking",
+    "featurePaymentsFree": "—",
+    "featurePaymentsStarter": "Included",
+    "featurePaymentsPro": "Included",
     "featureReports": "Reports & exports",
     "featureReportsFree": "—",
     "featureReportsStarter": "Included",
@@ -350,8 +350,8 @@
     "tenantsFeatureBody": "Invite tenants by email, track active leases, and control portal access — all from one tenant roster.",
     "requestsFeatureHeading": "Maintenance Requests",
     "requestsFeatureBody": "Tenants submit requests through the portal. You track status, send messages, attach photos, and assign vendors — every step in one thread.",
-    "rentLedgerFeatureHeading": "Rent Ledger",
-    "rentLedgerFeatureBody": "Record and track every rent payment in one place. Landlords log payment method, date, and amount; tenants see their full payment history at any time.",
+    "paymentsFeatureHeading": "Payments",
+    "paymentsFeatureBody": "Record and track every rent payment in one place. Landlords log payment method, date, and amount; tenants see their payment history anytime.",
     "notificationsFeatureHeading": "Notifications",
     "notificationsFeatureBody": "In-app, email, and SMS notifications keep you and your tenants updated at every stage of a request.",
     "aiFeatureHeading": "AI Configuration (ELSA)",
@@ -380,13 +380,13 @@
     "managerGets3": "CSV export and reporting",
     "managerGets4": "Notification policy controls",
     "managerGets5": "Lease and document management",
-    "managerGets6": "Rent ledger — record and track payments",
+    "managerGets6": "Payments — record and track rent",
     "tenantGets1": "Submit maintenance requests",
     "tenantGets2": "Direct messaging with manager",
     "tenantGets3": "Request status updates",
     "tenantGets4": "Email, in-app, and SMS alerts",
     "tenantGets5": "Profile and notification preferences",
-    "tenantGets6": "Rent payment history and ledger view",
+    "tenantGets6": "Rent payment history",
     "ctaHeading": "Ready to get started?",
     "ctaBody": "Sign up free and add your first property today.",
     "ctaButton": "See pricing",
@@ -2100,7 +2100,7 @@
       "status": "System Status",
       "healthGroup": "Health",
       "notificationTest": "Notification test",
-      "rentLedger": "Rent Ledger",
+      "payments": "Payments",
       "collapse": "Collapse sidebar",
       "expand": "Expand sidebar",
       "signOut": "Sign out",
@@ -2146,9 +2146,13 @@
           "title": "Inbox",
           "body": "Open maintenance threads, portal notifications, and admin contact messages in one place."
         },
-        "rentLedger": {
-          "title": "Rent Ledger",
-          "body": "View your full rent payment history. Landlords use this to record and track payments for each lease."
+        "documents": {
+          "title": "Document Center",
+          "body": "Upload, download, and organize lease-related documents in one place."
+        },
+        "payments": {
+          "title": "Payments",
+          "body": "See rent due, paid amounts, and status by period. Landlords record payments here; tenants see their history."
         },
         "profile": {
           "title": "Profile",
@@ -2487,15 +2491,15 @@
       "invalidRentAmount": "Enter a valid monthly rent (0 or more, up to two decimal places)."
     }
   },
-  "portalRentLedger": {
-    "title": "Rent Ledger",
-    "heading": "Rent Ledger",
+  "portalPayments": {
+    "title": "Payments",
+    "heading": "Payments",
     "metaDescription": "View and manage rent payment history for your lease.",
     "introManagement": "Record and track rent payments for each lease.",
     "introTenant": "Review your rent payment history below.",
-    "loading": "Loading ledger…",
-    "empty": "No ledger entries found.",
-    "tableAriaLabel": "Rent ledger",
+    "loading": "Loading payments…",
+    "empty": "No payments yet.",
+    "tableAriaLabel": "Payments",
     "columns": {
       "period": "Period",
       "amountDue": "Amount Due",
@@ -2548,12 +2552,12 @@
       "saved": "Payment recorded.",
       "updated": "Entry updated."
     },
-    "lockedTitle": "Rent Ledger is available on paid plans",
+    "lockedTitle": "Payments are available on paid plans",
     "lockedBody": "Track rent payments and give tenants a full payment history. This feature is available to paid subscribers.",
     "pricingLink": "View pricing",
     "errors": {
       "apiUnavailable": "API is not configured.",
-      "loadFailed": "Could not load ledger entries.",
+      "loadFailed": "Could not load payments.",
       "saveFailed": "Could not save entry. Please try again.",
       "noLeases": "No leases found."
     }
