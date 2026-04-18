@@ -14,6 +14,7 @@ import './functions/portalProfilePhoto.js';
 import './functions/portalNotifications.js';
 import './functions/documentCenter.js';
 import './functions/landlordRequests.js';
+import './functions/rentLedger.js';
 import './functions/landlordNotificationPolicies.js';
 import './functions/internalJobs.js';
 import './functions/adminLandlordInvites.js';
