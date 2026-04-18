@@ -29,6 +29,7 @@ import Notifications from '@mui/icons-material/Notifications';
 import ContactMail from '@mui/icons-material/ContactMail';
 import Description from '@mui/icons-material/Description';
 import Payments from '@mui/icons-material/Payments';
+import VpnKey from '@mui/icons-material/VpnKey';
 import HealthAndSafety from '@mui/icons-material/HealthAndSafety';
 import Send from '@mui/icons-material/Send';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
@@ -162,6 +163,9 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
 
   const toolItems = roleResolved && !isGuest
     ? [
+        ...(normalized === Role.TENANT
+          ? [{ key: 'my-lease', to: '/portal/my-lease', label: t('portalLayout.sidebar.myLease'), icon: <VpnKey /> }]
+          : []),
         { key: 'payments', to: '/portal/payments', label: t('portalLayout.sidebar.payments'), icon: <Payments /> },
         ...(showDocumentsNav
           ? [{ key: 'documents', to: '/portal/documents', label: t('portalLayout.sidebar.documents'), icon: <Description /> }]

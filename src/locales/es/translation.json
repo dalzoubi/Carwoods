@@ -1938,6 +1938,7 @@
       "healthGroup": "Salud",
       "notificationTest": "Prueba de notificaciones",
       "payments": "Pagos",
+      "myLease": "Mi contrato",
       "collapse": "Contraer barra lateral",
       "expand": "Expandir barra lateral",
       "signOut": "Cerrar sesión",
@@ -2167,6 +2168,81 @@
     "orDivider": "o",
     "anyAccount": "Iniciar sesión con otra cuenta",
     "anyAccountAriaLabel": "Iniciar sesión — elegir tipo de cuenta"
+  },
+  "portalMyLease": {
+    "title": "Carwoods - Mi contrato",
+    "metaDescription": "Consulta tu contrato activo y entrega un aviso de desalojo.",
+    "heading": "Mi contrato",
+    "intro": "Revisa los detalles de tu contrato, entrega un aviso de desalojo o firma conjuntamente un aviso de otro inquilino.",
+    "loading": "Cargando tu contrato…",
+    "leaseLabel": "Contrato",
+    "currentLease": "Actual",
+    "upcomingLease": "Próximo",
+    "leaseDatesLabel": "Contrato: {{start}} → {{end}}",
+    "rentAmountLabel": "Renta: ${{amount}}/mes",
+    "monthToMonth": "mes a mes",
+    "empty": {
+      "title": "Sin contrato activo",
+      "description": "No tienes un contrato activo ahora. Contacta a tu propietario si crees que es un error."
+    },
+    "noticeGivenOn": "Aviso entregado el {{date}} · desalojo planificado {{planned}}",
+    "counterProposed": "El propietario propuso otra fecha de desalojo: {{date}}. {{notes}}",
+    "noticeStatus": {
+      "pending_co_signers": "Esperando a los co-firmantes",
+      "pending_landlord": "Enviado al propietario",
+      "pending_tenant": "Esperando tu respuesta",
+      "accepted": "Aceptado",
+      "withdrawn": "Retirado",
+      "rejected": "Rechazado",
+      "superseded": "Sustituido"
+    },
+    "reasons": {
+      "relocating": "Mudanza",
+      "job": "Cambio de trabajo",
+      "purchase": "Compra de vivienda",
+      "early_termination": "Terminación anticipada",
+      "other": "Otro"
+    },
+    "actions": {
+      "giveNotice": "Entregar aviso de desalojo",
+      "coSign": "Co-firmar",
+      "withdraw": "Retirar",
+      "cancel": "Cancelar",
+      "submitNotice": "Enviar aviso",
+      "saving": "Guardando…"
+    },
+    "giveDialog": {
+      "title": "Entregar aviso de desalojo",
+      "intro": "Informa a tu propietario cuándo planeas mudarte. Si el contrato tiene otros inquilinos, deberán co-firmar antes de enviarlo al propietario.",
+      "plannedMoveOut": "Fecha planificada de desalojo",
+      "reason": "Motivo",
+      "reasonNotes": "Notas (opcional)",
+      "scope": "¿De quién es este aviso?",
+      "scopeAllTenants": "De todos los inquilinos del contrato",
+      "scopeSelfOnly": "Solo de mí (me voy por mi cuenta)",
+      "earlyTermination": "Es una terminación anticipada (antes de la fecha de fin del contrato)",
+      "forwardingHeading": "Dirección de reenvío",
+      "forwardingHelp": "¿A dónde debe enviar su arrendador el reembolso del depósito y la correspondencia final? Opcional — puede proporcionarla más tarde.",
+      "forwardingStreet": "Dirección",
+      "forwardingStreet2": "Apartamento, suite, etc. (opcional)",
+      "forwardingCity": "Ciudad",
+      "forwardingState": "Estado / Provincia",
+      "forwardingZip": "Código postal",
+      "forwardingCountry": "País"
+    },
+    "messages": {
+      "noticeGiven": "Aviso enviado.",
+      "coSigned": "Firma registrada.",
+      "withdrawn": "Aviso retirado."
+    },
+    "errors": {
+      "apiUnavailable": "La API del portal no está disponible ahora.",
+      "accessDenied": "No tienes acceso a esta página.",
+      "loadFailed": "No se pudo cargar tu contrato.",
+      "giveFailed": "No se pudo enviar el aviso.",
+      "coSignFailed": "No se pudo registrar tu firma.",
+      "withdrawFailed": "No se pudo retirar el aviso."
+    }
   },
   "portalTenants": {
     "title": "Carwoods - Incorporación de inquilinos",
@@ -2501,6 +2577,13 @@
     "uploadSelectNone": "Ninguno",
     "monthToMonth": "Mes a mes (sin fecha de fin)",
     "leaseRangeMonthToMonth": "m/m",
+    "leaseStatus": {
+      "current": "Vigente",
+      "future": "Futuro",
+      "expired": "Vencido",
+      "terminated": "Rescindido",
+      "unknown": "Desconocido"
+    },
     "shareWithTenant": "Compartir con inquilinos",
     "visibleToTenantsPortal": "Visible para inquilinos en el portal",
     "tenantVisibilityConfirmTitle": "¿Mostrar este documento a los inquilinos?",

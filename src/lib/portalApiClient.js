@@ -2031,6 +2031,121 @@ export async function fetchPastTenants(baseUrl, accessToken, params) {
 }
 
 /**
+ * GET /api/portal/my/leases — authenticated tenant's own leases with any live notice attached.
+ */
+export async function fetchMyLeases(baseUrl, accessToken, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(buildUrl(baseUrl, '/api/portal/my/leases'), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * GET /api/portal/leases/{leaseId}/notices — notice history + live co-signs for a lease.
+ */
+export async function fetchLeaseNotices(baseUrl, accessToken, leaseId, params) {
+  const emailHint = params?.emailHint;
+  const id = encodeURIComponent(String(leaseId ?? '').trim());
+  const res = await fetch(buildUrl(baseUrl, `/api/portal/leases/${id}/notices`), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * POST /api/portal/leases/{leaseId}/notice — tenant gives notice on a lease.
+ */
+export async function giveNotice(baseUrl, accessToken, leaseId, payload) {
+  const emailHint = payload?.emailHint;
+  const id = encodeURIComponent(String(leaseId ?? '').trim());
+  const body = { ...payload };
+  delete body.emailHint;
+  const res = await fetch(buildUrl(baseUrl, `/api/portal/leases/${id}/notice`), {
+    method: 'POST',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * POST /api/portal/notices/{noticeId}/co-sign — co-tenant signs a notice.
+ */
+export async function coSignNotice(baseUrl, accessToken, noticeId, params) {
+  const emailHint = params?.emailHint;
+  const id = encodeURIComponent(String(noticeId ?? '').trim());
+  const res = await fetch(buildUrl(baseUrl, `/api/portal/notices/${id}/co-sign`), {
+    method: 'POST',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * POST /api/portal/notices/{noticeId}/withdraw — author withdraws their own live notice.
+ */
+export async function withdrawNotice(baseUrl, accessToken, noticeId, params) {
+  const emailHint = params?.emailHint;
+  const id = encodeURIComponent(String(noticeId ?? '').trim());
+  const res = await fetch(buildUrl(baseUrl, `/api/portal/notices/${id}/withdraw`), {
+    method: 'POST',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify({}),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * POST /api/landlord/notices/{noticeId}/respond — landlord accepts/counters/rejects a notice.
+ */
+export async function respondToNotice(baseUrl, accessToken, noticeId, payload) {
+  const emailHint = payload?.emailHint;
+  const id = encodeURIComponent(String(noticeId ?? '').trim());
+  const body = { ...payload };
+  delete body.emailHint;
+  const res = await fetch(buildUrl(baseUrl, `/api/landlord/notices/${id}/respond`), {
+    method: 'POST',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
  * GET /api/landlord/properties  (reusable for property selection dropdowns)
  *
  * @param {string} baseUrl

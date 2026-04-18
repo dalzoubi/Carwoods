@@ -183,6 +183,11 @@ export async function listTenantEligibleLeases(db: Queryable, tenantUserId: stri
   lease_label: string;
   readonly_access: boolean;
   grace_expires_at: string | null;
+  lease_start_date: string | null;
+  lease_end_date: string | null;
+  lease_ended_on: string | null;
+  month_to_month: boolean;
+  lease_status: string;
 }>> {
   const r = await db.query<{
     lease_id: string;
@@ -192,12 +197,22 @@ export async function listTenantEligibleLeases(db: Queryable, tenantUserId: stri
     lease_label: string;
     readonly_access: boolean;
     grace_expires_at: string | null;
+    lease_start_date: string | null;
+    lease_end_date: string | null;
+    lease_ended_on: string | null;
+    month_to_month: boolean;
+    lease_status: string;
   }>(
     `SELECT lt.lease_id, l.property_id, p.created_by AS landlord_id,
             CONCAT(p.street, ', ', p.city, ', ', p.state, ' ', p.zip) AS property_label,
             CONCAT(CONVERT(NVARCHAR(10), l.start_date, 23), ' - ', COALESCE(CONVERT(NVARCHAR(10), l.end_date, 23), 'Month-to-month')) AS lease_label,
             CASE WHEN UPPER(l.status) = 'ACTIVE' THEN CAST(0 AS BIT) ELSE CAST(1 AS BIT) END AS readonly_access,
-            CASE WHEN l.end_date IS NULL THEN NULL ELSE CONVERT(NVARCHAR(30), DATEADD(day, 90, CAST(l.end_date AS DATETIME2)), 126) END AS grace_expires_at
+            CASE WHEN l.end_date IS NULL THEN NULL ELSE CONVERT(NVARCHAR(30), DATEADD(day, 90, CAST(l.end_date AS DATETIME2)), 126) END AS grace_expires_at,
+            CONVERT(NVARCHAR(10), l.start_date, 23) AS lease_start_date,
+            CONVERT(NVARCHAR(10), l.end_date, 23) AS lease_end_date,
+            CONVERT(NVARCHAR(10), l.ended_on, 23) AS lease_ended_on,
+            CAST(l.month_to_month AS BIT) AS month_to_month,
+            UPPER(LTRIM(RTRIM(l.status))) AS lease_status
      FROM lease_tenants lt
      JOIN leases l ON l.id = lt.lease_id AND l.deleted_at IS NULL
      JOIN properties p ON p.id = l.property_id AND p.deleted_at IS NULL

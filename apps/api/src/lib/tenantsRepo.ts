@@ -287,6 +287,40 @@ export async function listLeasesForTenant(
 }
 
 /**
+ * Returns the tenant's own leases across every landlord. Used by the tenant-facing
+ * "my leases" endpoint — no actor-scope filter, because the tenant is looking at
+ * their own rows.
+ */
+export async function listMyLeases(
+  client: Queryable,
+  tenantUserId: string
+): Promise<TenantLeaseRow[]> {
+  const r = await client.query<TenantLeaseRow>(
+    `SELECT l.id, l.property_id,
+            p.street AS property_street, p.city AS property_city,
+            p.state AS property_state, p.zip AS property_zip,
+            l.start_date, l.end_date, l.month_to_month, l.status, l.notes, l.rent_amount,
+            l.created_at, l.updated_at,
+            CASE
+              WHEN l.month_to_month = 1 OR l.end_date IS NULL THEN 1
+              WHEN l.end_date >= CAST(GETUTCDATE() AS DATE) THEN 1
+              ELSE 0
+            END AS is_active,
+            (SELECT STRING_AGG(CAST(lt_all.user_id AS NVARCHAR(36)), ',')
+                      WITHIN GROUP (ORDER BY lt_all.user_id)
+               FROM lease_tenants lt_all
+              WHERE lt_all.lease_id = l.id) AS tenant_user_ids
+     FROM leases l
+     JOIN lease_tenants lt ON lt.lease_id = l.id AND lt.user_id = $1
+     JOIN properties p    ON p.id = l.property_id AND p.deleted_at IS NULL
+     WHERE l.deleted_at IS NULL
+     ORDER BY l.start_date DESC`,
+    [tenantUserId]
+  );
+  return r.rows;
+}
+
+/**
  * Sets the active/disabled status for a tenant user.
  * Only updates users with role = TENANT.
  */

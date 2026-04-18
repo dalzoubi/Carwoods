@@ -156,24 +156,80 @@ function parseTenantUserIdsFromLease(lease) {
   return raw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
 }
 
-/** Lease row from management_create_lease_options (includes lease_start_date when API returns it). */
-function formatLeaseDateRangeOnly(lease, t) {
-  const start = lease.lease_start_date || '—';
-  const m2mTag = t('portalDocuments.leaseRangeMonthToMonth');
-  if (lease.month_to_month) {
-    if (lease.lease_end_date) {
-      return `${start} – ${lease.lease_end_date} ${m2mTag}`;
-    }
-    return `${start} – ${m2mTag}`;
-  }
-  return `${start} – ${lease.lease_end_date || '—'}`;
+const MISSING_DATE_PLACEHOLDER = '—';
+
+function nonemptyIsoDate(v) {
+  return v != null && String(v).trim() !== '';
 }
 
-/** Upload / full context: address + date range. */
-function formatManagementLeaseMenuLabel(lease, t) {
-  const range = formatLeaseDateRangeOnly(lease, t);
-  const addr = lease.property_address || '';
-  return addr ? `${addr} · ${range}` : range;
+function localYyyyMmDdToday() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+/**
+ * DB status sometimes lags behind real tenancy. If we have a definite end date before today,
+ * treat ACTIVE as expired for the picker label only.
+ */
+function leaseLooksEndedByCalendar(lease) {
+  const status = String(lease?.lease_status ?? '').trim().toUpperCase();
+  if (status === 'ENDED' || status === 'TERMINATED') return false;
+
+  const endedOn = nonemptyIsoDate(lease?.lease_ended_on) ? String(lease.lease_ended_on).trim() : '';
+  const contractEnd = nonemptyIsoDate(lease?.lease_end_date) ? String(lease.lease_end_date).trim() : '';
+  const effectiveEnd = endedOn || contractEnd;
+
+  if (!effectiveEnd) return false;
+
+  return effectiveEnd < localYyyyMmDdToday();
+}
+
+/** Start–end dates only (ISO YYYY-MM-DD). ENDED/TERMINATED uses actual `lease_ended_on` when present (e.g. M2M move-out). */
+function formatLeaseFromToDatesOnly(lease) {
+  const start = nonemptyIsoDate(lease.lease_start_date)
+    ? String(lease.lease_start_date).trim()
+    : MISSING_DATE_PLACEHOLDER;
+  const status = String(lease.lease_status ?? '').trim().toUpperCase();
+  const endedOn = nonemptyIsoDate(lease.lease_ended_on) ? String(lease.lease_ended_on).trim() : '';
+  const contractEnd = nonemptyIsoDate(lease.lease_end_date) ? String(lease.lease_end_date).trim() : '';
+
+  let end = '';
+  if (status === 'ENDED' || status === 'TERMINATED') {
+    end = endedOn || contractEnd;
+  } else {
+    end = contractEnd;
+  }
+
+  if (!end && lease.month_to_month) {
+    end = endedOn || MISSING_DATE_PLACEHOLDER;
+  } else if (!end) {
+    end = MISSING_DATE_PLACEHOLDER;
+  }
+
+  return `${start} – ${end}`;
+}
+
+/** Maps lease.status plus calendar end date for Document Center dropdown labels (ACTIVE may show Expired when DB lags). */
+function documentCenterLeaseStatusLabel(lease, t) {
+  const s = String(lease?.lease_status ?? '').trim().toUpperCase();
+  if (s === 'ACTIVE' && leaseLooksEndedByCalendar(lease)) {
+    return t('portalDocuments.leaseStatus.expired');
+  }
+  if (s === 'ACTIVE') return t('portalDocuments.leaseStatus.current');
+  if (s === 'UPCOMING') return t('portalDocuments.leaseStatus.future');
+  if (s === 'ENDED') return t('portalDocuments.leaseStatus.expired');
+  if (s === 'TERMINATED') return t('portalDocuments.leaseStatus.terminated');
+  return s || t('portalDocuments.leaseStatus.unknown');
+}
+
+/** Document Center lease dropdowns: date range plus localized status for every lease. */
+function formatDocumentCenterLeaseFilterLabel(lease, t) {
+  const range = formatLeaseFromToDatesOnly(lease);
+  const statusWord = documentCenterLeaseStatusLabel(lease, t);
+  return `${range} (${statusWord})`;
 }
 
 function isPreviewable(doc) {
@@ -473,9 +529,22 @@ const PortalDocuments = () => {
   }, [eligibleLeases]);
 
   const tenantLeasesForFilter = useMemo(() => {
-    if (!filterPropertyId) return eligibleLeases;
+    if (!filterPropertyId) return [];
     return eligibleLeases.filter((l) => String(l.property_id) === String(filterPropertyId));
   }, [eligibleLeases, filterPropertyId]);
+
+  /** Tenants with one eligible property: pick it automatically so the lease filter can enable. */
+  useEffect(() => {
+    if (!isTenant || tenantPropertyChoices.length !== 1) return;
+    const id = String(tenantPropertyChoices[0].id);
+    if (filterPropertyId !== id) setFilterPropertyId(id);
+  }, [filterPropertyId, isTenant, tenantPropertyChoices]);
+
+  /** Lease filter is gated on property; drop a stale lease id if property is cleared. */
+  useEffect(() => {
+    if (!isTenant || filterPropertyId || !filterLeaseId) return;
+    setFilterLeaseId('');
+  }, [filterLeaseId, filterPropertyId, isTenant]);
 
   useEffect(() => {
     if (!filterLeaseId) return;
@@ -949,7 +1018,11 @@ const PortalDocuments = () => {
               </FormControl>
             ) : null}
             {isTenant && eligibleLeases.length > 0 ? (
-              <FormControl size="small" sx={{ flex: '1 1 160px', minWidth: 0 }}>
+              <FormControl
+                size="small"
+                disabled={!filterPropertyId}
+                sx={{ flex: '1 1 160px', minWidth: 0 }}
+              >
                 <InputLabel id="documents-filter-lease-tenant">{t('portalDocuments.lease')}</InputLabel>
                 <Select
                   labelId="documents-filter-lease-tenant"
@@ -960,7 +1033,7 @@ const PortalDocuments = () => {
                   <MenuItem value="">{t('portalDocuments.filterAny')}</MenuItem>
                   {tenantLeasesForFilter.map((lease) => (
                     <MenuItem key={lease.lease_id} value={lease.lease_id}>
-                      {lease.property_address || lease.property_label || lease.lease_label || lease.lease_id}
+                      {formatDocumentCenterLeaseFilterLabel(lease, t)}
                     </MenuItem>
                   ))}
                 </Select>
@@ -1039,7 +1112,7 @@ const PortalDocuments = () => {
                     <MenuItem value="">{t('portalDocuments.filterAny')}</MenuItem>
                     {managementLeasesForFilter.map((lease) => (
                       <MenuItem key={lease.lease_id} value={lease.lease_id}>
-                        {formatLeaseDateRangeOnly(lease, t)}
+                        {formatDocumentCenterLeaseFilterLabel(lease, t)}
                       </MenuItem>
                     ))}
                   </Select>
@@ -1317,7 +1390,7 @@ const PortalDocuments = () => {
                     <MenuItem value="">{t('portalDocuments.uploadSelectNone')}</MenuItem>
                     {uploadLeasesForSelect.map((lease) => (
                       <MenuItem key={lease.lease_id} value={lease.lease_id}>
-                        {formatLeaseDateRangeOnly(lease, t)}
+                        {formatDocumentCenterLeaseFilterLabel(lease, t)}
                       </MenuItem>
                     ))}
                   </Select>
@@ -1334,7 +1407,7 @@ const PortalDocuments = () => {
                 >
                   {activeLeaseOptions.map((lease) => (
                     <MenuItem key={lease.lease_id} value={lease.lease_id}>
-                      {lease.lease_label || lease.property_label || lease.lease_id}
+                      {formatDocumentCenterLeaseFilterLabel(lease, t)}
                     </MenuItem>
                   ))}
                 </Select>

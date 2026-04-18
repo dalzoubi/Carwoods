@@ -34,6 +34,7 @@ import PortalInbox, {
 import PortalAdminAiSettings from './components/PortalAdminAiSettings';
 import PortalAdminProperties from './components/PortalAdminProperties';
 import PortalPayments from './components/PortalPayments';
+import PortalMyLease from './components/PortalMyLease';
 import PortalTenants from './components/PortalTenants';
 import PortalAdminNotificationTest from './components/PortalAdminNotificationTest';
 import PortalLayout from './components/PortalLayout';
@@ -137,6 +138,14 @@ function PortalRoutes() {
                 element={
                     <PortalRouteGuard allowedRoles={[Role.TENANT, Role.LANDLORD, Role.ADMIN]}>
                         <PortalPayments />
+                    </PortalRouteGuard>
+                }
+            />
+            <Route
+                path="/portal/my-lease"
+                element={
+                    <PortalRouteGuard allowedRoles={[Role.TENANT]}>
+                        <PortalMyLease />
                     </PortalRouteGuard>
                 }
             />

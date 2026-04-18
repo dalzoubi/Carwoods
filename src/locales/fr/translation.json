@@ -1938,6 +1938,7 @@
       "healthGroup": "Santé",
       "notificationTest": "Test des notifications",
       "payments": "Paiements",
+      "myLease": "Mon bail",
       "collapse": "Réduire la barre latérale",
       "expand": "Développer la barre latérale",
       "signOut": "Se déconnecter",
@@ -2167,6 +2168,81 @@
     "orDivider": "ou",
     "anyAccount": "Se connecter avec un autre compte",
     "anyAccountAriaLabel": "Se connecter — choisir un type de compte"
+  },
+  "portalMyLease": {
+    "title": "Carwoods - Mon bail",
+    "metaDescription": "Consultez votre bail actif et donnez votre préavis de départ.",
+    "heading": "Mon bail",
+    "intro": "Consultez les détails de votre bail, donnez un préavis de départ ou co-signez un préavis d'un autre colocataire.",
+    "loading": "Chargement de votre bail…",
+    "leaseLabel": "Bail",
+    "currentLease": "Actuel",
+    "upcomingLease": "À venir",
+    "leaseDatesLabel": "Bail : {{start}} → {{end}}",
+    "rentAmountLabel": "Loyer : {{amount}} $/mois",
+    "monthToMonth": "mensuel",
+    "empty": {
+      "title": "Aucun bail actif",
+      "description": "Vous n'avez pas de bail actif pour le moment. Contactez votre propriétaire si c'est une erreur."
+    },
+    "noticeGivenOn": "Préavis donné le {{date}} · départ prévu {{planned}}",
+    "counterProposed": "Le propriétaire propose une autre date de départ : {{date}}. {{notes}}",
+    "noticeStatus": {
+      "pending_co_signers": "En attente des co-signataires",
+      "pending_landlord": "Envoyé au propriétaire",
+      "pending_tenant": "En attente de votre réponse",
+      "accepted": "Accepté",
+      "withdrawn": "Retiré",
+      "rejected": "Rejeté",
+      "superseded": "Remplacé"
+    },
+    "reasons": {
+      "relocating": "Déménagement",
+      "job": "Changement d'emploi",
+      "purchase": "Achat d'un logement",
+      "early_termination": "Résiliation anticipée",
+      "other": "Autre"
+    },
+    "actions": {
+      "giveNotice": "Donner un préavis de départ",
+      "coSign": "Co-signer",
+      "withdraw": "Retirer",
+      "cancel": "Annuler",
+      "submitNotice": "Envoyer le préavis",
+      "saving": "Enregistrement…"
+    },
+    "giveDialog": {
+      "title": "Donner un préavis de départ",
+      "intro": "Informez votre propriétaire de votre date de départ prévue. Si d'autres colocataires figurent sur le bail, ils devront co-signer avant l'envoi au propriétaire.",
+      "plannedMoveOut": "Date de départ prévue",
+      "reason": "Motif",
+      "reasonNotes": "Notes (facultatif)",
+      "scope": "De qui vient ce préavis ?",
+      "scopeAllTenants": "De tous les colocataires",
+      "scopeSelfOnly": "De moi seulement (je pars seul(e))",
+      "earlyTermination": "C'est une résiliation anticipée (avant la fin du bail)",
+      "forwardingHeading": "Adresse de réexpédition",
+      "forwardingHelp": "Où votre propriétaire doit-il envoyer le remboursement du dépôt de garantie et la correspondance finale ? Facultatif — vous pouvez la fournir plus tard.",
+      "forwardingStreet": "Adresse",
+      "forwardingStreet2": "Appartement, bureau, etc. (facultatif)",
+      "forwardingCity": "Ville",
+      "forwardingState": "État / Province",
+      "forwardingZip": "Code postal",
+      "forwardingCountry": "Pays"
+    },
+    "messages": {
+      "noticeGiven": "Préavis envoyé.",
+      "coSigned": "Signature enregistrée.",
+      "withdrawn": "Préavis retiré."
+    },
+    "errors": {
+      "apiUnavailable": "L'API du portail est indisponible pour le moment.",
+      "accessDenied": "Vous n'avez pas accès à cette page.",
+      "loadFailed": "Impossible de charger votre bail.",
+      "giveFailed": "Impossible d'envoyer le préavis.",
+      "coSignFailed": "Impossible d'enregistrer votre signature.",
+      "withdrawFailed": "Impossible de retirer le préavis."
+    }
   },
   "portalTenants": {
     "title": "Carwoods - Intégration des locataires",
@@ -2501,6 +2577,13 @@
     "uploadSelectNone": "Aucun",
     "monthToMonth": "Mois à mois (sans date de fin)",
     "leaseRangeMonthToMonth": "M-M",
+    "leaseStatus": {
+      "current": "En cours",
+      "future": "À venir",
+      "expired": "Expiré",
+      "terminated": "Résilié",
+      "unknown": "Inconnu"
+    },
     "shareWithTenant": "Partager avec les locataires",
     "visibleToTenantsPortal": "Visible aux locataires dans le portail",
     "tenantVisibilityConfirmTitle": "Afficher ce document aux locataires ?",

@@ -1939,6 +1939,7 @@
       "healthGroup": "الصحة",
       "notificationTest": "اختبار الإشعارات",
       "payments": "المدفوعات",
+      "myLease": "عقد الإيجار الخاص بي",
       "collapse": "طي الشريط الجانبي",
       "expand": "توسيع الشريط الجانبي",
       "signOut": "تسجيل الخروج",
@@ -2168,6 +2169,81 @@
     "orDivider": "أو",
     "anyAccount": "تسجيل الدخول بأي حساب",
     "anyAccountAriaLabel": "تسجيل الدخول — اختر نوع الحساب"
+  },
+  "portalMyLease": {
+    "title": "Carwoods - عقد إيجاري",
+    "metaDescription": "اطّلع على عقد إيجارك الحالي وقدِّم إشعار الإخلاء.",
+    "heading": "عقد إيجاري",
+    "intro": "راجع تفاصيل عقدك الحالي، أو قدِّم إشعار إخلاء، أو وقِّع مع مستأجر آخر على إشعاره.",
+    "loading": "جارٍ تحميل عقدك…",
+    "leaseLabel": "عقد الإيجار",
+    "currentLease": "الحالي",
+    "upcomingLease": "قادم",
+    "leaseDatesLabel": "العقد: {{start}} → {{end}}",
+    "rentAmountLabel": "الإيجار: {{amount}} $/شهريًا",
+    "monthToMonth": "شهريًا",
+    "empty": {
+      "title": "لا يوجد عقد نشط",
+      "description": "ليس لديك عقد إيجار نشط حاليًا. تواصل مع المالك إذا كنت تعتقد أن هذا غير صحيح."
+    },
+    "noticeGivenOn": "قُدِّم الإشعار في {{date}} · موعد الإخلاء المخطط {{planned}}",
+    "counterProposed": "قدّم المالك اقتراحًا مضادًا لتاريخ إخلاء {{date}}. {{notes}}",
+    "noticeStatus": {
+      "pending_co_signers": "بانتظار الموقِّعين الآخرين",
+      "pending_landlord": "أُرسل إلى المالك",
+      "pending_tenant": "بانتظار ردّك",
+      "accepted": "مقبول",
+      "withdrawn": "مسحوب",
+      "rejected": "مرفوض",
+      "superseded": "مُستبدَل"
+    },
+    "reasons": {
+      "relocating": "انتقال",
+      "job": "تغيير وظيفة",
+      "purchase": "شراء منزل",
+      "early_termination": "إنهاء مبكّر",
+      "other": "سبب آخر"
+    },
+    "actions": {
+      "giveNotice": "تقديم إشعار إخلاء",
+      "coSign": "توقيع مشترك",
+      "withdraw": "سحب",
+      "cancel": "إلغاء",
+      "submitNotice": "إرسال الإشعار",
+      "saving": "جارٍ الحفظ…"
+    },
+    "giveDialog": {
+      "title": "تقديم إشعار إخلاء",
+      "intro": "أبلغ المالك بموعد مغادرتك المتوقّع. إذا كان في العقد مستأجرون آخرون فسيتعيّن توقيعهم قبل إرسال الإشعار إلى المالك.",
+      "plannedMoveOut": "تاريخ الإخلاء المخطّط",
+      "reason": "السبب",
+      "reasonNotes": "ملاحظات (اختياري)",
+      "scope": "ممن هذا الإشعار؟",
+      "scopeAllTenants": "من جميع المستأجرين على العقد",
+      "scopeSelfOnly": "منّي أنا فقط",
+      "earlyTermination": "هذا إنهاء مبكّر (قبل تاريخ نهاية العقد)",
+      "forwardingHeading": "عنوان التحويل البريدي",
+      "forwardingHelp": "إلى أين يجب على مالك العقار إرسال استرداد مبلغ التأمين والمراسلات النهائية؟ اختياري — يمكنك تقديمه لاحقًا.",
+      "forwardingStreet": "عنوان الشارع",
+      "forwardingStreet2": "شقة، جناح، إلخ. (اختياري)",
+      "forwardingCity": "المدينة",
+      "forwardingState": "الولاية / المقاطعة",
+      "forwardingZip": "الرمز البريدي",
+      "forwardingCountry": "الدولة"
+    },
+    "messages": {
+      "noticeGiven": "تم إرسال الإشعار.",
+      "coSigned": "تم تسجيل توقيعك.",
+      "withdrawn": "تم سحب الإشعار."
+    },
+    "errors": {
+      "apiUnavailable": "واجهة البوابة غير متاحة حاليًا.",
+      "accessDenied": "ليس لديك صلاحية على هذه الصفحة.",
+      "loadFailed": "تعذّر تحميل عقدك.",
+      "giveFailed": "تعذّر إرسال الإشعار.",
+      "coSignFailed": "تعذّر تسجيل توقيعك.",
+      "withdrawFailed": "تعذّر سحب الإشعار."
+    }
   },
   "portalTenants": {
     "title": "Carwoods - تأهيل المستأجرين",
@@ -2502,6 +2578,13 @@
     "uploadSelectNone": "بدون",
     "monthToMonth": "شهر بشهر (بدون تاريخ انتهاء)",
     "leaseRangeMonthToMonth": "م/م",
+    "leaseStatus": {
+      "current": "ساري",
+      "future": "قادم",
+      "expired": "منتهٍ",
+      "terminated": "فسخ",
+      "unknown": "غير معروف"
+    },
     "shareWithTenant": "مشاركة مع المستأجرين",
     "visibleToTenantsPortal": "مرئي للمستأجرين في البوابة",
     "tenantVisibilityConfirmTitle": "إظهار هذا المستند للمستأجرين؟",

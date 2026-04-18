@@ -2105,6 +2105,7 @@
       "healthGroup": "Health",
       "notificationTest": "Notification test",
       "payments": "Payments",
+      "myLease": "My lease",
       "collapse": "Collapse sidebar",
       "expand": "Expand sidebar",
       "signOut": "Sign out",
@@ -2334,6 +2335,81 @@
     "orDivider": "or",
     "anyAccount": "Sign in with any account",
     "anyAccountAriaLabel": "Sign in — choose your account type"
+  },
+  "portalMyLease": {
+    "title": "Carwoods - My Lease",
+    "metaDescription": "View your active lease and give notice to move out.",
+    "heading": "My lease",
+    "intro": "See your current lease details, give notice to move out, or co-sign a notice given by another leaseholder.",
+    "loading": "Loading your lease…",
+    "leaseLabel": "Lease",
+    "currentLease": "Current",
+    "upcomingLease": "Upcoming",
+    "leaseDatesLabel": "Lease: {{start}} → {{end}}",
+    "rentAmountLabel": "Rent: ${{amount}}/month",
+    "monthToMonth": "month-to-month",
+    "empty": {
+      "title": "No active lease",
+      "description": "You don't have an active lease right now. Contact your landlord if you think this is wrong."
+    },
+    "noticeGivenOn": "Notice given {{date}} · planned move-out {{planned}}",
+    "counterProposed": "Landlord counter-proposed move-out on {{date}}. {{notes}}",
+    "noticeStatus": {
+      "pending_co_signers": "Waiting on co-signers",
+      "pending_landlord": "Sent to landlord",
+      "pending_tenant": "Waiting on your response",
+      "accepted": "Accepted",
+      "withdrawn": "Withdrawn",
+      "rejected": "Rejected",
+      "superseded": "Superseded"
+    },
+    "reasons": {
+      "relocating": "Relocating",
+      "job": "Job change",
+      "purchase": "Bought a home",
+      "early_termination": "Early termination",
+      "other": "Other"
+    },
+    "actions": {
+      "giveNotice": "Give notice to move out",
+      "coSign": "Co-sign",
+      "withdraw": "Withdraw",
+      "cancel": "Cancel",
+      "submitNotice": "Submit notice",
+      "saving": "Saving…"
+    },
+    "giveDialog": {
+      "title": "Give notice to move out",
+      "intro": "Let your landlord know when you plan to move out. If your lease has other leaseholders, they'll need to co-sign before this is sent to the landlord.",
+      "plannedMoveOut": "Planned move-out date",
+      "reason": "Reason",
+      "reasonNotes": "Notes (optional)",
+      "scope": "Who is this notice from?",
+      "scopeAllTenants": "Everyone on the lease (all leaseholders)",
+      "scopeSelfOnly": "Just me (I'm leaving on my own)",
+      "earlyTermination": "This is an early termination (before the lease end date)",
+      "forwardingHeading": "Forwarding address",
+      "forwardingHelp": "Where should your landlord send your security deposit refund and final correspondence? Optional — you can provide it later.",
+      "forwardingStreet": "Street address",
+      "forwardingStreet2": "Apartment, suite, etc. (optional)",
+      "forwardingCity": "City",
+      "forwardingState": "State / Province",
+      "forwardingZip": "ZIP / Postal code",
+      "forwardingCountry": "Country"
+    },
+    "messages": {
+      "noticeGiven": "Notice submitted.",
+      "coSigned": "Co-signature recorded.",
+      "withdrawn": "Notice withdrawn."
+    },
+    "errors": {
+      "apiUnavailable": "Portal API is not reachable right now.",
+      "accessDenied": "You don't have access to this page.",
+      "loadFailed": "Could not load your lease.",
+      "giveFailed": "Could not submit the notice.",
+      "coSignFailed": "Could not record your signature.",
+      "withdrawFailed": "Could not withdraw the notice."
+    }
   },
   "portalTenants": {
     "title": "Carwoods - Tenant Onboarding",
@@ -2668,6 +2744,13 @@
     "uploadSelectNone": "None",
     "monthToMonth": "Month-to-month (no end date)",
     "leaseRangeMonthToMonth": "M2M",
+    "leaseStatus": {
+      "current": "Current",
+      "future": "Future",
+      "expired": "Expired",
+      "terminated": "Terminated",
+      "unknown": "Unknown"
+    },
     "shareWithTenant": "Share with tenants",
     "visibleToTenantsPortal": "Visible to tenants in the portal",
     "tenantVisibilityConfirmTitle": "Show this document to tenants?",

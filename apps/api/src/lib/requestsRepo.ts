@@ -264,6 +264,10 @@ export type ManagementCreateRequestLeaseOption = TenantRequestDefaults & {
   tenant_names: string | null;
   /** Lowercase UUIDs, comma-separated, for tenants with active access on this lease (portal filters). */
   tenant_user_ids: string | null;
+  /** ACTIVE | UPCOMING | ENDED | TERMINATED (Document Center lease picker label). */
+  lease_status: string;
+  /** Populated when status is ENDED or TERMINATED — actual tenancy end (ISO date). */
+  lease_ended_on: string | null;
 };
 
 /**
@@ -288,7 +292,9 @@ export async function listManagementCreateRequestLeaseOptions(
          CONCAT(p.street, ', ', p.city, ', ', p.state, ' ', p.zip) AS property_address,
          CONVERT(NVARCHAR(10), l.start_date, 23) AS lease_start_date,
          CONVERT(NVARCHAR(10), l.end_date, 23) AS lease_end_date,
+         CONVERT(NVARCHAR(10), l.ended_on, 23) AS lease_ended_on,
          CAST(l.month_to_month AS BIT) AS month_to_month,
+         UPPER(LTRIM(RTRIM(l.status))) AS lease_status,
          STUFF((
            SELECT ', ' + COALESCE(
              NULLIF(LTRIM(RTRIM(CONCAT(COALESCE(u2.first_name, N''), N' ', COALESCE(u2.last_name, N'')))), N''),
@@ -337,7 +343,9 @@ export async function listManagementCreateRequestLeaseOptions(
          CONCAT(p.street, ', ', p.city, ', ', p.state, ' ', p.zip) AS property_address,
          CONVERT(NVARCHAR(10), l.start_date, 23) AS lease_start_date,
          CONVERT(NVARCHAR(10), l.end_date, 23) AS lease_end_date,
+         CONVERT(NVARCHAR(10), l.ended_on, 23) AS lease_ended_on,
          CAST(l.month_to_month AS BIT) AS month_to_month,
+         UPPER(LTRIM(RTRIM(l.status))) AS lease_status,
          STUFF((
            SELECT ', ' + COALESCE(
              NULLIF(LTRIM(RTRIM(CONCAT(COALESCE(u2.first_name, N''), N' ', COALESCE(u2.last_name, N'')))), N''),
