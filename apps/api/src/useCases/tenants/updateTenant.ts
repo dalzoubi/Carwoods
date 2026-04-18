@@ -1,7 +1,7 @@
 import { findUserByEmail } from '../../lib/usersRepo.js';
 import {
   getTenantById,
-  getActiveLeaseForTenant,
+  listLeasesEligibleForTenantPropertyMove,
   setLeaseProperty,
   updateTenantProfile,
   type TenantRow,
@@ -90,44 +90,48 @@ export async function updateTenant(
     }
 
     if (shouldReassignLandlord) {
-      const activeLease = await getActiveLeaseForTenant(
-        client as Parameters<typeof getActiveLeaseForTenant>[0],
+      const leasesToMove = await listLeasesEligibleForTenantPropertyMove(
+        client as Parameters<typeof listLeasesEligibleForTenantPropertyMove>[0],
         input.tenantId
       );
-      if (!activeLease) {
+      if (leasesToMove.length === 0) {
         await client.query('ROLLBACK');
         throw notFound('active_lease_not_found');
       }
 
-      const leaseEnd = activeLease.month_to_month ? null : activeLease.end_date;
-      const tenantsOnLease = await listLeaseTenantUserIds(
-        client as Parameters<typeof listLeaseTenantUserIds>[0],
-        activeLease.id
-      );
-      const propertyConflict = await checkPropertyExclusiveTenantConflict(
-        client as Parameters<typeof checkPropertyExclusiveTenantConflict>[0],
-        {
-          propertyId: normalizedPropertyId,
-          startDate: activeLease.start_date,
-          endDate: leaseEnd,
-          excludeLeaseId: activeLease.id,
-          allowedUserIds: tenantsOnLease,
+      for (const leaseRow of leasesToMove) {
+        const leaseEnd = leaseRow.month_to_month ? null : leaseRow.end_date;
+        const tenantsOnLease = await listLeaseTenantUserIds(
+          client as Parameters<typeof listLeaseTenantUserIds>[0],
+          leaseRow.id
+        );
+        const propertyConflict = await checkPropertyExclusiveTenantConflict(
+          client as Parameters<typeof checkPropertyExclusiveTenantConflict>[0],
+          {
+            propertyId: normalizedPropertyId,
+            startDate: leaseRow.start_date,
+            endDate: leaseEnd,
+            excludeLeaseId: leaseRow.id,
+            allowedUserIds: tenantsOnLease,
+          }
+        );
+        if (propertyConflict) {
+          await client.query('ROLLBACK');
+          throw conflictError('property_lease_occupancy_conflict');
         }
-      );
-      if (propertyConflict) {
-        await client.query('ROLLBACK');
-        throw conflictError('property_lease_occupancy_conflict');
       }
 
-      const changed = await setLeaseProperty(
-        client as Parameters<typeof setLeaseProperty>[0],
-        activeLease.id,
-        normalizedPropertyId,
-        input.actorUserId
-      );
-      if (!changed) {
-        await client.query('ROLLBACK');
-        throw notFound('active_lease_not_found');
+      for (const leaseRow of leasesToMove) {
+        const changed = await setLeaseProperty(
+          client as Parameters<typeof setLeaseProperty>[0],
+          leaseRow.id,
+          normalizedPropertyId,
+          input.actorUserId
+        );
+        if (!changed) {
+          await client.query('ROLLBACK');
+          throw notFound('active_lease_not_found');
+        }
       }
     }
 

@@ -20,6 +20,7 @@ import { ensureUserNotificationPreference } from '../lib/notificationPolicyRepo.
 import { enqueueNotification } from '../lib/notificationRepo.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 import { withRateLimit } from '../lib/rateLimiter.js';
+import { safeErrorResponseBody } from '../lib/safeErrorResponse.js';
 import { Role } from '../domain/constants.js';
 
 type PortalMeDeps = {
@@ -44,6 +45,18 @@ const DEFAULT_PORTAL_ME_DEPS: PortalMeDeps = {
   getGlobalAttachmentUploadConfigCached,
 };
 
+function jsonResponse(
+  status: number,
+  headers: Record<string, string>,
+  body: unknown
+): HttpResponseInit {
+  return {
+    status,
+    headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
+    jsonBody: safeErrorResponseBody(status, body),
+  };
+}
+
 export async function portalMeHandler(
   request: HttpRequest,
   context: InvocationContext,
@@ -57,30 +70,18 @@ export async function portalMeHandler(
   }
   if (request.method !== 'GET') {
     logWarn(context, 'portal.me.method_not_allowed', { method: request.method });
-    return {
-      status: 405,
-      headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-      jsonBody: { error: 'method_not_allowed' },
-    };
+    return jsonResponse(405, headers, { error: 'method_not_allowed' });
   }
 
   const token = getBearerToken(request.headers.get('authorization'));
   if (!token) {
     logWarn(context, 'portal.me.unauthorized', { reason: 'missing_bearer_token' });
-    return {
-      status: 401,
-      headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-      jsonBody: { error: 'unauthorized' },
-    };
+    return jsonResponse(401, headers, { error: 'unauthorized' });
   }
 
   if (!deps.authConfigured()) {
     logWarn(context, 'portal.me.unavailable', { reason: 'auth_unconfigured' });
-    return {
-      status: 503,
-      headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-      jsonBody: { error: 'auth_unconfigured' },
-    };
+    return jsonResponse(503, headers, { error: 'auth_unconfigured' });
   }
 
   let claims;
@@ -88,11 +89,7 @@ export async function portalMeHandler(
     claims = await deps.verifyAccessToken(token);
   } catch {
     logWarn(context, 'portal.me.unauthorized', { reason: 'invalid_token' });
-    return {
-      status: 401,
-      headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-      jsonBody: { error: 'invalid_token' },
-    };
+    return jsonResponse(401, headers, { error: 'invalid_token' });
   }
 
   const emailHint = request.headers.get('x-email-hint')?.trim() || undefined;
@@ -120,11 +117,7 @@ export async function portalMeHandler(
   }
 
   if (userLookupFailed) {
-    return {
-      status: 503,
-      headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-      jsonBody: { error: 'user_lookup_unavailable' },
-    };
+    return jsonResponse(503, headers, { error: 'user_lookup_unavailable' });
   }
 
   // No existing user — auto-register as a Free-tier landlord on first sign-in
@@ -180,11 +173,7 @@ export async function portalMeHandler(
       subject: claims.sub,
       oid: claims.oid ?? null,
     });
-    return {
-      status: 403,
-      headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-      jsonBody: { error: 'no_portal_access' },
-    };
+    return jsonResponse(403, headers, { error: 'no_portal_access' });
   }
 
   const role = String(user.role ?? '').trim().toUpperCase();
@@ -205,11 +194,7 @@ export async function portalMeHandler(
       subject: claims.sub,
       oid: claims.oid ?? null,
     });
-    return {
-      status: 403,
-      headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-      jsonBody: { error: isDisabled ? 'account_disabled' : 'no_portal_access' },
-    };
+    return jsonResponse(403, headers, { error: isDisabled ? 'account_disabled' : 'no_portal_access' });
   }
 
   logInfo(context, 'portal.me.success', {

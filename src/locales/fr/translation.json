@@ -2244,7 +2244,8 @@
     },
     "editTenantDialog": {
       "title": "Modifier le locataire",
-      "save": "Enregistrer le locataire"
+      "save": "Enregistrer le locataire",
+      "moveLandlordWarning": "Tous les baux actifs ou à venir seront transférés vers le bien du propriétaire sélectionné. Les baux expirés demeurent sur le bien du propriétaire précédent. Ce locataire n’apparaîtra sous le nouveau propriétaire que pour ces baux déplacés."
     },
     "actions": {
       "onboardTenant": "Intégrer un locataire",
@@ -2293,7 +2294,10 @@
       "tenantUpdated": "Locataire mis à jour avec succès.",
       "tenantEnabled": "Accès du locataire activé.",
       "tenantDisabled": "Accès du locataire désactivé.",
+      "tenantDeactivatedFromLandlordOnly": "Accès closé pour vos biens uniquement. Le compte reste actif si le locataire a encore un bail ailleurs.",
       "tenantDeleted": "Locataire supprimé avec succès.",
+      "tenantRemovedFromLandlordOnly": "Locataire retiré de la liste de ce propriétaire. Le compte reste actif s'il a encore un bail ailleurs.",
+      "tenantRemovedLastLandlord": "Locataire retiré et accès au portail désactivé — aucun bail restant.",
       "leaseSaved": "Bail ajouté avec succès.",
       "leaseUpdated": "Bail mis à jour avec succès.",
       "leaseDeleted": "Bail supprimé avec succès."
@@ -2324,7 +2328,9 @@
       "coTenantNotOnSharedLease": "Un ou plusieurs locataires sélectionnés ne sont pas sur le même bail pour ce bien.",
       "cannotRemoveLastLeaseholder": "Un bail doit comporter au moins un locataire. Ajoutez d'abord un autre titulaire ou supprimez le bail.",
       "leaseTenantNotLinked": "Ce locataire n'est plus sur ce bail. Actualisez la page et réessayez.",
-      "invalidRentAmount": "Saisissez un loyer mensuel valide (0 ou plus, jusqu'à deux décimales)."
+      "noLeasesUnderLandlord": "Ce locataire n'a aucun bail avec ce propriétaire. Actualisez la liste et réessayez, ou choisissez le bon propriétaire (admin).",
+      "invalidRentAmount": "Saisissez un loyer mensuel valide (0 ou plus, jusqu'à deux décimales).",
+      "landlordIdRequiredDelete": "Indiquez pour quel propriétaire s'applique ce retrait (admin : filtrez par propriétaire ou réessayez)."
     }
   },
   "portalPayments": {

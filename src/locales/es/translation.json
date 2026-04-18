@@ -2244,7 +2244,8 @@
     },
     "editTenantDialog": {
       "title": "Editar inquilino",
-      "save": "Guardar inquilino"
+      "save": "Guardar inquilino",
+      "moveLandlordWarning": "Todos los arrendamientos activos o próximos pasarán al arrendador seleccionado. Los arrendamientos ya vencidos permanecen en la propiedad del arrendador anterior. Este inquilino solo aparecerá bajo el nuevo arrendador por esos contratos trasladados."
     },
     "actions": {
       "onboardTenant": "Incorporar inquilino",
@@ -2293,7 +2294,10 @@
       "tenantUpdated": "Inquilino actualizado correctamente.",
       "tenantEnabled": "Acceso del inquilino activado.",
       "tenantDisabled": "Acceso del inquilino desactivado.",
+      "tenantDeactivatedFromLandlordOnly": "Acceso finalizado solo para tus propiedades. La cuenta sigue activa si aún arrienda con otro propietario.",
       "tenantDeleted": "Inquilino eliminado correctamente.",
+      "tenantRemovedFromLandlordOnly": "Inquilino eliminado de la lista de este propietario. La cuenta sigue activa si aún tiene arriendo con otro propietario.",
+      "tenantRemovedLastLandlord": "Inquilino eliminado y acceso al portal desactivado: no quedan contratos.",
       "leaseSaved": "Contrato añadido correctamente.",
       "leaseUpdated": "Contrato actualizado correctamente.",
       "leaseDeleted": "Contrato eliminado correctamente."
@@ -2324,7 +2328,9 @@
       "coTenantNotOnSharedLease": "Uno o más inquilinos seleccionados no están en el mismo contrato en esta propiedad.",
       "cannotRemoveLastLeaseholder": "El contrato debe tener al menos un inquilino. Añade otro titular primero o elimina el contrato.",
       "leaseTenantNotLinked": "Ese inquilino ya no está en este contrato. Actualiza la página e inténtalo de nuevo.",
-      "invalidRentAmount": "Introduce una renta mensual válida (0 o más, hasta dos decimales)."
+      "noLeasesUnderLandlord": "Este inquilino no tiene contratos con ese propietario. Actualiza la lista e inténtalo de nuevo, o elige el propietario correcto (administrador).",
+      "invalidRentAmount": "Introduce una renta mensual válida (0 o más, hasta dos decimales).",
+      "landlordIdRequiredDelete": "Indica para qué propietario aplica la eliminación (administrador: filtra por propietario o vuelve a intentarlo)."
     }
   },
   "portalPayments": {

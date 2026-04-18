@@ -3,12 +3,9 @@ export function endpoint(baseUrl, path) {
 }
 
 export async function parseErrorResponse(res) {
-  let detail = `HTTP ${res.status}`;
+  const detail = `HTTP ${res.status}`;
   try {
-    const payload = await res.json();
-    if (payload && typeof payload.error === 'string') {
-      detail = `${detail} (${payload.error})`;
-    }
+    await res.json();
   } catch {
     // best effort parse
   }

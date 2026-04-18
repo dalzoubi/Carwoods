@@ -7,6 +7,7 @@ import {
 import { getPool } from '../lib/db.js';
 import { corsHeadersForRequest } from '../lib/corsHeaders.js';
 import { logInfo, logWarn } from '../lib/serverLogger.js';
+import { safeErrorResponseBody } from '../lib/safeErrorResponse.js';
 import { processInboundEmailReply } from '../useCases/requests/processInboundEmailReply.js';
 
 function jsonResponse(
@@ -17,7 +18,7 @@ function jsonResponse(
   return {
     status,
     headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-    jsonBody: body,
+    jsonBody: safeErrorResponseBody(status, body),
   };
 }
 

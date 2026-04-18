@@ -21,17 +21,17 @@ export type LeasePaymentEntryRow = {
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
 
 const SELECT_COLS = `
-  id, lease_id,
-  CONVERT(NVARCHAR(10), period_start, 23) AS period_start,
-  amount_due, amount_paid,
-  CONVERT(NVARCHAR(10), due_date, 23)     AS due_date,
-  CONVERT(NVARCHAR(10), paid_date, 23)    AS paid_date,
-  payment_method, payment_type, notes, recorded_by,
-  created_at, updated_at,
+  lpe.id, lpe.lease_id,
+  CONVERT(NVARCHAR(10), lpe.period_start, 23) AS period_start,
+  lpe.amount_due, lpe.amount_paid,
+  CONVERT(NVARCHAR(10), lpe.due_date, 23)     AS due_date,
+  CONVERT(NVARCHAR(10), lpe.paid_date, 23)    AS paid_date,
+  lpe.payment_method, lpe.payment_type, lpe.notes, lpe.recorded_by,
+  lpe.created_at, lpe.updated_at,
   CASE
-    WHEN amount_paid >= amount_due                          THEN 'PAID'
-    WHEN amount_paid > 0                                    THEN 'PARTIAL'
-    WHEN CAST(SYSDATETIMEOFFSET() AS DATE) > due_date      THEN 'OVERDUE'
+    WHEN lpe.amount_paid >= lpe.amount_due                          THEN 'PAID'
+    WHEN lpe.amount_paid > 0                                         THEN 'PARTIAL'
+    WHEN CAST(SYSDATETIMEOFFSET() AS DATE) > lpe.due_date            THEN 'OVERDUE'
     ELSE 'PENDING'
   END AS payment_status
 `;
@@ -42,9 +42,9 @@ export async function listEntriesForLease(
 ): Promise<LeasePaymentEntryRow[]> {
   const r = await client.query<LeasePaymentEntryRow>(
     `SELECT ${SELECT_COLS}
-     FROM lease_payment_entries
-     WHERE lease_id = $1 AND deleted_at IS NULL
-     ORDER BY period_start DESC`,
+     FROM lease_payment_entries lpe
+     WHERE lpe.lease_id = $1 AND lpe.deleted_at IS NULL
+     ORDER BY lpe.period_start DESC`,
     [leaseId]
   );
   return r.rows;
@@ -71,8 +71,8 @@ export async function getEntryById(
 ): Promise<LeasePaymentEntryRow | null> {
   const r = await client.query<LeasePaymentEntryRow>(
     `SELECT ${SELECT_COLS}
-     FROM lease_payment_entries
-     WHERE id = $1 AND deleted_at IS NULL`,
+     FROM lease_payment_entries lpe
+     WHERE lpe.id = $1 AND lpe.deleted_at IS NULL`,
     [id]
   );
   return r.rows[0] ?? null;

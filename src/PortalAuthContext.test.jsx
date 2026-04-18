@@ -71,6 +71,7 @@ vi.mock('firebase/auth', () => ({
 
 vi.mock('./featureFlags', () => ({
   VITE_API_BASE_URL_RESOLVED: 'https://api.example.com',
+  isPortalApiReachable: vi.fn(() => true),
 }));
 
 // eslint-disable-next-line import/first

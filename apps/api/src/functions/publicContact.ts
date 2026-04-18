@@ -8,9 +8,22 @@ import { corsHeadersForRequest } from '../lib/corsHeaders.js';
 import { hasDatabaseUrl, getPool } from '../lib/db.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 import { withRateLimit } from '../lib/rateLimiter.js';
+import { safeErrorResponseBody } from '../lib/safeErrorResponse.js';
 import { isDomainError } from '../domain/errors.js';
 import { submitContactRequest } from '../useCases/contactRequests/submitContactRequest.js';
 import { notifyPortalAdminsNewContactRequest } from '../useCases/contactRequests/notifyPortalAdminsNewContactRequest.js';
+
+function jsonResponse(
+  status: number,
+  headers: Record<string, string>,
+  body: unknown
+): HttpResponseInit {
+  return {
+    status,
+    headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
+    jsonBody: safeErrorResponseBody(status, body),
+  };
+}
 
 function asOptionalString(v: unknown): string | null {
   if (typeof v !== 'string') return null;
@@ -30,31 +43,19 @@ async function publicContactHandler(
   }
 
   if (request.method !== 'POST') {
-    return {
-      status: 405,
-      headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-      jsonBody: { error: 'method_not_allowed' },
-    };
+    return jsonResponse(405, headers, { error: 'method_not_allowed' });
   }
 
   if (!hasDatabaseUrl()) {
     logWarn(context, 'public.contact.database_unconfigured');
-    return {
-      status: 503,
-      headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-      jsonBody: { error: 'database_unconfigured' },
-    };
+    return jsonResponse(503, headers, { error: 'database_unconfigured' });
   }
 
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return {
-      status: 400,
-      headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-      jsonBody: { error: 'invalid_json' },
-    };
+    return jsonResponse(400, headers, { error: 'invalid_json' });
   }
 
   const b = (body && typeof body === 'object' && !Array.isArray(body))
@@ -90,20 +91,12 @@ async function publicContactHandler(
   } catch (err) {
     if (isDomainError(err)) {
       logWarn(context, 'public.contact.domain_error', { code: err.code, message: err.message });
-      return {
-        status: err.code === 'VALIDATION' ? 400 : 422,
-        headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-        jsonBody: { error: err.message },
-      };
+      return jsonResponse(err.code === 'VALIDATION' ? 400 : 422, headers, { error: err.message });
     }
     logError(context, 'public.contact.error', {
       message: err instanceof Error ? err.message : 'unknown_error',
     });
-    return {
-      status: 500,
-      headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-      jsonBody: { error: 'internal_error' },
-    };
+    return jsonResponse(500, headers, { error: 'internal_error' });
   }
 }
 

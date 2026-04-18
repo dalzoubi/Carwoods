@@ -168,6 +168,26 @@ export async function getLeaseById(
 }
 
 /**
+ * Lease IDs for this tenant on properties owned by `landlordUserId` (`properties.created_by`).
+ */
+export async function listLeaseIdsForTenantUnderLandlord(
+  client: Queryable,
+  tenantUserId: string,
+  landlordUserId: string
+): Promise<string[]> {
+  const r = await client.query<{ id: string }>(
+    `SELECT CAST(l.id AS NVARCHAR(36)) AS id
+     FROM leases l
+     INNER JOIN lease_tenants lt ON lt.lease_id = l.id AND lt.user_id = $1
+     INNER JOIN properties p ON p.id = l.property_id AND p.deleted_at IS NULL
+     WHERE l.deleted_at IS NULL
+       AND p.created_by = $2`,
+    [tenantUserId, landlordUserId]
+  );
+  return r.rows.map((row) => normalizeLeaseUuidKey(row.id));
+}
+
+/**
  * Current occupancy lease at this property: ACTIVE, not ended, most recent start.
  * Used when onboarding a tenant onto an address that already has an active lease row.
  */

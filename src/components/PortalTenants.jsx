@@ -245,14 +245,22 @@ function tenantApiErrorMessage(error, t) {
       return t('portalTenants.errors.propertyLeaseOverlap');
     case 'user_not_found':
       return t('portalTenants.errors.userNotFound');
+    case 'not_found':
+      return t('portalTenants.errors.userNotFound');
+    case 'forbidden':
+      return t('portalTenants.errors.accessDenied');
     case 'co_tenant_not_on_shared_lease':
       return t('portalTenants.errors.coTenantNotOnSharedLease');
     case 'cannot_remove_last_leaseholder':
       return t('portalTenants.errors.cannotRemoveLastLeaseholder');
     case 'lease_tenant_not_linked':
       return t('portalTenants.errors.leaseTenantNotLinked');
+    case 'no_leases_under_landlord':
+      return t('portalTenants.errors.noLeasesUnderLandlord');
     case 'invalid_rent_amount':
       return t('portalTenants.errors.invalidRentAmount');
+    case 'landlord_id_required':
+      return t('portalTenants.errors.landlordIdRequiredDelete');
     default:
       return t('portalTenants.errors.saveFailed');
   }
@@ -1378,6 +1386,14 @@ function EditTenantDialog({
               margin="dense"
               autoComplete="tel"
             />
+            {isAdmin
+              && Boolean(initialForm.landlord_id)
+              && Boolean(form.landlord_id)
+              && initialForm.landlord_id !== form.landlord_id && (
+              <Alert severity="warning" sx={{ py: 0.5 }}>
+                {t('portalTenants.editTenantDialog.moveLandlordWarning')}
+              </Alert>
+            )}
             {isAdmin && (
               <>
                 <TextField
@@ -1419,7 +1435,7 @@ function EditTenantDialog({
                         <Typography variant="body2" component="span">
                           {displayName(l)}
                           {' — '}
-                          <MailtoEmailLink email={l.email} color="inherit" sx={{ color: 'inherit' }} />
+                          <MailtoEmailLink email={l.email} color="inherit" noLink sx={{ color: 'inherit' }} />
                         </Typography>
                       </PortalPersonWithAvatar>
                     </MenuItem>
@@ -1704,7 +1720,7 @@ function TenantRow({
               size="small"
               variant="outlined"
               color="success"
-              onClick={() => onToggleAccess(tenant.id, true)}
+              onClick={() => onToggleAccess(tenant.id, true, tenant.landlord_id)}
             >
               {t('portalTenants.actions.enable')}
             </Button>
@@ -1835,7 +1851,10 @@ function TenantRow({
       <PortalConfirmDialog
         open={disableConfirmOpen}
         onClose={() => setDisableConfirmOpen(false)}
-        onConfirm={() => { setDisableConfirmOpen(false); onToggleAccess(tenant.id, false); }}
+        onConfirm={() => {
+          setDisableConfirmOpen(false);
+          onToggleAccess(tenant.id, false, tenant.landlord_id);
+        }}
         title={t('portalTenants.disableConfirm.title')}
         body={t('portalTenants.disableConfirm.body', { name: displayName(tenant) })}
         confirmLabel={t('portalTenants.actions.disable')}
@@ -1847,7 +1866,10 @@ function TenantRow({
       <PortalConfirmDialog
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
-        onConfirm={() => { setDeleteConfirmOpen(false); onDeleteTenant(tenant.id); }}
+        onConfirm={() => {
+          setDeleteConfirmOpen(false);
+          onDeleteTenant(tenant.id, tenant.landlord_id);
+        }}
         title={t('portalTenants.deleteTenantConfirm.title')}
         body={t('portalTenants.deleteTenantConfirm.body', { name: displayName(tenant) })}
         confirmLabel={t('portalTenants.deleteTenantConfirm.confirm')}
@@ -2144,7 +2166,7 @@ function OnboardTenantDialog({
                       <Typography variant="body2" component="span">
                         {displayName(l)}
                         {' — '}
-                        <MailtoEmailLink email={l.email} color="inherit" sx={{ color: 'inherit' }} />
+                        <MailtoEmailLink email={l.email} color="inherit" noLink sx={{ color: 'inherit' }} />
                       </Typography>
                     </PortalPersonWithAvatar>
                   </MenuItem>
@@ -2414,17 +2436,26 @@ const PortalTenants = () => {
     void loadProperties();
   }, [loadTenants, loadProperties]);
 
-  const handleToggleAccess = async (tenantId, active) => {
+  const handleToggleAccess = async (tenantId, active, landlordScopeId) => {
     if (!canUseModule) return;
     setActionState({ status: 'saving', detail: '' });
     try {
       const accessToken = await getAccessToken();
-      await patchTenantAccess(baseUrl, accessToken, tenantId, { active, emailHint });
+      const rawLandlordId = typeof landlordScopeId === 'string' ? landlordScopeId.trim() : '';
+      const payload = {
+        active,
+        emailHint,
+        ...(isAdmin && !active && rawLandlordId ? { landlordId: rawLandlordId } : {}),
+      };
+      const result = await patchTenantAccess(baseUrl, accessToken, tenantId, payload);
+      const scopedOff = Boolean(active === false && result?.scoped_deactivate);
       setActionState({
         status: 'ok',
         detail: active
           ? t('portalTenants.messages.tenantEnabled')
-          : t('portalTenants.messages.tenantDisabled'),
+          : scopedOff
+            ? t('portalTenants.messages.tenantDeactivatedFromLandlordOnly')
+            : t('portalTenants.messages.tenantDisabled'),
       });
       void loadTenants();
     } catch (e) {
@@ -2433,15 +2464,22 @@ const PortalTenants = () => {
     }
   };
 
-  const handleDeleteTenant = async (tenantId) => {
+  const handleDeleteTenant = async (tenantId, landlordScopeId) => {
     if (!canUseModule) return;
     setActionState({ status: 'saving', detail: '' });
     try {
       const accessToken = await getAccessToken();
-      await deleteTenant(baseUrl, accessToken, tenantId, { emailHint });
+      const rawLandlordId = typeof landlordScopeId === 'string' ? landlordScopeId.trim() : '';
+      const result = await deleteTenant(baseUrl, accessToken, tenantId, {
+        emailHint,
+        landlordId: isAdmin && rawLandlordId ? rawLandlordId : undefined,
+      });
+      const disabled = Boolean(result?.disabled_account);
       setActionState({
         status: 'ok',
-        detail: t('portalTenants.messages.tenantDeleted'),
+        detail: disabled
+          ? t('portalTenants.messages.tenantRemovedLastLandlord')
+          : t('portalTenants.messages.tenantRemovedFromLandlordOnly'),
       });
       void reloadTenantsAndLeasePanels();
     } catch (e) {
@@ -2548,7 +2586,7 @@ const PortalTenants = () => {
                       <Typography variant="body2" component="span">
                         {displayName(l)}
                         {' — '}
-                        <MailtoEmailLink email={l.email} color="inherit" sx={{ color: 'inherit' }} />
+                        <MailtoEmailLink email={l.email} color="inherit" noLink sx={{ color: 'inherit' }} />
                       </Typography>
                     </PortalPersonWithAvatar>
                   </MenuItem>

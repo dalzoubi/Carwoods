@@ -6,6 +6,7 @@ import { findUserByClaims, type UserRow } from './usersRepo.js';
 import { logInfo, logWarn } from './serverLogger.js';
 import { Role } from '../domain/constants.js';
 import { isDomainError, type DomainError } from '../domain/errors.js';
+import { safeErrorResponseBody } from './safeErrorResponse.js';
 
 export type ManagementContext = {
   user: UserRow;
@@ -36,22 +37,14 @@ export async function requireLandlordOrAdmin(
     logWarn(context, 'management.auth.failed', { reason: 'database_unconfigured' });
     return {
       ok: false,
-      response: {
-        status: 503,
-        headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-        jsonBody: { error: 'database_unconfigured' },
-      },
+      response: jsonResponse(503, headers, { error: 'database_unconfigured' }),
     };
   }
   if (!authConfigured()) {
     logWarn(context, 'management.auth.failed', { reason: 'auth_unconfigured' });
     return {
       ok: false,
-      response: {
-        status: 503,
-        headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-        jsonBody: { error: 'auth_unconfigured' },
-      },
+      response: jsonResponse(503, headers, { error: 'auth_unconfigured' }),
     };
   }
 
@@ -60,11 +53,7 @@ export async function requireLandlordOrAdmin(
     logWarn(context, 'management.auth.failed', { reason: 'missing_bearer_token' });
     return {
       ok: false,
-      response: {
-        status: 401,
-        headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-        jsonBody: { error: 'unauthorized' },
-      },
+      response: jsonResponse(401, headers, { error: 'unauthorized' }),
     };
   }
 
@@ -75,11 +64,7 @@ export async function requireLandlordOrAdmin(
     logWarn(context, 'management.auth.failed', { reason: 'invalid_token' });
     return {
       ok: false,
-      response: {
-        status: 401,
-        headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-        jsonBody: { error: 'invalid_token' },
-      },
+      response: jsonResponse(401, headers, { error: 'invalid_token' }),
     };
   }
 
@@ -94,11 +79,7 @@ export async function requireLandlordOrAdmin(
     });
     return {
       ok: false,
-      response: {
-        status: 403,
-        headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-        jsonBody: { error: 'forbidden' },
-      },
+      response: jsonResponse(403, headers, { error: 'forbidden' }),
     };
   }
   const role = String(user.role ?? '').toUpperCase();
@@ -114,11 +95,7 @@ export async function requireLandlordOrAdmin(
     });
     return {
       ok: false,
-      response: {
-        status: 403,
-        headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-        jsonBody: { error: 'forbidden' },
-      },
+      response: jsonResponse(403, headers, { error: 'forbidden' }),
     };
   }
   logInfo(context, 'management.auth.success', { userId: user.id, role });
@@ -154,7 +131,7 @@ export function jsonResponse(
   return {
     status,
     headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-    jsonBody: body,
+    jsonBody: safeErrorResponseBody(status, body),
   };
 }
 

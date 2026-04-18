@@ -52,6 +52,15 @@ export type ActiveTenantLeaseRow = {
   month_to_month: boolean;
 };
 
+/** Lease row eligible to follow the tenant when an admin moves them to another landlord's property. */
+export type TenantLeaseMoveCandidateRow = {
+  id: string;
+  property_id: string;
+  start_date: string;
+  end_date: string | null;
+  month_to_month: boolean;
+};
+
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
 
 function normalizeEmail(email: string): string {
@@ -147,6 +156,12 @@ export async function upsertTenantUserByEmail(
 /**
  * Lists all tenants visible to the actor.
  *
+ * Each tenant appears once, using their primary lease among **non-expired** rows only
+ * (same predicate as {@link listLeasesEligibleForTenantPropertyMove}: month-to-month,
+ * open-ended, end_date today or future — includes upcoming leases). The winner is the
+ * most recent `start_date`. Expired fixed-term leases are ignored here so history on an
+ * old landlord does not duplicate or override the current row.
+ *
  * - LANDLORD: only tenants with leases on their properties.
  * - ADMIN with landlordId filter: tenants for that specific landlord.
  * - ADMIN without filter: all tenants.
@@ -161,7 +176,19 @@ export async function listTenantsForActor(
   const effectiveLandlordId = role === Role.ADMIN ? (landlordId ?? null) : actorUserId;
 
   const r = await client.query<TenantWithContextRow>(
-    `SELECT DISTINCT
+    `WITH ranked AS (
+       SELECT
+         lt.user_id,
+         l.id AS lease_id,
+         ROW_NUMBER() OVER (
+           PARTITION BY lt.user_id
+           ORDER BY l.start_date DESC, l.created_at DESC
+         ) AS rn
+       FROM lease_tenants lt
+       INNER JOIN leases l ON l.id = lt.lease_id AND l.deleted_at IS NULL
+       WHERE (l.month_to_month = 1 OR l.end_date IS NULL OR l.end_date >= CAST(GETUTCDATE() AS DATE))
+     )
+     SELECT
        u.id, u.email, u.first_name, u.last_name, u.phone, u.role, u.status,
        u.profile_photo_storage_path,
        p.id   AS property_id,
@@ -174,13 +201,13 @@ export async function listTenantsForActor(
        landlord.first_name AS landlord_first_name,
        landlord.last_name  AS landlord_last_name
      FROM users u
-     JOIN lease_tenants lt ON lt.user_id = u.id
-     JOIN leases l          ON l.id = lt.lease_id AND l.deleted_at IS NULL
-     JOIN properties p      ON p.id = l.property_id AND p.deleted_at IS NULL
-     JOIN users landlord    ON landlord.id = p.created_by
+     INNER JOIN ranked r ON r.user_id = u.id AND r.rn = 1
+     INNER JOIN leases l ON l.id = r.lease_id AND l.deleted_at IS NULL
+     INNER JOIN properties p ON p.id = l.property_id AND p.deleted_at IS NULL
+     INNER JOIN users landlord ON landlord.id = p.created_by
      WHERE u.role = '${Role.TENANT}'
        AND ($1 = 'ADMIN' OR landlord.id = $2)
-       AND ($3 IS NULL   OR landlord.id = $3)
+       AND ($3 IS NULL OR landlord.id = $3)
      ORDER BY u.last_name, u.first_name, u.email`,
     [role, actorUserId, effectiveLandlordId]
   );
@@ -280,6 +307,53 @@ export async function setTenantStatus(
   return r.rows[0] ?? null;
 }
 
+/** True if the tenant is still linked to at least one non-deleted lease. */
+export async function tenantHasAnyNonDeletedLease(
+  client: Queryable,
+  tenantUserId: string
+): Promise<boolean> {
+  const r = await client.query<{ n: number }>(
+    `SELECT COUNT(*) AS n
+     FROM lease_tenants lt
+     INNER JOIN leases l ON l.id = lt.lease_id AND l.deleted_at IS NULL
+     WHERE lt.user_id = $1`,
+    [tenantUserId]
+  );
+  return Number(r.rows[0]?.n ?? 0) > 0;
+}
+
+/**
+ * How many distinct property owners (`properties.created_by`) this tenant has non-deleted leases with.
+ */
+export async function countDistinctLandlordsForTenant(
+  client: Queryable,
+  tenantUserId: string
+): Promise<number> {
+  const r = await client.query<{ n: number }>(
+    `SELECT COUNT(DISTINCT p.created_by) AS n
+     FROM lease_tenants lt
+     INNER JOIN leases l ON l.id = lt.lease_id AND l.deleted_at IS NULL
+     INNER JOIN properties p ON p.id = l.property_id AND p.deleted_at IS NULL
+     WHERE lt.user_id = $1`,
+    [tenantUserId]
+  );
+  return Number(r.rows[0]?.n ?? 0);
+}
+
+/** Tenant user row by id (no landlord access filter). For responses after scoped lease changes. */
+export async function getTenantUserById(
+  client: Queryable,
+  tenantId: string
+): Promise<TenantRow | null> {
+  const r = await client.query<TenantRow>(
+    `SELECT id, email, first_name, last_name, phone, role, status
+     FROM users
+     WHERE id = $1 AND role = '${Role.TENANT}'`,
+    [tenantId]
+  );
+  return r.rows[0] ?? null;
+}
+
 /**
  * Updates editable tenant profile fields.
  * Only updates users with role = TENANT.
@@ -336,6 +410,31 @@ export async function getActiveLeaseForTenant(
     [tenantId]
   );
   return r.rows[0] ?? null;
+}
+
+/**
+ * Leases for this tenant that are not strictly ended in the past (fixed-term with end_date before today).
+ * Month-to-month and open-ended leases stay included. Used when admin reassigns the tenant to a property
+ * under another landlord: these leases get `property_id` updated; calendar-expired leases stay on the prior property.
+ */
+export async function listLeasesEligibleForTenantPropertyMove(
+  client: Queryable,
+  tenantId: string
+): Promise<TenantLeaseMoveCandidateRow[]> {
+  const r = await client.query<TenantLeaseMoveCandidateRow>(
+    `SELECT l.id, l.property_id, l.start_date, l.end_date, l.month_to_month
+     FROM leases l
+     INNER JOIN lease_tenants lt ON lt.lease_id = l.id AND lt.user_id = $1
+     WHERE l.deleted_at IS NULL
+       AND NOT (
+         l.month_to_month = 0
+         AND l.end_date IS NOT NULL
+         AND l.end_date < CAST(GETUTCDATE() AS DATE)
+       )
+     ORDER BY l.start_date ASC, l.created_at ASC`,
+    [tenantId]
+  );
+  return r.rows;
 }
 
 /**

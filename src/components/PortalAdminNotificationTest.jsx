@@ -350,7 +350,7 @@ const PortalAdminNotificationTest = () => {
                           <MailtoEmailLink
                             email={option.recipientEmail}
                             color="inherit"
-                            stopPropagation
+                            noLink
                             sx={{ fontSize: 'inherit' }}
                           />
                         ) : (

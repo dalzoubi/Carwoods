@@ -19,12 +19,8 @@ const EMPTY_FORM = {
   notes: '',
 };
 
-function extractError(error, t, fallbackKey) {
+function extractError(t, fallbackKey) {
   const base = t(fallbackKey);
-  const code = error && typeof error === 'object' ? error.code : '';
-  if (typeof code === 'string' && code.trim()) {
-    return `${base} (${code})`;
-  }
   return base;
 }
 
@@ -78,7 +74,7 @@ export function usePortalPayments({
       });
       handleApiForbidden(error);
       setEntriesStatus('error');
-      setEntriesError(extractError(error, t, 'portalPayments.errors.loadFailed'));
+      setEntriesError(extractError(t, 'portalPayments.errors.loadFailed'));
     }
   }, [baseUrl, isAuthenticated, isGuest, isManagement, meStatus, getAccessToken, account, handleApiForbidden, t, listPath]);
 
@@ -166,7 +162,7 @@ export function usePortalPayments({
       });
       handleApiForbidden(error);
       setSaveStatus('error');
-      setSaveError(extractError(error, t, 'portalPayments.errors.saveFailed'));
+      setSaveError(extractError(t, 'portalPayments.errors.saveFailed'));
     }
   };
 

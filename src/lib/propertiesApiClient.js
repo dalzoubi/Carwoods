@@ -67,7 +67,7 @@ async function readErrorBody(res) {
 }
 
 function apiError(status, code) {
-  const message = code ? `HTTP ${status} (${code})` : `HTTP ${status}`;
+  const message = `HTTP ${status}`;
   return { status, code, message };
 }
 

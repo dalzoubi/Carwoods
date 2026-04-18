@@ -44,7 +44,7 @@ test('portalMe returns 503 when user lookup throws', async () => {
   });
 
   assert.equal(response.status, 503);
-  assert.equal(response.jsonBody?.error, 'user_lookup_unavailable');
+  assert.equal(response.jsonBody?.error, 'service_unavailable');
 });
 
 test('portalMe returns 403 no_portal_access when user is not found', async () => {

@@ -2411,7 +2411,8 @@
     },
     "editTenantDialog": {
       "title": "Edit Tenant",
-      "save": "Save tenant"
+      "save": "Save tenant",
+      "moveLandlordWarning": "Every active or upcoming lease will move to the selected landlord's property. Past (expired) leases stay on the previous landlord's property. This tenant will only appear under the new landlord for those moved leases."
     },
     "actions": {
       "onboardTenant": "Onboard Tenant",
@@ -2460,7 +2461,10 @@
       "tenantUpdated": "Tenant updated successfully.",
       "tenantEnabled": "Tenant access enabled.",
       "tenantDisabled": "Tenant access disabled.",
+      "tenantDeactivatedFromLandlordOnly": "Access ended for your properties only. Their account stays active if they still lease elsewhere.",
       "tenantDeleted": "Tenant removed successfully.",
+      "tenantRemovedFromLandlordOnly": "Tenant removed from this landlord's list. Their account stays active if they still lease elsewhere.",
+      "tenantRemovedLastLandlord": "Tenant removed and portal access disabled — no remaining leases.",
       "leaseSaved": "Lease added successfully.",
       "leaseUpdated": "Lease updated successfully.",
       "leaseDeleted": "Lease removed successfully."
@@ -2491,7 +2495,9 @@
       "coTenantNotOnSharedLease": "One or more selected tenants are not on the same lease at this property.",
       "cannotRemoveLastLeaseholder": "A lease must keep at least one tenant. Add another leaseholder first, or delete the lease.",
       "leaseTenantNotLinked": "That tenant is not on this lease anymore. Refresh and try again.",
-      "invalidRentAmount": "Enter a valid monthly rent (0 or more, up to two decimal places)."
+      "noLeasesUnderLandlord": "This tenant has no leases with that landlord. Refresh the list and try again, or choose the correct landlord (admin).",
+      "invalidRentAmount": "Enter a valid monthly rent (0 or more, up to two decimal places).",
+      "landlordIdRequiredDelete": "Choose which landlord this removal applies to (admin: filter by landlord or retry)."
     }
   },
   "portalPayments": {

@@ -1,6 +1,7 @@
 import type { HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 import { corsHeadersForRequest } from './corsHeaders.js';
 import { getBearerToken, verifyAccessToken } from './jwtVerify.js';
+import { safeErrorResponseBody } from './safeErrorResponse.js';
 
 type AzureHttpHandler = (
   request: HttpRequest,
@@ -62,7 +63,7 @@ function buildTooManyRequestsResponse(
       'Content-Type': 'application/json; charset=utf-8',
       'Retry-After': String(retryAfterSeconds),
     },
-    jsonBody: { error: 'rate_limit_exceeded' },
+    jsonBody: safeErrorResponseBody(429, { error: 'rate_limit_exceeded' }),
   };
 }
 

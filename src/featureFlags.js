@@ -16,12 +16,28 @@ export function normalizePortalApiBaseUrl(raw) {
   return s;
 }
 
-export const VITE_API_BASE_URL_RESOLVED = normalizePortalApiBaseUrl(import.meta.env.VITE_API_BASE_URL ?? '');
+function resolvePortalApiBaseUrl(raw) {
+  const configured = normalizePortalApiBaseUrl(raw);
+  if (configured) return configured;
+
+  if (
+    import.meta.env.DEV
+    && typeof window !== 'undefined'
+    && window.location
+    && typeof window.location.origin === 'string'
+  ) {
+    return normalizePortalApiBaseUrl(window.location.origin);
+  }
+
+  return '';
+}
+
+export const VITE_API_BASE_URL_RESOLVED = resolvePortalApiBaseUrl(import.meta.env.VITE_API_BASE_URL ?? '');
 
 /**
  * Whether the SPA should perform portal API calls.
  * - Non-empty `VITE_API_BASE_URL`: call that host.
- * - Empty in **dev**: use same-origin `/api/...` (Vite proxies to `http://127.0.0.1:7071`).
+ * - Empty in **dev**: call the current origin (Vite proxies `/api` to `http://127.0.0.1:7071`).
  * - Empty in **production**: API unavailable (static hosting has no proxy).
  *
  * @param {string} [baseUrl] Context value: usually `VITE_API_BASE_URL_RESOLVED || ''`

@@ -44,13 +44,10 @@ export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, ref
     const status = error && typeof error === 'object' && typeof error.status === 'number'
       ? error.status
       : null;
-    const code = error && typeof error === 'object' && typeof error.code === 'string' && error.code
-      ? error.code
-      : '';
     if (typeof status === 'number') {
-      return code ? `HTTP ${status} (${code})` : `HTTP ${status}`;
+      return `HTTP ${status}`;
     }
-    return code || 'request_failed';
+    return 'request_failed';
   }, []);
 
   const clearMe = useCallback(() => {

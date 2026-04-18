@@ -17,6 +17,7 @@ import { onboardTenant } from '../useCases/tenants/onboardTenant.js';
 import { setTenantActive } from '../useCases/tenants/setTenantActive.js';
 import { addTenantLease } from '../useCases/tenants/addTenantLease.js';
 import { updateTenant } from '../useCases/tenants/updateTenant.js';
+import { removeTenantFromLandlord } from '../useCases/tenants/removeTenantFromLandlord.js';
 
 // ---------------------------------------------------------------------------
 // Parsing helpers
@@ -158,7 +159,7 @@ async function landlordTenantsCollection(
 }
 
 // ---------------------------------------------------------------------------
-// GET/PATCH /api/landlord/tenants/{id}
+// GET/PATCH/DELETE /api/landlord/tenants/{id}
 // ---------------------------------------------------------------------------
 
 async function landlordTenantsItem(
@@ -201,6 +202,45 @@ async function landlordTenantsItem(
     }
   }
 
+  // ------- DELETE: remove tenant from this landlord's scope (unlink / soft-delete leases) -------
+  if (request.method === 'DELETE') {
+    try {
+      const landlordIdQuery =
+        ctx.role === Role.ADMIN ? (request.query.get('landlord_id')?.trim() ?? null) : null;
+      const result = await removeTenantFromLandlord(getPool(), {
+        actorUserId: ctx.user.id,
+        actorRole: ctx.role,
+        tenantId,
+        scopeLandlordUserId: landlordIdQuery,
+      });
+      logInfo(context, 'tenants.item.delete.success', {
+        actorUserId: ctx.user.id,
+        tenantId,
+        disabled_account: result.disabled_account,
+      });
+      return jsonResponse(200, ctx.headers, {
+        tenant: result.tenant,
+        disabled_account: result.disabled_account,
+      });
+    } catch (e) {
+      const mapped = mapDomainError(e, ctx.headers);
+      if (mapped) {
+        logWarn(context, 'tenants.item.delete.failed', {
+          actorUserId: ctx.user.id,
+          tenantId,
+          reason: e instanceof Error ? e.message : 'unknown',
+        });
+        return mapped;
+      }
+      logError(context, 'tenants.item.delete.error', {
+        actorUserId: ctx.user.id,
+        tenantId,
+        message: e instanceof Error ? e.message : 'unknown_error',
+      });
+      throw e;
+    }
+  }
+
   // ------- PATCH: enable/disable tenant access OR edit tenant profile -------
   if (request.method === 'PATCH') {
     let body: unknown;
@@ -219,18 +259,25 @@ async function landlordTenantsItem(
     // Access toggle flow
     if (typeof b.active === 'boolean') {
       try {
+        const landlordIdQuery =
+          ctx.role === Role.ADMIN ? (request.query.get('landlord_id')?.trim() ?? null) : null;
         const result = await setTenantActive(getPool(), {
           actorUserId: ctx.user.id,
           actorRole: ctx.role,
           tenantId,
           active: b.active,
+          scopeLandlordUserId: landlordIdQuery,
         });
         logInfo(context, 'tenants.item.patch.success', {
           actorUserId: ctx.user.id,
           tenantId,
           active: b.active,
+          scoped_deactivate: Boolean(result.scoped_deactivate),
         });
-        return jsonResponse(200, ctx.headers, { tenant: result.tenant });
+        return jsonResponse(200, ctx.headers, {
+          tenant: result.tenant,
+          ...(result.scoped_deactivate ? { scoped_deactivate: true } : {}),
+        });
       } catch (e) {
         const mapped = mapDomainError(e, ctx.headers);
         if (mapped) {
@@ -380,7 +427,7 @@ app.http('landlordTenantsCollection', {
 });
 
 app.http('landlordTenantsItem', {
-  methods: ['GET', 'PATCH', 'OPTIONS'],
+  methods: ['GET', 'PATCH', 'DELETE', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'landlord/tenants/{id}',
   handler: landlordTenantsItem,

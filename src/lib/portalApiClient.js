@@ -7,8 +7,8 @@
  *
  * On a non-2xx response every function throws a plain object:
  *   { status: number, code: string, message: string }
- * where `code` is the `error` field from the JSON body when present, and
- * `message` is the human-readable summary used for display.
+ * where `code` is the sanitized `error` field from the JSON body when present.
+ * `message` intentionally excludes backend codes so it is safe for UI fallback text.
  */
 
 import {
@@ -44,11 +44,9 @@ async function readErrorBody(res) {
 
 function apiError(status, code, details) {
   const message =
-    status === 0 && code
-      ? `Network (${code})`
-      : code
-        ? `HTTP ${status} (${code})`
-        : `HTTP ${status}`;
+    status === 0
+      ? 'Network error'
+      : `HTTP ${status}`;
   return details ? { status, code, message, details } : { status, code, message };
 }
 
@@ -1738,13 +1736,16 @@ export async function fetchTenant(baseUrl, accessToken, tenantId, params) {
  * @param {string} baseUrl
  * @param {string} accessToken
  * @param {string} tenantId
- * @param {{ emailHint?: string, active: boolean }} payload
+ * @param {{ emailHint?: string, active: boolean, landlordId?: string }} payload — admin may pass landlordId when deactivating (query `landlord_id`)
  * @returns {Promise<object>}
  */
 export async function patchTenantAccess(baseUrl, accessToken, tenantId, payload) {
-  const { emailHint, ...body } = payload;
+  const { emailHint, landlordId, ...body } = payload;
+  const landlordRaw = typeof landlordId === 'string' ? landlordId.trim() : '';
+  const qs =
+    landlordRaw.length > 0 ? `?landlord_id=${encodeURIComponent(landlordRaw)}` : '';
   const res = await fetch(
-    buildUrl(baseUrl, `/api/landlord/tenants/${encodeURIComponent(tenantId)}`),
+    buildUrl(baseUrl, `/api/landlord/tenants/${encodeURIComponent(tenantId)}${qs}`),
     {
       method: 'PATCH',
       headers: jsonHeaders(accessToken, emailHint),
@@ -1791,18 +1792,20 @@ export async function updateTenant(baseUrl, accessToken, tenantId, payload) {
 }
 
 /**
- * DELETE /api/landlord/tenants/:id  (remove tenant from landlord's list — disables user)
+ * DELETE /api/landlord/tenants/:id  (remove tenant from this landlord's leases; disable account only if no leases remain)
  *
  * @param {string} baseUrl
  * @param {string} accessToken
  * @param {string} tenantId
- * @param {{ emailHint?: string }} [params]
- * @returns {Promise<void>}
+ * @param {{ emailHint?: string, landlordId?: string }} [params] — admin must pass `landlordId` (query `landlord_id`)
+ * @returns {Promise<{ tenant?: object, disabled_account?: boolean }>}
  */
 export async function deleteTenant(baseUrl, accessToken, tenantId, params) {
   const emailHint = params?.emailHint;
+  const landlordRaw = typeof params?.landlordId === 'string' ? params.landlordId.trim() : '';
+  const qs = landlordRaw.length > 0 ? `?landlord_id=${encodeURIComponent(landlordRaw)}` : '';
   const res = await fetch(
-    buildUrl(baseUrl, `/api/landlord/tenants/${encodeURIComponent(tenantId)}`),
+    buildUrl(baseUrl, `/api/landlord/tenants/${encodeURIComponent(tenantId)}${qs}`),
     {
       method: 'DELETE',
       headers: getHeaders(accessToken, emailHint),
@@ -1813,7 +1816,14 @@ export async function deleteTenant(baseUrl, accessToken, tenantId, params) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
+  let payload = {};
+  try {
+    payload = await res.json();
+  } catch {
+    // ignore empty body
+  }
   invalidateTenantDetailCache(baseUrl, emailHint, tenantId);
+  return payload && typeof payload === 'object' && !Array.isArray(payload) ? payload : {};
 }
 
 /**

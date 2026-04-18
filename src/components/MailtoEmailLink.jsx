@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from '@mui/material/Link';
+import Typography from '@mui/material/Typography';
 
 const SIMPLE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -17,6 +18,8 @@ export default function MailtoEmailLink({
   stopPropagation = false,
   underline = 'hover',
   color = 'primary',
+  /** When true (e.g. inside selects), show the address as text only — no mailto link. */
+  noLink = false,
   sx,
   ...rest
 }) {
@@ -24,6 +27,13 @@ export default function MailtoEmailLink({
   if (!isDisplayableEmail(addr)) {
     const fallback = children !== undefined && children !== null ? children : addr;
     return <>{fallback}</>;
+  }
+  if (noLink) {
+    return (
+      <Typography component="span" variant="inherit" color={color} sx={{ fontSize: 'inherit', ...sx }} {...rest}>
+        {children ?? addr}
+      </Typography>
+    );
   }
   const handleClick = stopPropagation ? (e) => e.stopPropagation() : undefined;
   return (
