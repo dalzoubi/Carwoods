@@ -1933,6 +1933,8 @@
       "properties": "العقارات",
       "tenants": "المستأجرون",
       "status": "حالة النظام",
+      "manageGroup": "الإدارة",
+      "adminGroup": "المشرفون",
       "healthGroup": "الصحة",
       "notificationTest": "اختبار الإشعارات",
       "payments": "المدفوعات",

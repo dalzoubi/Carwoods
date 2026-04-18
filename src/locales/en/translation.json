@@ -2099,6 +2099,8 @@
       "properties": "Properties",
       "tenants": "Tenants",
       "status": "System Status",
+      "manageGroup": "Manage",
+      "adminGroup": "Admin",
       "healthGroup": "Health",
       "notificationTest": "Notification test",
       "payments": "Payments",

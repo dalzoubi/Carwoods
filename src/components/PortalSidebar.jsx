@@ -54,53 +54,6 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
 
   const normalizedPath = stripDarkPreviewPrefix(pathname);
 
-  const navItems = [
-    { key: 'dashboard', to: '/portal', label: t('portalLayout.sidebar.dashboard'), icon: <Dashboard />, exact: true },
-    ...(normalized === Role.ADMIN
-      ? [
-          { key: 'admin', to: '/portal/admin/landlords', label: t('portalLayout.sidebar.adminLandlords'), icon: <SupervisorAccount /> },
-        ]
-      : []),
-    ...(roleResolved && (normalized === Role.LANDLORD || normalized === Role.ADMIN)
-      ? [
-          { key: 'properties', to: '/portal/properties', label: t('portalLayout.sidebar.properties'), icon: <HomeWork /> },
-          { key: 'tenants', to: '/portal/tenants', label: t('portalLayout.sidebar.tenants'), icon: <People /> },
-        ]
-      : []),
-    ...(roleResolved && !isGuest
-      ? [
-          { key: 'inbox', to: '/portal/inbox', label: t('portalLayout.sidebar.inbox'), icon: <Inbox /> },
-          { key: 'documents', to: '/portal/documents', label: t('portalLayout.sidebar.documents'), icon: <Description /> },
-          { key: 'payments', to: '/portal/payments', label: t('portalLayout.sidebar.payments'), icon: <Payments /> },
-        ]
-      : []),
-    ...(roleResolved && !isGuest
-      ? [
-          { key: 'profile', to: '/portal/profile', label: t('portalLayout.sidebar.profile'), icon: <Person /> },
-        ]
-      : []),
-  ];
-
-  const healthNavItems =
-    roleResolved && normalized === Role.ADMIN
-      ? [
-          {
-            key: 'health-status',
-            to: '/portal/status',
-            label: t('portalLayout.sidebar.status'),
-            icon: <HealthAndSafety />,
-            exact: true,
-          },
-          {
-            key: 'health-notification-test',
-            to: '/portal/admin/health/notification-test',
-            label: t('portalLayout.sidebar.notificationTest'),
-            icon: <Send />,
-            exact: true,
-          },
-        ]
-      : [];
-
   const handleNavClick = () => {
     if (isMobile) onClose();
   };
@@ -109,6 +62,121 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
     setSignOutOpen(false);
     await signOut();
   };
+
+  const navItemSx = {
+    borderRadius: 1.5,
+    mb: 0.5,
+    justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',
+    '&.Mui-selected': {
+      backgroundColor: 'action.selected',
+      '&:hover': { backgroundColor: 'action.selected' },
+    },
+  };
+
+  const subheaderSx = {
+    typography: 'caption',
+    fontWeight: 700,
+    color: 'text.secondary',
+    lineHeight: 2,
+    px: 2,
+    mt: 1,
+    ...(collapsed && !isMobile ? { display: 'none' } : {}),
+  };
+
+  const renderNavItem = (item) => {
+    const isActive = item.exact
+      ? normalizedPath === item.to
+      : normalizedPath.startsWith(item.to);
+
+    const btn = (
+      <ListItemButton
+        id={`portal-tour-nav-${item.key}`}
+        component={RouterLink}
+        to={withDarkPath(pathname, item.to)}
+        selected={isActive}
+        onClick={handleNavClick}
+        sx={navItemSx}
+      >
+        <ListItemIcon
+          sx={{
+            minWidth: collapsed && !isMobile ? 0 : 40,
+            color: isActive ? 'primary.main' : 'text.secondary',
+            marginInlineEnd: collapsed && !isMobile ? 0 : undefined,
+          }}
+        >
+          {item.icon}
+        </ListItemIcon>
+        {(!collapsed || isMobile) && (
+          <ListItemText
+            primary={item.label}
+            primaryTypographyProps={{
+              fontWeight: isActive ? 600 : 400,
+              color: isActive ? 'primary.main' : 'text.primary',
+            }}
+          />
+        )}
+      </ListItemButton>
+    );
+
+    if (collapsed && !isMobile) {
+      return (
+        <Tooltip key={item.key} title={item.label} placement="right" arrow>
+          {btn}
+        </Tooltip>
+      );
+    }
+    return <React.Fragment key={item.key}>{btn}</React.Fragment>;
+  };
+
+  const renderNavGroup = (items, groupLabel) => {
+    if (!items.length) return null;
+    return (
+      <>
+        {groupLabel && (
+          <ListSubheader component="div" disableSticky sx={subheaderSx}>
+            {groupLabel}
+          </ListSubheader>
+        )}
+        {items.map(renderNavItem)}
+      </>
+    );
+  };
+
+  const coreItems = [
+    { key: 'dashboard', to: '/portal', label: t('portalLayout.sidebar.dashboard'), icon: <Dashboard />, exact: true },
+  ];
+
+  const manageItems = roleResolved && (normalized === Role.LANDLORD || normalized === Role.ADMIN)
+    ? [
+        { key: 'properties', to: '/portal/properties', label: t('portalLayout.sidebar.properties'), icon: <HomeWork /> },
+        { key: 'tenants', to: '/portal/tenants', label: t('portalLayout.sidebar.tenants'), icon: <People /> },
+      ]
+    : [];
+
+  const toolItems = roleResolved && !isGuest
+    ? [
+        { key: 'payments', to: '/portal/payments', label: t('portalLayout.sidebar.payments'), icon: <Payments /> },
+        { key: 'inbox', to: '/portal/inbox', label: t('portalLayout.sidebar.inbox'), icon: <Inbox /> },
+        { key: 'documents', to: '/portal/documents', label: t('portalLayout.sidebar.documents'), icon: <Description /> },
+      ]
+    : [];
+
+  const adminItems = roleResolved && normalized === Role.ADMIN
+    ? [
+        { key: 'admin', to: '/portal/admin/landlords', label: t('portalLayout.sidebar.adminLandlords'), icon: <SupervisorAccount /> },
+      ]
+    : [];
+
+  const healthItems = roleResolved && normalized === Role.ADMIN
+    ? [
+        { key: 'health-status', to: '/portal/status', label: t('portalLayout.sidebar.status'), icon: <HealthAndSafety />, exact: true },
+        { key: 'health-notification-test', to: '/portal/admin/health/notification-test', label: t('portalLayout.sidebar.notificationTest'), icon: <Send />, exact: true },
+      ]
+    : [];
+
+  const profileItem = roleResolved && !isGuest
+    ? { key: 'profile', to: '/portal/profile', label: t('portalLayout.sidebar.profile'), icon: <Person /> }
+    : null;
 
   const drawerContent = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -173,138 +241,47 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
       <Divider />
 
       <List component="nav" sx={{ flex: 1, px: 1, py: 1.5, overflow: 'auto' }}>
-        {navItems.map((item) => {
-          const isActive = item.exact
-            ? normalizedPath === item.to
-            : normalizedPath.startsWith(item.to);
-          const listItemButton = (
-            <ListItemButton
-              id={`portal-tour-nav-${item.key}`}
-              component={RouterLink}
-              to={withDarkPath(pathname, item.to)}
-              selected={isActive}
-              onClick={handleNavClick}
-              sx={{
-                borderRadius: 1.5,
-                mb: 0.5,
-                justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',
-                '&.Mui-selected': {
-                  backgroundColor: 'action.selected',
-                  '&:hover': { backgroundColor: 'action.selected' },
-                },
-              }}
-            >
-              <ListItemIcon
-                sx={{
-                  minWidth: collapsed && !isMobile ? 0 : 40,
-                  color: isActive ? 'primary.main' : 'text.secondary',
-                  marginInlineEnd: collapsed && !isMobile ? 0 : undefined,
-                }}
-              >
-                {item.icon}
-              </ListItemIcon>
-              {(!collapsed || isMobile) && (
-                <ListItemText
-                  primary={item.label}
-                  primaryTypographyProps={{
-                    fontWeight: isActive ? 600 : 400,
-                    color: isActive ? 'primary.main' : 'text.primary',
-                  }}
-                />
-              )}
-            </ListItemButton>
-          );
-          if (collapsed && !isMobile) {
-            return (
-              <Tooltip key={item.key} title={item.label} placement="right" arrow>
-                {listItemButton}
-              </Tooltip>
-            );
-          }
-          return (
-            <React.Fragment key={item.key}>
-              {listItemButton}
-            </React.Fragment>
-          );
-        })}
-        {healthNavItems.length > 0 && (
-          <ListSubheader
-            component="div"
-            disableSticky
-            sx={{
-              typography: 'caption',
-              fontWeight: 700,
-              color: 'text.secondary',
-              lineHeight: 2,
-              px: 2,
-              mt: 1,
-              ...(collapsed && !isMobile ? { display: 'none' } : {}),
-            }}
-          >
-            {t('portalLayout.sidebar.healthGroup')}
-          </ListSubheader>
-        )}
-        {healthNavItems.map((item) => {
-          const isActive = item.exact
-            ? normalizedPath === item.to
-            : normalizedPath.startsWith(item.to);
-          const listItemButton = (
-            <ListItemButton
-              id={`portal-tour-nav-${item.key}`}
-              component={RouterLink}
-              to={withDarkPath(pathname, item.to)}
-              selected={isActive}
-              onClick={handleNavClick}
-              sx={{
-                borderRadius: 1.5,
-                mb: 0.5,
-                justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',
-                '&.Mui-selected': {
-                  backgroundColor: 'action.selected',
-                  '&:hover': { backgroundColor: 'action.selected' },
-                },
-              }}
-            >
-              <ListItemIcon
-                sx={{
-                  minWidth: collapsed && !isMobile ? 0 : 40,
-                  color: isActive ? 'primary.main' : 'text.secondary',
-                  marginInlineEnd: collapsed && !isMobile ? 0 : undefined,
-                }}
-              >
-                {item.icon}
-              </ListItemIcon>
-              {(!collapsed || isMobile) && (
-                <ListItemText
-                  primary={item.label}
-                  primaryTypographyProps={{
-                    fontWeight: isActive ? 600 : 400,
-                    color: isActive ? 'primary.main' : 'text.primary',
-                  }}
-                />
-              )}
-            </ListItemButton>
-          );
-          if (collapsed && !isMobile) {
-            return (
-              <Tooltip key={item.key} title={item.label} placement="right" arrow>
-                {listItemButton}
-              </Tooltip>
-            );
-          }
-          return (
-            <React.Fragment key={item.key}>
-              {listItemButton}
-            </React.Fragment>
-          );
-        })}
+        {renderNavGroup(coreItems)}
+        {renderNavGroup(manageItems, manageItems.length > 0 ? t('portalLayout.sidebar.manageGroup') : undefined)}
+        {renderNavGroup(toolItems)}
+        {renderNavGroup(adminItems, adminItems.length > 0 ? t('portalLayout.sidebar.adminGroup') : undefined)}
+        {renderNavGroup(healthItems, healthItems.length > 0 ? t('portalLayout.sidebar.healthGroup') : undefined)}
       </List>
 
       <Divider />
 
-      {isAuthenticated && (
-        <Box sx={{ p: collapsed && !isMobile ? 1.5 : 2 }}>
-          {collapsed && !isMobile ? (
+      <Box sx={{ p: collapsed && !isMobile ? 1.5 : 2 }}>
+        {profileItem && (
+          collapsed && !isMobile ? (
+            <Tooltip title={profileItem.label} arrow>
+              <IconButton
+                component={RouterLink}
+                to={withDarkPath(pathname, profileItem.to)}
+                type="button"
+                aria-label={profileItem.label}
+                onClick={handleNavClick}
+                sx={{ width: '100%', mb: 0.5 }}
+              >
+                <Person />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <Button
+              component={RouterLink}
+              to={withDarkPath(pathname, profileItem.to)}
+              type="button"
+              fullWidth
+              size="small"
+              startIcon={<Person />}
+              onClick={handleNavClick}
+              sx={{ justifyContent: 'flex-start', textTransform: 'none', color: 'text.secondary', mb: 0.5 }}
+            >
+              {profileItem.label}
+            </Button>
+          )
+        )}
+        {isAuthenticated && (
+          collapsed && !isMobile ? (
             <Tooltip title={t('portalLayout.sidebar.signOut')} arrow>
               <IconButton
                 type="button"
@@ -326,9 +303,9 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
             >
               {t('portalLayout.sidebar.signOut')}
             </Button>
-          )}
-        </Box>
-      )}
+          )
+        )}
+      </Box>
 
       <Box sx={{ px: collapsed && !isMobile ? 1 : 2, pb: 2 }}>
         {collapsed && !isMobile ? (

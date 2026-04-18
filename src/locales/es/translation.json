@@ -1932,6 +1932,8 @@
       "properties": "Propiedades",
       "tenants": "Inquilinos",
       "status": "Estado del sistema",
+      "manageGroup": "Gestión",
+      "adminGroup": "Administración",
       "healthGroup": "Salud",
       "notificationTest": "Prueba de notificaciones",
       "payments": "Pagos",

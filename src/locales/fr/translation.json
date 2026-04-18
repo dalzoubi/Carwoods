@@ -1932,6 +1932,8 @@
       "properties": "Propriétés",
       "tenants": "Locataires",
       "status": "État du système",
+      "manageGroup": "Gestion",
+      "adminGroup": "Administration",
       "healthGroup": "Santé",
       "notificationTest": "Test des notifications",
       "payments": "Paiements",

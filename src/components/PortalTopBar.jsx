@@ -12,18 +12,13 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import HelpOutline from '@mui/icons-material/HelpOutline';
-import SettingsBrightness from '@mui/icons-material/SettingsBrightness';
-import LightMode from '@mui/icons-material/LightMode';
-import DarkMode from '@mui/icons-material/DarkMode';
 import RestartAlt from '@mui/icons-material/RestartAlt';
 import LanguageIcon from '@mui/icons-material/Language';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
-import { isDarkPreviewRoute, stripDarkPreviewPrefix } from '../routePaths';
-import { useThemeMode } from '../ThemeModeContext';
+import { stripDarkPreviewPrefix } from '../routePaths';
 import { useLanguage } from '../LanguageContext';
-import { FEATURE_DARK_THEME } from '../featureFlags';
 import PortalNotificationsTray from './PortalNotificationsTray';
 import { PortalAccountMenu, PortalAccountMenuAvatarTrigger } from './PortalAccountMenu';
 import { usePortalTour } from '../PortalTourContext';
@@ -54,20 +49,11 @@ function usePageTitle(t) {
 
 const PortalTopBar = ({ onMenuClick, isMobile }) => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
   const { isAuthenticated } = usePortalAuth();
   const { openTour } = usePortalTour();
   const notificationsTrayRef = useRef(null);
   const pageTitle = usePageTitle(t);
 
-  const {
-    storedOverride,
-    isDarkPreviewPath,
-    setOverrideLight,
-    setOverrideDark,
-    resetOverride,
-  } = useThemeMode();
   const {
     supportedLanguages,
     storedLanguageOverride,
@@ -75,22 +61,10 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
     resetLanguagePreference,
   } = useLanguage();
 
-  const showAppearanceMenu = FEATURE_DARK_THEME || isDarkPreviewRoute(pathname);
-
-  const [appearanceAnchor, setAppearanceAnchor] = useState(null);
   const [languageAnchor, setLanguageAnchor] = useState(null);
   const [accountAnchor, setAccountAnchor] = useState(null);
 
-  const handleAppearanceOpen = (e) => {
-    setLanguageAnchor(null);
-    setAccountAnchor(null);
-    notificationsTrayRef.current?.close();
-    setAppearanceAnchor(e.currentTarget);
-  };
-  const handleAppearanceClose = () => setAppearanceAnchor(null);
-
   const handleLanguageOpen = (e) => {
-    setAppearanceAnchor(null);
     notificationsTrayRef.current?.close();
     setAccountAnchor(null);
     setLanguageAnchor(e.currentTarget);
@@ -98,7 +72,6 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
   const handleLanguageClose = () => setLanguageAnchor(null);
 
   const handleAccountOpen = (e) => {
-    setAppearanceAnchor(null);
     setLanguageAnchor(null);
     notificationsTrayRef.current?.close();
     setAccountAnchor(e.currentTarget);
@@ -136,30 +109,12 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          {showAppearanceMenu && (
-            <Tooltip title={t('nav.appearance')} arrow>
-              <IconButton
-                type="button"
-                size="small"
-                id="portal-appearance-button"
-                onClick={handleAppearanceOpen}
-                aria-haspopup="true"
-                aria-expanded={Boolean(appearanceAnchor)}
-                aria-controls={appearanceAnchor ? 'portal-appearance-menu' : undefined}
-                aria-label={t('nav.appearance')}
-              >
-                <SettingsBrightness fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-
           <Tooltip title={t('portalTour.helpTooltip')} arrow>
             <IconButton
               type="button"
               size="small"
               id="portal-tour-help"
               onClick={() => {
-                setAppearanceAnchor(null);
                 setLanguageAnchor(null);
                 setAccountAnchor(null);
                 notificationsTrayRef.current?.close();
@@ -192,7 +147,6 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
               buttonId="portal-notifications-button"
               menuId="portal-notifications-menu"
               onMenuWillOpen={() => {
-                setAppearanceAnchor(null);
                 setLanguageAnchor(null);
                 setAccountAnchor(null);
               }}
@@ -207,71 +161,6 @@ const PortalTopBar = ({ onMenuClick, isMobile }) => {
           )}
         </Box>
       </Toolbar>
-
-      {/* Appearance menu */}
-      {showAppearanceMenu && (
-        <Menu
-          id="portal-appearance-menu"
-          anchorEl={appearanceAnchor}
-          open={Boolean(appearanceAnchor)}
-          onClose={handleAppearanceClose}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-          slotProps={{ paper: { sx: { backgroundImage: 'none' } } }}
-          MenuListProps={{ 'aria-labelledby': 'portal-appearance-button' }}
-        >
-          {isDarkPreviewPath && !FEATURE_DARK_THEME ? (
-            <>
-              <Typography variant="caption" sx={{ px: 2, pt: 1, pb: 0.5, display: 'block', color: 'text.secondary' }}>
-                {t('appearance.darkPreview')}
-              </Typography>
-              <Typography variant="body2" sx={{ px: 2, pb: 1, maxWidth: 280, color: 'text.secondary' }}>
-                {t('appearance.darkPreviewDescription')}
-              </Typography>
-              <MenuItem
-                onClick={() => {
-                  navigate(stripDarkPreviewPrefix(pathname));
-                  handleAppearanceClose();
-                }}
-              >
-                <LightMode fontSize="small" sx={{ marginInlineEnd: 1 }} />
-                {t('appearance.exitPreview')}
-              </MenuItem>
-            </>
-          ) : (
-            <>
-              <Typography variant="caption" sx={{ px: 2, pt: 1, pb: 0.5, display: 'block', color: 'text.secondary' }}>
-                {t('appearance.colorTheme')}
-              </Typography>
-              <MenuItem
-                onClick={() => { setOverrideLight(); handleAppearanceClose(); }}
-                selected={storedOverride === 'light'}
-              >
-                <LightMode fontSize="small" sx={{ marginInlineEnd: 1 }} />
-                {t('appearance.light')}
-              </MenuItem>
-              <MenuItem
-                onClick={() => { setOverrideDark(); handleAppearanceClose(); }}
-                selected={storedOverride === 'dark'}
-              >
-                <DarkMode fontSize="small" sx={{ marginInlineEnd: 1 }} />
-                {t('appearance.dark')}
-              </MenuItem>
-              <Divider />
-              <MenuItem
-                onClick={() => { resetOverride(); handleAppearanceClose(); }}
-                disabled={storedOverride === null}
-              >
-                <RestartAlt fontSize="small" sx={{ marginInlineEnd: 1 }} />
-                {t('appearance.useDeviceSetting')}
-              </MenuItem>
-              <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', color: 'text.secondary', maxWidth: 260 }}>
-                {t('appearance.deviceSettingHint')}
-              </Typography>
-            </>
-          )}
-        </Menu>
-      )}
 
       {/* Language menu */}
       <Menu

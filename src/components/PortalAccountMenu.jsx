@@ -4,6 +4,7 @@ import {
   ButtonBase,
   Chip,
   CircularProgress,
+  Collapse,
   Divider,
   IconButton,
   ListItemIcon,
@@ -17,10 +18,18 @@ import {
 import Logout from '@mui/icons-material/Logout';
 import Dashboard from '@mui/icons-material/Dashboard';
 import Settings from '@mui/icons-material/Settings';
+import SettingsBrightness from '@mui/icons-material/SettingsBrightness';
+import LightMode from '@mui/icons-material/LightMode';
+import DarkMode from '@mui/icons-material/DarkMode';
+import RestartAlt from '@mui/icons-material/RestartAlt';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
-import { withDarkPath } from '../routePaths';
+import { stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
+import { useThemeMode } from '../ThemeModeContext';
+import { FEATURE_DARK_THEME } from '../featureFlags';
 import { isGuestRole, normalizeRole, resolveDisplayName, resolveRole } from '../portalUtils';
 import { Role } from '../domain/constants.js';
 import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
@@ -117,7 +126,15 @@ export function PortalAccountMenu({ anchorEl, open, onClose, menuProps }) {
     signOut,
     refreshMe,
   } = usePortalAuth();
+  const {
+    storedOverride,
+    isDarkPreviewPath,
+    setOverrideLight,
+    setOverrideDark,
+    resetOverride,
+  } = useThemeMode();
   const [signOutOpen, setSignOutOpen] = useState(false);
+  const [appearanceExpanded, setAppearanceExpanded] = useState(false);
 
   const role = resolveRole(meData, account);
   const normalized = normalizeRole(role);
@@ -129,10 +146,19 @@ export function PortalAccountMenu({ anchorEl, open, onClose, menuProps }) {
   const showTierPill = Boolean(tierLabel) && normalized !== Role.TENANT;
   const showConfigurationsNav =
     roleResolved && (normalized === Role.LANDLORD || normalized === Role.ADMIN);
+  const showAppearanceMenu = FEATURE_DARK_THEME || isDarkPreviewPath;
+
+  const normalizedPath = stripDarkPreviewPrefix(pathname);
+  const isInPortal = normalizedPath.startsWith('/portal');
 
   const handleSignOutConfirm = async () => {
     setSignOutOpen(false);
     await signOut();
+  };
+
+  const handleClose = () => {
+    setAppearanceExpanded(false);
+    onClose();
   };
 
   return (
@@ -142,7 +168,7 @@ export function PortalAccountMenu({ anchorEl, open, onClose, menuProps }) {
         id={PORTAL_ACCOUNT_MENU_ID}
         anchorEl={anchorEl}
         open={open}
-        onClose={onClose}
+        onClose={handleClose}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         slotProps={{
@@ -156,7 +182,7 @@ export function PortalAccountMenu({ anchorEl, open, onClose, menuProps }) {
             disabled={profileDisabled}
             onClick={() => {
               navigate(withDarkPath(pathname, '/portal/profile'));
-              onClose();
+              handleClose();
             }}
             aria-label={t('portalHeader.nav.profile')}
             sx={{
@@ -207,22 +233,24 @@ export function PortalAccountMenu({ anchorEl, open, onClose, menuProps }) {
           </ButtonBase>
         </Box>
         <Divider />
-        <MenuItem
-          onClick={() => {
-            navigate(withDarkPath(pathname, '/portal'));
-            onClose();
-          }}
-        >
-          <ListItemIcon>
-            <Dashboard fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary={t('portalHeader.nav.goToPortal')} />
-        </MenuItem>
+        {!isInPortal && (
+          <MenuItem
+            onClick={() => {
+              navigate(withDarkPath(pathname, '/portal'));
+              handleClose();
+            }}
+          >
+            <ListItemIcon>
+              <Dashboard fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary={t('portalHeader.nav.goToPortal')} />
+          </MenuItem>
+        )}
         {showConfigurationsNav ? (
           <MenuItem
             onClick={() => {
               navigate(withDarkPath(pathname, '/portal/admin/config'));
-              onClose();
+              handleClose();
             }}
           >
             <ListItemIcon>
@@ -231,10 +259,58 @@ export function PortalAccountMenu({ anchorEl, open, onClose, menuProps }) {
             <ListItemText primary={t('portalLayout.sidebar.adminConfigurations')} />
           </MenuItem>
         ) : null}
+        {showAppearanceMenu ? (
+          <MenuItem onClick={() => setAppearanceExpanded((prev) => !prev)}>
+            <ListItemIcon>
+              <SettingsBrightness fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary={t('nav.appearance')} />
+            {appearanceExpanded ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
+          </MenuItem>
+        ) : null}
+        <Collapse in={appearanceExpanded && showAppearanceMenu} unmountOnExit>
+          <Box sx={{ pl: 1, pb: 0.5 }}>
+            {isDarkPreviewPath && !FEATURE_DARK_THEME ? (
+              <MenuItem
+                dense
+                onClick={() => {
+                  navigate(stripDarkPreviewPrefix(pathname));
+                  handleClose();
+                }}
+              >
+                <ListItemIcon>
+                  <LightMode fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary={t('appearance.exitPreview')} />
+              </MenuItem>
+            ) : (
+              <>
+                <MenuItem dense selected={storedOverride === 'light'} onClick={setOverrideLight}>
+                  <ListItemIcon>
+                    <LightMode fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary={t('appearance.light')} />
+                </MenuItem>
+                <MenuItem dense selected={storedOverride === 'dark'} onClick={setOverrideDark}>
+                  <ListItemIcon>
+                    <DarkMode fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary={t('appearance.dark')} />
+                </MenuItem>
+                <MenuItem dense disabled={storedOverride === null} onClick={resetOverride}>
+                  <ListItemIcon>
+                    <RestartAlt fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary={t('appearance.useDeviceSetting')} />
+                </MenuItem>
+              </>
+            )}
+          </Box>
+        </Collapse>
         <Divider />
         <MenuItem
           onClick={() => {
-            onClose();
+            handleClose();
             setSignOutOpen(true);
           }}
         >
