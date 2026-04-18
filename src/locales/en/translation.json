@@ -2344,6 +2344,19 @@
       "heading": "Filter by landlord",
       "allLandlords": "All landlords"
     },
+    "tabs": {
+      "active": "Active tenants",
+      "past": "Past tenants"
+    },
+    "pastTenants": {
+      "heading": "Past tenants",
+      "intro": "Tenants whose most recent lease with you has ended and who have no active or upcoming lease.",
+      "refresh": "Refresh past tenants",
+      "loading": "Loading past tenants…",
+      "empty": "No past tenants yet.",
+      "endedOnLabel": "Ended {{date}}",
+      "finalBalanceLabel": "Final balance: ${{amount}}"
+    },
     "list": {
       "heading": "Tenant list",
       "loading": "Loading tenants…",

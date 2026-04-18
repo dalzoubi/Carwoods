@@ -12,6 +12,7 @@ import { listAttachmentBlobPaths, deleteAttachmentBlobIfExists } from '../lib/re
 import { writeAudit } from '../lib/auditRepo.js';
 import { processNotificationOutboxBatch } from '../lib/processNotificationOutboxBatch.js';
 import { processNotificationDeliveryBatch } from '../lib/processNotificationDeliveryBatch.js';
+import { expireReadOnlyGraceWindows } from '../lib/tenantLifecycleRepo.js';
 
 const SYSTEM_TIMER_ACTOR_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -296,3 +297,87 @@ app.http('internalReconcileRequestAttachmentsStorage', {
   route: 'internal/jobs/reconcile-request-attachments-storage',
   handler: reconcileRequestAttachmentsStorage,
 });
+
+// ---------------------------------------------------------------------------
+// Portal-access grace-window expiry
+// ---------------------------------------------------------------------------
+// After a move-out / early termination we mark the tenant READ_ONLY with an
+// effective_until. Once that date passes we flip them to REVOKED so the portal
+// stops serving data. Runs every hour by default.
+
+function portalAccessExpiryTimerDisabled(): boolean {
+  return String(process.env.PORTAL_ACCESS_EXPIRY_TIMER_DISABLED ?? '').trim().toLowerCase() === 'true';
+}
+
+function portalAccessExpiryTimerSchedule(): string {
+  const raw = process.env.PORTAL_ACCESS_EXPIRY_TIMER_CRON?.trim();
+  return raw && raw.length > 0 ? raw : '0 0 * * * *';
+}
+
+async function runPortalAccessExpiry(context: InvocationContext, actorUserId: string): Promise<number> {
+  const pool = getPool();
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const expired = await expireReadOnlyGraceWindows(client as Parameters<typeof expireReadOnlyGraceWindows>[0]);
+    for (const row of expired) {
+      await writeAudit(client as Parameters<typeof writeAudit>[0], {
+        actorUserId,
+        entityType: 'TENANT_PORTAL_ACCESS',
+        entityId: row.id,
+        action: 'REVOKE_ON_EXPIRY',
+        before: null,
+        after: row,
+      });
+    }
+    await client.query('COMMIT');
+    if (expired.length > 0) {
+      logInfo(context, 'portalAccess.expiry.complete', { revoked: expired.length });
+    }
+    return expired.length;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function portalAccessExpiryOnTimer(_timer: Timer, context: InvocationContext): Promise<void> {
+  if (portalAccessExpiryTimerDisabled()) return;
+  try {
+    await runPortalAccessExpiry(context, SYSTEM_TIMER_ACTOR_ID);
+  } catch (error) {
+    logWarn(context, 'portalAccess.expiry.failed', {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+async function portalAccessExpiryHttp(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireLandlordOrAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  if (request.method !== 'POST') {
+    return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+  }
+  const revoked = await runPortalAccessExpiry(context, ctx.user.id);
+  return jsonResponse(200, ctx.headers, { revoked });
+}
+
+app.http('internalPortalAccessExpiry', {
+  methods: ['POST', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'internal/jobs/expire-portal-access',
+  handler: portalAccessExpiryHttp,
+});
+
+if (!portalAccessExpiryTimerDisabled()) {
+  app.timer('portalAccessExpiryTimer', {
+    schedule: portalAccessExpiryTimerSchedule(),
+    handler: portalAccessExpiryOnTimer,
+  });
+}

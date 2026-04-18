@@ -21,6 +21,8 @@ import {
   Select,
   Skeleton,
   Stack,
+  Tab,
+  Tabs,
   TextField,
   Tooltip,
   Typography,
@@ -53,6 +55,7 @@ import {
   deleteLease,
   moveOutLease,
   terminateLease,
+  fetchPastTenants,
   fetchLandlords,
   fetchLandlordProperties,
   fetchLandlordLeases,
@@ -2409,6 +2412,10 @@ const PortalTenants = () => {
   // Tenants list
   const [tenantsState, setTenantsState] = useState({ status: 'idle', tenants: [] });
 
+  // Past tenants tab
+  const [activeTab, setActiveTab] = useState(0);
+  const [pastTenantsState, setPastTenantsState] = useState({ status: 'idle', past_tenants: [] });
+
   // Dialogs
   const [onboardOpen, setOnboardOpen] = useState(false);
   const [actionState, setActionState] = useState({ status: 'idle', detail: '' });
@@ -2472,10 +2479,35 @@ const PortalTenants = () => {
     }
   }, [baseUrl, canUseModule, getAccessToken, emailHint, isAdmin, selectedLandlordId, handleApiForbidden, t]);
 
+  const loadPastTenants = useCallback(async () => {
+    if (!canUseModule || !baseUrl) {
+      setPastTenantsState({ status: 'idle', past_tenants: [] });
+      return;
+    }
+    setPastTenantsState((prev) => ({ ...prev, status: 'loading' }));
+    try {
+      const accessToken = await getAccessToken();
+      const landlordId = isAdmin && selectedLandlordId ? selectedLandlordId : undefined;
+      const payload = await fetchPastTenants(baseUrl, accessToken, { emailHint, landlordId });
+      setPastTenantsState({
+        status: 'ok',
+        past_tenants: Array.isArray(payload?.past_tenants) ? payload.past_tenants : [],
+      });
+    } catch (e) {
+      handleApiForbidden(e);
+      setPastTenantsState({
+        status: 'error',
+        past_tenants: [],
+        detail: t('portalTenants.errors.loadFailed'),
+      });
+    }
+  }, [baseUrl, canUseModule, getAccessToken, emailHint, isAdmin, selectedLandlordId, handleApiForbidden, t]);
+
   const reloadTenantsAndLeasePanels = useCallback(() => {
     void loadTenants();
+    void loadPastTenants();
     bumpLeaseDetailRefresh();
-  }, [loadTenants, bumpLeaseDetailRefresh]);
+  }, [loadTenants, loadPastTenants, bumpLeaseDetailRefresh]);
 
   useEffect(() => {
     void loadLandlords();
@@ -2485,6 +2517,10 @@ const PortalTenants = () => {
     void loadTenants();
     void loadProperties();
   }, [loadTenants, loadProperties]);
+
+  useEffect(() => {
+    if (activeTab === 1) void loadPastTenants();
+  }, [activeTab, loadPastTenants]);
 
   const handleToggleAccess = async (tenantId, active, landlordScopeId) => {
     if (!canUseModule) return;
@@ -2646,7 +2682,27 @@ const PortalTenants = () => {
           </Box>
         )}
 
+        {/* Tabs: Active / Past */}
+        <Tabs
+          value={activeTab}
+          onChange={(_e, v) => setActiveTab(v)}
+          sx={{ borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Tab label={t('portalTenants.tabs.active')} />
+          <Tab label={t('portalTenants.tabs.past')} />
+        </Tabs>
+
+        {activeTab === 1 && (
+          <PastTenantsPanel
+            state={pastTenantsState}
+            onRefresh={() => void loadPastTenants()}
+            canUseModule={canUseModule}
+            t={t}
+          />
+        )}
+
         {/* Tenant list */}
+        {activeTab === 0 && (
         <Box
           sx={{
             border: '1px solid',
@@ -2713,6 +2769,7 @@ const PortalTenants = () => {
             ))}
           </Stack>
         </Box>
+        )}
       </Stack>
 
       <OnboardTenantDialog
@@ -2730,6 +2787,117 @@ const PortalTenants = () => {
     </Box>
   );
 };
+
+// ---------------------------------------------------------------------------
+// PastTenantsPanel — list of tenants with no active lease under this landlord
+// ---------------------------------------------------------------------------
+
+function formatAddressLine(row) {
+  const parts = [row.last_property_street, row.last_property_city, row.last_property_state, row.last_property_zip]
+    .map((p) => (typeof p === 'string' ? p.trim() : ''))
+    .filter(Boolean);
+  return parts.join(', ');
+}
+
+function PastTenantsPanel({ state, onRefresh, canUseModule, t }) {
+  const rows = Array.isArray(state?.past_tenants) ? state.past_tenants : [];
+  return (
+    <Box
+      sx={{
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 2,
+        p: 2,
+        backgroundColor: 'background.paper',
+      }}
+    >
+      <Stack spacing={1.5}>
+        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box>
+            <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
+              {t('portalTenants.pastTenants.heading')}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {t('portalTenants.pastTenants.intro')}
+            </Typography>
+          </Box>
+          <PortalRefreshButton
+            label={t('portalTenants.pastTenants.refresh')}
+            onClick={onRefresh}
+            disabled={!canUseModule}
+            loading={state.status === 'loading'}
+          />
+        </Stack>
+
+        {state.status === 'loading' && rows.length === 0 && (
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', py: 1 }}>
+            <CircularProgress size={18} />
+            <Typography variant="body2" color="text.secondary">
+              {t('portalTenants.pastTenants.loading')}
+            </Typography>
+          </Stack>
+        )}
+        {state.status === 'error' && (
+          <Alert severity="error">{state.detail ?? t('portalTenants.errors.loadFailed')}</Alert>
+        )}
+        {state.status === 'ok' && rows.length === 0 && (
+          <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+            {t('portalTenants.pastTenants.empty')}
+          </Typography>
+        )}
+
+        {rows.map((r, idx) => {
+          const name = [r.first_name, r.last_name].filter(Boolean).join(' ').trim() || r.email;
+          const address = formatAddressLine(r);
+          const balanceNum = typeof r.final_balance_amount === 'number'
+            ? r.final_balance_amount
+            : (r.final_balance_amount != null ? Number(r.final_balance_amount) : null);
+          const hasBalance = balanceNum != null && !Number.isNaN(balanceNum);
+          const balanceColor = hasBalance && balanceNum > 0 ? 'error' : 'success';
+          return (
+            <Fragment key={`${r.tenant_user_id}-${r.last_lease_id}`}>
+              {idx > 0 && <Divider sx={{ my: 1 }} />}
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { sm: 'center' }, justifyContent: 'space-between' }}>
+                <Box>
+                  <Typography variant="subtitle1">{name}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <MailtoEmailLink email={r.email} color="inherit" noLink sx={{ color: 'inherit' }} />
+                    {r.phone ? ` • ${r.phone}` : ''}
+                  </Typography>
+                  {address && (
+                    <Typography variant="body2" color="text.secondary">
+                      {address}
+                    </Typography>
+                  )}
+                </Box>
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                  {r.ended_on && (
+                    <Chip
+                      size="small"
+                      label={t('portalTenants.pastTenants.endedOnLabel', { date: r.ended_on })}
+                    />
+                  )}
+                  {r.ended_reason && (
+                    <Chip size="small" variant="outlined" label={r.ended_reason} />
+                  )}
+                  {hasBalance && (
+                    <Chip
+                      size="small"
+                      color={balanceColor}
+                      label={t('portalTenants.pastTenants.finalBalanceLabel', {
+                        amount: balanceNum.toFixed(2),
+                      })}
+                    />
+                  )}
+                </Stack>
+              </Stack>
+            </Fragment>
+          );
+        })}
+      </Stack>
+    </Box>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // MoveOutLeaseDialog — finalize end-of-term / mutual move-out

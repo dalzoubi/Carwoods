@@ -2177,6 +2177,19 @@
       "heading": "Filtrar por propietario",
       "allLandlords": "Todos los propietarios"
     },
+    "tabs": {
+      "active": "Inquilinos activos",
+      "past": "Inquilinos anteriores"
+    },
+    "pastTenants": {
+      "heading": "Inquilinos anteriores",
+      "intro": "Inquilinos cuyo último contrato con usted ha finalizado y que no tienen contrato activo ni próximo.",
+      "refresh": "Actualizar inquilinos anteriores",
+      "loading": "Cargando inquilinos anteriores…",
+      "empty": "Aún no hay inquilinos anteriores.",
+      "endedOnLabel": "Finalizó el {{date}}",
+      "finalBalanceLabel": "Saldo final: ${{amount}}"
+    },
     "list": {
       "heading": "Lista de inquilinos",
       "loading": "Cargando inquilinos…",

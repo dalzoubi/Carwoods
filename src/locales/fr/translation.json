@@ -2177,6 +2177,19 @@
       "heading": "Filtrer par propriétaire",
       "allLandlords": "Tous les propriétaires"
     },
+    "tabs": {
+      "active": "Locataires actifs",
+      "past": "Anciens locataires"
+    },
+    "pastTenants": {
+      "heading": "Anciens locataires",
+      "intro": "Locataires dont le dernier bail avec vous a pris fin et qui n'ont pas de bail actif ou à venir.",
+      "refresh": "Actualiser les anciens locataires",
+      "loading": "Chargement des anciens locataires…",
+      "empty": "Aucun ancien locataire pour le moment.",
+      "endedOnLabel": "Terminé le {{date}}",
+      "finalBalanceLabel": "Solde final : {{amount}} $"
+    },
     "list": {
       "heading": "Liste des locataires",
       "loading": "Chargement des locataires…",
