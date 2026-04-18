@@ -8,6 +8,8 @@ export type LeaseRowFull = {
   month_to_month: boolean;
   status: string;
   notes: string | null;
+  /** Monthly rent in USD (nullable if not recorded). */
+  rent_amount: number | null;
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
@@ -20,7 +22,7 @@ export async function listLeasesForProperty(
   propertyId: string
 ): Promise<LeaseRowFull[]> {
   const r = await client.query<LeaseRowFull>(
-    `SELECT id, property_id, start_date, end_date, month_to_month, status, notes,
+    `SELECT id, property_id, start_date, end_date, month_to_month, status, notes, rent_amount,
             created_at, updated_at, deleted_at
      FROM leases
      WHERE property_id = $1 AND deleted_at IS NULL
@@ -30,11 +32,51 @@ export async function listLeasesForProperty(
   return r.rows;
 }
 
+/**
+ * Leases whose property is visible to the actor (LANDLORD: own properties only; ADMIN: all).
+ * Optionally restrict to one property_id (still requires access to that property).
+ */
+export async function listLeasesForActor(
+  client: Queryable,
+  actorRole: string,
+  actorUserId: string,
+  propertyId?: string | null
+): Promise<LeaseRowFull[]> {
+  const role = actorRole.trim().toUpperCase();
+  const pid = propertyId?.trim();
+  if (pid) {
+    const r = await client.query<LeaseRowFull>(
+      `SELECT l.id, l.property_id, l.start_date, l.end_date, l.month_to_month, l.status, l.notes, l.rent_amount,
+              l.created_at, l.updated_at, l.deleted_at
+       FROM leases l
+       INNER JOIN properties p ON p.id = l.property_id AND p.deleted_at IS NULL
+       WHERE l.deleted_at IS NULL
+         AND l.property_id = $1
+         AND ($2 = 'ADMIN' OR p.created_by = $3)
+       ORDER BY l.start_date DESC`,
+      [pid, role, actorUserId]
+    );
+    return r.rows;
+  }
+  const r = await client.query<LeaseRowFull>(
+    `SELECT l.id, l.property_id, l.start_date, l.end_date, l.month_to_month, l.status, l.notes, l.rent_amount,
+            l.created_at, l.updated_at, l.deleted_at
+     FROM leases l
+     INNER JOIN properties p ON p.id = l.property_id AND p.deleted_at IS NULL
+     WHERE l.deleted_at IS NULL
+       AND ($1 = 'ADMIN' OR p.created_by = $2)
+     ORDER BY l.created_at DESC`,
+    [role, actorUserId]
+  );
+  return r.rows;
+}
+
+/** @deprecated Prefer listLeasesForActor — this returned every lease with no landlord scope. */
 export async function listLeasesLandlord(
   client: Queryable
 ): Promise<LeaseRowFull[]> {
   const r = await client.query<LeaseRowFull>(
-    `SELECT id, property_id, start_date, end_date, month_to_month, status, notes,
+    `SELECT id, property_id, start_date, end_date, month_to_month, status, notes, rent_amount,
             created_at, updated_at, deleted_at
      FROM leases
      WHERE deleted_at IS NULL
@@ -48,12 +90,56 @@ export async function getLeaseById(
   id: string
 ): Promise<LeaseRowFull | null> {
   const r = await client.query<LeaseRowFull>(
-    `SELECT id, property_id, start_date, end_date, month_to_month, status, notes,
+    `SELECT id, property_id, start_date, end_date, month_to_month, status, notes, rent_amount,
             created_at, updated_at, deleted_at
      FROM leases WHERE id = $1 AND deleted_at IS NULL`,
     [id]
   );
   return r.rows[0] ?? null;
+}
+
+/**
+ * Current occupancy lease at this property: ACTIVE, not ended, most recent start.
+ * Used when onboarding a tenant onto an address that already has an active lease row.
+ */
+export async function findActiveOccupancyLeaseForProperty(
+  client: Queryable,
+  propertyId: string
+): Promise<LeaseRowFull | null> {
+  const r = await client.query<LeaseRowFull>(
+    `SELECT TOP 1 id, property_id, start_date, end_date, month_to_month, status, notes, rent_amount,
+            created_at, updated_at, deleted_at
+       FROM leases
+      WHERE property_id = $1
+        AND deleted_at IS NULL
+        AND status = 'ACTIVE'
+        AND (
+          month_to_month = 1
+          OR end_date IS NULL
+          OR end_date >= CAST(GETUTCDATE() AS DATE)
+        )
+      ORDER BY start_date DESC`,
+    [propertyId]
+  );
+  return r.rows[0] ?? null;
+}
+
+/** True if both users appear on the same lease row for this property (roommates). */
+export async function tenantsShareALeaseAtProperty(
+  client: Queryable,
+  tenantUserIdA: string,
+  tenantUserIdB: string,
+  propertyId: string
+): Promise<boolean> {
+  const r = await client.query<{ cnt: number }>(
+    `SELECT COUNT(*) AS cnt
+     FROM lease_tenants lt_a
+     INNER JOIN leases l ON l.id = lt_a.lease_id AND l.deleted_at IS NULL AND l.property_id = $3
+     INNER JOIN lease_tenants lt_b ON lt_b.lease_id = lt_a.lease_id AND lt_b.user_id = $2
+     WHERE lt_a.user_id = $1`,
+    [tenantUserIdA, tenantUserIdB, propertyId]
+  );
+  return Number(r.rows[0]?.cnt ?? 0) > 0;
 }
 
 export async function insertLease(
@@ -65,15 +151,16 @@ export async function insertLease(
     month_to_month: boolean;
     status: string;
     notes: string | null;
+    rent_amount: number | null;
     created_by: string;
   }
 ): Promise<LeaseRowFull> {
   const r = await client.query<LeaseRowFull>(
-    `INSERT INTO leases (id, property_id, start_date, end_date, month_to_month, status, notes, created_by, updated_by)
+    `INSERT INTO leases (id, property_id, start_date, end_date, month_to_month, status, notes, rent_amount, created_by, updated_by)
      OUTPUT INSERTED.id, INSERTED.property_id, INSERTED.start_date, INSERTED.end_date,
-            INSERTED.month_to_month, INSERTED.status, INSERTED.notes,
+            INSERTED.month_to_month, INSERTED.status, INSERTED.notes, INSERTED.rent_amount,
             INSERTED.created_at, INSERTED.updated_at, INSERTED.deleted_at
-     VALUES (NEWID(), $1, $2, $3, $4, $5, $6, $7, $7)`,
+     VALUES (NEWID(), $1, $2, $3, $4, $5, $6, $7, $8, $8)`,
     [
       params.property_id,
       params.start_date,
@@ -81,6 +168,7 @@ export async function insertLease(
       params.month_to_month ? 1 : 0,
       params.status,
       params.notes,
+      params.rent_amount,
       params.created_by,
     ]
   );
@@ -93,6 +181,7 @@ export type LeasePatch = {
   month_to_month?: boolean;
   status?: string;
   notes?: string | null;
+  rent_amount?: number | null;
 };
 
 export async function updateLease(
@@ -108,6 +197,7 @@ export async function updateLease(
   const month_to_month = patch.month_to_month ?? cur.month_to_month;
   const status = patch.status ?? cur.status;
   const notes = patch.notes !== undefined ? patch.notes : cur.notes;
+  const rent_amount = patch.rent_amount !== undefined ? patch.rent_amount : cur.rent_amount;
 
   const r = await client.query<LeaseRowFull>(
     `UPDATE leases SET
@@ -116,13 +206,14 @@ export async function updateLease(
        month_to_month = $4,
        status         = $5,
        notes          = $6,
-       updated_by     = $7,
+       rent_amount    = $7,
+       updated_by     = $8,
        updated_at     = GETUTCDATE()
      OUTPUT INSERTED.id, INSERTED.property_id, INSERTED.start_date, INSERTED.end_date,
-            INSERTED.month_to_month, INSERTED.status, INSERTED.notes,
+            INSERTED.month_to_month, INSERTED.status, INSERTED.notes, INSERTED.rent_amount,
             INSERTED.created_at, INSERTED.updated_at, INSERTED.deleted_at
      WHERE id = $1 AND deleted_at IS NULL`,
-    [id, start_date, end_date, month_to_month ? 1 : 0, status, notes, updatedBy]
+    [id, start_date, end_date, month_to_month ? 1 : 0, status, notes, rent_amount, updatedBy]
   );
   return r.rows[0] ?? null;
 }
@@ -138,6 +229,21 @@ export async function softDeleteLease(
     [id, updatedBy]
   );
   return (r.rowCount ?? 0) > 0;
+}
+
+/** Delete a lease–tenant link row. Returns the deleted row, or null if none matched. */
+export async function unlinkLeaseTenantRow(
+  client: PoolClient,
+  leaseId: string,
+  userId: string
+): Promise<{ id: string; lease_id: string; user_id: string } | null> {
+  const r = await client.query<{ id: string; lease_id: string; user_id: string }>(
+    `DELETE FROM lease_tenants
+     OUTPUT DELETED.id, DELETED.lease_id, DELETED.user_id
+     WHERE lease_id = $1 AND user_id = $2`,
+    [leaseId, userId]
+  );
+  return r.rows[0] ?? null;
 }
 
 export async function linkLeaseTenant(
@@ -205,5 +311,36 @@ export async function checkPropertyExclusiveTenantConflict(
 
   const values: unknown[] = [propertyId, excludeLeaseId, startDate, endDate, ...allowedUserIds];
   const r = await client.query<{ overlap_count: number }>(sql, values);
+  return Number(r.rows[0]?.overlap_count ?? 0) > 0;
+}
+
+/**
+ * True if another non-deleted lease on the same property overlaps `[startDate, endDate]` on the calendar
+ * (inclusive ranges; open-ended leases use COALESCE(end, '9999-12-31')).
+ */
+export async function hasOverlappingLeaseAtProperty(
+  client: Queryable,
+  params: {
+    propertyId: string;
+    startDate: string;
+    endDate: string | null;
+    excludeLeaseId: string | null;
+  }
+): Promise<boolean> {
+  const { propertyId, startDate, endDate, excludeLeaseId } = params;
+  const sql = `SELECT COUNT(*) AS overlap_count
+     FROM leases l2
+     WHERE l2.property_id = $1
+       AND l2.deleted_at IS NULL
+       AND ($2 IS NULL OR l2.id <> $2)
+       AND ($3 <= COALESCE(l2.end_date, '9999-12-31'))
+       AND (COALESCE($4, '9999-12-31') >= l2.start_date)`;
+
+  const r = await client.query<{ overlap_count: number }>(sql, [
+    propertyId,
+    excludeLeaseId,
+    startDate,
+    endDate,
+  ]);
   return Number(r.rows[0]?.overlap_count ?? 0) > 0;
 }

@@ -51,6 +51,39 @@ export function validateTenantOnboard(input: {
   return ok();
 }
 
+/** Onboard tenant onto an existing active lease — no new lease dates required. */
+export function validateTenantOnboardReuse(input: {
+  email: string | undefined;
+  firstName: string | null | undefined;
+  lastName: string | null | undefined;
+  phone?: string | null | undefined;
+  propertyId: string | undefined;
+}): ValidationResult {
+  if (!input.email || !isValidEmail(input.email)) {
+    return fail('email', 'invalid_email');
+  }
+  if (!input.firstName || input.firstName.trim().length === 0) {
+    return fail('first_name', 'missing_first_name');
+  }
+  if (input.firstName.trim().length > 100) {
+    return fail('first_name', 'first_name_too_long');
+  }
+  if (!input.lastName || input.lastName.trim().length === 0) {
+    return fail('last_name', 'missing_last_name');
+  }
+  if (input.lastName.trim().length > 100) {
+    return fail('last_name', 'last_name_too_long');
+  }
+  if (input.phone) {
+    if (input.phone.length > 50) return fail('phone', 'phone_too_long');
+    if (!isValidPhone(input.phone)) return fail('phone', 'invalid_phone');
+  }
+  if (!input.propertyId || input.propertyId.trim().length === 0) {
+    return fail('property_id', 'missing_property_id');
+  }
+  return ok();
+}
+
 export function validateAddTenantLease(input: {
   startDate: string | undefined;
   endDate?: string | null | undefined;

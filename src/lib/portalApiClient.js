@@ -43,8 +43,23 @@ async function readErrorBody(res) {
 }
 
 function apiError(status, code, details) {
-  const message = code ? `HTTP ${status} (${code})` : `HTTP ${status}`;
+  const message =
+    status === 0 && code
+      ? `Network (${code})`
+      : code
+        ? `HTTP ${status} (${code})`
+        : `HTTP ${status}`;
   return details ? { status, code, message, details } : { status, code, message };
+}
+
+/** Browser blocked the response or the host was unreachable (no HTTP status). */
+function wrapFetchFailure(err, info) {
+  const msg = err instanceof Error ? err.message : String(err);
+  const code =
+    err instanceof TypeError || /failed to fetch/i.test(msg)
+      ? 'fetch_failed_cors_or_network'
+      : 'fetch_threw';
+  return apiError(0, code, { cause: msg, ...info });
 }
 
 function jsonHeaders(accessToken, emailHint) {
@@ -1807,7 +1822,7 @@ export async function deleteTenant(baseUrl, accessToken, tenantId, params) {
  * @param {string} baseUrl
  * @param {string} accessToken
  * @param {string} tenantId
- * @param {{ emailHint?: string, property_id: string, start_date: string, end_date?: string|null, month_to_month?: boolean, notes?: string }} payload
+ * @param {{ emailHint?: string, property_id: string, start_date: string, end_date?: string|null, month_to_month?: boolean, notes?: string, link_co_tenant_user_ids?: string[] }} payload
  * @returns {Promise<object>}
  */
 export async function addTenantLease(baseUrl, accessToken, tenantId, payload) {
@@ -1827,7 +1842,64 @@ export async function addTenantLease(baseUrl, accessToken, tenantId, payload) {
   }
   const leaseCreated = await res.json();
   invalidateTenantDetailCache(baseUrl, emailHint, tenantId);
+  if (Array.isArray(body.link_co_tenant_user_ids) && body.link_co_tenant_user_ids.length > 0) {
+    invalidateAllTenantDetailCachesForUser(baseUrl, emailHint);
+  }
   return leaseCreated;
+}
+
+/**
+ * POST /api/landlord/leases/:leaseId/tenants  (link another tenant user to the same lease)
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} leaseId
+ * @param {{ emailHint?: string, userId: string }} payload
+ * @returns {Promise<object>}
+ */
+export async function linkTenantToLease(baseUrl, accessToken, leaseId, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/leases/${encodeURIComponent(leaseId)}/tenants`),
+    {
+      method: 'POST',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify({ userId: body.userId }),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  invalidateAllTenantDetailCachesForUser(baseUrl, emailHint);
+  return res.json();
+}
+
+/**
+ * DELETE /api/landlord/leases/:leaseId/tenants/:tenantUserId  — remove a tenant user from this lease row
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} leaseId
+ * @param {string} tenantUserId
+ * @param {{ emailHint?: string }} [opts]
+ * @returns {Promise<object>}
+ */
+export async function unlinkTenantFromLease(baseUrl, accessToken, leaseId, tenantUserId, opts = {}) {
+  const { emailHint } = opts;
+  const path = `/api/landlord/leases/${encodeURIComponent(leaseId)}/tenants/${encodeURIComponent(tenantUserId)}`;
+  const res = await fetch(buildUrl(baseUrl, path), {
+    method: 'DELETE',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  invalidateAllTenantDetailCachesForUser(baseUrl, emailHint);
+  return res.json();
 }
 
 /**
@@ -1907,6 +1979,33 @@ export async function fetchLandlordProperties(baseUrl, accessToken, params) {
   return res.json();
 }
 
+/**
+ * GET /api/landlord/leases  (optional ?property_id= for filter)
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ emailHint?: string, propertyId?: string }} [params]
+ * @returns {Promise<object>}
+ */
+export async function fetchLandlordLeases(baseUrl, accessToken, params) {
+  const emailHint = params?.emailHint;
+  const propertyId = params?.propertyId?.trim();
+  const path =
+    propertyId != null && propertyId !== ''
+      ? `/api/landlord/leases?property_id=${encodeURIComponent(propertyId)}`
+      : '/api/landlord/leases';
+  const res = await fetch(buildUrl(baseUrl, path), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
 // ---------------------------------------------------------------------------
 // GET /api/health  (unauthenticated)
 // ---------------------------------------------------------------------------
@@ -1932,16 +2031,36 @@ export async function fetchHealth(baseUrl) {
 // ---------------------------------------------------------------------------
 
 export async function fetchRentLedger(baseUrl, accessToken, { path, emailHint }) {
-  const res = await fetch(buildUrl(baseUrl, path), {
-    method: 'GET',
-    headers: getHeaders(accessToken, emailHint),
-    credentials: 'omit',
-  });
+  const url = buildUrl(baseUrl, path);
+  let res;
+  try {
+    res = await fetch(url, {
+      method: 'GET',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    });
+  } catch (err) {
+    throw wrapFetchFailure(err, { url, path });
+  }
   if (!res.ok) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  let raw;
+  try {
+    raw = await res.text();
+  } catch (err) {
+    throw wrapFetchFailure(err, { url, path, phase: 'readBody' });
+  }
+  const trimmed = raw.trim();
+  if (!trimmed || (trimmed[0] !== '{' && trimmed[0] !== '[')) {
+    throw apiError(res.status, 'non_json_response');
+  }
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    throw apiError(res.status, 'invalid_json');
+  }
 }
 
 export async function createRentLedgerEntry(baseUrl, accessToken, payload) {

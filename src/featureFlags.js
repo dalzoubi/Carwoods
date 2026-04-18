@@ -19,6 +19,19 @@ export function normalizePortalApiBaseUrl(raw) {
 export const VITE_API_BASE_URL_RESOLVED = normalizePortalApiBaseUrl(import.meta.env.VITE_API_BASE_URL ?? '');
 
 /**
+ * Whether the SPA should perform portal API calls.
+ * - Non-empty `VITE_API_BASE_URL`: call that host.
+ * - Empty in **dev**: use same-origin `/api/...` (Vite proxies to `http://127.0.0.1:7071`).
+ * - Empty in **production**: API unavailable (static hosting has no proxy).
+ *
+ * @param {string} [baseUrl] Context value: usually `VITE_API_BASE_URL_RESOLVED || ''`
+ */
+export function isPortalApiReachable(baseUrl) {
+  if (String(baseUrl ?? '').trim() !== '') return true;
+  return Boolean(import.meta.env.DEV);
+}
+
+/**
  * Notification polling cadence for signed-in portal users.
  * Defaults to 60s and is clamped to [10s, 5m].
  */

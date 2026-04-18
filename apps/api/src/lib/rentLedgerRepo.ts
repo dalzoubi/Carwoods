@@ -1,4 +1,4 @@
-import type { PoolClient, QueryResult } from './db.js';
+import type { QueryResult } from './db.js';
 
 export type RentLedgerEntryRow = {
   id: string;
@@ -78,7 +78,7 @@ export async function getEntryById(
 }
 
 export async function insertEntry(
-  client: PoolClient,
+  client: Queryable,
   params: {
     lease_id: string;
     period_start: string;
@@ -126,7 +126,7 @@ export async function insertEntry(
 }
 
 export async function updateEntry(
-  client: PoolClient,
+  client: Queryable,
   id: string,
   params: {
     amount_due: number;

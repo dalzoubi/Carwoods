@@ -1,4 +1,3 @@
-import type { PoolClient } from './db.js';
 import type { QueryResult } from './db.js';
 
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
@@ -16,7 +15,7 @@ export type AuditLogRow = {
 };
 
 export async function writeAudit(
-  client: PoolClient,
+  client: Queryable,
   params: {
     actorUserId: string;
     entityType: string;

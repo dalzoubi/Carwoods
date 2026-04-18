@@ -54,6 +54,13 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    /** Same-origin `/api` in dev — avoids CORS when the SPA is on :3000 and Functions on :7071 */
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:7071',
+        changeOrigin: true,
+      },
+    },
     fs: {
       allow: [realRoot, projectRoot],
     },

@@ -2184,7 +2184,11 @@
       "heading": "Baux",
       "empty": "Aucun bail trouvé pour ce locataire.",
       "active": "Actif",
-      "ended": "Terminé"
+      "ended": "Terminé",
+      "future": "À venir",
+      "expired": "Expiré",
+      "monthlyRentLabel": "Loyer : {{amount}}/mois",
+      "coTenantsLabel": "Titulaires du bail"
     },
     "form": {
       "email": "E-mail du locataire",
@@ -2197,13 +2201,18 @@
       "startDate": "Date de début du bail",
       "endDate": "Date de fin du bail",
       "monthToMonth": "Mois par mois (sans date de fin)",
+      "rentAmount": "Loyer mensuel (USD)",
+      "rentAmountPlaceholder": "ex. 1850",
+      "rentAmountHelper": "Facultatif. Dollars entiers ou avec centimes.",
       "notes": "Notes (facultatif)"
     },
     "onboardDialog": {
       "title": "Intégrer un locataire",
       "tenantSection": "Informations du locataire",
       "leaseSection": "Bail initial",
-      "save": "Intégrer le locataire"
+      "save": "Intégrer le locataire",
+      "loadingPropertyLease": "Vérification des baux pour ce bien…",
+      "existingLeaseBanner": "Ce bien a déjà un bail actif. Ce locataire sera rattaché à ce bail au lieu d'en créer un nouveau."
     },
     "addLeaseDialog": {
       "title": "Ajouter un bail",
@@ -2211,11 +2220,20 @@
       "readOnlyTenant": "Locataire",
       "readOnlyProperty": "Propriété",
       "cannotResolveProperty": "Nous n'avons pas pu déterminer le bien pour ce bail. Actualisez la page et réessayez.",
-      "addLeaseNeedsPropertyHint": "Nous n'avons pas encore de bien associé à ce bail. Attendez le chargement des baux ou corrigez la fiche locataire, puis réessayez."
+      "addLeaseNeedsPropertyHint": "Nous n'avons pas encore de bien associé à ce bail. Attendez le chargement des baux ou corrigez la fiche locataire, puis réessayez.",
+      "coTenantsOnLeaseHint": "Autres titulaires du bail en cours pour ce bien :",
+      "linkPeersCheckbox": "Rattacher aussi ces titulaires à ce nouveau bail"
     },
     "editLeaseDialog": {
       "title": "Modifier le bail",
       "save": "Enregistrer les modifications"
+    },
+    "linkCoTenantDialog": {
+      "title": "Ajouter un locataire au bail",
+      "selectTenant": "Choisir un compte locataire",
+      "save": "Ajouter au bail",
+      "emptyCandidates": "Aucun autre compte locataire disponible. Créez d'abord un autre locataire.",
+      "noSelection": "Choisissez un locataire."
     },
     "editTenantDialog": {
       "title": "Modifier le locataire",
@@ -2230,6 +2248,8 @@
       "addLease": "Ajouter un bail",
       "editLease": "Modifier le bail",
       "deleteLease": "Supprimer le bail",
+      "linkCoTenant": "Ajouter un titulaire",
+      "removeLeaseholder": "Retirer le titulaire",
       "expand": "Afficher les baux",
       "collapse": "Masquer les baux",
       "refresh": "Actualiser la liste des locataires",
@@ -2255,8 +2275,14 @@
       "body": "Cela supprimera définitivement cet enregistrement de bail. Cette action est irréversible.",
       "confirm": "Supprimer le bail"
     },
+    "removeLeaseholderConfirm": {
+      "title": "Retirer un titulaire ?",
+      "body": "Retirer {{name}} de ce bail ? Ce compte ne sera plus lié à cette ligne de bail ; les autres titulaires restent sur le bail.",
+      "confirm": "Retirer"
+    },
     "messages": {
       "tenantOnboarded": "Locataire intégré avec succès.",
+      "tenantOnboardedExistingLease": "Locataire ajouté au bail existant pour ce bien.",
       "tenantUpdated": "Locataire mis à jour avec succès.",
       "tenantEnabled": "Accès du locataire activé.",
       "tenantDisabled": "Accès du locataire désactivé.",
@@ -2280,12 +2306,18 @@
       "activeLeaseRequiredForReassign": "Ce locataire doit avoir un bail actif avant de pouvoir changer de propriétaire.",
       "leaseDatesOverlap": "Ces dates chevauchent un autre bail de ce locataire. Modifiez la date de début ou de fin pour éviter le chevauchement.",
       "propertyLeaseOccupancyConflict": "Un autre locataire a déjà un bail qui chevauche ces dates pour ce bien. Ajustez les dates ou régularisez l'autre bail d'abord.",
+      "propertyLeaseOverlap": "Ce bien a déjà un bail qui chevauche ces dates. Une seule période de bail peut couvrir une plage donnée — ajustez les dates ou clôturez l'autre bail d'abord.",
       "saveFailed": "Impossible d'enregistrer les modifications du locataire.",
       "landlordRequired": "Veuillez sélectionner un propriétaire.",
       "propertyRequired": "Veuillez sélectionner une propriété.",
       "startDateRequired": "La date de début du bail est obligatoire.",
       "endDateBeforeStart": "La date de fin doit être postérieure à la date de début.",
-      "exportContactCardFailed": "Impossible de télécharger la carte de contact. Veuillez réessayer."
+      "exportContactCardFailed": "Impossible de télécharger la carte de contact. Veuillez réessayer.",
+      "userNotFound": "Ce compte locataire est introuvable.",
+      "coTenantNotOnSharedLease": "Un ou plusieurs locataires sélectionnés ne sont pas sur le même bail pour ce bien.",
+      "cannotRemoveLastLeaseholder": "Un bail doit comporter au moins un locataire. Ajoutez d'abord un autre titulaire ou supprimez le bail.",
+      "leaseTenantNotLinked": "Ce locataire n'est plus sur ce bail. Actualisez la page et réessayez.",
+      "invalidRentAmount": "Saisissez un loyer mensuel valide (0 ou plus, jusqu'à deux décimales)."
     }
   },
   "portalRentLedger": {

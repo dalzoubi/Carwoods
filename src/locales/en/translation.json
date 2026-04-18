@@ -2351,7 +2351,11 @@
       "heading": "Leases",
       "empty": "No leases found for this tenant.",
       "active": "Active",
-      "ended": "Ended"
+      "ended": "Ended",
+      "future": "Future",
+      "expired": "Expired",
+      "monthlyRentLabel": "Rent: {{amount}}/month",
+      "coTenantsLabel": "Leaseholders"
     },
     "form": {
       "email": "Tenant email",
@@ -2364,13 +2368,18 @@
       "startDate": "Lease start date",
       "endDate": "Lease end date",
       "monthToMonth": "Month-to-month (no end date)",
+      "rentAmount": "Monthly rent (USD)",
+      "rentAmountPlaceholder": "e.g. 1850",
+      "rentAmountHelper": "Optional. Whole dollars or cents.",
       "notes": "Notes (optional)"
     },
     "onboardDialog": {
       "title": "Onboard Tenant",
       "tenantSection": "Tenant information",
       "leaseSection": "Initial lease",
-      "save": "Onboard tenant"
+      "save": "Onboard tenant",
+      "loadingPropertyLease": "Checking leases for this property…",
+      "existingLeaseBanner": "This property already has an active lease. This tenant will be linked to that lease instead of creating a new one."
     },
     "addLeaseDialog": {
       "title": "Add Lease",
@@ -2378,11 +2387,20 @@
       "readOnlyTenant": "Tenant",
       "readOnlyProperty": "Property",
       "cannotResolveProperty": "We could not determine which property this lease is for. Refresh the page and try again.",
-      "addLeaseNeedsPropertyHint": "We do not have a property on file for this lease yet. Wait for leases to load, or fix the tenant record, then try again."
+      "addLeaseNeedsPropertyHint": "We do not have a property on file for this lease yet. Wait for leases to load, or fix the tenant record, then try again.",
+      "coTenantsOnLeaseHint": "Other leaseholders on the current lease at this property:",
+      "linkPeersCheckbox": "Also link these leaseholders to this new lease"
     },
     "editLeaseDialog": {
       "title": "Edit Lease",
       "save": "Save changes"
+    },
+    "linkCoTenantDialog": {
+      "title": "Add tenant to lease",
+      "selectTenant": "Choose tenant account",
+      "save": "Add to lease",
+      "emptyCandidates": "No other tenant accounts are available to link. Create another tenant first.",
+      "noSelection": "Choose a tenant."
     },
     "editTenantDialog": {
       "title": "Edit Tenant",
@@ -2397,6 +2415,8 @@
       "addLease": "Add lease",
       "editLease": "Edit lease",
       "deleteLease": "Delete lease",
+      "linkCoTenant": "Add leaseholder",
+      "removeLeaseholder": "Remove leaseholder",
       "expand": "Show leases",
       "collapse": "Hide leases",
       "refresh": "Refresh tenant list",
@@ -2422,8 +2442,14 @@
       "body": "This will permanently remove this lease record. This cannot be undone.",
       "confirm": "Delete lease"
     },
+    "removeLeaseholderConfirm": {
+      "title": "Remove leaseholder?",
+      "body": "Remove {{name}} from this lease? They will no longer be linked to this lease row; other leaseholders stay on the lease.",
+      "confirm": "Remove"
+    },
     "messages": {
       "tenantOnboarded": "Tenant onboarded successfully.",
+      "tenantOnboardedExistingLease": "Tenant added to the existing lease at this property.",
       "tenantUpdated": "Tenant updated successfully.",
       "tenantEnabled": "Tenant access enabled.",
       "tenantDisabled": "Tenant access disabled.",
@@ -2447,12 +2473,18 @@
       "activeLeaseRequiredForReassign": "This tenant needs an active lease before you can change landlord.",
       "leaseDatesOverlap": "These dates overlap another lease for this tenant. Change the start or end date so leases do not overlap.",
       "propertyLeaseOccupancyConflict": "Another tenant already has a lease that overlaps these dates at this property. Adjust dates or resolve the other lease first.",
+      "propertyLeaseOverlap": "This property already has a lease that overlaps these dates. Only one lease window may cover a period at a time — adjust dates or close the other lease first.",
       "saveFailed": "Unable to save tenant changes.",
       "landlordRequired": "Please select a landlord.",
       "propertyRequired": "Please select a property.",
       "startDateRequired": "Lease start date is required.",
       "endDateBeforeStart": "End date must be after start date.",
-      "exportContactCardFailed": "Could not download the contact card. Please try again."
+      "exportContactCardFailed": "Could not download the contact card. Please try again.",
+      "userNotFound": "That tenant account could not be found.",
+      "coTenantNotOnSharedLease": "One or more selected tenants are not on the same lease at this property.",
+      "cannotRemoveLastLeaseholder": "A lease must keep at least one tenant. Add another leaseholder first, or delete the lease.",
+      "leaseTenantNotLinked": "That tenant is not on this lease anymore. Refresh and try again.",
+      "invalidRentAmount": "Enter a valid monthly rent (0 or more, up to two decimal places)."
     }
   },
   "portalRentLedger": {

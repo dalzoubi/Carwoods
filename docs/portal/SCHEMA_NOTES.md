@@ -9,6 +9,7 @@ Source of truth: [`infra/db/migrations/001_initial_portal.sql`](../../infra/db/m
 | `properties.har_sync_status`, `har_sync_error`, `har_last_synced_at` | Surface blocking HAR sync outcomes in admin UI |
 | `properties.deleted_at`, `created_by`, `updated_by` | Soft delete + audit attribution |
 | `leases.deleted_at`, `created_by`, `updated_by` | Same |
+| `leases.rent_amount` | Optional monthly rent (USD); see migration `030_lease_rent_amount.sql` |
 | `request_status_history` | Timeline fidelity for status changes (separate from free-text messages) |
 | `notification_outbox` | Reliable dispatch + idempotency key |
 

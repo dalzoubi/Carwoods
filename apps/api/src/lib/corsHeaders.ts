@@ -4,6 +4,10 @@ const DEFAULT_ORIGINS = [
   'https://carwoods.com',
   'https://www.carwoods.com',
   'http://localhost:3000',
+  /** Same dev server as localhost:3000 — browsers treat 127.0.0.1 as a different origin. */
+  'http://127.0.0.1:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
   'https://carwoods-*-dennis-alzoubis-projects.vercel.app/'
 ];
 

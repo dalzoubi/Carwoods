@@ -15,7 +15,7 @@ import {
   signInWithPopup,
   signOut as firebaseSignOut,
 } from 'firebase/auth';
-import { VITE_API_BASE_URL_RESOLVED } from './featureFlags';
+import { VITE_API_BASE_URL_RESOLVED, isPortalApiReachable } from './featureFlags';
 import {
   FIREBASE_AUTH_CONFIGURED,
   appleProvider,
@@ -190,7 +190,11 @@ function RealPortalAuthProvider({ children }) {
   const broadcastRef = useRef(null);
 
   const baseUrl = VITE_API_BASE_URL_RESOLVED || '';
-  const meUrl = baseUrl ? `${baseUrl.replace(/\/$/, '')}/api/portal/me` : '';
+  const meUrl = baseUrl
+    ? `${baseUrl.replace(/\/$/, '')}/api/portal/me`
+    : isPortalApiReachable('')
+      ? '/api/portal/me'
+      : '';
 
   const toPortalAccount = useCallback((user) => {
     if (!user) return null;
@@ -445,7 +449,7 @@ function RealPortalAuthProvider({ children }) {
   // Periodic /me polling while authenticated so a disabled account is detected
   // within ME_POLL_INTERVAL_MS even without navigation or page reload.
   useEffect(() => {
-    if (authStatus !== 'authenticated' || !baseUrl) return;
+    if (authStatus !== 'authenticated' || !isPortalApiReachable(baseUrl)) return;
     const id = setInterval(() => {
       if (!auth?.currentUser) return;
       setRefreshTick((x) => x + 1);

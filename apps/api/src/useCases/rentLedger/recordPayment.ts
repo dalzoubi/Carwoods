@@ -24,9 +24,17 @@ function validateFields(params: {
     return 'period_start_invalid';
   if (!params.due_date?.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(params.due_date))
     return 'due_date_invalid';
-  if (typeof params.amount_due !== 'number' || params.amount_due < 0)
+  if (
+    typeof params.amount_due !== 'number'
+    || !Number.isFinite(params.amount_due)
+    || params.amount_due < 0
+  )
     return 'amount_due_invalid';
-  if (typeof params.amount_paid !== 'number' || params.amount_paid < 0)
+  if (
+    typeof params.amount_paid !== 'number'
+    || !Number.isFinite(params.amount_paid)
+    || params.amount_paid < 0
+  )
     return 'amount_paid_invalid';
   return null;
 }
@@ -50,7 +58,8 @@ export async function recordPayment(
   db: TransactionPool,
   input: RecordPaymentInput
 ): Promise<RecordPaymentOutput> {
-  if (!hasLandlordAccess(input.actorRole.trim().toUpperCase())) throw forbidden();
+  const actorRole = String(input.actorRole ?? '').trim().toUpperCase();
+  if (!hasLandlordAccess(actorRole)) throw forbidden();
 
   const err = validateFields({
     lease_id: input.lease_id,
@@ -68,7 +77,7 @@ export async function recordPayment(
     db,
     input.lease_id!,
     input.actorUserId,
-    input.actorRole.trim().toUpperCase()
+    actorRole
   );
   if (!accessible) throw forbidden();
 
@@ -86,7 +95,7 @@ export async function recordPayment(
       notes: input.notes?.trim() || null,
       recorded_by: input.actorUserId,
     });
-    await writeAudit(client as Parameters<typeof writeAudit>[0], {
+    await writeAudit(client, {
       actorUserId: input.actorUserId,
       entityType: 'RENT_LEDGER_ENTRY',
       entityId: row.id,
@@ -163,7 +172,7 @@ export async function updatePayment(
       recorded_by: input.actorUserId,
     });
     if (!updated) throw notFound();
-    await writeAudit(client as Parameters<typeof writeAudit>[0], {
+    await writeAudit(client, {
       actorUserId: input.actorUserId,
       entityType: 'RENT_LEDGER_ENTRY',
       entityId: input.entryId,

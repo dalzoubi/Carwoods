@@ -41,6 +41,12 @@ function bool(v: unknown): boolean | undefined {
   return typeof v === 'boolean' ? v : undefined;
 }
 
+function strUuidArray(v: unknown): string[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  const out = v.filter((x): x is string => typeof x === 'string' && x.trim().length > 0).map((s) => s.trim());
+  return out.length > 0 ? out : undefined;
+}
+
 // ---------------------------------------------------------------------------
 // GET/POST /api/landlord/tenants
 // ---------------------------------------------------------------------------
@@ -113,6 +119,7 @@ async function landlordTenantsCollection(
         endDate: strNullable(leaseObj.end_date),
         monthToMonth: bool(leaseObj.month_to_month),
         notes: strNullable(leaseObj.notes),
+        rent_amount: 'rent_amount' in leaseObj ? leaseObj.rent_amount : undefined,
       });
       logInfo(context, 'tenants.collection.create.success', {
         actorUserId: ctx.user.id,
@@ -124,6 +131,7 @@ async function landlordTenantsCollection(
         tenant: result.tenant,
         tenant_created: result.tenant_created,
         lease: result.lease,
+        lease_reused: result.lease_reused,
       });
     } catch (e) {
       const mapped = mapDomainError(e, ctx.headers);
@@ -332,6 +340,8 @@ async function landlordTenantLeases(
       endDate: strNullable(b.end_date),
       monthToMonth: bool(b.month_to_month),
       notes: strNullable(b.notes),
+      additionalTenantUserIds: strUuidArray(b.link_co_tenant_user_ids),
+      rent_amount: 'rent_amount' in b ? b.rent_amount : undefined,
     });
     logInfo(context, 'tenants.leases.create.success', {
       actorUserId: ctx.user.id,

@@ -35,9 +35,10 @@ import { useLocation } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
 import { hasLandlordAccess } from '../domain/roleUtils.js';
 import { isGuestRole, normalizeRole, resolveRole, emailFromAccount } from '../portalUtils';
+import { isPortalApiReachable } from '../featureFlags';
 import { allowsRentLedger, landlordTierLimits } from '../portalTierUtils';
 import { withDarkPath } from '../routePaths';
-import { fetchLandlordProperties, fetchRequests } from '../lib/portalApiClient';
+import { fetchLandlordLeases, fetchLandlordProperties } from '../lib/portalApiClient';
 import { usePortalRentLedger } from './portalRentLedger/usePortalRentLedger';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
@@ -53,11 +54,69 @@ const PAYMENT_STATUS_COLOR = {
 
 const PAYMENT_METHODS = ['CHECK', 'CASH', 'BANK_TRANSFER', 'ZELLE', 'VENMO', 'OTHER'];
 
+const leaseDropdownCollator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+
 function formatDate(iso) {
   if (!iso) return '—';
   const d = new Date(iso + 'T00:00:00');
   if (Number.isNaN(d.getTime())) return iso;
   return d.toLocaleDateString();
+}
+
+/** Lease API may return a calendar date string or ISO datetime — keep labels date-only (no time). */
+function coerceToYmd(value) {
+  if (value == null || value === '') return '';
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? '' : value.toISOString().slice(0, 10);
+  }
+  const s = String(value).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const prefix = s.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (prefix) return prefix[1];
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+}
+
+function formatLeaseDateLabel(value) {
+  const ymd = coerceToYmd(value);
+  if (!ymd) return '—';
+  return formatDate(ymd);
+}
+
+function propertyAddressOneLine(property) {
+  if (!property) return '';
+  const name = String(property.name ?? '').trim();
+  const street = String(property.street ?? '').trim();
+  const city = String(property.city ?? '').trim();
+  const state = String(property.state ?? '').trim();
+  const zip = String(property.zip ?? '').trim();
+  const addr = [street, city && state ? `${city}, ${state}` : city || state, zip]
+    .filter(Boolean)
+    .join(' ');
+  if (name && addr) return `${name} — ${addr}`;
+  return name || addr;
+}
+
+/** @param {{ start_date?: string, end_date?: string|null, month_to_month?: boolean, id?: string } | null} lease */
+function rentLedgerLeaseDropdownLabel(property, lease) {
+  const addr = propertyAddressOneLine(property);
+  const start = lease?.start_date;
+  const end = lease?.end_date;
+  const m2m = Boolean(lease?.month_to_month);
+  let range = '';
+  if (start) {
+    const s = formatLeaseDateLabel(start);
+    if (m2m && !end) {
+      range = `${s} – …`;
+    } else if (end) {
+      range = `${s} – ${formatLeaseDateLabel(end)}`;
+    } else {
+      range = s;
+    }
+  }
+  const parts = [addr, range].filter((p) => p && p !== '—');
+  if (parts.length > 0) return parts.join(' · ');
+  return lease?.id != null ? String(lease.id) : '';
 }
 
 function formatCurrency(value) {
@@ -99,29 +158,26 @@ const PortalRentLedger = () => {
   const [selectedLeaseId, setSelectedLeaseId] = useState('');
 
   useEffect(() => {
-    if (!isManagement || !baseUrl || !isAuthenticated || isGuest || meStatus !== 'ok') return;
+    if (!isManagement || !isPortalApiReachable(baseUrl) || !isAuthenticated || isGuest || meStatus !== 'ok') return;
     let cancelled = false;
     (async () => {
       setLeasesStatus('loading');
       try {
         const token = await getAccessToken();
         const emailHint = emailFromAccount(account);
-        // Re-use the requests lookups to get leases — or fetch from landlord/leases
-        const path = '/api/landlord/requests';
-        const data = await fetchRequests(baseUrl, token, { path, emailHint });
+        const [leasesPayload, propsPayload] = await Promise.all([
+          fetchLandlordLeases(baseUrl, token, { emailHint }),
+          fetchLandlordProperties(baseUrl, token, { emailHint }),
+        ]);
         if (cancelled) return;
-        // Extract unique leases from requests as a quick proxy; real apps would use /api/landlord/leases
-        const seen = new Map();
-        const rows = Array.isArray(data?.requests) ? data.requests : [];
-        for (const r of rows) {
-          if (r.lease_id && !seen.has(r.lease_id)) {
-            seen.set(r.lease_id, {
-              id: r.lease_id,
-              label: [r.tenant_name, r.property_address].filter(Boolean).join(' — ') || r.lease_id,
-            });
-          }
-        }
-        const leaseList = Array.from(seen.values());
+        const leaseRows = Array.isArray(leasesPayload?.leases) ? leasesPayload.leases : [];
+        const propRows = Array.isArray(propsPayload?.properties) ? propsPayload.properties : [];
+        const byPropertyId = new Map(propRows.map((p) => [p.id, p]));
+        const leaseList = leaseRows.map((lease) => ({
+          id: lease.id,
+          label: rentLedgerLeaseDropdownLabel(byPropertyId.get(lease.property_id), lease),
+        }));
+        leaseList.sort((a, b) => leaseDropdownCollator.compare(a.label, b.label));
         setLeases(leaseList);
         setLeasesStatus('ok');
         if (leaseList.length > 0) setSelectedLeaseId(leaseList[0].id);
@@ -232,7 +288,7 @@ const PortalRentLedger = () => {
         </Box>
 
         <StatusAlertSlot
-          message={!baseUrl ? { severity: 'warning', text: t('portalRentLedger.errors.apiUnavailable') } : null}
+          message={!isPortalApiReachable(baseUrl) ? { severity: 'warning', text: t('portalRentLedger.errors.apiUnavailable') } : null}
         />
         <StatusAlertSlot
           message={entriesStatus === 'error' ? { severity: 'error', text: entriesError || t('portalRentLedger.errors.loadFailed') } : null}

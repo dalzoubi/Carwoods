@@ -36,9 +36,12 @@ export type TenantLeaseRow = {
   month_to_month: boolean;
   status: string;
   notes: string | null;
+  rent_amount: number | null;
   is_active: boolean;
   created_at: Date;
   updated_at: Date;
+  /** Comma-separated UUIDs — all tenant users linked to this lease row (roommates). */
+  tenant_user_ids: string | null;
 };
 
 export type ActiveTenantLeaseRow = {
@@ -231,13 +234,17 @@ export async function listLeasesForTenant(
     `SELECT l.id, l.property_id,
             p.street AS property_street, p.city AS property_city,
             p.state AS property_state, p.zip AS property_zip,
-            l.start_date, l.end_date, l.month_to_month, l.status, l.notes,
+            l.start_date, l.end_date, l.month_to_month, l.status, l.notes, l.rent_amount,
             l.created_at, l.updated_at,
             CASE
               WHEN l.month_to_month = 1 OR l.end_date IS NULL THEN 1
               WHEN l.end_date >= CAST(GETUTCDATE() AS DATE) THEN 1
               ELSE 0
-            END AS is_active
+            END AS is_active,
+            (SELECT STRING_AGG(CAST(lt_all.user_id AS NVARCHAR(36)), ',')
+                      WITHIN GROUP (ORDER BY lt_all.user_id)
+               FROM lease_tenants lt_all
+              WHERE lt_all.lease_id = l.id) AS tenant_user_ids
      FROM leases l
      JOIN lease_tenants lt ON lt.lease_id = l.id AND lt.user_id = $1
      JOIN properties p ON p.id = l.property_id AND p.deleted_at IS NULL

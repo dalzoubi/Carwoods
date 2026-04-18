@@ -2184,7 +2184,11 @@
       "heading": "Contratos",
       "empty": "No se encontraron contratos para este inquilino.",
       "active": "Activo",
-      "ended": "Finalizado"
+      "ended": "Finalizado",
+      "future": "Futuro",
+      "expired": "Vencido",
+      "monthlyRentLabel": "Renta: {{amount}}/mes",
+      "coTenantsLabel": "Titulares del contrato"
     },
     "form": {
       "email": "Correo del inquilino",
@@ -2197,13 +2201,18 @@
       "startDate": "Fecha de inicio del contrato",
       "endDate": "Fecha de fin del contrato",
       "monthToMonth": "Mes a mes (sin fecha de fin)",
+      "rentAmount": "Renta mensual (USD)",
+      "rentAmountPlaceholder": "p. ej. 1850",
+      "rentAmountHelper": "Opcional. Dólares enteros o con centavos.",
       "notes": "Notas (opcional)"
     },
     "onboardDialog": {
       "title": "Incorporar inquilino",
       "tenantSection": "Información del inquilino",
       "leaseSection": "Contrato inicial",
-      "save": "Incorporar inquilino"
+      "save": "Incorporar inquilino",
+      "loadingPropertyLease": "Comprobando contratos para esta propiedad…",
+      "existingLeaseBanner": "Esta propiedad ya tiene un contrato activo. Este inquilino se vinculará a ese contrato en lugar de crear uno nuevo."
     },
     "addLeaseDialog": {
       "title": "Añadir contrato",
@@ -2211,11 +2220,20 @@
       "readOnlyTenant": "Inquilino",
       "readOnlyProperty": "Propiedad",
       "cannotResolveProperty": "No pudimos determinar la propiedad de este contrato. Actualice la página e inténtelo de nuevo.",
-      "addLeaseNeedsPropertyHint": "Aún no tenemos una propiedad registrada para este contrato. Espere a que carguen los contratos o corrija el registro del inquilino e inténtelo de nuevo."
+      "addLeaseNeedsPropertyHint": "Aún no tenemos una propiedad registrada para este contrato. Espere a que carguen los contratos o corrija el registro del inquilino e inténtelo de nuevo.",
+      "coTenantsOnLeaseHint": "Otros titulares del contrato actual en esta propiedad:",
+      "linkPeersCheckbox": "Vincular también a estos titulares a este contrato nuevo"
     },
     "editLeaseDialog": {
       "title": "Editar contrato",
       "save": "Guardar cambios"
+    },
+    "linkCoTenantDialog": {
+      "title": "Añadir inquilino al contrato",
+      "selectTenant": "Elegir cuenta de inquilino",
+      "save": "Añadir al contrato",
+      "emptyCandidates": "No hay otras cuentas de inquilino disponibles. Incorpora primero a otro inquilino.",
+      "noSelection": "Elige un inquilino."
     },
     "editTenantDialog": {
       "title": "Editar inquilino",
@@ -2230,6 +2248,8 @@
       "addLease": "Añadir contrato",
       "editLease": "Editar contrato",
       "deleteLease": "Eliminar contrato",
+      "linkCoTenant": "Añadir titular",
+      "removeLeaseholder": "Quitar titular del contrato",
       "expand": "Ver contratos",
       "collapse": "Ocultar contratos",
       "refresh": "Actualizar lista de inquilinos",
@@ -2255,8 +2275,14 @@
       "body": "Esto eliminará permanentemente este registro de contrato. Esta acción no se puede deshacer.",
       "confirm": "Eliminar contrato"
     },
+    "removeLeaseholderConfirm": {
+      "title": "¿Quitar titular?",
+      "body": "¿Quitar a {{name}} de este contrato? Ya no estará vinculado a esta fila del contrato; los demás titulares siguen en el contrato.",
+      "confirm": "Quitar"
+    },
     "messages": {
       "tenantOnboarded": "Inquilino incorporado correctamente.",
+      "tenantOnboardedExistingLease": "Inquilino añadido al contrato existente en esta propiedad.",
       "tenantUpdated": "Inquilino actualizado correctamente.",
       "tenantEnabled": "Acceso del inquilino activado.",
       "tenantDisabled": "Acceso del inquilino desactivado.",
@@ -2280,12 +2306,18 @@
       "activeLeaseRequiredForReassign": "Este inquilino necesita un contrato activo antes de poder cambiar de propietario.",
       "leaseDatesOverlap": "Estas fechas se solapan con otro contrato de este inquilino. Cambie la fecha de inicio o fin para que los contratos no se solapen.",
       "propertyLeaseOccupancyConflict": "Otro inquilino ya tiene un contrato que se solapa con estas fechas en esta propiedad. Ajuste las fechas o resuelva el otro contrato primero.",
+      "propertyLeaseOverlap": "Esta propiedad ya tiene un contrato que se solapa con estas fechas. Solo puede haber una ventana de contrato a la vez; ajuste las fechas o cierre el otro contrato primero.",
       "saveFailed": "No se pudieron guardar los cambios del inquilino.",
       "landlordRequired": "Por favor selecciona un propietario.",
       "propertyRequired": "Por favor selecciona una propiedad.",
       "startDateRequired": "La fecha de inicio del contrato es obligatoria.",
       "endDateBeforeStart": "La fecha de fin debe ser posterior a la fecha de inicio.",
-      "exportContactCardFailed": "No se pudo descargar la tarjeta de contacto. Inténtalo de nuevo."
+      "exportContactCardFailed": "No se pudo descargar la tarjeta de contacto. Inténtalo de nuevo.",
+      "userNotFound": "No se encontró esa cuenta de inquilino.",
+      "coTenantNotOnSharedLease": "Uno o más inquilinos seleccionados no están en el mismo contrato en esta propiedad.",
+      "cannotRemoveLastLeaseholder": "El contrato debe tener al menos un inquilino. Añade otro titular primero o elimina el contrato.",
+      "leaseTenantNotLinked": "Ese inquilino ya no está en este contrato. Actualiza la página e inténtalo de nuevo.",
+      "invalidRentAmount": "Introduce una renta mensual válida (0 o más, hasta dos decimales)."
     }
   },
   "portalRentLedger": {

@@ -6,7 +6,8 @@
  * - Status must be valid if provided.
  * - If start/end/month-to-month change: each linked tenant must not overlap their
  *   other leases; the property must not have another tenant outside this lease
- *   on an overlapping lease.
+ *   on an overlapping lease; and no other lease row on the property may overlap
+ *   this lease's date range (one occupancy window per property at a time).
  */
 
 import {
@@ -14,12 +15,13 @@ import {
   updateLease as updateLeaseRepo,
   listLeaseTenantUserIds,
   checkPropertyExclusiveTenantConflict,
+  hasOverlappingLeaseAtProperty,
   type LeaseRowFull,
   type LeasePatch,
 } from '../../lib/leasesRepo.js';
 import { checkLeaseOverlapForTenant } from '../../lib/tenantsRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
-import { validateLeaseStatus } from '../../domain/leaseValidation.js';
+import { validateLeaseStatus, parseRentAmountInput } from '../../domain/leaseValidation.js';
 import { forbidden, notFound, validationError, conflictError } from '../../domain/errors.js';
 import { hasLandlordAccess } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
@@ -35,6 +37,8 @@ export type UpdateLeaseInput = {
   status?: string;
   notes?: string | null;
   notes_present?: boolean;
+  rent_amount?: unknown;
+  rent_amount_present?: boolean;
 };
 
 export type UpdateLeaseOutput = {
@@ -71,6 +75,20 @@ export async function updateLease(
       mergedMonthToMonth === before.month_to_month;
 
     if (!occupancyUnchanged) {
+      const overlapsCalendar = await hasOverlappingLeaseAtProperty(
+        client as Parameters<typeof hasOverlappingLeaseAtProperty>[0],
+        {
+          propertyId: before.property_id,
+          startDate: mergedStart,
+          endDate: mergedEffectiveEnd,
+          excludeLeaseId: input.leaseId,
+        }
+      );
+      if (overlapsCalendar) {
+        await client.query('ROLLBACK');
+        throw conflictError('property_lease_overlap');
+      }
+
       const tenantIds = await listLeaseTenantUserIds(
         client as Parameters<typeof listLeaseTenantUserIds>[0],
         input.leaseId
@@ -106,12 +124,23 @@ export async function updateLease(
       }
     }
 
+    let rentPatch: number | null | undefined = undefined;
+    if (input.rent_amount_present) {
+      const rp = parseRentAmountInput(input.rent_amount);
+      if (!rp.ok) {
+        await client.query('ROLLBACK');
+        throw validationError(rp.message);
+      }
+      rentPatch = rp.amount === undefined ? null : rp.amount;
+    }
+
     const patch: LeasePatch = {
       start_date: input.start_date,
       end_date: input.end_date_present ? input.end_date : undefined,
       month_to_month: input.month_to_month,
       status: input.status,
       notes: input.notes_present ? input.notes : undefined,
+      ...(input.rent_amount_present ? { rent_amount: rentPatch } : {}),
     };
     const row = await updateLeaseRepo(
       client as Parameters<typeof updateLeaseRepo>[0],

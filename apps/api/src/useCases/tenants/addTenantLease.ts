@@ -3,11 +3,11 @@
  *
  * Business rules:
  * - Actor must have landlord/admin access.
- * - Tenant must exist and be accessible to actor.
- * - Property must exist and be accessible to actor.
- * - New lease dates must not overlap any existing lease for this tenant.
- * - The property must not already have another tenant on an overlapping lease
- *   (same household may share one lease; roommates stay on that lease).
+ * - Tenant must exist and is accessible to actor.
+ * - Property must exist and is accessible to actor.
+ * - New lease dates must not overlap any existing lease for this tenant (and co-tenants being linked).
+ * - The property must not already have another tenant on an overlapping lease outside the allowed household.
+ * - Optional co-tenants must share an existing lease at this property with the primary tenant.
  * - Month-to-month leases have no end date.
  */
 
@@ -15,12 +15,15 @@ import { getTenantById, checkLeaseOverlapForTenant } from '../../lib/tenantsRepo
 import {
   insertLease,
   linkLeaseTenant,
+  tenantsShareALeaseAtProperty,
   checkPropertyExclusiveTenantConflict,
+  hasOverlappingLeaseAtProperty,
   type LeaseRowFull,
 } from '../../lib/leasesRepo.js';
 import { getPropertyByIdForActor } from '../../lib/propertiesRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
 import { validateAddTenantLease } from '../../domain/tenantValidation.js';
+import { parseRentAmountInput } from '../../domain/leaseValidation.js';
 import { forbidden, notFound, validationError, conflictError } from '../../domain/errors.js';
 import { hasLandlordAccess } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
@@ -34,6 +37,9 @@ export type AddTenantLeaseInput = {
   endDate?: string | null;
   monthToMonth?: boolean;
   notes?: string | null;
+  /** Co-tenant user IDs on an existing shared lease at this property to link to the new lease row. */
+  additionalTenantUserIds?: string[];
+  rent_amount?: unknown;
 };
 
 export type AddTenantLeaseOutput = {
@@ -55,11 +61,9 @@ export async function addTenantLease(
 
   if (!input.propertyId) throw validationError('missing_property_id');
 
-  // Verify tenant exists and actor can access it
   const tenant = await getTenantById(db, input.tenantId, input.actorRole, input.actorUserId);
   if (!tenant) throw notFound('tenant_not_found');
 
-  // Verify property exists and actor can access it
   const prop = await getPropertyByIdForActor(
     db,
     input.propertyId,
@@ -71,34 +75,66 @@ export async function addTenantLease(
   const monthToMonth = input.monthToMonth ?? false;
   const endDate = monthToMonth ? null : (input.endDate ?? null);
 
+  const rentParsed = parseRentAmountInput(input.rent_amount);
+  if (!rentParsed.ok) throw validationError(rentParsed.message);
+  const rentAmount = rentParsed.amount === undefined ? null : rentParsed.amount;
+
+  const rawAdditional = input.additionalTenantUserIds ?? [];
+  const additionalUnique = [...new Set(rawAdditional.map((id) => id.trim()).filter(Boolean))].filter(
+    (id) => id !== input.tenantId
+  );
+
   const client = await db.connect();
   try {
     await client.query('BEGIN');
 
-    const hasTenantOverlap = await checkLeaseOverlapForTenant(
-      client as Parameters<typeof checkLeaseOverlapForTenant>[0],
-      input.tenantId,
-      input.startDate!,
-      endDate
-    );
+    const pool = client as Parameters<typeof checkLeaseOverlapForTenant>[0];
+
+    for (const uid of additionalUnique) {
+      const shared = await tenantsShareALeaseAtProperty(pool, input.tenantId, uid, input.propertyId!);
+      if (!shared) {
+        await client.query('ROLLBACK');
+        throw validationError('co_tenant_not_on_shared_lease');
+      }
+    }
+
+    const allLeaseholders = [input.tenantId, ...additionalUnique];
+
+    const hasTenantOverlap = await checkLeaseOverlapForTenant(pool, input.tenantId, input.startDate!, endDate);
     if (hasTenantOverlap) {
       await client.query('ROLLBACK');
       throw conflictError('lease_dates_overlap');
     }
 
-    const hasPropertyConflict = await checkPropertyExclusiveTenantConflict(
-      client as Parameters<typeof checkPropertyExclusiveTenantConflict>[0],
-      {
-        propertyId: input.propertyId,
-        startDate: input.startDate!,
-        endDate: endDate,
-        excludeLeaseId: null,
-        allowedUserIds: [input.tenantId],
+    for (const uid of additionalUnique) {
+      const overlapOther = await checkLeaseOverlapForTenant(pool, uid, input.startDate!, endDate);
+      if (overlapOther) {
+        await client.query('ROLLBACK');
+        throw conflictError('lease_dates_overlap');
       }
-    );
+    }
+
+    const hasPropertyConflict = await checkPropertyExclusiveTenantConflict(pool, {
+      propertyId: input.propertyId,
+      startDate: input.startDate!,
+      endDate,
+      excludeLeaseId: null,
+      allowedUserIds: allLeaseholders,
+    });
     if (hasPropertyConflict) {
       await client.query('ROLLBACK');
       throw conflictError('property_lease_occupancy_conflict');
+    }
+
+    const overlapsCalendar = await hasOverlappingLeaseAtProperty(pool, {
+      propertyId: input.propertyId,
+      startDate: input.startDate!,
+      endDate,
+      excludeLeaseId: null,
+    });
+    if (overlapsCalendar) {
+      await client.query('ROLLBACK');
+      throw conflictError('property_lease_overlap');
     }
 
     const today = new Date().toISOString().slice(0, 10);
@@ -111,14 +147,23 @@ export async function addTenantLease(
       month_to_month: monthToMonth,
       status: leaseStatus,
       notes: input.notes ?? null,
+      rent_amount: rentAmount,
       created_by: input.actorUserId,
     });
 
-    await linkLeaseTenant(
-      client as Parameters<typeof linkLeaseTenant>[0],
-      lease.id,
-      input.tenantId
-    );
+    await linkLeaseTenant(client as Parameters<typeof linkLeaseTenant>[0], lease.id, input.tenantId);
+
+    for (const uid of additionalUnique) {
+      const link = await linkLeaseTenant(client as Parameters<typeof linkLeaseTenant>[0], lease.id, uid);
+      await writeAudit(client as Parameters<typeof writeAudit>[0], {
+        actorUserId: input.actorUserId,
+        entityType: 'LEASE_TENANT',
+        entityId: link.id,
+        action: 'LINK',
+        before: null,
+        after: { lease_id: lease.id, user_id: uid, link_id: link.id },
+      });
+    }
 
     await writeAudit(client as Parameters<typeof writeAudit>[0], {
       actorUserId: input.actorUserId,

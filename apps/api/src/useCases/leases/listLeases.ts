@@ -3,11 +3,7 @@
  * Optionally filtered by property_id.
  */
 
-import {
-  listLeasesLandlord,
-  listLeasesForProperty,
-  type LeaseRowFull,
-} from '../../lib/leasesRepo.js';
+import { listLeasesForActor, type LeaseRowFull } from '../../lib/leasesRepo.js';
 import { forbidden } from '../../domain/errors.js';
 import { hasLandlordAccess } from '../../domain/constants.js';
 import type { Queryable } from '../types.js';
@@ -28,9 +24,12 @@ export async function listLeases(
 ): Promise<ListLeasesOutput> {
   if (!hasLandlordAccess(input.actorRole)) throw forbidden();
 
-  const leases = input.propertyId
-    ? await listLeasesForProperty(db, input.propertyId)
-    : await listLeasesLandlord(db);
+  const leases = await listLeasesForActor(
+    db,
+    input.actorRole,
+    input.actorUserId,
+    input.propertyId
+  );
 
   return { leases };
 }

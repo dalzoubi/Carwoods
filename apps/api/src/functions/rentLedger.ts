@@ -5,6 +5,7 @@ import {
   type InvocationContext,
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
+import { isDomainError } from '../domain/errors.js';
 import {
   jsonResponse,
   mapDomainError,
@@ -14,8 +15,31 @@ import {
 import { readJsonBody } from '../lib/readBody.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 
+import { rentLedgerEntriesToApiJson, rentLedgerEntryToApiJson } from '../lib/rentLedgerApiJson.js';
 import { listRentLedger } from '../useCases/rentLedger/listRentLedger.js';
 import { recordPayment, updatePayment } from '../useCases/rentLedger/recordPayment.js';
+
+/** HTTP status from Azure Functions response shape (for logs). */
+function responseStatus(r: HttpResponseInit): number | undefined {
+  return typeof r.status === 'number' ? r.status : undefined;
+}
+
+/** Fields safe to log for support (message + truncated stack + domain error metadata). */
+function rentLedgerErrorFields(error: unknown): Record<string, unknown> {
+  const fields: Record<string, unknown> = {
+    errType: error instanceof Error ? error.name : typeof error,
+    errMessage: error instanceof Error ? error.message : String(error),
+  };
+  if (error instanceof Error && error.stack) {
+    fields.errStack = error.stack.slice(0, 6000);
+  }
+  if (isDomainError(error)) {
+    fields.domainCode = error.code;
+    fields.domainMessage = error.message;
+    if (error.detail) fields.domainDetail = error.detail;
+  }
+  return fields;
+}
 
 function asRecord(v: unknown): Record<string, unknown> {
   if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>;
@@ -45,27 +69,51 @@ async function portalRentLedgerCollection(
 ): Promise<HttpResponseInit> {
   logInfo(context, 'portal.rentLedger.collection.start', { method: request.method });
   const gate = await requirePortalUser(request, context);
-  if (!gate.ok) return gate.response;
+  if (!gate.ok) {
+    logWarn(context, 'portal.rentLedger.collection.authFailed', {
+      httpStatus: responseStatus(gate.response),
+    });
+    return gate.response;
+  }
   const { ctx } = gate;
 
   if (request.method === 'GET') {
+    const actorRole = String(ctx.user.role ?? '');
+    logInfo(context, 'portal.rentLedger.collection.list.begin', {
+      userId: ctx.user.id,
+      actorRole,
+      listScope: 'tenant',
+    });
     try {
       const result = await listRentLedger(getPool(), {
         actorUserId: ctx.user.id,
-        actorRole: ctx.role,
+        // Portal auth context has no ctx.role — use the DB user row (see PortalContext).
+        actorRole,
       });
       logInfo(context, 'portal.rentLedger.collection.list.success', {
         userId: ctx.user.id,
+        actorRole,
         count: result.entries.length,
+        listScope: 'tenant',
       });
-      return jsonResponse(200, ctx.headers, { entries: result.entries });
+      return jsonResponse(200, ctx.headers, {
+        entries: rentLedgerEntriesToApiJson(result.entries),
+      });
     } catch (e) {
       const mapped = mapDomainError(e, ctx.headers);
-      if (mapped) return mapped;
-      logError(context, 'portal.rentLedger.collection.list.error', {
+      const fields = {
         userId: ctx.user.id,
-        message: e instanceof Error ? e.message : 'unknown_error',
-      });
+        actorRole,
+        listScope: 'tenant',
+        ...rentLedgerErrorFields(e),
+        mappedToHttp: Boolean(mapped),
+        httpStatus: mapped ? responseStatus(mapped) : undefined,
+      };
+      if (mapped) {
+        logWarn(context, 'portal.rentLedger.collection.list.failed', fields);
+        return mapped;
+      }
+      logError(context, 'portal.rentLedger.collection.list.unhandled', fields);
       throw e;
     }
   }
@@ -89,6 +137,17 @@ async function landlordRentLedgerCollection(
 
   if (request.method === 'GET') {
     const leaseId = request.query.get('lease_id')?.trim();
+    if (!leaseId) {
+      logWarn(context, 'landlord.rentLedger.collection.list.missingLeaseId', {
+        userId: ctx.user.id,
+      });
+      return jsonResponse(400, ctx.headers, { error: 'lease_id_required' });
+    }
+    logInfo(context, 'landlord.rentLedger.collection.list.begin', {
+      userId: ctx.user.id,
+      leaseId,
+      actorRole: ctx.role,
+    });
     try {
       const result = await listRentLedger(getPool(), {
         actorUserId: ctx.user.id,
@@ -97,23 +156,27 @@ async function landlordRentLedgerCollection(
       });
       logInfo(context, 'landlord.rentLedger.collection.list.success', {
         userId: ctx.user.id,
-        leaseId: leaseId ?? null,
+        leaseId,
         count: result.entries.length,
       });
-      return jsonResponse(200, ctx.headers, { entries: result.entries });
+      return jsonResponse(200, ctx.headers, {
+        entries: rentLedgerEntriesToApiJson(result.entries),
+      });
     } catch (e) {
       const mapped = mapDomainError(e, ctx.headers);
+      const fields = {
+        userId: ctx.user.id,
+        leaseId,
+        actorRole: ctx.role,
+        ...rentLedgerErrorFields(e),
+        mappedToHttp: Boolean(mapped),
+        httpStatus: mapped ? responseStatus(mapped) : undefined,
+      };
       if (mapped) {
-        logWarn(context, 'landlord.rentLedger.collection.list.validation', {
-          userId: ctx.user.id,
-          leaseId: leaseId ?? null,
-        });
+        logWarn(context, 'landlord.rentLedger.collection.list.failed', fields);
         return mapped;
       }
-      logError(context, 'landlord.rentLedger.collection.list.error', {
-        userId: ctx.user.id,
-        message: e instanceof Error ? e.message : 'unknown_error',
-      });
+      logError(context, 'landlord.rentLedger.collection.list.unhandled', fields);
       throw e;
     }
   }
@@ -147,7 +210,7 @@ async function landlordRentLedgerCollection(
         userId: ctx.user.id,
         entryId: result.entry.id,
       });
-      return jsonResponse(201, ctx.headers, { entry: result.entry });
+      return jsonResponse(201, ctx.headers, { entry: rentLedgerEntryToApiJson(result.entry) });
     } catch (e) {
       const mapped = mapDomainError(e, ctx.headers);
       if (mapped) {
@@ -204,7 +267,7 @@ async function landlordRentLedgerItem(
         notes: b.notes !== undefined ? (str(b.notes) ?? null) : undefined,
       });
       logInfo(context, 'landlord.rentLedger.item.patch.success', { userId: ctx.user.id, entryId });
-      return jsonResponse(200, ctx.headers, { entry: result.entry });
+      return jsonResponse(200, ctx.headers, { entry: rentLedgerEntryToApiJson(result.entry) });
     } catch (e) {
       const mapped = mapDomainError(e, ctx.headers);
       if (mapped) {

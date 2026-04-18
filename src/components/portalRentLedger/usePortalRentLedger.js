@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { isPortalApiReachable } from '../../featureFlags';
 import { emailFromAccount } from '../../portalUtils';
 import {
   fetchRentLedger,
@@ -18,7 +19,12 @@ const EMPTY_FORM = {
 };
 
 function extractError(error, t, fallbackKey) {
-  return t(fallbackKey);
+  const base = t(fallbackKey);
+  const code = error && typeof error === 'object' ? error.code : '';
+  if (typeof code === 'string' && code.trim()) {
+    return `${base} (${code})`;
+  }
+  return base;
 }
 
 export function usePortalRentLedger({
@@ -45,7 +51,7 @@ export function usePortalRentLedger({
 
   const loadEntries = useCallback(async (opts = {}) => {
     const { leaseId } = opts;
-    if (!baseUrl || !isAuthenticated || isGuest || meStatus !== 'ok') return;
+    if (!isPortalApiReachable(baseUrl) || !isAuthenticated || isGuest || meStatus !== 'ok') return;
     if (!isManagement && !listPath) return;
     if (isManagement && !leaseId) return;
 
@@ -61,6 +67,13 @@ export function usePortalRentLedger({
       setEntries(Array.isArray(data?.entries) ? data.entries : []);
       setEntriesStatus('ok');
     } catch (error) {
+      console.error('[RentLedger] loadEntries failed', {
+        scope: isManagement ? 'landlord' : 'portal',
+        leaseId: isManagement ? leaseId : undefined,
+        status: error?.status,
+        code: error?.code,
+        message: error?.message,
+      });
       handleApiForbidden(error);
       setEntriesStatus('error');
       setEntriesError(extractError(error, t, 'portalRentLedger.errors.loadFailed'));
@@ -110,7 +123,7 @@ export function usePortalRentLedger({
   };
 
   const onSaveEntry = async () => {
-    if (!baseUrl || !isManagement) return;
+    if (!isPortalApiReachable(baseUrl) || !isManagement) return;
     setSaveStatus('saving');
     setSaveError('');
     try {
@@ -137,6 +150,13 @@ export function usePortalRentLedger({
       setSaveStatus('success');
       await loadEntries({ leaseId: form.lease_id });
     } catch (error) {
+      console.error('[RentLedger] save failed', {
+        leaseId: form.lease_id,
+        editingEntryId,
+        status: error?.status,
+        code: error?.code,
+        message: error?.message,
+      });
       handleApiForbidden(error);
       setSaveStatus('error');
       setSaveError(extractError(error, t, 'portalRentLedger.errors.saveFailed'));

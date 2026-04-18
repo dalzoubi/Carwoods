@@ -7,11 +7,15 @@
  * - The referenced property must exist.
  */
 
-import { insertLease, type LeaseRowFull } from '../../lib/leasesRepo.js';
+import {
+  insertLease,
+  hasOverlappingLeaseAtProperty,
+  type LeaseRowFull,
+} from '../../lib/leasesRepo.js';
 import { getPropertyByIdForActor } from '../../lib/propertiesRepo.js';
 import { writeAudit } from '../../lib/auditRepo.js';
-import { validateCreateLease } from '../../domain/leaseValidation.js';
-import { forbidden, notFound, validationError } from '../../domain/errors.js';
+import { validateCreateLease, parseRentAmountInput } from '../../domain/leaseValidation.js';
+import { forbidden, notFound, validationError, conflictError } from '../../domain/errors.js';
 import { hasLandlordAccess } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
 
@@ -24,6 +28,7 @@ export type CreateLeaseInput = {
   month_to_month?: boolean;
   status: string | undefined;
   notes?: string | null;
+  rent_amount?: unknown;
 };
 
 export type CreateLeaseOutput = {
@@ -43,6 +48,10 @@ export async function createLease(
   });
   if (!fieldValidation.valid) throw validationError(fieldValidation.message);
 
+  const rentParsed = parseRentAmountInput(input.rent_amount);
+  if (!rentParsed.ok) throw validationError(rentParsed.message);
+  const rentForInsert = rentParsed.amount === undefined ? null : rentParsed.amount;
+
   const prop = await getPropertyByIdForActor(
     db,
     input.property_id!,
@@ -51,16 +60,35 @@ export async function createLease(
   );
   if (!prop) throw notFound('property_not_found');
 
+  const monthToMonth = input.month_to_month ?? false;
+  const proposedEndDate = monthToMonth ? null : (input.end_date ?? null);
+
   const client = await db.connect();
   try {
     await client.query('BEGIN');
+
+    const overlapsProperty = await hasOverlappingLeaseAtProperty(
+      client as Parameters<typeof hasOverlappingLeaseAtProperty>[0],
+      {
+        propertyId: input.property_id!,
+        startDate: input.start_date!,
+        endDate: proposedEndDate,
+        excludeLeaseId: null,
+      }
+    );
+    if (overlapsProperty) {
+      await client.query('ROLLBACK');
+      throw conflictError('property_lease_overlap');
+    }
+
     const row = await insertLease(client as Parameters<typeof insertLease>[0], {
       property_id: input.property_id!,
       start_date: input.start_date!,
-      end_date: input.end_date ?? null,
-      month_to_month: input.month_to_month ?? false,
+      end_date: proposedEndDate,
+      month_to_month: monthToMonth,
       status: input.status!,
       notes: input.notes ?? null,
+      rent_amount: rentForInsert,
       created_by: input.actorUserId,
     });
     await writeAudit(client as Parameters<typeof writeAudit>[0], {

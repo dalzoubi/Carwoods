@@ -32,6 +32,10 @@ function bool(v: unknown): boolean | undefined {
   return typeof v === 'boolean' ? v : undefined;
 }
 
+function rentAmountFromBody(b: Record<string, unknown>): unknown {
+  return 'rent_amount' in b ? b.rent_amount : undefined;
+}
+
 // ---------------------------------------------------------------------------
 // Handlers
 // ---------------------------------------------------------------------------
@@ -91,6 +95,7 @@ async function landlordLeasesCollection(
         month_to_month: bool(b.month_to_month),
         status: str(b.status),
         notes: str(b.notes) ?? null,
+        rent_amount: rentAmountFromBody(b),
       });
       logInfo(context, 'leases.collection.create.success', {
         userId: ctx.user.id,
@@ -178,6 +183,8 @@ async function landlordLeasesItem(
         status: str(b.status),
         notes: b.notes !== undefined ? (str(b.notes) ?? null) : undefined,
         notes_present: b.notes !== undefined,
+        rent_amount: rentAmountFromBody(b),
+        rent_amount_present: b.rent_amount !== undefined,
       });
       logInfo(context, 'leases.item.patch.success', { userId: ctx.user.id, leaseId: id });
       return jsonResponse(200, ctx.headers, { lease: result.lease });

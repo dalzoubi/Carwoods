@@ -47,6 +47,7 @@ Endpoints (local default port **7071**):
 | GET, POST, OPTIONS | `/api/landlord/leases` | Landlord or Admin (onboarded email role; `GET ?property_id=` filters) |
 | GET, PATCH, DELETE, OPTIONS | `/api/landlord/leases/{id}` | Landlord or Admin (onboarded email role) |
 | POST, OPTIONS | `/api/landlord/leases/{leaseId}/tenants` | Landlord or Admin (onboarded email role); body `{ "userId": "<uuid>" }` links an existing `users` row |
+| DELETE, OPTIONS | `/api/landlord/leases/{leaseId}/tenants/{tenantUserId}` | Landlord or Admin; removes that user from the lease (at least one leaseholder must remain) |
 | GET, OPTIONS | `/api/landlord/requests` | Landlord/admin request listing |
 | GET, PATCH, OPTIONS | `/api/landlord/requests/{id}` | Landlord/admin request detail + status/vendor/internal notes updates |
 | GET, OPTIONS | `/api/landlord/exports/requests.csv` | Landlord/admin CSV export |

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { emailFromAccount } from '../portalUtils';
+import { isPortalApiReachable } from '../featureFlags';
 import { fetchMe } from '../lib/portalApiClient';
 
 /**
@@ -61,7 +62,7 @@ export function useMeProfile({ account, authStatus, baseUrl, getAccessToken, ref
   }, []);
 
   useEffect(() => {
-    if (!baseUrl || authStatus !== 'authenticated' || !accountKey) {
+    if (!isPortalApiReachable(baseUrl) || authStatus !== 'authenticated' || !accountKey) {
       clearMe();
       return;
     }

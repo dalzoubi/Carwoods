@@ -46,6 +46,7 @@ vi.mock('../lib/portalApiClient', async (importOriginal) => {
     deleteLease: vi.fn().mockResolvedValue(undefined),
     fetchLandlords: vi.fn().mockResolvedValue({ landlords: [] }),
     fetchLandlordProperties: vi.fn().mockResolvedValue({ properties: [] }),
+    fetchLandlordLeases: vi.fn().mockResolvedValue({ leases: [] }),
   };
 });
 
@@ -464,6 +465,11 @@ describe('PortalTenants', () => {
     await waitFor(() => expect(screen.getByRole('listbox')).toBeInTheDocument());
     fireEvent.click(screen.getByRole('option', { name: /100 main st/i }));
 
+    await waitFor(() => expect(portalApiClient.fetchLandlordLeases).toHaveBeenCalled());
+    await waitFor(() => {
+      expect(within(dialog).getByLabelText(/lease start date/i)).toBeInTheDocument();
+    });
+
     fireEvent.change(within(dialog).getByLabelText(/lease start date/i), {
       target: { value: '2025-01-01' },
     });
@@ -506,6 +512,11 @@ describe('PortalTenants', () => {
     await waitFor(() => expect(screen.getByRole('listbox')).toBeInTheDocument());
     fireEvent.click(screen.getByRole('option', { name: /100 main st/i }));
 
+    await waitFor(() => expect(portalApiClient.fetchLandlordLeases).toHaveBeenCalled());
+    await waitFor(() => {
+      expect(within(dialog).getByLabelText(/lease start date/i)).toBeInTheDocument();
+    });
+
     fireEvent.change(within(dialog).getByLabelText(/lease start date/i), { target: { value: '2025-01-01' } });
     fireEvent.click(within(dialog).getByLabelText(/month-to-month/i));
 
@@ -535,6 +546,11 @@ describe('PortalTenants', () => {
     fireEvent.mouseDown(propertySelect);
     await waitFor(() => expect(screen.getByRole('listbox')).toBeInTheDocument());
     fireEvent.click(screen.getByRole('option', { name: /100 main st/i }));
+
+    await waitFor(() => expect(portalApiClient.fetchLandlordLeases).toHaveBeenCalled());
+    await waitFor(() => {
+      expect(within(dialog).getByLabelText(/lease start date/i)).toBeInTheDocument();
+    });
 
     fireEvent.change(within(dialog).getByLabelText(/lease start date/i), { target: { value: '2025-01-01' } });
     fireEvent.click(within(dialog).getByLabelText(/month-to-month/i));
@@ -644,6 +660,11 @@ describe('PortalTenants', () => {
     fireEvent.mouseDown(propertySelect);
     await waitFor(() => expect(screen.getByRole('listbox')).toBeInTheDocument());
     fireEvent.click(screen.getByRole('option', { name: /100 main st/i }));
+
+    await waitFor(() => expect(portalApiClient.fetchLandlordLeases).toHaveBeenCalled());
+    await waitFor(() => {
+      expect(within(dialog).getByLabelText(/lease start date/i)).toBeInTheDocument();
+    });
 
     fireEvent.change(within(dialog).getByLabelText(/lease start date/i), {
       target: { value: '2025-01-01' },

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import {
   Alert,
@@ -8,6 +8,7 @@ import {
   Checkbox,
   Chip,
   Collapse,
+  Divider,
   Dialog,
   DialogActions,
   DialogContent,
@@ -30,6 +31,7 @@ import Block from '@mui/icons-material/Block';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ContactPage from '@mui/icons-material/ContactPage';
+import PersonAdd from '@mui/icons-material/PersonAdd';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { Role } from '../domain/constants.js';
@@ -41,10 +43,13 @@ import {
   updateTenant,
   deleteTenant,
   addTenantLease,
+  linkTenantToLease,
+  unlinkTenantFromLease,
   updateLease,
   deleteLease,
   fetchLandlords,
   fetchLandlordProperties,
+  fetchLandlordLeases,
   fetchTenant,
 } from '../lib/portalApiClient';
 import MailtoEmailLink from './MailtoEmailLink';
@@ -105,6 +110,34 @@ function sortByTenantLabel(items) {
     const bLabel = `${displayName(b)} ${String(b?.email ?? '').trim()}`.trim();
     return collator.compare(aLabel, bLabel);
   });
+}
+
+/** Order tenants so everyone at the same property appears in one contiguous block (then by name within the block). */
+function groupTenantsByProperty(rows) {
+  const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
+  const byPid = new Map();
+  for (const row of list) {
+    const pid = typeof row.property_id === 'string' ? row.property_id.trim() : '';
+    const key = pid || '__none__';
+    if (!byPid.has(key)) byPid.set(key, []);
+    byPid.get(key).push(row);
+  }
+  const keys = [...byPid.keys()].sort((a, b) => {
+    const sampleA = byPid.get(a)[0];
+    const sampleB = byPid.get(b)[0];
+    const cmp = collator.compare(propertyLabel(sampleA), propertyLabel(sampleB));
+    if (cmp !== 0) return cmp;
+    return collator.compare(a, b);
+  });
+  const out = [];
+  for (const key of keys) {
+    out.push(...sortByTenantLabel(byPid.get(key)));
+  }
+  return out;
+}
+
+function tenantPropertyGroupKey(tenant) {
+  return typeof tenant?.property_id === 'string' ? tenant.property_id.trim() : '';
 }
 
 function normalizeTenantRows(rows) {
@@ -176,6 +209,19 @@ function toDatePart(dateStr) {
   return String(dateStr).slice(0, 10);
 }
 
+/** Calendar occupancy phase for lease row UI (start/end vs today), independent of API `is_active`. */
+function getLeaseDisplayPhase(lease) {
+  const today = new Date().toISOString().slice(0, 10);
+  const start = lease?.start_date ? toDatePart(lease.start_date) : '';
+  if (!start) return 'active';
+  if (start > today) return 'future';
+  const m2m = Boolean(lease.month_to_month);
+  const endRaw = lease.end_date != null ? toDatePart(lease.end_date) : '';
+  if (m2m || !endRaw) return 'active';
+  if (endRaw < today) return 'expired';
+  return 'active';
+}
+
 function tenantApiErrorMessage(error, t) {
   const code = typeof error?.code === 'string' ? error.code : '';
   switch (code) {
@@ -193,9 +239,83 @@ function tenantApiErrorMessage(error, t) {
       return t('portalTenants.errors.leaseDatesOverlap');
     case 'property_lease_occupancy_conflict':
       return t('portalTenants.errors.propertyLeaseOccupancyConflict');
+    case 'property_lease_overlap':
+      return t('portalTenants.errors.propertyLeaseOverlap');
+    case 'user_not_found':
+      return t('portalTenants.errors.userNotFound');
+    case 'co_tenant_not_on_shared_lease':
+      return t('portalTenants.errors.coTenantNotOnSharedLease');
+    case 'cannot_remove_last_leaseholder':
+      return t('portalTenants.errors.cannotRemoveLastLeaseholder');
+    case 'lease_tenant_not_linked':
+      return t('portalTenants.errors.leaseTenantNotLinked');
+    case 'invalid_rent_amount':
+      return t('portalTenants.errors.invalidRentAmount');
     default:
       return t('portalTenants.errors.saveFailed');
   }
+}
+
+function parseLeaseTenantUserIds(raw) {
+  if (raw == null || raw === '') return [];
+  const s = typeof raw === 'string' ? raw : String(raw);
+  return s.split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);
+}
+
+/** Matches API `findActiveOccupancyLeaseForProperty` — current ACTIVE occupancy at an address. */
+function pickActiveOccupancyLease(leases) {
+  const today = new Date().toISOString().slice(0, 10);
+  const rows = Array.isArray(leases) ? leases : [];
+  const candidates = rows.filter((l) => {
+    const st = String(l.status ?? '').toUpperCase();
+    if (st !== 'ACTIVE') return false;
+    if (l.month_to_month) return true;
+    const endRaw = l.end_date != null ? toDatePart(l.end_date) : '';
+    if (!endRaw) return true;
+    return endRaw >= today;
+  });
+  candidates.sort((a, b) => String(b.start_date ?? '').localeCompare(String(a.start_date ?? '')));
+  return candidates[0] ?? null;
+}
+
+/** Other tenant user IDs on the same lease as `tenantId` at `propertyId` (from GET tenant leases payload). */
+function findPeerCoTenantIdsAtProperty(tenantLeases, tenantId, propertyId) {
+  const pid = typeof propertyId === 'string' ? propertyId.trim() : '';
+  const tid = typeof tenantId === 'string' ? tenantId.trim().toLowerCase() : '';
+  if (!pid || !tid || !Array.isArray(tenantLeases)) return [];
+  const here = tenantLeases.filter((l) => String(l?.property_id ?? '').trim() === pid);
+  if (here.length === 0) return [];
+  const score = (l) => {
+    const phase = getLeaseDisplayPhase(l);
+    const st = String(l?.status ?? '').toUpperCase();
+    if (phase === 'active') return 2;
+    if (st === 'ACTIVE') return 1;
+    return 0;
+  };
+  here.sort((a, b) => {
+    const ds = score(b) - score(a);
+    if (ds !== 0) return ds;
+    return String(b?.start_date ?? '').localeCompare(String(a?.start_date ?? ''));
+  });
+  const chosen = here[0];
+  const ids = parseLeaseTenantUserIds(chosen?.tenant_user_ids);
+  return ids.filter((id) => id !== tid);
+}
+
+/** @param {number|string|null|undefined} amount */
+function formatLeaseRentUsd(amount) {
+  if (amount == null || amount === '') return null;
+  const n = typeof amount === 'number' ? amount : Number(amount);
+  if (!Number.isFinite(n)) return null;
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n);
+}
+
+function parseOptionalMonthlyRentInput(raw) {
+  const s = typeof raw === 'string' ? raw.trim() : '';
+  if (s === '') return { ok: true, value: null };
+  const n = Number(s.replace(/,/g, ''));
+  if (!Number.isFinite(n) || n < 0 || n > 999999999.99) return { ok: false };
+  return { ok: true, value: Math.round(n * 100) / 100 };
 }
 
 function formatDate(dateStr) {
@@ -224,6 +344,7 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
     end_date: '',
     month_to_month: false,
     notes: '',
+    rent_amount: '',
   });
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
@@ -244,6 +365,10 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
         end_date: toDatePart(lease.end_date),
         month_to_month: Boolean(lease.month_to_month),
         notes: lease.notes ?? '',
+        rent_amount:
+          lease.rent_amount != null && lease.rent_amount !== ''
+            ? String(lease.rent_amount)
+            : '',
       };
       setForm(nextForm);
       setInitialForm(nextForm);
@@ -274,6 +399,8 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
     if (!form.month_to_month && form.end_date && form.end_date <= form.start_date) {
       errors.end_date = t('portalTenants.errors.endDateBeforeStart');
     }
+    const rentParsed = parseOptionalMonthlyRentInput(form.rent_amount);
+    if (!rentParsed.ok) errors.rent_amount = t('portalTenants.errors.invalidRentAmount');
     return errors;
   };
 
@@ -284,6 +411,7 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
       setFieldErrors(errors);
       return;
     }
+    const rentParsed = parseOptionalMonthlyRentInput(form.rent_amount);
     setSubmitState({ status: 'saving', detail: '' });
     try {
       const accessToken = await getAccessToken();
@@ -293,6 +421,7 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
         end_date: form.month_to_month ? null : (form.end_date || null),
         month_to_month: form.month_to_month,
         notes: form.notes || null,
+        rent_amount: rentParsed.ok ? rentParsed.value : null,
       });
       setSubmitState({ status: 'ok', detail: '' });
       onSaved();
@@ -369,6 +498,18 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
               />
             )}
             <TextField
+              label={t('portalTenants.form.rentAmount')}
+              value={form.rent_amount}
+              onChange={onChange('rent_amount')}
+              placeholder={t('portalTenants.form.rentAmountPlaceholder')}
+              fullWidth
+              error={Boolean(fieldErrors.rent_amount)}
+              helperText={fieldErrors.rent_amount || t('portalTenants.form.rentAmountHelper')}
+              size="small"
+              margin="dense"
+              inputProps={{ inputMode: 'decimal' }}
+            />
+            <TextField
               label={t('portalTenants.form.notes')}
               value={form.notes}
               onChange={onChange('notes')}
@@ -415,11 +556,142 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
 }
 
 // ---------------------------------------------------------------------------
+// LinkCoTenantDialog — attach another existing tenant user to this lease
+// ---------------------------------------------------------------------------
+
+function LinkCoTenantDialog({
+  open,
+  onClose,
+  lease,
+  directoryTenants,
+  onLinked,
+  t,
+}) {
+  const [selectedId, setSelectedId] = useState('');
+  const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
+  const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
+  const emailHint = meData?.user?.email ?? account?.username ?? '';
+
+  const onLeaseIds = useMemo(
+    () => new Set(parseLeaseTenantUserIds(lease?.tenant_user_ids)),
+    [lease?.tenant_user_ids],
+  );
+
+  const candidates = useMemo(() => {
+    const rows = Array.isArray(directoryTenants) ? directoryTenants : [];
+    return sortByTenantLabel(
+      rows.filter((row) => row?.id && !onLeaseIds.has(String(row.id).trim().toLowerCase())),
+    );
+  }, [directoryTenants, onLeaseIds]);
+
+  useEffect(() => {
+    if (open) {
+      setSelectedId('');
+      setSubmitState({ status: 'idle', detail: '' });
+    }
+  }, [open]);
+
+  const submitStatusMessage = submitState.status === 'error'
+    ? { severity: 'error', text: submitState.detail }
+    : null;
+
+  const handleClose = () => {
+    if (submitState.status === 'saving') return;
+    onClose();
+  };
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedId) {
+      setSubmitState({ status: 'error', detail: t('portalTenants.linkCoTenantDialog.noSelection') });
+      return;
+    }
+    setSubmitState({ status: 'saving', detail: '' });
+    try {
+      const accessToken = await getAccessToken();
+      await linkTenantToLease(baseUrl, accessToken, lease.id, {
+        emailHint,
+        userId: selectedId,
+      });
+      setSubmitState({ status: 'ok', detail: '' });
+      onLinked();
+      onClose();
+    } catch (error) {
+      setSubmitState({ status: 'error', detail: tenantApiErrorMessage(error, t) });
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+      <DialogTitleWithClose
+        title={t('portalTenants.linkCoTenantDialog.title')}
+        onClose={handleClose}
+        closeLabel={t('portalDialogs.closeForm')}
+        disabled={submitState.status === 'saving'}
+      />
+      <Box component="form" onSubmit={onSubmit}>
+        <DialogContent sx={{ py: 1.25, px: 3 }}>
+          <Stack spacing={1.25}>
+            <Typography variant="body2" color="text.secondary">
+              {propertyLabel(lease)}
+            </Typography>
+            <Select
+              value={selectedId}
+              onChange={(e) => setSelectedId(e.target.value)}
+              displayEmpty
+              fullWidth
+              size="small"
+              disabled={candidates.length === 0}
+            >
+              <MenuItem value="">
+                <em>{t('portalTenants.linkCoTenantDialog.selectTenant')}</em>
+              </MenuItem>
+              {candidates.map((row) => (
+                <MenuItem key={row.id} value={row.id}>
+                  {`${displayName(row)} (${String(row.email ?? '').trim()})`}
+                </MenuItem>
+              ))}
+            </Select>
+            {candidates.length === 0 && (
+              <Typography variant="caption" color="text.secondary">
+                {t('portalTenants.linkCoTenantDialog.emptyCandidates')}
+              </Typography>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 2, py: 1 }}>
+          <InlineActionStatus message={submitStatusMessage} />
+          <Button type="button" onClick={handleClose} disabled={submitState.status === 'saving'}>
+            {t('portalTenants.actions.cancel')}
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={submitState.status === 'saving' || candidates.length === 0}
+          >
+            {submitState.status === 'saving'
+              ? t('portalTenants.actions.saving')
+              : t('portalTenants.linkCoTenantDialog.save')}
+          </Button>
+        </DialogActions>
+      </Box>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // LeaseRow — shows one lease in the detail panel
 // ---------------------------------------------------------------------------
 
-function LeaseRow({ lease, properties, onLeaseUpdated, t }) {
-  const isActive = lease.is_active;
+function LeaseRow({ lease, properties, directoryTenants, onLeaseUpdated, t }) {
+  const phase = getLeaseDisplayPhase(lease);
+  const isCalendarActive = phase === 'active';
+  const leaseChip =
+    phase === 'future'
+      ? { label: t('portalTenants.lease.future'), color: 'info', variant: 'outlined' }
+      : phase === 'expired'
+        ? { label: t('portalTenants.lease.expired'), color: 'default', variant: 'outlined' }
+        : { label: t('portalTenants.lease.active'), color: 'success', variant: 'filled' };
   const dateRange = lease.month_to_month
     ? `${formatDate(lease.start_date)} — Month-to-month`
     : lease.end_date
@@ -427,10 +699,52 @@ function LeaseRow({ lease, properties, onLeaseUpdated, t }) {
       : `${formatDate(lease.start_date)} — no end date`;
 
   const [editOpen, setEditOpen] = useState(false);
+  const [linkOpen, setLinkOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [unlinkConfirm, setUnlinkConfirm] = useState(null);
+  const [unlinkState, setUnlinkState] = useState({ status: 'idle', detail: '' });
   const [deleteState, setDeleteState] = useState({ status: 'idle', detail: '' });
   const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
   const emailHint = meData?.user?.email ?? account?.username ?? '';
+
+  const leaseholderIds = useMemo(
+    () => parseLeaseTenantUserIds(lease.tenant_user_ids),
+    [lease.tenant_user_ids],
+  );
+
+  const tenantDirectoryById = useMemo(() => {
+    const m = new Map();
+    (directoryTenants ?? []).forEach((row) => {
+      if (row?.id) m.set(String(row.id).trim().toLowerCase(), row);
+    });
+    return m;
+  }, [directoryTenants]);
+
+  const linkCandidatesCount = useMemo(() => {
+    const onLease = new Set(leaseholderIds);
+    let n = 0;
+    (directoryTenants ?? []).forEach((row) => {
+      const id = row?.id ? String(row.id).trim().toLowerCase() : '';
+      if (id && !onLease.has(id)) n += 1;
+    });
+    return n;
+  }, [directoryTenants, leaseholderIds]);
+
+  const canRemoveLeaseholders = leaseholderIds.length > 1;
+
+  const handleUnlinkConfirm = async () => {
+    if (!unlinkConfirm?.userId) return;
+    setUnlinkState({ status: 'saving', detail: '' });
+    try {
+      const accessToken = await getAccessToken();
+      await unlinkTenantFromLease(baseUrl, accessToken, lease.id, unlinkConfirm.userId, { emailHint });
+      setUnlinkConfirm(null);
+      setUnlinkState({ status: 'idle', detail: '' });
+      onLeaseUpdated();
+    } catch (error) {
+      setUnlinkState({ status: 'error', detail: tenantApiErrorMessage(error, t) });
+    }
+  };
 
   const handleDeleteConfirm = async () => {
     setDeleteState({ status: 'saving', detail: '' });
@@ -452,7 +766,7 @@ function LeaseRow({ lease, properties, onLeaseUpdated, t }) {
         borderColor: 'divider',
         borderRadius: 1.5,
         p: 1.5,
-        backgroundColor: isActive ? 'action.hover' : 'background.default',
+        backgroundColor: isCalendarActive ? 'action.hover' : 'background.default',
       }}
     >
       <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
@@ -463,24 +777,76 @@ function LeaseRow({ lease, properties, onLeaseUpdated, t }) {
           <Typography variant="body2" color="text.secondary">
             {dateRange}
           </Typography>
+          {formatLeaseRentUsd(lease.rent_amount) != null && (
+            <Typography variant="body2" color="text.secondary">
+              {t('portalTenants.lease.monthlyRentLabel', { amount: formatLeaseRentUsd(lease.rent_amount) })}
+            </Typography>
+          )}
           {lease.notes && (
             <Typography variant="caption" color="text.secondary">
               {lease.notes}
             </Typography>
           )}
-          {deleteState.status === 'error' && (
+          {leaseholderIds.length > 0 && (
+            <Box sx={{ mt: 0.75 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                {t('portalTenants.lease.coTenantsLabel')}
+              </Typography>
+              <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
+                {leaseholderIds.map((uid) => {
+                  const row = tenantDirectoryById.get(uid);
+                  const label = row ? displayName(row) : uid.slice(0, 8);
+                  return (
+                    <Chip
+                      key={uid}
+                      label={label}
+                      size="small"
+                      variant="outlined"
+                      onDelete={
+                        canRemoveLeaseholders
+                          ? () => setUnlinkConfirm({ userId: uid, label })
+                          : undefined
+                      }
+                      aria-label={`${t('portalTenants.actions.removeLeaseholder')}: ${label}`}
+                    />
+                  );
+                })}
+              </Stack>
+            </Box>
+          )}
+          {(deleteState.status === 'error' || unlinkState.status === 'error') && (
             <Typography variant="caption" color="error">
-              {deleteState.detail}
+              {unlinkState.detail || deleteState.detail}
             </Typography>
           )}
         </Box>
         <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', flexShrink: 0 }}>
           <Chip
-            label={isActive ? t('portalTenants.lease.active') : t('portalTenants.lease.ended')}
+            label={leaseChip.label}
             size="small"
-            color={isActive ? 'success' : 'default'}
-            variant={isActive ? 'filled' : 'outlined'}
+            color={leaseChip.color}
+            variant={leaseChip.variant}
           />
+          <Tooltip
+            title={
+              linkCandidatesCount === 0
+                ? t('portalTenants.linkCoTenantDialog.emptyCandidates')
+                : t('portalTenants.actions.linkCoTenant')
+            }
+          >
+            <span>
+              <IconButton
+                type="button"
+                size="small"
+                color="secondary"
+                onClick={() => setLinkOpen(true)}
+                disabled={linkCandidatesCount === 0}
+                aria-label={t('portalTenants.actions.linkCoTenant')}
+              >
+                <PersonAdd fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
           <Tooltip title={t('portalTenants.actions.editLease')}>
             <IconButton
               type="button"
@@ -515,6 +881,15 @@ function LeaseRow({ lease, properties, onLeaseUpdated, t }) {
         t={t}
       />
 
+      <LinkCoTenantDialog
+        open={linkOpen}
+        onClose={() => setLinkOpen(false)}
+        lease={lease}
+        directoryTenants={directoryTenants}
+        onLinked={onLeaseUpdated}
+        t={t}
+      />
+
       <PortalConfirmDialog
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
@@ -524,6 +899,24 @@ function LeaseRow({ lease, properties, onLeaseUpdated, t }) {
         confirmLabel={t('portalTenants.deleteLeaseConfirm.confirm')}
         cancelLabel={t('portalTenants.actions.cancel')}
         loading={deleteState.status === 'saving'}
+      />
+
+      <PortalConfirmDialog
+        open={unlinkConfirm != null}
+        onClose={() => {
+          setUnlinkConfirm(null);
+          setUnlinkState({ status: 'idle', detail: '' });
+        }}
+        onConfirm={handleUnlinkConfirm}
+        title={t('portalTenants.removeLeaseholderConfirm.title')}
+        body={
+          unlinkConfirm
+            ? t('portalTenants.removeLeaseholderConfirm.body', { name: unlinkConfirm.label })
+            : ''
+        }
+        confirmLabel={t('portalTenants.removeLeaseholderConfirm.confirm')}
+        cancelLabel={t('portalTenants.actions.cancel')}
+        loading={unlinkState.status === 'saving'}
       />
     </Box>
   );
@@ -539,6 +932,7 @@ const EMPTY_LEASE_FORM = {
   end_date: '',
   month_to_month: false,
   notes: '',
+  rent_amount: '',
 };
 
 function AddLeaseDialog({
@@ -550,12 +944,16 @@ function AddLeaseDialog({
   fixedPropertyId,
   tenantName,
   propertyAddressText,
+  tenantLeases,
+  directoryTenants,
   t,
 }) {
   const [form, setForm] = useState(EMPTY_LEASE_FORM);
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
   const [initialForm, setInitialForm] = useState(EMPTY_LEASE_FORM);
+  const [linkPeersToNewLease, setLinkPeersToNewLease] = useState(false);
+  const [initialLinkPeers, setInitialLinkPeers] = useState(false);
   const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
   const wasOpenRef = useRef(false);
   const { baseUrl, getAccessToken, account, meData } = usePortalAuth();
@@ -575,10 +973,24 @@ function AddLeaseDialog({
       setFieldErrors({});
       setSubmitState({ status: 'idle', detail: '' });
       setDiscardDialogOpen(false);
+      setLinkPeersToNewLease(false);
+      setInitialLinkPeers(false);
     }
     wasOpenRef.current = open;
   }, [open, fixedPropertyId, properties]);
-  const hasUnsavedChanges = JSON.stringify(form) !== JSON.stringify(initialForm);
+  const peerCoTenantIds = useMemo(
+    () => findPeerCoTenantIdsAtProperty(tenantLeases, tenantId, form.property_id),
+    [tenantLeases, tenantId, form.property_id],
+  );
+  const peerDirectoryById = useMemo(() => {
+    const m = new Map();
+    (directoryTenants ?? []).forEach((row) => {
+      if (row?.id) m.set(String(row.id).trim().toLowerCase(), row);
+    });
+    return m;
+  }, [directoryTenants]);
+  const hasUnsavedChanges =
+    JSON.stringify(form) !== JSON.stringify(initialForm) || linkPeersToNewLease !== initialLinkPeers;
   const handleAttemptClose = () => {
     if (submitState.status === 'saving') return;
     if (hasUnsavedChanges) {
@@ -601,6 +1013,8 @@ function AddLeaseDialog({
     if (!form.month_to_month && form.end_date && form.end_date <= form.start_date) {
       errors.end_date = t('portalTenants.errors.endDateBeforeStart');
     }
+    const rentParsed = parseOptionalMonthlyRentInput(form.rent_amount);
+    if (!rentParsed.ok) errors.rent_amount = t('portalTenants.errors.invalidRentAmount');
     return errors;
   };
 
@@ -611,6 +1025,7 @@ function AddLeaseDialog({
       setFieldErrors(errors);
       return;
     }
+    const rentParsed = parseOptionalMonthlyRentInput(form.rent_amount);
     setSubmitState({ status: 'saving', detail: '' });
     try {
       const accessToken = await getAccessToken();
@@ -621,6 +1036,10 @@ function AddLeaseDialog({
         end_date: form.month_to_month ? null : (form.end_date || null),
         month_to_month: form.month_to_month,
         notes: form.notes || null,
+        rent_amount: rentParsed.ok ? rentParsed.value : null,
+        ...(linkPeersToNewLease && peerCoTenantIds.length > 0
+          ? { link_co_tenant_user_ids: peerCoTenantIds }
+          : {}),
       });
       setSubmitState({ status: 'ok', detail: '' });
       onSaved();
@@ -660,6 +1079,31 @@ function AddLeaseDialog({
             {Boolean(fieldErrors.property_id) && (
               <Alert severity="warning">{fieldErrors.property_id}</Alert>
             )}
+            {peerCoTenantIds.length > 0 && (
+              <Stack spacing={0.75}>
+                <Typography variant="caption" color="text.secondary">
+                  {t('portalTenants.addLeaseDialog.coTenantsOnLeaseHint')}
+                </Typography>
+                <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
+                  {peerCoTenantIds.map((uid) => {
+                    const row = peerDirectoryById.get(uid);
+                    const label = row ? displayName(row) : uid.slice(0, 8);
+                    return <Chip key={uid} label={label} size="small" variant="outlined" />;
+                  })}
+                </Stack>
+                <FormControlLabel
+                  sx={{ my: 0, alignItems: 'flex-start' }}
+                  control={
+                    <Checkbox
+                      checked={linkPeersToNewLease}
+                      onChange={(e) => setLinkPeersToNewLease(e.target.checked)}
+                      size="small"
+                    />
+                  }
+                  label={t('portalTenants.addLeaseDialog.linkPeersCheckbox')}
+                />
+              </Stack>
+            )}
             <TextField
               label={t('portalTenants.form.startDate')}
               type="date"
@@ -698,6 +1142,18 @@ function AddLeaseDialog({
                 margin="dense"
               />
             )}
+            <TextField
+              label={t('portalTenants.form.rentAmount')}
+              value={form.rent_amount}
+              onChange={onChange('rent_amount')}
+              placeholder={t('portalTenants.form.rentAmountPlaceholder')}
+              fullWidth
+              error={Boolean(fieldErrors.rent_amount)}
+              helperText={fieldErrors.rent_amount || t('portalTenants.form.rentAmountHelper')}
+              size="small"
+              margin="dense"
+              inputProps={{ inputMode: 'decimal' }}
+            />
             <TextField
               label={t('portalTenants.form.notes')}
               value={form.notes}
@@ -1033,9 +1489,11 @@ function TenantRow({
   properties,
   landlords,
   isAdmin,
+  allTenants,
   onToggleAccess,
   onDeleteTenant,
   onLeaseSaved,
+  leaseDetailRefreshEpoch,
   onTenantUpdated,
   onExportError,
   t,
@@ -1124,6 +1582,17 @@ function TenantRow({
     }
   }, [baseUrl, getAccessToken, emailHint, tenant.id]);
 
+  const expandedRef = useRef(false);
+  expandedRef.current = expanded;
+
+  useEffect(() => {
+    if (!expandedRef.current) {
+      setLeasesState({ status: 'idle', leases: [] });
+      return;
+    }
+    void loadLeases();
+  }, [leaseDetailRefreshEpoch, loadLeases]);
+
   const handleExpand = () => {
     if (!expanded && leasesState.status === 'idle') {
       void loadLeases();
@@ -1133,12 +1602,10 @@ function TenantRow({
 
   const handleLeaseSaved = () => {
     setAddLeaseOpen(false);
-    void loadLeases();
     onLeaseSaved();
   };
 
   const handleLeaseUpdated = () => {
-    void loadLeases();
     onLeaseSaved();
   };
 
@@ -1323,6 +1790,7 @@ function TenantRow({
                 key={lease.id}
                 lease={lease}
                 properties={properties}
+                directoryTenants={allTenants}
                 onLeaseUpdated={handleLeaseUpdated}
                 t={t}
               />
@@ -1340,6 +1808,8 @@ function TenantRow({
         fixedPropertyId={defaultPropertyIdForAddLease}
         tenantName={displayName(tenant)}
         propertyAddressText={addLeasePropertyAddressText}
+        tenantLeases={leasesState.status === 'ok' ? leasesState.leases : []}
+        directoryTenants={allTenants}
         t={t}
       />
       <EditTenantDialog
@@ -1398,6 +1868,7 @@ const EMPTY_ONBOARD_FORM = {
   end_date: '',
   month_to_month: false,
   notes: '',
+  rent_amount: '',
 };
 
 function OnboardTenantDialog({
@@ -1422,6 +1893,9 @@ function OnboardTenantDialog({
     ? { severity: 'error', text: submitState.detail }
     : null;
 
+  const [occupancyLease, setOccupancyLease] = useState(null);
+  const [occupancyLeaseLoading, setOccupancyLeaseLoading] = useState(false);
+
   useEffect(() => {
     if (open) {
       const nextForm = {
@@ -1433,8 +1907,42 @@ function OnboardTenantDialog({
       setFieldErrors({});
       setSubmitState({ status: 'idle', detail: '' });
       setDiscardDialogOpen(false);
+      setOccupancyLease(null);
+      setOccupancyLeaseLoading(false);
     }
   }, [open, isAdmin, selectedLandlordId]);
+
+  useEffect(() => {
+    const pid = typeof form.property_id === 'string' ? form.property_id.trim() : '';
+    if (!open || !pid || !baseUrl) {
+      setOccupancyLease(null);
+      setOccupancyLeaseLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setOccupancyLeaseLoading(true);
+    setOccupancyLease(null);
+    (async () => {
+      try {
+        const token = await getAccessToken();
+        const data = await fetchLandlordLeases(baseUrl, token, { emailHint, propertyId: pid });
+        const leases = Array.isArray(data.leases) ? data.leases : [];
+        const active = pickActiveOccupancyLease(leases);
+        if (!cancelled) {
+          setOccupancyLease(active);
+          setOccupancyLeaseLoading(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setOccupancyLease(null);
+          setOccupancyLeaseLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, form.property_id, baseUrl, emailHint, getAccessToken]);
   const hasUnsavedChanges = JSON.stringify(form) !== JSON.stringify(initialForm);
   const handleAttemptClose = () => {
     if (submitState.status === 'saving') return;
@@ -1460,9 +1968,14 @@ function OnboardTenantDialog({
     if (!form.lastName.trim()) errors.lastName = t('portalTenants.errors.lastNameRequired');
     if (isAdmin && !form.landlord_id) errors.landlord_id = t('portalTenants.errors.landlordRequired');
     if (!form.property_id) errors.property_id = t('portalTenants.errors.propertyRequired');
-    if (!form.start_date) errors.start_date = t('portalTenants.errors.startDateRequired');
-    if (!form.month_to_month && form.end_date && form.end_date <= form.start_date) {
-      errors.end_date = t('portalTenants.errors.endDateBeforeStart');
+    const usingExistingOccupancyLease = Boolean(occupancyLease) && !occupancyLeaseLoading;
+    if (!usingExistingOccupancyLease) {
+      if (!form.start_date) errors.start_date = t('portalTenants.errors.startDateRequired');
+      if (!form.month_to_month && form.end_date && form.end_date <= form.start_date) {
+        errors.end_date = t('portalTenants.errors.endDateBeforeStart');
+      }
+      const rentParsed = parseOptionalMonthlyRentInput(form.rent_amount);
+      if (!rentParsed.ok) errors.rent_amount = t('portalTenants.errors.invalidRentAmount');
     }
     return errors;
   };
@@ -1477,7 +1990,9 @@ function OnboardTenantDialog({
     setSubmitState({ status: 'saving', detail: '' });
     try {
       const accessToken = await getAccessToken();
-      await createTenant(baseUrl, accessToken, {
+      const usingExistingOccupancyLease = Boolean(occupancyLease) && !occupancyLeaseLoading;
+      const rentParsedOnboard = parseOptionalMonthlyRentInput(form.rent_amount);
+      const result = await createTenant(baseUrl, accessToken, {
         emailHint,
         email: form.email.trim().toLowerCase(),
         first_name: form.firstName.trim(),
@@ -1486,14 +2001,19 @@ function OnboardTenantDialog({
         landlord_id: form.landlord_id || undefined,
         property_id: form.property_id,
         lease: {
-          start_date: form.start_date,
-          end_date: form.month_to_month ? null : (form.end_date || null),
-          month_to_month: form.month_to_month,
-          notes: form.notes || null,
+          start_date: usingExistingOccupancyLease ? (occupancyLease.start_date ? toDatePart(occupancyLease.start_date) : '') : form.start_date,
+          end_date: usingExistingOccupancyLease
+            ? (occupancyLease.month_to_month ? null : (occupancyLease.end_date ? toDatePart(occupancyLease.end_date) : null))
+            : (form.month_to_month ? null : (form.end_date || null)),
+          month_to_month: usingExistingOccupancyLease ? Boolean(occupancyLease.month_to_month) : form.month_to_month,
+          notes: usingExistingOccupancyLease ? null : (form.notes || null),
+          ...(!usingExistingOccupancyLease
+            ? { rent_amount: rentParsedOnboard.ok ? rentParsedOnboard.value : null }
+            : {}),
         },
       });
       setSubmitState({ status: 'ok', detail: '' });
-      onSaved();
+      onSaved(result);
     } catch (error) {
       const detail = tenantApiErrorMessage(error, t);
       setSubmitState({ status: 'error', detail });
@@ -1651,55 +2171,98 @@ function OnboardTenantDialog({
               </Typography>
             )}
 
-            <TextField
-              label={t('portalTenants.form.startDate')}
-              type="date"
-              value={form.start_date}
-              onChange={onChange('start_date')}
-              InputLabelProps={{ shrink: true }}
-              required
-              fullWidth
-              error={Boolean(fieldErrors.start_date)}
-              helperText={fieldErrors.start_date || ' '}
-              size="small"
-              margin="dense"
-            />
-            <FormControlLabel
-              sx={{ my: 0, py: 0 }}
-              control={
-                <Checkbox
-                  checked={form.month_to_month}
-                  onChange={onChange('month_to_month')}
-                  size="small"
-                />
-              }
-              label={t('portalTenants.form.monthToMonth')}
-            />
-            {!form.month_to_month && (
-              <TextField
-                label={t('portalTenants.form.endDate')}
-                type="date"
-                value={form.end_date}
-                onChange={onChange('end_date')}
-                InputLabelProps={{ shrink: true }}
-                fullWidth
-                error={Boolean(fieldErrors.end_date)}
-                helperText={fieldErrors.end_date || ' '}
-                size="small"
-                margin="dense"
-              />
+            {Boolean(form.property_id) && occupancyLeaseLoading && (
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', py: 0.5 }}>
+                <CircularProgress size={18} />
+                <Typography variant="body2" color="text.secondary">
+                  {t('portalTenants.onboardDialog.loadingPropertyLease')}
+                </Typography>
+              </Stack>
             )}
-            <TextField
-              label={t('portalTenants.form.notes')}
-              value={form.notes}
-              onChange={onChange('notes')}
-              multiline
-              minRows={1}
-              maxRows={5}
-              fullWidth
-              size="small"
-              margin="dense"
-            />
+
+            {Boolean(form.property_id) && occupancyLease && !occupancyLeaseLoading && (
+              <>
+                <Alert severity="info">{t('portalTenants.onboardDialog.existingLeaseBanner')}</Alert>
+                <Typography variant="body2" color="text.secondary">
+                  {occupancyLease.month_to_month
+                    ? `${formatDate(occupancyLease.start_date)} — ${t('portalTenants.form.monthToMonth')}`
+                    : occupancyLease.end_date
+                      ? `${formatDate(occupancyLease.start_date)} – ${formatDate(occupancyLease.end_date)}`
+                      : `${formatDate(occupancyLease.start_date)} —`}
+                </Typography>
+              </>
+            )}
+
+            {(!form.property_id || (!occupancyLeaseLoading && !occupancyLease)) && (
+              <>
+                <TextField
+                  label={t('portalTenants.form.startDate')}
+                  type="date"
+                  value={form.start_date}
+                  onChange={onChange('start_date')}
+                  InputLabelProps={{ shrink: true }}
+                  required={Boolean(form.property_id)}
+                  fullWidth
+                  error={Boolean(fieldErrors.start_date)}
+                  helperText={fieldErrors.start_date || ' '}
+                  size="small"
+                  margin="dense"
+                  disabled={Boolean(form.property_id) && occupancyLeaseLoading}
+                />
+                <FormControlLabel
+                  sx={{ my: 0, py: 0 }}
+                  control={
+                    <Checkbox
+                      checked={form.month_to_month}
+                      onChange={onChange('month_to_month')}
+                      size="small"
+                      disabled={Boolean(form.property_id) && occupancyLeaseLoading}
+                    />
+                  }
+                  label={t('portalTenants.form.monthToMonth')}
+                />
+                {!form.month_to_month && (
+                  <TextField
+                    label={t('portalTenants.form.endDate')}
+                    type="date"
+                    value={form.end_date}
+                    onChange={onChange('end_date')}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                    error={Boolean(fieldErrors.end_date)}
+                    helperText={fieldErrors.end_date || ' '}
+                    size="small"
+                    margin="dense"
+                    disabled={Boolean(form.property_id) && occupancyLeaseLoading}
+                  />
+                )}
+                <TextField
+                  label={t('portalTenants.form.rentAmount')}
+                  value={form.rent_amount}
+                  onChange={onChange('rent_amount')}
+                  placeholder={t('portalTenants.form.rentAmountPlaceholder')}
+                  fullWidth
+                  error={Boolean(fieldErrors.rent_amount)}
+                  helperText={fieldErrors.rent_amount || t('portalTenants.form.rentAmountHelper')}
+                  size="small"
+                  margin="dense"
+                  inputProps={{ inputMode: 'decimal' }}
+                  disabled={Boolean(form.property_id) && occupancyLeaseLoading}
+                />
+                <TextField
+                  label={t('portalTenants.form.notes')}
+                  value={form.notes}
+                  onChange={onChange('notes')}
+                  multiline
+                  minRows={1}
+                  maxRows={5}
+                  fullWidth
+                  size="small"
+                  margin="dense"
+                  disabled={Boolean(form.property_id) && occupancyLeaseLoading}
+                />
+              </>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 2, py: 1 }}>
@@ -1710,7 +2273,10 @@ function OnboardTenantDialog({
           <Button
             type="submit"
             variant="contained"
-            disabled={submitState.status === 'saving'}
+            disabled={
+              submitState.status === 'saving'
+              || (Boolean(form.property_id) && occupancyLeaseLoading)
+            }
           >
             {submitState.status === 'saving'
               ? t('portalTenants.actions.saving')
@@ -1772,7 +2338,13 @@ const PortalTenants = () => {
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
   const sortedLandlords = useMemo(() => sortByLandlordLabel(landlords), [landlords]);
   const sortedProperties = useMemo(() => sortByPropertyLabel(properties), [properties]);
-  const sortedTenants = useMemo(() => sortByTenantLabel(tenantsState.tenants), [tenantsState.tenants]);
+  const sortedTenants = useMemo(() => groupTenantsByProperty(tenantsState.tenants), [tenantsState.tenants]);
+
+  /** Bumps when lease membership changes so every expanded tenant row refetches lease detail (co-tenant rows). */
+  const [leaseDetailRefreshEpoch, setLeaseDetailRefreshEpoch] = useState(0);
+  const bumpLeaseDetailRefresh = useCallback(() => {
+    setLeaseDetailRefreshEpoch((n) => n + 1);
+  }, []);
 
   const emailHint = meData?.user?.email ?? account?.username ?? '';
 
@@ -1823,6 +2395,11 @@ const PortalTenants = () => {
     }
   }, [baseUrl, canUseModule, getAccessToken, emailHint, isAdmin, selectedLandlordId, handleApiForbidden, t]);
 
+  const reloadTenantsAndLeasePanels = useCallback(() => {
+    void loadTenants();
+    bumpLeaseDetailRefresh();
+  }, [loadTenants, bumpLeaseDetailRefresh]);
+
   useEffect(() => {
     void loadLandlords();
   }, [loadLandlords]);
@@ -1861,7 +2438,7 @@ const PortalTenants = () => {
         status: 'ok',
         detail: t('portalTenants.messages.tenantDeleted'),
       });
-      void loadTenants();
+      void reloadTenantsAndLeasePanels();
     } catch (e) {
       handleApiForbidden(e);
       setActionState({ status: 'error', detail: tenantApiErrorMessage(e, t) });
@@ -1873,10 +2450,13 @@ const PortalTenants = () => {
     void loadTenants();
   };
 
-  const handleOnboarded = () => {
+  const handleOnboarded = (result) => {
     setOnboardOpen(false);
-    setActionState({ status: 'ok', detail: t('portalTenants.messages.tenantOnboarded') });
-    void loadTenants();
+    const detail = result?.lease_reused
+      ? t('portalTenants.messages.tenantOnboardedExistingLease')
+      : t('portalTenants.messages.tenantOnboarded');
+    setActionState({ status: 'ok', detail });
+    void reloadTenantsAndLeasePanels();
   };
   useEffect(() => {
     if (actionState.status !== 'ok' || !actionState.detail) return;
@@ -1990,7 +2570,7 @@ const PortalTenants = () => {
               </Typography>
               <PortalRefreshButton
                 label={t('portalTenants.actions.refresh')}
-                onClick={() => void loadTenants()}
+                onClick={() => void reloadTenantsAndLeasePanels()}
                 disabled={!canUseModule}
                 loading={tenantsState.status === 'loading'}
               />
@@ -2017,19 +2597,26 @@ const PortalTenants = () => {
               />
             )}
             {sortedTenants.map((tenant, index) => (
-              <TenantRow
-                key={tenantRowKey(tenant, index)}
-                tenant={tenant}
-                properties={sortedProperties}
-                landlords={sortedLandlords}
-                isAdmin={isAdmin}
-                onToggleAccess={handleToggleAccess}
-                onDeleteTenant={handleDeleteTenant}
-                onLeaseSaved={loadTenants}
-                onTenantUpdated={handleTenantUpdated}
-                onExportError={() => showFeedback(t('portalTenants.errors.exportContactCardFailed'), 'error')}
-                t={t}
-              />
+              <Fragment key={tenantRowKey(tenant, index)}>
+                {index > 0
+                  && tenantPropertyGroupKey(tenant) !== tenantPropertyGroupKey(sortedTenants[index - 1]) && (
+                  <Divider sx={{ my: 1.5 }} role="separator" />
+                )}
+                <TenantRow
+                  tenant={tenant}
+                  properties={sortedProperties}
+                  landlords={sortedLandlords}
+                  isAdmin={isAdmin}
+                  allTenants={sortedTenants}
+                  onToggleAccess={handleToggleAccess}
+                  onDeleteTenant={handleDeleteTenant}
+                  onLeaseSaved={reloadTenantsAndLeasePanels}
+                  leaseDetailRefreshEpoch={leaseDetailRefreshEpoch}
+                  onTenantUpdated={handleTenantUpdated}
+                  onExportError={() => showFeedback(t('portalTenants.errors.exportContactCardFailed'), 'error')}
+                  t={t}
+                />
+              </Fragment>
             ))}
           </Stack>
         </Box>
