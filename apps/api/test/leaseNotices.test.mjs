@@ -6,6 +6,7 @@ import { coSignNotice } from '../dist/src/useCases/tenants/coSignNotice.js';
 import { withdrawNotice } from '../dist/src/useCases/tenants/withdrawNotice.js';
 import { respondToNotice } from '../dist/src/useCases/tenants/respondToNotice.js';
 import { getLeaseNotices } from '../dist/src/useCases/tenants/getLeaseNotices.js';
+import { listLandlordNotices } from '../dist/src/useCases/tenants/listLandlordNotices.js';
 import { DomainError } from '../dist/src/domain/errors.js';
 
 const LEASE_ID = '00000000-0000-0000-0000-0000000000aa';
@@ -305,6 +306,64 @@ test('getLeaseNotices: tenant not on lease is forbidden', async () => {
     }),
     (e) => e instanceof DomainError && e.code === 'FORBIDDEN'
   );
+});
+
+// ---------------------------------------------------------------------------
+// listLandlordNotices
+// ---------------------------------------------------------------------------
+
+test('listLandlordNotices: forbids tenants', async () => {
+  await assert.rejects(
+    listLandlordNotices(makeDb(), { actorUserId: TENANT_ID, actorRole: 'TENANT' }),
+    (e) => e instanceof DomainError && e.code === 'FORBIDDEN'
+  );
+});
+
+test('listLandlordNotices: returns rows from the landlord scope query', async () => {
+  const row = noticeRow({
+    status: 'pending_landlord',
+    property_id: PROP_ID,
+    property_street: '123 Main',
+    property_city: 'Houston',
+    property_state: 'TX',
+    property_zip: '77001',
+  });
+  let seenParams = null;
+  const db = {
+    async query(sql, params) {
+      if (/FROM lease_notices n\s+JOIN leases l/.test(sql)) {
+        seenParams = params;
+        return { rows: [row], rowCount: 1 };
+      }
+      throw new Error(`Unexpected query: ${sql.slice(0, 120)}`);
+    },
+  };
+  const result = await listLandlordNotices(db, {
+    actorUserId: LANDLORD_ID,
+    actorRole: 'LANDLORD',
+  });
+  assert.equal(result.notices.length, 1);
+  assert.equal(result.notices[0].property_street, '123 Main');
+  assert.deepEqual(seenParams, ['LANDLORD', LANDLORD_ID]);
+});
+
+test('listLandlordNotices: admin role is passed through to the repo', async () => {
+  let seenParams = null;
+  const db = {
+    async query(sql, params) {
+      if (/FROM lease_notices n\s+JOIN leases l/.test(sql)) {
+        seenParams = params;
+        return { rows: [], rowCount: 0 };
+      }
+      throw new Error(`Unexpected query: ${sql.slice(0, 120)}`);
+    },
+  };
+  const result = await listLandlordNotices(db, {
+    actorUserId: LANDLORD_ID,
+    actorRole: 'admin',
+  });
+  assert.deepEqual(result.notices, []);
+  assert.equal(seenParams[0], 'ADMIN');
 });
 
 test('getLeaseNotices: tenant on lease receives history', async () => {
