@@ -9,6 +9,7 @@ export type LeasePaymentEntryRow = {
   due_date: string;           // ISO date YYYY-MM-DD
   paid_date: string | null;   // ISO date YYYY-MM-DD
   payment_method: string | null;
+  payment_type: string;
   notes: string | null;
   recorded_by: string | null;
   created_at: Date;
@@ -25,7 +26,7 @@ const SELECT_COLS = `
   amount_due, amount_paid,
   CONVERT(NVARCHAR(10), due_date, 23)     AS due_date,
   CONVERT(NVARCHAR(10), paid_date, 23)    AS paid_date,
-  payment_method, notes, recorded_by,
+  payment_method, payment_type, notes, recorded_by,
   created_at, updated_at,
   CASE
     WHEN amount_paid >= amount_due                          THEN 'PAID'
@@ -87,6 +88,7 @@ export async function insertEntry(
     due_date: string;
     paid_date: string | null;
     payment_method: string | null;
+    payment_type: string;
     notes: string | null;
     recorded_by: string;
   }
@@ -94,14 +96,14 @@ export async function insertEntry(
   const r = await client.query<LeasePaymentEntryRow>(
     `INSERT INTO lease_payment_entries
        (id, lease_id, period_start, amount_due, amount_paid, due_date,
-        paid_date, payment_method, notes, recorded_by)
+        paid_date, payment_method, payment_type, notes, recorded_by)
      OUTPUT
        INSERTED.id, INSERTED.lease_id,
        CONVERT(NVARCHAR(10), INSERTED.period_start, 23) AS period_start,
        INSERTED.amount_due, INSERTED.amount_paid,
        CONVERT(NVARCHAR(10), INSERTED.due_date, 23)     AS due_date,
        CONVERT(NVARCHAR(10), INSERTED.paid_date, 23)    AS paid_date,
-       INSERTED.payment_method, INSERTED.notes, INSERTED.recorded_by,
+       INSERTED.payment_method, INSERTED.payment_type, INSERTED.notes, INSERTED.recorded_by,
        INSERTED.created_at, INSERTED.updated_at,
        CASE
          WHEN INSERTED.amount_paid >= INSERTED.amount_due                               THEN 'PAID'
@@ -109,7 +111,7 @@ export async function insertEntry(
          WHEN CAST(SYSDATETIMEOFFSET() AS DATE) > INSERTED.due_date                    THEN 'OVERDUE'
          ELSE 'PENDING'
        END AS payment_status
-     VALUES (NEWID(), $1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+     VALUES (NEWID(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
     [
       params.lease_id,
       params.period_start,
@@ -118,6 +120,7 @@ export async function insertEntry(
       params.due_date,
       params.paid_date,
       params.payment_method,
+      params.payment_type,
       params.notes,
       params.recorded_by,
     ]
@@ -154,7 +157,7 @@ export async function updateEntry(
        INSERTED.amount_due, INSERTED.amount_paid,
        CONVERT(NVARCHAR(10), INSERTED.due_date, 23)     AS due_date,
        CONVERT(NVARCHAR(10), INSERTED.paid_date, 23)    AS paid_date,
-       INSERTED.payment_method, INSERTED.notes, INSERTED.recorded_by,
+       INSERTED.payment_method, INSERTED.payment_type, INSERTED.notes, INSERTED.recorded_by,
        INSERTED.created_at, INSERTED.updated_at,
        CASE
          WHEN INSERTED.amount_paid >= INSERTED.amount_due                               THEN 'PAID'

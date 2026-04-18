@@ -203,6 +203,7 @@ async function landlordPaymentsCollection(
         due_date: str(b.due_date),
         paid_date: str(b.paid_date) ?? null,
         payment_method: str(b.payment_method) ?? null,
+        payment_type: str(b.payment_type) ?? null,
         notes: str(b.notes) ?? null,
       });
       logInfo(context, 'landlord.payments.collection.create.success', {

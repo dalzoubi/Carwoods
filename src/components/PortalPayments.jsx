@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import {
@@ -31,7 +31,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import Close from '@mui/icons-material/Close';
 import Lock from '@mui/icons-material/Lock';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
 import { hasLandlordAccess } from '../domain/roleUtils.js';
 import { isGuestRole, normalizeRole, resolveRole, emailFromAccount } from '../portalUtils';
@@ -53,6 +53,21 @@ const PAYMENT_STATUS_COLOR = {
 };
 
 const PAYMENT_METHODS = ['CHECK', 'CASH', 'BANK_TRANSFER', 'ZELLE', 'VENMO', 'OTHER'];
+
+/** Mirrors API CK_lease_payment_entries_payment_type */
+const PAYMENT_TYPES = [
+  'RENT',
+  'SECURITY_DEPOSIT',
+  'LATE_FEE',
+  'PET_FEE',
+  'PARKING',
+  'UTILITY',
+  'APPLICATION_FEE',
+  'ADMIN_FEE',
+  'NSF_FEE',
+  'MAINTENANCE',
+  'OTHER',
+];
 
 const leaseDropdownCollator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
 
@@ -97,32 +112,46 @@ function propertyAddressOneLine(property) {
   return name || addr;
 }
 
-/** @param {{ start_date?: string, end_date?: string|null, month_to_month?: boolean, id?: string } | null} lease */
-function paymentsLeaseDropdownLabel(property, lease) {
-  const addr = propertyAddressOneLine(property);
+/** @param {{ start_date?: string, end_date?: string|null, month_to_month?: boolean } | null} lease */
+function paymentsLeaseDateRangeOnly(lease) {
   const start = lease?.start_date;
   const end = lease?.end_date;
   const m2m = Boolean(lease?.month_to_month);
-  let range = '';
-  if (start) {
-    const s = formatLeaseDateLabel(start);
-    if (m2m && !end) {
-      range = `${s} – …`;
-    } else if (end) {
-      range = `${s} – ${formatLeaseDateLabel(end)}`;
-    } else {
-      range = s;
-    }
-  }
-  const parts = [addr, range].filter((p) => p && p !== '—');
-  if (parts.length > 0) return parts.join(' · ');
-  return lease?.id != null ? String(lease.id) : '';
+  if (!start) return '';
+  const s = formatLeaseDateLabel(start);
+  if (m2m && !end) return `${s} – …`;
+  if (end) return `${s} – ${formatLeaseDateLabel(end)}`;
+  return s;
 }
 
-function formatCurrency(value) {
+/** tenant_names from API; tolerate driver/casing variants. */
+function tenantNamesFromLease(lease) {
+  if (!lease || typeof lease !== 'object') return '';
+  const raw =
+    lease.tenant_names ??
+    lease.Tenant_Names ??
+    lease.tenantNames ??
+    lease.TenantNames;
+  return String(raw ?? '').trim();
+}
+
+/**
+ * Second dropdown: tenant display names (from API) plus lease dates.
+ * @param {{ tenant_names?: string|null, start_date?: string, end_date?: string|null, month_to_month?: boolean, id?: string }} lease
+ */
+function paymentsTenantLeaseDropdownLabel(lease, t) {
+  const names = tenantNamesFromLease(lease);
+  const range = paymentsLeaseDateRangeOnly(lease);
+  const namePart = names || t('portalPayments.labels.noTenantsOnLease');
+  const parts = [namePart];
+  if (range) parts.push(range);
+  return parts.join(' · ');
+}
+
+function formatCurrency(value, currency = 'USD') {
   const n = Number(value);
   if (!Number.isFinite(n)) return '—';
-  return n.toLocaleString(undefined, { style: 'currency', currency: 'USD' });
+  return n.toLocaleString(undefined, { style: 'currency', currency });
 }
 
 function formatPeriod(isoDate) {
@@ -135,6 +164,7 @@ function formatPeriod(isoDate) {
 const PortalPayments = () => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const {
     baseUrl,
     isAuthenticated,
@@ -152,10 +182,49 @@ const PortalPayments = () => {
 
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
-  // Landlord: lease selector
-  const [leases, setLeases] = useState([]);
+  // Landlord: property + lease selectors
+  const [properties, setProperties] = useState([]);
+  const [leaseRows, setLeaseRows] = useState([]);
   const [leasesStatus, setLeasesStatus] = useState('idle');
+  const [selectedPropertyId, setSelectedPropertyId] = useState('');
   const [selectedLeaseId, setSelectedLeaseId] = useState('');
+
+  const propertiesById = useMemo(() => new Map(properties.map((p) => [p.id, p])), [properties]);
+
+  const propertyOptions = useMemo(() => {
+    const ids = [...new Set(leaseRows.map((l) => l.property_id).filter(Boolean))];
+    const opts = ids.map((id) => ({
+      id,
+      label: propertyAddressOneLine(propertiesById.get(id)) || String(id),
+    }));
+    opts.sort((a, b) => leaseDropdownCollator.compare(a.label, b.label));
+    return opts;
+  }, [leaseRows, propertiesById]);
+
+  const leasesForProperty = useMemo(() => {
+    if (!selectedPropertyId) return [];
+    const rows = leaseRows.filter((l) => l.property_id == selectedPropertyId);
+    const decorated = rows.map((lease) => ({
+      lease,
+      label: paymentsTenantLeaseDropdownLabel(lease, t),
+    }));
+    decorated.sort((a, b) => leaseDropdownCollator.compare(a.label, b.label));
+    return decorated.map((d) => d.lease);
+  }, [leaseRows, selectedPropertyId, t]);
+
+  const handlePropertyChange = useCallback((e) => {
+    const pid = e.target.value;
+    setSelectedPropertyId(pid);
+    const next = leaseRows.filter((l) => l.property_id == pid);
+    if (next.length === 1) setSelectedLeaseId(next[0].id);
+    else setSelectedLeaseId('');
+  }, [leaseRows]);
+
+  useEffect(() => {
+    if (!selectedLeaseId || !selectedPropertyId) return;
+    const ok = leasesForProperty.some((l) => l.id == selectedLeaseId);
+    if (!ok) setSelectedLeaseId('');
+  }, [leasesForProperty, selectedLeaseId, selectedPropertyId]);
 
   useEffect(() => {
     if (!isManagement || !isPortalApiReachable(baseUrl) || !isAuthenticated || isGuest || meStatus !== 'ok') return;
@@ -170,21 +239,32 @@ const PortalPayments = () => {
           fetchLandlordProperties(baseUrl, token, { emailHint }),
         ]);
         if (cancelled) return;
-        const leaseRows = Array.isArray(leasesPayload?.leases) ? leasesPayload.leases : [];
+        const rows = Array.isArray(leasesPayload?.leases) ? leasesPayload.leases : [];
         const propRows = Array.isArray(propsPayload?.properties) ? propsPayload.properties : [];
-        const byPropertyId = new Map(propRows.map((p) => [p.id, p]));
-        const leaseList = leaseRows.map((lease) => ({
-          id: lease.id,
-          label: paymentsLeaseDropdownLabel(byPropertyId.get(lease.property_id), lease),
-        }));
-        leaseList.sort((a, b) => leaseDropdownCollator.compare(a.label, b.label));
-        setLeases(leaseList);
+        setLeaseRows(rows);
+        setProperties(propRows);
         setLeasesStatus('ok');
-        if (leaseList.length > 0) setSelectedLeaseId(leaseList[0].id);
+
+        const propIds = new Set(rows.map((l) => l.property_id).filter(Boolean));
+        let nextPid = '';
+        let nextLid = '';
+        if (propIds.size === 1 && rows.length === 1) {
+          nextPid = rows[0].property_id;
+          nextLid = rows[0].id;
+        } else if (propIds.size === 1 && rows.length > 1) {
+          nextPid = [...propIds][0];
+          nextLid = '';
+        }
+        setSelectedPropertyId(nextPid);
+        setSelectedLeaseId(nextLid);
       } catch (err) {
         if (cancelled) return;
         handleApiForbidden(err);
         setLeasesStatus('error');
+        setLeaseRows([]);
+        setProperties([]);
+        setSelectedPropertyId('');
+        setSelectedLeaseId('');
       }
     })();
     return () => { cancelled = true; };
@@ -260,7 +340,7 @@ const PortalPayments = () => {
               title={t('portalPayments.lockedTitle')}
               description={t('portalPayments.lockedBody')}
               actionLabel={t('portalPayments.pricingLink')}
-              actionHref={withDarkPath(pathname, '/pricing')}
+              onAction={() => navigate(withDarkPath(pathname, '/pricing'))}
             />
           </Paper>
         </Stack>
@@ -294,24 +374,75 @@ const PortalPayments = () => {
           message={entriesStatus === 'error' ? { severity: 'error', text: entriesError || t('portalPayments.errors.loadFailed') } : null}
         />
 
-        {/* Lease selector (management only) */}
+        {/* Property + lease selectors (management only) */}
         {isManagement && (
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }} flexWrap="wrap">
             {leasesStatus === 'loading' ? (
               <CircularProgress size={20} />
-            ) : leases.length > 0 ? (
-              <FormControl size="small" sx={{ minWidth: 300 }}>
-                <InputLabel>{t('portalPayments.labels.selectLease')}</InputLabel>
-                <Select
-                  value={selectedLeaseId}
-                  label={t('portalPayments.labels.selectLease')}
-                  onChange={(e) => setSelectedLeaseId(e.target.value)}
-                >
-                  {leases.map((l) => (
-                    <MenuItem key={l.id} value={l.id}>{l.label}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+            ) : leaseRows.length > 0 ? (
+              <>
+                <FormControl size="small" sx={{ minWidth: 260 }}>
+                  <InputLabel id="portal-payments-property-label" shrink>
+                    {t('portalPayments.labels.selectProperty')}
+                  </InputLabel>
+                  <Select
+                    labelId="portal-payments-property-label"
+                    id="portal-payments-property-select"
+                    value={selectedPropertyId}
+                    label={t('portalPayments.labels.selectProperty')}
+                    onChange={handlePropertyChange}
+                    displayEmpty
+                    renderValue={(value) => {
+                      if (value === '' || value == null) {
+                        return (
+                          <Typography component="span" variant="body2" color="text.secondary">
+                            {t('portalPayments.labels.selectPropertyPlaceholder')}
+                          </Typography>
+                        );
+                      }
+                      const opt = propertyOptions.find((p) => p.id == value);
+                      return opt?.label ?? '';
+                    }}
+                  >
+                    <MenuItem value="" disabled>{t('portalPayments.labels.selectPropertyPlaceholder')}</MenuItem>
+                    {propertyOptions.map((p) => (
+                      <MenuItem key={p.id} value={p.id}>{p.label}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl size="small" sx={{ minWidth: 280 }} disabled={!selectedPropertyId}>
+                  <InputLabel id="portal-payments-lease-label" shrink>
+                    {t('portalPayments.labels.selectLeaseForProperty')}
+                  </InputLabel>
+                  <Select
+                    labelId="portal-payments-lease-label"
+                    id="portal-payments-lease-select"
+                    value={selectedLeaseId}
+                    label={t('portalPayments.labels.selectLeaseForProperty')}
+                    onChange={(e) => setSelectedLeaseId(e.target.value)}
+                    displayEmpty
+                    renderValue={(value) => {
+                      if (value === '' || value == null) {
+                        return (
+                          <Typography component="span" variant="body2" color="text.secondary">
+                            {t('portalPayments.labels.selectLeaseForPropertyPlaceholder')}
+                          </Typography>
+                        );
+                      }
+                      const lease = leasesForProperty.find((l) => l.id == value);
+                      return lease ? paymentsTenantLeaseDropdownLabel(lease, t) : '';
+                    }}
+                  >
+                    <MenuItem value="" disabled>{t('portalPayments.labels.selectLeaseForPropertyPlaceholder')}</MenuItem>
+                    {leasesForProperty.map((l) => (
+                      <MenuItem key={l.id} value={l.id}>
+                        {paymentsTenantLeaseDropdownLabel(l, t)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </>
             ) : leasesStatus === 'ok' ? (
               <Typography variant="body2" color="text.secondary">
                 {t('portalPayments.errors.noLeases')}
@@ -354,20 +485,26 @@ const PortalPayments = () => {
               <Table size="small" aria-label={t('portalPayments.tableAriaLabel')}>
                 <TableHead>
                   <TableRow>
-                    <TableCell>{t('portalPayments.columns.period')}</TableCell>
-                    <TableCell align="right">{t('portalPayments.columns.amountDue')}</TableCell>
-                    <TableCell align="right">{t('portalPayments.columns.amountPaid')}</TableCell>
-                    <TableCell>{t('portalPayments.columns.dueDate')}</TableCell>
-                    <TableCell>{t('portalPayments.columns.paidDate')}</TableCell>
-                    <TableCell>{t('portalPayments.columns.method')}</TableCell>
-                    <TableCell>{t('portalPayments.columns.status')}</TableCell>
-                    {isManagement && <TableCell />}
+                    <TableCell scope="col">{t('portalPayments.columns.period')}</TableCell>
+                    <TableCell scope="col">{t('portalPayments.columns.paymentType')}</TableCell>
+                    <TableCell scope="col" align="right">{t('portalPayments.columns.amountDue')}</TableCell>
+                    <TableCell scope="col" align="right">{t('portalPayments.columns.amountPaid')}</TableCell>
+                    <TableCell scope="col">{t('portalPayments.columns.dueDate')}</TableCell>
+                    <TableCell scope="col">{t('portalPayments.columns.paidDate')}</TableCell>
+                    <TableCell scope="col">{t('portalPayments.columns.method')}</TableCell>
+                    <TableCell scope="col">{t('portalPayments.columns.status')}</TableCell>
+                    {isManagement && <TableCell scope="col" />}
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {entries.map((entry) => (
                     <TableRow key={entry.id} hover>
                       <TableCell>{formatPeriod(entry.period_start)}</TableCell>
+                      <TableCell>
+                        {t(`portalPayments.paymentTypes.${entry.payment_type ?? 'RENT'}`, {
+                          defaultValue: entry.payment_type ?? 'RENT',
+                        })}
+                      </TableCell>
                       <TableCell align="right">{formatCurrency(entry.amount_due)}</TableCell>
                       <TableCell align="right">{formatCurrency(entry.amount_paid)}</TableCell>
                       <TableCell>{formatDate(entry.due_date)}</TableCell>
@@ -427,28 +564,55 @@ const PortalPayments = () => {
                 value={form.period_start}
                 onChange={onFormField('period_start')}
                 disabled={saveStatus === 'saving' || !!editingEntryId}
+                required={!editingEntryId}
                 fullWidth
                 InputLabelProps={{ shrink: true }}
-                helperText={t('portalPayments.fields.periodStartHelper')}
+                helperText={editingEntryId ? t('portalPayments.fields.periodStartLocked') : t('portalPayments.fields.periodStartHelper')}
               />
+              <FormControl
+                fullWidth
+                disabled={saveStatus === 'saving' || !!editingEntryId}
+                required={!editingEntryId}
+              >
+                <InputLabel id="portal-payments-payment-type-label" shrink>
+                  {t('portalPayments.fields.paymentType')}
+                </InputLabel>
+                <Select
+                  labelId="portal-payments-payment-type-label"
+                  id="portal-payments-payment-type-select"
+                  value={form.payment_type || 'RENT'}
+                  label={t('portalPayments.fields.paymentType')}
+                  onChange={onFormField('payment_type')}
+                >
+                  {PAYMENT_TYPES.map((pt) => (
+                    <MenuItem key={pt} value={pt}>
+                      {t(`portalPayments.paymentTypes.${pt}`, { defaultValue: pt })}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {editingEntryId ? (
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                    {t('portalPayments.fields.paymentTypeLocked')}
+                  </Typography>
+                ) : null}
+              </FormControl>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <TextField
                   label={t('portalPayments.fields.amountDue')}
-                  type="number"
-                  inputProps={{ min: 0, step: '0.01' }}
                   value={form.amount_due}
                   onChange={onFormField('amount_due')}
                   disabled={saveStatus === 'saving'}
+                  required
                   fullWidth
+                  inputProps={{ inputMode: 'decimal' }}
                 />
                 <TextField
                   label={t('portalPayments.fields.amountPaid')}
-                  type="number"
-                  inputProps={{ min: 0, step: '0.01' }}
                   value={form.amount_paid}
                   onChange={onFormField('amount_paid')}
                   disabled={saveStatus === 'saving'}
                   fullWidth
+                  inputProps={{ inputMode: 'decimal' }}
                 />
               </Stack>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
@@ -458,6 +622,7 @@ const PortalPayments = () => {
                   value={form.due_date}
                   onChange={onFormField('due_date')}
                   disabled={saveStatus === 'saving'}
+                  required
                   fullWidth
                   InputLabelProps={{ shrink: true }}
                 />
@@ -506,7 +671,13 @@ const PortalPayments = () => {
               type="button"
               variant="contained"
               onClick={onSaveEntry}
-              disabled={saveStatus === 'saving' || !form.period_start || !form.amount_due || !form.due_date}
+              disabled={
+                saveStatus === 'saving'
+                || !form.period_start
+                || !form.amount_due
+                || !form.due_date
+                || (!editingEntryId && !form.payment_type)
+              }
               startIcon={saveStatus === 'saving' ? <CircularProgress size={16} color="inherit" /> : null}
             >
               {saveStatus === 'saving' ? t('portalPayments.actions.saving') : t('portalPayments.actions.save')}

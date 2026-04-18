@@ -13,8 +13,10 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
   FormControlLabel,
   IconButton,
+  InputLabel,
   MenuItem,
   Select,
   Skeleton,
@@ -442,23 +444,25 @@ function EditLeaseDialog({ open, onClose, onSaved, lease, properties, t }) {
       <Box component="form" onSubmit={onSubmit}>
         <DialogContent sx={{ py: 1.25, px: 3 }}>
           <Stack spacing={1.25}>
-            <Select
-              value={form.property_id}
-              onChange={onChange('property_id')}
-              displayEmpty
-              fullWidth
-              size="small"
-              disabled
-            >
-              <MenuItem value="" disabled>
-                {t('portalTenants.form.selectProperty')}
-              </MenuItem>
-              {sortedProperties.map((p) => (
-                <MenuItem key={p.id} value={p.id}>
-                  {propertyLabel(p)}
+            <FormControl fullWidth size="small" disabled>
+              <InputLabel shrink>{t('portalTenants.form.selectProperty')}</InputLabel>
+              <Select
+                value={form.property_id}
+                onChange={onChange('property_id')}
+                label={t('portalTenants.form.selectProperty')}
+                displayEmpty
+                notched
+              >
+                <MenuItem value="" disabled>
+                  {t('portalTenants.form.selectProperty')}
                 </MenuItem>
-              ))}
-            </Select>
+                {sortedProperties.map((p) => (
+                  <MenuItem key={p.id} value={p.id}>
+                    {propertyLabel(p)}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <TextField
               label={t('portalTenants.form.startDate')}
               type="date"
@@ -635,23 +639,24 @@ function LinkCoTenantDialog({
             <Typography variant="body2" color="text.secondary">
               {propertyLabel(lease)}
             </Typography>
-            <Select
-              value={selectedId}
-              onChange={(e) => setSelectedId(e.target.value)}
-              displayEmpty
-              fullWidth
-              size="small"
-              disabled={candidates.length === 0}
-            >
-              <MenuItem value="">
-                <em>{t('portalTenants.linkCoTenantDialog.selectTenant')}</em>
-              </MenuItem>
-              {candidates.map((row) => (
-                <MenuItem key={row.id} value={row.id}>
-                  {`${displayName(row)} (${String(row.email ?? '').trim()})`}
+            <FormControl fullWidth size="small" disabled={candidates.length === 0}>
+              <InputLabel>{t('portalTenants.linkCoTenantDialog.selectTenant')}</InputLabel>
+              <Select
+                value={selectedId}
+                onChange={(e) => setSelectedId(e.target.value)}
+                label={t('portalTenants.linkCoTenantDialog.selectTenant')}
+                displayEmpty
+              >
+                <MenuItem value="">
+                  <em>{t('portalTenants.linkCoTenantDialog.selectTenant')}</em>
                 </MenuItem>
-              ))}
-            </Select>
+                {candidates.map((row) => (
+                  <MenuItem key={row.id} value={row.id}>
+                    {`${displayName(row)} (${String(row.email ?? '').trim()})`}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             {candidates.length === 0 && (
               <Typography variant="caption" color="text.secondary">
                 {t('portalTenants.linkCoTenantDialog.emptyCandidates')}

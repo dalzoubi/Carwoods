@@ -10,6 +10,7 @@ import {
 const EMPTY_FORM = {
   lease_id: '',
   period_start: '',
+  payment_type: 'RENT',
   amount_due: '',
   amount_paid: '',
   due_date: '',
@@ -73,6 +74,7 @@ export function usePortalPayments({
         status: error?.status,
         code: error?.code,
         message: error?.message,
+        ...(error?.details ? { details: error.details } : {}),
       });
       handleApiForbidden(error);
       setEntriesStatus('error');
@@ -104,6 +106,7 @@ export function usePortalPayments({
     setForm({
       lease_id: entry.lease_id,
       period_start: entry.period_start ?? '',
+      payment_type: entry.payment_type ?? 'RENT',
       amount_due: String(entry.amount_due ?? ''),
       amount_paid: String(entry.amount_paid ?? ''),
       due_date: entry.due_date ?? '',
@@ -140,6 +143,10 @@ export function usePortalPayments({
         payment_method: form.payment_method || null,
         notes: form.notes || null,
       };
+
+      if (!editingEntryId) {
+        payload.payment_type = form.payment_type || 'RENT';
+      }
 
       if (editingEntryId) {
         await updateLeasePaymentEntry(baseUrl, token, editingEntryId, payload);

@@ -3,7 +3,12 @@
  * Optionally filtered by property_id.
  */
 
-import { listLeasesForActor, type LeaseRowFull } from '../../lib/leasesRepo.js';
+import {
+  listLeasesForActor,
+  listTenantNamesByLeaseIds,
+  normalizeLeaseUuidKey,
+  type LeaseRowFull,
+} from '../../lib/leasesRepo.js';
 import { forbidden } from '../../domain/errors.js';
 import { hasLandlordAccess } from '../../domain/constants.js';
 import type { Queryable } from '../types.js';
@@ -30,6 +35,17 @@ export async function listLeases(
     input.actorUserId,
     input.propertyId
   );
+
+  const namesByLeaseId = await listTenantNamesByLeaseIds(
+    db,
+    leases.map((l) => l.id).filter(Boolean)
+  );
+  for (const lease of leases) {
+    const tn = namesByLeaseId.get(normalizeLeaseUuidKey(lease.id));
+    if (tn) {
+      lease.tenant_names = tn;
+    }
+  }
 
   return { leases };
 }

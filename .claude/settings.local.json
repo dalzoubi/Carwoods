@@ -14,7 +14,16 @@
       "Bash(npx tsc:*)",
       "Bash(npm run:*)",
       "Bash(sed -n '50,65p' src/routePaths.js)",
-      "Bash(sed -n '25,84p' src/components/EmptyState.jsx)"
+      "Bash(sed -n '25,84p' src/components/EmptyState.jsx)",
+      "Bash(sed -n '2355,2360p' src/locales/es/translation.json)",
+      "Bash(sed -n '2355,2360p' src/locales/fr/translation.json)",
+      "Bash(sed -n '2356,2362p' src/locales/ar/translation.json)",
+      "Bash(sed -n '2344,2348p' src/locales/es/translation.json)",
+      "Bash(sed -n '2344,2348p' src/locales/fr/translation.json)",
+      "Bash(sed -n '2345,2349p' src/locales/ar/translation.json)",
+      "Bash(sed -n '1901,1906p' src/locales/es/translation.json)",
+      "Bash(sed -n '1901,1906p' src/locales/fr/translation.json)",
+      "Bash(sed -n '1902,1907p' src/locales/ar/translation.json)"
     ]
   }
 }

@@ -12,6 +12,20 @@ import type { TransactionPool } from '../types.js';
 
 const VALID_METHODS = new Set(['CHECK', 'CASH', 'BANK_TRANSFER', 'ZELLE', 'VENMO', 'OTHER']);
 
+const VALID_PAYMENT_TYPES = new Set([
+  'RENT',
+  'SECURITY_DEPOSIT',
+  'LATE_FEE',
+  'PET_FEE',
+  'PARKING',
+  'UTILITY',
+  'APPLICATION_FEE',
+  'ADMIN_FEE',
+  'NSF_FEE',
+  'MAINTENANCE',
+  'OTHER',
+]);
+
 function validateFields(params: {
   lease_id?: string;
   period_start?: string;
@@ -49,6 +63,8 @@ export type RecordPaymentInput = {
   due_date?: string;
   paid_date?: string | null;
   payment_method?: string | null;
+  /** Defaults to RENT when omitted (legacy API clients). */
+  payment_type?: string | null;
   notes?: string | null;
 };
 
@@ -73,6 +89,9 @@ export async function recordPayment(
   const method = input.payment_method?.trim().toUpperCase() ?? null;
   if (method && !VALID_METHODS.has(method)) throw validationError('payment_method_invalid');
 
+  const paymentType = (input.payment_type?.trim().toUpperCase() || 'RENT');
+  if (!VALID_PAYMENT_TYPES.has(paymentType)) throw validationError('payment_type_invalid');
+
   const accessible = await leaseAccessibleByLandlord(
     db,
     input.lease_id!,
@@ -92,6 +111,7 @@ export async function recordPayment(
       due_date: input.due_date!,
       paid_date: input.paid_date?.trim() || null,
       payment_method: method,
+      payment_type: paymentType,
       notes: input.notes?.trim() || null,
       recorded_by: input.actorUserId,
     });

@@ -6,9 +6,13 @@ const DEFAULT_ORIGINS = [
   'http://localhost:3000',
   /** Same dev server as localhost:3000 — browsers treat 127.0.0.1 as a different origin. */
   'http://127.0.0.1:3000',
+  /** IPv6 loopback — distinct origin from localhost/127.0.0.1 in browsers. */
+  'http://[::1]:3000',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  'https://carwoods-*-dennis-alzoubis-projects.vercel.app/'
+  'http://[::1]:5173',
+  /** Vercel preview deployments (slug varies by branch/team; keep a single broad carwoods-* pattern). */
+  'https://carwoods-*.vercel.app',
 ];
 
 function normalizeOriginValue(value: string): string {

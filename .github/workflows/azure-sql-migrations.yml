@@ -103,16 +103,20 @@ jobs:
               applied_at  DATETIMEOFFSET NOT NULL DEFAULT SYSDATETIMEOFFSET()
             );"
 
+          APPLIED_FILE="$(mktemp)"
+          trap 'rm -f "$APPLIED_FILE"' EXIT
+
+          echo "→ Loading applied migration names (single round-trip)"
+          run_sql -h -1 -W -Q "
+            SET NOCOUNT ON;
+            SELECT name FROM dbo.__migrations;" \
+            | tr -d '\r' | sed '/^[[:space:]]*$/d' > "$APPLIED_FILE"
+
           apply_migration() {
             local NAME="$1"
             local FILE="$2"
 
-            APPLIED=$(run_sql -h -1 -Q "
-              SET NOCOUNT ON;
-              SELECT COUNT(*) FROM dbo.__migrations WHERE name = '${NAME}';" \
-              | tr -d '[:space:]')
-
-            if [ "$APPLIED" = "1" ]; then
+            if grep -Fxq "$NAME" "$APPLIED_FILE"; then
               echo "  ✓ $NAME — already applied, skipping"
               return
             fi
@@ -124,6 +128,7 @@ jobs:
             fi
             run_sql -Q "
               INSERT INTO dbo.__migrations (name) VALUES ('${NAME}');"
+            echo "$NAME" >> "$APPLIED_FILE"
             echo "  ✓ $NAME — done"
           }
 

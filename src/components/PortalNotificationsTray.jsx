@@ -310,7 +310,10 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
               failedIds.forEach((id) => { next = addTrayHiddenIdForAccount(account, id, next); });
               return next;
             });
-            showFeedback(t('portalHeader.notifications.dismissOfflineFallback'), 'warning');
+            const msg = succeededIds.size > 0
+              ? t('portalHeader.notifications.dismissPartialError', { failed: failedIds.length, total: ids.length })
+              : t('portalHeader.notifications.dismissOfflineFallback');
+            showFeedback(msg, 'warning');
           } else if (succeededIds.size === 0) {
             showFeedback(t('portalHeader.notifications.dismissAllError'), 'error');
           }

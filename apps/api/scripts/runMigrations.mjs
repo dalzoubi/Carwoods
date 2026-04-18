@@ -78,13 +78,14 @@ async function ensureMigrationsTable(pool) {
   `);
 }
 
-async function isMigrationApplied(pool, migrationName) {
-  const result = await pool
-    .request()
-    .input('name', mssql.NVarChar(200), migrationName)
-    .query('SELECT COUNT(*) AS count FROM dbo.__migrations WHERE name = @name;');
-  const count = Number(result.recordset?.[0]?.count ?? 0);
-  return count > 0;
+/** Single round-trip: avoids one SELECT per migration file on every run. */
+async function loadAppliedMigrationNames(pool) {
+  const result = await pool.request().query('SELECT name FROM dbo.__migrations;');
+  const names = new Set();
+  for (const row of result.recordset ?? []) {
+    if (row?.name != null) names.add(String(row.name));
+  }
+  return names;
 }
 
 async function markMigrationApplied(pool, migrationName) {
@@ -102,9 +103,9 @@ function splitSqlBatches(sql) {
     .filter((chunk) => chunk.length > 0);
 }
 
-async function applyMigration(pool, fileName) {
+async function applyMigration(pool, fileName, appliedNames) {
   const migrationName = path.basename(fileName, '.sql');
-  if (await isMigrationApplied(pool, migrationName)) {
+  if (appliedNames.has(migrationName)) {
     console.log(`  ✓ ${migrationName} (already applied)`);
     return;
   }
@@ -117,6 +118,7 @@ async function applyMigration(pool, fileName) {
     await pool.request().batch(batch);
   }
   await markMigrationApplied(pool, migrationName);
+  appliedNames.add(migrationName);
   console.log(`  ✓ ${migrationName} (done)`);
 }
 
@@ -137,9 +139,10 @@ async function main() {
   await pool.connect();
   try {
     await ensureMigrationsTable(pool);
+    const appliedNames = await loadAppliedMigrationNames(pool);
     console.log(`Applying migrations to ${config.server}/${config.database}`);
     for (const fileName of migrationFiles) {
-      await applyMigration(pool, fileName);
+      await applyMigration(pool, fileName, appliedNames);
     }
     console.log('Database migrations are up to date.');
   } finally {

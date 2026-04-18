@@ -2068,6 +2068,7 @@
       "markAllRead": "Mark all as read",
       "dismissAll": "Dismiss all",
       "dismissAllError": "Couldn't dismiss all notifications. Please try again.",
+      "dismissPartialError": "{{failed}} of {{total}} couldn't sync — dismissed on this device.",
       "viewAll": "View all notifications"
     }
   },
@@ -2502,6 +2503,7 @@
     "tableAriaLabel": "Payments",
     "columns": {
       "period": "Period",
+      "paymentType": "Type",
       "amountDue": "Amount Due",
       "amountPaid": "Amount Paid",
       "dueDate": "Due Date",
@@ -2510,7 +2512,11 @@
       "status": "Status"
     },
     "labels": {
-      "selectLease": "Select lease"
+      "selectProperty": "Property",
+      "selectPropertyPlaceholder": "Select a property",
+      "selectLeaseForProperty": "Tenant / lease",
+      "selectLeaseForPropertyPlaceholder": "Select tenant & lease",
+      "noTenantsOnLease": "No tenants linked"
     },
     "actions": {
       "addEntry": "Record payment",
@@ -2522,13 +2528,29 @@
     "fields": {
       "periodStart": "Period start",
       "periodStartHelper": "First day of the billing month (e.g. 2025-05-01)",
+      "periodStartLocked": "Period cannot be changed after the entry is created.",
       "amountDue": "Amount due",
       "amountPaid": "Amount paid",
       "dueDate": "Due date",
       "paidDate": "Paid date",
       "paymentMethod": "Payment method",
       "paymentMethodNone": "— None —",
+      "paymentType": "Payment type",
+      "paymentTypeLocked": "Type cannot be changed after the entry is created.",
       "notes": "Notes"
+    },
+    "paymentTypes": {
+      "RENT": "Rent",
+      "SECURITY_DEPOSIT": "Security deposit",
+      "LATE_FEE": "Late payment fee",
+      "PET_FEE": "Pet fee / pet rent",
+      "PARKING": "Parking",
+      "UTILITY": "Utilities",
+      "APPLICATION_FEE": "Application fee",
+      "ADMIN_FEE": "Administrative fee",
+      "NSF_FEE": "NSF / returned payment fee",
+      "MAINTENANCE": "Maintenance or repair",
+      "OTHER": "Other"
     },
     "paymentMethods": {
       "CHECK": "Check",

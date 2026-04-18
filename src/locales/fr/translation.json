@@ -1901,6 +1901,7 @@
       "markAllRead": "Tout marquer comme lu",
       "dismissAll": "Tout ignorer",
       "dismissAllError": "Impossible d'ignorer toutes les notifications. Veuillez réessayer.",
+      "dismissPartialError": "{{failed}} sur {{total}} n'ont pas pu se synchroniser — ignorées sur cet appareil.",
       "viewAll": "Voir toutes les notifications"
     }
   },
@@ -2335,6 +2336,7 @@
     "tableAriaLabel": "Paiements",
     "columns": {
       "period": "Période",
+      "paymentType": "Type",
       "amountDue": "Montant dû",
       "amountPaid": "Montant payé",
       "dueDate": "Date d'échéance",
@@ -2343,7 +2345,11 @@
       "status": "Statut"
     },
     "labels": {
-      "selectLease": "Sélectionner un bail"
+      "selectProperty": "Propriété",
+      "selectPropertyPlaceholder": "Sélectionner une propriété",
+      "selectLeaseForProperty": "Locataire / bail",
+      "selectLeaseForPropertyPlaceholder": "Sélectionner le locataire et les dates du bail",
+      "noTenantsOnLease": "Aucun locataire lié"
     },
     "actions": {
       "addEntry": "Enregistrer un paiement",
@@ -2355,13 +2361,29 @@
     "fields": {
       "periodStart": "Début de période",
       "periodStartHelper": "Premier jour du mois de facturation (ex. 2025-05-01)",
+      "periodStartLocked": "La période ne peut pas être modifiée après la création de l'entrée.",
       "amountDue": "Montant dû",
       "amountPaid": "Montant payé",
       "dueDate": "Date d'échéance",
       "paidDate": "Date de paiement",
       "paymentMethod": "Mode de paiement",
       "paymentMethodNone": "— Aucun —",
+      "paymentType": "Type de paiement",
+      "paymentTypeLocked": "Le type ne peut pas être modifié après la création de l'entrée.",
       "notes": "Notes"
+    },
+    "paymentTypes": {
+      "RENT": "Loyer",
+      "SECURITY_DEPOSIT": "Dépôt de garantie",
+      "LATE_FEE": "Frais de retard",
+      "PET_FEE": "Frais pour animal / loyer animalier",
+      "PARKING": "Stationnement",
+      "UTILITY": "Services publics",
+      "APPLICATION_FEE": "Frais de candidature",
+      "ADMIN_FEE": "Frais administratifs",
+      "NSF_FEE": "Frais de paiement rejeté / NSF",
+      "MAINTENANCE": "Entretien ou réparation",
+      "OTHER": "Autre"
     },
     "paymentMethods": {
       "CHECK": "Chèque",

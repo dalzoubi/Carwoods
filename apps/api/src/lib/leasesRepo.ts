@@ -13,6 +13,10 @@ export type LeaseRowFull = {
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
+  /**
+   * Populated by `listLeases` use case: comma-separated tenant display names on this lease.
+   */
+  tenant_names?: string | null;
 };
 
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
@@ -30,6 +34,71 @@ export async function listLeasesForProperty(
     [propertyId]
   );
   return r.rows;
+}
+
+/**
+ * Normalize lease id strings for Map lookup (GUID casing / braces / mssql uniqueidentifier Buffer).
+ */
+export function normalizeLeaseUuidKey(id: unknown): string {
+  if (Buffer.isBuffer(id) && id.length === 16) {
+    const b = id;
+    const p1 = b.subarray(0, 4).reverse().toString('hex');
+    const p2 = b.subarray(4, 6).reverse().toString('hex');
+    const p3 = b.subarray(6, 8).reverse().toString('hex');
+    const p4 = b.subarray(8, 16).toString('hex');
+    const hex = p1 + p2 + p3 + p4;
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`.toLowerCase();
+  }
+  let s = String(id ?? '').trim();
+  if (s.startsWith('{') && s.endsWith('}')) s = s.slice(1, -1);
+  return s.toLowerCase();
+}
+
+/**
+ * One display label per tenant user: trimmed "First Last", else email, else phone.
+ * Used when aggregating names per lease (batch query — avoids correlated subquery driver quirks).
+ */
+function tenantDisplaySqlFragment(alias = 'u'): string {
+  /* STRING_AGG ignores NULL inputs — if name/email/phone are all empty, still emit a label
+     so linked tenants do not disappear from landlord lease lists (e.g. Portal Payments). */
+  return `COALESCE(
+    NULLIF(LTRIM(RTRIM(CONCAT(COALESCE(${alias}.first_name, N''), N' ', COALESCE(${alias}.last_name, N'')))), N''),
+    NULLIF(LTRIM(COALESCE(${alias}.email, N'')), N''),
+    NULLIF(LTRIM(COALESCE(${alias}.phone, N'')), N''),
+    LEFT(CAST(${alias}.id AS NVARCHAR(36)), 8)
+  )`;
+}
+
+/**
+ * Aggregated tenant labels per lease (for landlord lease lists). Empty map if none or no ids.
+ */
+export async function listTenantNamesByLeaseIds(
+  client: Queryable,
+  leaseIds: unknown[]
+): Promise<Map<string, string>> {
+  const ids = leaseIds.map((id) => normalizeLeaseUuidKey(id)).filter(Boolean);
+  if (ids.length === 0) return new Map();
+
+  const label = tenantDisplaySqlFragment('u');
+  const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+  const r = await client.query<{ lease_id: string; tenant_names: string | null }>(
+    `SELECT CAST(lt.lease_id AS NVARCHAR(36)) AS lease_id,
+            STRING_AGG(${label}, N', ')
+              WITHIN GROUP (ORDER BY u.last_name, u.first_name, u.email) AS tenant_names
+     FROM lease_tenants lt
+     INNER JOIN users u ON u.id = lt.user_id
+     WHERE lt.lease_id IN (${placeholders})
+     GROUP BY lt.lease_id`,
+    ids
+  );
+
+  const map = new Map<string, string>();
+  for (const row of r.rows) {
+    const id = normalizeLeaseUuidKey(row.lease_id);
+    const tn = row.tenant_names != null ? String(row.tenant_names).trim() : '';
+    if (id && tn) map.set(id, tn);
+  }
+  return map;
 }
 
 /**

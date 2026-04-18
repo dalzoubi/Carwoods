@@ -1901,6 +1901,7 @@
       "markAllRead": "Marcar todo como leído",
       "dismissAll": "Descartar todo",
       "dismissAllError": "No se pudieron descartar todas las notificaciones. Por favor, inténtalo de nuevo.",
+      "dismissPartialError": "{{failed}} de {{total}} no pudieron sincronizarse — descartadas en este dispositivo.",
       "viewAll": "Ver todas las notificaciones"
     }
   },
@@ -2335,6 +2336,7 @@
     "tableAriaLabel": "Pagos",
     "columns": {
       "period": "Período",
+      "paymentType": "Tipo",
       "amountDue": "Monto adeudado",
       "amountPaid": "Monto pagado",
       "dueDate": "Fecha de vencimiento",
@@ -2343,7 +2345,11 @@
       "status": "Estado"
     },
     "labels": {
-      "selectLease": "Seleccionar contrato"
+      "selectProperty": "Propiedad",
+      "selectPropertyPlaceholder": "Seleccionar una propiedad",
+      "selectLeaseForProperty": "Inquilino / contrato",
+      "selectLeaseForPropertyPlaceholder": "Seleccionar inquilino y fechas del contrato",
+      "noTenantsOnLease": "Sin inquilinos vinculados"
     },
     "actions": {
       "addEntry": "Registrar pago",
@@ -2355,13 +2361,29 @@
     "fields": {
       "periodStart": "Inicio del período",
       "periodStartHelper": "Primer día del mes de facturación (p. ej. 2025-05-01)",
+      "periodStartLocked": "El período no se puede cambiar después de crear el registro.",
       "amountDue": "Monto adeudado",
       "amountPaid": "Monto pagado",
       "dueDate": "Fecha de vencimiento",
       "paidDate": "Fecha de pago",
       "paymentMethod": "Método de pago",
       "paymentMethodNone": "— Ninguno —",
+      "paymentType": "Tipo de pago",
+      "paymentTypeLocked": "El tipo no se puede cambiar después de crear el registro.",
       "notes": "Notas"
+    },
+    "paymentTypes": {
+      "RENT": "Renta",
+      "SECURITY_DEPOSIT": "Depósito de garantía",
+      "LATE_FEE": "Cargo por pago tardío",
+      "PET_FEE": "Cargo por mascota / renta de mascota",
+      "PARKING": "Estacionamiento",
+      "UTILITY": "Servicios",
+      "APPLICATION_FEE": "Tarifa de solicitud",
+      "ADMIN_FEE": "Tarifa administrativa",
+      "NSF_FEE": "Cargo por cheque devuelto / NSF",
+      "MAINTENANCE": "Mantenimiento o reparación",
+      "OTHER": "Otro"
     },
     "paymentMethods": {
       "CHECK": "Cheque",
