@@ -21,6 +21,7 @@ import { enqueueNotification } from '../lib/notificationRepo.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 import { withRateLimit } from '../lib/rateLimiter.js';
 import { safeErrorResponseBody } from '../lib/safeErrorResponse.js';
+import { getSubscriptionTierForTenantPrimaryLease } from '../lib/subscriptionTierCapabilities.js';
 import { Role } from '../domain/constants.js';
 
 type PortalMeDeps = {
@@ -233,6 +234,8 @@ export async function portalMeHandler(
           user = { ...user, tier_id: freeTier.id };
           tier = { id: freeTier.id, name: freeTier.name, display_name: freeTier.display_name, limits: freeTier.limits };
         }
+      } else if (user.role === Role.TENANT) {
+        tier = await getSubscriptionTierForTenantPrimaryLease(pool, user.id);
       } else if (user.tier_id) {
         const t = await getTierById(pool, user.tier_id);
         if (t) tier = { id: t.id, name: t.name, display_name: t.display_name, limits: t.limits };

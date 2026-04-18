@@ -1934,6 +1934,7 @@
       "tenants": "المستأجرون",
       "status": "حالة النظام",
       "manageGroup": "الإدارة",
+      "messagesGroup": "الرسائل",
       "adminGroup": "المشرفون",
       "healthGroup": "الصحة",
       "notificationTest": "اختبار الإشعارات",

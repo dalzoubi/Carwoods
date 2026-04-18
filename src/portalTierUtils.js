@@ -1,7 +1,7 @@
 /**
  * Subscription tier helpers for the portal SPA (`/api/portal/me` → `meData.user.tier`).
  *
- * Populated from the signed-in user's `tier_id` (e.g. landlords). Tenants typically have no `user.tier`.
+ * Populated from the signed-in user's `tier_id` (landlords/admins), or for tenants from the primary lease landlord (`/api/portal/me`).
  */
 
 /** @param {unknown} meData */

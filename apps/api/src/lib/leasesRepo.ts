@@ -6,10 +6,25 @@ export type LeaseRowFull = {
   start_date: string;
   end_date: string | null;
   month_to_month: boolean;
+  /** ACTIVE / UPCOMING / ENDED / TERMINATED. TERMINATED covers eviction + early termination. */
   status: string;
   notes: string | null;
   /** Monthly rent in USD (nullable if not recorded). */
   rent_amount: number | null;
+  /** Populated when the lease is ENDED or TERMINATED. */
+  ended_on: string | null;
+  /** end_of_term | early_termination | eviction | mutual | other. */
+  ended_reason: string | null;
+  ended_by: string | null;
+  ended_notes: string | null;
+  /** Notice period required by the agreement (defaults 30 m2m / 60 fixed-term at creation). */
+  notice_period_days: number;
+  /** Set when a tenant-initiated notice is accepted; drives the upcoming-move-outs strip. */
+  notice_given_on: string | null;
+  notice_move_out_date: string | null;
+  /** Early-termination fee agreed up front (surfaced to tenant on the early-termination screen). */
+  early_termination_fee_amount: number | null;
+  early_termination_notes: string | null;
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
@@ -19,6 +34,42 @@ export type LeaseRowFull = {
   tenant_names?: string | null;
 };
 
+const LEASE_COLS_UNALIASED = `id, property_id,
+       CONVERT(NVARCHAR(10), start_date, 23) AS start_date,
+       CONVERT(NVARCHAR(10), end_date, 23)   AS end_date,
+       month_to_month, status, notes, rent_amount,
+       CONVERT(NVARCHAR(10), ended_on, 23)             AS ended_on,
+       ended_reason, ended_by, ended_notes,
+       notice_period_days,
+       CONVERT(NVARCHAR(10), notice_given_on, 23)      AS notice_given_on,
+       CONVERT(NVARCHAR(10), notice_move_out_date, 23) AS notice_move_out_date,
+       early_termination_fee_amount, early_termination_notes,
+       created_at, updated_at, deleted_at`;
+
+const LEASE_COLS_L = `l.id, l.property_id,
+       CONVERT(NVARCHAR(10), l.start_date, 23) AS start_date,
+       CONVERT(NVARCHAR(10), l.end_date, 23)   AS end_date,
+       l.month_to_month, l.status, l.notes, l.rent_amount,
+       CONVERT(NVARCHAR(10), l.ended_on, 23)             AS ended_on,
+       l.ended_reason, l.ended_by, l.ended_notes,
+       l.notice_period_days,
+       CONVERT(NVARCHAR(10), l.notice_given_on, 23)      AS notice_given_on,
+       CONVERT(NVARCHAR(10), l.notice_move_out_date, 23) AS notice_move_out_date,
+       l.early_termination_fee_amount, l.early_termination_notes,
+       l.created_at, l.updated_at, l.deleted_at`;
+
+const LEASE_INSERTED_COLS = `INSERTED.id, INSERTED.property_id,
+       CONVERT(NVARCHAR(10), INSERTED.start_date, 23) AS start_date,
+       CONVERT(NVARCHAR(10), INSERTED.end_date, 23)   AS end_date,
+       INSERTED.month_to_month, INSERTED.status, INSERTED.notes, INSERTED.rent_amount,
+       CONVERT(NVARCHAR(10), INSERTED.ended_on, 23)             AS ended_on,
+       INSERTED.ended_reason, INSERTED.ended_by, INSERTED.ended_notes,
+       INSERTED.notice_period_days,
+       CONVERT(NVARCHAR(10), INSERTED.notice_given_on, 23)      AS notice_given_on,
+       CONVERT(NVARCHAR(10), INSERTED.notice_move_out_date, 23) AS notice_move_out_date,
+       INSERTED.early_termination_fee_amount, INSERTED.early_termination_notes,
+       INSERTED.created_at, INSERTED.updated_at, INSERTED.deleted_at`;
+
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
 
 export async function listLeasesForProperty(
@@ -26,8 +77,7 @@ export async function listLeasesForProperty(
   propertyId: string
 ): Promise<LeaseRowFull[]> {
   const r = await client.query<LeaseRowFull>(
-    `SELECT id, property_id, start_date, end_date, month_to_month, status, notes, rent_amount,
-            created_at, updated_at, deleted_at
+    `SELECT ${LEASE_COLS_UNALIASED}
      FROM leases
      WHERE property_id = $1 AND deleted_at IS NULL
      ORDER BY start_date DESC`,
@@ -115,8 +165,7 @@ export async function listLeasesForActor(
   const pid = propertyId?.trim();
   if (pid) {
     const r = await client.query<LeaseRowFull>(
-      `SELECT l.id, l.property_id, l.start_date, l.end_date, l.month_to_month, l.status, l.notes, l.rent_amount,
-              l.created_at, l.updated_at, l.deleted_at
+      `SELECT ${LEASE_COLS_L}
        FROM leases l
        INNER JOIN properties p ON p.id = l.property_id AND p.deleted_at IS NULL
        WHERE l.deleted_at IS NULL
@@ -128,8 +177,7 @@ export async function listLeasesForActor(
     return r.rows;
   }
   const r = await client.query<LeaseRowFull>(
-    `SELECT l.id, l.property_id, l.start_date, l.end_date, l.month_to_month, l.status, l.notes, l.rent_amount,
-            l.created_at, l.updated_at, l.deleted_at
+    `SELECT ${LEASE_COLS_L}
      FROM leases l
      INNER JOIN properties p ON p.id = l.property_id AND p.deleted_at IS NULL
      WHERE l.deleted_at IS NULL
@@ -145,8 +193,7 @@ export async function listLeasesLandlord(
   client: Queryable
 ): Promise<LeaseRowFull[]> {
   const r = await client.query<LeaseRowFull>(
-    `SELECT id, property_id, start_date, end_date, month_to_month, status, notes, rent_amount,
-            created_at, updated_at, deleted_at
+    `SELECT ${LEASE_COLS_UNALIASED}
      FROM leases
      WHERE deleted_at IS NULL
      ORDER BY created_at DESC`
@@ -159,8 +206,7 @@ export async function getLeaseById(
   id: string
 ): Promise<LeaseRowFull | null> {
   const r = await client.query<LeaseRowFull>(
-    `SELECT id, property_id, start_date, end_date, month_to_month, status, notes, rent_amount,
-            created_at, updated_at, deleted_at
+    `SELECT ${LEASE_COLS_UNALIASED}
      FROM leases WHERE id = $1 AND deleted_at IS NULL`,
     [id]
   );
@@ -196,8 +242,7 @@ export async function findActiveOccupancyLeaseForProperty(
   propertyId: string
 ): Promise<LeaseRowFull | null> {
   const r = await client.query<LeaseRowFull>(
-    `SELECT TOP 1 id, property_id, start_date, end_date, month_to_month, status, notes, rent_amount,
-            created_at, updated_at, deleted_at
+    `SELECT TOP 1 ${LEASE_COLS_UNALIASED}
        FROM leases
       WHERE property_id = $1
         AND deleted_at IS NULL
@@ -246,9 +291,7 @@ export async function insertLease(
 ): Promise<LeaseRowFull> {
   const r = await client.query<LeaseRowFull>(
     `INSERT INTO leases (id, property_id, start_date, end_date, month_to_month, status, notes, rent_amount, created_by, updated_by)
-     OUTPUT INSERTED.id, INSERTED.property_id, INSERTED.start_date, INSERTED.end_date,
-            INSERTED.month_to_month, INSERTED.status, INSERTED.notes, INSERTED.rent_amount,
-            INSERTED.created_at, INSERTED.updated_at, INSERTED.deleted_at
+     OUTPUT ${LEASE_INSERTED_COLS}
      VALUES (NEWID(), $1, $2, $3, $4, $5, $6, $7, $8, $8)`,
     [
       params.property_id,
@@ -271,6 +314,9 @@ export type LeasePatch = {
   status?: string;
   notes?: string | null;
   rent_amount?: number | null;
+  notice_period_days?: number;
+  early_termination_fee_amount?: number | null;
+  early_termination_notes?: string | null;
 };
 
 export async function updateLease(
@@ -287,22 +333,153 @@ export async function updateLease(
   const status = patch.status ?? cur.status;
   const notes = patch.notes !== undefined ? patch.notes : cur.notes;
   const rent_amount = patch.rent_amount !== undefined ? patch.rent_amount : cur.rent_amount;
+  const notice_period_days = patch.notice_period_days ?? cur.notice_period_days;
+  const etf =
+    patch.early_termination_fee_amount !== undefined
+      ? patch.early_termination_fee_amount
+      : cur.early_termination_fee_amount;
+  const etn =
+    patch.early_termination_notes !== undefined
+      ? patch.early_termination_notes
+      : cur.early_termination_notes;
 
   const r = await client.query<LeaseRowFull>(
     `UPDATE leases SET
-       start_date     = $2,
-       end_date       = $3,
-       month_to_month = $4,
-       status         = $5,
-       notes          = $6,
-       rent_amount    = $7,
-       updated_by     = $8,
-       updated_at     = GETUTCDATE()
-     OUTPUT INSERTED.id, INSERTED.property_id, INSERTED.start_date, INSERTED.end_date,
-            INSERTED.month_to_month, INSERTED.status, INSERTED.notes, INSERTED.rent_amount,
-            INSERTED.created_at, INSERTED.updated_at, INSERTED.deleted_at
+       start_date                   = $2,
+       end_date                     = $3,
+       month_to_month               = $4,
+       status                       = $5,
+       notes                        = $6,
+       rent_amount                  = $7,
+       notice_period_days           = $9,
+       early_termination_fee_amount = $10,
+       early_termination_notes      = $11,
+       updated_by                   = $8,
+       updated_at                   = GETUTCDATE()
+     OUTPUT ${LEASE_INSERTED_COLS}
      WHERE id = $1 AND deleted_at IS NULL`,
-    [id, start_date, end_date, month_to_month ? 1 : 0, status, notes, rent_amount, updatedBy]
+    [
+      id,
+      start_date,
+      end_date,
+      month_to_month ? 1 : 0,
+      status,
+      notes,
+      rent_amount,
+      updatedBy,
+      notice_period_days,
+      etf,
+      etn,
+    ]
+  );
+  return r.rows[0] ?? null;
+}
+
+/**
+ * Flips a lease to ENDED or TERMINATED and records why. Does not touch lease_tenants —
+ * the tenant links stay so ledger/history queries keep resolving. Caller should persist
+ * the detail row in lease_move_outs or lease_evictions in the same transaction.
+ */
+export async function setLeaseEnded(
+  client: PoolClient,
+  params: {
+    leaseId: string;
+    status: 'ENDED' | 'TERMINATED';
+    endedOn: string;
+    endedReason: 'end_of_term' | 'early_termination' | 'eviction' | 'mutual' | 'other';
+    endedBy: string;
+    endedNotes?: string | null;
+  }
+): Promise<LeaseRowFull | null> {
+  const r = await client.query<LeaseRowFull>(
+    `UPDATE leases SET
+       status       = $2,
+       ended_on     = $3,
+       ended_reason = $4,
+       ended_by     = $5,
+       ended_notes  = $6,
+       updated_by   = $5,
+       updated_at   = GETUTCDATE()
+     OUTPUT ${LEASE_INSERTED_COLS}
+     WHERE id = $1 AND deleted_at IS NULL`,
+    [
+      params.leaseId,
+      params.status,
+      params.endedOn,
+      params.endedReason,
+      params.endedBy,
+      params.endedNotes ?? null,
+    ]
+  );
+  return r.rows[0] ?? null;
+}
+
+/**
+ * Reverts a lease from ENDED/TERMINATED back to ACTIVE (undo window, admin correction).
+ * Caller is responsible for deleting / restoring lease_move_outs / lease_evictions rows.
+ */
+export async function clearLeaseEnded(
+  client: PoolClient,
+  leaseId: string,
+  updatedBy: string
+): Promise<LeaseRowFull | null> {
+  const r = await client.query<LeaseRowFull>(
+    `UPDATE leases SET
+       status       = 'ACTIVE',
+       ended_on     = NULL,
+       ended_reason = NULL,
+       ended_by     = NULL,
+       ended_notes  = NULL,
+       updated_by   = $2,
+       updated_at   = GETUTCDATE()
+     OUTPUT ${LEASE_INSERTED_COLS}
+     WHERE id = $1 AND deleted_at IS NULL`,
+    [leaseId, updatedBy]
+  );
+  return r.rows[0] ?? null;
+}
+
+/**
+ * Records that an accepted notice is now in effect on the lease. The lease stays ACTIVE;
+ * these fields let the dashboard show the "Upcoming move-outs" strip. setLeaseEnded
+ * clears them implicitly at finalization by the caller invoking clearLeaseNotice.
+ */
+export async function setLeaseNotice(
+  client: PoolClient,
+  params: {
+    leaseId: string;
+    noticeGivenOn: string;
+    noticeMoveOutDate: string;
+    updatedBy: string;
+  }
+): Promise<LeaseRowFull | null> {
+  const r = await client.query<LeaseRowFull>(
+    `UPDATE leases SET
+       notice_given_on      = $2,
+       notice_move_out_date = $3,
+       updated_by           = $4,
+       updated_at           = GETUTCDATE()
+     OUTPUT ${LEASE_INSERTED_COLS}
+     WHERE id = $1 AND deleted_at IS NULL`,
+    [params.leaseId, params.noticeGivenOn, params.noticeMoveOutDate, params.updatedBy]
+  );
+  return r.rows[0] ?? null;
+}
+
+export async function clearLeaseNotice(
+  client: PoolClient,
+  leaseId: string,
+  updatedBy: string
+): Promise<LeaseRowFull | null> {
+  const r = await client.query<LeaseRowFull>(
+    `UPDATE leases SET
+       notice_given_on      = NULL,
+       notice_move_out_date = NULL,
+       updated_by           = $2,
+       updated_at           = GETUTCDATE()
+     OUTPUT ${LEASE_INSERTED_COLS}
+     WHERE id = $1 AND deleted_at IS NULL`,
+    [leaseId, updatedBy]
   );
   return r.rows[0] ?? null;
 }

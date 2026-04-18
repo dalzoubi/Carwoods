@@ -24,7 +24,9 @@ import Logout from '@mui/icons-material/Logout';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import ChevronLeft from '@mui/icons-material/ChevronLeft';
 import ChevronRight from '@mui/icons-material/ChevronRight';
-import Inbox from '@mui/icons-material/Inbox';
+import Assignment from '@mui/icons-material/Assignment';
+import Notifications from '@mui/icons-material/Notifications';
+import ContactMail from '@mui/icons-material/ContactMail';
 import Description from '@mui/icons-material/Description';
 import Payments from '@mui/icons-material/Payments';
 import HealthAndSafety from '@mui/icons-material/HealthAndSafety';
@@ -32,6 +34,7 @@ import Send from '@mui/icons-material/Send';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
+import { allowsDocumentCenter, landlordTierLimits } from '../portalTierUtils';
 import { isGuestRole, normalizeRole, resolveRole } from '../portalUtils';
 import { stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
 import PortalSignOutConfirmDialog from './PortalSignOutConfirmDialog';
@@ -153,11 +156,26 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
       ]
     : [];
 
+  /** Tenants: hide Document Center nav when the primary landlord's plan does not include it (e.g. FREE). Landlords still see the link (upgrade / locked UI on the page). */
+  const showDocumentsNav =
+    normalized !== Role.TENANT || allowsDocumentCenter(landlordTierLimits(meData));
+
   const toolItems = roleResolved && !isGuest
     ? [
         { key: 'payments', to: '/portal/payments', label: t('portalLayout.sidebar.payments'), icon: <Payments /> },
-        { key: 'inbox', to: '/portal/inbox', label: t('portalLayout.sidebar.inbox'), icon: <Inbox /> },
-        { key: 'documents', to: '/portal/documents', label: t('portalLayout.sidebar.documents'), icon: <Description /> },
+        ...(showDocumentsNav
+          ? [{ key: 'documents', to: '/portal/documents', label: t('portalLayout.sidebar.documents'), icon: <Description /> }]
+          : []),
+      ]
+    : [];
+
+  const messagesItems = roleResolved && !isGuest
+    ? [
+        { key: 'inbox', to: '/portal/inbox/requests', label: t('portalLayout.sidebar.requests'), icon: <Assignment /> },
+        { key: 'notifications', to: '/portal/inbox/notifications', label: t('portalLayout.sidebar.notifications'), icon: <Notifications /> },
+        ...(normalized === Role.ADMIN
+          ? [{ key: 'contact', to: '/portal/inbox/contact', label: t('portalLayout.sidebar.adminContactUsMessages'), icon: <ContactMail /> }]
+          : []),
       ]
     : [];
 
@@ -244,6 +262,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
         {renderNavGroup(coreItems)}
         {renderNavGroup(manageItems, manageItems.length > 0 ? t('portalLayout.sidebar.manageGroup') : undefined)}
         {renderNavGroup(toolItems)}
+        {renderNavGroup(messagesItems, messagesItems.length > 0 ? t('portalLayout.sidebar.messagesGroup') : undefined)}
         {renderNavGroup(adminItems, adminItems.length > 0 ? t('portalLayout.sidebar.adminGroup') : undefined)}
         {renderNavGroup(healthItems, healthItems.length > 0 ? t('portalLayout.sidebar.healthGroup') : undefined)}
       </List>

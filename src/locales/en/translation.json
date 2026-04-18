@@ -2100,6 +2100,7 @@
       "tenants": "Tenants",
       "status": "System Status",
       "manageGroup": "Manage",
+      "messagesGroup": "Messages",
       "adminGroup": "Admin",
       "healthGroup": "Health",
       "notificationTest": "Notification test",

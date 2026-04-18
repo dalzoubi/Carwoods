@@ -97,6 +97,68 @@ export async function getTierLimitsForTenantPrimaryLease(
   return getTierLimitsForUserId(db, landlordId);
 }
 
+type PortalMeTierPayload = {
+  id: string;
+  name: string;
+  display_name: string;
+  limits: TierLimits;
+};
+
+/**
+ * Primary lease landlord's subscription tier for `/api/portal/me` (tenant role).
+ * Matches property-scoped enforcement: missing landlord tier falls back to FREE.
+ */
+export async function getSubscriptionTierForTenantPrimaryLease(
+  db: Queryable,
+  tenantUserId: string
+): Promise<PortalMeTierPayload | null> {
+  const r = await db.query<{ landlord_id: string }>(
+    `SELECT TOP 1 p.created_by AS landlord_id
+     FROM lease_tenants lt
+     JOIN leases l ON l.id = lt.lease_id
+     JOIN properties p ON p.id = l.property_id
+     WHERE lt.user_id = $1
+       AND l.deleted_at IS NULL
+       AND p.deleted_at IS NULL
+       AND (lt.access_end_at IS NULL OR lt.access_end_at > SYSDATETIMEOFFSET())
+     ORDER BY
+       CASE WHEN lt.access_end_at IS NULL THEN 0 ELSE 1 END,
+       lt.access_start_at DESC,
+       lt.created_at DESC`,
+    [tenantUserId]
+  );
+  const landlordId = r.rows[0]?.landlord_id;
+  const fallbackFree = async (): Promise<PortalMeTierPayload | null> => {
+    const free = await getTierByName(db, 'FREE');
+    return free
+      ? {
+          id: free.id,
+          name: free.name,
+          display_name: free.display_name,
+          limits: free.limits,
+        }
+      : null;
+  };
+  if (!landlordId) {
+    return fallbackFree();
+  }
+  const landlord = await findUserById(db, landlordId);
+  if (!landlord) {
+    return fallbackFree();
+  }
+  let tierRow = landlord.tier_id ? await getTierById(db, landlord.tier_id) : null;
+  if (!tierRow) {
+    tierRow = await getTierByName(db, 'FREE');
+  }
+  if (!tierRow) return null;
+  return {
+    id: tierRow.id,
+    name: tierRow.name,
+    display_name: tierRow.display_name,
+    limits: tierRow.limits,
+  };
+}
+
 export async function countActivePropertiesForLandlord(
   db: Queryable,
   landlordUserId: string

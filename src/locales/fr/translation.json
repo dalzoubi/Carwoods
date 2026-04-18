@@ -1933,6 +1933,7 @@
       "tenants": "Locataires",
       "status": "État du système",
       "manageGroup": "Gestion",
+      "messagesGroup": "Messages",
       "adminGroup": "Administration",
       "healthGroup": "Santé",
       "notificationTest": "Test des notifications",

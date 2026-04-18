@@ -23,7 +23,8 @@
       "Bash(sed -n '2345,2349p' src/locales/ar/translation.json)",
       "Bash(sed -n '1901,1906p' src/locales/es/translation.json)",
       "Bash(sed -n '1901,1906p' src/locales/fr/translation.json)",
-      "Bash(sed -n '1902,1907p' src/locales/ar/translation.json)"
+      "Bash(sed -n '1902,1907p' src/locales/ar/translation.json)",
+      "Bash(echo \"EXIT=$?\")"
     ]
   }
 }
