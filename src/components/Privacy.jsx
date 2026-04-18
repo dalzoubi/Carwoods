@@ -28,6 +28,11 @@ const Privacy = () => {
                 {t('privacy.collectBody')}
             </Paragraph>
 
+            <SubHeading>{t('privacy.leaseLifecycleHeading')}</SubHeading>
+            <Paragraph>
+                {t('privacy.leaseLifecycleBody')}
+            </Paragraph>
+
             <SubHeading>{t('privacy.useHeading')}</SubHeading>
             <Paragraph>
                 {t('privacy.useBody')}
