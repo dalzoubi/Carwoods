@@ -33,6 +33,7 @@ import { PORTAL_MESSAGE_BODY_MAX_CHARS } from '../../lib/portalMessageEditorBrid
 import { RequestStatus } from '../../domain/constants.js';
 import { FALLBACK_MAX_IMAGE_BYTES } from '../../attachmentUploadLimits.js';
 import { MESSAGES_POLL_INTERVAL_MS } from '../../featureFlags';
+import { emitPortalRequestsListRefresh } from '../../lib/portalRequestsListBridge.js';
 const MESSAGE_SUCCESS_AUTO_DISMISS_MS = 5000;
 const ELSA_DECISION_ACTION_SUCCESS_AUTO_DISMISS_MS = 5000;
 const IS_DEV = import.meta.env.DEV;
@@ -387,6 +388,7 @@ export function usePortalRequests({
       keepSelection = true,
       showLoadingState = true,
       showDetailLoadingState = true,
+      bustListCache = false,
     } = opts;
     if (!listLoadEnabled) return;
     if (!baseUrl || !isAuthenticated || isGuest || meStatus !== 'ok') return;
@@ -398,7 +400,11 @@ export function usePortalRequests({
     try {
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
-      const payload = await fetchRequests(baseUrl, token, { path: listPath, emailHint });
+      const payload = await fetchRequests(baseUrl, token, {
+        path: listPath,
+        emailHint,
+        bypassCache: bustListCache,
+      });
       const nextRequests = Array.isArray(payload?.requests) ? payload.requests : [];
       setRequests(nextRequests);
       setRequestsStatus('ok');
@@ -960,7 +966,12 @@ export function usePortalRequests({
       setTenantCreateStatus('success');
       setTenantForm((prev) => ({ ...prev, title: '', description: '' }));
       setCreateAttachmentFiles([]);
-      await loadRequests({ keepSelection: false, showLoadingState: false, showDetailLoadingState: false });
+      await loadRequests({
+        keepSelection: false,
+        showLoadingState: false,
+        showDetailLoadingState: false,
+        bustListCache: true,
+      });
     } catch (error) {
       handleApiForbidden(error);
       setTenantCreateStatus('error');
@@ -977,11 +988,17 @@ export function usePortalRequests({
       const emailHint = emailFromAccount(account);
       await cancelRequest(baseUrl, token, selectedRequestId, { emailHint });
       if (listLoadEnabled) {
-        await loadRequests({ keepSelection: true, showLoadingState: false, showDetailLoadingState: false });
+        await loadRequests({
+          keepSelection: true,
+          showLoadingState: false,
+          showDetailLoadingState: false,
+          bustListCache: true,
+        });
       } else {
         await loadRequestDetails(selectedRequestId, { showLoadingState: false });
         await loadAuditForRequest(selectedRequestId);
         await loadElsaContext(selectedRequestId);
+        emitPortalRequestsListRefresh();
       }
       setCancelStatus('success');
     } catch (error) {
@@ -1039,11 +1056,17 @@ export function usePortalRequests({
         { emailHint, ...body }
       );
       if (listLoadEnabled) {
-        await loadRequests({ keepSelection: true, showLoadingState: false, showDetailLoadingState: false });
+        await loadRequests({
+          keepSelection: true,
+          showLoadingState: false,
+          showDetailLoadingState: false,
+          bustListCache: true,
+        });
       } else {
         await loadRequestDetails(selectedRequestId, { showLoadingState: false });
         await loadAuditForRequest(selectedRequestId);
         await loadElsaContext(selectedRequestId);
+        emitPortalRequestsListRefresh();
       }
       setManagementUpdateStatus('success');
     } catch (error) {
@@ -1365,6 +1388,16 @@ export function usePortalRequests({
       });
       await loadRequestDetails(selectedRequestId, { showLoadingState: false });
       await loadElsaContext(selectedRequestId);
+      if (listLoadEnabled) {
+        await loadRequests({
+          keepSelection: true,
+          showLoadingState: false,
+          showDetailLoadingState: false,
+          bustListCache: true,
+        });
+      } else {
+        emitPortalRequestsListRefresh();
+      }
       return result;
     } catch (error) {
       handleApiForbidden(error);
@@ -1425,6 +1458,16 @@ export function usePortalRequests({
       });
       await loadRequestDetails(selectedRequestId, { showLoadingState: false });
       await loadElsaContext(selectedRequestId);
+      if (listLoadEnabled) {
+        await loadRequests({
+          keepSelection: true,
+          showLoadingState: false,
+          showDetailLoadingState: false,
+          bustListCache: true,
+        });
+      } else {
+        emitPortalRequestsListRefresh();
+      }
       setElsaDecisionActionStatus('success');
     } catch (error) {
       handleApiForbidden(error);

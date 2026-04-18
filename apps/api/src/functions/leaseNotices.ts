@@ -29,6 +29,7 @@ import { withdrawNotice } from '../useCases/tenants/withdrawNotice.js';
 import { respondToNotice } from '../useCases/tenants/respondToNotice.js';
 import { getLeaseNotices } from '../useCases/tenants/getLeaseNotices.js';
 import { listMyLeases } from '../useCases/tenants/listMyLeases.js';
+import { listLandlordNotices } from '../useCases/tenants/listLandlordNotices.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
   if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>;
@@ -296,8 +297,41 @@ async function handleListMyLeases(
 }
 
 // ---------------------------------------------------------------------------
+// GET /api/landlord/notices
+// ---------------------------------------------------------------------------
+
+async function handleListLandlordNotices(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireLandlordOrAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+
+  try {
+    const result = await listLandlordNotices(getPool(), {
+      actorUserId: ctx.user.id,
+      actorRole: ctx.role,
+    });
+    return jsonResponse(200, ctx.headers, result);
+  } catch (e) {
+    const mapped = mapDomainError(e, ctx.headers);
+    if (mapped) return mapped;
+    logError(context, 'landlord_notices.list.error', { actorUserId: ctx.user.id });
+    throw e;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Registrations
 // ---------------------------------------------------------------------------
+
+app.http('landlordListNotices', {
+  methods: ['GET', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'landlord/notices',
+  handler: handleListLandlordNotices,
+});
 
 app.http('portalListMyLeases', {
   methods: ['GET', 'OPTIONS'],

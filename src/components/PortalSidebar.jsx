@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Role } from '../domain/constants.js';
 import {
+  Badge,
   Box,
   Button,
   Divider,
@@ -30,11 +31,13 @@ import ContactMail from '@mui/icons-material/ContactMail';
 import Description from '@mui/icons-material/Description';
 import Payments from '@mui/icons-material/Payments';
 import VpnKey from '@mui/icons-material/VpnKey';
+import Gavel from '@mui/icons-material/Gavel';
 import HealthAndSafety from '@mui/icons-material/HealthAndSafety';
 import Send from '@mui/icons-material/Send';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
+import { useSidebarBadges } from '../hooks/useSidebarBadges';
 import { allowsDocumentCenter, landlordTierLimits } from '../portalTierUtils';
 import { isGuestRole, normalizeRole, resolveRole } from '../portalUtils';
 import { stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
@@ -49,6 +52,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
   const theme = useTheme();
   const { pathname } = useLocation();
   const { isAuthenticated, account, meData, meStatus, signOut } = usePortalAuth();
+  const badges = useSidebarBadges();
   const [signOutOpen, setSignOutOpen] = useState(false);
 
   const role = resolveRole(meData, account);
@@ -108,7 +112,18 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
             marginInlineEnd: collapsed && !isMobile ? 0 : undefined,
           }}
         >
-          {item.icon}
+          {item.badgeCount > 0 ? (
+            <Badge
+              badgeContent={item.badgeCount}
+              color="error"
+              max={99}
+              overlap="circular"
+            >
+              {item.icon}
+            </Badge>
+          ) : (
+            item.icon
+          )}
         </ListItemIcon>
         {(!collapsed || isMobile) && (
           <ListItemText
@@ -164,7 +179,10 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
   const toolItems = roleResolved && !isGuest
     ? [
         ...(normalized === Role.TENANT
-          ? [{ key: 'my-lease', to: '/portal/my-lease', label: t('portalLayout.sidebar.myLease'), icon: <VpnKey /> }]
+          ? [{ key: 'my-lease', to: '/portal/my-lease', label: t('portalLayout.sidebar.myLease'), icon: <VpnKey />, badgeCount: badges.notices }]
+          : []),
+        ...(normalized === Role.LANDLORD || normalized === Role.ADMIN
+          ? [{ key: 'notices', to: '/portal/notices', label: t('portalLayout.sidebar.notices'), icon: <Gavel />, badgeCount: badges.notices }]
           : []),
         { key: 'payments', to: '/portal/payments', label: t('portalLayout.sidebar.payments'), icon: <Payments /> },
         ...(showDocumentsNav
@@ -175,10 +193,10 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
 
   const messagesItems = roleResolved && !isGuest
     ? [
-        { key: 'inbox', to: '/portal/inbox/requests', label: t('portalLayout.sidebar.requests'), icon: <Assignment /> },
-        { key: 'notifications', to: '/portal/inbox/notifications', label: t('portalLayout.sidebar.notifications'), icon: <Notifications /> },
+        { key: 'inbox', to: '/portal/inbox/requests', label: t('portalLayout.sidebar.requests'), icon: <Assignment />, badgeCount: badges.requests },
+        { key: 'notifications', to: '/portal/inbox/notifications', label: t('portalLayout.sidebar.notifications'), icon: <Notifications />, badgeCount: badges.notifications },
         ...(normalized === Role.ADMIN
-          ? [{ key: 'contact', to: '/portal/inbox/contact', label: t('portalLayout.sidebar.adminContactUsMessages'), icon: <ContactMail /> }]
+          ? [{ key: 'contact', to: '/portal/inbox/contact', label: t('portalLayout.sidebar.adminContactUsMessages'), icon: <ContactMail />, badgeCount: badges.contact }]
           : []),
       ]
     : [];

@@ -30,6 +30,7 @@ import PortalConfirmDialog from './PortalConfirmDialog';
 import { fetchLandlords } from '../lib/portalApiClient';
 import { usePortalRequestDetailModal } from './PortalRequestDetailModalContext';
 import { allowsCsvExport, landlordTierLimits } from '../portalTierUtils';
+import { PORTAL_REQUESTS_LIST_REFRESH_EVENT } from '../lib/portalRequestsListBridge.js';
 
 const PortalRequests = () => {
   const { t } = useTranslation();
@@ -107,6 +108,16 @@ const PortalRequests = () => {
     listSelectionHintId: selectedRequestFromUrl,
     adminRequestLookupsLandlordId: isAdmin ? selectedLandlordId : '',
   });
+
+  const loadRequestsRef = useRef(loadRequests);
+  loadRequestsRef.current = loadRequests;
+  React.useEffect(() => {
+    const onListRefresh = () => {
+      void loadRequestsRef.current({ keepSelection: true, bustListCache: true });
+    };
+    window.addEventListener(PORTAL_REQUESTS_LIST_REFRESH_EVENT, onListRefresh);
+    return () => window.removeEventListener(PORTAL_REQUESTS_LIST_REFRESH_EVENT, onListRefresh);
+  }, []);
 
   const { openRequestDetail, closeRequestDetail } = usePortalRequestDetailModal();
 
@@ -385,7 +396,7 @@ const PortalRequests = () => {
               setRequestIdInUrl(id);
               openRequestDetail(id);
             }}
-            onReload={() => loadRequests({ keepSelection: true })}
+            onReload={() => loadRequests({ keepSelection: true, bustListCache: true })}
             reloadDisabled={!isAuthenticated || !baseUrl || isGuest || requestsStatus === 'loading'}
             showNewRequestButton
             onNewRequest={openCreateDialog}

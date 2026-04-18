@@ -312,6 +312,92 @@ export async function getLiveNoticeForLease(
   return r.rows[0] ?? null;
 }
 
+export type LandlordNoticeRow = LeaseNoticeRow & {
+  property_id: string;
+  property_street: string | null;
+  property_city: string | null;
+  property_state: string | null;
+  property_zip: string | null;
+};
+
+/**
+ * Lists every live notice on leases whose property is owned by the given actor,
+ * or every live notice system-wide when the actor is an ADMIN.
+ */
+export async function listLiveNoticesForLandlord(
+  client: Queryable,
+  actorRole: string,
+  actorUserId: string
+): Promise<LandlordNoticeRow[]> {
+  const role = actorRole.trim().toUpperCase();
+  const r = await client.query<LandlordNoticeRow>(
+    `SELECT n.id, n.lease_id, n.given_by_user_id,
+            CONVERT(NVARCHAR(10), n.given_on, 23)              AS given_on,
+            CONVERT(NVARCHAR(10), n.planned_move_out_date, 23) AS planned_move_out_date,
+            n.reason, n.reason_notes, n.scope, n.early_termination, n.status,
+            CONVERT(NVARCHAR(10), n.counter_proposed_date, 23) AS counter_proposed_date,
+            n.counter_proposed_notes, n.counter_proposed_at, n.counter_proposed_by,
+            n.responded_at, n.responded_by, n.withdrawn_at, n.withdrawn_by, n.landlord_notes,
+            n.forwarding_street, n.forwarding_street2, n.forwarding_city, n.forwarding_state,
+            n.forwarding_zip, n.forwarding_country,
+            n.created_at, n.updated_at,
+            p.id AS property_id,
+            p.street AS property_street, p.city AS property_city,
+            p.state AS property_state, p.zip AS property_zip
+     FROM lease_notices n
+     JOIN leases l     ON l.id = n.lease_id AND l.deleted_at IS NULL
+     JOIN properties p ON p.id = l.property_id AND p.deleted_at IS NULL
+     WHERE n.status NOT IN ('withdrawn', 'rejected', 'superseded', 'accepted')
+       AND ($1 = 'ADMIN' OR p.created_by = $2)
+     ORDER BY n.created_at DESC`,
+    [role, actorUserId]
+  );
+  return r.rows;
+}
+
+/**
+ * Count of notices that still need the landlord's explicit response.
+ * TENANT counts co-sign slots pending on them + notices where it's their turn
+ * (status=pending_tenant after a landlord counter-proposal).
+ */
+export async function countActionableNoticesForActor(
+  client: Queryable,
+  actorRole: string,
+  actorUserId: string
+): Promise<number> {
+  const role = actorRole.trim().toUpperCase();
+  if (role === 'LANDLORD' || role === 'ADMIN') {
+    const r = await client.query<{ cnt: number }>(
+      `SELECT COUNT(*) AS cnt
+       FROM lease_notices n
+       JOIN leases l     ON l.id = n.lease_id AND l.deleted_at IS NULL
+       JOIN properties p ON p.id = l.property_id AND p.deleted_at IS NULL
+       WHERE n.status = 'pending_landlord'
+         AND ($1 = 'ADMIN' OR p.created_by = $2)`,
+      [role, actorUserId]
+    );
+    return Number(r.rows[0]?.cnt ?? 0);
+  }
+  if (role === 'TENANT') {
+    const r = await client.query<{ cnt: number }>(
+      `SELECT
+          (SELECT COUNT(*)
+             FROM notice_co_signs cs
+             JOIN lease_notices n ON n.id = cs.notice_id
+            WHERE cs.tenant_user_id = $1
+              AND cs.signed_at IS NULL
+              AND n.status = 'pending_co_signers') +
+          (SELECT COUNT(*)
+             FROM lease_notices n
+             JOIN lease_tenants lt ON lt.lease_id = n.lease_id AND lt.user_id = $1
+            WHERE n.status = 'pending_tenant') AS cnt`,
+      [actorUserId]
+    );
+    return Number(r.rows[0]?.cnt ?? 0);
+  }
+  return 0;
+}
+
 export async function listNoticesForLease(
   client: Queryable,
   leaseId: string

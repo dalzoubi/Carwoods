@@ -2106,6 +2106,7 @@
       "notificationTest": "Notification test",
       "payments": "Payments",
       "myLease": "My lease",
+      "notices": "Notices",
       "collapse": "Collapse sidebar",
       "expand": "Expand sidebar",
       "signOut": "Sign out",
@@ -2147,9 +2148,25 @@
           "title": "Tenants",
           "body": "See tenants connected to your properties and manage invitations."
         },
+        "myLease": {
+          "title": "My lease",
+          "body": "View your current lease, submit a move-out notice, withdraw one you've given, or co-sign a notice from another leaseholder."
+        },
+        "notices": {
+          "title": "Move-out notices",
+          "body": "Review notices tenants have given and accept, counter-propose, or reject each one."
+        },
         "inbox": {
-          "title": "Inbox",
-          "body": "Open maintenance threads, portal notifications, and admin contact messages in one place."
+          "title": "Requests",
+          "body": "Open maintenance request threads and work them to completion."
+        },
+        "notifications": {
+          "title": "Notifications",
+          "body": "See portal notifications and jump to what they're about."
+        },
+        "contact": {
+          "title": "Contact Us messages",
+          "body": "Handle inquiries submitted through the public Contact Us form."
         },
         "documents": {
           "title": "Document Center",
@@ -2335,6 +2352,67 @@
     "orDivider": "or",
     "anyAccount": "Sign in with any account",
     "anyAccountAriaLabel": "Sign in — choose your account type"
+  },
+  "portalLandlordNotices": {
+    "title": "Carwoods - Move-out Notices",
+    "metaDescription": "Review and respond to tenant move-out notices.",
+    "heading": "Move-out notices",
+    "intro": "Tenants have given notice on the leases below. Respond by accepting, countering, or rejecting.",
+    "loading": "Loading notices…",
+    "noticeLabel": "Notice",
+    "earlyTermination": "Early termination",
+    "givenOn": "Given {{date}} · planned move-out {{planned}}",
+    "reasonLabel": "Reason",
+    "counterSent": "You counter-proposed move-out on {{date}}. {{notes}}",
+    "forwardingHeading": "Forwarding address",
+    "sections": {
+      "actionable": "Needs your response",
+      "waiting": "Waiting on tenants"
+    },
+    "status": {
+      "pending_co_signers": "Waiting on co-signers",
+      "pending_landlord": "Awaiting your response",
+      "pending_tenant": "Waiting on tenant"
+    },
+    "reasons": {
+      "relocating": "Relocating",
+      "job": "Job change",
+      "purchase": "Bought a home",
+      "early_termination": "Early termination",
+      "other": "Other"
+    },
+    "empty": {
+      "title": "No notices",
+      "description": "No tenants have given notice yet. They'll appear here when they do."
+    },
+    "actions": {
+      "respond": "Respond",
+      "cancel": "Cancel",
+      "submitResponse": "Submit response",
+      "saving": "Saving…"
+    },
+    "respondDialog": {
+      "title": "Respond to move-out notice",
+      "summary": "Notice for {{address}} · planned move-out {{planned}}.",
+      "decision": "Decision",
+      "accept": "Accept the planned move-out date",
+      "counter": "Counter-propose a different date",
+      "reject": "Reject this notice",
+      "counterDate": "Counter-proposed move-out date",
+      "counterNotes": "Notes (optional)"
+    },
+    "messages": {
+      "responded": "Response recorded.",
+      "accept": "Notice accepted.",
+      "counter": "Counter-proposal sent to tenant.",
+      "reject": "Notice rejected."
+    },
+    "errors": {
+      "apiUnavailable": "Portal API is not reachable right now.",
+      "accessDenied": "You don't have access to this page.",
+      "loadFailed": "Could not load notices.",
+      "respondFailed": "Could not submit your response."
+    }
   },
   "portalMyLease": {
     "title": "Carwoods - My Lease",

@@ -11,15 +11,24 @@
  * - tenant:{base}|{emailHint}|{tenantId}  — GET /api/landlord/tenants/:id (leases payload)
  */
 
+import { emitPortalSidebarBadgesRefresh } from './portalSidebarBadgesBridge.js';
+
 /** @typedef {{ data: unknown, etag: string, expiresAt: number }} PortalCacheEntry */
 
 const store = new Map();
 const inFlight = new Map();
+/** Per-cacheKey generation bumped on invalidation so stale in-flight GETs cannot repopulate the cache. */
+const cacheFetchEpoch = new Map();
+
+function bumpCacheFetchEpoch(cacheKey) {
+  cacheFetchEpoch.set(cacheKey, (cacheFetchEpoch.get(cacheKey) || 0) + 1);
+}
 
 /** Clears cached GET entries (call between tests to avoid cross-test leakage). */
 export function clearPortalDataCache() {
   store.clear();
   inFlight.clear();
+  cacheFetchEpoch.clear();
 }
 
 export const PORTAL_CACHE_PREFIX = {
@@ -55,15 +64,22 @@ export function buildPortalCacheKey(prefix, baseUrl, emailHint, extra = '') {
 
 export function invalidatePortalCacheByPrefix(prefix) {
   for (const k of [...store.keys()]) {
-    if (k.startsWith(prefix)) store.delete(k);
+    if (k.startsWith(prefix)) {
+      bumpCacheFetchEpoch(k);
+      store.delete(k);
+    }
   }
   for (const k of [...inFlight.keys()]) {
-    if (k.startsWith(prefix)) inFlight.delete(k);
+    if (k.startsWith(prefix)) {
+      bumpCacheFetchEpoch(k);
+      inFlight.delete(k);
+    }
   }
 }
 
 /** @param {string} cacheKey */
 export function deletePortalCacheKey(cacheKey) {
+  bumpCacheFetchEpoch(cacheKey);
   store.delete(cacheKey);
   inFlight.delete(cacheKey);
 }
@@ -74,6 +90,7 @@ export function deletePortalCacheKey(cacheKey) {
  */
 export function invalidateRequestsListCacheForUser(baseUrl, emailHint) {
   invalidatePortalCacheByPrefix(buildPortalCacheKey(PORTAL_CACHE_PREFIX.REQUESTS_LIST, baseUrl, emailHint, ''));
+  emitPortalSidebarBadgesRefresh();
 }
 
 /**
@@ -97,6 +114,7 @@ export function invalidateElsaCacheForUser(baseUrl, emailHint) {
  */
 export function invalidateNotificationsCacheForUser(baseUrl, emailHint) {
   invalidatePortalCacheByPrefix(buildPortalCacheKey(PORTAL_CACHE_PREFIX.NOTIFICATIONS, baseUrl, emailHint, ''));
+  emitPortalSidebarBadgesRefresh();
 }
 
 /**
@@ -119,11 +137,13 @@ export function invalidateTenantDetailCache(baseUrl, emailHint, tenantId) {
   deletePortalCacheKey(
     buildPortalCacheKey(PORTAL_CACHE_PREFIX.TENANT_DETAIL, baseUrl, emailHint, String(tenantId ?? ''))
   );
+  emitPortalSidebarBadgesRefresh();
 }
 
 /** When lease id is mutated without tenant id on hand, drop all cached tenant rows for this user. */
 export function invalidateAllTenantDetailCachesForUser(baseUrl, emailHint) {
   invalidatePortalCacheByPrefix(buildPortalCacheKey(PORTAL_CACHE_PREFIX.TENANT_DETAIL, baseUrl, emailHint, ''));
+  emitPortalSidebarBadgesRefresh();
 }
 
 function responseEtag(res) {
@@ -176,6 +196,7 @@ export async function portalCachedJsonGet({ cacheKey, ttlMs, fetchMode, url, pre
   }
 
   const promise = (async () => {
+    const epochAtStart = cacheFetchEpoch.get(cacheKey) || 0;
     const ifNoneMatch = entry?.etag || undefined;
     const headers = { ...prepareHeaders() };
     if (ifNoneMatch) {
@@ -201,10 +222,16 @@ export async function portalCachedJsonGet({ cacheKey, ttlMs, fetchMode, url, pre
         }
         const data = await retryRes.json();
         const etag = responseEtag(retryRes);
+        if ((cacheFetchEpoch.get(cacheKey) || 0) !== epochAtStart) {
+          return data;
+        }
         store.set(cacheKey, { data, etag, expiresAt: Date.now() + ttlMs });
         return data;
       }
       const nextExpires = Date.now() + ttlMs;
+      if ((cacheFetchEpoch.get(cacheKey) || 0) !== epochAtStart) {
+        return entry.data;
+      }
       store.set(cacheKey, { ...entry, expiresAt: nextExpires });
       return entry.data;
     }
@@ -216,6 +243,9 @@ export async function portalCachedJsonGet({ cacheKey, ttlMs, fetchMode, url, pre
 
     const data = await res.json();
     const etag = responseEtag(res);
+    if ((cacheFetchEpoch.get(cacheKey) || 0) !== epochAtStart) {
+      return data;
+    }
     store.set(cacheKey, { data, etag, expiresAt: Date.now() + ttlMs });
     return data;
   })();

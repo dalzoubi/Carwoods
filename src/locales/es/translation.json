@@ -1939,6 +1939,7 @@
       "notificationTest": "Prueba de notificaciones",
       "payments": "Pagos",
       "myLease": "Mi contrato",
+      "notices": "Avisos",
       "collapse": "Contraer barra lateral",
       "expand": "Expandir barra lateral",
       "signOut": "Cerrar sesión",
@@ -1980,9 +1981,25 @@
           "title": "Inquilinos",
           "body": "Vea inquilinos conectados a sus propiedades y gestione invitaciones."
         },
+        "myLease": {
+          "title": "Mi contrato",
+          "body": "Consulta tu contrato actual, envía un aviso de salida, retira uno que hayas dado o cofirma un aviso de otro inquilino del contrato."
+        },
+        "notices": {
+          "title": "Avisos de salida",
+          "body": "Revisa los avisos dados por los inquilinos y acéptalos, propone otra fecha o recházalos."
+        },
         "inbox": {
-          "title": "Bandeja",
-          "body": "Abra conversaciones de mantenimiento, notificaciones del portal y mensajes de contacto para administradores."
+          "title": "Solicitudes",
+          "body": "Abre conversaciones de solicitudes de mantenimiento y llévalas hasta su resolución."
+        },
+        "notifications": {
+          "title": "Notificaciones",
+          "body": "Consulta las notificaciones del portal y accede al elemento relacionado."
+        },
+        "contact": {
+          "title": "Mensajes de Contáctanos",
+          "body": "Atiende las consultas enviadas mediante el formulario público Contáctanos."
         },
         "documents": {
           "title": "Centro de documentos",
@@ -2168,6 +2185,67 @@
     "orDivider": "o",
     "anyAccount": "Iniciar sesión con otra cuenta",
     "anyAccountAriaLabel": "Iniciar sesión — elegir tipo de cuenta"
+  },
+  "portalLandlordNotices": {
+    "title": "Carwoods - Avisos de salida",
+    "metaDescription": "Revisa y responde a los avisos de salida de los inquilinos.",
+    "heading": "Avisos de salida",
+    "intro": "Los inquilinos han dado aviso sobre los contratos siguientes. Responde aceptando, proponiendo otra fecha o rechazando.",
+    "loading": "Cargando avisos…",
+    "noticeLabel": "Aviso",
+    "earlyTermination": "Terminación anticipada",
+    "givenOn": "Emitido el {{date}} · salida prevista el {{planned}}",
+    "reasonLabel": "Motivo",
+    "counterSent": "Propusiste como contraoferta la salida el {{date}}. {{notes}}",
+    "forwardingHeading": "Dirección de reenvío",
+    "sections": {
+      "actionable": "Requiere tu respuesta",
+      "waiting": "Esperando a los inquilinos"
+    },
+    "status": {
+      "pending_co_signers": "Esperando cofirmantes",
+      "pending_landlord": "Esperando tu respuesta",
+      "pending_tenant": "Esperando al inquilino"
+    },
+    "reasons": {
+      "relocating": "Reubicación",
+      "job": "Cambio de trabajo",
+      "purchase": "Compra de vivienda",
+      "early_termination": "Terminación anticipada",
+      "other": "Otro"
+    },
+    "empty": {
+      "title": "Sin avisos",
+      "description": "Aún ningún inquilino ha dado aviso. Aparecerán aquí cuando lo hagan."
+    },
+    "actions": {
+      "respond": "Responder",
+      "cancel": "Cancelar",
+      "submitResponse": "Enviar respuesta",
+      "saving": "Guardando…"
+    },
+    "respondDialog": {
+      "title": "Responder al aviso de salida",
+      "summary": "Aviso para {{address}} · salida prevista el {{planned}}.",
+      "decision": "Decisión",
+      "accept": "Aceptar la fecha de salida prevista",
+      "counter": "Proponer otra fecha",
+      "reject": "Rechazar este aviso",
+      "counterDate": "Fecha de salida contrapropuesta",
+      "counterNotes": "Notas (opcional)"
+    },
+    "messages": {
+      "responded": "Respuesta registrada.",
+      "accept": "Aviso aceptado.",
+      "counter": "Contrapropuesta enviada al inquilino.",
+      "reject": "Aviso rechazado."
+    },
+    "errors": {
+      "apiUnavailable": "La API del portal no está disponible en este momento.",
+      "accessDenied": "No tienes acceso a esta página.",
+      "loadFailed": "No se pudieron cargar los avisos.",
+      "respondFailed": "No se pudo enviar tu respuesta."
+    }
   },
   "portalMyLease": {
     "title": "Carwoods - Mi contrato",

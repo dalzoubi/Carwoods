@@ -381,14 +381,18 @@ const PortalDashboard = () => {
   const [requests, setRequests] = useState([]);
   const [reqStatus, setReqStatus] = useState('idle');
 
-  const loadRequests = useCallback(async () => {
+  const loadRequests = useCallback(async (opts = {}) => {
     if (!baseUrl || !isAuthenticated || isGuest) return;
     setReqStatus('loading');
     try {
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
       const path = isManagement ? '/api/landlord/requests' : '/api/portal/requests';
-      const data = await fetchRequests(baseUrl, token, { path, emailHint });
+      const data = await fetchRequests(baseUrl, token, {
+        path,
+        emailHint,
+        bypassCache: Boolean(opts.bypassCache),
+      });
       setRequests(Array.isArray(data) ? data : data?.requests ?? []);
       setReqStatus('ok');
     } catch {
@@ -559,7 +563,7 @@ const PortalDashboard = () => {
                 <Stack direction="row" spacing={1} alignItems="center">
                   <PortalRefreshButton
                     label={t('portalDashboard.actions.refresh')}
-                    onClick={() => void loadRequests()}
+                    onClick={() => void loadRequests({ bypassCache: true })}
                     loading={reqStatus === 'loading'}
                   />
                   {requests.length > 0 && (

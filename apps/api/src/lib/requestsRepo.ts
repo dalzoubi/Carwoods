@@ -636,6 +636,39 @@ export async function getRequestById(client: Queryable, id: string): Promise<Req
   return row ? mapRequestRow(row) : null;
 }
 
+/**
+ * Counts "open" maintenance requests the actor should see in their inbox.
+ * Open = status is not COMPLETE / CANCELLED.
+ * TENANT → requests on leases they're on. LANDLORD → requests on their properties.
+ * ADMIN → all.
+ */
+export async function countOpenRequestsForActor(
+  client: Queryable,
+  actorRole: string,
+  actorUserId: string
+): Promise<number> {
+  const role = actorRole.trim().toUpperCase();
+  const r = await client.query<{ cnt: number }>(
+    `SELECT COUNT(DISTINCT mr.id) AS cnt
+     FROM maintenance_requests mr
+     LEFT JOIN request_statuses rs ON rs.id = mr.current_status_id
+     LEFT JOIN properties p ON p.id = mr.property_id
+     LEFT JOIN lease_tenants lt
+       ON lt.lease_id = mr.lease_id
+      AND lt.user_id = $2
+      AND (lt.access_end_at IS NULL OR lt.access_end_at > SYSDATETIMEOFFSET())
+     WHERE mr.deleted_at IS NULL
+       AND (rs.code IS NULL OR rs.code NOT IN ('COMPLETE', 'CANCELLED'))
+       AND (
+         $1 = 'ADMIN'
+         OR ($1 = 'LANDLORD' AND p.created_by = $2)
+         OR ($1 = 'TENANT' AND lt.user_id IS NOT NULL)
+       )`,
+    [role, actorUserId]
+  );
+  return Number(r.rows[0]?.cnt ?? 0);
+}
+
 export async function tenantCanAccessRequest(
   client: Queryable,
   requestId: string,

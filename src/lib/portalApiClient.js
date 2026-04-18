@@ -24,6 +24,7 @@ import {
   invalidateTenantDetailCache,
   invalidateAllTenantDetailCachesForUser,
 } from './portalDataCache.js';
+import { emitPortalSidebarBadgesRefresh } from './portalSidebarBadgesBridge.js';
 
 function buildUrl(baseUrl, path) {
   return `${baseUrl.replace(/\/$/, '')}${path}`;
@@ -115,14 +116,18 @@ export async function fetchMe(baseUrl, accessToken, emailHint, signal) {
  *
  * @param {string} baseUrl
  * @param {string} accessToken
- * @param {{ path: string, emailHint?: string }} params
+ * @param {{ path: string, emailHint?: string, bypassCache?: boolean }} params
  *   path — full path including query string, e.g. '/api/portal/requests'
  * @returns {Promise<object>}
  */
 export async function fetchRequests(baseUrl, accessToken, params) {
-  const { path, emailHint } = params;
-  const url = buildUrl(baseUrl, path);
-  const cacheKey = buildPortalCacheKey(PORTAL_CACHE_PREFIX.REQUESTS_LIST, baseUrl, emailHint, path);
+  const { path, emailHint, bypassCache } = params;
+  const effectivePath =
+    bypassCache
+      ? `${path}${path.includes('?') ? '&' : '?'}_pcb=${Date.now()}`
+      : path;
+  const url = buildUrl(baseUrl, effectivePath);
+  const cacheKey = buildPortalCacheKey(PORTAL_CACHE_PREFIX.REQUESTS_LIST, baseUrl, emailHint, effectivePath);
   return portalCachedJsonGet({
     cacheKey,
     ttlMs: PORTAL_CACHE_TTL_MS.REQUESTS_LIST,
@@ -1055,7 +1060,9 @@ export async function patchAdminContactRequestStatus(baseUrl, accessToken, param
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const payload = await res.json();
+  emitPortalSidebarBadgesRefresh();
+  return payload;
 }
 
 /**
@@ -1077,6 +1084,7 @@ export async function deleteAdminContactRequest(baseUrl, accessToken, params) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
+  emitPortalSidebarBadgesRefresh();
 }
 
 // ---------------------------------------------------------------------------
@@ -1180,6 +1188,7 @@ export async function processElsaRequest(baseUrl, accessToken, requestId, payloa
   const processPayload = await res.json();
   invalidateElsaCacheForUser(baseUrl, emailHint);
   invalidateMessagesCacheForRequest(baseUrl, emailHint, requestId);
+  invalidateRequestsListCacheForUser(baseUrl, emailHint);
   return processPayload;
 }
 
@@ -1242,6 +1251,7 @@ export async function patchElsaDecisionReview(baseUrl, accessToken, requestId, d
   }
   const decisionReview = await res.json();
   invalidateElsaCacheForUser(baseUrl, emailHint);
+  invalidateRequestsListCacheForUser(baseUrl, emailHint);
   return decisionReview;
 }
 
@@ -1705,7 +1715,9 @@ export async function createTenant(baseUrl, accessToken, payload) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const createdTenant = await res.json();
+  emitPortalSidebarBadgesRefresh();
+  return createdTenant;
 }
 
 /**
@@ -2083,7 +2095,9 @@ export async function giveNotice(baseUrl, accessToken, leaseId, payload) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const noticePayload = await res.json();
+  emitPortalSidebarBadgesRefresh();
+  return noticePayload;
 }
 
 /**
@@ -2102,7 +2116,9 @@ export async function coSignNotice(baseUrl, accessToken, noticeId, params) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const coSignPayload = await res.json();
+  emitPortalSidebarBadgesRefresh();
+  return coSignPayload;
 }
 
 /**
@@ -2116,6 +2132,41 @@ export async function withdrawNotice(baseUrl, accessToken, noticeId, params) {
     headers: getHeaders(accessToken, emailHint),
     credentials: 'omit',
     body: JSON.stringify({}),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  const withdrawPayload = await res.json();
+  emitPortalSidebarBadgesRefresh();
+  return withdrawPayload;
+}
+
+/**
+ * GET /api/portal/sidebar-badges — per-nav-item counts for the sidebar.
+ * Returns { requests, notifications, notices, contact }.
+ */
+export async function fetchSidebarBadges(baseUrl, accessToken, { emailHint } = {}) {
+  const res = await fetch(buildUrl(baseUrl, '/api/portal/sidebar-badges'), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * GET /api/landlord/notices — lists live notices across the landlord's properties.
+ */
+export async function fetchLandlordNotices(baseUrl, accessToken, { emailHint } = {}) {
+  const res = await fetch(buildUrl(baseUrl, '/api/landlord/notices'), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
   });
   if (!res.ok) {
     const code = await readErrorBody(res);
@@ -2142,7 +2193,9 @@ export async function respondToNotice(baseUrl, accessToken, noticeId, payload) {
     const code = await readErrorBody(res);
     throw apiError(res.status, code);
   }
-  return res.json();
+  const respondPayload = await res.json();
+  emitPortalSidebarBadgesRefresh();
+  return respondPayload;
 }
 
 /**

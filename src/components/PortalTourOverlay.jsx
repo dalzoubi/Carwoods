@@ -23,6 +23,8 @@ import { FEATURE_DARK_THEME } from '../featureFlags';
 import { isDarkPreviewRoute } from '../routePaths';
 import { buildPortalTourSteps } from '../portalTour/buildPortalTourSteps';
 import { isGuestRole, normalizeRole, resolveRole } from '../portalUtils';
+import { allowsDocumentCenter, landlordTierLimits } from '../portalTierUtils';
+import { Role } from '../domain/constants.js';
 
 const RING_PAD = 6;
 const MODAL_Z = 1700;
@@ -54,6 +56,8 @@ const PortalTourOverlay = () => {
   const roleResolved = isAuthenticated && meStatus !== 'loading';
 
   const showAppearanceMenu = FEATURE_DARK_THEME || isDarkPreviewRoute(pathname);
+  const showDocumentsNav =
+    normalizedRole !== Role.TENANT || allowsDocumentCenter(landlordTierLimits(meData));
 
   const steps = useMemo(
     () =>
@@ -65,8 +69,9 @@ const PortalTourOverlay = () => {
         normalizedRole,
         isGuest,
         roleResolved,
+        showDocumentsNav,
       }),
-    [isMobile, showAppearanceMenu, isAuthenticated, normalizedRole, isGuest, roleResolved]
+    [isMobile, showAppearanceMenu, isAuthenticated, normalizedRole, isGuest, roleResolved, showDocumentsNav]
   );
 
   const lastIndex = Math.max(0, steps.length - 1);

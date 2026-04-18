@@ -1939,6 +1939,7 @@
       "notificationTest": "Test des notifications",
       "payments": "Paiements",
       "myLease": "Mon bail",
+      "notices": "Préavis",
       "collapse": "Réduire la barre latérale",
       "expand": "Développer la barre latérale",
       "signOut": "Se déconnecter",
@@ -1980,9 +1981,25 @@
           "title": "Locataires",
           "body": "Voir les locataires liés à vos biens et gérer les invitations."
         },
+        "myLease": {
+          "title": "Mon bail",
+          "body": "Consultez votre bail en cours, soumettez un préavis de départ, retirez un préavis que vous avez donné ou cosignez un préavis d'un autre colocataire."
+        },
+        "notices": {
+          "title": "Préavis de départ",
+          "body": "Consultez les préavis donnés par les locataires et acceptez-les, proposez une autre date ou refusez-les."
+        },
         "inbox": {
-          "title": "Boîte de réception",
-          "body": "Ouvrez les fils d’entretien, les notifications du portail et les messages Contactez-nous pour les administrateurs."
+          "title": "Demandes",
+          "body": "Ouvrez les fils de demandes d'entretien et suivez-les jusqu'à résolution."
+        },
+        "notifications": {
+          "title": "Notifications",
+          "body": "Consultez les notifications du portail et accédez à ce qu'elles concernent."
+        },
+        "contact": {
+          "title": "Messages Contactez-nous",
+          "body": "Traitez les demandes envoyées via le formulaire public Contactez-nous."
         },
         "documents": {
           "title": "Centre de documents",
@@ -2168,6 +2185,67 @@
     "orDivider": "ou",
     "anyAccount": "Se connecter avec un autre compte",
     "anyAccountAriaLabel": "Se connecter — choisir un type de compte"
+  },
+  "portalLandlordNotices": {
+    "title": "Carwoods - Préavis de départ",
+    "metaDescription": "Consultez et répondez aux préavis de départ des locataires.",
+    "heading": "Préavis de départ",
+    "intro": "Les locataires ont donné un préavis sur les baux ci-dessous. Répondez en acceptant, en proposant une contre-date ou en refusant.",
+    "loading": "Chargement des préavis…",
+    "noticeLabel": "Préavis",
+    "earlyTermination": "Résiliation anticipée",
+    "givenOn": "Donné le {{date}} · départ prévu le {{planned}}",
+    "reasonLabel": "Motif",
+    "counterSent": "Vous avez proposé un départ le {{date}}. {{notes}}",
+    "forwardingHeading": "Adresse de réexpédition",
+    "sections": {
+      "actionable": "Nécessite votre réponse",
+      "waiting": "En attente des locataires"
+    },
+    "status": {
+      "pending_co_signers": "En attente des cosignataires",
+      "pending_landlord": "En attente de votre réponse",
+      "pending_tenant": "En attente du locataire"
+    },
+    "reasons": {
+      "relocating": "Déménagement",
+      "job": "Changement d'emploi",
+      "purchase": "Achat d'un logement",
+      "early_termination": "Résiliation anticipée",
+      "other": "Autre"
+    },
+    "empty": {
+      "title": "Aucun préavis",
+      "description": "Aucun locataire n'a donné de préavis pour le moment. Ils apparaîtront ici le cas échéant."
+    },
+    "actions": {
+      "respond": "Répondre",
+      "cancel": "Annuler",
+      "submitResponse": "Envoyer la réponse",
+      "saving": "Enregistrement…"
+    },
+    "respondDialog": {
+      "title": "Répondre au préavis de départ",
+      "summary": "Préavis pour {{address}} · départ prévu le {{planned}}.",
+      "decision": "Décision",
+      "accept": "Accepter la date de départ prévue",
+      "counter": "Proposer une autre date",
+      "reject": "Refuser ce préavis",
+      "counterDate": "Date de départ contre-proposée",
+      "counterNotes": "Notes (facultatif)"
+    },
+    "messages": {
+      "responded": "Réponse enregistrée.",
+      "accept": "Préavis accepté.",
+      "counter": "Contre-proposition envoyée au locataire.",
+      "reject": "Préavis refusé."
+    },
+    "errors": {
+      "apiUnavailable": "L'API du portail n'est pas accessible actuellement.",
+      "accessDenied": "Vous n'avez pas accès à cette page.",
+      "loadFailed": "Impossible de charger les préavis.",
+      "respondFailed": "Impossible d'envoyer votre réponse."
+    }
   },
   "portalMyLease": {
     "title": "Carwoods - Mon bail",

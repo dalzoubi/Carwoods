@@ -3,16 +3,43 @@ import { Role } from '../domain/constants.js';
 import { buildPortalTourSteps, getPortalTourNavKeys } from './buildPortalTourSteps.js';
 
 describe('getPortalTourNavKeys', () => {
-  it('includes dashboard, inbox, documents, and ledger for active tenant', () => {
+  it('orders tenant nav as dashboard → my-lease → payments → documents → inbox → notifications → profile', () => {
     const keys = getPortalTourNavKeys({
       normalizedRole: Role.TENANT,
       isGuest: false,
       roleResolved: true,
     });
-    expect(keys).toEqual(['dashboard', 'inbox', 'documents', 'payments', 'profile']);
+    expect(keys).toEqual([
+      'dashboard',
+      'my-lease',
+      'payments',
+      'documents',
+      'inbox',
+      'notifications',
+      'profile',
+    ]);
   });
 
-  it('omits inbox and profile for guests', () => {
+  it('hides documents for tenant when Document Center is not available', () => {
+    const keys = getPortalTourNavKeys({
+      normalizedRole: Role.TENANT,
+      isGuest: false,
+      roleResolved: true,
+      showDocumentsNav: false,
+    });
+    expect(keys).not.toContain('documents');
+    // order stays the same otherwise
+    expect(keys).toEqual([
+      'dashboard',
+      'my-lease',
+      'payments',
+      'inbox',
+      'notifications',
+      'profile',
+    ]);
+  });
+
+  it('omits everything except dashboard for guests', () => {
     const keys = getPortalTourNavKeys({
       normalizedRole: Role.TENANT,
       isGuest: true,
@@ -21,15 +48,46 @@ describe('getPortalTourNavKeys', () => {
     expect(keys).toEqual(['dashboard']);
   });
 
-  it('includes admin and health links for admin', () => {
+  it('orders landlord nav with properties, tenants, notices then tools + messages + profile', () => {
+    const keys = getPortalTourNavKeys({
+      normalizedRole: Role.LANDLORD,
+      isGuest: false,
+      roleResolved: true,
+    });
+    expect(keys).toEqual([
+      'dashboard',
+      'properties',
+      'tenants',
+      'notices',
+      'payments',
+      'documents',
+      'inbox',
+      'notifications',
+      'profile',
+    ]);
+  });
+
+  it('orders admin nav with notices, contact and admin/health groups before profile', () => {
     const keys = getPortalTourNavKeys({
       normalizedRole: Role.ADMIN,
       isGuest: false,
       roleResolved: true,
     });
-    expect(keys).toContain('admin');
-    expect(keys).toContain('health-status');
-    expect(keys).toContain('health-notification-test');
+    expect(keys).toEqual([
+      'dashboard',
+      'properties',
+      'tenants',
+      'notices',
+      'payments',
+      'documents',
+      'inbox',
+      'notifications',
+      'contact',
+      'admin',
+      'health-status',
+      'health-notification-test',
+      'profile',
+    ]);
   });
 });
 
@@ -49,6 +107,7 @@ describe('buildPortalTourSteps', () => {
     const ids = steps.map((s) => s.targetId);
     expect(ids).toContain('portal-language-button');
     expect(ids).toContain('portal-tour-help');
+    expect(ids).toContain('portal-tour-nav-my-lease');
   });
 
   it('inserts mobile menu first on small screens', () => {

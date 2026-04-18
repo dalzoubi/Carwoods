@@ -1,20 +1,57 @@
 import { Role } from '../domain/constants.js';
 
-/** @param {{ normalizedRole: string, isGuest: boolean, roleResolved: boolean }} p */
-export function getPortalTourNavKeys({ normalizedRole, isGuest, roleResolved }) {
+/**
+ * @param {{ normalizedRole: string, isGuest: boolean, roleResolved: boolean, showDocumentsNav?: boolean }} p
+ * @returns {string[]} Ordered nav item keys — matches the PortalSidebar rendering order.
+ */
+export function getPortalTourNavKeys({
+  normalizedRole,
+  isGuest,
+  roleResolved,
+  showDocumentsNav = true,
+}) {
+  /** @type {string[]} */
   const keys = ['dashboard'];
-  if (normalizedRole === Role.ADMIN) {
-    keys.push('admin');
-  }
-  if (roleResolved && (normalizedRole === Role.LANDLORD || normalizedRole === Role.ADMIN)) {
+
+  const isLandlordOrAdmin = normalizedRole === Role.LANDLORD || normalizedRole === Role.ADMIN;
+
+  // manage group (landlord/admin)
+  if (roleResolved && isLandlordOrAdmin) {
     keys.push('properties', 'tenants');
   }
+
+  // tools group (non-guest)
   if (roleResolved && !isGuest) {
-    keys.push('inbox', 'documents', 'payments', 'profile');
+    if (normalizedRole === Role.TENANT) {
+      keys.push('my-lease');
+    }
+    if (isLandlordOrAdmin) {
+      keys.push('notices');
+    }
+    keys.push('payments');
+    if (showDocumentsNav) {
+      keys.push('documents');
+    }
   }
+
+  // messages group (non-guest)
+  if (roleResolved && !isGuest) {
+    keys.push('inbox', 'notifications');
+    if (normalizedRole === Role.ADMIN) {
+      keys.push('contact');
+    }
+  }
+
+  // admin + health (admin only)
   if (roleResolved && normalizedRole === Role.ADMIN) {
-    keys.push('health-status', 'health-notification-test');
+    keys.push('admin', 'health-status', 'health-notification-test');
   }
+
+  // profile (non-guest, rendered at the bottom of the sidebar)
+  if (roleResolved && !isGuest) {
+    keys.push('profile');
+  }
+
   return keys;
 }
 
@@ -23,7 +60,11 @@ const NAV_I18N = {
   admin: 'admin',
   properties: 'properties',
   tenants: 'tenants',
+  'my-lease': 'myLease',
+  notices: 'notices',
   inbox: 'inbox',
+  notifications: 'notifications',
+  contact: 'contact',
   documents: 'documents',
   payments: 'payments',
   profile: 'profile',
@@ -40,6 +81,7 @@ const NAV_I18N = {
  *   normalizedRole: string,
  *   isGuest: boolean,
  *   roleResolved: boolean,
+ *   showDocumentsNav?: boolean,
  * }} params
  * @returns {{ targetId: string, titleKey: string, bodyKey: string }[]}
  */
@@ -51,8 +93,9 @@ export function buildPortalTourSteps({
   normalizedRole,
   isGuest,
   roleResolved,
+  showDocumentsNav = true,
 }) {
-  const navKeys = getPortalTourNavKeys({ normalizedRole, isGuest, roleResolved });
+  const navKeys = getPortalTourNavKeys({ normalizedRole, isGuest, roleResolved, showDocumentsNav });
   const steps = [];
 
   if (isMobile) {
