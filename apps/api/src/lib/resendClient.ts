@@ -29,10 +29,19 @@ export async function sendResendEmail(params: {
   to: string;
   subject: string;
   text: string;
+  replyTo?: string;
 }): Promise<string | null> {
   const apiKey = getApiKey();
   const from = process.env.RESEND_EMAIL_FROM?.trim();
   if (!from) throw new ResendNotConfiguredError('RESEND_EMAIL_FROM not configured');
+
+  const body: Record<string, unknown> = {
+    from,
+    to: params.to,
+    subject: params.subject,
+    text: params.text,
+  };
+  if (params.replyTo) body.reply_to = params.replyTo;
 
   const res = await fetch(`${RESEND_API_BASE}/emails`, {
     method: 'POST',
@@ -40,12 +49,7 @@ export async function sendResendEmail(params: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      from,
-      to: params.to,
-      subject: params.subject,
-      text: params.text,
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) throw new Error(await parseError(res));
