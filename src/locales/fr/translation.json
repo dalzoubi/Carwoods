@@ -1929,7 +1929,7 @@
       "documents": "Centre de documents",
       "profile": "Profil",
       "adminLandlords": "Propriétaires",
-      "adminContactUsMessages": "Messages Contactez-nous",
+      "adminContactUsMessages": "Contactez-nous",
       "adminConfigurations": "Configurations",
       "adminAiConfig": "Configuration IA",
       "notificationPolicies": "Politiques de notification",
@@ -2002,7 +2002,7 @@
           "body": "Consultez les notifications du portail et accédez à ce qu'elles concernent."
         },
         "contact": {
-          "title": "Messages Contactez-nous",
+          "title": "Contactez-nous",
           "body": "Traitez les demandes envoyées via le formulaire public Contactez-nous."
         },
         "documents": {
@@ -2053,9 +2053,9 @@
     }
   },
   "portalAdminContactRequests": {
-    "title": "Portail Carwoods — Messages Contactez-nous",
+    "title": "Portail Carwoods — Contactez-nous",
     "refresh": "Actualiser les messages",
-    "heading": "Messages Contactez-nous",
+    "heading": "Contactez-nous",
     "intro": "Les demandes envoyées via le formulaire public Contactez-nous apparaissent ici.",
     "highlightAnnouncement": "Message de {{name}} mis en évidence.",
     "unreadBadge": "{{count}} non lus",
@@ -2081,9 +2081,24 @@
     "deleteConfirmAction": "Supprimer",
     "deleteCancel": "Annuler",
     "showingCount": "Affichage de {{shown}} sur {{total}}.",
+    "selectAllAria": "Sélectionner tous les messages sur cette page",
+    "selectVisibleHint": "Sélectionnez des messages pour agir",
+    "selectRowAria": "Sélectionner le message de {{name}}",
+    "selectedCount": "{{count}} sélectionné(s)",
+    "clearSelection": "Effacer la sélection",
+    "bulkMarkAsRead": "Marquer comme lu(s)",
+    "bulkMarkAsHandled": "Marquer comme traité(s)",
+    "bulkDelete": "Supprimer la sélection",
+    "bulkDeleteConfirmTitle": "Supprimer {{count}} messages ?",
+    "bulkDeleteConfirmBody": "Cela supprime définitivement les messages sélectionnés de la base de données. Cette action est irréversible.",
+    "bulkDeleteConfirmAction": "Supprimer",
     "feedback": {
       "statusUpdated": "Statut mis à jour : {{status}}.",
-      "deleted": "Message supprimé."
+      "deleted": "Message supprimé.",
+      "bulkStatusUpdated": "{{count}} message(s) mis à jour vers {{status}}.",
+      "bulkPartialFailure": "{{failed}} sur {{total}} n’ont pas pu être mis à jour.",
+      "bulkDeleted": "{{count}} message(s) supprimé(s).",
+      "bulkDeletePartialFailure": "{{failed}} sur {{total}} n’ont pas pu être supprimés."
     },
     "errors": {
       "apiUnavailable": "Définissez VITE_API_BASE_URL pour charger les messages de contact.",

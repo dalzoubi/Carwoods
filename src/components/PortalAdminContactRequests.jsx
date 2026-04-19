@@ -18,6 +18,7 @@ import Divider from '@mui/material/Divider';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
+import Checkbox from '@mui/material/Checkbox';
 import ContactMail from '@mui/icons-material/ContactMail';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -43,6 +44,24 @@ import MailtoEmailLink from './MailtoEmailLink';
 import EmptyState from './EmptyState';
 
 const UUID_HASH_RE = /^#[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/** Fixed leading column so “select all” and row checkboxes share one vertical axis (LTR + RTL). */
+const CONTACT_HEADER_CHECKBOX_COL_SX = {
+  flexShrink: 0,
+  width: 48,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
+const CONTACT_ROW_CHECKBOX_COL_SX = {
+  flexShrink: 0,
+  width: 48,
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'center',
+  pt: 1.25,
+};
 
 function statusColor(status) {
   if (status === 'UNREAD') return 'error';
@@ -76,13 +95,15 @@ export default function PortalAdminContactRequests() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const [selected, setSelected] = useState(null);
+  const [detailRow, setDetailRow] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [highlightTargetId, setHighlightTargetId] = useState(null);
   const [highlightAnnouncement, setHighlightAnnouncement] = useState('');
   const hlAttemptedRef = useRef(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -130,6 +151,10 @@ export default function PortalAdminContactRequests() {
   }, [load]);
 
   useEffect(() => {
+    setSelectedIds((prev) => prev.filter((id) => rows.some((r) => r.id === id)));
+  }, [rows]);
+
+  useEffect(() => {
     const h = String(hash ?? '').trim();
     if (!h || !UUID_HASH_RE.test(h)) {
       setHighlightTargetId(null);
@@ -165,6 +190,25 @@ export default function PortalAdminContactRequests() {
     ready: !loading,
   });
 
+  const visibleIds = rows.map((r) => r.id);
+  const allVisibleSelected = visibleIds.length > 0
+    && visibleIds.every((id) => selectedIds.includes(id));
+  const someVisibleSelected = visibleIds.some((id) => selectedIds.includes(id));
+
+  const toggleRowSelected = (id) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  const handleSelectAllVisible = () => {
+    if (allVisibleSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !visibleIds.includes(id)));
+    } else {
+      setSelectedIds((prev) => [...new Set([...prev, ...visibleIds])]);
+    }
+  };
+
+  const clearRowSelection = () => setSelectedIds([]);
+
   const handleStatusChange = async (row, newStatus) => {
     if (!baseUrl) return;
     setSaving(true);
@@ -177,7 +221,7 @@ export default function PortalAdminContactRequests() {
         emailHint,
       });
       showFeedback(t('portalAdminContactRequests.feedback.statusUpdated', { status: newStatus }));
-      setSelected(null);
+      setDetailRow(null);
       void load();
     } catch (err) {
       handleApiForbidden(err);
@@ -187,19 +231,91 @@ export default function PortalAdminContactRequests() {
     }
   };
 
+  const handleBulkStatusChange = async (newStatus) => {
+    const ids = [...selectedIds];
+    if (!baseUrl || ids.length === 0) return;
+    setSaving(true);
+    setSaveError('');
+    try {
+      const token = await getAccessToken();
+      const results = await Promise.allSettled(
+        ids.map((requestId) => patchAdminContactRequestStatus(baseUrl, token, {
+          requestId,
+          status: newStatus,
+          emailHint,
+        }))
+      );
+      const updatedOk = ids.filter((id, i) => results[i].status === 'fulfilled');
+      const failed = results.length - updatedOk.length;
+      if (failed > 0) {
+        showFeedback(
+          t('portalAdminContactRequests.feedback.bulkPartialFailure', { failed, total: ids.length }),
+          'error'
+        );
+      } else {
+        showFeedback(
+          t('portalAdminContactRequests.feedback.bulkStatusUpdated', { count: ids.length, status: newStatus })
+        );
+      }
+      if (failed === 0) {
+        setSelectedIds([]);
+      }
+      setDetailRow((d) => (d && updatedOk.includes(d.id) ? null : d));
+      void load({ silent: true });
+    } catch (err) {
+      handleApiForbidden(err);
+      setSaveError(t('portalAdminContactRequests.errors.saveFailed'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleBulkDeleteConfirmed = async () => {
+    const ids = [...selectedIds];
+    if (!baseUrl || ids.length === 0) return;
+    setDeleting(true);
+    setSaveError('');
+    try {
+      const token = await getAccessToken();
+      const results = await Promise.allSettled(
+        ids.map((requestId) => deleteAdminContactRequest(baseUrl, token, { requestId, emailHint }))
+      );
+      const deletedOk = ids.filter((id, i) => results[i].status === 'fulfilled');
+      const failed = results.length - deletedOk.length;
+      if (failed > 0) {
+        showFeedback(
+          t('portalAdminContactRequests.feedback.bulkDeletePartialFailure', { failed, total: ids.length }),
+          'error'
+        );
+      } else {
+        showFeedback(t('portalAdminContactRequests.feedback.bulkDeleted', { count: ids.length }));
+        setSelectedIds([]);
+      }
+      setBulkDeleteConfirmOpen(false);
+      setDetailRow((d) => (d && deletedOk.includes(d.id) ? null : d));
+      void load({ silent: true });
+    } catch (err) {
+      handleApiForbidden(err);
+      showFeedback(t('portalAdminContactRequests.errors.deleteFailed'), 'error');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const handleDeleteConfirmed = async () => {
-    if (!selected || !baseUrl) return;
+    if (!detailRow || !baseUrl) return;
     setDeleting(true);
     setSaveError('');
     try {
       const token = await getAccessToken();
       await deleteAdminContactRequest(baseUrl, token, {
-        requestId: selected.id,
+        requestId: detailRow.id,
         emailHint,
       });
       showFeedback(t('portalAdminContactRequests.feedback.deleted'));
       setDeleteConfirmOpen(false);
-      setSelected(null);
+      setDetailRow(null);
+      setSelectedIds((prev) => prev.filter((id) => id !== detailRow.id));
       void load();
     } catch (err) {
       handleApiForbidden(err);
@@ -315,19 +431,107 @@ export default function PortalAdminContactRequests() {
           title={t('portalAdminContactRequests.noRequests')}
         />
       ) : (
+        <>
+          <Stack
+            direction="row"
+            alignItems="center"
+            flexWrap="wrap"
+            gap={1}
+            sx={{ mb: 1.5 }}
+          >
+            <Stack direction="row" alignItems="center" gap={1} sx={{ flex: '1 1 auto', minWidth: 0 }}>
+              <Box sx={CONTACT_HEADER_CHECKBOX_COL_SX}>
+                <Checkbox
+                  edge="start"
+                  size="small"
+                  indeterminate={someVisibleSelected && !allVisibleSelected}
+                  checked={allVisibleSelected}
+                  onChange={handleSelectAllVisible}
+                  disabled={saving || deleting}
+                  inputProps={{
+                    'aria-label': t('portalAdminContactRequests.selectAllAria'),
+                  }}
+                />
+              </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ flex: 1, minWidth: 0 }}>
+                {selectedIds.length > 0
+                  ? t('portalAdminContactRequests.selectedCount', { count: selectedIds.length })
+                  : t('portalAdminContactRequests.selectVisibleHint')}
+              </Typography>
+            </Stack>
+            {selectedIds.length > 0 && (
+              <Stack direction="row" alignItems="center" flexWrap="wrap" gap={0.5}>
+                <Button
+                  type="button"
+                  size="small"
+                  onClick={clearRowSelection}
+                  disabled={saving || deleting}
+                >
+                  {t('portalAdminContactRequests.clearSelection')}
+                </Button>
+                <Button
+                  type="button"
+                  size="small"
+                  onClick={() => { void handleBulkStatusChange('READ'); }}
+                  disabled={saving || deleting}
+                >
+                  {t('portalAdminContactRequests.bulkMarkAsRead')}
+                </Button>
+                <Button
+                  type="button"
+                  size="small"
+                  onClick={() => { void handleBulkStatusChange('HANDLED'); }}
+                  disabled={saving || deleting}
+                >
+                  {t('portalAdminContactRequests.bulkMarkAsHandled')}
+                </Button>
+                <Button
+                  type="button"
+                  size="small"
+                  color="error"
+                  onClick={() => setBulkDeleteConfirmOpen(true)}
+                  disabled={saving || deleting}
+                >
+                  {t('portalAdminContactRequests.bulkDelete')}
+                </Button>
+              </Stack>
+            )}
+          </Stack>
         <List disablePadding>
           {rows.map((row, idx) => {
             const isUnread = row.status === 'UNREAD';
             const isHi = contactFlashId != null && String(row.id) === String(contactFlashId);
+            const rowLabel = String(row.name || row.email || row.id || '').trim() || row.id;
             return (
               <React.Fragment key={row.id}>
                 {idx > 0 && <Divider />}
-                <ListItem disablePadding>
+                <ListItem
+                  disablePadding
+                  sx={{ alignItems: 'flex-start' }}
+                >
+                  <Box sx={CONTACT_ROW_CHECKBOX_COL_SX}>
+                    <Checkbox
+                      edge="start"
+                      size="small"
+                      checked={selectedIds.includes(row.id)}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        toggleRowSelected(row.id);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      disabled={saving || deleting}
+                      inputProps={{
+                        'aria-label': t('portalAdminContactRequests.selectRowAria', { name: rowLabel }),
+                      }}
+                    />
+                  </Box>
                   <ListItemButton
                     id={`contact-request-row-${row.id}`}
                     {...getContactRowProps(row.id)}
-                    onClick={() => setSelected(row)}
+                    onClick={() => setDetailRow(row)}
                     sx={{
+                      flex: 1,
+                      minWidth: 0,
                       px: 2,
                       py: 1.5,
                       gap: 1.5,
@@ -400,6 +604,7 @@ export default function PortalAdminContactRequests() {
             );
           })}
         </List>
+        </>
       )}
 
       {!loading && !loadError && rows.length > 0 && total > rows.length && (
@@ -409,12 +614,12 @@ export default function PortalAdminContactRequests() {
       )}
 
       <Dialog
-        open={Boolean(selected)}
-        onClose={() => setSelected(null)}
+        open={Boolean(detailRow)}
+        onClose={() => setDetailRow(null)}
         maxWidth="sm"
         fullWidth
       >
-        {selected && (
+        {detailRow && (
           <>
             <DialogTitle>{t('portalAdminContactRequests.detailDialogTitle')}</DialogTitle>
             <DialogContent dividers>
@@ -424,38 +629,38 @@ export default function PortalAdminContactRequests() {
                     {t('portalAdminContactRequests.fieldFrom')}
                   </Typography>
                   <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
-                    {selected.name}
+                    {detailRow.name}
                     {' '}
                     &lt;
-                    <MailtoEmailLink email={selected.email} />
+                    <MailtoEmailLink email={detailRow.email} />
                     &gt;
                   </Typography>
                 </Stack>
-                {selected.phone && (
+                {detailRow.phone && (
                   <Stack direction="row" spacing={1} alignItems="center">
                     <Typography variant="caption" color="text.secondary" sx={{ width: 80, flexShrink: 0 }}>
                       {t('contact.phoneLabel')}
                     </Typography>
-                    <Typography variant="body2">{selected.phone}</Typography>
+                    <Typography variant="body2">{detailRow.phone}</Typography>
                   </Stack>
                 )}
                 <Stack direction="row" spacing={1} alignItems="center">
                   <Typography variant="caption" color="text.secondary" sx={{ width: 80, flexShrink: 0 }}>
                     {t('contact.subjectLabel')}
                   </Typography>
-                  <Typography variant="body2">{subjectLabel(selected.subject)}</Typography>
+                  <Typography variant="body2">{subjectLabel(detailRow.subject)}</Typography>
                 </Stack>
                 <Stack direction="row" spacing={1} alignItems="center">
                   <Typography variant="caption" color="text.secondary" sx={{ width: 80, flexShrink: 0 }}>
                     {t('portalAdminContactRequests.fieldDate')}
                   </Typography>
-                  <Typography variant="body2">{formatDate(selected.created_at)}</Typography>
+                  <Typography variant="body2">{formatDate(detailRow.created_at)}</Typography>
                 </Stack>
                 <Stack direction="row" spacing={1} alignItems="center">
                   <Typography variant="caption" color="text.secondary" sx={{ width: 80, flexShrink: 0 }}>
                     {t('portalAdminContactRequests.columnStatus')}
                   </Typography>
-                  <Chip label={selected.status} color={statusColor(selected.status)} size="small" />
+                  <Chip label={detailRow.status} color={statusColor(detailRow.status)} size="small" />
                 </Stack>
                 <Box>
                   <Typography variant="caption" color="text.secondary">
@@ -471,14 +676,14 @@ export default function PortalAdminContactRequests() {
                     }}
                   >
                     <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                      {selected.message}
+                      {detailRow.message}
                     </Typography>
                   </Paper>
                 </Box>
               </Stack>
             </DialogContent>
             <DialogActions sx={{ px: 2, py: 1.5, gap: 1, flexWrap: 'wrap' }}>
-              <Button type="button" onClick={() => setSelected(null)} size="small" color="inherit">
+              <Button type="button" onClick={() => setDetailRow(null)} size="small" color="inherit">
                 {t('portalAdminContactRequests.close')}
               </Button>
               <Button
@@ -490,20 +695,20 @@ export default function PortalAdminContactRequests() {
               >
                 {t('portalAdminContactRequests.delete')}
               </Button>
-              {selected.status !== 'READ' && (
+              {detailRow.status !== 'READ' && (
                 <Button
                   type="button"
-                  onClick={() => handleStatusChange(selected, 'READ')}
+                  onClick={() => handleStatusChange(detailRow, 'READ')}
                   size="small"
                   disabled={saving}
                 >
                   {t('portalAdminContactRequests.markAsRead')}
                 </Button>
               )}
-              {selected.status !== 'HANDLED' && (
+              {detailRow.status !== 'HANDLED' && (
                 <Button
                   type="button"
-                  onClick={() => handleStatusChange(selected, 'HANDLED')}
+                  onClick={() => handleStatusChange(detailRow, 'HANDLED')}
                   variant="contained"
                   size="small"
                   disabled={saving}
@@ -525,6 +730,20 @@ export default function PortalAdminContactRequests() {
         title={t('portalAdminContactRequests.deleteConfirmTitle')}
         body={t('portalAdminContactRequests.deleteConfirmBody')}
         confirmLabel={t('portalAdminContactRequests.deleteConfirmAction')}
+        cancelLabel={t('portalAdminContactRequests.deleteCancel')}
+        confirmColor="error"
+        loading={deleting}
+      />
+
+      <PortalConfirmDialog
+        open={bulkDeleteConfirmOpen}
+        onClose={() => setBulkDeleteConfirmOpen(false)}
+        onConfirm={() => {
+          void handleBulkDeleteConfirmed();
+        }}
+        title={t('portalAdminContactRequests.bulkDeleteConfirmTitle', { count: selectedIds.length })}
+        body={t('portalAdminContactRequests.bulkDeleteConfirmBody', { count: selectedIds.length })}
+        confirmLabel={t('portalAdminContactRequests.bulkDeleteConfirmAction')}
         cancelLabel={t('portalAdminContactRequests.deleteCancel')}
         confirmColor="error"
         loading={deleting}

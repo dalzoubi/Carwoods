@@ -38,7 +38,9 @@ export function PortalInboxContactGate() {
   const { pathname } = useLocation();
   const { account, meData, meStatus } = usePortalAuth();
 
-  if (meStatus === 'loading') {
+  // useMeProfile starts as `idle` then moves to `loading` on the next tick. Until /me returns,
+  // resolveRole(null) is '' — without waiting on `idle`, a full page refresh wrongly redirects here.
+  if (meStatus === 'loading' || meStatus === 'idle') {
     return (
       <Box display="flex" justifyContent="center" py={6} aria-busy="true">
         <CircularProgress />

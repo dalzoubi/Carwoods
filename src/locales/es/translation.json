@@ -1929,7 +1929,7 @@
       "documents": "Centro de documentos",
       "profile": "Perfil",
       "adminLandlords": "Propietarios",
-      "adminContactUsMessages": "Mensajes de Contacto",
+      "adminContactUsMessages": "Contáctenos",
       "adminConfigurations": "Configuraciones",
       "adminAiConfig": "Configuración de IA",
       "notificationPolicies": "Políticas de notificación",
@@ -2002,7 +2002,7 @@
           "body": "Consulta las notificaciones del portal y accede al elemento relacionado."
         },
         "contact": {
-          "title": "Mensajes de Contáctanos",
+          "title": "Contáctenos",
           "body": "Atiende las consultas enviadas mediante el formulario público Contáctanos."
         },
         "documents": {
@@ -2053,9 +2053,9 @@
     }
   },
   "portalAdminContactRequests": {
-    "title": "Portal Carwoods — Mensajes de Contacto",
+    "title": "Portal Carwoods — Contáctenos",
     "refresh": "Actualizar mensajes",
-    "heading": "Mensajes de Contacto",
+    "heading": "Contáctenos",
     "intro": "Aquí aparecen las consultas enviadas desde el formulario público de Contacto.",
     "highlightAnnouncement": "Mensaje de {{name}} destacado.",
     "unreadBadge": "{{count}} sin leer",
@@ -2081,9 +2081,24 @@
     "deleteConfirmAction": "Eliminar",
     "deleteCancel": "Cancelar",
     "showingCount": "Mostrando {{shown}} de {{total}}.",
+    "selectAllAria": "Seleccionar todos los mensajes en esta página",
+    "selectVisibleHint": "Seleccione mensajes para aplicar acciones",
+    "selectRowAria": "Seleccionar mensaje de {{name}}",
+    "selectedCount": "{{count}} seleccionados",
+    "clearSelection": "Borrar selección",
+    "bulkMarkAsRead": "Marcar como leídos",
+    "bulkMarkAsHandled": "Marcar como gestionados",
+    "bulkDelete": "Eliminar seleccionados",
+    "bulkDeleteConfirmTitle": "¿Eliminar {{count}} mensajes?",
+    "bulkDeleteConfirmBody": "Se eliminarán permanentemente de la base de datos. Esta acción no se puede deshacer.",
+    "bulkDeleteConfirmAction": "Eliminar",
     "feedback": {
       "statusUpdated": "Estado actualizado a {{status}}.",
-      "deleted": "Mensaje eliminado."
+      "deleted": "Mensaje eliminado.",
+      "bulkStatusUpdated": "Se actualizaron {{count}} mensaje(s) a {{status}}.",
+      "bulkPartialFailure": "{{failed}} de {{total}} no se pudieron actualizar.",
+      "bulkDeleted": "Se eliminaron {{count}} mensaje(s).",
+      "bulkDeletePartialFailure": "{{failed}} de {{total}} no se pudieron eliminar."
     },
     "errors": {
       "apiUnavailable": "Configura VITE_API_BASE_URL para cargar los mensajes de contacto.",

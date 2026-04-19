@@ -2108,7 +2108,7 @@
       "documents": "Document Center",
       "profile": "Profile",
       "adminLandlords": "Landlords",
-      "adminContactUsMessages": "Contact Us messages",
+      "adminContactUsMessages": "Contact Us",
       "adminConfigurations": "Configurations",
       "adminAiConfig": "AI Configuration",
       "notificationPolicies": "Notification Policies",
@@ -2181,7 +2181,7 @@
           "body": "See portal notifications and jump to what they're about."
         },
         "contact": {
-          "title": "Contact Us messages",
+          "title": "Contact Us",
           "body": "Handle inquiries submitted through the public Contact Us form."
         },
         "documents": {
@@ -2232,9 +2232,9 @@
     }
   },
   "portalAdminContactRequests": {
-    "title": "Carwoods Portal — Contact Us messages",
+    "title": "Carwoods Portal — Contact Us",
     "refresh": "Refresh messages",
-    "heading": "Contact Us messages",
+    "heading": "Contact Us",
     "intro": "Inquiries submitted through the public Contact Us form appear here.",
     "highlightAnnouncement": "Message from {{name}} is highlighted.",
     "unreadBadge": "{{count}} unread",
@@ -2260,9 +2260,24 @@
     "deleteConfirmAction": "Delete",
     "deleteCancel": "Cancel",
     "showingCount": "Showing {{shown}} of {{total}}.",
+    "selectAllAria": "Select all messages on this page",
+    "selectVisibleHint": "Select messages below to apply actions",
+    "selectRowAria": "Select message from {{name}}",
+    "selectedCount": "{{count}} selected",
+    "clearSelection": "Clear selection",
+    "bulkMarkAsRead": "Mark as read",
+    "bulkMarkAsHandled": "Mark as handled",
+    "bulkDelete": "Delete selected",
+    "bulkDeleteConfirmTitle": "Delete {{count}} messages?",
+    "bulkDeleteConfirmBody": "This permanently removes the selected messages from the database. This cannot be undone.",
+    "bulkDeleteConfirmAction": "Delete",
     "feedback": {
       "statusUpdated": "Status updated to {{status}}.",
-      "deleted": "Message deleted."
+      "deleted": "Message deleted.",
+      "bulkStatusUpdated": "Updated {{count}} message(s) to {{status}}.",
+      "bulkPartialFailure": "{{failed}} of {{total}} could not be updated.",
+      "bulkDeleted": "Deleted {{count}} message(s).",
+      "bulkDeletePartialFailure": "{{failed}} of {{total}} could not be deleted."
     },
     "errors": {
       "apiUnavailable": "Set VITE_API_BASE_URL to load contact messages.",

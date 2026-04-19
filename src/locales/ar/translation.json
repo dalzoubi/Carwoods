@@ -1930,7 +1930,7 @@
       "documents": "مركز المستندات",
       "profile": "الملف الشخصي",
       "adminLandlords": "الملاك",
-      "adminContactUsMessages": "رسائل اتصل بنا",
+      "adminContactUsMessages": "اتصل بنا",
       "adminConfigurations": "الإعدادات",
       "adminAiConfig": "إعدادات الذكاء الاصطناعي",
       "notificationPolicies": "سياسات الإشعارات",
@@ -2003,7 +2003,7 @@
           "body": "اطلّع على إشعارات البوابة وانتقل إلى ما تتعلق به."
         },
         "contact": {
-          "title": "رسائل «اتصل بنا»",
+          "title": "اتصل بنا",
           "body": "عالج الاستفسارات المُرسَلة عبر نموذج «اتصل بنا» العام."
         },
         "documents": {
@@ -2054,9 +2054,9 @@
     }
   },
   "portalAdminContactRequests": {
-    "title": "بوابة Carwoods — رسائل اتصل بنا",
+    "title": "بوابة Carwoods — اتصل بنا",
     "refresh": "تحديث الرسائل",
-    "heading": "رسائل اتصل بنا",
+    "heading": "اتصل بنا",
     "intro": "تظهر هنا الاستفسارات المرسلة عبر نموذج «اتصل بنا» العام.",
     "highlightAnnouncement": "تم إبراز الرسالة من {{name}}.",
     "unreadBadge": "{{count}} غير مقروءة",
@@ -2082,9 +2082,24 @@
     "deleteConfirmAction": "حذف",
     "deleteCancel": "إلغاء",
     "showingCount": "عرض {{shown}} من {{total}}.",
+    "selectAllAria": "تحديد كل الرسائل في هذه الصفحة",
+    "selectVisibleHint": "حدّد رسائل لتطبيق الإجراءات",
+    "selectRowAria": "تحديد رسالة من {{name}}",
+    "selectedCount": "{{count}} محددة",
+    "clearSelection": "مسح التحديد",
+    "bulkMarkAsRead": "تعليم كمقروءة",
+    "bulkMarkAsHandled": "تعليم كمعالجة",
+    "bulkDelete": "حذف المحدد",
+    "bulkDeleteConfirmTitle": "حذف {{count}} رسائل؟",
+    "bulkDeleteConfirmBody": "سيؤدي ذلك إلى إزالة الرسائل المحددة نهائيًا من قاعدة البيانات. لا يمكن التراجع عن هذا الإجراء.",
+    "bulkDeleteConfirmAction": "حذف",
     "feedback": {
       "statusUpdated": "تم تحديث الحالة إلى {{status}}.",
-      "deleted": "تم حذف الرسالة."
+      "deleted": "تم حذف الرسالة.",
+      "bulkStatusUpdated": "تم تحديث {{count}} رسالة إلى {{status}}.",
+      "bulkPartialFailure": "تعذّر تحديث {{failed}} من {{total}}.",
+      "bulkDeleted": "تم حذف {{count}} رسالة.",
+      "bulkDeletePartialFailure": "تعذّر حذف {{failed}} من {{total}}."
     },
     "errors": {
       "apiUnavailable": "عيِّن VITE_API_BASE_URL لتحميل رسائل الاتصال.",
