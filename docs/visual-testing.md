@@ -6,7 +6,10 @@ Every PR automatically captures screenshots of the marketing site, tenant/landlo
 
 - Specs live in `e2e/visual/*.visual.spec.mjs`.
 - Baselines live in `e2e/visual/<spec>.visual.spec.mjs-snapshots/` and are committed to the repo.
-- On every PR, `.github/workflows/visual-regression.yml` runs `npm run test:visual`. If the live render no longer matches the baseline, the test fails and the job uploads a `playwright-report` artifact with expected / actual / diff images.
+- On every PR, `.github/workflows/visual-regression.yml` runs `npm run test:visual`.
+  - If every page matches its baseline, the job is green.
+  - If a baseline is **missing** (new test, never run before), the job auto-runs `--update-snapshots`, commits the new baseline back to the PR branch (as `Bootstrap visual regression baselines [skip ci]`), and exits green. You'll see a follow-up commit appear on the PR — just `git pull` next time you push.
+  - If a baseline **differs** from the live render, the job fails and uploads a `playwright-report` artifact with expected / actual / diff PNGs. The reviewer downloads it, decides whether the change is intentional, and (if it is) the developer regenerates baselines locally.
 - Built on top of the existing Playwright setup (`playwright.config.mjs`). Functional critical-path tests still run under the `chromium` project; visual tests run under `visual-chromium`.
 
 ## Running locally
