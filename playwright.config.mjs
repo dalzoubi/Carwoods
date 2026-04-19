@@ -13,8 +13,32 @@ export default defineConfig({
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
   },
+  expect: {
+    toHaveScreenshot: {
+      // Allow tiny anti-aliasing / font-rendering differences; fail on real UI changes.
+      maxDiffPixelRatio: 0.01,
+      animations: 'disabled',
+      caret: 'hide',
+    },
+  },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'chromium',
+      testIgnore: '**/visual/**',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'visual-chromium',
+      testMatch: '**/visual/**/*.visual.spec.mjs',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Force a predictable timezone, locale, and color scheme so snapshots
+        // are stable across dev machines and CI runners.
+        locale: 'en-US',
+        timezoneId: 'America/Chicago',
+        colorScheme: 'light',
+      },
+    },
   ],
   webServer: {
     command: portalDevAuth

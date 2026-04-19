@@ -1,0 +1,136 @@
+name: Visual Regression
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Auto-commit step needs write access to push baselines back to the PR branch.
+# Pushes from GITHUB_TOKEN do NOT trigger further workflow runs (per GitHub
+# docs), so this can't loop.
+permissions:
+  contents: write
+
+jobs:
+  visual:
+    name: Playwright visual screenshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      # Builds the web app with VITE_PORTAL_DEV_AUTH=true so portal + admin
+      # specs land on authenticated pages. See playwright.config.mjs:3-5,20-22.
+      PORTAL_E2E: 'true'
+      CI: 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Default checkout of a pull_request event is a detached merge ref;
+          # we need the PR's actual head branch so we can commit + push back.
+          ref: ${{ github.head_ref || github.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      # First pass: run the visual suite as-is. Pass means baselines exist and
+      # match the live render — done. Fail means either (a) baselines are
+      # missing for some tests, or (b) baselines exist but the page changed.
+      - name: Run visual regression
+        id: visual
+        continue-on-error: true
+        run: npm run test:visual
+
+      # Second pass: if the first pass failed, regenerate baselines so we can
+      # tell missing-from-modified apart by inspecting git status.
+      - name: Regenerate baselines (for inspection)
+        if: steps.visual.outcome == 'failure'
+        run: npm run test:visual:update
+
+      # The decision step. Three possible states after `--update-snapshots`:
+      #   - new files only        → bootstrap, commit + push, job succeeds
+      #   - modified files only   → real visual drift, discard, job fails
+      #   - both                  → bootstrap the new ones, fail on the drift
+      - name: Auto-commit new baselines
+        if: steps.visual.outcome == 'failure'
+        id: bootstrap
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          MODIFIED=$(git diff --name-only -- 'e2e/visual/' || true)
+          UNTRACKED=$(git ls-files --others --exclude-standard -- 'e2e/visual/' || true)
+
+          echo "Modified baselines (treated as drift, will be reverted):"
+          echo "${MODIFIED:-<none>}"
+          echo
+          echo "New baselines (will be auto-committed):"
+          echo "${UNTRACKED:-<none>}"
+
+          # Drift = real visual change. Revert so the next CI run still fails
+          # against the original baselines and the developer can investigate.
+          if [ -n "$MODIFIED" ]; then
+            echo "$MODIFIED" | xargs git checkout --
+          fi
+
+          if [ -n "$UNTRACKED" ]; then
+            echo "$UNTRACKED" | xargs git add
+            git commit -m "Bootstrap visual regression baselines [skip ci]"
+            git push origin HEAD:${{ github.head_ref || github.ref_name }}
+            echo "bootstrapped=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "bootstrapped=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ -n "$MODIFIED" ]; then
+            echo "drift=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "drift=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Job outcome:
+      #   - First pass green                             → already passed, this step is a no-op
+      #   - First pass red, only missing baselines       → bootstrapped, exit success
+      #   - First pass red, drift present                → fail so reviewer investigates
+      - name: Report job outcome
+        if: steps.visual.outcome == 'failure'
+        run: |
+          if [ "${{ steps.bootstrap.outputs.drift }}" = "true" ]; then
+            echo "::error::Visual drift detected. Review playwright-report artifact, then run 'npm run test:visual:update' locally and commit the updated baselines."
+            exit 1
+          fi
+          if [ "${{ steps.bootstrap.outputs.bootstrapped }}" = "true" ]; then
+            echo "Bootstrapped missing baselines; pushed back to branch."
+          fi
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload test-results (diffs, traces)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: test-results/
+          retention-days: 14
