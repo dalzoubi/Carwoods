@@ -2,7 +2,6 @@ import React, {
   useState,
   useEffect,
   useCallback,
-  useLayoutEffect,
   useRef,
 } from 'react';
 import { Helmet } from 'react-helmet-async';
@@ -29,6 +28,7 @@ import Alert from '@mui/material/Alert';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { relativeTime } from '../lib/notificationUtils';
+import useHighlightRow from '../lib/useHighlightRow';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 import PortalConfirmDialog from './PortalConfirmDialog';
@@ -79,12 +79,12 @@ export default function PortalAdminContactRequests() {
   const [selected, setSelected] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
-  const [highlightId, setHighlightId] = useState('');
+  const [highlightTargetId, setHighlightTargetId] = useState(null);
   const [highlightAnnouncement, setHighlightAnnouncement] = useState('');
+  const hlAttemptedRef = useRef(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const rowRefs = useRef(new Map());
 
   const load = useCallback(async (options = {}) => {
     const silent = Boolean(options.silent);
@@ -129,67 +129,41 @@ export default function PortalAdminContactRequests() {
     void load();
   }, [load]);
 
-  const applyHighlightFromHash = useCallback(
-    (list) => {
-      const h = String(hash ?? '').trim();
-      if (!h || !UUID_HASH_RE.test(h)) {
-        setHighlightId('');
-        return;
-      }
-      const id = h.slice(1);
-      const row = list.find((r) => String(r.id).toLowerCase() === id.toLowerCase());
-      if (row) {
-        setHighlightId(id);
-        setSelected(row);
-      } else {
-        setHighlightId('');
-      }
-    },
-    [hash]
-  );
-
-  useEffect(() => {
-    applyHighlightFromHash(rows);
-  }, [rows, applyHighlightFromHash]);
-
   useEffect(() => {
     const h = String(hash ?? '').trim();
-    if (!h || !UUID_HASH_RE.test(h) || loading) return;
-    const id = h.slice(1).toLowerCase();
-    if (rows.length === 0) return;
-    const found = rows.some((r) => String(r.id).toLowerCase() === id);
-    if (!found && filter !== 'ALL') {
-      setFilter('ALL');
+    if (!h || !UUID_HASH_RE.test(h)) {
+      setHighlightTargetId(null);
+      hlAttemptedRef.current = false;
+      return;
     }
-  }, [hash, loading, rows, filter]);
+    if (loading) return;
 
-  useLayoutEffect(() => {
-    if (!highlightId) return undefined;
-    const el = rowRefs.current.get(highlightId);
-    if (el && typeof el.scrollIntoView === 'function') {
-      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    }
-    if (el && typeof el.focus === 'function') {
-      try {
-        el.focus({ preventScroll: true });
-      } catch {
-        el.focus();
+    const id = h.slice(1);
+    const row = rows.find((r) => String(r.id).toLowerCase() === id.toLowerCase());
+
+    if (!row) {
+      if (!hlAttemptedRef.current && filter !== 'ALL') {
+        hlAttemptedRef.current = true;
+        setFilter('ALL');
       }
+      return;
     }
-    const match = rows.find((r) => String(r.id).toLowerCase() === String(highlightId).toLowerCase());
-    if (match) {
-      setHighlightAnnouncement(
-        t('portalAdminContactRequests.highlightAnnouncement', {
-          name: String(match.first_name || match.last_name || match.email || '').trim() || match.id,
-        }),
-      );
-    }
-    const tId = window.setTimeout(() => {
-      setHighlightId('');
-      setHighlightAnnouncement('');
-    }, 6000);
-    return () => window.clearTimeout(tId);
-  }, [highlightId, rows, hash, t]);
+
+    setHighlightAnnouncement(
+      t('portalAdminContactRequests.highlightAnnouncement', {
+        name: String(row.name || row.email || '').trim() || row.id,
+      })
+    );
+    setHighlightTargetId(row.id);
+  }, [hash, rows, loading, filter, t]);
+
+  const { flashId: contactFlashId, ariaAnnouncement, getRowProps: getContactRowProps } = useHighlightRow({
+    targetId: highlightTargetId,
+    elementIdFor: (id) => `contact-request-row-${id}`,
+    announcement: highlightAnnouncement,
+    durationMs: 6000,
+    ready: !loading,
+  });
 
   const handleStatusChange = async (row, newStatus) => {
     if (!baseUrl) return;
@@ -268,7 +242,7 @@ export default function PortalAdminContactRequests() {
           whiteSpace: 'nowrap',
         }}
       >
-        {highlightAnnouncement}
+        {ariaAnnouncement}
       </Box>
 
       <StatusAlertSlot
@@ -344,18 +318,14 @@ export default function PortalAdminContactRequests() {
         <List disablePadding>
           {rows.map((row, idx) => {
             const isUnread = row.status === 'UNREAD';
-            const isHi = highlightId && String(row.id).toLowerCase() === highlightId.toLowerCase();
+            const isHi = contactFlashId != null && String(row.id) === String(contactFlashId);
             return (
               <React.Fragment key={row.id}>
                 {idx > 0 && <Divider />}
                 <ListItem disablePadding>
                   <ListItemButton
-                    ref={(el) => {
-                      if (el) rowRefs.current.set(row.id, el);
-                      else rowRefs.current.delete(row.id);
-                    }}
                     id={`contact-request-row-${row.id}`}
-                    aria-current={isHi ? 'true' : undefined}
+                    {...getContactRowProps(row.id)}
                     onClick={() => setSelected(row)}
                     sx={{
                       px: 2,
@@ -363,11 +333,9 @@ export default function PortalAdminContactRequests() {
                       gap: 1.5,
                       alignItems: 'flex-start',
                       borderRadius: 1,
-                      backgroundColor: isUnread ? 'action.hover' : 'transparent',
-                      transition: 'background-color 0.2s',
-                      outline: isHi ? '2px solid' : undefined,
-                      outlineColor: isHi ? 'primary.main' : undefined,
-                      outlineOffset: isHi ? '-2px' : undefined,
+                      backgroundColor: isHi ? 'action.selected' : (isUnread ? 'action.hover' : 'transparent'),
+                      boxShadow: isHi ? (theme) => `0 0 0 2px ${theme.palette.primary.main}` : 'none',
+                      transition: 'background-color 0.2s ease, box-shadow 0.2s ease',
                       '&:hover': {
                         backgroundColor: isUnread ? 'action.selected' : 'action.hover',
                       },
@@ -500,9 +468,6 @@ export default function PortalAdminContactRequests() {
                       p: 1.5,
                       bgcolor: 'action.hover',
                       borderRadius: 1,
-                      ...(highlightId && String(selected.id).toLowerCase() === highlightId.toLowerCase()
-                        ? { boxShadow: (theme) => `0 0 0 2px ${theme.palette.primary.main}` }
-                        : {}),
                     }}
                   >
                     <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>

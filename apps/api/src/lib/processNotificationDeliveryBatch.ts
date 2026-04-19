@@ -48,7 +48,7 @@ function parsePayloadJson(raw: string | null): Record<string, unknown> | null {
 
 function buildEmailContent(
   row: QueuedDeliveryRow
-): { subject: string; plainText: string } {
+): { subject: string; plainText: string; replyTo?: string } {
   const override = parsePayloadJson(row.payload_json);
   if (override?.subject && (override?.body || override?.body_text)) {
     return {
@@ -64,10 +64,17 @@ function buildEmailContent(
   const portalBase = process.env.PORTAL_BASE_URL ?? 'https://carwoods.com';
   const deepLinkLine = content.deepLink ? `\nView in portal: ${portalBase}${content.deepLink}` : '';
 
-  return {
+  const result: { subject: string; plainText: string; replyTo?: string } = {
     subject: `[Carwoods] ${content.title}`,
     plainText: `${content.body}${deepLinkLine}\n`,
   };
+
+  if (eventTypeCode.toUpperCase() === 'CONTACT_REQUEST_CREATED') {
+    const contactEmail = typeof payload.email === 'string' ? payload.email.trim() : '';
+    if (contactEmail) result.replyTo = contactEmail;
+  }
+
+  return result;
 }
 
 function buildSmsBody(row: QueuedDeliveryRow): string {
@@ -85,12 +92,13 @@ function buildSmsBody(row: QueuedDeliveryRow): string {
 
 async function sendEmail(
   recipientEmail: string,
-  emailContent: { subject: string; plainText: string }
+  emailContent: { subject: string; plainText: string; replyTo?: string }
 ): Promise<string | null> {
   return sendResendEmail({
     to: recipientEmail,
     subject: emailContent.subject,
     text: emailContent.plainText,
+    replyTo: emailContent.replyTo,
   });
 }
 
