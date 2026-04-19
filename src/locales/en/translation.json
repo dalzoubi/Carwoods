@@ -1805,11 +1805,159 @@
       "policies": "AI Policies",
       "agents": "Agents",
       "attachments": "Attachments",
-      "notifications": "Notification Policies"
+      "notifications": "Notification Policies",
+      "flowDefaults": "Notification Defaults",
+      "userOverrides": "User Overrides",
+      "report": "Notification Report"
     },
     "optionHelp": {
       "close": "Got it",
       "moreAbout": "Help: {{option}}"
+    }
+  },
+  "portalAdminNotificationDefaults": {
+    "heading": "Notification Defaults",
+    "intro": "Set the system-wide channel defaults for each notification flow. Toggling a channel saves immediately.",
+    "groups": {
+      "onboarding": "Account & onboarding",
+      "maintenance": "Maintenance, messages & leases",
+      "security_compliance": "Security & compliance"
+    },
+    "channel": {
+      "inApp": "In-app",
+      "email": "Email",
+      "sms": "SMS"
+    },
+    "columns": {
+      "flow": "Notification flow",
+      "source": "Source"
+    },
+    "source": {
+      "code": "Code",
+      "admin": "Admin",
+      "codeTooltip": "Currently using the compile-time default. No admin override stored.",
+      "adminTooltip": "An admin has overridden the compile-time default."
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "resetToCode": "Reset to code default"
+    },
+    "errors": {
+      "signInRequired": "Sign in before managing notification defaults.",
+      "adminOnly": "Only admin accounts can manage notification defaults.",
+      "loadFailed": "Unable to load notification defaults.",
+      "saveFailed": "Unable to save notification defaults."
+    }
+  },
+  "portalAdminNotificationOverrides": {
+    "heading": "User Notification Overrides",
+    "intro": "See which users have customized their per-flow notification preferences.",
+    "channel": {
+      "inApp": "In-app",
+      "email": "Email",
+      "sms": "SMS"
+    },
+    "columns": {
+      "user": "User",
+      "role": "Role",
+      "global": "Global toggles",
+      "flowOverrides": "Per-flow overrides"
+    },
+    "filters": {
+      "search": "Search by name or email",
+      "role": "Role",
+      "anyRole": "Any role",
+      "eventCode": "Notification flow",
+      "anyEvent": "Any flow",
+      "onlyCustomized": "Only show users with overrides"
+    },
+    "overrideBadge": "{{count}} customized",
+    "noOverrides": "Defaults",
+    "empty": "No users match these filters.",
+    "on": "On",
+    "off": "Off",
+    "detail": {
+      "flow": "Notification flow",
+      "updatedAt": "Last updated",
+      "default": "(default)",
+      "empty": "This user has not customized any per-flow preferences."
+    },
+    "actions": {
+      "refresh": "Refresh"
+    },
+    "errors": {
+      "adminOnly": "Only admin accounts can view user overrides.",
+      "loadFailed": "Unable to load user overrides."
+    }
+  },
+  "portalAdminNotificationReport": {
+    "heading": "Notification Report",
+    "intro": "Volume, success rate, and per-recipient breakdowns for sent notifications.",
+    "actions": {
+      "refresh": "Refresh",
+      "exportCsv": "Export CSV"
+    },
+    "presets": {
+      "24h": "Last 24 hours",
+      "7d": "Last 7 days",
+      "30d": "Last 30 days",
+      "90d": "Last 90 days"
+    },
+    "filters": {
+      "from": "From",
+      "to": "To",
+      "channel": "Channel",
+      "anyChannel": "Any channel",
+      "status": "Status",
+      "anyStatus": "Any status",
+      "event": "Notification flow",
+      "anyEvent": "Any flow",
+      "recipient": "Recipient",
+      "anyRecipient": "Any recipient",
+      "groupBy": "Group by"
+    },
+    "groupBy": {
+      "day": "Day",
+      "hour": "Hour",
+      "channel": "Channel",
+      "event": "Notification flow",
+      "role": "Recipient role",
+      "status": "Delivery status"
+    },
+    "stats": {
+      "total": "Total notifications",
+      "sent": "Sent",
+      "failed": "Failed",
+      "queued": "Queued",
+      "deliveryRate": "Delivery rate",
+      "uniqueRecipients": "Unique recipients",
+      "latencyP50": "Latency p50",
+      "latencyP95": "Latency p95"
+    },
+    "charts": {
+      "timeSeries": "Volume over time",
+      "by_channel": "By channel",
+      "by_event": "By notification flow",
+      "by_role": "By recipient role",
+      "by_status": "By delivery status",
+      "topRecipients": "Top recipients",
+      "topFailing": "Top failing flows"
+    },
+    "legend": {
+      "sent": "Sent",
+      "failed": "Failed",
+      "queued": "Queued"
+    },
+    "columns": {
+      "recipient": "Recipient",
+      "total": "Total",
+      "flow": "Notification flow",
+      "failures": "Failures"
+    },
+    "empty": "No data in this window.",
+    "errors": {
+      "adminOnly": "Only admin accounts can view the notification report.",
+      "loadFailed": "Unable to load the notification report."
     }
   },
   "portalAdminAiConfig": {

@@ -212,15 +212,23 @@ export async function insertNotificationDelivery(
     scheduledSendAt?: Date | null;
     /** Optional JSON string (e.g. admin test subject/body for downstream senders). */
     payloadJson?: string | null;
+    /** EMAIL | SMS | IN_APP — denormalized for the admin report dashboard. */
+    channel?: 'EMAIL' | 'SMS' | 'IN_APP' | null;
+    /** Recipient user — denormalized for the admin report dashboard. */
+    recipientUserId?: string | null;
+    /** Event code — denormalized for the admin report dashboard. */
+    eventTypeCode?: string | null;
   }
 ): Promise<NotificationDeliveryRow> {
+  const channel = params.channel ?? deriveChannelFromTemplateId(params.templateId);
   const r = await client.query<NotificationDeliveryRow>(
     `INSERT INTO notification_deliveries (
-       id, outbox_id, recipient_email, template_id, status, provider_message_id, error, scheduled_send_at, payload_json
+       id, outbox_id, recipient_email, template_id, status, provider_message_id, error,
+       scheduled_send_at, payload_json, channel, recipient_user_id, event_type_code
      )
      OUTPUT INSERTED.id, INSERTED.outbox_id, INSERTED.recipient_email, INSERTED.template_id,
             INSERTED.status, INSERTED.provider_message_id, INSERTED.error, INSERTED.created_at
-     VALUES (NEWID(), $1, $2, $3, $4, $5, $6, $7, $8)`,
+     VALUES (NEWID(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
     [
       params.outboxId,
       params.recipientTarget,
@@ -230,9 +238,21 @@ export async function insertNotificationDelivery(
       params.error ?? null,
       params.scheduledSendAt ?? null,
       params.payloadJson ?? null,
+      channel,
+      params.recipientUserId ?? null,
+      params.eventTypeCode ?? null,
     ]
   );
   return r.rows[0]!;
+}
+
+function deriveChannelFromTemplateId(templateId: string | null): 'EMAIL' | 'SMS' | 'IN_APP' | null {
+  if (!templateId) return null;
+  const upper = templateId.toUpperCase();
+  if (upper.startsWith('EMAIL:')) return 'EMAIL';
+  if (upper.startsWith('SMS:')) return 'SMS';
+  if (upper.startsWith('IN_APP:') || upper.startsWith('INAPP:')) return 'IN_APP';
+  return null;
 }
 
 export type QueuedDeliveryRow = {
@@ -271,7 +291,8 @@ export async function markDeliverySent(
   await client.query(
     `UPDATE notification_deliveries
         SET status = 'SENT',
-            provider_message_id = $2
+            provider_message_id = $2,
+            sent_at = SYSDATETIMEOFFSET()
       WHERE id = $1`,
     [id, providerMessageId]
   );
