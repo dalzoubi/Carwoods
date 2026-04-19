@@ -32,9 +32,11 @@
     "resourcesMenu": "Resources menu",
     "renters": "Renters",
     "rentersMenu": "Renters menu",
-    "forLandlords": "For Landlords",
-    "forLandlordsMenu": "For Landlords menu",
-    "propertyManagement": "Property Management"
+    "forLandlords": "Owners",
+    "forLandlordsMenu": "Owners menu",
+    "propertyManagement": "Property Management",
+    "audienceTabs": "Audience",
+    "legalToggle": "Legal links"
   },
   "tenantLinks": {
     "apply": "Apply",
