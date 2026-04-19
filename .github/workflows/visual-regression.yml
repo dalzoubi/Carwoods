@@ -1,0 +1,58 @@
+name: Visual Regression
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  visual:
+    name: Playwright visual screenshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      # Builds the web app with VITE_PORTAL_DEV_AUTH=true so portal + admin
+      # specs land on authenticated pages. See playwright.config.mjs:3-5,20-22.
+      PORTAL_E2E: 'true'
+      CI: 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run visual regression
+        run: npm run test:visual
+
+      # Always upload the HTML report. This is how a reviewer sees before/after:
+      # download the artifact, open index.html, each failing test shows the
+      # committed baseline next to the PR's actual render and a pixel diff.
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload test-results (diffs, traces)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: test-results/
+          retention-days: 14
