@@ -34,7 +34,9 @@
     "rentersMenu": "Renters menu",
     "forLandlords": "For Landlords",
     "forLandlordsMenu": "For Landlords menu",
-    "propertyManagement": "Property Management"
+    "propertyManagement": "Property Management",
+    "audienceTabs": "Audience",
+    "legalToggle": "Legal links"
   },
   "tenantLinks": {
     "apply": "Apply",

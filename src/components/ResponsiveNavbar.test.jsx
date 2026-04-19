@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeModeProvider } from '../ThemeModeContext';
 import { LanguageProvider } from '../LanguageContext';
@@ -79,6 +79,100 @@ describe('ResponsiveNavbar', () => {
     renderWithProviders(<ResponsiveNavbar />);
     const menuButton = screen.getByRole('button', { name: /open menu/i });
     expect(menuButton).toBeInTheDocument();
+  });
+
+  describe('Mobile drawer layout', () => {
+    const mockMobile = () => {
+      window.matchMedia = vi.fn().mockImplementation((query) => ({
+        matches: query.includes('max-width'),
+        media: query,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }));
+    };
+
+    const openDrawer = () => {
+      fireEvent.click(screen.getByRole('button', { name: /open menu/i }));
+    };
+
+    const getDrawer = () => screen.getByRole('navigation', { name: /site menu/i });
+
+    it('renders Get Started CTA and Sign In in the auth zone when unauthenticated', () => {
+      mockMobile();
+      renderWithProviders(<ResponsiveNavbar />);
+      openDrawer();
+      const drawer = getDrawer();
+      const getStarted = within(drawer).getByRole('link', { name: /get started/i });
+      expect(getStarted).toHaveAttribute('href', '/pricing');
+      expect(within(drawer).getByRole('button', { name: /^sign in$/i })).toBeInTheDocument();
+    });
+
+    it('defaults audience tabs to Renters and lists renter links in its panel', () => {
+      mockMobile();
+      renderWithProviders(<ResponsiveNavbar />);
+      openDrawer();
+      const drawer = getDrawer();
+      const rentersTab = within(drawer).getByRole('tab', { name: /^renters$/i });
+      expect(rentersTab).toHaveAttribute('aria-selected', 'true');
+      const panel = within(drawer).getByRole('region', { name: /^renters$/i });
+      expect(within(panel).getByRole('link', { name: /^apply$/i })).toBeInTheDocument();
+      expect(within(panel).getByRole('link', { name: /selection criteria/i })).toBeInTheDocument();
+    });
+
+    it('switches to landlord links when the Landlords tab is activated', () => {
+      mockMobile();
+      renderWithProviders(<ResponsiveNavbar />);
+      openDrawer();
+      const drawer = getDrawer();
+      fireEvent.click(within(drawer).getByRole('tab', { name: /for landlords/i }));
+      const panel = within(drawer).getByRole('region', { name: /for landlords/i });
+      expect(within(panel).getByRole('link', { name: /for property managers/i })).toBeInTheDocument();
+      expect(within(panel).getByRole('link', { name: /pricing/i })).toBeInTheDocument();
+    });
+
+    it('pre-selects the Landlords tab when opened on a landlord-audience route', () => {
+      mockMobile();
+      renderNavAt('/pricing');
+      openDrawer();
+      const drawer = getDrawer();
+      expect(within(drawer).getByRole('tab', { name: /for landlords/i })).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('renders core links (Home, Property Management, Contact Us) outside the audience panel', () => {
+      mockMobile();
+      renderWithProviders(<ResponsiveNavbar />);
+      openDrawer();
+      const drawer = getDrawer();
+      expect(within(drawer).getByRole('link', { name: /^home$/i })).toBeInTheDocument();
+      expect(within(drawer).getByRole('link', { name: /property management/i })).toBeInTheDocument();
+      expect(within(drawer).getByRole('link', { name: /contact us/i })).toBeInTheDocument();
+    });
+
+    it('shows the current language label in the footer language row', () => {
+      mockMobile();
+      renderWithProviders(<ResponsiveNavbar />);
+      openDrawer();
+      const drawer = getDrawer();
+      const languageRow = within(drawer).getByRole('button', { name: /language/i });
+      expect(within(languageRow).getByText(/english/i)).toBeInTheDocument();
+    });
+
+    it('keeps Legal collapsed by default and expands it on click', () => {
+      mockMobile();
+      renderWithProviders(<ResponsiveNavbar />);
+      openDrawer();
+      const drawer = getDrawer();
+      const toggle = within(drawer).getByRole('button', { name: /legal links/i });
+      expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      expect(within(drawer).queryByRole('link', { name: /privacy policy/i })).not.toBeInTheDocument();
+      fireEvent.click(toggle);
+      expect(toggle).toHaveAttribute('aria-expanded', 'true');
+      expect(within(drawer).getByRole('link', { name: /privacy policy/i })).toBeInTheDocument();
+      expect(within(drawer).getByRole('link', { name: /terms of service/i })).toBeInTheDocument();
+    });
   });
 
   describe('Print control', () => {
