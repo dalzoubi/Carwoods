@@ -51,9 +51,9 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install chromium",
-    "test:visual": "PORTAL_E2E=true playwright test --project=visual-chromium",
-    "test:visual:update": "PORTAL_E2E=true playwright test --project=visual-chromium --update-snapshots",
-    "test:visual:ui": "PORTAL_E2E=true playwright test --project=visual-chromium --ui",
+    "test:visual": "cross-env PORTAL_E2E=true playwright test --project=visual-chromium",
+    "test:visual:update": "cross-env PORTAL_E2E=true playwright test --project=visual-chromium --update-snapshots",
+    "test:visual:ui": "cross-env PORTAL_E2E=true playwright test --project=visual-chromium --ui",
     "build:api": "npm run build --prefix apps/api",
     "build:packages": "npm run build --prefix packages/domain && npm run build --prefix packages/config"
   },
