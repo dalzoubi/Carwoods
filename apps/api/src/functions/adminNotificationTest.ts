@@ -13,11 +13,8 @@ import { createPortalNotification } from '../lib/notificationCenterRepo.js';
 import { writeAudit } from '../lib/auditRepo.js';
 import { logInfo } from '../lib/serverLogger.js';
 import { findUserById } from '../lib/usersRepo.js';
-import {
-  sendTelnyxEmail,
-  sendTelnyxSms,
-  TelnyxNotConfiguredError,
-} from '../lib/telnyxClient.js';
+import { sendResendEmail, ResendNotConfiguredError } from '../lib/resendClient.js';
+import { sendTelnyxSms, TelnyxNotConfiguredError } from '../lib/telnyxClient.js';
 
 const EVENT_ADMIN_TEST = 'ADMIN_NOTIFICATION_TEST';
 const TEMPLATE_EMAIL = 'EMAIL:ADMIN_TEST';
@@ -161,21 +158,21 @@ async function adminNotificationTestHandler(
     }
 
     if (channel === 'email' && targetEmail) {
-      if (!process.env.TELNYX_API_KEY) {
-        return jsonResponse(500, ctx.headers, { error: 'telnyx_not_configured' });
+      if (!process.env.RESEND_API_KEY) {
+        return jsonResponse(500, ctx.headers, { error: 'resend_not_configured' });
       }
 
       let providerMessageId: string | null = null;
       let sendError: string | null = null;
       try {
-        providerMessageId = await sendTelnyxEmail({
+        providerMessageId = await sendResendEmail({
           to: targetEmail,
           subject: title,
           text: bodyText,
         });
       } catch (err) {
-        if (err instanceof TelnyxNotConfiguredError) {
-          return jsonResponse(500, ctx.headers, { error: 'telnyx_not_configured' });
+        if (err instanceof ResendNotConfiguredError) {
+          return jsonResponse(500, ctx.headers, { error: 'resend_not_configured' });
         }
         sendError = err instanceof Error ? err.message : String(err);
       }

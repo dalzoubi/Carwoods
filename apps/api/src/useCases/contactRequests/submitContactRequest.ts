@@ -1,7 +1,7 @@
 import { insertContactRequest, type ContactRequestRow } from '../../lib/contactRequestsRepo.js';
 import { validationError } from '../../domain/errors.js';
 import { logError, logWarn } from '../../lib/serverLogger.js';
-import { sendTelnyxEmail } from '../../lib/telnyxClient.js';
+import { sendResendEmail } from '../../lib/resendClient.js';
 import type { InvocationContext } from '@azure/functions';
 
 const VALID_SUBJECTS = new Set([
@@ -52,10 +52,10 @@ async function sendAdminAlert(
 ): Promise<void> {
   const adminEmail = process.env.ADMIN_ALERT_EMAIL;
   if (!adminEmail) return;
-  if (!process.env.TELNYX_API_KEY || !process.env.TELNYX_EMAIL_FROM) return;
+  if (!process.env.RESEND_API_KEY || !process.env.RESEND_EMAIL_FROM) return;
 
   try {
-    await sendTelnyxEmail({
+    await sendResendEmail({
       to: adminEmail,
       subject: `[Carwoods] New contact request from ${row.name} (${row.subject})`,
       text: [

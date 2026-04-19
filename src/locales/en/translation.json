@@ -1101,9 +1101,9 @@
       "forbidden": "You do not have permission to run notification tests.",
       "unauthorized": "Sign in again, then retry.",
       "invalid_token": "Session expired. Sign in again.",
-      "telnyx_not_configured": "Email service is not configured. Set TELNYX_API_KEY and TELNYX_EMAIL_FROM in the server environment.",
+      "resend_not_configured": "Email service is not configured. Set RESEND_API_KEY and RESEND_EMAIL_FROM in the server environment.",
       "sms_from_number_not_configured": "SMS is not configured. A phone number (TELNYX_SMS_FROM) must be provisioned in Telnyx.",
-      "email_send_failed": "Email delivery failed. Check the Telnyx configuration and sender domain verification.",
+      "email_send_failed": "Email delivery failed. Check the Resend configuration and sender domain verification.",
       "sms_send_failed": "SMS delivery failed. Check the Telnyx phone number and messaging profile configuration."
     }
   },

@@ -9,12 +9,8 @@ import {
 import { buildNotificationContent } from './notificationDispatch.js';
 import { writeAudit } from './auditRepo.js';
 import { logInfo, logWarn } from './serverLogger.js';
-import {
-  sendTelnyxEmail,
-  sendTelnyxSms,
-  telnyxChannelsEnabled,
-  TelnyxNotConfiguredError,
-} from './telnyxClient.js';
+import { sendResendEmail } from './resendClient.js';
+import { sendTelnyxSms, TelnyxNotConfiguredError } from './telnyxClient.js';
 
 export type ProcessNotificationDeliveryBatchResult = {
   attempted: number;
@@ -22,6 +18,13 @@ export type ProcessNotificationDeliveryBatchResult = {
   failed: number;
   skipped: number;
 };
+
+function notificationChannelsEnabled(): { email: boolean; sms: boolean } {
+  const raw = (process.env.NOTIFICATION_CHANNELS ?? 'email').trim().toLowerCase();
+  if (raw === 'both') return { email: true, sms: true };
+  if (raw === 'sms') return { email: false, sms: true };
+  return { email: true, sms: false };
+}
 
 function parseOutboxPayload(raw: string | null): Record<string, unknown> {
   if (!raw) return {};
@@ -84,7 +87,7 @@ async function sendEmail(
   recipientEmail: string,
   emailContent: { subject: string; plainText: string }
 ): Promise<string | null> {
-  return sendTelnyxEmail({
+  return sendResendEmail({
     to: recipientEmail,
     subject: emailContent.subject,
     text: emailContent.plainText,
@@ -121,7 +124,7 @@ export async function processNotificationDeliveryBatch(
   const pool = getPool();
   const safeLimit = Number.isFinite(options.limit) ? Math.max(1, Math.min(200, options.limit)) : 50;
   const queued = await listQueuedDeliveries(pool, safeLimit);
-  const channels = telnyxChannelsEnabled();
+  const channels = notificationChannelsEnabled();
 
   let sent = 0;
   let failed = 0;

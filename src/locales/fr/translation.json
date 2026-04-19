@@ -922,9 +922,9 @@
       "forbidden": "Vous n’avez pas l’autorisation d’exécuter des tests de notification.",
       "unauthorized": "Reconnectez-vous, puis réessayez.",
       "invalid_token": "Session expirée. Reconnectez-vous.",
-      "telnyx_not_configured": "Le service de messagerie n'est pas configuré. Définissez TELNYX_API_KEY et TELNYX_EMAIL_FROM dans l'environnement du serveur.",
+      "resend_not_configured": "Le service de messagerie n'est pas configuré. Définissez RESEND_API_KEY et RESEND_EMAIL_FROM dans l'environnement du serveur.",
       "sms_from_number_not_configured": "Le SMS n'est pas configuré. Un numéro de téléphone (TELNYX_SMS_FROM) doit être provisionné dans Telnyx.",
-      "email_send_failed": "L'envoi de l'e-mail a échoué. Vérifiez la configuration Telnyx et la vérification du domaine de l'expéditeur.",
+      "email_send_failed": "L'envoi de l'e-mail a échoué. Vérifiez la configuration Resend et la vérification du domaine de l'expéditeur.",
       "sms_send_failed": "L'envoi du SMS a échoué. Vérifiez le numéro de téléphone et la configuration du profil de messagerie Telnyx."
     }
   },
