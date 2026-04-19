@@ -3,11 +3,22 @@ import {
   normalizeQuietHoursPreference,
   type QuietHoursPreference,
 } from './notificationQuietHours.js';
+import { getFlowDefault } from '../config/notificationFlowDefaults.js';
 
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
 
 export type NotificationEventCategory = 'ONBOARDING' | 'MAINTENANCE' | 'SECURITY_COMPLIANCE';
 export type NotificationScopeType = 'PROPERTY' | 'REQUEST';
+
+export type UserNotificationFlowPreferenceRow = {
+  user_id: string;
+  event_type_code: string;
+  email_enabled: boolean | null;
+  in_app_enabled: boolean | null;
+  sms_enabled: boolean | null;
+  created_at: Date;
+  updated_at: Date;
+};
 
 export type UserNotificationPreferenceRow = {
   user_id: string;
@@ -278,13 +289,31 @@ export async function resolveNotificationPolicy(
 ): Promise<{ emailEnabled: boolean; inAppEnabled: boolean; smsEnabled: boolean }> {
   const eventCategory = deriveEventCategory(params.eventTypeCode);
   const mandatory = isMandatoryNotification(params.eventTypeCode);
+  const flowDefault = getFlowDefault(params.eventTypeCode);
 
   await ensureUserNotificationPreference(client, params.userId);
-  const r = await client.query<PolicyResolutionRow>(
+  const r = await client.query<{
+    global_email_enabled: boolean;
+    global_in_app_enabled: boolean;
+    global_sms_enabled: boolean;
+    global_sms_opt_in: boolean;
+    scope_email_enabled: boolean | null;
+    scope_in_app_enabled: boolean | null;
+    scope_sms_enabled: boolean | null;
+    scope_sms_opt_in: boolean | null;
+    flow_email_enabled: boolean | null;
+    flow_in_app_enabled: boolean | null;
+    flow_sms_enabled: boolean | null;
+  }>(
     `WITH base AS (
       SELECT email_enabled, in_app_enabled, sms_enabled, sms_opt_in
       FROM user_notification_preferences
       WHERE user_id = $1
+    ),
+    flow_pref AS (
+      SELECT TOP 1 email_enabled, in_app_enabled, sms_enabled
+      FROM user_notification_flow_preferences
+      WHERE user_id = $1 AND event_type_code = $5
     ),
     property_override AS (
       SELECT TOP 1 email_enabled, in_app_enabled, sms_enabled, sms_opt_in
@@ -307,24 +336,171 @@ export async function resolveNotificationPolicy(
       ORDER BY updated_at DESC
     )
     SELECT
-      COALESCE(ro.email_enabled, po.email_enabled, b.email_enabled, CAST(1 AS BIT)) AS email_enabled,
-      COALESCE(ro.in_app_enabled, po.in_app_enabled, b.in_app_enabled, CAST(1 AS BIT)) AS in_app_enabled,
-      COALESCE(ro.sms_enabled, po.sms_enabled, b.sms_enabled, CAST(0 AS BIT)) AS sms_enabled,
-      COALESCE(ro.sms_opt_in, po.sms_opt_in, b.sms_opt_in, CAST(0 AS BIT)) AS sms_opt_in
+      COALESCE(b.email_enabled, CAST(1 AS BIT)) AS global_email_enabled,
+      COALESCE(b.in_app_enabled, CAST(1 AS BIT)) AS global_in_app_enabled,
+      COALESCE(b.sms_enabled, CAST(0 AS BIT)) AS global_sms_enabled,
+      COALESCE(b.sms_opt_in, CAST(0 AS BIT)) AS global_sms_opt_in,
+      COALESCE(ro.email_enabled, po.email_enabled) AS scope_email_enabled,
+      COALESCE(ro.in_app_enabled, po.in_app_enabled) AS scope_in_app_enabled,
+      COALESCE(ro.sms_enabled, po.sms_enabled) AS scope_sms_enabled,
+      COALESCE(ro.sms_opt_in, po.sms_opt_in) AS scope_sms_opt_in,
+      fp.email_enabled AS flow_email_enabled,
+      fp.in_app_enabled AS flow_in_app_enabled,
+      fp.sms_enabled AS flow_sms_enabled
     FROM base b
     LEFT JOIN property_override po ON 1 = 1
-    LEFT JOIN request_override ro ON 1 = 1`,
-    [params.userId, params.propertyId ?? null, params.requestId ?? null, eventCategory]
+    LEFT JOIN request_override ro ON 1 = 1
+    LEFT JOIN flow_pref fp ON 1 = 1`,
+    [
+      params.userId,
+      params.propertyId ?? null,
+      params.requestId ?? null,
+      eventCategory,
+      String(params.eventTypeCode ?? '').trim().toUpperCase(),
+    ]
   );
 
   const row = r.rows[0] ?? {
-    email_enabled: true,
-    in_app_enabled: true,
-    sms_enabled: false,
-    sms_opt_in: false,
+    global_email_enabled: true,
+    global_in_app_enabled: true,
+    global_sms_enabled: false,
+    global_sms_opt_in: false,
+    scope_email_enabled: null,
+    scope_in_app_enabled: null,
+    scope_sms_enabled: null,
+    scope_sms_opt_in: null,
+    flow_email_enabled: null,
+    flow_in_app_enabled: null,
+    flow_sms_enabled: null,
   };
-  const emailEnabled = mandatory ? true : Boolean(row.email_enabled);
-  const inAppEnabled = mandatory ? true : Boolean(row.in_app_enabled);
-  const smsEnabled = Boolean(row.sms_enabled) && Boolean(row.sms_opt_in);
-  return { emailEnabled, inAppEnabled, smsEnabled };
+
+  // Mandatory flows (e.g. SECURITY_*) always deliver on the channels their
+  // default declares; users cannot suppress them, but the scope overrides for
+  // SECURITY_COMPLIANCE still apply (admins may redirect a mandatory alert).
+  if (mandatory || flowDefault?.userOverridable === false) {
+    const scoped = (scope: boolean | null, dflt: boolean): boolean =>
+      scope === null || scope === undefined ? dflt : Boolean(scope);
+    return {
+      emailEnabled: scoped(row.scope_email_enabled, flowDefault?.email ?? true),
+      inAppEnabled: scoped(row.scope_in_app_enabled, flowDefault?.inApp ?? true),
+      smsEnabled:
+        scoped(row.scope_sms_enabled, flowDefault?.sms ?? false)
+        && Boolean(row.global_sms_opt_in),
+    };
+  }
+
+  // Resolution for overridable flows, per channel:
+  //   1. scope override (PROPERTY or REQUEST)  — if explicit, wins
+  //   2. per-flow user pref                    — if explicit, wins
+  //   3. compile-time flow default AND global master toggle must both be ON
+  const resolveChannel = (
+    scopeValue: boolean | null,
+    flowValue: boolean | null,
+    flowDefaultChannel: boolean,
+    globalMaster: boolean
+  ): boolean => {
+    if (scopeValue !== null && scopeValue !== undefined) return Boolean(scopeValue);
+    if (flowValue !== null && flowValue !== undefined) {
+      return Boolean(flowValue) && globalMaster;
+    }
+    return flowDefaultChannel && globalMaster;
+  };
+
+  const emailEnabled = resolveChannel(
+    row.scope_email_enabled,
+    row.flow_email_enabled,
+    flowDefault?.email ?? true,
+    Boolean(row.global_email_enabled)
+  );
+  const inAppEnabled = resolveChannel(
+    row.scope_in_app_enabled,
+    row.flow_in_app_enabled,
+    flowDefault?.inApp ?? true,
+    Boolean(row.global_in_app_enabled)
+  );
+  const smsResolved = resolveChannel(
+    row.scope_sms_enabled,
+    row.flow_sms_enabled,
+    flowDefault?.sms ?? false,
+    Boolean(row.global_sms_enabled)
+  );
+
+  return {
+    emailEnabled,
+    inAppEnabled,
+    smsEnabled: smsResolved && Boolean(row.global_sms_opt_in),
+  };
+}
+
+export async function listUserNotificationFlowPreferences(
+  client: Queryable,
+  userId: string
+): Promise<UserNotificationFlowPreferenceRow[]> {
+  const r = await client.query<UserNotificationFlowPreferenceRow>(
+    `SELECT user_id, event_type_code, email_enabled, in_app_enabled, sms_enabled,
+            created_at, updated_at
+     FROM user_notification_flow_preferences
+     WHERE user_id = $1
+     ORDER BY event_type_code`,
+    [userId]
+  );
+  return r.rows;
+}
+
+export async function upsertUserNotificationFlowPreference(
+  client: Queryable,
+  params: {
+    userId: string;
+    eventTypeCode: string;
+    emailEnabled?: boolean | null;
+    inAppEnabled?: boolean | null;
+    smsEnabled?: boolean | null;
+  }
+): Promise<UserNotificationFlowPreferenceRow> {
+  const code = String(params.eventTypeCode ?? '').trim().toUpperCase();
+  if (!code) throw new Error('event_type_code_required');
+  const flowDefault = getFlowDefault(code);
+  if (!flowDefault) throw new Error('unknown_event_type_code');
+  if (!flowDefault.userOverridable) throw new Error('flow_not_user_overridable');
+
+  const email = toNullableBit(params.emailEnabled);
+  const inApp = toNullableBit(params.inAppEnabled);
+  const sms = toNullableBit(params.smsEnabled);
+
+  // If every channel was cleared back to null (match default), drop the row.
+  if (email === null && inApp === null && sms === null) {
+    await client.query(
+      `DELETE FROM user_notification_flow_preferences
+       WHERE user_id = $1 AND event_type_code = $2`,
+      [params.userId, code]
+    );
+    return {
+      user_id: params.userId,
+      event_type_code: code,
+      email_enabled: null,
+      in_app_enabled: null,
+      sms_enabled: null,
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+  }
+
+  const r = await client.query<UserNotificationFlowPreferenceRow>(
+    `MERGE user_notification_flow_preferences AS target
+     USING (SELECT $1 AS user_id, $2 AS event_type_code) AS src
+       ON target.user_id = src.user_id AND target.event_type_code = src.event_type_code
+     WHEN MATCHED THEN
+       UPDATE SET email_enabled = $3,
+                  in_app_enabled = $4,
+                  sms_enabled = $5,
+                  updated_at = SYSDATETIMEOFFSET()
+     WHEN NOT MATCHED THEN
+       INSERT (user_id, event_type_code, email_enabled, in_app_enabled, sms_enabled)
+       VALUES ($1, $2, $3, $4, $5)
+     OUTPUT INSERTED.user_id, INSERTED.event_type_code, INSERTED.email_enabled,
+            INSERTED.in_app_enabled, INSERTED.sms_enabled,
+            INSERTED.created_at, INSERTED.updated_at;`,
+    [params.userId, code, email, inApp, sms]
+  );
+  return r.rows[0]!;
 }

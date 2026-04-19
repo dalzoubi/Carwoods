@@ -82,6 +82,7 @@ test('portalMe allows AI_AGENT role', async () => {
       created_at: new Date(),
       updated_at: new Date(),
     }),
+    listUserNotificationFlowPreferences: async () => [],
     getGlobalAttachmentUploadConfigCached: async () => ({
       max_image_bytes: 10 * 1024 * 1024,
     }),
