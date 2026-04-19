@@ -45,7 +45,8 @@ function num(v: unknown): number | undefined {
   return undefined;
 }
 
-async function handleListByLease(
+/** One registration per route template (Azure requires unique templates; method alone is not enough). */
+async function landlordLeaseDepositsCollection(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
@@ -54,61 +55,57 @@ async function handleListByLease(
   if (!gate.ok) return gate.response;
   const { ctx } = gate;
 
-  try {
-    const result = await listLeaseDeposits(getPool(), {
-      actorUserId: ctx.user.id,
-      actorRole: ctx.role,
-      leaseId,
-    });
-    return jsonResponse(200, ctx.headers, result);
-  } catch (e) {
-    const mapped = mapDomainError(e, ctx.headers);
-    if (mapped) return mapped;
-    logError(context, 'lease.deposits.list.error', { actorUserId: ctx.user.id, leaseId });
-    throw e;
+  if (request.method === 'GET') {
+    try {
+      const result = await listLeaseDeposits(getPool(), {
+        actorUserId: ctx.user.id,
+        actorRole: ctx.role,
+        leaseId,
+      });
+      return jsonResponse(200, ctx.headers, result);
+    } catch (e) {
+      const mapped = mapDomainError(e, ctx.headers);
+      if (mapped) return mapped;
+      logError(context, 'lease.deposits.list.error', { actorUserId: ctx.user.id, leaseId });
+      throw e;
+    }
   }
+
+  if (request.method === 'POST') {
+    let body: unknown;
+    try {
+      body = await readJsonBody(request);
+    } catch (e) {
+      const mapped = mapDomainError(e, ctx.headers);
+      if (mapped) return mapped;
+      throw e;
+    }
+    if (body === null) return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
+    const b = asRecord(body);
+
+    try {
+      const result = await createLeaseDeposit(getPool(), {
+        actorUserId: ctx.user.id,
+        actorRole: ctx.role,
+        leaseId,
+        kind: (str(b.kind) ?? undefined) as DepositKind | undefined,
+        amount: num(b.amount) ?? NaN,
+        heldSince: str(b.held_since) ?? '',
+        notes: strNullable(b.notes),
+      });
+      return jsonResponse(201, ctx.headers, result);
+    } catch (e) {
+      const mapped = mapDomainError(e, ctx.headers);
+      if (mapped) return mapped;
+      logError(context, 'lease.deposits.create.error', { actorUserId: ctx.user.id, leaseId });
+      throw e;
+    }
+  }
+
+  return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
 }
 
-async function handleCreateForLease(
-  request: HttpRequest,
-  context: InvocationContext
-): Promise<HttpResponseInit> {
-  const leaseId = request.params.leaseId ?? '';
-  const gate = await requireLandlordOrAdmin(request, context);
-  if (!gate.ok) return gate.response;
-  const { ctx } = gate;
-
-  let body: unknown;
-  try {
-    body = await readJsonBody(request);
-  } catch (e) {
-    const mapped = mapDomainError(e, ctx.headers);
-    if (mapped) return mapped;
-    throw e;
-  }
-  if (body === null) return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
-  const b = asRecord(body);
-
-  try {
-    const result = await createLeaseDeposit(getPool(), {
-      actorUserId: ctx.user.id,
-      actorRole: ctx.role,
-      leaseId,
-      kind: (str(b.kind) ?? undefined) as DepositKind | undefined,
-      amount: num(b.amount) ?? NaN,
-      heldSince: str(b.held_since) ?? '',
-      notes: strNullable(b.notes),
-    });
-    return jsonResponse(201, ctx.headers, result);
-  } catch (e) {
-    const mapped = mapDomainError(e, ctx.headers);
-    if (mapped) return mapped;
-    logError(context, 'lease.deposits.create.error', { actorUserId: ctx.user.id, leaseId });
-    throw e;
-  }
-}
-
-async function handleUpdateDeposit(
+async function landlordDepositItem(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
@@ -117,58 +114,54 @@ async function handleUpdateDeposit(
   if (!gate.ok) return gate.response;
   const { ctx } = gate;
 
-  let body: unknown;
-  try {
-    body = await readJsonBody(request);
-  } catch (e) {
-    const mapped = mapDomainError(e, ctx.headers);
-    if (mapped) return mapped;
-    throw e;
-  }
-  if (body === null) return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
-  const b = asRecord(body);
+  if (request.method === 'PATCH') {
+    let body: unknown;
+    try {
+      body = await readJsonBody(request);
+    } catch (e) {
+      const mapped = mapDomainError(e, ctx.headers);
+      if (mapped) return mapped;
+      throw e;
+    }
+    if (body === null) return jsonResponse(400, ctx.headers, { error: 'invalid_json' });
+    const b = asRecord(body);
 
-  try {
-    const result = await updateLeaseDeposit(getPool(), {
-      actorUserId: ctx.user.id,
-      actorRole: ctx.role,
-      depositId,
-      kind: (str(b.kind) ?? undefined) as DepositKind | undefined,
-      amount: num(b.amount),
-      heldSince: str(b.held_since),
-      notes: 'notes' in b ? strNullable(b.notes) : undefined,
-    });
-    return jsonResponse(200, ctx.headers, result);
-  } catch (e) {
-    const mapped = mapDomainError(e, ctx.headers);
-    if (mapped) return mapped;
-    logError(context, 'lease.deposits.update.error', { actorUserId: ctx.user.id, depositId });
-    throw e;
+    try {
+      const result = await updateLeaseDeposit(getPool(), {
+        actorUserId: ctx.user.id,
+        actorRole: ctx.role,
+        depositId,
+        kind: (str(b.kind) ?? undefined) as DepositKind | undefined,
+        amount: num(b.amount),
+        heldSince: str(b.held_since),
+        notes: 'notes' in b ? strNullable(b.notes) : undefined,
+      });
+      return jsonResponse(200, ctx.headers, result);
+    } catch (e) {
+      const mapped = mapDomainError(e, ctx.headers);
+      if (mapped) return mapped;
+      logError(context, 'lease.deposits.update.error', { actorUserId: ctx.user.id, depositId });
+      throw e;
+    }
   }
-}
 
-async function handleDeleteDeposit(
-  request: HttpRequest,
-  context: InvocationContext
-): Promise<HttpResponseInit> {
-  const depositId = request.params.depositId ?? '';
-  const gate = await requireLandlordOrAdmin(request, context);
-  if (!gate.ok) return gate.response;
-  const { ctx } = gate;
-
-  try {
-    const result = await deleteLeaseDeposit(getPool(), {
-      actorUserId: ctx.user.id,
-      actorRole: ctx.role,
-      depositId,
-    });
-    return jsonResponse(200, ctx.headers, result);
-  } catch (e) {
-    const mapped = mapDomainError(e, ctx.headers);
-    if (mapped) return mapped;
-    logError(context, 'lease.deposits.delete.error', { actorUserId: ctx.user.id, depositId });
-    throw e;
+  if (request.method === 'DELETE') {
+    try {
+      const result = await deleteLeaseDeposit(getPool(), {
+        actorUserId: ctx.user.id,
+        actorRole: ctx.role,
+        depositId,
+      });
+      return jsonResponse(200, ctx.headers, result);
+    } catch (e) {
+      const mapped = mapDomainError(e, ctx.headers);
+      if (mapped) return mapped;
+      logError(context, 'lease.deposits.delete.error', { actorUserId: ctx.user.id, depositId });
+      throw e;
+    }
   }
+
+  return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
 }
 
 async function handleUpsertDisposition(
@@ -210,32 +203,18 @@ async function handleUpsertDisposition(
   }
 }
 
-app.http('landlordLeaseDepositsList', {
-  methods: ['GET', 'OPTIONS'],
+app.http('landlordLeaseDepositsCollection', {
+  methods: ['GET', 'POST', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'landlord/leases/{leaseId}/deposits',
-  handler: handleListByLease,
+  handler: landlordLeaseDepositsCollection,
 });
 
-app.http('landlordLeaseDepositsCreate', {
-  methods: ['POST', 'OPTIONS'],
-  authLevel: 'anonymous',
-  route: 'landlord/leases/{leaseId}/deposits',
-  handler: handleCreateForLease,
-});
-
-app.http('landlordDepositUpdate', {
-  methods: ['PATCH', 'OPTIONS'],
+app.http('landlordDepositItem', {
+  methods: ['PATCH', 'DELETE', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'landlord/deposits/{depositId}',
-  handler: handleUpdateDeposit,
-});
-
-app.http('landlordDepositDelete', {
-  methods: ['DELETE', 'OPTIONS'],
-  authLevel: 'anonymous',
-  route: 'landlord/deposits/{depositId}',
-  handler: handleDeleteDeposit,
+  handler: landlordDepositItem,
 });
 
 app.http('landlordDepositDisposition', {
