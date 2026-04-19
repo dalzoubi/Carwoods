@@ -10,6 +10,9 @@ import PortalAdminAiConfig from './PortalAdminAiConfig';
 import PortalAdminAiAgents from './PortalAdminAiAgents';
 import PortalAdminAttachmentConfig from './PortalAdminAttachmentConfig';
 import PortalNotificationPolicies from './PortalNotificationPolicies';
+import PortalAdminNotificationDefaults from './PortalAdminNotificationDefaults';
+import PortalAdminNotificationOverrides from './PortalAdminNotificationOverrides';
+import PortalAdminNotificationReport from './PortalAdminNotificationReport';
 
 export const ONBOARDING_SETTINGS_VISITED_KEY = 'carwoods-onboarding-settings-visited';
 
@@ -30,7 +33,7 @@ const PortalAdminAiSettings = () => {
   const isLandlord = role === Role.LANDLORD;
   const tabSlugs = isLandlord
     ? ['notifications']
-    : ['policies', 'agents', 'attachments', 'notifications'];
+    : ['policies', 'agents', 'attachments', 'notifications', 'flow-defaults', 'user-overrides', 'report'];
   const [searchParams, setSearchParams] = useSearchParams();
   const tabSlug = searchParams.get('tab');
   const tab = tabIndexFromSlug(tabSlug, tabSlugs);
@@ -65,12 +68,18 @@ const PortalAdminAiSettings = () => {
             {!isLandlord && <Tab label={t('portalAdminConfigurations.tabs.agents')} />}
             {!isLandlord && <Tab label={t('portalAdminConfigurations.tabs.attachments')} />}
             <Tab label={t('portalAdminConfigurations.tabs.notifications')} />
+            {!isLandlord && <Tab label={t('portalAdminConfigurations.tabs.flowDefaults')} />}
+            {!isLandlord && <Tab label={t('portalAdminConfigurations.tabs.userOverrides')} />}
+            {!isLandlord && <Tab label={t('portalAdminConfigurations.tabs.report')} />}
           </Tabs>
         </Paper>
         {tabSlugs[tab] === 'policies' && <PortalAdminAiConfig />}
         {tabSlugs[tab] === 'agents' && <PortalAdminAiAgents />}
         {tabSlugs[tab] === 'attachments' && <PortalAdminAttachmentConfig />}
         {tabSlugs[tab] === 'notifications' && <PortalNotificationPolicies />}
+        {tabSlugs[tab] === 'flow-defaults' && <PortalAdminNotificationDefaults />}
+        {tabSlugs[tab] === 'user-overrides' && <PortalAdminNotificationOverrides />}
+        {tabSlugs[tab] === 'report' && <PortalAdminNotificationReport />}
       </Stack>
     </Box>
   );

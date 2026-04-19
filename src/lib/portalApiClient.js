@@ -2428,3 +2428,114 @@ export async function updateLeasePaymentEntry(baseUrl, accessToken, entryId, pay
   }
   return res.json();
 }
+
+export async function fetchAdminNotificationFlowDefaults(baseUrl, accessToken, { emailHint } = {}) {
+  const res = await fetch(buildUrl(baseUrl, '/api/portal/admin/notifications/flow-defaults'), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function patchAdminNotificationFlowDefault(baseUrl, accessToken, eventTypeCode, payload) {
+  const { emailHint, ...body } = payload || {};
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/admin/notifications/flow-defaults/${encodeURIComponent(eventTypeCode)}`),
+    {
+      method: 'PATCH',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function deleteAdminNotificationFlowDefault(baseUrl, accessToken, eventTypeCode, { emailHint } = {}) {
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/admin/notifications/flow-defaults/${encodeURIComponent(eventTypeCode)}`),
+    {
+      method: 'DELETE',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function fetchAdminNotificationOverrides(baseUrl, accessToken, params = {}) {
+  const { emailHint, q, role, onlyCustomized, eventTypeCode, limit } = params;
+  const search = new URLSearchParams();
+  if (q) search.set('q', String(q));
+  if (role) search.set('role', String(role));
+  if (onlyCustomized) search.set('only_customized', '1');
+  if (eventTypeCode) search.set('event_type_code', String(eventTypeCode));
+  if (limit) search.set('limit', String(limit));
+  const qs = search.toString();
+  const url = `/api/portal/admin/notifications/user-overrides${qs ? `?${qs}` : ''}`;
+  const res = await fetch(buildUrl(baseUrl, url), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function fetchAdminNotificationOverridesForUser(baseUrl, accessToken, userId, { emailHint } = {}) {
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/admin/notifications/user-overrides/${encodeURIComponent(userId)}`),
+    {
+      method: 'GET',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+export async function fetchAdminNotificationReport(baseUrl, accessToken, params = {}) {
+  const {
+    emailHint, from, to, channel, status, eventTypeCode, recipientUserId, groupBy,
+  } = params;
+  const search = new URLSearchParams();
+  if (from) search.set('from', from instanceof Date ? from.toISOString() : String(from));
+  if (to) search.set('to', to instanceof Date ? to.toISOString() : String(to));
+  if (channel) search.set('channel', String(channel));
+  if (status) search.set('status', String(status));
+  if (eventTypeCode) search.set('event_type_code', String(eventTypeCode));
+  if (recipientUserId) search.set('recipient_user_id', String(recipientUserId));
+  if (groupBy) search.set('group_by', String(groupBy));
+  const qs = search.toString();
+  const url = `/api/portal/admin/notifications/report${qs ? `?${qs}` : ''}`;
+  const res = await fetch(buildUrl(baseUrl, url), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}

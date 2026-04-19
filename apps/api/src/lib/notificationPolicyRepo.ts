@@ -4,6 +4,7 @@ import {
   type QuietHoursPreference,
 } from './notificationQuietHours.js';
 import { getFlowDefault } from '../config/notificationFlowDefaults.js';
+import { getEffectiveFlowDefault } from './notificationFlowDefaultsRepo.js';
 
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
 
@@ -289,7 +290,10 @@ export async function resolveNotificationPolicy(
 ): Promise<{ emailEnabled: boolean; inAppEnabled: boolean; smsEnabled: boolean }> {
   const eventCategory = deriveEventCategory(params.eventTypeCode);
   const mandatory = isMandatoryNotification(params.eventTypeCode);
-  const flowDefault = getFlowDefault(params.eventTypeCode);
+  // Admin-tunable defaults override the compile-time map; falls back to code when no row exists.
+  const flowDefault =
+    (await getEffectiveFlowDefault(client, params.eventTypeCode))
+    ?? getFlowDefault(params.eventTypeCode);
 
   await ensureUserNotificationPreference(client, params.userId);
   const r = await client.query<{

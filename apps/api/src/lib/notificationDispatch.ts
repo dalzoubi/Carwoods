@@ -834,6 +834,9 @@ async function enqueueChannelDeliveries(
       templateId: `EMAIL:${templateId}`,
       status: 'QUEUED',
       scheduledSendAt: null,
+      channel: 'EMAIL',
+      recipientUserId: recipient.userId,
+      eventTypeCode: templateId,
     });
   }
   if (channels.smsEnabled && recipient.phone) {
@@ -843,6 +846,9 @@ async function enqueueChannelDeliveries(
       templateId: `SMS:${templateId}`,
       status: 'QUEUED',
       scheduledSendAt: deferSms ? smsResume : null,
+      channel: 'SMS',
+      recipientUserId: recipient.userId,
+      eventTypeCode: templateId,
     });
   }
 }
@@ -948,6 +954,9 @@ export async function dispatchOutboxNotification(
             templateId: emailTemplateId,
             status: 'QUEUED',
             scheduledSendAt: null,
+            channel: 'EMAIL',
+            recipientUserId: recipient.userId,
+            eventTypeCode: row.event_type_code,
           });
           await touchNotificationChannelCooldown(client, {
             userId: recipient.userId,
