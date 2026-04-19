@@ -579,18 +579,23 @@ const ResponsiveNavbar = () => {
                     value={audienceTab}
                     onChange={(_, value) => setAudienceTab(value)}
                     variant="fullWidth"
+                    textColor="inherit"
                     aria-label={t('nav.audienceTabs')}
+                    TabIndicatorProps={{
+                        sx: { backgroundColor: muiTheme.palette.drawer.text, height: 3 },
+                    }}
                     sx={{
                         minHeight: 42,
+                        color: muiTheme.palette.drawer.text,
                         '& .MuiTab-root': {
                             minHeight: 42,
                             textTransform: 'none',
                             fontWeight: 600,
                             fontSize: '0.9rem',
                             color: muiTheme.palette.drawer.text,
-                            opacity: 0.75,
+                            opacity: 0.85,
                         },
-                        '& .Mui-selected': {
+                        '& .MuiTab-root.Mui-selected': {
                             color: muiTheme.palette.drawer.text,
                             opacity: 1,
                         },
