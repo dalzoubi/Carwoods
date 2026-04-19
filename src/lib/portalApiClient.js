@@ -2024,6 +2024,101 @@ export async function terminateLease(baseUrl, accessToken, leaseId, payload, par
 }
 
 /**
+ * GET /api/landlord/leases/:leaseId/deposits — list deposits + dispositions for a lease.
+ */
+export async function fetchLeaseDeposits(baseUrl, accessToken, leaseId, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/leases/${encodeURIComponent(leaseId)}/deposits`),
+    { method: 'GET', headers: getHeaders(accessToken, emailHint), credentials: 'omit' }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * POST /api/landlord/leases/:leaseId/deposits — create a deposit row.
+ */
+export async function createLeaseDeposit(baseUrl, accessToken, leaseId, payload, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/leases/${encodeURIComponent(leaseId)}/deposits`),
+    {
+      method: 'POST',
+      headers: { ...getHeaders(accessToken, emailHint), 'content-type': 'application/json' },
+      credentials: 'omit',
+      body: JSON.stringify(payload ?? {}),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * PATCH /api/landlord/deposits/:depositId — update a deposit.
+ */
+export async function updateLeaseDeposit(baseUrl, accessToken, depositId, payload, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/deposits/${encodeURIComponent(depositId)}`),
+    {
+      method: 'PATCH',
+      headers: { ...getHeaders(accessToken, emailHint), 'content-type': 'application/json' },
+      credentials: 'omit',
+      body: JSON.stringify(payload ?? {}),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * DELETE /api/landlord/deposits/:depositId — soft delete a deposit.
+ */
+export async function deleteLeaseDeposit(baseUrl, accessToken, depositId, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/deposits/${encodeURIComponent(depositId)}`),
+    { method: 'DELETE', headers: getHeaders(accessToken, emailHint), credentials: 'omit' }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * PUT /api/landlord/deposits/:depositId/disposition — record refund + withhold split.
+ */
+export async function upsertDepositDisposition(baseUrl, accessToken, depositId, payload, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/landlord/deposits/${encodeURIComponent(depositId)}/disposition`),
+    {
+      method: 'PUT',
+      headers: { ...getHeaders(accessToken, emailHint), 'content-type': 'application/json' },
+      credentials: 'omit',
+      body: JSON.stringify(payload ?? {}),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
  * GET /api/landlord/past-tenants — list tenants with no active/upcoming lease under this landlord.
  */
 export async function fetchPastTenants(baseUrl, accessToken, params) {
