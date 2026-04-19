@@ -255,6 +255,41 @@ export function buildNotificationContent(
     };
   }
 
+  if (normalizedEvent === 'CONTACT_REQUEST_CREATED') {
+    const name = asString(payload.name) ?? 'Unknown';
+    const email = asString(payload.email) ?? 'unknown';
+    const phone = asString(payload.phone);
+    const subject = (asString(payload.subject) ?? 'GENERAL').toUpperCase();
+    const message = asString(payload.message) ?? '';
+    const contactId = asString(payload.contact_request_id);
+    const SUBJECT_LABELS: Record<string, string> = {
+      GENERAL: 'General Inquiry',
+      RENTER: 'Renter / Applicant',
+      PROPERTY_OWNER: 'Property Owner',
+      PORTAL_SAAS: 'Portal / SaaS',
+      PAID_SUBSCRIPTION: 'Paid Subscription',
+      PRICING_PAY_AS_YOU_GROW: 'Paid Subscription',
+      PRICING_PRO: 'Paid Subscription',
+    };
+    const subjectLabel = SUBJECT_LABELS[subject] ?? subject;
+    const body = [
+      `Name: ${name}`,
+      `Email: ${email}`,
+      `Phone: ${phone ?? 'not provided'}`,
+      `Subject: ${subjectLabel}`,
+      ``,
+      `Message:`,
+      message,
+    ].join('\n');
+    return {
+      title: `New contact: ${subjectLabel}`,
+      body,
+      deepLink: contactId ? `/portal/inbox/contact#${contactId}` : '/portal/inbox/contact',
+      requestId: null,
+      metadata: { kind: 'contact_request_created', contact_request_id: contactId },
+    };
+  }
+
   if (normalizedEvent === 'REQUEST_CREATED') {
     return {
       title: 'New maintenance request',
@@ -569,7 +604,7 @@ async function resolveRecipientsForEvent(
     return [{ userId, email, phone, role }];
   }
 
-  if (normalizedEvent === 'ACCOUNT_LANDLORD_CREATED') {
+  if (normalizedEvent === 'ACCOUNT_LANDLORD_CREATED' || normalizedEvent === 'CONTACT_REQUEST_CREATED') {
     const admins = await listActiveAdminNotificationRecipients(db);
     return admins.map((row) => ({
       userId: row.user_id,
