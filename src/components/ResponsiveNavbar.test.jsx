@@ -55,9 +55,9 @@ describe('ResponsiveNavbar', () => {
     expect(screen.getByRole('menuitem', { name: /required documents/i })).toBeInTheDocument();
   });
 
-  it('renders For Landlords dropdown with product links', () => {
+  it('renders Landlords / Managers dropdown with product links', () => {
     renderWithProviders(<ResponsiveNavbar />);
-    fireEvent.click(screen.getByRole('button', { name: /for landlords menu/i }));
+    fireEvent.click(screen.getByRole('button', { name: /landlords \/ managers menu/i }));
     expect(screen.getByRole('menuitem', { name: /for property managers/i })).toBeInTheDocument();
   });
 
@@ -127,8 +127,8 @@ describe('ResponsiveNavbar', () => {
       renderWithProviders(<ResponsiveNavbar />);
       openDrawer();
       const drawer = getDrawer();
-      fireEvent.click(within(drawer).getByRole('tab', { name: /for landlords/i }));
-      const panel = within(drawer).getByRole('region', { name: /for landlords/i });
+      fireEvent.click(within(drawer).getByRole('tab', { name: /landlords \/ managers/i }));
+      const panel = within(drawer).getByRole('region', { name: /landlords \/ managers/i });
       expect(within(panel).getByRole('link', { name: /for property managers/i })).toBeInTheDocument();
       expect(within(panel).getByRole('link', { name: /pricing/i })).toBeInTheDocument();
     });
@@ -138,7 +138,7 @@ describe('ResponsiveNavbar', () => {
       renderNavAt('/pricing');
       openDrawer();
       const drawer = getDrawer();
-      expect(within(drawer).getByRole('tab', { name: /for landlords/i })).toHaveAttribute('aria-selected', 'true');
+      expect(within(drawer).getByRole('tab', { name: /landlords \/ managers/i })).toHaveAttribute('aria-selected', 'true');
     });
 
     it('renders core links (Home, Property Management, Contact Us) outside the audience panel', () => {
