@@ -32,8 +32,8 @@
     "resourcesMenu": "Resources menu",
     "renters": "Renters",
     "rentersMenu": "Renters menu",
-    "forLandlords": "Landlords / Managers",
-    "forLandlordsMenu": "Landlords / Managers menu",
+    "forLandlords": "Owner",
+    "forLandlordsMenu": "Owner menu",
     "propertyManagement": "Property Management",
     "audienceTabs": "Audience",
     "legalToggle": "Legal links"
