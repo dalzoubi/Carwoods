@@ -26,7 +26,7 @@ async function parseError(res: Response): Promise<string> {
 }
 
 export async function sendResendEmail(params: {
-  to: string;
+  to: string | string[];
   subject: string;
   text: string;
   replyTo?: string;
@@ -35,13 +35,13 @@ export async function sendResendEmail(params: {
   const from = process.env.RESEND_EMAIL_FROM?.trim();
   if (!from) throw new ResendNotConfiguredError('RESEND_EMAIL_FROM not configured');
 
-  const body: Record<string, unknown> = {
+  const requestBody: Record<string, unknown> = {
     from,
     to: params.to,
     subject: params.subject,
     text: params.text,
   };
-  if (params.replyTo) body.reply_to = params.replyTo;
+  if (params.replyTo) requestBody.reply_to = params.replyTo;
 
   const res = await fetch(`${RESEND_API_BASE}/emails`, {
     method: 'POST',
@@ -49,11 +49,11 @@ export async function sendResendEmail(params: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(requestBody),
   });
 
   if (!res.ok) throw new Error(await parseError(res));
 
-  const body = (await res.json()) as { id?: string };
-  return body.id ?? null;
+  const parsed = (await res.json()) as { id?: string };
+  return parsed.id ?? null;
 }
