@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import App from './App';
 import { ThemeModeProvider } from './ThemeModeContext';
 import { LanguageProvider } from './LanguageContext';
@@ -34,7 +35,12 @@ describe('App', () => {
 
   it('renders Home content at root path', () => {
     renderWithProviders(<App />);
-    expect(screen.getByRole('heading', { name: /houston rentals, managed right/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: /property management in houston\. self-management anywhere\./i,
+      })
+    ).toBeInTheDocument();
   });
 
   it('serves apply at /dark/apply and opens appearance menu', () => {
@@ -48,15 +54,17 @@ describe('App', () => {
       dispatchEvent: () => false,
     }));
     render(
-      <MemoryRouter initialEntries={['/dark/apply']}>
-        <LanguageProvider>
-          <ThemeModeProvider>
-            <PortalAuthProvider>
-              <App />
-            </PortalAuthProvider>
-          </ThemeModeProvider>
-        </LanguageProvider>
-      </MemoryRouter>
+      <HelmetProvider>
+        <MemoryRouter initialEntries={['/dark/apply']}>
+          <LanguageProvider>
+            <ThemeModeProvider>
+              <PortalAuthProvider>
+                <App />
+              </PortalAuthProvider>
+            </ThemeModeProvider>
+          </LanguageProvider>
+        </MemoryRouter>
+      </HelmetProvider>
     );
     expect(screen.getByRole('heading', { name: /how to apply to rent/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /appearance and theme/i }));

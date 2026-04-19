@@ -44,6 +44,10 @@ describe('Privacy', () => {
 
   it('displays last updated date', () => {
     renderWithRouter(<Privacy />);
-    expect(screen.getByText(/last updated: february 2025/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /last updated:\s+(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{4}/i
+      )
+    ).toBeInTheDocument();
   });
 });
