@@ -41,6 +41,7 @@ import PortalConfirmDialog from './PortalConfirmDialog';
 import PortalUserAvatar from './PortalUserAvatar';
 import ProfilePhotoEditorDialog from './ProfilePhotoEditorDialog';
 import StatusAlertSlot from './StatusAlertSlot';
+import PortalProfileFlowMatrix from './PortalProfileFlowMatrix';
 import { PROFILE_PHOTO_OUTPUT_MAX_BYTES } from '../profilePhotoConstants.js';
 import { maxImageBytesFromMeData, maxImageMbForDisplay } from '../attachmentUploadLimits.js';
 
@@ -124,6 +125,9 @@ const PortalProfile = () => {
     notificationsSmsEnabled: false,
     notificationsSmsOptIn: false,
   });
+  // Map<event_type_code, { email_enabled, in_app_enabled, sms_enabled }>
+  // null/undefined channel values mean "use the compile-time default".
+  const [flowOverrides, setFlowOverrides] = useState({});
   const [saveStatus, setSaveStatus] = useState('idle');
   const [saveError, setSaveError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
@@ -156,11 +160,47 @@ const PortalProfile = () => {
       notificationsSmsOptIn: tierAllowsSms && dbSmsOn,
     };
   }, [meData]);
+  const flowCatalog = useMemo(
+    () => Array.isArray(meData?.user?.notification_flow_catalog)
+      ? meData.user.notification_flow_catalog
+      : [],
+    [meData?.user?.notification_flow_catalog]
+  );
+  const initialFlowOverrides = useMemo(() => {
+    const map = {};
+    const list = meData?.user?.notification_flow_preferences;
+    if (Array.isArray(list)) {
+      for (const p of list) {
+        if (!p?.event_type_code) continue;
+        map[p.event_type_code] = {
+          email_enabled: p.email_enabled ?? null,
+          in_app_enabled: p.in_app_enabled ?? null,
+          sms_enabled: p.sms_enabled ?? null,
+        };
+      }
+    }
+    return map;
+  }, [meData?.user?.notification_flow_preferences]);
   // Server-side appearance values (DB) — used as the baseline for change detection.
   const initialAppearance = useMemo(() => ({
     language: meData?.user?.ui_language ?? null,
     theme: meData?.user?.ui_color_scheme ?? null,
   }), [meData?.user?.ui_language, meData?.user?.ui_color_scheme]);
+
+  const flowOverridesChanged = useMemo(() => {
+    const keys = new Set([
+      ...Object.keys(flowOverrides),
+      ...Object.keys(initialFlowOverrides),
+    ]);
+    for (const code of keys) {
+      const cur = flowOverrides[code] || {};
+      const base = initialFlowOverrides[code] || {};
+      if ((cur.email_enabled ?? null) !== (base.email_enabled ?? null)) return true;
+      if ((cur.in_app_enabled ?? null) !== (base.in_app_enabled ?? null)) return true;
+      if ((cur.sms_enabled ?? null) !== (base.sms_enabled ?? null)) return true;
+    }
+    return false;
+  }, [flowOverrides, initialFlowOverrides]);
 
   const hasChanges = useMemo(
     () =>
@@ -173,8 +213,9 @@ const PortalProfile = () => {
       || form.notificationsSmsEnabled !== initialForm.notificationsSmsEnabled
       || form.notificationsSmsOptIn !== initialForm.notificationsSmsOptIn
       || pendingLanguage !== initialAppearance.language
-      || pendingTheme !== initialAppearance.theme,
-    [form, initialForm, pendingLanguage, pendingTheme, initialAppearance]
+      || pendingTheme !== initialAppearance.theme
+      || flowOverridesChanged,
+    [form, initialForm, pendingLanguage, pendingTheme, initialAppearance, flowOverridesChanged]
   );
 
   const shouldWarnLeave = hasChanges && saveStatus !== 'saving';
@@ -230,6 +271,10 @@ const PortalProfile = () => {
     setForm(initialForm);
     setFieldErrors({});
   }, [initialForm]);
+
+  useEffect(() => {
+    setFlowOverrides(initialFlowOverrides);
+  }, [initialFlowOverrides]);
 
   // Req 6: On mount (per user), read DB values and override browser storage if different.
   // Also initialises the pending dropdowns from the server so the profile page always
@@ -323,6 +368,32 @@ const PortalProfile = () => {
     setSmsOptInConfirmOpen(false);
   };
 
+  const onFlowChannelChange = useCallback((eventTypeCode, channel, value) => {
+    setSaveStatus('idle');
+    setSaveError('');
+    setFlowOverrides((prev) => {
+      const next = { ...prev };
+      const key = channel === 'email' ? 'email_enabled' : channel === 'in_app' ? 'in_app_enabled' : 'sms_enabled';
+      const current = next[eventTypeCode] || {
+        email_enabled: null,
+        in_app_enabled: null,
+        sms_enabled: null,
+      };
+      const updated = { ...current, [key]: value };
+      // If every channel is back to null (match default), drop the entry.
+      if (
+        updated.email_enabled === null
+        && updated.in_app_enabled === null
+        && updated.sms_enabled === null
+      ) {
+        delete next[eventTypeCode];
+      } else {
+        next[eventTypeCode] = updated;
+      }
+      return next;
+    });
+  }, []);
+
   const confirmLeaveProfile = useCallback(() => {
     const to = pendingNavigationRef.current;
     pendingNavigationRef.current = '';
@@ -362,6 +433,23 @@ const PortalProfile = () => {
       const emailHint = emailFromAccount(account);
       const normalizedEmail = form.email.trim().toLowerCase();
       const tierAllowsSms = meData?.user?.sms_notifications_allowed !== false;
+      const flowPayload = Object.entries(flowOverrides).map(([code, ov]) => ({
+        event_type_code: code,
+        email_enabled: ov.email_enabled ?? null,
+        in_app_enabled: ov.in_app_enabled ?? null,
+        sms_enabled: ov.sms_enabled ?? null,
+      }));
+      // Also send cleared-back-to-default entries so the server drops their rows.
+      for (const code of Object.keys(initialFlowOverrides)) {
+        if (!flowOverrides[code]) {
+          flowPayload.push({
+            event_type_code: code,
+            email_enabled: null,
+            in_app_enabled: null,
+            sms_enabled: null,
+          });
+        }
+      }
       const payload = await patchProfile(baseUrl, token, {
         emailHint,
         email: normalizedEmail,
@@ -374,11 +462,27 @@ const PortalProfile = () => {
           sms_enabled: tierAllowsSms && form.notificationsSmsEnabled,
           sms_opt_in: tierAllowsSms && form.notificationsSmsOptIn,
         },
+        notification_flow_preferences: flowPayload,
       });
       const savedUser = payload && typeof payload === 'object' ? payload.user : null;
       const savedPreferences = payload && typeof payload === 'object'
         ? payload.notification_preferences
         : null;
+      const savedFlowPrefs = payload && typeof payload === 'object'
+        ? payload.notification_flow_preferences
+        : null;
+      if (Array.isArray(savedFlowPrefs)) {
+        const next = {};
+        for (const p of savedFlowPrefs) {
+          if (!p?.event_type_code) continue;
+          next[p.event_type_code] = {
+            email_enabled: p.email_enabled ?? null,
+            in_app_enabled: p.in_app_enabled ?? null,
+            sms_enabled: p.sms_enabled ?? null,
+          };
+        }
+        setFlowOverrides(next);
+      }
       if (savedUser && typeof savedUser === 'object') {
         setForm({
           email: typeof savedUser.email === 'string' ? savedUser.email : form.email,
@@ -754,6 +858,22 @@ const PortalProfile = () => {
                     </Tooltip>
                   </Box>
                 </Stack>
+
+                {flowCatalog.length > 0 && (
+                  <PortalProfileFlowMatrix
+                    catalog={flowCatalog}
+                    overrides={flowOverrides}
+                    globalPrefs={{
+                      email: form.notificationsEmailEnabled,
+                      in_app: form.notificationsInAppEnabled,
+                      sms: form.notificationsSmsEnabled,
+                    }}
+                    smsAllowed={smsNotificationsAllowed}
+                    smsOptedIn={Boolean(form.notificationsSmsOptIn)}
+                    disabled={formDisabled}
+                    onChange={onFlowChannelChange}
+                  />
+                )}
 
                 <Stack spacing={1.5}>
                   <Typography variant="subtitle2" color="text.secondary">

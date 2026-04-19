@@ -16,7 +16,11 @@ import { findUserByClaims, autoAssignFreeTier, autoRegisterLandlordByClaims } fr
 import { getGlobalAttachmentUploadConfigCached } from '../lib/attachmentUploadConfigRepo.js';
 import { getTierById, getTierByName } from '../lib/subscriptionTiersRepo.js';
 import { addProfilePhotoReadUrl } from '../lib/userProfilePhotoUrl.js';
-import { ensureUserNotificationPreference } from '../lib/notificationPolicyRepo.js';
+import {
+  ensureUserNotificationPreference,
+  listUserNotificationFlowPreferences,
+} from '../lib/notificationPolicyRepo.js';
+import { NOTIFICATION_FLOW_DEFAULTS } from '../config/notificationFlowDefaults.js';
 import { enqueueNotification } from '../lib/notificationRepo.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 import { withRateLimit } from '../lib/rateLimiter.js';
@@ -32,6 +36,7 @@ type PortalMeDeps = {
   findUserByClaims: typeof findUserByClaims;
   autoRegisterLandlordByClaims: typeof autoRegisterLandlordByClaims;
   ensureUserNotificationPreference: typeof ensureUserNotificationPreference;
+  listUserNotificationFlowPreferences: typeof listUserNotificationFlowPreferences;
   getGlobalAttachmentUploadConfigCached: typeof getGlobalAttachmentUploadConfigCached;
 };
 
@@ -43,6 +48,7 @@ const DEFAULT_PORTAL_ME_DEPS: PortalMeDeps = {
   findUserByClaims,
   autoRegisterLandlordByClaims,
   ensureUserNotificationPreference,
+  listUserNotificationFlowPreferences,
   getGlobalAttachmentUploadConfigCached,
 };
 
@@ -97,6 +103,7 @@ export async function portalMeHandler(
 
   let user: Awaited<ReturnType<typeof findUserByClaims>> = null;
   let notificationPreferences: Awaited<ReturnType<typeof ensureUserNotificationPreference>> | null = null;
+  let flowPreferences: Awaited<ReturnType<typeof listUserNotificationFlowPreferences>> = [];
   let userLookupFailed = false;
   if (deps.hasDatabaseUrl()) {
     try {
@@ -104,6 +111,7 @@ export async function portalMeHandler(
       user = await deps.findUserByClaims(pool, claims, { emailHint, logger: context });
       if (user) {
         notificationPreferences = await deps.ensureUserNotificationPreference(pool, user.id);
+        flowPreferences = await deps.listUserNotificationFlowPreferences(pool, user.id);
       }
     } catch (error) {
       userLookupFailed = true;
@@ -129,6 +137,7 @@ export async function portalMeHandler(
       if (newUser) {
         user = newUser;
         notificationPreferences = await deps.ensureUserNotificationPreference(pool, user.id);
+        flowPreferences = await deps.listUserNotificationFlowPreferences(pool, user.id);
         logInfo(context, 'portal.me.auto_registered', {
           userId: user.id,
           subject: claims.sub,
@@ -259,6 +268,24 @@ export async function portalMeHandler(
       user: {
         ...addProfilePhotoReadUrl(user),
         notification_preferences: notificationPreferences,
+        notification_flow_preferences: flowPreferences.map((p) => ({
+          event_type_code: p.event_type_code,
+          email_enabled: p.email_enabled,
+          in_app_enabled: p.in_app_enabled,
+          sms_enabled: p.sms_enabled,
+        })),
+        notification_flow_catalog: Object.entries(NOTIFICATION_FLOW_DEFAULTS).map(([code, f]) => ({
+          event_type_code: code,
+          category: f.category,
+          role: f.role,
+          default_email: f.email,
+          default_in_app: f.inApp,
+          default_sms: f.sms,
+          user_overridable: f.userOverridable,
+          quiet_hours_bypass: f.quietHoursBypass,
+          label_key: f.labelKey,
+          info_key: f.infoKey,
+        })),
         ui_language: user.ui_language ?? null,
         ui_color_scheme: user.ui_color_scheme ?? null,
         portal_tour_completed: Boolean(user.portal_tour_completed),

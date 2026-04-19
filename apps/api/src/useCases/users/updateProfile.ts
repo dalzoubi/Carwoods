@@ -10,9 +10,13 @@ import { findUserByEmail, updateUserProfile, updateUserUiPreferences, type UserR
 import {
   ensureUserNotificationPreference,
   updateUserNotificationPreference,
+  listUserNotificationFlowPreferences,
+  upsertUserNotificationFlowPreference,
   type UserNotificationPreferenceRow,
+  type UserNotificationFlowPreferenceRow,
 } from '../../lib/notificationPolicyRepo.js';
 import { normalizeQuietHoursPreference } from '../../lib/notificationQuietHours.js';
+import { getFlowDefault } from '../../config/notificationFlowDefaults.js';
 import { validateProfileUpdate } from '../../domain/userValidation.js';
 import { conflictError, notFound, validationError } from '../../domain/errors.js';
 import type { Queryable } from '../types.js';
@@ -39,11 +43,23 @@ export type UpdateProfileInput = {
       endMinute?: number | null;
     };
   };
+  /**
+   * Per-flow channel preferences. Each entry overrides the compile-time
+   * default for one event type. `null` on a channel means "clear the
+   * override back to the flow default".
+   */
+  notificationFlowPreferences?: Array<{
+    eventTypeCode: string;
+    emailEnabled?: boolean | null;
+    inAppEnabled?: boolean | null;
+    smsEnabled?: boolean | null;
+  }>;
 };
 
 export type UpdateProfileOutput = {
   user: UserRow;
   notificationPreferences: UserNotificationPreferenceRow;
+  notificationFlowPreferences: UserNotificationFlowPreferenceRow[];
 };
 
 export async function updateProfile(
@@ -113,5 +129,26 @@ export async function updateProfile(
             : normalizeQuietHoursPreference(input.notificationPreferences.quietHours),
       })
     : await ensureUserNotificationPreference(db, input.actorUserId);
-  return { user: updated, notificationPreferences };
+
+  if (Array.isArray(input.notificationFlowPreferences)) {
+    for (const entry of input.notificationFlowPreferences) {
+      const code = String(entry?.eventTypeCode ?? '').trim().toUpperCase();
+      const flowDefault = getFlowDefault(code);
+      if (!flowDefault) throw validationError('unknown_event_type_code');
+      if (!flowDefault.userOverridable) throw validationError('flow_not_user_overridable');
+      await upsertUserNotificationFlowPreference(db, {
+        userId: input.actorUserId,
+        eventTypeCode: code,
+        emailEnabled: entry.emailEnabled,
+        inAppEnabled: entry.inAppEnabled,
+        smsEnabled: entry.smsEnabled,
+      });
+    }
+  }
+  const notificationFlowPreferences = await listUserNotificationFlowPreferences(
+    db,
+    input.actorUserId
+  );
+
+  return { user: updated, notificationPreferences, notificationFlowPreferences };
 }

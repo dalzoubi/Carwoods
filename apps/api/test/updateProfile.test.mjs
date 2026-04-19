@@ -123,6 +123,9 @@ test('updateProfile persists portalTourCompleted alongside core profile fields',
           rowCount: 1,
         };
       }
+      if (/FROM user_notification_flow_preferences/i.test(sql)) {
+        return { rows: [], rowCount: 0 };
+      }
       throw new Error(`Unexpected query: ${String(sql).slice(0, 160)}`);
     },
   };

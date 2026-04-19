@@ -1249,6 +1249,89 @@
       "phoneInvalid": "Enter a valid phone number.",
       "smsNotOnPlan": "SMS notifications are not available on your current plan. Turn off SMS notifications and save again.",
       "unknown": "Unable to update profile."
+    },
+    "flows": {
+      "heading": "Per-notification overrides",
+      "legend": "Double-click a switch to reset to default.",
+      "groups": {
+        "onboarding": "Account & onboarding",
+        "maintenance": "Maintenance, messages & leases",
+        "security": "Security & compliance"
+      },
+      "channel": {
+        "inApp": "In-app",
+        "email": "Email",
+        "sms": "SMS"
+      },
+      "mandatoryBadge": "Required",
+      "bypassQuietHoursBadge": "Urgent",
+      "bypassQuietHoursTooltip": "This notification bypasses quiet hours when the system marks it urgent.",
+      "overriddenTooltip": "Customized — {{channel}} differs from the default for this notification.",
+      "defaultTooltip": "Default — using the system default for {{channel}}.",
+      "ACCOUNT_ONBOARDED_WELCOME": {
+        "label": "Welcome to Carwoods",
+        "info": "Sent once to a new user after their account is created, so they have a record of the welcome message and first steps."
+      },
+      "ACCOUNT_EMAIL_VERIFICATION": {
+        "label": "Verify your email address",
+        "info": "Required — confirms your email address belongs to you. This notification cannot be disabled."
+      },
+      "ACCOUNT_LANDLORD_CREATED": {
+        "label": "A landlord joined or was invited",
+        "info": "Sent to administrators when a landlord signs up or is invited. Useful for oversight; safe to turn off if you do not manage onboarding."
+      },
+      "REQUEST_CREATED": {
+        "label": "New maintenance request submitted",
+        "info": "Fires when a tenant opens a new maintenance request. Turning off email or SMS means you will only see it in the portal."
+      },
+      "REQUEST_MESSAGE_CREATED": {
+        "label": "New message on a maintenance request",
+        "info": "Delivered to the other party when a message is posted on a request. Busy conversations can get noisy — consider email only."
+      },
+      "REQUEST_ATTACHMENT_ADDED": {
+        "label": "Photo or file added to a request",
+        "info": "Lets you know when a new attachment is uploaded. Off by default for email to reduce noise — in-app only is recommended."
+      },
+      "REQUEST_CANCELLED": {
+        "label": "Maintenance request cancelled",
+        "info": "Sent to managers when a tenant cancels a request. Usually worth keeping on so you know to stop scheduling work."
+      },
+      "REQUEST_STATUS_CHANGED": {
+        "label": "Maintenance request status updated",
+        "info": "Includes status transitions such as scheduled, in progress, completed, or waiting on you to respond."
+      },
+      "REQUEST_ELSA_REVIEW_PENDING": {
+        "label": "Elsa (AI) drafted a reply for your review",
+        "info": "Sent to management when Elsa, the AI assistant, drafts a tenant reply that needs your approval before it is posted. Marked urgent and can bypass quiet hours."
+      },
+      "REQUEST_TENANT_AI_REPLY": {
+        "label": "Elsa replied on your maintenance request",
+        "info": "Tells the tenant when Elsa answers their maintenance thread, whether automatically or after a manager approves the draft."
+      },
+      "LEASE_NOTICE_GIVEN": {
+        "label": "Tenant submitted a move-out notice",
+        "info": "Sent to landlords when a tenant gives notice on a lease. SMS is on by default because timing usually matters."
+      },
+      "LEASE_NOTICE_CO_SIGNED": {
+        "label": "All co-tenants signed the notice",
+        "info": "Sent to landlords once every co-tenant on the lease has signed the move-out notice."
+      },
+      "LEASE_NOTICE_RESPONDED": {
+        "label": "Landlord responded to move-out notice",
+        "info": "Sent to tenants when the landlord accepts, rejects, or counters their notice. SMS is on by default for time-sensitive decisions."
+      },
+      "LEASE_NOTICE_WITHDRAWN": {
+        "label": "Tenant withdrew their move-out notice",
+        "info": "Sent to landlords when a tenant pulls back a notice they previously submitted."
+      },
+      "CONTACT_REQUEST_CREATED": {
+        "label": "New public contact-form inquiry",
+        "info": "Sent to admins when someone submits the public contact form on the marketing site."
+      },
+      "SECURITY_DELIVERY_FAILURE": {
+        "label": "Notification delivery failure alert",
+        "info": "Required — admins receive this when a notification cannot be delivered after multiple retries. Cannot be disabled because it helps detect outages."
+      }
     }
   },
   "portalNotificationPolicies": {

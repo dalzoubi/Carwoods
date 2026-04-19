@@ -33,6 +33,40 @@ function minuteOrUndef(v: unknown): number | null | undefined {
   return clampQuietHoursMinuteOfDay(Math.floor(n));
 }
 
+function boolOrNull(v: unknown): boolean | null | undefined {
+  if (v === null) return null;
+  if (typeof v === 'boolean') return v;
+  return undefined;
+}
+
+function parseFlowPreferences(raw: unknown): Array<{
+  eventTypeCode: string;
+  emailEnabled?: boolean | null;
+  inAppEnabled?: boolean | null;
+  smsEnabled?: boolean | null;
+}> | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: Array<{
+    eventTypeCode: string;
+    emailEnabled?: boolean | null;
+    inAppEnabled?: boolean | null;
+    smsEnabled?: boolean | null;
+  }> = [];
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue;
+    const record = item as Record<string, unknown>;
+    const code = str(record.event_type_code);
+    if (!code) continue;
+    out.push({
+      eventTypeCode: code,
+      emailEnabled: boolOrNull(record.email_enabled),
+      inAppEnabled: boolOrNull(record.in_app_enabled),
+      smsEnabled: boolOrNull(record.sms_enabled),
+    });
+  }
+  return out;
+}
+
 async function portalProfileHandler(
   request: HttpRequest,
   context: InvocationContext
@@ -73,6 +107,7 @@ async function portalProfileHandler(
     && !Object.prototype.hasOwnProperty.call(payload, 'last_name')
     && !Object.prototype.hasOwnProperty.call(payload, 'phone')
     && !Object.prototype.hasOwnProperty.call(payload, 'notification_preferences')
+    && !Object.prototype.hasOwnProperty.call(payload, 'notification_flow_preferences')
     && (hasUiLanguage || hasUiColorScheme || hasPortalTourCompleted);
 
   if (isUiPrefsOnly) {
@@ -142,6 +177,7 @@ async function portalProfileHandler(
           quietHours,
         };
       })(),
+      notificationFlowPreferences: parseFlowPreferences(payload.notification_flow_preferences),
     });
     return jsonResponse(200, headers, {
       user: {
@@ -151,6 +187,12 @@ async function portalProfileHandler(
         portal_tour_completed: Boolean(result.user.portal_tour_completed),
       },
       notification_preferences: result.notificationPreferences,
+      notification_flow_preferences: result.notificationFlowPreferences.map((p) => ({
+        event_type_code: p.event_type_code,
+        email_enabled: p.email_enabled,
+        in_app_enabled: p.in_app_enabled,
+        sms_enabled: p.sms_enabled,
+      })),
     });
   } catch (e) {
     const mapped = mapDomainError(e, headers);
