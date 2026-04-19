@@ -22,11 +22,11 @@
     "DOCUMENT_CENTER_ENABLED": "true",
     "DOCUMENT_CENTER_SCAN_BYPASS": "true",
 
-    "ACS_CONNECTION_STRING": "Endpoint=https://<your-acs-resource>.communication.azure.com/;AccessKey=<primary-key>",
-    "ACS_ENDPOINT": "https://<your-acs-resource>.communication.azure.com/",
-    "ACS_AUTH_MODE": "connection_string",
-    "AZURE_ACS_USE_MANAGED_IDENTITY": "false",
-    "AZURE_ACS_CHANNELS": "both",
+    "TELNYX_API_KEY": "KEY<your-telnyx-api-key>",
+    "TELNYX_EMAIL_FROM": "noreply@carwoods.com",
+    "TELNYX_SMS_FROM": "",
+    "TELNYX_MESSAGING_PROFILE_ID": "",
+    "TELNYX_CHANNELS": "both",
 
     "PORTAL_LINK_SIGNING_SECRET": "",
     "NOTIFICATION_LINK_SIGNING_SECRET": "",
@@ -41,9 +41,6 @@
     "NOTIFICATION_DELIVERY_TIMER_DISABLED": "true",
     "NOTIFICATION_DELIVERY_TIMER_CRON": "0 */1 * * * *",
     "NOTIFICATION_DELIVERY_TIMER_BATCH_LIMIT": "50",
-
-    "ACS_SENDER_ADDRESS": "noreply@carwoods.com",
-    "ACS_SMS_FROM_NUMBER": "",
 
     "REQUEST_ATTACHMENT_STORAGE_PREFIX": ""
   }

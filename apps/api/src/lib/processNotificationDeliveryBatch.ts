@@ -9,6 +9,12 @@ import {
 import { buildNotificationContent } from './notificationDispatch.js';
 import { writeAudit } from './auditRepo.js';
 import { logInfo, logWarn } from './serverLogger.js';
+import {
+  sendTelnyxEmail,
+  sendTelnyxSms,
+  telnyxChannelsEnabled,
+  TelnyxNotConfiguredError,
+} from './telnyxClient.js';
 
 export type ProcessNotificationDeliveryBatchResult = {
   attempted: number;
@@ -16,13 +22,6 @@ export type ProcessNotificationDeliveryBatchResult = {
   failed: number;
   skipped: number;
 };
-
-function acsChannelsEnabled(): { email: boolean; sms: boolean } {
-  const raw = (process.env.AZURE_ACS_CHANNELS ?? 'email').trim().toLowerCase();
-  if (raw === 'both') return { email: true, sms: true };
-  if (raw === 'sms') return { email: false, sms: true };
-  return { email: true, sms: false };
-}
 
 function parseOutboxPayload(raw: string | null): Record<string, unknown> {
   if (!raw) return {};
@@ -85,36 +84,11 @@ async function sendEmail(
   recipientEmail: string,
   emailContent: { subject: string; plainText: string }
 ): Promise<string | null> {
-  const acsConnStr = process.env.ACS_CONNECTION_STRING;
-  if (!acsConnStr) throw new Error('ACS_CONNECTION_STRING not configured');
-
-  const { EmailClient } = await import('@azure/communication-email');
-  const emailClient = new EmailClient(acsConnStr);
-  const sender = process.env.ACS_SENDER_ADDRESS ?? 'DoNotReply@carwoods.com';
-
-  const poller = await emailClient.beginSend({
-    senderAddress: sender,
-    recipients: { to: [{ address: recipientEmail }] },
-    content: {
-      subject: emailContent.subject,
-      plainText: emailContent.plainText,
-    },
+  return sendTelnyxEmail({
+    to: recipientEmail,
+    subject: emailContent.subject,
+    text: emailContent.plainText,
   });
-
-  // Poll up to ~30s for the background timer (more generous than the HTTP handler)
-  const POLL_TIMEOUT_MS = 30_000;
-  const start = Date.now();
-  while (!poller.isDone() && Date.now() - start < POLL_TIMEOUT_MS) {
-    await poller.poll();
-    if (!poller.isDone()) {
-      await new Promise((r) => setTimeout(r, 1000));
-    }
-  }
-  const result = poller.getResult();
-  if (result?.status === 'Failed') {
-    throw new Error(result.error?.message ?? 'email_send_failed');
-  }
-  return result?.id ?? null;
 }
 
 async function sendSms(
@@ -122,27 +96,18 @@ async function sendSms(
   body: string,
   context: InvocationContext
 ): Promise<string | null> {
-  const acsConnStr = process.env.ACS_CONNECTION_STRING;
-  const smsFrom = process.env.ACS_SMS_FROM_NUMBER;
-  if (!acsConnStr || !smsFrom) {
-    logWarn(context, 'delivery.sms.skipped', {
-      reason: !acsConnStr ? 'no_acs_connection_string' : 'no_sms_from_number',
-      phone: recipientPhone,
-    });
-    return null;
+  try {
+    return await sendTelnyxSms({ to: recipientPhone, text: body });
+  } catch (err) {
+    if (err instanceof TelnyxNotConfiguredError) {
+      logWarn(context, 'delivery.sms.skipped', {
+        reason: err.message,
+        phone: recipientPhone,
+      });
+      return null;
+    }
+    throw err;
   }
-
-  const { SmsClient } = await import('@azure/communication-sms');
-  const client = new SmsClient(acsConnStr);
-  const [result] = await client.send({
-    from: smsFrom,
-    to: [recipientPhone],
-    message: body,
-  });
-  if (!result.successful) {
-    throw new Error(`SMS send failed: ${result.errorMessage ?? 'unknown error'}`);
-  }
-  return result.messageId ?? null;
 }
 
 export async function processNotificationDeliveryBatch(
@@ -156,7 +121,7 @@ export async function processNotificationDeliveryBatch(
   const pool = getPool();
   const safeLimit = Number.isFinite(options.limit) ? Math.max(1, Math.min(200, options.limit)) : 50;
   const queued = await listQueuedDeliveries(pool, safeLimit);
-  const channels = acsChannelsEnabled();
+  const channels = telnyxChannelsEnabled();
 
   let sent = 0;
   let failed = 0;
@@ -185,7 +150,7 @@ export async function processNotificationDeliveryBatch(
       } else if (isSms) {
         const smsBody = buildSmsBody(row);
         providerMessageId = await sendSms(row.recipient_email, smsBody, context);
-        if (providerMessageId === null && !process.env.ACS_SMS_FROM_NUMBER) {
+        if (providerMessageId === null) {
           await client.query('BEGIN');
           await markDeliveryFailed(client, row.id, 'sms_not_configured');
           await client.query('COMMIT');

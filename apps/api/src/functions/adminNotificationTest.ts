@@ -13,6 +13,11 @@ import { createPortalNotification } from '../lib/notificationCenterRepo.js';
 import { writeAudit } from '../lib/auditRepo.js';
 import { logInfo } from '../lib/serverLogger.js';
 import { findUserById } from '../lib/usersRepo.js';
+import {
+  sendTelnyxEmail,
+  sendTelnyxSms,
+  TelnyxNotConfiguredError,
+} from '../lib/telnyxClient.js';
 
 const EVENT_ADMIN_TEST = 'ADMIN_NOTIFICATION_TEST';
 const TEMPLATE_EMAIL = 'EMAIL:ADMIN_TEST';
@@ -156,41 +161,22 @@ async function adminNotificationTestHandler(
     }
 
     if (channel === 'email' && targetEmail) {
-      const acsConnStr = process.env.ACS_CONNECTION_STRING;
-      if (!acsConnStr) {
-        return jsonResponse(500, ctx.headers, { error: 'acs_not_configured' });
+      if (!process.env.TELNYX_API_KEY) {
+        return jsonResponse(500, ctx.headers, { error: 'telnyx_not_configured' });
       }
 
       let providerMessageId: string | null = null;
       let sendError: string | null = null;
       try {
-        const { EmailClient } = await import('@azure/communication-email');
-        const emailClient = new EmailClient(acsConnStr);
-        const sender = process.env.ACS_SENDER_ADDRESS ?? 'DoNotReply@carwoods.com';
-        const poller = await emailClient.beginSend({
-          senderAddress: sender,
-          recipients: { to: [{ address: targetEmail }] },
-          content: {
-            subject: title,
-            plainText: bodyText,
-          },
+        providerMessageId = await sendTelnyxEmail({
+          to: targetEmail,
+          subject: title,
+          text: bodyText,
         });
-        // Poll briefly (up to ~15s) to check for immediate failures, but don't block forever
-        const POLL_TIMEOUT_MS = 15_000;
-        const start = Date.now();
-        while (!poller.isDone() && Date.now() - start < POLL_TIMEOUT_MS) {
-          await poller.poll();
-          if (!poller.isDone()) {
-            await new Promise((r) => setTimeout(r, 1000));
-          }
-        }
-        const result = poller.getResult();
-        if (result?.status === 'Failed') {
-          sendError = result.error?.message ?? 'email_send_failed';
-        } else {
-          providerMessageId = result?.id ?? null;
-        }
       } catch (err) {
+        if (err instanceof TelnyxNotConfiguredError) {
+          return jsonResponse(500, ctx.headers, { error: 'telnyx_not_configured' });
+        }
         sendError = err instanceof Error ? err.message : String(err);
       }
 
@@ -243,30 +229,26 @@ async function adminNotificationTestHandler(
       });
     }
 
-    const acsConnStr = process.env.ACS_CONNECTION_STRING;
-    const smsFrom = process.env.ACS_SMS_FROM_NUMBER;
-    if (!acsConnStr || !smsFrom) {
-      return jsonResponse(500, ctx.headers, {
-        error: !acsConnStr ? 'acs_not_configured' : 'sms_from_number_not_configured',
-      });
+    if (!process.env.TELNYX_API_KEY) {
+      return jsonResponse(500, ctx.headers, { error: 'telnyx_not_configured' });
+    }
+    if (!process.env.TELNYX_SMS_FROM) {
+      return jsonResponse(500, ctx.headers, { error: 'sms_from_number_not_configured' });
     }
 
     let providerMessageId: string | null = null;
     let sendError: string | null = null;
     try {
-      const { SmsClient } = await import('@azure/communication-sms');
-      const smsClient = new SmsClient(acsConnStr);
-      const [result] = await smsClient.send({
-        from: smsFrom,
-        to: [targetPhone!],
-        message: bodyText.slice(0, 160),
+      providerMessageId = await sendTelnyxSms({
+        to: targetPhone!,
+        text: bodyText.slice(0, 160),
       });
-      if (!result.successful) {
-        sendError = result.errorMessage ?? 'sms_send_failed';
-      } else {
-        providerMessageId = result.messageId ?? null;
-      }
     } catch (err) {
+      if (err instanceof TelnyxNotConfiguredError) {
+        return jsonResponse(500, ctx.headers, {
+          error: /SMS_FROM/i.test(err.message) ? 'sms_from_number_not_configured' : 'telnyx_not_configured',
+        });
+      }
       sendError = err instanceof Error ? err.message : String(err);
     }
 

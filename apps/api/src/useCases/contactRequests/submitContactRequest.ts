@@ -1,6 +1,7 @@
 import { insertContactRequest, type ContactRequestRow } from '../../lib/contactRequestsRepo.js';
 import { validationError } from '../../domain/errors.js';
 import { logError, logWarn } from '../../lib/serverLogger.js';
+import { sendTelnyxEmail } from '../../lib/telnyxClient.js';
 import type { InvocationContext } from '@azure/functions';
 
 const VALID_SUBJECTS = new Set([
@@ -51,35 +52,26 @@ async function sendAdminAlert(
 ): Promise<void> {
   const adminEmail = process.env.ADMIN_ALERT_EMAIL;
   if (!adminEmail) return;
-
-  const acsConnStr = process.env.ACS_CONNECTION_STRING;
-  if (!acsConnStr) return;
+  if (!process.env.TELNYX_API_KEY || !process.env.TELNYX_EMAIL_FROM) return;
 
   try {
-    // Dynamic import to avoid issues if ACS is not configured
-    const { EmailClient } = await import('@azure/communication-email');
-    const client = new EmailClient(acsConnStr);
-    const sender = process.env.ACS_SENDER_ADDRESS ?? 'DoNotReply@carwoods.com';
-    await client.beginSend({
-      senderAddress: sender,
-      recipients: { to: [{ address: adminEmail }] },
-      content: {
-        subject: `[Carwoods] New contact request from ${row.name} (${row.subject})`,
-        plainText: [
-          `New contact form submission:`,
-          ``,
-          `Name: ${row.name}`,
-          `Email: ${row.email}`,
-          `Phone: ${row.phone ?? 'not provided'}`,
-          `Subject: ${row.subject}`,
-          ``,
-          `Message:`,
-          row.message,
-          ``,
-          `Submitted: ${row.created_at}`,
-          `View in portal: ${process.env.PORTAL_BASE_URL ?? 'https://carwoods.com'}/portal/inbox/contact`,
-        ].join('\n'),
-      },
+    await sendTelnyxEmail({
+      to: adminEmail,
+      subject: `[Carwoods] New contact request from ${row.name} (${row.subject})`,
+      text: [
+        `New contact form submission:`,
+        ``,
+        `Name: ${row.name}`,
+        `Email: ${row.email}`,
+        `Phone: ${row.phone ?? 'not provided'}`,
+        `Subject: ${row.subject}`,
+        ``,
+        `Message:`,
+        row.message,
+        ``,
+        `Submitted: ${row.created_at}`,
+        `View in portal: ${process.env.PORTAL_BASE_URL ?? 'https://carwoods.com'}/portal/inbox/contact`,
+      ].join('\n'),
     });
   } catch (err) {
     logWarn(context, 'contact.admin_alert.failed', {
