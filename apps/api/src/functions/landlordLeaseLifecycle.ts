@@ -183,7 +183,7 @@ async function handleTerminate(request: HttpRequest, context: InvocationContext)
 }
 
 // ---------------------------------------------------------------------------
-// POST /api/admin/rerent-blocks/{blockId}/override
+// POST /api/portal/admin/rerent-blocks/{blockId}/override
 // ---------------------------------------------------------------------------
 
 async function handleOverrideBlock(
@@ -270,7 +270,7 @@ app.http('landlordLeaseTerminate', {
 app.http('adminRerentBlockOverride', {
   methods: ['POST', 'OPTIONS'],
   authLevel: 'anonymous',
-  route: 'admin/rerent-blocks/{blockId}/override',
+  route: 'portal/admin/rerent-blocks/{blockId}/override',
   handler: handleOverrideBlock,
 });
 

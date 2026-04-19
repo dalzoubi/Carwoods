@@ -923,10 +923,10 @@
       "forbidden": "ليس لديك إذن لتشغيل اختبارات الإشعارات.",
       "unauthorized": "سجّل الدخول مرة أخرى ثم أعد المحاولة.",
       "invalid_token": "انتهت الجلسة. سجّل الدخول مرة أخرى.",
-      "acs_not_configured": "خدمة البريد الإلكتروني غير مُهيّأة. قم بتعيين ACS_CONNECTION_STRING في بيئة الخادم.",
-      "sms_from_number_not_configured": "الرسائل القصيرة غير مُهيّأة. يجب توفير رقم هاتف (ACS_SMS_FROM_NUMBER) في Azure Communication Services.",
-      "email_send_failed": "فشل إرسال البريد الإلكتروني. تحقق من إعدادات Azure Communication Services.",
-      "sms_send_failed": "فشل إرسال الرسالة القصيرة. تحقق من رقم الهاتف وإعدادات Azure Communication Services."
+      "resend_not_configured": "خدمة البريد الإلكتروني غير مُهيّأة. قم بتعيين RESEND_API_KEY و RESEND_EMAIL_FROM في بيئة الخادم.",
+      "sms_from_number_not_configured": "الرسائل القصيرة غير مُهيّأة. يجب توفير رقم هاتف (TELNYX_SMS_FROM) في Telnyx.",
+      "email_send_failed": "فشل إرسال البريد الإلكتروني. تحقق من إعدادات Resend والتحقق من نطاق المرسل.",
+      "sms_send_failed": "فشل إرسال الرسالة القصيرة. تحقق من رقم الهاتف وإعدادات ملف المراسلة في Telnyx."
     }
   },
   "portalStatus": {
