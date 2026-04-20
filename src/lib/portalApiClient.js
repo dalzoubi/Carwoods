@@ -745,6 +745,7 @@ export async function deleteProfilePhoto(baseUrl, accessToken, params) {
 
 // ---------------------------------------------------------------------------
 // GET /api/portal/notifications
+// PATCH /api/portal/notifications  body: { ids: string[] } — bulk permanent delete (same route as GET)
 // PATCH /api/portal/notifications/:id
 // ---------------------------------------------------------------------------
 
@@ -866,6 +867,38 @@ export async function markAllNotificationsRead(baseUrl, accessToken, params) {
   const allReadPayload = await res.json();
   invalidateNotificationsCacheForUser(baseUrl, emailHint);
   return allReadPayload;
+}
+
+/**
+ * Permanently delete in-app notifications (bulk). Body: { ids: string[] }.
+ *
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string[]} notificationIds
+ * @param {{ emailHint?: string }} [params]
+ * @returns {Promise<object>}
+ */
+export async function deletePortalNotifications(
+  baseUrl,
+  accessToken,
+  notificationIds,
+  params
+) {
+  const emailHint = params?.emailHint;
+  const ids = Array.isArray(notificationIds) ? notificationIds : [];
+  const res = await fetch(buildUrl(baseUrl, '/api/portal/notifications'), {
+    method: 'PATCH',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify({ ids }),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  const payload = await res.json();
+  invalidateNotificationsCacheForUser(baseUrl, emailHint);
+  return payload;
 }
 
 // ---------------------------------------------------------------------------

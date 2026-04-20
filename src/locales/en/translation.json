@@ -2411,7 +2411,15 @@
     "refresh": "Refresh notifications",
     "allRead": "All caught up",
     "markAllRead": "Mark all as read",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "selectAll": "Select all notifications",
+    "deselectAll": "Deselect all notifications",
+    "selectRowAria": "Select notification: {{title}}",
+    "deleteSelected": "Delete selected ({{count}})",
+    "deleteConfirmTitle": "Delete notifications permanently?",
+    "deleteConfirmBody": "This removes {{count}} notifications from your account. You cannot undo this.",
+    "deleteConfirmAction": "Delete permanently",
+    "deleteCancel": "Cancel"
   },
   "portalInbox": {
     "tabsLabel": "Inbox sections"

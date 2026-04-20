@@ -1917,7 +1917,15 @@
     "refresh": "Actualiser les notifications",
     "allRead": "Tout est à jour",
     "markAllRead": "Tout marquer comme lu",
-    "dismiss": "Ignorer"
+    "dismiss": "Ignorer",
+    "selectAll": "Tout sélectionner",
+    "deselectAll": "Tout désélectionner",
+    "selectRowAria": "Sélectionner la notification : {{title}}",
+    "deleteSelected": "Supprimer la sélection ({{count}})",
+    "deleteConfirmTitle": "Supprimer définitivement les notifications ?",
+    "deleteConfirmBody": "Cela supprime {{count}} notifications de votre compte. Cette action est irréversible.",
+    "deleteConfirmAction": "Supprimer définitivement",
+    "deleteCancel": "Annuler"
   },
   "portalInbox": {
     "tabsLabel": "Sections de la boîte de réception"

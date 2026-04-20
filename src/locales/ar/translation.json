@@ -1918,7 +1918,15 @@
     "refresh": "تحديث الإشعارات",
     "allRead": "لا يوجد شيء جديد",
     "markAllRead": "تحديد الكل كمقروء",
-    "dismiss": "تجاهل"
+    "dismiss": "تجاهل",
+    "selectAll": "تحديد كل الإشعارات",
+    "deselectAll": "إلغاء تحديد كل الإشعارات",
+    "selectRowAria": "تحديد الإشعار: {{title}}",
+    "deleteSelected": "حذف المحدد ({{count}})",
+    "deleteConfirmTitle": "حذف الإشعارات نهائياً؟",
+    "deleteConfirmBody": "سيؤدي ذلك إلى إزالة {{count}} إشعار من حسابك. لا يمكن التراجع عن هذا الإجراء.",
+    "deleteConfirmAction": "حذف نهائي",
+    "deleteCancel": "إلغاء"
   },
   "portalInbox": {
     "tabsLabel": "أقسام البريد الوارد"

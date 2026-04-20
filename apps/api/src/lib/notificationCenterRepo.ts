@@ -192,3 +192,42 @@ export async function markAllPortalNotificationsRead(
   return r.rows.length;
 }
 
+const UUID_LIKE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function normalizeNotificationIdList(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const x of raw) {
+    if (typeof x !== 'string') continue;
+    const s = x.trim();
+    if (!UUID_LIKE.test(s)) continue;
+    const key = s.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(s);
+  }
+  return out;
+}
+
+/** Permanently remove in-app notification rows owned by the user. */
+export async function deletePortalNotificationsForUser(
+  client: PoolClient,
+  params: { userId: string; notificationIds: unknown }
+): Promise<number> {
+  const ids = normalizeNotificationIdList(params.notificationIds);
+  if (ids.length === 0) return 0;
+  const maxBatch = 100;
+  const capped = ids.slice(0, maxBatch);
+  const placeholders = capped.map((_, i) => `$${i + 2}`).join(', ');
+  const r = await client.query<{ id: string }>(
+    `DELETE FROM portal_notifications
+      OUTPUT DELETED.id
+      WHERE user_id = $1
+        AND id IN (${placeholders})`,
+    [params.userId, ...capped]
+  );
+  return r.rows.length;
+}
+
