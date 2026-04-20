@@ -10,8 +10,11 @@ on:
 # Auto-commit step needs write access to push baselines back to the PR branch.
 # Pushes from GITHUB_TOKEN do NOT trigger further workflow runs (per GitHub
 # docs), so this can't loop.
+# PR comments need issues: write on the pull request (handled via pull-requests).
 permissions:
   contents: write
+  pull-requests: write
+  deployments: write
 
 jobs:
   visual:
@@ -134,3 +137,130 @@ jobs:
           name: playwright-test-results
           path: test-results/
           retention-days: 14
+
+      # Publish HTML report under gh-pages/visual/pr/<number>/ (same pattern as Vercel Preview paths).
+      # Requires GitHub Pages from branch gh-pages (repo Settings → Pages). keep_files preserves the
+      # existing site root (e.g. carwoods.com deploy from build/). Fork PRs skip — no token to base gh-pages.
+      - name: Deploy Playwright report to gh-pages (PR preview path)
+        id: gh_pages_deploy
+        if: >
+          always() &&
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          hashFiles('playwright-report/index.html') != ''
+        continue-on-error: true
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: playwright-report
+          destination_dir: visual/pr/${{ github.event.pull_request.number }}
+          keep_files: true
+
+      # Surfaces the hosted Playwright report under repo → Environments → visual-regression (like a preview URL).
+      - name: Register GitHub deployment (Environment UI)
+        if: >
+          always() &&
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
+        env:
+          PAGES_DEPLOY_OUTCOME: ${{ steps.gh_pages_deploy.outcome }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const pr = context.payload.pull_request;
+            if (!pr) {
+              core.info('No pull_request payload; skipping deployment registration.');
+              return;
+            }
+
+            const { owner, repo } = context.repo;
+            const workspace = process.env.GITHUB_WORKSPACE || '.';
+            const hasReport = fs.existsSync(path.join(workspace, 'playwright-report', 'index.html'));
+            const pagesOutcome = process.env.PAGES_DEPLOY_OUTCOME || 'skipped';
+            const previewUrl = `https://${owner}.github.io/${repo}/visual/pr/${pr.number}/index.html`;
+            const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+            const environment = 'visual-regression';
+
+            /** @type {'success' | 'failure' | 'inactive'} */
+            let state = 'inactive';
+            let environmentUrl = '';
+            if (pagesOutcome === 'success') {
+              state = 'success';
+              environmentUrl = previewUrl;
+            } else if (pagesOutcome === 'failure') {
+              state = 'failure';
+            } else if (!hasReport) {
+              core.info('No playwright-report/index.html and Pages deploy did not succeed; skipping deployment registration.');
+              return;
+            } else {
+              state = 'inactive';
+            }
+
+            const deployment = await github.rest.repos.createDeployment({
+              owner,
+              repo,
+              ref: pr.head.sha,
+              environment,
+              auto_merge: false,
+              required_contexts: [],
+              transient_environment: true,
+              production_environment: false,
+              description: `Playwright visual report for PR #${pr.number}`,
+            });
+
+            const deploymentId = deployment.data.id;
+
+            await github.rest.repos.createDeploymentStatus({
+              owner,
+              repo,
+              deployment_id: deploymentId,
+              state,
+              environment_url: environmentUrl || undefined,
+              log_url: runUrl,
+              auto_inactive: true,
+            });
+            core.info(`Registered deployment ${deploymentId} (${state}) for ${environment}`);
+
+      - name: Write PR comment body (visual regression links)
+        if: always() && github.event_name == 'pull_request'
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          JOB_STATUS: ${{ job.status }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
+          PAGES_DEPLOY_OUTCOME: ${{ steps.gh_pages_deploy.outcome }}
+        run: |
+          PREVIEW_URL="https://${OWNER}.github.io/${REPO}/visual/pr/${PR_NUMBER}/index.html"
+          {
+            echo "## Visual regression (${JOB_STATUS})"
+            echo ""
+            echo "- **Workflow run:** [${{ github.run_id }}](${RUN_URL})"
+            echo ""
+            if [ "${HEAD_REPO}" = "${BASE_REPO}" ]; then
+              echo "- **Playwright HTML report (hosted):** [Open preview](${PREVIEW_URL})"
+              echo "  - Requires **Settings → Pages** publishing from the \`gh-pages\` branch (project URL is usually \`https://${OWNER}.github.io/${REPO}/\`)."
+              if [ "${PAGES_DEPLOY_OUTCOME}" = "failure" ]; then
+                echo "  - **Deploy failed** — use **Artifacts → playwright-report** below or check the \`Deploy Playwright report to gh-pages\` step log."
+              elif [ "${PAGES_DEPLOY_OUTCOME}" = "skipped" ]; then
+                echo "  - **Hosted deploy skipped** (no \`playwright-report/index.html\` on disk — e.g. job failed before Playwright wrote the report)."
+              fi
+            else
+              echo "- **Hosted preview:** not published for fork PRs (Pages deploy only runs for branches on this repository)."
+            fi
+            echo ""
+            echo "- **Artifacts:** On the workflow run, open **Artifacts** → download **playwright-report** (zip) and open \`index.html\` locally."
+          } > visual-regression-pr-comment.md
+
+      - name: Comment on PR with report links (sticky)
+        if: always() && github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: visual-regression-report
+          path: visual-regression-pr-comment.md
+          skip_unchanged: false

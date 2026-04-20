@@ -14,6 +14,7 @@ import {
   markAllPortalNotificationsRead,
   patchPortalNotificationForUser,
 } from '../lib/notificationCenterRepo.js';
+import { logError } from '../lib/serverLogger.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
   if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>;
@@ -42,21 +43,31 @@ async function portalNotificationsCollection(
       return jsonResponse(400, headers, { error: 'invalid_payload' });
     }
 
+    let deleted = 0;
     const client = await getPool().connect();
     try {
       await client.query('BEGIN');
-      const deleted = await deletePortalNotificationsForUser(client, {
+      deleted = await deletePortalNotificationsForUser(client, {
         userId: user.id,
         notificationIds: rawIds,
       });
       await client.query('COMMIT');
-      const unreadCount = await countUnreadPortalNotifications(getPool(), user.id);
-      return jsonResponse(200, headers, { ok: true, deleted, unread_count: unreadCount });
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
     } finally {
       client.release();
+    }
+
+    try {
+      const unreadCount = await countUnreadPortalNotifications(getPool(), user.id);
+      return jsonResponse(200, headers, { ok: true, deleted, unread_count: unreadCount });
+    } catch (error) {
+      logError(context, 'portal.notifications.bulk_delete.unread_count.error', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      return jsonResponse(200, headers, { ok: true, deleted });
     }
   }
 

@@ -47,6 +47,10 @@ The reviewer sees:
 2. If that's not enough detail (antialiasing or color shifts) open the CI run, download the `playwright-report` artifact, unzip, open `index.html` in a browser.
 3. Each failing test has three images: expected (baseline), actual (this PR), diff (pixels that changed, highlighted).
 
+### Hosted link on the PR (optional)
+
+If the repository uses **GitHub Pages** from the `gh-pages` branch, the visual workflow publishes the Playwright HTML report under `visual/pr/<PR number>/`. A **sticky bot comment** on the PR includes **Open preview** — similar to opening a deployment preview from the conversation tab. The same workflow also registers a **GitHub Deployment** for the **`visual-regression`** environment so the hosted report URL appears under the repository **Environments** UI and on the PR’s deployment timeline (when the Pages deploy step succeeds). Fork PRs skip publish (use **Artifacts → playwright-report**). If Pages is not configured, the comment still links to the workflow run and artifacts.
+
 ## Determinism
 
 `e2e/visual/fixtures.mjs` installs these defaults on every page so baselines don't drift between machines:
