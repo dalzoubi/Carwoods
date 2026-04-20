@@ -34,6 +34,45 @@ function normalizeRow(row: PortalNotificationRow): PortalNotificationRow {
   };
 }
 
+const UUID_LIKE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function extractOutboxIdFromMetadata(metadata: unknown): string | null {
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return null;
+  const v = (metadata as Record<string, unknown>).outbox_id;
+  if (typeof v !== 'string') return null;
+  const s = v.trim();
+  return UUID_LIKE.test(s) ? s : null;
+}
+
+/** Append-only issuance row for metrics (same transaction as inbox insert). */
+async function insertPortalNotificationIssuanceEvent(
+  client: PoolClient,
+  params: {
+    occurredAt: Date;
+    userId: string;
+    eventTypeCode: string;
+    requestId: string | null;
+    portalNotificationId: string;
+    metadata: unknown;
+  }
+): Promise<void> {
+  const outboxId = extractOutboxIdFromMetadata(params.metadata);
+  await client.query(
+    `INSERT INTO portal_notification_events (
+       occurred_at, user_id, event_type_code, request_id, portal_notification_id, outbox_id
+     ) VALUES ($1, $2, $3, $4, $5, $6)`,
+    [
+      params.occurredAt,
+      params.userId,
+      params.eventTypeCode,
+      params.requestId,
+      params.portalNotificationId,
+      outboxId,
+    ]
+  );
+}
+
 /**
  * True if this user already has an in-app row for this outbox (retry / partial-dispatch safety).
  * Matches metadata_json.outbox_id set during dispatch.
@@ -84,7 +123,16 @@ export async function createPortalNotification(
       JSON.stringify(params.metadata ?? {}),
     ]
   );
-  return normalizeRow(r.rows[0]!);
+  const row = normalizeRow(r.rows[0]!);
+  await insertPortalNotificationIssuanceEvent(client, {
+    occurredAt: row.created_at,
+    userId: row.user_id,
+    eventTypeCode: row.event_type_code,
+    requestId: row.request_id,
+    portalNotificationId: row.id,
+    metadata: params.metadata,
+  });
+  return row;
 }
 
 export async function listPortalNotificationsForUser(
@@ -191,9 +239,6 @@ export async function markAllPortalNotificationsRead(
   );
   return r.rows.length;
 }
-
-const UUID_LIKE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function normalizeNotificationIdList(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];

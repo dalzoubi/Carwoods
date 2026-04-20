@@ -50,7 +50,7 @@ async function countDeliveriesLandlord(
 
 async function countPortalNotifGlobal(db: Queryable, sinceSql: string): Promise<number> {
   const r = await db.query<{ c: number }>(
-    `SELECT COUNT(*) AS c FROM portal_notifications WHERE created_at >= ${sinceSql}`
+    `SELECT COUNT(*) AS c FROM portal_notification_events WHERE occurred_at >= ${sinceSql}`
   );
   return Number(r.rows[0]?.c ?? 0);
 }
@@ -62,10 +62,10 @@ async function countPortalNotifLandlord(
 ): Promise<number> {
   const r = await db.query<{ c: number }>(
     `SELECT COUNT(*) AS c
-     FROM portal_notifications pn
-     INNER JOIN maintenance_requests mr ON mr.id = pn.request_id AND mr.deleted_at IS NULL
+     FROM portal_notification_events pne
+     INNER JOIN maintenance_requests mr ON mr.id = pne.request_id AND mr.deleted_at IS NULL
      INNER JOIN properties p ON p.id = mr.property_id
-     WHERE pn.created_at >= ${sinceSql}
+     WHERE pne.occurred_at >= ${sinceSql}
        AND p.created_by = $1`,
     [landlordUserId]
   );
@@ -173,14 +173,14 @@ export async function notificationMetricsDailyRollupUtc(
       [safeDays, landlordId]
     );
     const rPn = await db.query<{ day_utc: string; c: number }>(
-      `SELECT CONVERT(VARCHAR(10), CAST(pn.created_at AS DATE), 23) AS day_utc,
+      `SELECT CONVERT(VARCHAR(10), CAST(pne.occurred_at AS DATE), 23) AS day_utc,
               COUNT(*) AS c
-       FROM portal_notifications pn
-       INNER JOIN maintenance_requests mr ON mr.id = pn.request_id AND mr.deleted_at IS NULL
+       FROM portal_notification_events pne
+       INNER JOIN maintenance_requests mr ON mr.id = pne.request_id AND mr.deleted_at IS NULL
        INNER JOIN properties p ON p.id = mr.property_id
-       WHERE pn.created_at >= DATEADD(DAY, -$1, CAST(GETUTCDATE() AS DATE))
+       WHERE pne.occurred_at >= DATEADD(DAY, -$1, CAST(GETUTCDATE() AS DATE))
          AND p.created_by = $2
-       GROUP BY CAST(pn.created_at AS DATE)`,
+       GROUP BY CAST(pne.occurred_at AS DATE)`,
       [safeDays, landlordId]
     );
     const delMap = new Map(rDel.rows.map((row) => [String(row.day_utc), Number(row.c ?? 0)]));
@@ -215,10 +215,10 @@ export async function notificationMetricsDailyRollupUtc(
        GROUP BY CAST(created_at AS DATE)
      ) d ON d.d = bucket.d
      LEFT JOIN (
-       SELECT CAST(created_at AS DATE) AS d, COUNT(*) AS c
-       FROM portal_notifications
-       WHERE created_at >= DATEADD(DAY, -$1, CAST(GETUTCDATE() AS DATE))
-       GROUP BY CAST(created_at AS DATE)
+       SELECT CAST(occurred_at AS DATE) AS d, COUNT(*) AS c
+       FROM portal_notification_events
+       WHERE occurred_at >= DATEADD(DAY, -$1, CAST(GETUTCDATE() AS DATE))
+       GROUP BY CAST(occurred_at AS DATE)
      ) p ON p.d = bucket.d
      WHERE bucket.d >= DATEADD(DAY, -$1, CAST(GETUTCDATE() AS DATE))
      ORDER BY bucket.d ASC`,

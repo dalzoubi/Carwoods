@@ -73,6 +73,43 @@ function StatCard({ label, value, accent, subtitle }) {
   );
 }
 
+/** Single metric per bucket (immutable in-app issuance — not sent/failed/queued stacks). */
+function MiniBarTotalsSeries({ rows }) {
+  if (!rows?.length) return null;
+  const max = rows.reduce((m, r) => Math.max(m, Number(r.total) || 0), 0) || 1;
+  return (
+    <Stack spacing={0.5} sx={{ width: '100%' }}>
+      {rows.map((r, idx) => (
+        <Stack key={`${String(r.bucket)}-${idx}`} direction="row" alignItems="center" spacing={1}>
+          <Typography variant="caption" sx={{ width: 130, flexShrink: 0, fontFamily: 'monospace' }}>
+            {String(r.bucket).slice(0, 19)}
+          </Typography>
+          <Box sx={{
+            flex: 1,
+            position: 'relative',
+            height: 18,
+            bgcolor: 'action.hover',
+            borderRadius: 1,
+            overflow: 'hidden',
+          }}>
+            <Box sx={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: `${(Number(r.total) / max) * 100}%`,
+              bgcolor: 'info.light',
+            }} />
+          </Box>
+          <Typography variant="caption" sx={{ width: 56, textAlign: 'right' }}>
+            {Number(r.total)}
+          </Typography>
+        </Stack>
+      ))}
+    </Stack>
+  );
+}
+
 function MiniBarSeries({ rows }) {
   if (!rows?.length) return null;
   const max = rows.reduce((m, r) => Math.max(m, Number(r.total) || 0), 0) || 1;
@@ -259,6 +296,7 @@ export default function PortalAdminNotificationReport() {
 
   const summary = report?.summary;
   const latency = report?.latency_seconds;
+  const portalNotificationEvents = report?.portal_notification_events;
 
   const hasExportableRows = useMemo(() => {
     if (!report) return false;
@@ -490,6 +528,15 @@ export default function PortalAdminNotificationReport() {
                   value={latency?.p95 == null ? '—' : `${Number(latency.p95).toFixed(0)}s`}
                 />
               </Grid>
+              {portalNotificationEvents ? (
+                <Grid item xs={12} sm={6} md={4}>
+                  <StatCard
+                    label={t('portalAdminNotificationReport.stats.inAppIssuedTotal')}
+                    value={portalNotificationEvents.total}
+                    subtitle={t('portalAdminNotificationReport.stats.inAppIssuedHint')}
+                  />
+                </Grid>
+              ) : null}
             </Grid>
 
             <Paper variant="outlined" sx={{ p: 2 }} component="section">
@@ -533,6 +580,18 @@ export default function PortalAdminNotificationReport() {
                 )
               )}
             </Paper>
+
+            {(groupBy === 'day' || groupBy === 'hour') && portalNotificationEvents?.series?.length ? (
+              <Paper variant="outlined" sx={{ p: 2 }} component="section">
+                <Typography variant="h3" sx={{ fontSize: '1.05rem', mb: 1.5 }}>
+                  {t('portalAdminNotificationReport.charts.inAppIssuedSeries')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                  {t('portalAdminNotificationReport.stats.inAppIssuedHint')}
+                </Typography>
+                <MiniBarTotalsSeries rows={portalNotificationEvents.series} />
+              </Paper>
+            ) : null}
 
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>

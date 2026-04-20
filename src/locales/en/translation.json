@@ -2015,10 +2015,13 @@
       "uniqueRecipients": "Unique recipients",
       "latencyP50": "Latency p50",
       "latencyP95": "Latency p95",
-      "latencyHint": "Seconds from created to sent (sent notifications only)."
+      "latencyHint": "Seconds from created to sent (sent notifications only).",
+      "inAppIssuedTotal": "In-app notifications issued",
+      "inAppIssuedHint": "Immutable issuance log; clearing a user’s inbox does not reduce this count."
     },
     "charts": {
       "timeSeries": "Volume over time",
+      "inAppIssuedSeries": "In-app issuance over time",
       "by_channel": "By channel",
       "by_event": "By notification flow",
       "by_role": "By recipient role",

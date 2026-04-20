@@ -139,6 +139,26 @@ function buildFiltersClause(params: {
   return { sql: clauses.join(' AND '), values };
 }
 
+/** In-app issuance (immutable); not filtered by delivery channel except we hide when user asked for EMAIL/SMS only. */
+function buildPortalEventFiltersClause(params: {
+  from: Date;
+  to: Date;
+  eventCode: string | null;
+  recipientUserId: string | null;
+}): { sql: string; values: unknown[] } {
+  const clauses: string[] = ['e.occurred_at >= $1', 'e.occurred_at < $2'];
+  const values: unknown[] = [params.from, params.to];
+  if (params.eventCode) {
+    values.push(params.eventCode);
+    clauses.push(`e.event_type_code = $${values.length}`);
+  }
+  if (params.recipientUserId) {
+    values.push(params.recipientUserId);
+    clauses.push(`e.user_id = $${values.length}`);
+  }
+  return { sql: clauses.join(' AND '), values };
+}
+
 async function adminReportSummaryHandler(
   request: HttpRequest,
   context: InvocationContext
@@ -165,6 +185,7 @@ async function adminReportSummaryHandler(
   const groupBy = ALLOWED_GROUP_BY.has(groupByRaw) ? groupByRaw : 'day';
 
   const filters = buildFiltersClause({ from, to, channel, status, eventCode, recipientUserId });
+  const channelBlocksPortalEvents = Boolean(channel && channel !== 'IN_APP');
 
   try {
     const pool = getPool();
@@ -318,6 +339,46 @@ async function adminReportSummaryHandler(
     );
     const latency = latencyRes.rows[0] ?? { p50_seconds: null, p95_seconds: null, avg_seconds: null };
 
+    let portal_notification_events: {
+      total: number;
+      series: { bucket: string; total: number }[];
+    } = { total: 0, series: [] };
+
+    if (!channelBlocksPortalEvents) {
+      const ef = buildPortalEventFiltersClause({ from, to, eventCode, recipientUserId });
+      const evHead = await pool.query<{ c: number }>(
+        `SELECT COUNT(*) AS c FROM portal_notification_events e WHERE ${ef.sql}`,
+        ef.values
+      );
+      portal_notification_events = {
+        ...portal_notification_events,
+        total: Number(evHead.rows[0]?.c ?? 0),
+      };
+
+      if (groupBy === 'day' || groupBy === 'hour') {
+        const truncSql =
+          groupBy === 'hour'
+            ? `DATEADD(hour, DATEDIFF(hour, 0, e.occurred_at), 0)`
+            : `CAST(e.occurred_at AS DATE)`;
+        const evSeries = await pool.query<{ bucket: string; total: number }>(
+          `SELECT CAST(${truncSql} AS NVARCHAR(50)) AS bucket,
+                  COUNT(*) AS total
+           FROM portal_notification_events e
+           WHERE ${ef.sql}
+           GROUP BY ${truncSql}
+           ORDER BY ${truncSql} ASC`,
+          ef.values
+        );
+        portal_notification_events = {
+          total: portal_notification_events.total,
+          series: evSeries.rows.map((row) => ({
+            bucket: String(row.bucket ?? ''),
+            total: Number(row.total ?? 0),
+          })),
+        };
+      }
+    }
+
     return jsonResponse(200, ctx.headers, {
       window: { from: from.toISOString(), to: to.toISOString() },
       filters: { channel, status, event_type_code: eventCode, recipient_user_id: recipientUserId, group_by: groupBy },
@@ -348,6 +409,7 @@ async function adminReportSummaryHandler(
         event_type_code: row.event_type_code,
         total: Number(row.total),
       })),
+      portal_notification_events,
     });
   } catch (err) {
     logError(context, 'admin.notification_report.summary.error', {
