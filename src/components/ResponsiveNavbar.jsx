@@ -9,6 +9,7 @@ import {
     ListItemButton,
     ListItemIcon,
     ListItemText,
+    ListSubheader,
     Menu,
     MenuItem,
     useTheme,
@@ -17,9 +18,6 @@ import {
     Typography,
     Box,
     Tooltip,
-    Tabs,
-    Tab,
-    Collapse,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown';
@@ -30,6 +28,8 @@ import RestartAlt from '@mui/icons-material/RestartAlt';
 import Print from '@mui/icons-material/Print';
 import Language from '@mui/icons-material/Language';
 import Login from '@mui/icons-material/Login';
+import HomeWork from '@mui/icons-material/HomeWork';
+import Handshake from '@mui/icons-material/Handshake';
 import { NavLink } from '../styles';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useThemeMode } from '../ThemeModeContext';
@@ -150,12 +150,6 @@ const ResponsiveNavbar = () => {
     } = useLanguage();
     const { isAuthenticated } = usePortalAuth();
     const { t, i18n } = useTranslation();
-
-    const LANDLORD_AUDIENCE_PATHS = ['/features', '/pricing', '/for-property-managers', '/property-management', '/self-managed-landlords'];
-    const [audienceTab, setAudienceTab] = useState(() =>
-        LANDLORD_AUDIENCE_PATHS.includes(stripDarkPreviewPrefix(pathname)) ? 'landlords' : 'renters'
-    );
-    const [legalExpanded, setLegalExpanded] = useState(false);
 
     const menuHorizontalOrigin = muiTheme.direction === 'rtl' ? 'right' : 'left';
     const menuAnchorOrigin = { vertical: 'bottom', horizontal: menuHorizontalOrigin };
@@ -551,11 +545,44 @@ const ResponsiveNavbar = () => {
         return supportedLanguages.includes(raw) ? raw : 'en';
     })();
 
-    const audiencePanelId =
-        audienceTab === 'renters' ? 'drawer-audience-panel-renters' : 'drawer-audience-panel-landlords';
-    const audienceTabId =
-        audienceTab === 'renters' ? 'drawer-audience-tab-renters' : 'drawer-audience-tab-landlords';
-    const audienceLinks = audienceTab === 'renters' ? rentersLinks : productNavLinks;
+    const sectionSubheaderSx = {
+        backgroundColor: 'transparent',
+        color: muiTheme.palette.drawer.text,
+        opacity: 0.7,
+        fontSize: '0.7rem',
+        fontWeight: 700,
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+        lineHeight: 2,
+        px: 2,
+        pt: 1.25,
+        pb: 0.25,
+    };
+
+    const choiceCardSx = {
+        ...listItemButtonSx,
+        alignItems: 'flex-start',
+        py: 1,
+        px: 2,
+        mx: 1,
+        my: 0.25,
+        borderRadius: 1,
+        border: `1px solid ${muiTheme.palette.drawer.hover}`,
+        '&.Mui-selected': {
+            backgroundColor: 'var(--nav-chrome-active-bg)',
+        },
+    };
+
+    const supportingLinkSx = {
+        ...listItemButtonSx,
+        pl: 3,
+        py: 0.5,
+    };
+
+    const legalRowSx = {
+        ...listItemButtonSx,
+        py: 0.5,
+    };
 
     const drawerContent = (
         <Box
@@ -564,97 +591,50 @@ const ResponsiveNavbar = () => {
                 color: muiTheme.palette.drawer.text,
                 display: 'flex',
                 flexDirection: 'column',
-                minHeight: '100%',
+                height: '100%',
                 width: 280,
                 maxWidth: '85vw',
             }}
         >
             <nav
                 aria-label={t('nav.siteMenu')}
-                style={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto' }}
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                    overflowY: 'auto',
+                }}
             >
-                {!isAuthenticated && (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, px: 2, pt: 2, pb: 1.5 }}>
-                        <Button
-                            component={RouterLink}
-                            to={withDarkPath(pathname, '/pricing')}
-                            type="button"
-                            fullWidth
-                            variant="contained"
-                            onClick={handleDrawerToggle}
-                            sx={{ ...signInCtaButtonSx, py: 0.75, fontSize: '0.9rem' }}
-                        >
-                            {t('nav.getStarted')}
-                        </Button>
-                        <Button
-                            type="button"
-                            fullWidth
-                            variant="text"
-                            onClick={handleDrawerSignInRowClick}
-                            startIcon={<Login fontSize="small" aria-hidden />}
-                            sx={{
-                                textTransform: 'none',
-                                fontWeight: 600,
-                                justifyContent: 'center',
-                                color: muiTheme.palette.drawer.text,
-                                '&:hover': { backgroundColor: muiTheme.palette.drawer.hover },
-                            }}
-                        >
-                            {t('portalHeader.actions.signIn')}
-                        </Button>
-                    </Box>
-                )}
+                <List disablePadding sx={{ pt: 0.5 }}>
+                    <ListItemButton
+                        component={RouterLink}
+                        to={withDarkPath(pathname, '/')}
+                        selected={isRouteActive('/')}
+                        onClick={handleDrawerToggle}
+                        sx={listItemButtonSx}
+                    >
+                        <ListItemText
+                            primary={t('nav.home')}
+                            primaryTypographyProps={{ fontWeight: 600 }}
+                            style={{ color: muiTheme.palette.drawer.text }}
+                        />
+                    </ListItemButton>
+                </List>
 
                 <Divider sx={{ opacity: 0.4 }} />
 
-                <Tabs
-                    value={audienceTab}
-                    onChange={(_, value) => setAudienceTab(value)}
-                    variant="fullWidth"
-                    textColor="inherit"
-                    aria-label={t('nav.audienceTabs')}
-                    TabIndicatorProps={{
-                        sx: { backgroundColor: muiTheme.palette.drawer.text, height: 3 },
-                    }}
-                    sx={{
-                        minHeight: 42,
-                        color: muiTheme.palette.drawer.text,
-                        '& .MuiTab-root': {
-                            minHeight: 42,
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            fontSize: '0.9rem',
-                            color: muiTheme.palette.drawer.text,
-                            opacity: 0.85,
-                        },
-                        '& .MuiTab-root.Mui-selected': {
-                            color: muiTheme.palette.drawer.text,
-                            opacity: 1,
-                        },
-                    }}
-                >
-                    <Tab
-                        value="renters"
-                        label={t('nav.renters')}
-                        id="drawer-audience-tab-renters"
-                        aria-controls="drawer-audience-panel-renters"
-                    />
-                    <Tab
-                        value="landlords"
-                        label={t('nav.forLandlords')}
-                        id="drawer-audience-tab-landlords"
-                        aria-controls="drawer-audience-panel-landlords"
-                    />
-                </Tabs>
-
                 <List
                     disablePadding
-                    role="region"
-                    id={audiencePanelId}
-                    aria-labelledby={audienceTabId}
-                    sx={{ py: 0.5 }}
+                    subheader={
+                        <ListSubheader component="div" id="drawer-section-renters" sx={sectionSubheaderSx}>
+                            {t('nav.renters')}
+                        </ListSubheader>
+                    }
+                    aria-labelledby="drawer-section-renters"
+                    sx={{ pb: 0.5 }}
                 >
-                    {audienceLinks.map(({ to, label }) => (
+                    {rentersLinks.map(({ to, label }) => (
                         <ListItemButton
                             key={to}
                             component={RouterLink}
@@ -670,34 +650,79 @@ const ResponsiveNavbar = () => {
 
                 <Divider sx={{ opacity: 0.4 }} />
 
-                <List disablePadding sx={{ py: 0.5 }}>
-                    <ListItemButton
-                        component={RouterLink}
-                        to={withDarkPath(pathname, '/')}
-                        selected={isRouteActive('/')}
-                        onClick={handleDrawerToggle}
-                        sx={listItemButtonSx}
-                    >
-                        <ListItemText primary={t('nav.home')} style={{ color: muiTheme.palette.drawer.text }} />
-                    </ListItemButton>
+                <List
+                    disablePadding
+                    subheader={
+                        <ListSubheader component="div" id="drawer-section-landlords" sx={sectionSubheaderSx}>
+                            {t('nav.forLandlords')}
+                        </ListSubheader>
+                    }
+                    aria-labelledby="drawer-section-landlords"
+                    sx={{ pb: 0.5 }}
+                >
                     <ListItemButton
                         component={RouterLink}
                         to={withDarkPath(pathname, '/self-managed-landlords')}
                         selected={isRouteActive('/self-managed-landlords')}
                         onClick={handleDrawerToggle}
-                        sx={listItemButtonSx}
+                        sx={choiceCardSx}
                     >
-                        <ListItemText primary={t('nav.selfManagedLandlords')} style={{ color: muiTheme.palette.drawer.text }} />
+                        <ListItemIcon sx={{ minWidth: 36, mt: 0.25, color: muiTheme.palette.drawer.text }}>
+                            <HomeWork fontSize="small" aria-hidden />
+                        </ListItemIcon>
+                        <ListItemText
+                            primary={t('nav.selfManagedLandlords')}
+                            secondary={t('nav.selfManagedTagline')}
+                            primaryTypographyProps={{ fontWeight: 700, fontSize: '0.9rem', lineHeight: 1.3 }}
+                            secondaryTypographyProps={{
+                                fontSize: '0.75rem',
+                                sx: { color: muiTheme.palette.drawer.text, opacity: 0.7, mt: 0.25 },
+                            }}
+                            style={{ color: muiTheme.palette.drawer.text }}
+                        />
                     </ListItemButton>
                     <ListItemButton
                         component={RouterLink}
                         to={withDarkPath(pathname, '/property-management')}
                         selected={isRouteActive('/property-management')}
                         onClick={handleDrawerToggle}
-                        sx={listItemButtonSx}
+                        sx={choiceCardSx}
                     >
-                        <ListItemText primary={t('nav.fullServicePropertyManagement')} style={{ color: muiTheme.palette.drawer.text }} />
+                        <ListItemIcon sx={{ minWidth: 36, mt: 0.25, color: muiTheme.palette.drawer.text }}>
+                            <Handshake fontSize="small" aria-hidden />
+                        </ListItemIcon>
+                        <ListItemText
+                            primary={t('nav.fullServicePropertyManagement')}
+                            secondary={t('nav.fullServiceTagline')}
+                            primaryTypographyProps={{ fontWeight: 700, fontSize: '0.9rem', lineHeight: 1.3 }}
+                            secondaryTypographyProps={{
+                                fontSize: '0.75rem',
+                                sx: { color: muiTheme.palette.drawer.text, opacity: 0.7, mt: 0.25 },
+                            }}
+                            style={{ color: muiTheme.palette.drawer.text }}
+                        />
                     </ListItemButton>
+                    {productNavLinks.map(({ to, label }) => (
+                        <ListItemButton
+                            key={to}
+                            component={RouterLink}
+                            to={withDarkPath(pathname, to)}
+                            selected={isRouteActive(to)}
+                            onClick={handleDrawerToggle}
+                            sx={supportingLinkSx}
+                        >
+                            <ListItemText
+                                primary={label}
+                                primaryTypographyProps={{ fontSize: '0.85rem' }}
+                                style={{ color: muiTheme.palette.drawer.text, opacity: 0.92 }}
+                            />
+                        </ListItemButton>
+                    ))}
+                </List>
+
+                <Divider sx={{ opacity: 0.4 }} />
+
+                <List disablePadding sx={{ py: 0.5 }}>
                     <ListItemButton
                         component={RouterLink}
                         to={withDarkPath(pathname, '/contact-us')}
@@ -705,7 +730,11 @@ const ResponsiveNavbar = () => {
                         onClick={handleDrawerToggle}
                         sx={listItemButtonSx}
                     >
-                        <ListItemText primary={t('nav.contactUs')} style={{ color: muiTheme.palette.drawer.text }} />
+                        <ListItemText
+                            primary={t('nav.contactUs')}
+                            primaryTypographyProps={{ fontWeight: 600 }}
+                            style={{ color: muiTheme.palette.drawer.text }}
+                        />
                     </ListItemButton>
                 </List>
 
@@ -749,51 +778,76 @@ const ResponsiveNavbar = () => {
                             }}
                         />
                     </ListItemButton>
-                    <ListItemButton
-                        type="button"
-                        onClick={() => setLegalExpanded((v) => !v)}
-                        aria-expanded={legalExpanded}
-                        aria-controls="drawer-legal-panel"
-                        aria-label={t('nav.legalToggle')}
-                        sx={listItemButtonSx}
-                    >
-                        <ListItemText
-                            primary={t('nav.legal')}
-                            primaryTypographyProps={{ fontSize: '0.85rem' }}
-                            style={{ color: muiTheme.palette.drawer.text }}
-                        />
-                        <KeyboardArrowDown
-                            aria-hidden
-                            sx={{
-                                fontSize: '1.1rem',
-                                color: muiTheme.palette.drawer.text,
-                                transition: 'transform 200ms',
-                                transform: legalExpanded ? 'rotate(180deg)' : 'none',
-                            }}
-                        />
-                    </ListItemButton>
-                    <Collapse in={legalExpanded} unmountOnExit>
-                        <List id="drawer-legal-panel" disablePadding dense>
-                            {legalLinks.map(({ to, label }) => (
-                                <ListItemButton
-                                    key={to}
-                                    component={RouterLink}
-                                    to={withDarkPath(pathname, to)}
-                                    selected={isRouteActive(to)}
-                                    onClick={handleDrawerToggle}
-                                    sx={{ pl: 4, ...listItemButtonSx }}
-                                >
-                                    <ListItemText
-                                        primary={label}
-                                        primaryTypographyProps={{ fontSize: '0.85rem' }}
-                                        style={{ color: muiTheme.palette.drawer.text }}
-                                    />
-                                </ListItemButton>
-                            ))}
-                        </List>
-                    </Collapse>
+                </List>
+
+                <Divider sx={{ opacity: 0.4 }} />
+                <List
+                    disablePadding
+                    dense
+                    aria-label={t('nav.legal')}
+                    sx={{ py: 0.5 }}
+                >
+                    {legalLinks.map(({ to, label }) => (
+                        <ListItemButton
+                            key={to}
+                            component={RouterLink}
+                            to={withDarkPath(pathname, to)}
+                            selected={isRouteActive(to)}
+                            onClick={handleDrawerToggle}
+                            sx={legalRowSx}
+                        >
+                            <ListItemText
+                                primary={label}
+                                primaryTypographyProps={{ fontSize: '0.78rem' }}
+                                style={{ color: muiTheme.palette.drawer.text, opacity: 0.75 }}
+                            />
+                        </ListItemButton>
+                    ))}
                 </List>
             </nav>
+
+            {!isAuthenticated && (
+                <Box
+                    sx={{
+                        flexShrink: 0,
+                        borderTop: `1px solid ${muiTheme.palette.drawer.hover}`,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 0.75,
+                        px: 2,
+                        py: 1.5,
+                        backgroundColor: muiTheme.palette.drawer.background,
+                    }}
+                >
+                    <Button
+                        component={RouterLink}
+                        to={withDarkPath(pathname, '/pricing')}
+                        type="button"
+                        fullWidth
+                        variant="contained"
+                        onClick={handleDrawerToggle}
+                        sx={{ ...signInCtaButtonSx, py: 0.75, fontSize: '0.9rem' }}
+                    >
+                        {t('nav.getStarted')}
+                    </Button>
+                    <Button
+                        type="button"
+                        fullWidth
+                        variant="text"
+                        onClick={handleDrawerSignInRowClick}
+                        startIcon={<Login fontSize="small" aria-hidden />}
+                        sx={{
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            justifyContent: 'center',
+                            color: muiTheme.palette.drawer.text,
+                            '&:hover': { backgroundColor: muiTheme.palette.drawer.hover },
+                        }}
+                    >
+                        {t('portalHeader.actions.signIn')}
+                    </Button>
+                </Box>
+            )}
         </Box>
     );
 

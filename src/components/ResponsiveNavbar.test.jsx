@@ -100,54 +100,57 @@ describe('ResponsiveNavbar', () => {
 
     const getDrawer = () => screen.getByRole('navigation', { name: /site menu/i });
 
-    it('renders Get Started CTA and Sign In in the auth zone when unauthenticated', () => {
+    it('renders Get Started CTA and Sign In in the sticky footer when unauthenticated', () => {
       mockMobile();
       renderWithProviders(<ResponsiveNavbar />);
       openDrawer();
       const drawer = getDrawer();
-      const getStarted = within(drawer).getByRole('link', { name: /get started/i });
+      // Sticky footer lives outside the scrollable <nav> region but inside the drawer paper.
+      const drawerPaper = document.getElementById('main-navigation-drawer');
+      expect(drawerPaper).not.toBeNull();
+      const getStarted = within(drawerPaper).getByRole('link', { name: /get started/i });
       expect(getStarted).toHaveAttribute('href', '/pricing');
-      expect(within(drawer).getByRole('button', { name: /^sign in$/i })).toBeInTheDocument();
+      expect(within(drawerPaper).getByRole('button', { name: /^sign in$/i })).toBeInTheDocument();
+      // Confirm the CTA is NOT inside the scrollable <nav> region.
+      expect(within(drawer).queryByRole('link', { name: /get started/i })).not.toBeInTheDocument();
     });
 
-    it('defaults audience tabs to Renters and lists renter links in its panel', () => {
+    it('lists renter links under a For Renters section', () => {
       mockMobile();
       renderWithProviders(<ResponsiveNavbar />);
       openDrawer();
       const drawer = getDrawer();
-      const rentersTab = within(drawer).getByRole('tab', { name: /^renters$/i });
-      expect(rentersTab).toHaveAttribute('aria-selected', 'true');
-      const panel = within(drawer).getByRole('region', { name: /^renters$/i });
-      expect(within(panel).getByRole('link', { name: /^apply$/i })).toBeInTheDocument();
-      expect(within(panel).getByRole('link', { name: /selection criteria/i })).toBeInTheDocument();
+      // Section-labeled list exposes its subheader as the list's accessible name.
+      const rentersList = within(drawer).getByRole('list', { name: /^renters$/i });
+      expect(within(rentersList).getByRole('link', { name: /^apply$/i })).toBeInTheDocument();
+      expect(within(rentersList).getByRole('link', { name: /selection criteria/i })).toBeInTheDocument();
+      expect(within(rentersList).getByRole('link', { name: /required documents/i })).toBeInTheDocument();
     });
 
-    it('switches to landlord links when the Landlords tab is activated', () => {
+    it('highlights Self-Managed and Full-Service as prominent choices in the landlord section', () => {
       mockMobile();
       renderWithProviders(<ResponsiveNavbar />);
       openDrawer();
       const drawer = getDrawer();
-      fireEvent.click(within(drawer).getByRole('tab', { name: /^owners$/i }));
-      const panel = within(drawer).getByRole('region', { name: /^owners$/i });
-      expect(within(panel).getByRole('link', { name: /for property managers/i })).toBeInTheDocument();
-      expect(within(panel).getByRole('link', { name: /pricing/i })).toBeInTheDocument();
+      const landlordList = within(drawer).getByRole('list', { name: /owners/i });
+      const selfManaged = within(landlordList).getByRole('link', { name: /self-managed landlords/i });
+      const fullService = within(landlordList).getByRole('link', { name: /full-service property management/i });
+      expect(selfManaged).toHaveAttribute('href', '/self-managed-landlords');
+      expect(fullService).toHaveAttribute('href', '/property-management');
+      // Taglines are rendered as secondary text on the choice cards.
+      expect(within(selfManaged).getByText(/keep control/i)).toBeInTheDocument();
+      expect(within(fullService).getByText(/hands-off/i)).toBeInTheDocument();
+      // Supporting links still present.
+      expect(within(landlordList).getByRole('link', { name: /for property managers/i })).toBeInTheDocument();
+      expect(within(landlordList).getByRole('link', { name: /pricing/i })).toBeInTheDocument();
     });
 
-    it('pre-selects the Landlords tab when opened on a landlord-audience route', () => {
-      mockMobile();
-      renderNavAt('/pricing');
-      openDrawer();
-      const drawer = getDrawer();
-      expect(within(drawer).getByRole('tab', { name: /^owners$/i })).toHaveAttribute('aria-selected', 'true');
-    });
-
-    it('renders core links (Home, Property Management, Contact Us) outside the audience panel', () => {
+    it('renders Home and Contact Us as top-level rows', () => {
       mockMobile();
       renderWithProviders(<ResponsiveNavbar />);
       openDrawer();
       const drawer = getDrawer();
       expect(within(drawer).getByRole('link', { name: /^home$/i })).toBeInTheDocument();
-      expect(within(drawer).getByRole('link', { name: /property management/i })).toBeInTheDocument();
       expect(within(drawer).getByRole('link', { name: /contact us/i })).toBeInTheDocument();
     });
 
@@ -160,18 +163,16 @@ describe('ResponsiveNavbar', () => {
       expect(within(languageRow).getByText(/english/i)).toBeInTheDocument();
     });
 
-    it('keeps Legal collapsed by default and expands it on click', () => {
+    it('renders Legal links inline (Privacy, Terms, Accessibility) without a collapsible toggle', () => {
       mockMobile();
       renderWithProviders(<ResponsiveNavbar />);
       openDrawer();
       const drawer = getDrawer();
-      const toggle = within(drawer).getByRole('button', { name: /legal links/i });
-      expect(toggle).toHaveAttribute('aria-expanded', 'false');
-      expect(within(drawer).queryByRole('link', { name: /privacy policy/i })).not.toBeInTheDocument();
-      fireEvent.click(toggle);
-      expect(toggle).toHaveAttribute('aria-expanded', 'true');
-      expect(within(drawer).getByRole('link', { name: /privacy policy/i })).toBeInTheDocument();
-      expect(within(drawer).getByRole('link', { name: /terms of service/i })).toBeInTheDocument();
+      expect(within(drawer).queryByRole('button', { name: /legal links/i })).not.toBeInTheDocument();
+      const legalList = within(drawer).getByRole('list', { name: /^legal$/i });
+      expect(within(legalList).getByRole('link', { name: /privacy policy/i })).toBeInTheDocument();
+      expect(within(legalList).getByRole('link', { name: /terms of service/i })).toBeInTheDocument();
+      expect(within(legalList).getByRole('link', { name: /accessibility/i })).toBeInTheDocument();
     });
   });
 
