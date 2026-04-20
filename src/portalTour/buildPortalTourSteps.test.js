@@ -84,6 +84,7 @@ describe('getPortalTourNavKeys', () => {
       'notifications',
       'contact',
       'admin',
+      'reports-notifications',
       'health-status',
       'health-notification-test',
       'profile',

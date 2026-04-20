@@ -1942,6 +1942,8 @@
       "manageGroup": "الإدارة",
       "messagesGroup": "الرسائل",
       "adminGroup": "المشرفون",
+      "reportsGroup": "التقارير",
+      "notificationReport": "تقرير الإشعارات",
       "healthGroup": "الصحة",
       "notificationTest": "اختبار الإشعارات",
       "payments": "المدفوعات",
@@ -1979,6 +1981,10 @@
         "admin": {
           "title": "الملاك (مسؤول)",
           "body": "راجع وأدر حسابات الملاك المرتبطة بالمنصة."
+        },
+        "notificationReport": {
+          "title": "تقرير الإشعارات",
+          "body": "اطّلع على مقاييس التسليم والتفاصيل وتصدير CSV لإشعارات المنصة."
         },
         "properties": {
           "title": "العقارات",

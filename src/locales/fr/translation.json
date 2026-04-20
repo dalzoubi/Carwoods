@@ -1941,6 +1941,8 @@
       "manageGroup": "Gestion",
       "messagesGroup": "Messages",
       "adminGroup": "Administration",
+      "reportsGroup": "Rapports",
+      "notificationReport": "Rapport des notifications",
       "healthGroup": "Santé",
       "notificationTest": "Test des notifications",
       "payments": "Paiements",
@@ -1978,6 +1980,10 @@
         "admin": {
           "title": "Propriétaires (admin)",
           "body": "Consultez et gérez les comptes propriétaires liés à la plateforme."
+        },
+        "notificationReport": {
+          "title": "Rapport des notifications",
+          "body": "Consultez les indicateurs de livraison, les répartitions et l’export CSV des notifications de la plateforme."
         },
         "properties": {
           "title": "Propriétés",

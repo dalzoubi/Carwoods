@@ -1,18 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useLayoutEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Box, Paper, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
 import { normalizeRole, resolveRole } from '../portalUtils';
 import { Role } from '../domain/constants';
+import { withDarkPath } from '../routePaths';
 import PortalAdminAiConfig from './PortalAdminAiConfig';
 import PortalAdminAiAgents from './PortalAdminAiAgents';
 import PortalAdminAttachmentConfig from './PortalAdminAttachmentConfig';
 import PortalNotificationPolicies from './PortalNotificationPolicies';
 import PortalAdminNotificationDefaults from './PortalAdminNotificationDefaults';
 import PortalAdminNotificationOverrides from './PortalAdminNotificationOverrides';
-import PortalAdminNotificationReport from './PortalAdminNotificationReport';
 
 export const ONBOARDING_SETTINGS_VISITED_KEY = 'carwoods-onboarding-settings-visited';
 
@@ -33,9 +33,19 @@ const PortalAdminAiSettings = () => {
   const isLandlord = role === Role.LANDLORD;
   const tabSlugs = isLandlord
     ? ['notifications']
-    : ['policies', 'agents', 'attachments', 'notifications', 'flow-defaults', 'user-overrides', 'report'];
+    : ['policies', 'agents', 'attachments', 'notifications', 'flow-defaults', 'user-overrides'];
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const tabSlug = searchParams.get('tab');
+
+  useLayoutEffect(() => {
+    const raw = String(tabSlug || '').trim().toLowerCase();
+    if (raw === 'report') {
+      navigate(withDarkPath(location.pathname, '/portal/admin/reports/notifications'), { replace: true });
+    }
+  }, [tabSlug, navigate, location.pathname]);
+
   const tab = tabIndexFromSlug(tabSlug, tabSlugs);
 
   const onTabChange = React.useCallback((_, nextTab) => {
@@ -70,7 +80,6 @@ const PortalAdminAiSettings = () => {
             <Tab label={t('portalAdminConfigurations.tabs.notifications')} />
             {!isLandlord && <Tab label={t('portalAdminConfigurations.tabs.flowDefaults')} />}
             {!isLandlord && <Tab label={t('portalAdminConfigurations.tabs.userOverrides')} />}
-            {!isLandlord && <Tab label={t('portalAdminConfigurations.tabs.report')} />}
           </Tabs>
         </Paper>
         {tabSlugs[tab] === 'policies' && <PortalAdminAiConfig />}
@@ -79,7 +88,6 @@ const PortalAdminAiSettings = () => {
         {tabSlugs[tab] === 'notifications' && <PortalNotificationPolicies />}
         {tabSlugs[tab] === 'flow-defaults' && <PortalAdminNotificationDefaults />}
         {tabSlugs[tab] === 'user-overrides' && <PortalAdminNotificationOverrides />}
-        {tabSlugs[tab] === 'report' && <PortalAdminNotificationReport />}
       </Stack>
     </Box>
   );

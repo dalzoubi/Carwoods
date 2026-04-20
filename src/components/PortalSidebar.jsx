@@ -26,6 +26,7 @@ import ArrowBack from '@mui/icons-material/ArrowBack';
 import ChevronLeft from '@mui/icons-material/ChevronLeft';
 import ChevronRight from '@mui/icons-material/ChevronRight';
 import Assignment from '@mui/icons-material/Assignment';
+import Assessment from '@mui/icons-material/Assessment';
 import Notifications from '@mui/icons-material/Notifications';
 import ContactMail from '@mui/icons-material/ContactMail';
 import Description from '@mui/icons-material/Description';
@@ -207,6 +208,17 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
       ]
     : [];
 
+  const reportsItems = roleResolved && normalized === Role.ADMIN
+    ? [
+        {
+          key: 'reports-notifications',
+          to: '/portal/admin/reports/notifications',
+          label: t('portalLayout.sidebar.notificationReport'),
+          icon: <Assessment />,
+        },
+      ]
+    : [];
+
   const healthItems = roleResolved && normalized === Role.ADMIN
     ? [
         { key: 'health-status', to: '/portal/status', label: t('portalLayout.sidebar.status'), icon: <HealthAndSafety />, exact: true },
@@ -286,6 +298,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
         {renderNavGroup(toolItems)}
         {renderNavGroup(messagesItems, messagesItems.length > 0 ? t('portalLayout.sidebar.messagesGroup') : undefined)}
         {renderNavGroup(adminItems, adminItems.length > 0 ? t('portalLayout.sidebar.adminGroup') : undefined)}
+        {renderNavGroup(reportsItems, reportsItems.length > 0 ? t('portalLayout.sidebar.reportsGroup') : undefined)}
         {renderNavGroup(healthItems, healthItems.length > 0 ? t('portalLayout.sidebar.healthGroup') : undefined)}
       </List>
 

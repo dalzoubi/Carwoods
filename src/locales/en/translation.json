@@ -1962,15 +1962,18 @@
     },
     "errors": {
       "adminOnly": "Only admin accounts can view user overrides.",
-      "loadFailed": "Unable to load user overrides."
+      "loadFailed": "Unable to load user overrides.",
+      "flowCatalogPartial": "The event-type filter list could not be loaded. The user table below is still shown. Use Refresh to try again."
     }
   },
   "portalAdminNotificationReport": {
     "heading": "Notification Report",
-    "intro": "Volume, success rate, and per-recipient breakdowns for sent notifications.",
+    "intro": "Inspect delivery counts, latency, breakdowns by channel or flow, and CSV export for the selected window.",
+    "filtersHeading": "Filters & grouping",
     "actions": {
       "refresh": "Refresh",
-      "exportCsv": "Export CSV"
+      "exportCsv": "Export CSV",
+      "exportCsvHint": "Exports the chart table (breakdown rows) for your current grouping."
     },
     "presets": {
       "24h": "Last 24 hours",
@@ -1983,6 +1986,10 @@
       "to": "To",
       "channel": "Channel",
       "anyChannel": "Any channel",
+      "channelEmail": "Email",
+      "channelSms": "SMS",
+      "channelInApp": "In-app",
+      "unknownChannel": "Unknown",
       "status": "Status",
       "anyStatus": "Any status",
       "event": "Notification flow",
@@ -2007,7 +2014,8 @@
       "deliveryRate": "Delivery rate",
       "uniqueRecipients": "Unique recipients",
       "latencyP50": "Latency p50",
-      "latencyP95": "Latency p95"
+      "latencyP95": "Latency p95",
+      "latencyHint": "Seconds from created to sent (sent notifications only)."
     },
     "charts": {
       "timeSeries": "Volume over time",
@@ -2030,9 +2038,12 @@
       "failures": "Failures"
     },
     "empty": "No data in this window.",
+    "chartEmpty": "No breakdown rows match these filters — widen the date range or clear filters.",
     "errors": {
       "adminOnly": "Only admin accounts can view the notification report.",
-      "loadFailed": "Unable to load the notification report."
+      "loadFailed": "Unable to load the notification report.",
+      "invalidDates": "Enter valid start and end date-times.",
+      "invalidRange": "Start must be before end. Adjust the range and try again."
     }
   },
   "portalAdminAiConfig": {
@@ -2424,6 +2435,8 @@
       "manageGroup": "Manage",
       "messagesGroup": "Messages",
       "adminGroup": "Admin",
+      "reportsGroup": "Reports",
+      "notificationReport": "Notification report",
       "healthGroup": "Health",
       "notificationTest": "Notification test",
       "payments": "Payments",
@@ -2461,6 +2474,10 @@
         "admin": {
           "title": "Landlords (admin)",
           "body": "Review and manage landlord accounts linked to the platform."
+        },
+        "notificationReport": {
+          "title": "Notification report",
+          "body": "Review delivery metrics, breakdowns, and CSV export for platform notifications."
         },
         "properties": {
           "title": "Properties",

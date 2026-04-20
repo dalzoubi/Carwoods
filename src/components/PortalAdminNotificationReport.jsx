@@ -5,6 +5,7 @@ import {
   Chip,
   CircularProgress,
   Grid,
+  LinearProgress,
   MenuItem,
   Paper,
   Stack,
@@ -15,6 +16,7 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
@@ -38,6 +40,14 @@ const PRESET_RANGES = [
 
 const GROUP_BY = ['day', 'hour', 'channel', 'event', 'role', 'status'];
 const CHANNELS = ['', 'EMAIL', 'SMS', 'IN_APP'];
+
+function channelFilterLabel(t, code) {
+  if (!code) return t('portalAdminNotificationReport.filters.anyChannel');
+  if (code === 'EMAIL') return t('portalAdminNotificationReport.filters.channelEmail');
+  if (code === 'SMS') return t('portalAdminNotificationReport.filters.channelSms');
+  if (code === 'IN_APP') return t('portalAdminNotificationReport.filters.channelInApp');
+  return code;
+}
 const STATUSES = ['', 'QUEUED', 'SENT', 'FAILED'];
 
 function isoLocal(d) {
@@ -45,11 +55,20 @@ function isoLocal(d) {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-function StatCard({ label, value, accent }) {
+function StatCard({ label, value, accent, subtitle }) {
+  const display =
+    typeof value === 'number' && Number.isFinite(value)
+      ? value.toLocaleString()
+      : value;
   return (
-    <Paper variant="outlined" sx={{ p: 2 }}>
+    <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
       <Typography variant="caption" color="text.secondary">{label}</Typography>
-      <Typography variant="h4" sx={{ fontWeight: 700, color: accent || 'text.primary' }}>{value}</Typography>
+      <Typography variant="h4" sx={{ fontWeight: 700, color: accent || 'text.primary' }}>{display}</Typography>
+      {subtitle ? (
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+          {subtitle}
+        </Typography>
+      ) : null}
     </Paper>
   );
 }
@@ -59,8 +78,8 @@ function MiniBarSeries({ rows }) {
   const max = rows.reduce((m, r) => Math.max(m, Number(r.total) || 0), 0) || 1;
   return (
     <Stack spacing={0.5} sx={{ width: '100%' }}>
-      {rows.map((r) => (
-        <Stack key={r.bucket} direction="row" alignItems="center" spacing={1}>
+      {rows.map((r, idx) => (
+        <Stack key={`${String(r.bucket)}-${idx}`} direction="row" alignItems="center" spacing={1}>
           <Typography variant="caption" sx={{ width: 130, flexShrink: 0, fontFamily: 'monospace' }}>
             {String(r.bucket).slice(0, 19)}
           </Typography>
@@ -88,15 +107,16 @@ function MiniBarSeries({ rows }) {
   );
 }
 
-function HorizontalBars({ rows }) {
+function HorizontalBars({ rows, formatLabel }) {
   if (!rows?.length) return null;
   const max = rows.reduce((m, r) => Math.max(m, Number(r.total) || 0), 0) || 1;
+  const labelFor = typeof formatLabel === 'function' ? formatLabel : (l) => l;
   return (
     <Stack spacing={0.5} sx={{ width: '100%' }}>
-      {rows.map((r) => (
-        <Stack key={r.label} direction="row" alignItems="center" spacing={1}>
+      {rows.map((r, idx) => (
+        <Stack key={`${r.label}-${idx}`} direction="row" alignItems="center" spacing={1}>
           <Typography variant="caption" sx={{ width: 200, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {r.label}
+            {labelFor(r.label)}
           </Typography>
           <Box sx={{ flex: 1, position: 'relative', height: 18, bgcolor: 'action.hover', borderRadius: 1, overflow: 'hidden' }}>
             <Box sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${(Number(r.total) / max) * 100}%`, bgcolor: 'primary.light' }} />
@@ -162,6 +182,18 @@ export default function PortalAdminNotificationReport() {
 
   const load = useCallback(async () => {
     if (!canUseModule) return;
+    const fromMs = new Date(fromInput).getTime();
+    const toMs = new Date(toInput).getTime();
+    if (!Number.isFinite(fromMs) || !Number.isFinite(toMs)) {
+      setStatus('error');
+      setError(t('portalAdminNotificationReport.errors.invalidDates'));
+      return;
+    }
+    if (fromMs > toMs) {
+      setStatus('error');
+      setError(t('portalAdminNotificationReport.errors.invalidRange'));
+      return;
+    }
     setStatus('loading');
     setError('');
     try {
@@ -198,21 +230,25 @@ export default function PortalAdminNotificationReport() {
 
   const downloadCsv = () => {
     if (!report) return;
-    const rows = report.aggregates?.length ? report.aggregates : report.series;
-    if (!rows?.length) return;
-    const csv = report.aggregates?.length
-      ? rowsToCsv(rows, [
-          { label: 'label', value: (r) => r.label },
-          { label: 'total', value: (r) => r.total },
-        ])
-      : rowsToCsv(rows, [
-          { label: 'bucket', value: (r) => r.bucket },
-          { label: 'total', value: (r) => r.total },
-          { label: 'sent', value: (r) => r.sent },
-          { label: 'failed', value: (r) => r.failed },
-          { label: 'queued', value: (r) => r.queued },
-        ]);
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const rows =
+      groupBy === 'day' || groupBy === 'hour'
+        ? (Array.isArray(report.series) ? report.series : [])
+        : (Array.isArray(report.aggregates) ? report.aggregates : []);
+    if (!rows.length) return;
+    const csv =
+      groupBy === 'day' || groupBy === 'hour'
+        ? rowsToCsv(rows, [
+            { label: 'bucket', value: (r) => r.bucket },
+            { label: 'total', value: (r) => r.total },
+            { label: 'sent', value: (r) => r.sent },
+            { label: 'failed', value: (r) => r.failed },
+            { label: 'queued', value: (r) => r.queued },
+          ])
+        : rowsToCsv(rows, [
+            { label: 'label', value: (r) => r.label },
+            { label: 'total', value: (r) => r.total },
+          ]);
+    const blob = new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -224,9 +260,24 @@ export default function PortalAdminNotificationReport() {
   const summary = report?.summary;
   const latency = report?.latency_seconds;
 
+  const hasExportableRows = useMemo(() => {
+    if (!report) return false;
+    if (groupBy === 'day' || groupBy === 'hour') {
+      return Array.isArray(report.series) && report.series.length > 0;
+    }
+    return Array.isArray(report.aggregates) && report.aggregates.length > 0;
+  }, [report, groupBy]);
+
   return (
     <Paper variant="outlined" sx={{ p: 2.5 }}>
       <Stack spacing={2}>
+        {status === 'loading' ? (
+          <LinearProgress
+            sx={{ borderRadius: 1 }}
+            aria-busy="true"
+            aria-label={t('portalAdminNotificationReport.actions.refresh')}
+          />
+        ) : null}
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ gap: 1 }}>
           <Box>
             <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
@@ -234,10 +285,19 @@ export default function PortalAdminNotificationReport() {
             </Typography>
             <Typography color="text.secondary">{t('portalAdminNotificationReport.intro')}</Typography>
           </Box>
-          <Stack direction="row" spacing={1}>
-            <Button variant="outlined" size="small" onClick={downloadCsv} disabled={!report}>
-              {t('portalAdminNotificationReport.actions.exportCsv')}
-            </Button>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Tooltip title={t('portalAdminNotificationReport.actions.exportCsvHint')}>
+              <span>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={downloadCsv}
+                  disabled={!report || !hasExportableRows}
+                >
+                  {t('portalAdminNotificationReport.actions.exportCsv')}
+                </Button>
+              </span>
+            </Tooltip>
             <PortalRefreshButton
               label={t('portalAdminNotificationReport.actions.refresh')}
               onClick={() => void load()}
@@ -254,8 +314,11 @@ export default function PortalAdminNotificationReport() {
         />
         <StatusAlertSlot message={status === 'error' ? { severity: 'error', text: error } : null} />
 
-        <Paper variant="outlined" sx={{ p: 2 }}>
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+        <Paper variant="outlined" sx={{ p: 2 }} component="section" aria-label={t('portalAdminNotificationReport.filtersHeading')}>
+          <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
+            {t('portalAdminNotificationReport.filtersHeading')}
+          </Typography>
+          <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
             {PRESET_RANGES.map((preset) => (
               <Chip
                 key={preset.key}
@@ -266,76 +329,117 @@ export default function PortalAdminNotificationReport() {
               />
             ))}
           </Stack>
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 2 }}>
-            <TextField
-              size="small"
-              label={t('portalAdminNotificationReport.filters.from')}
-              type="datetime-local"
-              value={fromInput}
-              onChange={(e) => setFromInput(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              size="small"
-              label={t('portalAdminNotificationReport.filters.to')}
-              type="datetime-local"
-              value={toInput}
-              onChange={(e) => setToInput(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              select size="small" label={t('portalAdminNotificationReport.filters.channel')}
-              value={channel} onChange={(e) => setChannel(e.target.value)} sx={{ minWidth: 140 }}
-            >
-              {CHANNELS.map((c) => (
-                <MenuItem key={c || 'any'} value={c}>
-                  {c ? c : t('portalAdminNotificationReport.filters.anyChannel')}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select size="small" label={t('portalAdminNotificationReport.filters.status')}
-              value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} sx={{ minWidth: 140 }}
-            >
-              {STATUSES.map((s) => (
-                <MenuItem key={s || 'any'} value={s}>
-                  {s ? s : t('portalAdminNotificationReport.filters.anyStatus')}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select size="small" label={t('portalAdminNotificationReport.filters.event')}
-              value={eventTypeCode} onChange={(e) => setEventTypeCode(e.target.value)} sx={{ minWidth: 220 }}
-            >
-              <MenuItem value="">{t('portalAdminNotificationReport.filters.anyEvent')}</MenuItem>
-              {flowCatalog.map((f) => (
-                <MenuItem key={f.event_type_code} value={f.event_type_code}>
-                  {t(f.label_key, f.event_type_code)}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select size="small" label={t('portalAdminNotificationReport.filters.recipient')}
-              value={recipientUserId} onChange={(e) => setRecipientUserId(e.target.value)} sx={{ minWidth: 220 }}
-            >
-              <MenuItem value="">{t('portalAdminNotificationReport.filters.anyRecipient')}</MenuItem>
-              {recipients.map((u) => (
-                <MenuItem key={u.user_id} value={u.user_id}>
-                  {`${u.first_name ?? ''} ${u.last_name ?? ''}`.trim() || u.email || u.user_id}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select size="small" label={t('portalAdminNotificationReport.filters.groupBy')}
-              value={groupBy} onChange={(e) => setGroupBy(e.target.value)} sx={{ minWidth: 140 }}
-            >
-              {GROUP_BY.map((g) => (
-                <MenuItem key={g} value={g}>
-                  {t(`portalAdminNotificationReport.groupBy.${g}`)}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Stack>
+          <Grid container spacing={2} sx={{ mt: 2 }}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                size="small"
+                label={t('portalAdminNotificationReport.filters.from')}
+                type="datetime-local"
+                value={fromInput}
+                onChange={(e) => setFromInput(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                size="small"
+                label={t('portalAdminNotificationReport.filters.to')}
+                type="datetime-local"
+                value={toInput}
+                onChange={(e) => setToInput(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
+                fullWidth
+                select
+                size="small"
+                label={t('portalAdminNotificationReport.filters.channel')}
+                value={channel}
+                onChange={(e) => setChannel(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              >
+                {CHANNELS.map((c) => (
+                  <MenuItem key={c || 'any'} value={c}>
+                    {channelFilterLabel(t, c)}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
+                fullWidth
+                select
+                size="small"
+                label={t('portalAdminNotificationReport.filters.status')}
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              >
+                {STATUSES.map((s) => (
+                  <MenuItem key={s || 'any'} value={s}>
+                    {s ? s : t('portalAdminNotificationReport.filters.anyStatus')}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
+              <TextField
+                fullWidth
+                select
+                size="small"
+                label={t('portalAdminNotificationReport.filters.groupBy')}
+                value={groupBy}
+                onChange={(e) => setGroupBy(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              >
+                {GROUP_BY.map((g) => (
+                  <MenuItem key={g} value={g}>
+                    {t(`portalAdminNotificationReport.groupBy.${g}`)}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                select
+                size="small"
+                label={t('portalAdminNotificationReport.filters.event')}
+                value={eventTypeCode}
+                onChange={(e) => setEventTypeCode(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              >
+                <MenuItem value="">{t('portalAdminNotificationReport.filters.anyEvent')}</MenuItem>
+                {flowCatalog.map((f) => (
+                  <MenuItem key={f.event_type_code} value={f.event_type_code}>
+                    {t(f.label_key, f.event_type_code)}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                select
+                size="small"
+                label={t('portalAdminNotificationReport.filters.recipient')}
+                value={recipientUserId}
+                onChange={(e) => setRecipientUserId(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              >
+                <MenuItem value="">{t('portalAdminNotificationReport.filters.anyRecipient')}</MenuItem>
+                {recipients.map((u) => (
+                  <MenuItem key={u.user_id} value={u.user_id}>
+                    {`${u.first_name ?? ''} ${u.last_name ?? ''}`.trim() || u.email || u.user_id}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+          </Grid>
         </Paper>
 
         {status === 'loading' && !report ? (
@@ -345,19 +449,19 @@ export default function PortalAdminNotificationReport() {
         ) : !summary ? null : (
           <>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6} md={2.4}>
+              <Grid item xs={12} sm={6} md={4}>
                 <StatCard label={t('portalAdminNotificationReport.stats.total')} value={summary.total} />
               </Grid>
-              <Grid item xs={12} sm={6} md={2.4}>
+              <Grid item xs={12} sm={6} md={4}>
                 <StatCard label={t('portalAdminNotificationReport.stats.sent')} value={summary.sent} accent="success.main" />
               </Grid>
-              <Grid item xs={12} sm={6} md={2.4}>
+              <Grid item xs={12} sm={6} md={4}>
                 <StatCard label={t('portalAdminNotificationReport.stats.failed')} value={summary.failed} accent="error.main" />
               </Grid>
-              <Grid item xs={12} sm={6} md={2.4}>
+              <Grid item xs={12} sm={6} md={4}>
                 <StatCard label={t('portalAdminNotificationReport.stats.queued')} value={summary.queued} accent="warning.main" />
               </Grid>
-              <Grid item xs={12} sm={6} md={2.4}>
+              <Grid item xs={12} sm={6} md={4}>
                 <StatCard
                   label={t('portalAdminNotificationReport.stats.deliveryRate')}
                   value={
@@ -367,19 +471,20 @@ export default function PortalAdminNotificationReport() {
                   }
                 />
               </Grid>
-              <Grid item xs={12} sm={6} md={2.4}>
+              <Grid item xs={12} sm={6} md={4}>
                 <StatCard
                   label={t('portalAdminNotificationReport.stats.uniqueRecipients')}
                   value={summary.unique_recipients}
                 />
               </Grid>
-              <Grid item xs={12} sm={6} md={2.4}>
+              <Grid item xs={12} sm={6} md={4}>
                 <StatCard
                   label={t('portalAdminNotificationReport.stats.latencyP50')}
                   value={latency?.p50 == null ? '—' : `${Number(latency.p50).toFixed(0)}s`}
+                  subtitle={t('portalAdminNotificationReport.stats.latencyHint')}
                 />
               </Grid>
-              <Grid item xs={12} sm={6} md={2.4}>
+              <Grid item xs={12} sm={6} md={4}>
                 <StatCard
                   label={t('portalAdminNotificationReport.stats.latencyP95')}
                   value={latency?.p95 == null ? '—' : `${Number(latency.p95).toFixed(0)}s`}
@@ -387,21 +492,45 @@ export default function PortalAdminNotificationReport() {
               </Grid>
             </Grid>
 
-            <Paper variant="outlined" sx={{ p: 2 }}>
+            <Paper variant="outlined" sx={{ p: 2 }} component="section">
               <Typography variant="h3" sx={{ fontSize: '1.05rem', mb: 1.5 }}>
                 {(groupBy === 'day' || groupBy === 'hour')
                   ? t('portalAdminNotificationReport.charts.timeSeries')
                   : t(`portalAdminNotificationReport.charts.by_${groupBy}`)}
               </Typography>
-              {(groupBy === 'day' || groupBy === 'hour')
-                ? <MiniBarSeries rows={report.series} />
-                : <HorizontalBars rows={report.aggregates} />}
-              {(groupBy === 'day' || groupBy === 'hour') && report.series?.length > 0 && (
-                <Stack direction="row" spacing={2} sx={{ mt: 1.5 }}>
-                  <Chip size="small" label={t('portalAdminNotificationReport.legend.sent')} sx={{ bgcolor: 'success.light' }} />
-                  <Chip size="small" label={t('portalAdminNotificationReport.legend.failed')} sx={{ bgcolor: 'error.light' }} />
-                  <Chip size="small" label={t('portalAdminNotificationReport.legend.queued')} sx={{ bgcolor: 'warning.light' }} />
-                </Stack>
+              {(groupBy === 'day' || groupBy === 'hour') ? (
+                report.series?.length ? (
+                  <>
+                    <MiniBarSeries rows={report.series} />
+                    <Stack direction="row" spacing={2} sx={{ mt: 1.5 }} flexWrap="wrap" useFlexGap>
+                      <Chip size="small" label={t('portalAdminNotificationReport.legend.sent')} sx={{ bgcolor: 'success.light' }} />
+                      <Chip size="small" label={t('portalAdminNotificationReport.legend.failed')} sx={{ bgcolor: 'error.light' }} />
+                      <Chip size="small" label={t('portalAdminNotificationReport.legend.queued')} sx={{ bgcolor: 'warning.light' }} />
+                    </Stack>
+                  </>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    {t('portalAdminNotificationReport.chartEmpty')}
+                  </Typography>
+                )
+              ) : (
+                report.aggregates?.length ? (
+                  <HorizontalBars
+                    rows={report.aggregates}
+                    formatLabel={
+                      groupBy === 'channel'
+                        ? (label) =>
+                            label === 'UNKNOWN'
+                              ? t('portalAdminNotificationReport.filters.unknownChannel')
+                              : channelFilterLabel(t, label)
+                        : undefined
+                    }
+                  />
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    {t('portalAdminNotificationReport.chartEmpty')}
+                  </Typography>
+                )
               )}
             </Paper>
 
@@ -420,8 +549,8 @@ export default function PortalAdminNotificationReport() {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {(report.top_recipients || []).map((r) => (
-                          <TableRow key={r.user_id || r.email || Math.random()}>
+                        {(report.top_recipients || []).map((r, idx) => (
+                          <TableRow key={r.user_id ? String(r.user_id) : `recipient-${r.email ?? 'unknown'}-${idx}`}>
                             <TableCell>
                               <Typography variant="body2">
                                 {`${r.first_name ?? ''} ${r.last_name ?? ''}`.trim() || r.email || '—'}

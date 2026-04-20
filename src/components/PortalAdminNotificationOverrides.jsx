@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   Box,
   Chip,
   CircularProgress,
@@ -34,6 +35,51 @@ import StatusAlertSlot from './StatusAlertSlot';
 import PortalRefreshButton from './PortalRefreshButton';
 
 const ROLE_FILTERS = ['', 'TENANT', 'LANDLORD', 'ADMIN'];
+
+/** @param {unknown} err */
+function serializePortalOverridesError(err) {
+  if (err && typeof err === 'object') {
+    const o = /** @type {{ status?: number, code?: string, message?: string, details?: unknown }} */ (err);
+    return {
+      status: typeof o.status === 'number' ? o.status : undefined,
+      code: typeof o.code === 'string' ? o.code : '',
+      message: typeof o.message === 'string' ? o.message : '',
+      details: o.details,
+    };
+  }
+  if (err instanceof Error) {
+    return { status: undefined, code: '', message: `${err.name}: ${err.message}`, details: undefined };
+  }
+  return { status: undefined, code: '', message: String(err), details: undefined };
+}
+
+/**
+ * Structured console diagnostics for User Overrides loads (browser DevTools).
+ * @param {'userList' | 'flowCatalog'} stage
+ * @param {unknown} err
+ * @param {Record<string, unknown>} [extra]
+ */
+function logPortalOverridesFailure(stage, err, extra = {}) {
+  const s = serializePortalOverridesError(err);
+  let hint;
+  if (s.status === 404) {
+    hint = 'HTTP 404: route not registered on the API host, or wrong path. After adding Functions, restart `func start` / the API.';
+  } else if (s.status === 503 && s.code === 'database_unconfigured') {
+    hint = 'API returned database_unconfigured (DATABASE_URL missing on Functions).';
+  } else if (s.status === 503 && s.code === 'auth_unconfigured') {
+    hint = 'API auth not configured for local verification.';
+  } else if (s.status === 401 || s.status === 403) {
+    hint = 'Token rejected or role not ADMIN — check portal sign-in and account role.';
+  } else if (s.status === 0 || s.code === 'fetch_failed_cors_or_network') {
+    hint = 'No HTTP response — ensure Azure Functions is running (e.g. :7071) and Vite proxies /api to it.';
+  }
+  console.error('[portal/admin notification overrides]', {
+    stage,
+    ...s,
+    ...extra,
+    hint: hint ?? null,
+  });
+}
 
 function ChannelDot({ on, label }) {
   return (
@@ -210,37 +256,88 @@ export default function PortalAdminNotificationOverrides() {
   const [filters, setFilters] = useState({ q: '', role: '', onlyCustomized: true, eventTypeCode: '' });
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState('');
+  const [catalogWarning, setCatalogWarning] = useState('');
+  const [catalogLoadFailed, setCatalogLoadFailed] = useState(false);
+  const [loadFailureDebug, setLoadFailureDebug] = useState('');
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (options = {}) => {
+    const forceCatalogRetry = Boolean(options.forceCatalogRetry);
     if (!canUseModule) return;
     setStatus('loading');
     setError('');
+    setLoadFailureDebug('');
+    const allowCatalogFetch = forceCatalogRetry || !catalogLoadFailed;
+    if (forceCatalogRetry) {
+      setCatalogWarning('');
+    }
     try {
       const token = await getAccessToken();
       const emailHint = emailFromAccount(account);
-      const [usersPayload, flowsPayload] = await Promise.all([
-        fetchAdminNotificationOverrides(baseUrl, token, {
-          emailHint,
-          q: filters.q,
-          role: filters.role,
-          onlyCustomized: filters.onlyCustomized,
-          eventTypeCode: filters.eventTypeCode,
-        }),
-        flowCatalog.length === 0
-          ? fetchAdminNotificationFlowDefaults(baseUrl, token, { emailHint })
-          : Promise.resolve(null),
-      ]);
+      const usersPayload = await fetchAdminNotificationOverrides(baseUrl, token, {
+        emailHint,
+        q: filters.q,
+        role: filters.role,
+        onlyCustomized: filters.onlyCustomized,
+        eventTypeCode: filters.eventTypeCode,
+      });
       setUsers(Array.isArray(usersPayload?.users) ? usersPayload.users : []);
-      if (flowsPayload && Array.isArray(flowsPayload.flows)) {
-        setFlowCatalog(flowsPayload.flows);
+
+      if (flowCatalog.length === 0 && allowCatalogFetch) {
+        try {
+          const flowsPayload = await fetchAdminNotificationFlowDefaults(baseUrl, token, { emailHint });
+          if (flowsPayload && Array.isArray(flowsPayload.flows)) {
+            setFlowCatalog(flowsPayload.flows);
+          }
+          setCatalogLoadFailed(false);
+          setCatalogWarning('');
+        } catch (catalogErr) {
+          logPortalOverridesFailure('flowCatalog', catalogErr, {
+            baseUrl,
+            path: '/api/portal/admin/notifications/flow-defaults',
+          });
+          handleApiForbidden(catalogErr);
+          setCatalogLoadFailed(true);
+          setCatalogWarning(t('portalAdminNotificationOverrides.errors.flowCatalogPartial'));
+        }
       }
+
       setStatus('ok');
     } catch (loadError) {
+      logPortalOverridesFailure('userList', loadError, {
+        baseUrl,
+        path: '/api/portal/admin/notifications/user-overrides',
+        q: filters.q,
+        role: filters.role,
+        onlyCustomized: filters.onlyCustomized,
+        eventTypeCode: filters.eventTypeCode,
+      });
       handleApiForbidden(loadError);
       setStatus('error');
       setError(t('portalAdminNotificationOverrides.errors.loadFailed'));
+      if (import.meta.env.DEV) {
+        const s = serializePortalOverridesError(loadError);
+        const parts = [
+          s.status !== undefined ? `HTTP ${s.status}` : null,
+          s.code ? `error=${s.code}` : null,
+          s.message ? s.message : null,
+        ].filter(Boolean);
+        setLoadFailureDebug(parts.join(' · '));
+      }
     }
-  }, [account, baseUrl, canUseModule, filters, flowCatalog.length, getAccessToken, handleApiForbidden, t]);
+  }, [
+    account,
+    baseUrl,
+    canUseModule,
+    catalogLoadFailed,
+    filters.eventTypeCode,
+    filters.onlyCustomized,
+    filters.q,
+    filters.role,
+    flowCatalog.length,
+    getAccessToken,
+    handleApiForbidden,
+    t,
+  ]);
 
   useEffect(() => {
     void load();
@@ -267,7 +364,7 @@ export default function PortalAdminNotificationOverrides() {
           </Box>
           <PortalRefreshButton
             label={t('portalAdminNotificationOverrides.actions.refresh')}
-            onClick={() => void load()}
+            onClick={() => void load({ forceCatalogRetry: true })}
             disabled={!canUseModule}
             loading={status === 'loading'}
           />
@@ -279,6 +376,16 @@ export default function PortalAdminNotificationOverrides() {
             : null}
         />
         <StatusAlertSlot message={status === 'error' ? { severity: 'error', text: error } : null} />
+        {import.meta.env.DEV && loadFailureDebug ? (
+          <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'ui-monospace, monospace' }}>
+            {loadFailureDebug}
+          </Typography>
+        ) : null}
+        {catalogWarning ? (
+          <Alert severity="warning" onClose={() => setCatalogWarning('')}>
+            {catalogWarning}
+          </Alert>
+        ) : null}
 
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }}>
           <TextField

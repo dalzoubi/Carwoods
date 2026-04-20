@@ -6,7 +6,7 @@ import {
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
 import { jsonResponse, requireAdmin } from '../lib/managementRequest.js';
-import { logError } from '../lib/serverLogger.js';
+import { logError, logInfo } from '../lib/serverLogger.js';
 
 type FlowOverrideRow = {
   user_id: string;
@@ -47,6 +47,15 @@ async function adminOverridesCollectionHandler(
   const onlyCustomized = String(url.searchParams.get('only_customized') ?? '').trim() === '1';
   const eventCode = String(url.searchParams.get('event_type_code') ?? '').trim().toUpperCase();
   const limit = Math.max(1, Math.min(Number(url.searchParams.get('limit') ?? 200), 500));
+
+  logInfo(context, 'admin.notification_overrides.list.request', {
+    actorUserId: ctx.user.id,
+    searchLen: search.length,
+    role,
+    onlyCustomized,
+    eventCodeLen: eventCode.length,
+    limit,
+  });
 
   try {
     const pool = getPool();
@@ -96,8 +105,14 @@ async function adminOverridesCollectionHandler(
       })),
     });
   } catch (err) {
+    const sqlNumber =
+      err && typeof err === 'object' && 'number' in err && typeof (err as { number?: unknown }).number === 'number'
+        ? (err as { number: number }).number
+        : undefined;
     logError(context, 'admin.notification_overrides.list.error', {
       message: err instanceof Error ? err.message : 'unknown',
+      sqlNumber,
+      stack: err instanceof Error ? err.stack : undefined,
     });
     throw err;
   }
@@ -137,8 +152,14 @@ async function adminOverridesUserHandler(
       })),
     });
   } catch (err) {
+    const sqlNumber =
+      err && typeof err === 'object' && 'number' in err && typeof (err as { number?: unknown }).number === 'number'
+        ? (err as { number: number }).number
+        : undefined;
     logError(context, 'admin.notification_overrides.user.error', {
       message: err instanceof Error ? err.message : 'unknown',
+      sqlNumber,
+      stack: err instanceof Error ? err.stack : undefined,
     });
     throw err;
   }

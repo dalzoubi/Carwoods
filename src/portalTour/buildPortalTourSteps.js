@@ -42,9 +42,9 @@ export function getPortalTourNavKeys({
     }
   }
 
-  // admin + health (admin only)
+  // admin + reports + health (admin only)
   if (roleResolved && normalizedRole === Role.ADMIN) {
-    keys.push('admin', 'health-status', 'health-notification-test');
+    keys.push('admin', 'reports-notifications', 'health-status', 'health-notification-test');
   }
 
   // profile (non-guest, rendered at the bottom of the sidebar)
@@ -68,6 +68,7 @@ const NAV_I18N = {
   documents: 'documents',
   payments: 'payments',
   profile: 'profile',
+  'reports-notifications': 'notificationReport',
   'health-status': 'healthStatus',
   'health-notification-test': 'healthNotificationTest',
 };
