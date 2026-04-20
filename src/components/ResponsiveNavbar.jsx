@@ -18,6 +18,7 @@ import {
     Typography,
     Box,
     Tooltip,
+    Collapse,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown';
@@ -150,6 +151,8 @@ const ResponsiveNavbar = () => {
     } = useLanguage();
     const { isAuthenticated } = usePortalAuth();
     const { t, i18n } = useTranslation();
+
+    const [legalExpanded, setLegalExpanded] = useState(false);
 
     const menuHorizontalOrigin = muiTheme.direction === 'rtl' ? 'right' : 'left';
     const menuAnchorOrigin = { vertical: 'bottom', horizontal: menuHorizontalOrigin };
@@ -579,11 +582,6 @@ const ResponsiveNavbar = () => {
         py: 0.5,
     };
 
-    const legalRowSx = {
-        ...listItemButtonSx,
-        py: 0.5,
-    };
-
     const drawerContent = (
         <Box
             sx={{
@@ -717,9 +715,13 @@ const ResponsiveNavbar = () => {
                             to={withDarkPath(pathname, to)}
                             selected={isRouteActive(to)}
                             onClick={handleDrawerToggle}
-                            sx={listItemButtonSx}
+                            sx={supportingLinkSx}
                         >
-                            <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
+                            <ListItemText
+                                primary={label}
+                                primaryTypographyProps={{ fontSize: '0.85rem' }}
+                                style={{ color: muiTheme.palette.drawer.text, opacity: 0.92 }}
+                            />
                         </ListItemButton>
                     ))}
                 </List>
@@ -782,31 +784,49 @@ const ResponsiveNavbar = () => {
                             }}
                         />
                     </ListItemButton>
-                </List>
-
-                <Divider sx={{ opacity: 0.4 }} />
-                <List
-                    disablePadding
-                    dense
-                    aria-label={t('nav.legal')}
-                    sx={{ py: 0.5 }}
-                >
-                    {legalLinks.map(({ to, label }) => (
-                        <ListItemButton
-                            key={to}
-                            component={RouterLink}
-                            to={withDarkPath(pathname, to)}
-                            selected={isRouteActive(to)}
-                            onClick={handleDrawerToggle}
-                            sx={legalRowSx}
-                        >
-                            <ListItemText
-                                primary={label}
-                                primaryTypographyProps={{ fontSize: '0.78rem' }}
-                                style={{ color: muiTheme.palette.drawer.text, opacity: 0.75 }}
-                            />
-                        </ListItemButton>
-                    ))}
+                    <ListItemButton
+                        type="button"
+                        onClick={() => setLegalExpanded((v) => !v)}
+                        aria-expanded={legalExpanded}
+                        aria-controls="drawer-legal-panel"
+                        aria-label={t('nav.legalToggle')}
+                        sx={listItemButtonSx}
+                    >
+                        <ListItemText
+                            primary={t('nav.legal')}
+                            primaryTypographyProps={{ fontSize: '0.85rem' }}
+                            style={{ color: muiTheme.palette.drawer.text }}
+                        />
+                        <KeyboardArrowDown
+                            aria-hidden
+                            sx={{
+                                fontSize: '1.1rem',
+                                color: muiTheme.palette.drawer.text,
+                                transition: 'transform 200ms',
+                                transform: legalExpanded ? 'rotate(180deg)' : 'none',
+                            }}
+                        />
+                    </ListItemButton>
+                    <Collapse in={legalExpanded} unmountOnExit>
+                        <List id="drawer-legal-panel" disablePadding dense>
+                            {legalLinks.map(({ to, label }) => (
+                                <ListItemButton
+                                    key={to}
+                                    component={RouterLink}
+                                    to={withDarkPath(pathname, to)}
+                                    selected={isRouteActive(to)}
+                                    onClick={handleDrawerToggle}
+                                    sx={{ pl: 4, ...listItemButtonSx }}
+                                >
+                                    <ListItemText
+                                        primary={label}
+                                        primaryTypographyProps={{ fontSize: '0.85rem' }}
+                                        style={{ color: muiTheme.palette.drawer.text }}
+                                    />
+                                </ListItemButton>
+                            ))}
+                        </List>
+                    </Collapse>
                 </List>
             </nav>
 

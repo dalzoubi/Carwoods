@@ -186,16 +186,19 @@ describe('ResponsiveNavbar', () => {
       expect(within(languageRow).getByText(/english/i)).toBeInTheDocument();
     });
 
-    it('renders Legal links inline (Privacy, Terms, Accessibility) without a collapsible toggle', () => {
+    it('keeps Legal collapsed by default and expands it on click', () => {
       mockMobile();
       renderWithProviders(<ResponsiveNavbar />);
       openDrawer();
       const drawer = getDrawer();
-      expect(within(drawer).queryByRole('button', { name: /legal links/i })).not.toBeInTheDocument();
-      const legalList = within(drawer).getByRole('list', { name: /^legal$/i });
-      expect(within(legalList).getByRole('link', { name: /privacy policy/i })).toBeInTheDocument();
-      expect(within(legalList).getByRole('link', { name: /terms of service/i })).toBeInTheDocument();
-      expect(within(legalList).getByRole('link', { name: /accessibility/i })).toBeInTheDocument();
+      const toggle = within(drawer).getByRole('button', { name: /legal links/i });
+      expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      expect(within(drawer).queryByRole('link', { name: /privacy policy/i })).not.toBeInTheDocument();
+      fireEvent.click(toggle);
+      expect(toggle).toHaveAttribute('aria-expanded', 'true');
+      expect(within(drawer).getByRole('link', { name: /privacy policy/i })).toBeInTheDocument();
+      expect(within(drawer).getByRole('link', { name: /terms of service/i })).toBeInTheDocument();
+      expect(within(drawer).getByRole('link', { name: /accessibility/i })).toBeInTheDocument();
     });
   });
 
