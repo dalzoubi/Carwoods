@@ -33,6 +33,8 @@ export default defineConfig({
     {
       name: 'visual-chromium',
       testMatch: '**/visual/**/*.visual.spec.mjs',
+      // snap() waits up to 60s for first paint; keep test timeout above that.
+      timeout: 120000,
       use: {
         ...devices['Desktop Chrome'],
         // Force a predictable timezone, locale, and color scheme so snapshots
@@ -44,10 +46,13 @@ export default defineConfig({
     },
   ],
   webServer: {
+    // Windows CMD does not support `VAR=value cmd`; use cross-env like npm scripts.
     command: portalDevAuth
-      ? 'VITE_PORTAL_DEV_AUTH=true npm run build && npx serve -s build -l 3000'
+      ? 'npx cross-env VITE_PORTAL_DEV_AUTH=true npm run build && npx serve -s build -l 3000'
       : 'npm run build && npx serve -s build -l 3000',
     url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    // Default: never reuse → we always serve this repo's production `build/` (otherwise a
+    // stray process on :3000 yields blank screenshots / wrong UI). Opt in with PW_REUSE_SERVER=1.
+    reuseExistingServer: process.env.PW_REUSE_SERVER === '1',
   },
 });

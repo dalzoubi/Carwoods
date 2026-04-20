@@ -7,6 +7,9 @@
  * test-results/, the gallery shows baseline vs last-run actual (and optional diff).
  *
  * Run after visual tests via npm run test:visual / test:visual:update.
+ *
+ * Output: e2e/visual/visual-gallery.html (next to snapshot folders). Browsers often
+ * block file:// loads that traverse `../`; paths stay under e2e/visual/.
  */
 import fs from 'fs';
 import path from 'path';
@@ -16,7 +19,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 const VISUAL_DIR = path.join(ROOT, 'e2e', 'visual');
 const TEST_RESULTS_DIR = path.join(ROOT, 'test-results');
-const OUT_HTML = path.join(ROOT, 'playwright-report', 'visual-gallery.html');
+const OUT_HTML = path.join(VISUAL_DIR, 'visual-gallery.html');
+const RUNTIME_IMG_DIR = path.join(VISUAL_DIR, '.gallery-runtime');
 
 /** Must stay aligned with e2e/visual/fixtures.mjs VIEWPORTS */
 const VIEWPORT_DETAIL = {
@@ -228,6 +232,52 @@ function collectLastRunComparisons() {
   return out;
 }
 
+/**
+ * Copy last-run failure PNGs next to the HTML so img src avoids `../../test-results/`
+ * (also blocked under file:// for many browsers).
+ *
+ * @returns {Map<string, { actualSrc: string, diffSrc?: string }>}
+ */
+function prepareComparisonAssets(comparisons) {
+  /** @type {Map<string, { actualSrc: string, diffSrc?: string }>} */
+  const urls = new Map();
+
+  fs.rmSync(RUNTIME_IMG_DIR, { recursive: true, force: true });
+  if (comparisons.size === 0) return urls;
+
+  fs.mkdirSync(RUNTIME_IMG_DIR, { recursive: true });
+
+  for (const [stem, v] of comparisons) {
+    const actualName = `${stem}-actual.png`;
+    const actualDest = path.join(RUNTIME_IMG_DIR, actualName);
+    fs.copyFileSync(v.actual, actualDest);
+
+    const entry = {
+      actualSrc: `./.gallery-runtime/${actualName}`,
+    };
+    if (v.diff) {
+      const diffName = `${stem}-diff.png`;
+      fs.copyFileSync(v.diff, path.join(RUNTIME_IMG_DIR, diffName));
+      entry.diffSrc = `./.gallery-runtime/${diffName}`;
+    }
+    urls.set(stem, entry);
+  }
+
+  return urls;
+}
+
+/**
+ * Paths for <img src> relative to OUT_HTML (`e2e/visual/visual-gallery.html`).
+ * Prefix `./` so file:// resolves reliably.
+ */
+function relFromGallery(absPath) {
+  let r = path.relative(path.dirname(OUT_HTML), absPath).split(path.sep).join('/');
+  if (r && !r.startsWith('.') && !path.isAbsolute(r)) {
+    r = `./${r}`;
+  }
+  return r;
+}
+
 function sectionTitleFromFolder(folderName) {
   const spec = folderName.replace(/\.mjs-snapshots$/i, '');
   if (spec === 'marketing.visual.spec') return 'Marketing site (public routes)';
@@ -236,13 +286,12 @@ function sectionTitleFromFolder(folderName) {
   return spec;
 }
 
-function buildHtml(items, comparisons) {
+function buildHtml(items, comparisons, comparisonAssets) {
   const generatedAt = new Date().toISOString();
-  const rel = (fromAbs) => path.relative(path.dirname(OUT_HTML), fromAbs).split(path.sep).join('/');
 
   let mismatchCount = 0;
   for (const item of items) {
-    if (comparisons.has(item.stem)) mismatchCount += 1;
+    if (comparisons.has(item.stem) && comparisonAssets.has(item.stem)) mismatchCount += 1;
   }
 
   let body = '';
@@ -263,44 +312,46 @@ function buildHtml(items, comparisons) {
     const headline = meta?.headline ?? item.stem;
     const subline = meta?.subline ?? '';
     const cmp = comparisons.get(item.stem);
-    const mismatchClass = cmp ? ' shot-mismatch' : '';
+    const asset = comparisonAssets.get(item.stem);
+    const showCompare = cmp && asset;
+    const mismatchClass = showCompare ? ' shot-mismatch' : '';
 
     body += `    <article class="shot${mismatchClass}">\n`;
     body += `      <header class="shot-head">\n`;
     body += `        <h3>${escapeHtml(headline)}</h3>\n`;
     if (subline) body += `        <p class="sub">${escapeHtml(subline)}</p>\n`;
     body += `        <p class="file"><code>${escapeHtml(item.file)}</code></p>\n`;
-    if (cmp) {
-      body += `        <p class="compare-badge">Last run differed — baseline vs captured below (from <code>test-results/</code>).</p>\n`;
+    if (showCompare) {
+      body += `        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>\n`;
     }
     body += `      </header>\n`;
 
-    if (cmp) {
+    if (showCompare) {
       body += `      <div class="compare-grid">\n`;
       body += `        <div class="compare-cell">\n`;
       body += `          <h4>Baseline (expected)</h4>\n`;
       body += `          <div class="compare-img">\n`;
-      body += `            <img src="${escapeHtml(rel(item.abs))}" alt="Baseline: ${escapeHtml(headline)}" loading="lazy" />\n`;
+        body += `            <img src="${escapeHtml(relFromGallery(item.abs))}" alt="Baseline: ${escapeHtml(headline)}" loading="lazy" />\n`;
       body += `          </div>\n`;
       body += `        </div>\n`;
       body += `        <div class="compare-cell">\n`;
       body += `          <h4>Last run (actual)</h4>\n`;
       body += `          <div class="compare-img">\n`;
-      body += `            <img src="${escapeHtml(rel(cmp.actual))}" alt="Actual: ${escapeHtml(headline)}" loading="lazy" />\n`;
+      body += `            <img src="${escapeHtml(asset.actualSrc)}" alt="Actual: ${escapeHtml(headline)}" loading="lazy" />\n`;
       body += `          </div>\n`;
       body += `        </div>\n`;
-      if (cmp.diff) {
+      if (asset.diffSrc) {
         body += `        <div class="compare-cell compare-diff">\n`;
         body += `          <h4>Diff (Playwright)</h4>\n`;
         body += `          <div class="compare-img">\n`;
-        body += `            <img src="${escapeHtml(rel(cmp.diff))}" alt="Diff: ${escapeHtml(headline)}" loading="lazy" />\n`;
+        body += `            <img src="${escapeHtml(asset.diffSrc)}" alt="Diff: ${escapeHtml(headline)}" loading="lazy" />\n`;
         body += `          </div>\n`;
         body += `        </div>\n`;
       }
       body += `      </div>\n`;
     } else {
       body += `      <div class="shot-img-wrap">\n`;
-      body += `        <img src="${escapeHtml(rel(item.abs))}" alt="${escapeHtml(headline)}" loading="lazy" />\n`;
+      body += `        <img src="${escapeHtml(relFromGallery(item.abs))}" alt="${escapeHtml(headline)}" loading="lazy" />\n`;
       body += `      </div>\n`;
     }
     body += `    </article>\n`;
@@ -470,7 +521,7 @@ function buildHtml(items, comparisons) {
 <body>
   <header class="page-head">
     <h1>Visual regression gallery</h1>
-    <p class="meta">${escapeHtml(items.length)} baseline screenshot${items.length === 1 ? '' : 's'} · Generated ${escapeHtml(generatedAt)} · Open this file from <code>playwright-report/</code> so images load.</p>
+    <p class="meta">${escapeHtml(items.length)} baseline screenshot${items.length === 1 ? '' : 's'} · Generated ${escapeHtml(generatedAt)} · Save as <code>e2e/visual/visual-gallery.html</code> and open locally (paths stay under <code>e2e/visual/</code> so images load over <code>file://</code>).</p>
     <p class="meta meta-second">${compareHint}</p>
   </header>
   <main>
@@ -481,12 +532,39 @@ ${body}
 `;
 }
 
+function writePlaywrightReportRedirectStub() {
+  const dir = path.join(ROOT, 'playwright-report');
+  fs.mkdirSync(dir, { recursive: true });
+  const stubPath = path.join(dir, 'visual-gallery.html');
+  fs.writeFileSync(
+    stubPath,
+    `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="refresh" content="0; url=../e2e/visual/visual-gallery.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Visual gallery — redirect</title>
+</head>
+<body style="margin: 2rem; font-family: system-ui, sans-serif; background: #111; color: #eee;">
+  <p>The gallery HTML now lives next to snapshots (fixes blank images under <code>file://</code>):</p>
+  <p><a href="../e2e/visual/visual-gallery.html" style="color:#8cf">Open e2e/visual/visual-gallery.html</a></p>
+  <script>location.replace("../e2e/visual/visual-gallery.html");</script>
+</body>
+</html>
+`,
+    'utf8',
+  );
+}
+
 function main() {
   const items = collectSnapshotFiles();
   const comparisons = collectLastRunComparisons();
+  const comparisonAssets = prepareComparisonAssets(comparisons);
   const outDir = path.dirname(OUT_HTML);
   fs.mkdirSync(outDir, { recursive: true });
-  fs.writeFileSync(OUT_HTML, buildHtml(items, comparisons), 'utf8');
+  fs.writeFileSync(OUT_HTML, buildHtml(items, comparisons, comparisonAssets), 'utf8');
+  writePlaywrightReportRedirectStub();
   const withCompare = [...comparisons.keys()].filter((k) => items.some((i) => i.stem === k)).length;
   console.log(
     `Visual gallery written to ${path.relative(ROOT, OUT_HTML)} (${items.length} screenshots${withCompare ? `, ${withCompare} with last-run comparison` : ''}).`,

@@ -228,12 +228,12 @@ const Pricing = () => {
         { key: 'featureTenantPortal', label: t('pricing.featureTenantPortal', 'Tenant portal access') },
         { key: 'featureMaintenanceRequests', label: t('pricing.featureMaintenanceRequests', 'Maintenance requests') },
         { key: 'featureNotifications', label: t('pricing.featureNotifications', 'In-app & email notifications') },
+        { key: 'featureMoveOut', label: t('pricing.featureMoveOut', 'Lease move-out & notices') },
+        { key: 'featureActivityBadges', label: t('pricing.featureActivityBadges', 'Activity indicators on sidebar') },
         { key: 'featureSms', label: t('pricing.featureSms', 'SMS notifications') },
         { key: 'featureAiRouting', label: t('pricing.featureAiRouting', 'AI maintenance routing') },
         { key: 'featureDocStorage', label: t('pricing.featureDocStorage', 'Document storage') },
         { key: 'featurePayments', label: t('pricing.featurePayments', 'Payments tracking') },
-        { key: 'featureMoveOut', label: t('pricing.featureMoveOut', 'Lease move-out & notices') },
-        { key: 'featureActivityBadges', label: t('pricing.featureActivityBadges', 'Activity indicators on sidebar') },
         { key: 'featureReports', label: t('pricing.featureReports', 'Reports & exports') },
         { key: 'featureWhiteLabel', label: t('pricing.featureWhiteLabel', 'Custom branding') },
         { key: 'featurePrioritySupport', label: t('pricing.featurePrioritySupport', 'Priority support') },
@@ -305,6 +305,10 @@ const Pricing = () => {
         { q: t('pricing.faq3Question'), a: t('pricing.faq3Answer') },
         { q: t('pricing.faq4Question'), a: t('pricing.faq4Answer') },
         { q: t('pricing.faq5Question'), a: t('pricing.faq5Answer') },
+        { q: t('pricing.faq6Question'), a: t('pricing.faq6Answer') },
+        { q: t('pricing.faq7Question'), a: t('pricing.faq7Answer') },
+        { q: t('pricing.faq8Question'), a: t('pricing.faq8Answer') },
+        { q: t('pricing.faq9Question'), a: t('pricing.faq9Answer') },
     ];
 
     const renderCell = (val) => {
