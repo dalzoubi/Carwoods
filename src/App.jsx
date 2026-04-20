@@ -9,6 +9,7 @@ import Apply from './components/Apply';
 import TenantSelectionCriteria from './components/TenantSelectionCriteria';
 import ApplicationRequiredDocuments from './components/ApplicationRequiredDocuments';
 import PropertyManagement from './components/PropertyManagement';
+import SelfManagedLandlords from './components/SelfManagedLandlords';
 import Pricing from './components/Pricing';
 import Features from './components/Features';
 import ForPropertyManagers from './components/ForPropertyManagers';
@@ -84,6 +85,7 @@ function MarketingRoutes() {
             <Route path="/tenant-selection-criteria" element={<TenantSelectionCriteria />} />
             <Route path="/application-required-documents" element={<ApplicationRequiredDocuments />} />
             <Route path="/property-management" element={<PropertyManagement />} />
+            <Route path="/self-managed-landlords" element={<SelfManagedLandlords />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/features" element={<Features />} />
             <Route path="/for-property-managers" element={<ForPropertyManagers />} />
