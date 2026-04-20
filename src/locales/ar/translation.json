@@ -36,7 +36,9 @@
     "product": "المنتج",
     "productMenu": "قائمة المنتج",
     "resources": "الموارد",
-    "resourcesMenu": "قائمة الموارد"
+    "resourcesMenu": "قائمة الموارد",
+    "closeMenu": "إغلاق القائمة",
+    "myAccount": "حسابي"
   },
   "tenantLinks": {
     "apply": "تقديم الطلب",

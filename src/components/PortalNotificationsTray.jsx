@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -19,7 +20,7 @@ import {
 } from '@mui/material';
 import Build from '@mui/icons-material/Build';
 import Chat from '@mui/icons-material/Chat';
-import ClearAll from '@mui/icons-material/ClearAll';
+import DeleteSweep from '@mui/icons-material/DeleteSweep';
 import Close from '@mui/icons-material/Close';
 import DoneAll from '@mui/icons-material/DoneAll';
 import Email from '@mui/icons-material/Email';
@@ -121,6 +122,9 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
   const [trayHiddenIds, setTrayHiddenIds] = useState(() => new Set());
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
+  /** Stale GET /notifications responses can overwrite tray state after PATCH invalidates cache — ignore them (see portalCachedJsonGet epoch handling). */
+  const notificationsFetchGenRef = useRef(0);
+
   const trayPersistReady = trayStorageUserKeys(account).length > 0;
 
   useEffect(() => {
@@ -136,8 +140,13 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
     [notifications, trayHiddenIds]
   );
 
+  const bumpNotificationsFetchGeneration = useCallback(() => {
+    notificationsFetchGenRef.current += 1;
+  }, []);
+
   const loadNotifications = useCallback(async (options = {}) => {
     const silent = Boolean(options.silent);
+    const generationAtStart = notificationsFetchGenRef.current;
     if (!isAuthenticated || !baseUrl) return;
     if (!silent) setNotificationsLoading(true);
     try {
@@ -146,6 +155,7 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
         emailHint: account?.username || undefined,
         limit: 20,
       });
+      if (generationAtStart !== notificationsFetchGenRef.current) return;
       setNotifications(Array.isArray(payload?.notifications) ? payload.notifications : []);
       setUnreadCount(Number(payload?.unread_count ?? 0));
     } catch (error) {
@@ -167,6 +177,7 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
 
   const handleNotificationClick = async (notification) => {
     if (!baseUrl) return;
+    bumpNotificationsFetchGeneration();
     try {
       const token = await getAccessToken();
       const response = await markNotificationRead(baseUrl, token, notification.id, {
@@ -201,6 +212,7 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
     e.stopPropagation();
     if (dismissingIds.has(notification.id)) return;
     if (!baseUrl && !trayPersistReady) return;
+    bumpNotificationsFetchGeneration();
     setDismissingIds((prev) => new Set(prev).add(notification.id));
     const emailHint = account?.username || undefined;
     const nowIso = new Date().toISOString();
@@ -253,6 +265,7 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
 
   const handleMarkAllRead = async () => {
     if (!baseUrl || markingAll) return;
+    bumpNotificationsFetchGeneration();
     setMarkingAll(true);
     try {
       const token = await getAccessToken();
@@ -272,6 +285,7 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
   const handleDismissAll = async () => {
     if (dismissingAll || trayNotifications.length === 0) return;
     if (!baseUrl && !trayPersistReady) return;
+    bumpNotificationsFetchGeneration();
     setDismissingAll(true);
     const emailHint = account?.username || undefined;
     const nowIso = new Date().toISOString();
@@ -432,11 +446,15 @@ const PortalNotificationsTray = forwardRef(function PortalNotificationsTray(
                     type="button"
                     size="small"
                     color="inherit"
-                    onClick={() => { void handleDismissAll(); }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      void handleDismissAll();
+                    }}
                     disabled={dismissingAll}
                     aria-label={t('portalHeader.notifications.dismissAll')}
                   >
-                    {dismissingAll ? <CircularProgress size={14} /> : <ClearAll fontSize="small" />}
+                    {dismissingAll ? <CircularProgress size={14} /> : <DeleteSweep fontSize="small" />}
                   </IconButton>
                 </span>
               </Tooltip>

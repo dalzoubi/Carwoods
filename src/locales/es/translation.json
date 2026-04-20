@@ -36,7 +36,9 @@
     "product": "Producto",
     "productMenu": "Menú de producto",
     "resources": "Recursos",
-    "resourcesMenu": "Menú de recursos"
+    "resourcesMenu": "Menú de recursos",
+    "closeMenu": "Cerrar menú",
+    "myAccount": "Mi cuenta"
   },
   "tenantLinks": {
     "apply": "Solicitar",
