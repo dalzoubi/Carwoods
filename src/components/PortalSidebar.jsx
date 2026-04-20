@@ -312,6 +312,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
                 component={RouterLink}
                 to={withDarkPath(pathname, profileItem.to)}
                 type="button"
+                id="portal-tour-nav-profile"
                 aria-label={profileItem.label}
                 onClick={handleNavClick}
                 sx={{ width: '100%', mb: 0.5 }}
@@ -324,6 +325,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
               component={RouterLink}
               to={withDarkPath(pathname, profileItem.to)}
               type="button"
+              id="portal-tour-nav-profile"
               fullWidth
               size="small"
               startIcon={<Person />}
@@ -339,6 +341,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
             <Tooltip title={t('portalLayout.sidebar.signOut')} arrow>
               <IconButton
                 type="button"
+                id="portal-tour-sidebar-sign-out"
                 onClick={() => setSignOutOpen(true)}
                 aria-label={t('portalLayout.sidebar.signOut')}
                 sx={{ width: '100%' }}
@@ -349,6 +352,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
           ) : (
             <Button
               type="button"
+              id="portal-tour-sidebar-sign-out"
               fullWidth
               size="small"
               startIcon={<Logout />}
@@ -368,6 +372,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
               component={RouterLink}
               to={withDarkPath(pathname, '/')}
               type="button"
+              id="portal-tour-sidebar-back-to-site"
               aria-label={t('portalLayout.sidebar.backToSite')}
               sx={{ width: '100%' }}
             >
@@ -379,6 +384,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
             component={RouterLink}
             to={withDarkPath(pathname, '/')}
             type="button"
+            id="portal-tour-sidebar-back-to-site"
             fullWidth
             size="small"
             variant="text"

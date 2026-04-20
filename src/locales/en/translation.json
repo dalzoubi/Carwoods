@@ -2547,6 +2547,14 @@
         "title": "Help",
         "body": "Replay this guided tour any time after you finish the first-time walkthrough."
       },
+      "sidebarSignOut": {
+        "title": "Sign out",
+        "body": "Ends your portal session here. If you share a device, sign out when you’re done."
+      },
+      "sidebarBackToSite": {
+        "title": "Back to site",
+        "body": "Leave the portal and return to the public Carwoods website."
+      },
       "language": {
         "title": "Language",
         "body": "Change interface language. Arabic enables right-to-left layout."
@@ -2557,7 +2565,7 @@
       },
       "account": {
         "title": "Account menu",
-        "body": "Open profile shortcuts, subscription details, and sign out."
+        "body": "Open profile shortcuts, subscription details, sign out, and—when available—theme (light/dark) and related settings."
       },
       "pageContent": {
         "title": "Page content",

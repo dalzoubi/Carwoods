@@ -4,6 +4,9 @@ const portalDevAuth = process.env.PORTAL_E2E === 'true';
 
 export default defineConfig({
   testDir: './e2e',
+  // One PNG per viewport per project (no `-linux`/`-win32` suffix) so CI and local runs
+  // share baselines; update with `npm run test:visual:update`.
+  snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/{arg}-{projectName}{ext}',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

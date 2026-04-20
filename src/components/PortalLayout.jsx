@@ -20,12 +20,14 @@ const PortalLayout = ({ children }) => {
   const { pathname } = useLocation();
   const openMobileSidebar = useCallback(() => setMobileOpen(true), []);
   const closeMobileSidebar = useCallback(() => setMobileOpen(false), []);
+  const expandDesktopSidebar = useCallback(() => setDesktopSidebarCollapsed(false), []);
 
   return (
     <PortalShellProvider
       isMobile={isMobile}
       openMobileSidebar={openMobileSidebar}
       closeMobileSidebar={closeMobileSidebar}
+      expandDesktopSidebar={expandDesktopSidebar}
     >
       <PortalTourProvider>
         <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: 'background.default' }}>

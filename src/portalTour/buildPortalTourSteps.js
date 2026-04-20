@@ -76,9 +76,9 @@ const NAV_I18N = {
 /**
  * @param {{
  *   isMobile: boolean,
- *   showAppearanceMenu: boolean,
  *   showNotifications: boolean,
  *   showAccount: boolean,
+ *   showSidebarSignOut: boolean,
  *   normalizedRole: string,
  *   isGuest: boolean,
  *   roleResolved: boolean,
@@ -88,9 +88,9 @@ const NAV_I18N = {
  */
 export function buildPortalTourSteps({
   isMobile,
-  showAppearanceMenu,
   showNotifications,
   showAccount,
+  showSidebarSignOut,
   normalizedRole,
   isGuest,
   roleResolved,
@@ -116,13 +116,19 @@ export function buildPortalTourSteps({
     });
   }
 
-  if (showAppearanceMenu) {
+  if (showSidebarSignOut) {
     steps.push({
-      targetId: 'portal-appearance-button',
-      titleKey: 'portalTour.steps.appearance.title',
-      bodyKey: 'portalTour.steps.appearance.body',
+      targetId: 'portal-tour-sidebar-sign-out',
+      titleKey: 'portalTour.steps.sidebarSignOut.title',
+      bodyKey: 'portalTour.steps.sidebarSignOut.body',
     });
   }
+
+  steps.push({
+    targetId: 'portal-tour-sidebar-back-to-site',
+    titleKey: 'portalTour.steps.sidebarBackToSite.title',
+    bodyKey: 'portalTour.steps.sidebarBackToSite.body',
+  });
 
   steps.push(
     {
