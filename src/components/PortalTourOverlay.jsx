@@ -19,8 +19,6 @@ import { useTranslation } from 'react-i18next';
 import { usePortalTour } from '../PortalTourContext';
 import { usePortalShell } from '../PortalShellContext';
 import { usePortalAuth } from '../PortalAuthContext';
-import { FEATURE_DARK_THEME } from '../featureFlags';
-import { isDarkPreviewRoute } from '../routePaths';
 import { buildPortalTourSteps } from '../portalTour/buildPortalTourSteps';
 import { isGuestRole, normalizeRole, resolveRole } from '../portalUtils';
 import { allowsDocumentCenter, landlordTierLimits } from '../portalTierUtils';
@@ -55,7 +53,6 @@ const PortalTourOverlay = () => {
   const isGuest = isGuestRole(normalizedRole);
   const roleResolved = isAuthenticated && meStatus !== 'loading';
 
-  const showAppearanceMenu = FEATURE_DARK_THEME || isDarkPreviewRoute(pathname);
   const showDocumentsNav =
     normalizedRole !== Role.TENANT || allowsDocumentCenter(landlordTierLimits(meData));
 
@@ -63,15 +60,15 @@ const PortalTourOverlay = () => {
     () =>
       buildPortalTourSteps({
         isMobile,
-        showAppearanceMenu,
         showNotifications: isAuthenticated,
         showAccount: isAuthenticated,
+        showSidebarSignOut: isAuthenticated,
         normalizedRole,
         isGuest,
         roleResolved,
         showDocumentsNav,
       }),
-    [isMobile, showAppearanceMenu, isAuthenticated, normalizedRole, isGuest, roleResolved, showDocumentsNav]
+    [isMobile, isAuthenticated, normalizedRole, isGuest, roleResolved, showDocumentsNav]
   );
 
   const lastIndex = Math.max(0, steps.length - 1);
@@ -107,16 +104,27 @@ const PortalTourOverlay = () => {
   useLayoutEffect(() => {
     if (!isOpen || !currentStep) return undefined;
 
+    const navStep = currentStep.targetId.startsWith('portal-tour-nav-');
+    const sidebarChromeStep =
+      currentStep.targetId === 'portal-tour-sidebar-sign-out'
+      || currentStep.targetId === 'portal-tour-sidebar-back-to-site';
+    const needsOpenSidebar = navStep || sidebarChromeStep;
+
     if (shell.isMobile) {
-      if (currentStep.targetId.startsWith('portal-tour-nav-')) {
+      if (needsOpenSidebar) {
         shell.openMobileSidebar();
       } else {
         shell.closeMobileSidebar();
       }
+    } else if (needsOpenSidebar) {
+      shell.expandDesktopSidebar?.();
     }
 
     let cancelled = false;
-    const delayMs = shell.isMobile && currentStep.targetId.startsWith('portal-tour-nav-') ? 320 : 0;
+    const delayMs =
+      shell.isMobile && needsOpenSidebar ? 320
+        : !shell.isMobile && needsOpenSidebar ? 280
+        : 0;
 
     const run = () => {
       if (cancelled) return;
@@ -202,7 +210,7 @@ const PortalTourOverlay = () => {
     if (!isOpen && shell.isMobile) {
       shell.closeMobileSidebar();
     }
-  }, [isOpen, shell.isMobile, shell.closeMobileSidebar]);
+  }, [isOpen, shell]);
 
   if (!isOpen || !currentStep) {
     return null;

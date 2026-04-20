@@ -9,6 +9,7 @@ import Apply from './components/Apply';
 import TenantSelectionCriteria from './components/TenantSelectionCriteria';
 import ApplicationRequiredDocuments from './components/ApplicationRequiredDocuments';
 import PropertyManagement from './components/PropertyManagement';
+import SelfManagedLandlords from './components/SelfManagedLandlords';
 import Pricing from './components/Pricing';
 import Features from './components/Features';
 import ForPropertyManagers from './components/ForPropertyManagers';
@@ -32,6 +33,7 @@ import PortalInbox, {
     RedirectPortalNotificationsToInbox,
 } from './components/PortalInbox';
 import PortalAdminAiSettings from './components/PortalAdminAiSettings';
+import PortalAdminNotificationReport from './components/PortalAdminNotificationReport';
 import PortalAdminProperties from './components/PortalAdminProperties';
 import PortalPayments from './components/PortalPayments';
 import PortalMyLease from './components/PortalMyLease';
@@ -84,6 +86,7 @@ function MarketingRoutes() {
             <Route path="/tenant-selection-criteria" element={<TenantSelectionCriteria />} />
             <Route path="/application-required-documents" element={<ApplicationRequiredDocuments />} />
             <Route path="/property-management" element={<PropertyManagement />} />
+            <Route path="/self-managed-landlords" element={<SelfManagedLandlords />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/features" element={<Features />} />
             <Route path="/for-property-managers" element={<ForPropertyManagers />} />
@@ -200,6 +203,14 @@ function PortalRoutes() {
                 element={
                     <PortalRouteGuard allowedRoles={[Role.LANDLORD, Role.ADMIN]}>
                         <PortalAdminAiSettings />
+                    </PortalRouteGuard>
+                }
+            />
+            <Route
+                path="/portal/admin/reports/notifications"
+                element={
+                    <PortalRouteGuard allowedRoles={[Role.ADMIN]}>
+                        <PortalAdminNotificationReport />
                     </PortalRouteGuard>
                 }
             />

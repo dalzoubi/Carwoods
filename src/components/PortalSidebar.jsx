@@ -26,6 +26,7 @@ import ArrowBack from '@mui/icons-material/ArrowBack';
 import ChevronLeft from '@mui/icons-material/ChevronLeft';
 import ChevronRight from '@mui/icons-material/ChevronRight';
 import Assignment from '@mui/icons-material/Assignment';
+import Assessment from '@mui/icons-material/Assessment';
 import Notifications from '@mui/icons-material/Notifications';
 import ContactMail from '@mui/icons-material/ContactMail';
 import Description from '@mui/icons-material/Description';
@@ -207,6 +208,17 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
       ]
     : [];
 
+  const reportsItems = roleResolved && normalized === Role.ADMIN
+    ? [
+        {
+          key: 'reports-notifications',
+          to: '/portal/admin/reports/notifications',
+          label: t('portalLayout.sidebar.notificationReport'),
+          icon: <Assessment />,
+        },
+      ]
+    : [];
+
   const healthItems = roleResolved && normalized === Role.ADMIN
     ? [
         { key: 'health-status', to: '/portal/status', label: t('portalLayout.sidebar.status'), icon: <HealthAndSafety />, exact: true },
@@ -286,6 +298,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
         {renderNavGroup(toolItems)}
         {renderNavGroup(messagesItems, messagesItems.length > 0 ? t('portalLayout.sidebar.messagesGroup') : undefined)}
         {renderNavGroup(adminItems, adminItems.length > 0 ? t('portalLayout.sidebar.adminGroup') : undefined)}
+        {renderNavGroup(reportsItems, reportsItems.length > 0 ? t('portalLayout.sidebar.reportsGroup') : undefined)}
         {renderNavGroup(healthItems, healthItems.length > 0 ? t('portalLayout.sidebar.healthGroup') : undefined)}
       </List>
 
@@ -299,6 +312,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
                 component={RouterLink}
                 to={withDarkPath(pathname, profileItem.to)}
                 type="button"
+                id="portal-tour-nav-profile"
                 aria-label={profileItem.label}
                 onClick={handleNavClick}
                 sx={{ width: '100%', mb: 0.5 }}
@@ -311,6 +325,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
               component={RouterLink}
               to={withDarkPath(pathname, profileItem.to)}
               type="button"
+              id="portal-tour-nav-profile"
               fullWidth
               size="small"
               startIcon={<Person />}
@@ -326,6 +341,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
             <Tooltip title={t('portalLayout.sidebar.signOut')} arrow>
               <IconButton
                 type="button"
+                id="portal-tour-sidebar-sign-out"
                 onClick={() => setSignOutOpen(true)}
                 aria-label={t('portalLayout.sidebar.signOut')}
                 sx={{ width: '100%' }}
@@ -336,6 +352,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
           ) : (
             <Button
               type="button"
+              id="portal-tour-sidebar-sign-out"
               fullWidth
               size="small"
               startIcon={<Logout />}
@@ -355,6 +372,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
               component={RouterLink}
               to={withDarkPath(pathname, '/')}
               type="button"
+              id="portal-tour-sidebar-back-to-site"
               aria-label={t('portalLayout.sidebar.backToSite')}
               sx={{ width: '100%' }}
             >
@@ -366,6 +384,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
             component={RouterLink}
             to={withDarkPath(pathname, '/')}
             type="button"
+            id="portal-tour-sidebar-back-to-site"
             fullWidth
             size="small"
             variant="text"

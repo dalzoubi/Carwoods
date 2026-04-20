@@ -42,9 +42,9 @@ export function getPortalTourNavKeys({
     }
   }
 
-  // admin + health (admin only)
+  // admin + reports + health (admin only)
   if (roleResolved && normalizedRole === Role.ADMIN) {
-    keys.push('admin', 'health-status', 'health-notification-test');
+    keys.push('admin', 'reports-notifications', 'health-status', 'health-notification-test');
   }
 
   // profile (non-guest, rendered at the bottom of the sidebar)
@@ -68,6 +68,7 @@ const NAV_I18N = {
   documents: 'documents',
   payments: 'payments',
   profile: 'profile',
+  'reports-notifications': 'notificationReport',
   'health-status': 'healthStatus',
   'health-notification-test': 'healthNotificationTest',
 };
@@ -75,9 +76,9 @@ const NAV_I18N = {
 /**
  * @param {{
  *   isMobile: boolean,
- *   showAppearanceMenu: boolean,
  *   showNotifications: boolean,
  *   showAccount: boolean,
+ *   showSidebarSignOut: boolean,
  *   normalizedRole: string,
  *   isGuest: boolean,
  *   roleResolved: boolean,
@@ -87,9 +88,9 @@ const NAV_I18N = {
  */
 export function buildPortalTourSteps({
   isMobile,
-  showAppearanceMenu,
   showNotifications,
   showAccount,
+  showSidebarSignOut,
   normalizedRole,
   isGuest,
   roleResolved,
@@ -115,13 +116,19 @@ export function buildPortalTourSteps({
     });
   }
 
-  if (showAppearanceMenu) {
+  if (showSidebarSignOut) {
     steps.push({
-      targetId: 'portal-appearance-button',
-      titleKey: 'portalTour.steps.appearance.title',
-      bodyKey: 'portalTour.steps.appearance.body',
+      targetId: 'portal-tour-sidebar-sign-out',
+      titleKey: 'portalTour.steps.sidebarSignOut.title',
+      bodyKey: 'portalTour.steps.sidebarSignOut.body',
     });
   }
+
+  steps.push({
+    targetId: 'portal-tour-sidebar-back-to-site',
+    titleKey: 'portalTour.steps.sidebarBackToSite.title',
+    bodyKey: 'portalTour.steps.sidebarBackToSite.body',
+  });
 
   steps.push(
     {

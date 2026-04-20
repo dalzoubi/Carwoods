@@ -208,7 +208,7 @@ const Home = () => {
             >
                 {/* Featured: Self-Managing Landlords */}
                 <AudienceTile
-                    to={withDarkPath(pathname, '/pricing')}
+                    to={withDarkPath(pathname, '/self-managed-landlords')}
                     titleId="home-self-managers-title"
                     ctaId="home-self-managers-cta"
                     image={managersPhoto}

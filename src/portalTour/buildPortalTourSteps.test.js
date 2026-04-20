@@ -67,6 +67,22 @@ describe('getPortalTourNavKeys', () => {
     ]);
   });
 
+  it('orders AI agent nav with tools and messages only (no landlord/admin items)', () => {
+    const keys = getPortalTourNavKeys({
+      normalizedRole: Role.AI_AGENT,
+      isGuest: false,
+      roleResolved: true,
+    });
+    expect(keys).toEqual([
+      'dashboard',
+      'payments',
+      'documents',
+      'inbox',
+      'notifications',
+      'profile',
+    ]);
+  });
+
   it('orders admin nav with notices, contact and admin/health groups before profile', () => {
     const keys = getPortalTourNavKeys({
       normalizedRole: Role.ADMIN,
@@ -84,6 +100,7 @@ describe('getPortalTourNavKeys', () => {
       'notifications',
       'contact',
       'admin',
+      'reports-notifications',
       'health-status',
       'health-notification-test',
       'profile',
@@ -95,9 +112,9 @@ describe('buildPortalTourSteps', () => {
   it('orders top chrome after nav and ends with page content', () => {
     const steps = buildPortalTourSteps({
       isMobile: false,
-      showAppearanceMenu: true,
       showNotifications: true,
       showAccount: true,
+      showSidebarSignOut: true,
       normalizedRole: Role.TENANT,
       isGuest: false,
       roleResolved: true,
@@ -108,18 +125,23 @@ describe('buildPortalTourSteps', () => {
     expect(ids).toContain('portal-language-button');
     expect(ids).toContain('portal-tour-help');
     expect(ids).toContain('portal-tour-nav-my-lease');
+    expect(ids).toContain('portal-tour-sidebar-sign-out');
+    expect(ids).toContain('portal-tour-sidebar-back-to-site');
   });
 
   it('inserts mobile menu first on small screens', () => {
     const steps = buildPortalTourSteps({
       isMobile: true,
-      showAppearanceMenu: false,
       showNotifications: true,
       showAccount: true,
+      showSidebarSignOut: false,
       normalizedRole: Role.TENANT,
       isGuest: true,
       roleResolved: true,
     });
     expect(steps[0].targetId).toBe('portal-tour-mobile-menu');
+    const ids = steps.map((s) => s.targetId);
+    expect(ids).toContain('portal-tour-sidebar-back-to-site');
+    expect(ids).not.toContain('portal-tour-sidebar-sign-out');
   });
 });

@@ -36,6 +36,16 @@ Senior frontend engineer focused on correctness, accessibility (WCAG 2.1 AA), pe
 3. Implement in small, safe iterations
 4. Run `npx vitest run` after logic changes; `npm run build` if touching Vite/env config
 
+## Azure Functions / `apps/api` routes
+
+When you add or change `app.http` routes in `apps/api`:
+
+- **Check for route conflicts** before shipping: a path like `portal/notifications/delete` can **404 or never match** if it competes with a parameterized route such as `portal/notifications/{id}`. Azure may not treat the static segment and the parameter the way you expect.
+- **Preferred patterns:**
+  - If **GET** already exists on a **collection** route (e.g. `portal/notifications`), add another HTTP verb on **that same route** when it avoids ambiguity (e.g. bulk delete as `PATCH /api/portal/notifications` with `{ ids }` alongside `GET` on the same path).
+  - Otherwise put “virtual” subpaths on `{id}` with a reserved segment and method (e.g. `PATCH …/notifications/mark-all-read` on `portal/notifications/{id}`).
+- **Before finishing:** search `apps/api/src/functions` for other `route:` values on the same prefix, list `methods` for each, and confirm the new path + method is unambiguous.
+
 ## When multiple approaches exist
 
 Present options (conservative / recommended / faster-but-riskier) with benefits, risks, and implementation cost. Note effect on current behavior and rollback complexity.
