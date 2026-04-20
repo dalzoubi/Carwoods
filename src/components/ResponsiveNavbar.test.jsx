@@ -115,34 +115,57 @@ describe('ResponsiveNavbar', () => {
       expect(within(drawer).queryByRole('link', { name: /get started/i })).not.toBeInTheDocument();
     });
 
-    it('lists renter links under a For Renters section', () => {
+    it('leads with Self-Managed as a choice card followed by its supporting product links', () => {
       mockMobile();
       renderWithProviders(<ResponsiveNavbar />);
       openDrawer();
       const drawer = getDrawer();
-      // Section-labeled list exposes its subheader as the list's accessible name.
+      const selfManagedList = within(drawer).getByRole('list', { name: /self-managed landlords/i });
+      const selfManaged = within(selfManagedList).getByRole('link', { name: /self-managed landlords/i });
+      expect(selfManaged).toHaveAttribute('href', '/self-managed-landlords');
+      expect(within(selfManaged).getByText(/keep control/i)).toBeInTheDocument();
+      // Supporting product links sit immediately under the Self-Managed card.
+      expect(within(selfManagedList).getByRole('link', { name: /pricing/i })).toBeInTheDocument();
+      expect(within(selfManagedList).getByRole('link', { name: /all features|^features$/i })).toBeInTheDocument();
+      expect(within(selfManagedList).getByRole('link', { name: /for property managers/i })).toBeInTheDocument();
+    });
+
+    it('renders Full-Service as a standalone choice card below Self-Managed', () => {
+      mockMobile();
+      renderWithProviders(<ResponsiveNavbar />);
+      openDrawer();
+      const drawer = getDrawer();
+      const fullServiceList = within(drawer).getByRole('list', { name: /full-service property management/i });
+      const fullService = within(fullServiceList).getByRole('link', { name: /full-service property management/i });
+      expect(fullService).toHaveAttribute('href', '/property-management');
+      expect(within(fullService).getByText(/hands-off/i)).toBeInTheDocument();
+      // Full-Service section does NOT carry Pricing/Features/For PMs (those live under Self-Managed).
+      expect(within(fullServiceList).queryByRole('link', { name: /pricing/i })).not.toBeInTheDocument();
+      expect(within(fullServiceList).queryByRole('link', { name: /for property managers/i })).not.toBeInTheDocument();
+    });
+
+    it('lists renter links under a For Renters section (demoted below landlord sections)', () => {
+      mockMobile();
+      renderWithProviders(<ResponsiveNavbar />);
+      openDrawer();
+      const drawer = getDrawer();
       const rentersList = within(drawer).getByRole('list', { name: /^renters$/i });
       expect(within(rentersList).getByRole('link', { name: /^apply$/i })).toBeInTheDocument();
       expect(within(rentersList).getByRole('link', { name: /selection criteria/i })).toBeInTheDocument();
       expect(within(rentersList).getByRole('link', { name: /required documents/i })).toBeInTheDocument();
     });
 
-    it('highlights Self-Managed and Full-Service as prominent choices in the landlord section', () => {
+    it('orders drawer sections by revenue priority: Self-Managed, Full-Service, Renters', () => {
       mockMobile();
       renderWithProviders(<ResponsiveNavbar />);
       openDrawer();
       const drawer = getDrawer();
-      const landlordList = within(drawer).getByRole('list', { name: /owners/i });
-      const selfManaged = within(landlordList).getByRole('link', { name: /self-managed landlords/i });
-      const fullService = within(landlordList).getByRole('link', { name: /full-service property management/i });
-      expect(selfManaged).toHaveAttribute('href', '/self-managed-landlords');
-      expect(fullService).toHaveAttribute('href', '/property-management');
-      // Taglines are rendered as secondary text on the choice cards.
-      expect(within(selfManaged).getByText(/keep control/i)).toBeInTheDocument();
-      expect(within(fullService).getByText(/hands-off/i)).toBeInTheDocument();
-      // Supporting links still present.
-      expect(within(landlordList).getByRole('link', { name: /for property managers/i })).toBeInTheDocument();
-      expect(within(landlordList).getByRole('link', { name: /pricing/i })).toBeInTheDocument();
+      const selfManagedCard = within(drawer).getByRole('link', { name: /self-managed landlords/i });
+      const fullServiceCard = within(drawer).getByRole('link', { name: /full-service property management/i });
+      const rentersApply = within(drawer).getByRole('link', { name: /^apply$/i });
+      // DOCUMENT_POSITION_FOLLOWING === 4
+      expect(selfManagedCard.compareDocumentPosition(fullServiceCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(fullServiceCard.compareDocumentPosition(rentersApply) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
 
     it('renders Home and Contact Us as top-level rows', () => {

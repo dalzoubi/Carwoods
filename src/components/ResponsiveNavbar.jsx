@@ -626,38 +626,7 @@ const ResponsiveNavbar = () => {
 
                 <List
                     disablePadding
-                    subheader={
-                        <ListSubheader component="div" id="drawer-section-renters" sx={sectionSubheaderSx}>
-                            {t('nav.renters')}
-                        </ListSubheader>
-                    }
-                    aria-labelledby="drawer-section-renters"
-                    sx={{ pb: 0.5 }}
-                >
-                    {rentersLinks.map(({ to, label }) => (
-                        <ListItemButton
-                            key={to}
-                            component={RouterLink}
-                            to={withDarkPath(pathname, to)}
-                            selected={isRouteActive(to)}
-                            onClick={handleDrawerToggle}
-                            sx={listItemButtonSx}
-                        >
-                            <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
-                        </ListItemButton>
-                    ))}
-                </List>
-
-                <Divider sx={{ opacity: 0.4 }} />
-
-                <List
-                    disablePadding
-                    subheader={
-                        <ListSubheader component="div" id="drawer-section-landlords" sx={sectionSubheaderSx}>
-                            {t('nav.forLandlords')}
-                        </ListSubheader>
-                    }
-                    aria-labelledby="drawer-section-landlords"
+                    aria-label={t('nav.selfManagedLandlords')}
                     sx={{ pb: 0.5 }}
                 >
                     <ListItemButton
@@ -681,6 +650,31 @@ const ResponsiveNavbar = () => {
                             style={{ color: muiTheme.palette.drawer.text }}
                         />
                     </ListItemButton>
+                    {productNavLinks.map(({ to, label }) => (
+                        <ListItemButton
+                            key={to}
+                            component={RouterLink}
+                            to={withDarkPath(pathname, to)}
+                            selected={isRouteActive(to)}
+                            onClick={handleDrawerToggle}
+                            sx={supportingLinkSx}
+                        >
+                            <ListItemText
+                                primary={label}
+                                primaryTypographyProps={{ fontSize: '0.85rem' }}
+                                style={{ color: muiTheme.palette.drawer.text, opacity: 0.92 }}
+                            />
+                        </ListItemButton>
+                    ))}
+                </List>
+
+                <Divider sx={{ opacity: 0.4 }} />
+
+                <List
+                    disablePadding
+                    aria-label={t('nav.fullServicePropertyManagement')}
+                    sx={{ py: 0.5 }}
+                >
                     <ListItemButton
                         component={RouterLink}
                         to={withDarkPath(pathname, '/property-management')}
@@ -702,20 +696,30 @@ const ResponsiveNavbar = () => {
                             style={{ color: muiTheme.palette.drawer.text }}
                         />
                     </ListItemButton>
-                    {productNavLinks.map(({ to, label }) => (
+                </List>
+
+                <Divider sx={{ opacity: 0.4 }} />
+
+                <List
+                    disablePadding
+                    subheader={
+                        <ListSubheader component="div" id="drawer-section-renters" sx={sectionSubheaderSx}>
+                            {t('nav.renters')}
+                        </ListSubheader>
+                    }
+                    aria-labelledby="drawer-section-renters"
+                    sx={{ pb: 0.5 }}
+                >
+                    {rentersLinks.map(({ to, label }) => (
                         <ListItemButton
                             key={to}
                             component={RouterLink}
                             to={withDarkPath(pathname, to)}
                             selected={isRouteActive(to)}
                             onClick={handleDrawerToggle}
-                            sx={supportingLinkSx}
+                            sx={listItemButtonSx}
                         >
-                            <ListItemText
-                                primary={label}
-                                primaryTypographyProps={{ fontSize: '0.85rem' }}
-                                style={{ color: muiTheme.palette.drawer.text, opacity: 0.92 }}
-                            />
+                            <ListItemText primary={label} style={{ color: muiTheme.palette.drawer.text }} />
                         </ListItemButton>
                     ))}
                 </List>
