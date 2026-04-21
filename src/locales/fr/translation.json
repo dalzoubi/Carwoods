@@ -896,8 +896,8 @@
       "send": "Envoyer l’e-mail de test"
     },
     "sms": {
-      "heading": "SMS de test",
-      "hint": "Utilisez le format E.164 (+ et indicatif pays). Met en file d’attente un SMS pour votre fournisseur.",
+      "heading": "SMS de test (interne / administrateur uniquement)",
+      "hint": "Utilisez le format E.164 (+ et indicatif pays). Met en file d’attente un SMS pour votre fournisseur. Le corps sortant est automatiquement préfixé par \"Carwoods:\" et n'est pas un message marketing ; n'envoyez qu'à des numéros ayant explicitement consenti aux tests.",
       "phoneLabel": "Numéro de téléphone (E.164)",
       "send": "Envoyer le SMS de test"
     },
@@ -1029,11 +1029,25 @@
       "notificationsHeading": "Preferences de notification",
       "notificationsEmail": "Notifications par e-mail",
       "notificationsInApp": "Notifications dans l'application",
-      "notificationsSms": "Notifications SMS (j'accepte explicitement de recevoir des notifications SMS)",
+      "notificationsSms": "Enable SMS Notifications from Carwoods",
+      "notificationsSmsDescription": "Recevez des alertes liées à votre compte, telles que les mises à jour de maintenance, les avis de bail et l'activité du compte.",
       "notificationsSmsOptIn": "J'accepte explicitement de recevoir des notifications SMS",
       "appearanceHeading": "Preferences d'apparence",
       "language": "Langue",
       "colorTheme": "Theme de couleur"
+    },
+    "sms": {
+      "disclosureHeading": "Conditions des notifications SMS",
+      "disclosurePara1": "By enabling SMS notifications, you agree to receive transactional text messages from Carwoods related to your account, including maintenance updates, lease notices, and account alerts.",
+      "disclosurePara2": "Message frequency varies. Message and data rates may apply.",
+      "disclosurePara3": "Reply STOP to opt out at any time. Reply HELP for help.",
+      "disclosurePara4": "Consent is not a condition of purchase. Messages are only sent based on your activity and notification settings.",
+      "helpText": "Carwoods: For help, reply HELP or contact support@carwoods.com. Log in to your account to manage notification settings: https://carwoods.com/portal/profile. Message frequency varies. Message and data rates may apply.",
+      "statusOptedIn": "Les notifications SMS sont activées. Répondez STOP à tout moment pour les désactiver.",
+      "statusOptedOut": "Les notifications SMS sont désactivées.",
+      "statusUnavailable": "Les notifications SMS ne sont pas disponibles dans votre plan actuel.",
+      "pendingConsent": "Le consentement sera enregistré lorsque vous cliquerez sur Enregistrer le profil.",
+      "phoneChangeReset": "Votre numéro de téléphone a changé, votre consentement SMS a donc été réinitialisé. Réactivez les notifications SMS pour consentir à nouveau avec votre nouveau numéro."
     },
     "languages": {
       "system": "Utiliser le parametre de l'appareil",
@@ -1048,11 +1062,14 @@
       "dark": "Sombre"
     },
     "smsOptInConfirm": {
-      "title": "Confirmer l'opt-in SMS",
-      "body": "Confirmez-vous que vous acceptez explicitement de recevoir des notifications SMS liees a l'activite du portail ?",
+      "title": "Enable SMS Notifications from Carwoods",
+      "disclosurePara1": "By enabling SMS notifications, you agree to receive transactional text messages from Carwoods related to your account, including maintenance updates, lease notices, and account alerts.",
+      "disclosurePara2": "Message frequency varies. Message and data rates may apply.",
+      "disclosurePara3": "Reply STOP to opt out at any time. Reply HELP for help.",
+      "disclosurePara4": "Consent is not a condition of purchase. Messages are only sent based on your activity and notification settings.",
       "saveReminder": "Enregistrez ensuite le profil avec le bouton Enregistrer le profil en bas de cette page pour appliquer ce choix.",
       "cancel": "Annuler",
-      "confirm": "Oui, j'accepte"
+      "confirm": "Enable & Save"
     },
     "unsavedChanges": {
       "title": "Quitter le profil sans enregistrer ?",

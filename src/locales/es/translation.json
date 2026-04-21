@@ -896,8 +896,8 @@
       "send": "Enviar correo de prueba"
     },
     "sms": {
-      "heading": "SMS de prueba",
-      "hint": "Use el formato E.164 (+ y código de país). Encola una fila de SMS para su proveedor de mensajería.",
+      "heading": "SMS de prueba (interno / solo administrador)",
+      "hint": "Use el formato E.164 (+ y código de país). Encola una fila de SMS para su proveedor de mensajería. El cuerpo saliente se marca automáticamente con \"Carwoods:\" y no es un mensaje de marketing; envíelo solo a números que hayan aceptado explícitamente para pruebas.",
       "phoneLabel": "Número de teléfono (E.164)",
       "send": "Enviar SMS de prueba"
     },
@@ -1029,11 +1029,25 @@
       "notificationsHeading": "Preferencias de notificación",
       "notificationsEmail": "Notificaciones por correo electrónico",
       "notificationsInApp": "Notificaciones en la aplicación",
-      "notificationsSms": "Notificaciones por SMS (acepto explícitamente recibir notificaciones por SMS)",
+      "notificationsSms": "Enable SMS Notifications from Carwoods",
+      "notificationsSmsDescription": "Recibe alertas relacionadas con tu cuenta, como actualizaciones de mantenimiento, avisos de contrato y actividad de la cuenta.",
       "notificationsSmsOptIn": "Acepto explícitamente recibir notificaciones por SMS",
       "appearanceHeading": "Preferencias de apariencia",
       "language": "Idioma",
       "colorTheme": "Tema de color"
+    },
+    "sms": {
+      "disclosureHeading": "Términos de las notificaciones por SMS",
+      "disclosurePara1": "By enabling SMS notifications, you agree to receive transactional text messages from Carwoods related to your account, including maintenance updates, lease notices, and account alerts.",
+      "disclosurePara2": "Message frequency varies. Message and data rates may apply.",
+      "disclosurePara3": "Reply STOP to opt out at any time. Reply HELP for help.",
+      "disclosurePara4": "Consent is not a condition of purchase. Messages are only sent based on your activity and notification settings.",
+      "helpText": "Carwoods: For help, reply HELP or contact support@carwoods.com. Log in to your account to manage notification settings: https://carwoods.com/portal/profile. Message frequency varies. Message and data rates may apply.",
+      "statusOptedIn": "Las notificaciones por SMS están activadas. Responde STOP en cualquier momento para cancelarlas.",
+      "statusOptedOut": "Las notificaciones por SMS están desactivadas.",
+      "statusUnavailable": "Las notificaciones por SMS no están disponibles en tu plan actual.",
+      "pendingConsent": "El consentimiento se guardará cuando haga clic en Guardar perfil.",
+      "phoneChangeReset": "Tu número de teléfono cambió, por lo que se restableció tu consentimiento de SMS. Activa las notificaciones SMS de nuevo para volver a aceptar con el nuevo número."
     },
     "languages": {
       "system": "Usar configuración del dispositivo",
@@ -1048,11 +1062,14 @@
       "dark": "Oscuro"
     },
     "smsOptInConfirm": {
-      "title": "Confirmar suscripción a notificaciones por SMS",
-      "body": "¿Confirma que acepta explícitamente recibir notificaciones por SMS sobre actividad del portal?",
+      "title": "Enable SMS Notifications from Carwoods",
+      "disclosurePara1": "By enabling SMS notifications, you agree to receive transactional text messages from Carwoods related to your account, including maintenance updates, lease notices, and account alerts.",
+      "disclosurePara2": "Message frequency varies. Message and data rates may apply.",
+      "disclosurePara3": "Reply STOP to opt out at any time. Reply HELP for help.",
+      "disclosurePara4": "Consent is not a condition of purchase. Messages are only sent based on your activity and notification settings.",
       "saveReminder": "Esta elección no se guardará en su cuenta hasta que pulse Guardar perfil al final de esta página.",
       "cancel": "Cancelar",
-      "confirm": "Sí, acepto"
+      "confirm": "Enable & Save"
     },
     "unsavedChanges": {
       "title": "¿Salir del perfil sin guardar?",

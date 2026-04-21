@@ -30,9 +30,38 @@ export type UserNotificationPreferenceRow = {
   quiet_hours_timezone: string | null;
   quiet_hours_start_minute: number | null;
   quiet_hours_end_minute: number | null;
+  /** Consent audit metadata — populated when the user explicitly opts in via the portal. */
+  sms_opt_in_at: Date | null;
+  sms_opt_in_source: string | null;
+  sms_opt_in_version: string | null;
+  sms_opt_in_ip: string | null;
+  sms_opt_in_user_agent: string | null;
+  sms_opt_in_phone: string | null;
+  sms_opt_out_at: Date | null;
+  sms_opt_out_source: string | null;
   created_at: Date;
   updated_at: Date;
 };
+
+const USER_NOTIFICATION_PREF_COLUMNS = `
+  user_id, email_enabled, in_app_enabled, sms_enabled, sms_opt_in,
+  quiet_hours_timezone, quiet_hours_start_minute, quiet_hours_end_minute,
+  sms_opt_in_at, sms_opt_in_source, sms_opt_in_version,
+  sms_opt_in_ip, sms_opt_in_user_agent, sms_opt_in_phone,
+  sms_opt_out_at, sms_opt_out_source,
+  created_at, updated_at
+`;
+
+const USER_NOTIFICATION_PREF_OUTPUT = `
+  INSERTED.user_id, INSERTED.email_enabled, INSERTED.in_app_enabled,
+  INSERTED.sms_enabled, INSERTED.sms_opt_in,
+  INSERTED.quiet_hours_timezone, INSERTED.quiet_hours_start_minute,
+  INSERTED.quiet_hours_end_minute,
+  INSERTED.sms_opt_in_at, INSERTED.sms_opt_in_source, INSERTED.sms_opt_in_version,
+  INSERTED.sms_opt_in_ip, INSERTED.sms_opt_in_user_agent, INSERTED.sms_opt_in_phone,
+  INSERTED.sms_opt_out_at, INSERTED.sms_opt_out_source,
+  INSERTED.created_at, INSERTED.updated_at
+`;
 
 export type NotificationScopeOverrideRow = {
   id: string;
@@ -87,23 +116,34 @@ export async function ensureUserNotificationPreference(
      WHEN NOT MATCHED THEN
        INSERT (user_id, email_enabled, in_app_enabled, sms_enabled, sms_opt_in)
        VALUES ($1, 1, 1, 0, 0)
-     OUTPUT INSERTED.user_id, INSERTED.email_enabled, INSERTED.in_app_enabled, INSERTED.sms_enabled,
-            INSERTED.sms_opt_in, INSERTED.quiet_hours_timezone, INSERTED.quiet_hours_start_minute,
-            INSERTED.quiet_hours_end_minute, INSERTED.created_at, INSERTED.updated_at;`,
+     OUTPUT ${USER_NOTIFICATION_PREF_OUTPUT};`,
     [userId]
   );
   if (upsert.rows[0]) return upsert.rows[0];
 
   const existing = await client.query<UserNotificationPreferenceRow>(
-    `SELECT user_id, email_enabled, in_app_enabled, sms_enabled, sms_opt_in,
-            quiet_hours_timezone, quiet_hours_start_minute, quiet_hours_end_minute,
-            created_at, updated_at
+    `SELECT ${USER_NOTIFICATION_PREF_COLUMNS}
      FROM user_notification_preferences
      WHERE user_id = $1`,
     [userId]
   );
   return existing.rows[0]!;
 }
+
+export type SmsConsentCapture = {
+  /** Source channel (e.g. `WEB_PORTAL_PROFILE`). */
+  source: string;
+  /** Version of the consent disclosure text the user agreed to. */
+  version: string;
+  /** Phone number as displayed at consent time. */
+  phone: string;
+  /** Best-effort client IP at consent time. */
+  ip?: string | null;
+  /** Best-effort User-Agent header at consent time. */
+  userAgent?: string | null;
+  /** Explicit timestamp; defaults to SYSDATETIMEOFFSET() if omitted. */
+  occurredAt?: Date;
+};
 
 export async function updateUserNotificationPreference(
   client: Queryable,
@@ -118,6 +158,20 @@ export async function updateUserNotificationPreference(
       timezone: string | null;
       startMinute: number | null;
       endMinute: number | null;
+    };
+    /**
+     * Consent audit capture. Only recorded when sms_opt_in is being toggled
+     * from false → true AND the caller passes this object. Required by
+     * CTIA / Telnyx toll-free verification.
+     */
+    smsOptInCapture?: SmsConsentCapture;
+    /**
+     * Opt-out audit capture — recorded when sms_opt_in is being toggled
+     * from true → false via the portal (or any other explicit opt-out flow).
+     */
+    smsOptOutCapture?: {
+      source: string;
+      occurredAt?: Date;
     };
   }
 ): Promise<UserNotificationPreferenceRow> {
@@ -150,10 +204,44 @@ export async function updateUserNotificationPreference(
       [params.userId, qh.timezone ?? null, qh.startMinute ?? null, qh.endMinute ?? null]
     );
   }
+  if (params.smsOptInCapture) {
+    const cap = params.smsOptInCapture;
+    await client.query(
+      `UPDATE user_notification_preferences
+          SET sms_opt_in_at = $2,
+              sms_opt_in_source = $3,
+              sms_opt_in_version = $4,
+              sms_opt_in_phone = $5,
+              sms_opt_in_ip = $6,
+              sms_opt_in_user_agent = $7,
+              sms_opt_out_at = NULL,
+              sms_opt_out_source = NULL,
+              updated_at = SYSDATETIMEOFFSET()
+       WHERE user_id = $1`,
+      [
+        params.userId,
+        cap.occurredAt ?? new Date(),
+        cap.source,
+        cap.version,
+        cap.phone,
+        cap.ip ?? null,
+        cap.userAgent ?? null,
+      ]
+    );
+  }
+  if (params.smsOptOutCapture) {
+    const cap = params.smsOptOutCapture;
+    await client.query(
+      `UPDATE user_notification_preferences
+          SET sms_opt_out_at = $2,
+              sms_opt_out_source = $3,
+              updated_at = SYSDATETIMEOFFSET()
+       WHERE user_id = $1`,
+      [params.userId, cap.occurredAt ?? new Date(), cap.source]
+    );
+  }
   const out = await client.query<UserNotificationPreferenceRow>(
-    `SELECT user_id, email_enabled, in_app_enabled, sms_enabled, sms_opt_in,
-            quiet_hours_timezone, quiet_hours_start_minute, quiet_hours_end_minute,
-            created_at, updated_at
+    `SELECT ${USER_NOTIFICATION_PREF_COLUMNS}
      FROM user_notification_preferences
      WHERE user_id = $1`,
     [params.userId]

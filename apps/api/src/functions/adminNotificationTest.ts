@@ -76,10 +76,10 @@ async function adminNotificationTestHandler(
 
   const title =
     asOptionalTrimmed(raw.title, 280)
-    ?? (channel === 'sms' ? 'Admin SMS test' : 'Admin notification test');
+    ?? (channel === 'sms' ? 'Carwoods: Admin SMS test' : 'Admin notification test');
   const bodyText =
     asOptionalTrimmed(raw.body, 8000)
-    ?? 'This is an admin-triggered test message from the Carwoods portal.';
+    ?? 'This is an admin-triggered internal test message from the Carwoods portal. It is not a marketing message.';
 
   let targetEmail: string | null = null;
   let targetPhone: string | null = null;
@@ -233,12 +233,19 @@ async function adminNotificationTestHandler(
       return jsonResponse(500, ctx.headers, { error: 'sms_from_number_not_configured' });
     }
 
+    // All admin SMS test messages are forced to use the transactional
+    // Carwoods brand prefix so they are never mistaken for marketing by
+    // recipient carriers. Admin-chosen bodies that already start with
+    // "Carwoods:" are left intact.
+    const smsBodyBranded = /^carwoods:/i.test(bodyText)
+      ? bodyText
+      : `Carwoods: ${bodyText}`;
     let providerMessageId: string | null = null;
     let sendError: string | null = null;
     try {
       providerMessageId = await sendTelnyxSms({
         to: targetPhone!,
-        text: bodyText.slice(0, 160),
+        text: smsBodyBranded.slice(0, 160),
       });
     } catch (err) {
       if (err instanceof TelnyxNotConfiguredError) {
@@ -258,7 +265,7 @@ async function adminNotificationTestHandler(
       status: smsStatus as 'QUEUED' | 'SENT' | 'FAILED',
       providerMessageId,
       error: sendError,
-      payloadJson: JSON.stringify({ body: bodyText }),
+      payloadJson: JSON.stringify({ body: smsBodyBranded }),
     });
     await writeAudit(client, {
       actorUserId: ctx.user.id,

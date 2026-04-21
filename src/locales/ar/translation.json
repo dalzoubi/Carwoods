@@ -897,8 +897,8 @@
       "send": "إرسال بريد اختباري"
     },
     "sms": {
-      "heading": "رسالة نصية اختبارية",
-      "hint": "استخدم تنسيق E.164 (+ ورمز الدولة). يضع في قائمة انتظار صف رسالة نصية لمعالجتها بواسطة المزود.",
+      "heading": "رسالة نصية اختبارية (داخلية / للمسؤول فقط)",
+      "hint": "استخدم تنسيق E.164 (+ ورمز الدولة). يضع في قائمة انتظار صف رسالة نصية لمعالجتها بواسطة المزود. يُضاف تلقائيًا \"Carwoods:\" إلى بداية النص الصادر ولا يُعدّ رسالة تسويقية؛ أرسلها فقط إلى الأرقام التي وافقت صراحةً على الاختبار.",
       "phoneLabel": "رقم الهاتف (E.164)",
       "send": "إرسال رسالة نصية اختبارية"
     },
@@ -1030,11 +1030,25 @@
       "notificationsHeading": "تفضيلات الإشعارات",
       "notificationsEmail": "إشعارات البريد الإلكتروني",
       "notificationsInApp": "إشعارات داخل التطبيق",
-      "notificationsSms": "إشعارات الرسائل النصية (أوافق صراحةً على تلقي إشعارات الرسائل النصية)",
+      "notificationsSms": "Enable SMS Notifications from Carwoods",
+      "notificationsSmsDescription": "تلقَّ تنبيهات متعلقة بحسابك مثل تحديثات الصيانة وإشعارات عقد الإيجار ونشاط الحساب.",
       "notificationsSmsOptIn": "أوافق صراحةً على تلقي إشعارات الرسائل النصية",
       "appearanceHeading": "تفضيلات المظهر",
       "language": "اللغة",
       "colorTheme": "نظام الألوان"
+    },
+    "sms": {
+      "disclosureHeading": "شروط إشعارات الرسائل النصية",
+      "disclosurePara1": "By enabling SMS notifications, you agree to receive transactional text messages from Carwoods related to your account, including maintenance updates, lease notices, and account alerts.",
+      "disclosurePara2": "Message frequency varies. Message and data rates may apply.",
+      "disclosurePara3": "Reply STOP to opt out at any time. Reply HELP for help.",
+      "disclosurePara4": "Consent is not a condition of purchase. Messages are only sent based on your activity and notification settings.",
+      "helpText": "Carwoods: For help, reply HELP or contact support@carwoods.com. Log in to your account to manage notification settings: https://carwoods.com/portal/profile. Message frequency varies. Message and data rates may apply.",
+      "statusOptedIn": "إشعارات الرسائل النصية مفعَّلة. أرسل STOP في أي وقت لإيقافها.",
+      "statusOptedOut": "إشعارات الرسائل النصية موقوفة.",
+      "statusUnavailable": "إشعارات الرسائل النصية غير متاحة في خطتك الحالية.",
+      "pendingConsent": "سيتم حفظ الموافقة عند النقر على حفظ الملف الشخصي.",
+      "phoneChangeReset": "تم تغيير رقم هاتفك، لذا أُعيد ضبط موافقتك على إشعارات الرسائل النصية. فعِّل إشعارات الرسائل النصية مجددًا للموافقة برقمك الجديد."
     },
     "languages": {
       "system": "استخدام إعداد الجهاز",
@@ -1049,11 +1063,14 @@
       "dark": "داكن"
     },
     "smsOptInConfirm": {
-      "title": "تأكيد الاشتراك في إشعارات الرسائل النصية",
-      "body": "هل تؤكد أنك توافق صراحةً على تلقي إشعارات الرسائل النصية المتعلقة بنشاط البوابة؟",
+      "title": "Enable SMS Notifications from Carwoods",
+      "disclosurePara1": "By enabling SMS notifications, you agree to receive transactional text messages from Carwoods related to your account, including maintenance updates, lease notices, and account alerts.",
+      "disclosurePara2": "Message frequency varies. Message and data rates may apply.",
+      "disclosurePara3": "Reply STOP to opt out at any time. Reply HELP for help.",
+      "disclosurePara4": "Consent is not a condition of purchase. Messages are only sent based on your activity and notification settings.",
       "saveReminder": "لن يُحفظ هذا الاختيار في حسابك حتى تضغط حفظ الملف الشخصي في أسفل هذه الصفحة.",
       "cancel": "إلغاء",
-      "confirm": "نعم، أوافق"
+      "confirm": "Enable & Save"
     },
     "unsavedChanges": {
       "title": "مغادرة الملف الشخصي دون حفظ؟",
