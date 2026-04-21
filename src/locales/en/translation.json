@@ -181,6 +181,8 @@
     "thirdPartyBody": "Our site may link to external services (e.g., Texas Real Estate Commission, HAR.com). We are not responsible for their privacy practices. Please review their policies before sharing information.",
     "notificationsHeading": "Notification Preferences and Mandatory Notices",
     "notificationsBody": "You may control many portal notification settings in your profile, including email, in-app, and SMS preferences. Security and compliance notices may still be sent when required by law, policy, or account protection needs.",
+    "mobileInformationHeading": "Mobile Information",
+    "mobileInformationBody": "We do not share, sell, rent, or trade your mobile information with third parties for promotional or marketing purposes.",
     "aiHeading": "AI Features and Data Processing",
     "aiBody": "The Carwoods portal uses AI to assist landlords and property managers with drafting responses to tenant communications, including maintenance requests. To generate suggestions, the AI may process information such as request descriptions, message history, and property context. This data may be transmitted to third-party AI service providers operating under confidentiality obligations. AI-generated content is not stored beyond what is necessary to deliver the service. Landlords and property managers should not include sensitive personal information in communications if they prefer that data not be processed by AI systems.",
     "contactHeading": "Contact",
