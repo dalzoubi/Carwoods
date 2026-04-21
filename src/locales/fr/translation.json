@@ -181,6 +181,8 @@
     "thirdPartyBody": "Notre site peut renvoyer à des services externes (p. ex., Texas Real Estate Commission, HAR.com). Nous ne sommes pas responsables de leurs pratiques en matière de confidentialité. Veuillez consulter leurs politiques avant de partager des informations.",
     "notificationsHeading": "Préférences de notification et avis obligatoires",
     "notificationsBody": "Vous pouvez contrôler de nombreux paramètres de notification du portail dans votre profil, y compris les préférences e-mail, in-app et SMS. Les avis de sécurité et de conformité peuvent tout de même être envoyés lorsqu'ils sont requis par la loi, la politique ou la protection du compte.",
+    "mobileInformationHeading": "Informations mobiles",
+    "mobileInformationBody": "Nous ne partageons, ne vendons, ne louons, ni n'échangeons vos informations mobiles avec des tiers à des fins promotionnelles ou de marketing.",
     "aiHeading": "Fonctionnalités IA et traitement des données",
     "aiBody": "Le portail Carwoods utilise l'intelligence artificielle pour aider les bailleurs et gestionnaires immobiliers à rédiger des réponses aux communications des locataires, notamment les demandes de maintenance. Pour générer des suggestions, l'IA peut traiter des informations telles que les descriptions de demandes, l'historique des messages et le contexte de la propriété. Ces données peuvent être transmises à des prestataires de services IA tiers opérant sous des obligations de confidentialité. Le contenu généré par l'IA n'est pas conservé au-delà de ce qui est nécessaire pour fournir le service. Les bailleurs et gestionnaires ne doivent pas inclure d'informations personnelles sensibles dans leurs communications s'ils préfèrent que ces données ne soient pas traitées par des systèmes d'IA.",
     "contactHeading": "Contact",
@@ -1919,7 +1921,15 @@
     "refresh": "Actualiser les notifications",
     "allRead": "Tout est à jour",
     "markAllRead": "Tout marquer comme lu",
-    "dismiss": "Ignorer"
+    "dismiss": "Ignorer",
+    "selectAll": "Tout sélectionner",
+    "deselectAll": "Tout désélectionner",
+    "selectRowAria": "Sélectionner la notification : {{title}}",
+    "deleteSelected": "Supprimer la sélection ({{count}})",
+    "deleteConfirmTitle": "Supprimer définitivement les notifications ?",
+    "deleteConfirmBody": "Cela supprime {{count}} notifications de votre compte. Cette action est irréversible.",
+    "deleteConfirmAction": "Supprimer définitivement",
+    "deleteCancel": "Annuler"
   },
   "portalInbox": {
     "tabsLabel": "Sections de la boîte de réception"
@@ -1943,6 +1953,8 @@
       "manageGroup": "Gestion",
       "messagesGroup": "Messages",
       "adminGroup": "Administration",
+      "reportsGroup": "Rapports",
+      "notificationReport": "Rapport des notifications",
       "healthGroup": "Santé",
       "notificationTest": "Test des notifications",
       "payments": "Paiements",
@@ -1980,6 +1992,10 @@
         "admin": {
           "title": "Propriétaires (admin)",
           "body": "Consultez et gérez les comptes propriétaires liés à la plateforme."
+        },
+        "notificationReport": {
+          "title": "Rapport des notifications",
+          "body": "Consultez les indicateurs de livraison, les répartitions et l’export CSV des notifications de la plateforme."
         },
         "properties": {
           "title": "Propriétés",
@@ -2854,6 +2870,14 @@
     "faq4Answer": "Non. Pas de contrats, pas d'engagements. Les plans payants seront mensuels au lancement.",
     "faq5Question": "Comment fonctionne la facturation 'Payez en Grandissant' ?",
     "faq5Answer": "Vous payez un tarif fixe pour chaque bien géré — ajoutez des biens et votre facture évolue avec vous. Il n'y a pas de limite au nombre de biens.",
+    "faq6Question": "Qu'est-ce qui compte comme une propriété pour la facturation ?",
+    "faq6Answer": "Chaque bien locatif distinct que vous ajoutez et gérez dans le portail compte comme une propriété au titre de Payez en Grandissant lorsque la facturation sera disponible.",
+    "faq7Question": "Puis-je changer de formule plus tard ?",
+    "faq7Answer": "Oui. Vous pouvez changer de formule selon vos besoins. Au lancement des formules payantes, nous expliquerons comment cela affecte votre facturation.",
+    "faq8Question": "Les locataires doivent-ils installer une application ?",
+    "faq8Answer": "Non. Les locataires utilisent un portail web sécurisé dans leur navigateur — mobile ou ordinateur — sans installation.",
+    "faq9Question": "Que fait Elsa, l'assistant IA ?",
+    "faq9Answer": "Elsa aide à trier les demandes d'entretien entrantes, à proposer des prochaines étapes sûres et à tenir les locataires informés — et ses capacités s'enrichissent jour après jour. Vous validez les escalades et gardez le contrôle sur les prestataires et les décisions finales.",
     "featureTeamAccess": "Comptes membres d'équipe",
     "featureTeamAccessFree": "—",
     "featureTeamAccessStarter": "—",

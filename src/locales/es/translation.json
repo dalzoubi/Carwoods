@@ -181,6 +181,8 @@
     "thirdPartyBody": "Nuestro sitio puede enlazar a servicios externos (p. ej., Texas Real Estate Commission, HAR.com). No somos responsables de sus prácticas de privacidad. Revise sus políticas antes de compartir información.",
     "notificationsHeading": "Preferencias de notificaciones y avisos obligatorios",
     "notificationsBody": "Puede controlar muchas configuraciones de notificación del portal en su perfil, incluidas las preferencias de correo electrónico, en la aplicación y SMS. Los avisos de seguridad y cumplimiento pueden seguir enviándose cuando lo exijan la ley, las políticas o la protección de la cuenta.",
+    "mobileInformationHeading": "Información móvil",
+    "mobileInformationBody": "No compartimos, vendemos, alquilamos ni intercambiamos su información móvil con terceros con fines promocionales o de marketing.",
     "aiHeading": "Funciones de IA y tratamiento de datos",
     "aiBody": "El portal de Carwoods utiliza inteligencia artificial para ayudar a los propietarios y administradores a redactar respuestas a las comunicaciones de los inquilinos, incluidas las solicitudes de mantenimiento. Para generar sugerencias, la IA puede procesar información como descripciones de solicitudes, historial de mensajes y contexto de la propiedad. Estos datos pueden transmitirse a proveedores externos de servicios de IA que operan bajo obligaciones de confidencialidad. El contenido generado por la IA no se almacena más allá de lo necesario para prestar el servicio. Los propietarios y administradores no deben incluir información personal sensible en las comunicaciones si prefieren que dichos datos no sean procesados por sistemas de IA.",
     "contactHeading": "Contacto",
@@ -1919,7 +1921,15 @@
     "refresh": "Actualizar notificaciones",
     "allRead": "Todo al día",
     "markAllRead": "Marcar todo como leído",
-    "dismiss": "Descartar"
+    "dismiss": "Descartar",
+    "selectAll": "Seleccionar todas las notificaciones",
+    "deselectAll": "Anular la selección de todas las notificaciones",
+    "selectRowAria": "Seleccionar notificación: {{title}}",
+    "deleteSelected": "Eliminar seleccionadas ({{count}})",
+    "deleteConfirmTitle": "¿Eliminar notificaciones de forma permanente?",
+    "deleteConfirmBody": "Se eliminarán {{count}} notificaciones de tu cuenta. Esta acción no se puede deshacer.",
+    "deleteConfirmAction": "Eliminar de forma permanente",
+    "deleteCancel": "Cancelar"
   },
   "portalInbox": {
     "tabsLabel": "Secciones de la bandeja"
@@ -1943,6 +1953,8 @@
       "manageGroup": "Gestión",
       "messagesGroup": "Mensajes",
       "adminGroup": "Administración",
+      "reportsGroup": "Informes",
+      "notificationReport": "Informe de notificaciones",
       "healthGroup": "Salud",
       "notificationTest": "Prueba de notificaciones",
       "payments": "Pagos",
@@ -1980,6 +1992,10 @@
         "admin": {
           "title": "Propietarios (admin)",
           "body": "Revise y administre cuentas de propietarios vinculadas a la plataforma."
+        },
+        "notificationReport": {
+          "title": "Informe de notificaciones",
+          "body": "Revise métricas de entrega, desgloses y exportación CSV de las notificaciones de la plataforma."
         },
         "properties": {
           "title": "Propiedades",
@@ -2854,6 +2870,14 @@
     "faq4Answer": "No. Sin contratos, sin compromisos. Los planes pagados serán mensuales al lanzarse.",
     "faq5Question": "¿Cómo funciona la facturación de 'Paga Según Crezcas'?",
     "faq5Answer": "Pagas una tarifa fija por cada propiedad que administras — añade más propiedades y tu factura crece contigo. No hay límite en el número de propiedades.",
+    "faq6Question": "¿Qué cuenta como una propiedad para facturación?",
+    "faq6Answer": "Cada propiedad de alquiler distinta que agregas y gestionas en el portal cuenta como una propiedad en Paga Según Crezcas cuando la facturación esté disponible.",
+    "faq7Question": "¿Puedo cambiar de plan más adelante?",
+    "faq7Answer": "Sí. Puedes cambiar de plan cuando cambien tus necesidades. Cuando se lancen los planes de pago, explicaremos cómo afecta eso a tu facturación.",
+    "faq8Question": "¿Los inquilinos necesitan instalar una aplicación?",
+    "faq8Answer": "No. Los inquilinos usan un portal web seguro en el navegador — en móvil o escritorio — sin instalar nada.",
+    "faq9Question": "¿Qué hace Elsa, la asistente de IA?",
+    "faq9Answer": "Elsa ayuda a clasificar las solicitudes de mantenimiento entrantes, sugerir pasos seguros y mantener informados a los inquilinos — y sus capacidades crecen día a día. Tú apruebas las escalaciones y sigues al mando de proveedores y decisiones finales.",
     "featureTeamAccess": "Cuentas de miembros del equipo",
     "featureTeamAccessFree": "—",
     "featureTeamAccessStarter": "—",

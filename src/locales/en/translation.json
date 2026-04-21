@@ -26,7 +26,7 @@
     "print": "Print this page",
     "product": "Product",
     "pricing": "Pricing",
-    "forPropertyManagers": "For Property Managers",
+    "forPropertyManagers": "For Agencies",
     "resources": "Resources",
     "productMenu": "Product menu",
     "resourcesMenu": "Resources menu",
@@ -35,6 +35,13 @@
     "forLandlords": "Owners",
     "forLandlordsMenu": "Owners menu",
     "propertyManagement": "Property Management",
+    "propertyManagementMenu": "Property Management menu",
+    "selfManagedLandlords": "Self-Managed Landlords",
+    "fullServicePropertyManagement": "Full-Service Management",
+    "selfManagedTagline": "Keep control with DIY tools",
+    "fullServiceTagline": "Hands-off — we handle it",
+    "overview": "Overview",
+    "selfManagedMenu": "Self-Managed Landlords menu",
     "audienceTabs": "Audience",
     "legalToggle": "Legal links"
   },
@@ -71,18 +78,18 @@
     "rentersBullet2": "Selection criteria are clear and published",
     "rentersBullet3": "Tenant portal for maintenance once you move in",
     "rentersCta": "Start your application",
-    "ownersTitle": "Property Owners",
-    "ownersBody": "Own rental property in Houston? We handle marketing, tenant screening, maintenance coordination, and rent collection — so you don't have to.",
+    "ownersTitle": "Full-Service Property Management",
+    "ownersBody": "For property owners who want a stress-free, hands-off experience. We handle marketing, tenant screening, maintenance coordination, and rent collection in Houston — so you don't have to.",
     "ownersBullet1": "Licensed Houston realtor and property manager",
     "ownersBullet2": "Full-service: from vacancy to lease renewal",
     "ownersBullet3": "Transparent communication and reporting",
-    "ownersCta": "Explore our services",
-    "selfManagersTitle": "Self-Managing Landlords",
-    "selfManagersBody": "Manage your own rentals? Use our portal to give your tenants a professional experience — maintenance requests, messaging, and notifications in one place.",
+    "ownersCta": "Explore full-service management",
+    "selfManagersTitle": "Self-Managed Landlords",
+    "selfManagersBody": "For landlords who want control with the best tools at their fingertips. Our portal gives your tenants a professional experience — maintenance requests, messaging, and payments in one place.",
     "selfManagersBullet1": "Tenant portal with maintenance request tracking",
     "selfManagersBullet2": "Elsa — AI assistant that triages and auto-responds to maintenance requests",
     "selfManagersBullet3": "Free to start, subscription tiers available",
-    "selfManagersCta": "See pricing and features",
+    "selfManagersCta": "Explore self-managed tools",
     "featuredBadge": "New • Featured",
     "heroHeadingNew": "Property Management in Houston. Self-Management Anywhere.",
     "heroSubtitleNew": "Find a Houston rental or hire us to fully manage your investment property — or use our portal to self-manage your own rentals from anywhere in the US."
@@ -174,6 +181,8 @@
     "thirdPartyBody": "Our site may link to external services (e.g., Texas Real Estate Commission, HAR.com). We are not responsible for their privacy practices. Please review their policies before sharing information.",
     "notificationsHeading": "Notification Preferences and Mandatory Notices",
     "notificationsBody": "You may control many portal notification settings in your profile, including email, in-app, and SMS preferences. Security and compliance notices may still be sent when required by law, policy, or account protection needs.",
+    "mobileInformationHeading": "Mobile Information",
+    "mobileInformationBody": "We do not share, sell, rent, or trade your mobile information with third parties for promotional or marketing purposes.",
     "aiHeading": "AI Features and Data Processing",
     "aiBody": "The Carwoods portal uses AI to assist landlords and property managers with drafting responses to tenant communications, including maintenance requests. To generate suggestions, the AI may process information such as request descriptions, message history, and property context. This data may be transmitted to third-party AI service providers operating under confidentiality obligations. AI-generated content is not stored beyond what is necessary to deliver the service. Landlords and property managers should not include sensitive personal information in communications if they prefer that data not be processed by AI systems.",
     "contactHeading": "Contact",
@@ -344,6 +353,14 @@
     "faq4Answer": "No contracts. Paid plans will be monthly with the option to cancel anytime.",
     "faq5Question": "How does 'Pay as You Grow' billing work?",
     "faq5Answer": "You pay a flat fee for each property you manage — add more properties and your bill scales with you. There's no cap on the number of properties.",
+    "faq6Question": "What counts as one property for billing?",
+    "faq6Answer": "Each distinct rental property you add and manage in the portal counts as one property toward Pay as You Grow when billing is available.",
+    "faq7Question": "Can I upgrade or downgrade plans later?",
+    "faq7Answer": "Yes. You can switch plans when your needs change. When paid tiers launch, we'll explain how changes apply to your billing.",
+    "faq8Question": "Do tenants need to install an app?",
+    "faq8Answer": "No. Tenants use a secure web portal in their browser — mobile or desktop — with nothing to install.",
+    "faq9Question": "What does Elsa, the AI assistant, do?",
+    "faq9Answer": "Elsa helps triage incoming maintenance requests, suggest safe next steps, and keep tenants updated — and her capabilities grow by the day. You approve escalations and stay in control of vendors and final decisions.",
     "featureNotifications": "In-app & email notifications",
     "featureSms": "SMS notifications",
     "featureSmsStarter": "Included",
@@ -455,10 +472,47 @@
     "tableOfContentsNavLabel": "Table of contents"
   },
   "propertyManagement": {
-    "title": "Carwoods — Property Management Services in Houston",
+    "title": "Carwoods — Full-Service Property Management in Houston",
     "metaDescription": "Licensed Houston property management by Dennis Alzoubi, Carwoods. Full-service leasing, tenant screening, maintenance coordination, and reporting.",
-    "heading": "Professional Property Management in Houston",
+    "heading": "Let Us Manage It All for You",
+    "personaTagline": "For property owners who want a stress-free, hands-off experience.",
     "heroSubtitle": "Licensed Houston realtor and property manager. We market vacancies, screen tenants, coordinate repairs, and report back — so you focus on your investment.",
+    "compareHeading": "Self-Managed vs. Full-Service",
+    "compareIntro": "Not sure which option fits? Compare what you keep in your hands versus what Carwoods handles end-to-end.",
+    "compareColSelfManaged": "Self-Managed",
+    "compareColFullService": "Full-Service",
+    "compareFeatureCol": "Service feature",
+    "compareRowScreeningLabel": "Tenant screening",
+    "compareRowScreeningSelf": "Self-run via portal",
+    "compareRowScreeningFull": "We run it for you",
+    "compareRowMarketingLabel": "Marketing & listing",
+    "compareRowMarketingSelf": "Landlord-handled",
+    "compareRowMarketingFull": "MLS + major rental sites",
+    "compareRowRentLabel": "Rent collection",
+    "compareRowRentSelf": "Online via portal",
+    "compareRowRentFull": "Collected, plus owner statements",
+    "compareRowMaintenanceLabel": "Maintenance requests",
+    "compareRowMaintenanceSelf": "Portal intake + Elsa triage",
+    "compareRowMaintenanceFull": "Portal + vendor dispatch",
+    "compareRowVendorsLabel": "Vendor management",
+    "compareRowVendorsSelf": "Landlord-handled",
+    "compareRowVendorsFull": "Trusted vendor network",
+    "compareRowLeaseLabel": "Lease paperwork & e-sign",
+    "compareRowLeaseSelf": "Portal templates",
+    "compareRowLeaseFull": "Fully prepared for you",
+    "compareRowReportingLabel": "Monthly & annual reporting",
+    "compareRowReportingSelf": "Self-service portal views",
+    "compareRowReportingFull": "Owner statements delivered",
+    "compareRowCommunicationLabel": "Tenant communication",
+    "compareRowCommunicationSelf": "Portal messaging",
+    "compareRowCommunicationFull": "We handle it directly",
+    "compareRowServiceAreaLabel": "Service area",
+    "compareRowServiceAreaSelf": "US-wide",
+    "compareRowServiceAreaFull": "Houston, TX",
+    "compareCellIncluded": "Included",
+    "compareCellNotIncluded": "Not included",
+    "compareSelfCtaLabel": "See self-managed tools",
+    "compareFullCtaLabel": "Full-service details",
     "heroBenefit1": "Full marketing and tenant screening from day one",
     "heroBenefit2": "Maintenance coordination with trusted vendor relationships",
     "heroBenefit3": "Transparent reporting and consistent communication",
@@ -535,6 +589,39 @@
     "s11Body": "This Agreement shall be governed by and construed in accordance with the laws of the State of TEXAS.",
     "s12Heading": "12. Entire Agreement",
     "s12Body": "This Agreement constitutes the entire agreement between the parties and supersedes all prior agreements or understandings, whether written or oral, relating to the subject matter herein."
+  },
+  "selfManagedLandlords": {
+    "title": "Carwoods — Tools for Self-Managed Landlords",
+    "metaDescription": "Self-manage your rentals with the Carwoods portal: tenant screening, maintenance requests, Elsa AI triage, online rent collection, and messaging in one place.",
+    "heading": "Manage Your Rentals with Our Tools",
+    "personaTagline": "For landlords who want control with the best tools at their fingertips.",
+    "heroSubtitle": "Run your rentals your way. The Carwoods portal gives you the same professional tooling a full-service manager uses — tenant screening, maintenance tracking, online rent, and an AI assistant that helps triage requests.",
+    "heroBenefit1": "Free tier to start, paid tiers as you grow",
+    "heroBenefit2": "Give tenants a modern portal experience from day one",
+    "heroBenefit3": "Works anywhere in the US — not just Houston",
+    "heroCtaButton": "See Pricing",
+    "heroCtaAriaLabel": "See pricing and start self-managing",
+    "heroSecondaryCta": "Get Started",
+    "heroSecondaryCtaAriaLabel": "Sign in or create a landlord account",
+    "featuresHeading": "Everything You Need in One Portal",
+    "feature1Heading": "Tenant Screening Tools",
+    "feature1Body": "Published selection criteria, applicant intake, and document uploads. Apply the same standards consistently across every applicant.",
+    "feature2Heading": "Maintenance Request Platform",
+    "feature2Body": "Tenants submit requests with photos. You see the full history, assign work, and keep everyone updated — with full audit trail.",
+    "feature3Heading": "Elsa — AI Triage Assistant",
+    "feature3Body": "Elsa reads incoming maintenance requests, suggests responses, and can auto-acknowledge routine items so tenants never feel ignored.",
+    "feature4Heading": "Lease & Document Management",
+    "feature4Body": "Store leases, policies, and tenant-signed notices in one place. Share documents securely with tenants and co-tenants.",
+    "feature5Heading": "Online Rent Collection",
+    "feature5Body": "Tenants pay online from the portal. You get clear payment history and notifications when something needs attention.",
+    "feature6Heading": "Messaging & Notifications",
+    "feature6Body": "Portal messaging plus email and SMS notifications keep you and your tenants in sync without juggling channels.",
+    "whyHeading": "Why Self-Manage with Carwoods",
+    "whyBody": "You stay in control of your properties while your tenants get a modern, branded experience. The portal automates the paperwork so you can focus on the decisions that matter.",
+    "compareSectionHeading": "See How It Compares",
+    "compareSectionBody": "Prefer we handle everything instead? Compare self-managed tooling with our full-service property management — side by side.",
+    "compareCtaLabel": "Compare Self-Managed vs. Full-Service",
+    "compareCtaAriaLabel": "Compare self-managed tools with full-service management"
   },
   "tenantCriteria": {
     "title": "Carwoods - Tenant Selection Criteria",
@@ -1889,15 +1976,18 @@
     },
     "errors": {
       "adminOnly": "Only admin accounts can view user overrides.",
-      "loadFailed": "Unable to load user overrides."
+      "loadFailed": "Unable to load user overrides.",
+      "flowCatalogPartial": "The event-type filter list could not be loaded. The user table below is still shown. Use Refresh to try again."
     }
   },
   "portalAdminNotificationReport": {
     "heading": "Notification Report",
-    "intro": "Volume, success rate, and per-recipient breakdowns for sent notifications.",
+    "intro": "Inspect delivery counts, latency, breakdowns by channel or flow, and CSV export for the selected window.",
+    "filtersHeading": "Filters & grouping",
     "actions": {
       "refresh": "Refresh",
-      "exportCsv": "Export CSV"
+      "exportCsv": "Export CSV",
+      "exportCsvHint": "Exports the chart table (breakdown rows) for your current grouping."
     },
     "presets": {
       "24h": "Last 24 hours",
@@ -1910,6 +2000,10 @@
       "to": "To",
       "channel": "Channel",
       "anyChannel": "Any channel",
+      "channelEmail": "Email",
+      "channelSms": "SMS",
+      "channelInApp": "In-app",
+      "unknownChannel": "Unknown",
       "status": "Status",
       "anyStatus": "Any status",
       "event": "Notification flow",
@@ -1934,10 +2028,14 @@
       "deliveryRate": "Delivery rate",
       "uniqueRecipients": "Unique recipients",
       "latencyP50": "Latency p50",
-      "latencyP95": "Latency p95"
+      "latencyP95": "Latency p95",
+      "latencyHint": "Seconds from created to sent (sent notifications only).",
+      "inAppIssuedTotal": "In-app notifications issued",
+      "inAppIssuedHint": "Immutable issuance log; clearing a user’s inbox does not reduce this count."
     },
     "charts": {
       "timeSeries": "Volume over time",
+      "inAppIssuedSeries": "In-app issuance over time",
       "by_channel": "By channel",
       "by_event": "By notification flow",
       "by_role": "By recipient role",
@@ -1957,9 +2055,12 @@
       "failures": "Failures"
     },
     "empty": "No data in this window.",
+    "chartEmpty": "No breakdown rows match these filters — widen the date range or clear filters.",
     "errors": {
       "adminOnly": "Only admin accounts can view the notification report.",
-      "loadFailed": "Unable to load the notification report."
+      "loadFailed": "Unable to load the notification report.",
+      "invalidDates": "Enter valid start and end date-times.",
+      "invalidRange": "Start must be before end. Adjust the range and try again."
     }
   },
   "portalAdminAiConfig": {
@@ -2327,7 +2428,15 @@
     "refresh": "Refresh notifications",
     "allRead": "All caught up",
     "markAllRead": "Mark all as read",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "selectAll": "Select all notifications",
+    "deselectAll": "Deselect all notifications",
+    "selectRowAria": "Select notification: {{title}}",
+    "deleteSelected": "Delete selected ({{count}})",
+    "deleteConfirmTitle": "Delete notifications permanently?",
+    "deleteConfirmBody": "This removes {{count}} notifications from your account. You cannot undo this.",
+    "deleteConfirmAction": "Delete permanently",
+    "deleteCancel": "Cancel"
   },
   "portalInbox": {
     "tabsLabel": "Inbox sections"
@@ -2351,6 +2460,8 @@
       "manageGroup": "Manage",
       "messagesGroup": "Messages",
       "adminGroup": "Admin",
+      "reportsGroup": "Reports",
+      "notificationReport": "Notification report",
       "healthGroup": "Health",
       "notificationTest": "Notification test",
       "payments": "Payments",
@@ -2388,6 +2499,10 @@
         "admin": {
           "title": "Landlords (admin)",
           "body": "Review and manage landlord accounts linked to the platform."
+        },
+        "notificationReport": {
+          "title": "Notification report",
+          "body": "Review delivery metrics, breakdowns, and CSV export for platform notifications."
         },
         "properties": {
           "title": "Properties",
@@ -2446,6 +2561,14 @@
         "title": "Help",
         "body": "Replay this guided tour any time after you finish the first-time walkthrough."
       },
+      "sidebarSignOut": {
+        "title": "Sign out",
+        "body": "Ends your portal session here. If you share a device, sign out when you’re done."
+      },
+      "sidebarBackToSite": {
+        "title": "Back to site",
+        "body": "Leave the portal and return to the public Carwoods website."
+      },
       "language": {
         "title": "Language",
         "body": "Change interface language. Arabic enables right-to-left layout."
@@ -2456,7 +2579,7 @@
       },
       "account": {
         "title": "Account menu",
-        "body": "Open profile shortcuts, subscription details, and sign out."
+        "body": "Open profile shortcuts, subscription details, sign out, and—when available—theme (light/dark) and related settings."
       },
       "pageContent": {
         "title": "Page content",

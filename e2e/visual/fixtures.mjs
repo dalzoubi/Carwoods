@@ -130,12 +130,32 @@ export { expect };
 
 /**
  * Wait for the page to look settled, then take a screenshot.
- * - Waits for fonts to finish loading so text metrics are stable.
- * - Waits for network idle so mocked API responses have painted.
- * - Uses `fullPage: true` so long scrollable pages are captured end-to-end.
+ * - Waits for `load`, then network idle (best-effort).
+ * - Waits until **real UI exists** — `networkidle` alone often fires before the
+ *   production bundle paints, giving solid-white PNGs.
+ * - Marketing + authenticated portal use `#main-content`. Portal login / loading
+ *   screens omit it; we fall back to substantial `#root` markup.
+ * - Waits for fonts, then one paint frame pair for layout stability.
  */
 export async function snap(page, name) {
+  await page.waitForLoadState('load');
   await page.waitForLoadState('networkidle').catch(() => {});
+  await page.waitForFunction(
+    () => {
+      const main = document.getElementById('main-content');
+      if (main && main.getClientRects().length > 0) return true;
+      const root = document.getElementById('root');
+      if (!root) return false;
+      const stripped = root.innerHTML.replace(/<!--[\s\S]*?-->/g, '');
+      return stripped.trim().length > 400;
+    },
+    { timeout: 60000 },
+  );
+  await page.evaluate(() => {
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(resolve));
+    });
+  });
   await page.evaluate(async () => {
     if (document.fonts && document.fonts.ready) {
       await document.fonts.ready;

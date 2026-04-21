@@ -55,10 +55,30 @@ describe('ResponsiveNavbar', () => {
     expect(screen.getByRole('menuitem', { name: /required documents/i })).toBeInTheDocument();
   });
 
-  it('renders Owners dropdown with product links', () => {
+  it('renders Self-Managed Landlords dropdown with Overview, Pricing, Features, For Agencies', () => {
     renderWithProviders(<ResponsiveNavbar />);
-    fireEvent.click(screen.getByRole('button', { name: /owners menu/i }));
-    expect(screen.getByRole('menuitem', { name: /for property managers/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /self-managed landlords menu/i }));
+    expect(screen.getByRole('menuitem', { name: /^overview$/i })).toHaveAttribute('href', '/self-managed-landlords');
+    expect(screen.getByRole('menuitem', { name: /^pricing$/i })).toHaveAttribute('href', '/pricing');
+    expect(screen.getByRole('menuitem', { name: /all features/i })).toHaveAttribute('href', '/features');
+    expect(screen.getByRole('menuitem', { name: /for agencies/i })).toHaveAttribute('href', '/for-property-managers');
+  });
+
+  it('renders Full-Service Management as a direct desktop link (no dropdown)', () => {
+    renderWithProviders(<ResponsiveNavbar />);
+    const fullService = screen.getByRole('link', { name: /full-service management/i });
+    expect(fullService).toHaveAttribute('href', '/property-management');
+  });
+
+  it('orders desktop nav by priority: Self-Managed, Full-Service, Renters, Contact Us', () => {
+    renderWithProviders(<ResponsiveNavbar />);
+    const selfManagedTrigger = screen.getByRole('button', { name: /self-managed landlords menu/i });
+    const fullServiceLink = screen.getByRole('link', { name: /full-service management/i });
+    const rentersTrigger = screen.getByRole('button', { name: /renters menu/i });
+    const contactLink = screen.getByRole('link', { name: /contact us/i });
+    expect(selfManagedTrigger.compareDocumentPosition(fullServiceLink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(fullServiceLink.compareDocumentPosition(rentersTrigger) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(rentersTrigger.compareDocumentPosition(contactLink) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('renders Sign in in the toolbar to start portal authentication', () => {
@@ -100,54 +120,80 @@ describe('ResponsiveNavbar', () => {
 
     const getDrawer = () => screen.getByRole('navigation', { name: /site menu/i });
 
-    it('renders Get Started CTA and Sign In in the auth zone when unauthenticated', () => {
+    it('renders Get Started CTA and Sign In in the sticky footer when unauthenticated', () => {
       mockMobile();
       renderWithProviders(<ResponsiveNavbar />);
       openDrawer();
       const drawer = getDrawer();
-      const getStarted = within(drawer).getByRole('link', { name: /get started/i });
+      // Sticky footer lives outside the scrollable <nav> region but inside the drawer paper.
+      const drawerPaper = document.getElementById('main-navigation-drawer');
+      expect(drawerPaper).not.toBeNull();
+      const getStarted = within(drawerPaper).getByRole('link', { name: /get started/i });
       expect(getStarted).toHaveAttribute('href', '/pricing');
-      expect(within(drawer).getByRole('button', { name: /^sign in$/i })).toBeInTheDocument();
+      expect(within(drawerPaper).getByRole('button', { name: /^sign in$/i })).toBeInTheDocument();
+      // Confirm the CTA is NOT inside the scrollable <nav> region.
+      expect(within(drawer).queryByRole('link', { name: /get started/i })).not.toBeInTheDocument();
     });
 
-    it('defaults audience tabs to Renters and lists renter links in its panel', () => {
+    it('leads with Self-Managed as a choice card followed by its supporting product links', () => {
       mockMobile();
       renderWithProviders(<ResponsiveNavbar />);
       openDrawer();
       const drawer = getDrawer();
-      const rentersTab = within(drawer).getByRole('tab', { name: /^renters$/i });
-      expect(rentersTab).toHaveAttribute('aria-selected', 'true');
-      const panel = within(drawer).getByRole('region', { name: /^renters$/i });
-      expect(within(panel).getByRole('link', { name: /^apply$/i })).toBeInTheDocument();
-      expect(within(panel).getByRole('link', { name: /selection criteria/i })).toBeInTheDocument();
+      const selfManagedList = within(drawer).getByRole('list', { name: /self-managed landlords/i });
+      const selfManaged = within(selfManagedList).getByRole('link', { name: /self-managed landlords/i });
+      expect(selfManaged).toHaveAttribute('href', '/self-managed-landlords');
+      expect(within(selfManaged).getByText(/keep control/i)).toBeInTheDocument();
+      // Supporting product links sit immediately under the Self-Managed card.
+      expect(within(selfManagedList).getByRole('link', { name: /pricing/i })).toBeInTheDocument();
+      expect(within(selfManagedList).getByRole('link', { name: /all features|^features$/i })).toBeInTheDocument();
+      expect(within(selfManagedList).getByRole('link', { name: /for agencies/i })).toBeInTheDocument();
     });
 
-    it('switches to landlord links when the Landlords tab is activated', () => {
+    it('renders Full-Service as a standalone choice card below Self-Managed', () => {
       mockMobile();
       renderWithProviders(<ResponsiveNavbar />);
       openDrawer();
       const drawer = getDrawer();
-      fireEvent.click(within(drawer).getByRole('tab', { name: /^owners$/i }));
-      const panel = within(drawer).getByRole('region', { name: /^owners$/i });
-      expect(within(panel).getByRole('link', { name: /for property managers/i })).toBeInTheDocument();
-      expect(within(panel).getByRole('link', { name: /pricing/i })).toBeInTheDocument();
+      const fullServiceList = within(drawer).getByRole('list', { name: /^full-service management$/i });
+      const fullService = within(fullServiceList).getByRole('link', { name: /full-service management/i });
+      expect(fullService).toHaveAttribute('href', '/property-management');
+      expect(within(fullService).getByText(/hands-off/i)).toBeInTheDocument();
+      // Full-Service section does NOT carry Pricing/Features/For Agencies (those live under Self-Managed).
+      expect(within(fullServiceList).queryByRole('link', { name: /pricing/i })).not.toBeInTheDocument();
+      expect(within(fullServiceList).queryByRole('link', { name: /for agencies/i })).not.toBeInTheDocument();
     });
 
-    it('pre-selects the Landlords tab when opened on a landlord-audience route', () => {
+    it('lists renter links under a For Renters section (demoted below landlord sections)', () => {
       mockMobile();
-      renderNavAt('/pricing');
+      renderWithProviders(<ResponsiveNavbar />);
       openDrawer();
       const drawer = getDrawer();
-      expect(within(drawer).getByRole('tab', { name: /^owners$/i })).toHaveAttribute('aria-selected', 'true');
+      const rentersList = within(drawer).getByRole('list', { name: /^renters$/i });
+      expect(within(rentersList).getByRole('link', { name: /^apply$/i })).toBeInTheDocument();
+      expect(within(rentersList).getByRole('link', { name: /selection criteria/i })).toBeInTheDocument();
+      expect(within(rentersList).getByRole('link', { name: /required documents/i })).toBeInTheDocument();
     });
 
-    it('renders core links (Home, Property Management, Contact Us) outside the audience panel', () => {
+    it('orders drawer sections by revenue priority: Self-Managed, Full-Service, Renters', () => {
+      mockMobile();
+      renderWithProviders(<ResponsiveNavbar />);
+      openDrawer();
+      const drawer = getDrawer();
+      const selfManagedCard = within(drawer).getByRole('link', { name: /self-managed landlords/i });
+      const fullServiceCard = within(drawer).getByRole('link', { name: /full-service management/i });
+      const rentersApply = within(drawer).getByRole('link', { name: /^apply$/i });
+      // DOCUMENT_POSITION_FOLLOWING === 4
+      expect(selfManagedCard.compareDocumentPosition(fullServiceCard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(fullServiceCard.compareDocumentPosition(rentersApply) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('renders Home and Contact Us as top-level rows', () => {
       mockMobile();
       renderWithProviders(<ResponsiveNavbar />);
       openDrawer();
       const drawer = getDrawer();
       expect(within(drawer).getByRole('link', { name: /^home$/i })).toBeInTheDocument();
-      expect(within(drawer).getByRole('link', { name: /property management/i })).toBeInTheDocument();
       expect(within(drawer).getByRole('link', { name: /contact us/i })).toBeInTheDocument();
     });
 
@@ -172,6 +218,7 @@ describe('ResponsiveNavbar', () => {
       expect(toggle).toHaveAttribute('aria-expanded', 'true');
       expect(within(drawer).getByRole('link', { name: /privacy policy/i })).toBeInTheDocument();
       expect(within(drawer).getByRole('link', { name: /terms of service/i })).toBeInTheDocument();
+      expect(within(drawer).getByRole('link', { name: /accessibility/i })).toBeInTheDocument();
     });
   });
 

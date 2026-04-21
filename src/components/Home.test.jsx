@@ -19,7 +19,8 @@ describe('Home', () => {
     it('renders audience sections', () => {
         renderWithRouter(<Home />);
         expect(screen.getByRole('heading', { name: /^renters$/i })).toBeInTheDocument();
-        expect(screen.getByRole('heading', { name: /^property owners$/i })).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /^full-service property management$/i })).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: /^self-managed landlords$/i })).toBeInTheDocument();
     });
 
     it('renders CTA link to Apply page', () => {
@@ -28,9 +29,15 @@ describe('Home', () => {
         expect(applyLink).toHaveAttribute('href', '/apply');
     });
 
-    it('renders CTA link to Property Management', () => {
+    it('renders CTA link to full-service property management page', () => {
         renderWithRouter(<Home />);
-        const pmLink = screen.getByRole('link', { name: /property owners/i });
+        const pmLink = screen.getByRole('link', { name: /full-service property management/i });
         expect(pmLink).toHaveAttribute('href', '/property-management');
+    });
+
+    it('renders CTA link to self-managed landlords page', () => {
+        renderWithRouter(<Home />);
+        const selfLink = screen.getByRole('link', { name: /self-managed landlords/i });
+        expect(selfLink).toHaveAttribute('href', '/self-managed-landlords');
     });
 });

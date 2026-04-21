@@ -30,6 +30,7 @@ const PRINTABLE_PAGE_PATHS = new Set([
     '/tenant-selection-criteria',
     '/application-required-documents',
     '/property-management',
+    '/self-managed-landlords',
 ]);
 
 /**

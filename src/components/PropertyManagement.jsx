@@ -7,6 +7,12 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 import HomeWork from '@mui/icons-material/HomeWork';
 import PeopleAlt from '@mui/icons-material/PeopleAlt';
 import Build from '@mui/icons-material/Build';
@@ -22,6 +28,18 @@ const SERVICES = [
     { icon: PeopleAlt, titleKey: 'propertyManagement.service2Heading', bodyKey: 'propertyManagement.service2Body' },
     { icon: Build, titleKey: 'propertyManagement.service3Heading', bodyKey: 'propertyManagement.service3Body' },
     { icon: Assessment, titleKey: 'propertyManagement.service4Heading', bodyKey: 'propertyManagement.service4Body' },
+];
+
+const COMPARISON_ROWS = [
+    { label: 'compareRowScreeningLabel', self: 'compareRowScreeningSelf', full: 'compareRowScreeningFull' },
+    { label: 'compareRowMarketingLabel', self: 'compareRowMarketingSelf', full: 'compareRowMarketingFull' },
+    { label: 'compareRowRentLabel', self: 'compareRowRentSelf', full: 'compareRowRentFull' },
+    { label: 'compareRowMaintenanceLabel', self: 'compareRowMaintenanceSelf', full: 'compareRowMaintenanceFull' },
+    { label: 'compareRowVendorsLabel', self: 'compareRowVendorsSelf', full: 'compareRowVendorsFull' },
+    { label: 'compareRowLeaseLabel', self: 'compareRowLeaseSelf', full: 'compareRowLeaseFull' },
+    { label: 'compareRowReportingLabel', self: 'compareRowReportingSelf', full: 'compareRowReportingFull' },
+    { label: 'compareRowCommunicationLabel', self: 'compareRowCommunicationSelf', full: 'compareRowCommunicationFull' },
+    { label: 'compareRowServiceAreaLabel', self: 'compareRowServiceAreaSelf', full: 'compareRowServiceAreaFull' },
 ];
 
 const PropertyManagement = () => {
@@ -66,10 +84,21 @@ const PropertyManagement = () => {
                             fontWeight: 800,
                             lineHeight: 1.2,
                             color: 'text.primary',
-                            mb: 1.75,
+                            mb: 1.25,
                         }}
                     >
                         {t('propertyManagement.heading')}
+                    </Typography>
+                    <Typography
+                        component="p"
+                        sx={{
+                            color: 'primary.main',
+                            fontWeight: 700,
+                            fontSize: { xs: '0.95rem', sm: '1rem' },
+                            mb: 1.5,
+                        }}
+                    >
+                        {t('propertyManagement.personaTagline')}
                     </Typography>
                     <Typography
                         variant="subtitle1"
@@ -180,6 +209,86 @@ const PropertyManagement = () => {
                         </Paper>
                     ))}
                 </Box>
+            </Box>
+
+            {/* Comparison: Self-Managed vs Full-Service */}
+            <Box component="section" id="compare" aria-labelledby="compare-heading" sx={{ scrollMarginTop: 80 }}>
+                <Typography
+                    id="compare-heading"
+                    variant="h2"
+                    component="h2"
+                    sx={{ fontWeight: 700, fontSize: { xs: '1.35rem', sm: '1.6rem' }, mb: 1.25, color: 'text.primary' }}
+                >
+                    {t('propertyManagement.compareHeading')}
+                </Typography>
+                <Typography color="text.secondary" sx={{ mb: 2.5, maxWidth: 720 }}>
+                    {t('propertyManagement.compareIntro')}
+                </Typography>
+                <TableContainer
+                    component={Paper}
+                    elevation={0}
+                    sx={{
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 2,
+                        backgroundImage: 'none',
+                    }}
+                >
+                    <Table size="small" aria-describedby="compare-heading">
+                        <TableHead>
+                            <TableRow>
+                                <TableCell sx={{ fontWeight: 700, width: { xs: '34%', sm: '30%' } }}>
+                                    {t('propertyManagement.compareFeatureCol')}
+                                </TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 700 }}>
+                                    <Box
+                                        component={Link}
+                                        to={withDarkPath(pathname, '/self-managed-landlords')}
+                                        aria-label={t('propertyManagement.compareSelfCtaLabel')}
+                                        sx={{
+                                            color: 'primary.main',
+                                            textDecoration: 'none',
+                                            borderBottom: '1px dashed',
+                                            borderColor: alpha(theme.palette.primary.main, 0.4),
+                                            pb: 0.25,
+                                            '&:hover': { borderBottomStyle: 'solid', color: 'primary.dark' },
+                                        }}
+                                    >
+                                        {t('propertyManagement.compareColSelfManaged')}
+                                    </Box>
+                                </TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                                    {t('propertyManagement.compareColFullService')}
+                                </TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {COMPARISON_ROWS.map((row) => (
+                                <TableRow key={row.label}>
+                                    <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>
+                                        {t(`propertyManagement.${row.label}`)}
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Typography variant="body2" color="text.secondary">
+                                            {t(`propertyManagement.${row.self}`)}
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center">
+                                            <CheckCircleOutline
+                                                sx={{ color: 'primary.main', fontSize: '1.05rem', flexShrink: 0 }}
+                                                aria-hidden
+                                            />
+                                            <Typography variant="body2" color="text.secondary">
+                                                {t(`propertyManagement.${row.full}`)}
+                                            </Typography>
+                                        </Stack>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
             </Box>
 
             {/* Why Carwoods */}

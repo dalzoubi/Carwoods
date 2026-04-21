@@ -35,6 +35,16 @@ describe('Privacy', () => {
     expect(screen.getByText(/texas real estate commission/i)).toBeInTheDocument();
   });
 
+  it('renders Mobile Information section with non-sharing statement', () => {
+    renderWithRouter(<Privacy />);
+    expect(screen.getByRole('heading', { name: /mobile information/i })).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /we do not share, sell, rent, or trade your mobile information with third parties for promotional or marketing purposes\./i
+      )
+    ).toBeInTheDocument();
+  });
+
   it('renders Contact section with link to contact page', () => {
     renderWithRouter(<Privacy />);
     expect(screen.getByRole('heading', { name: /^contact$/i })).toBeInTheDocument();

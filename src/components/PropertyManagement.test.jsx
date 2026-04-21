@@ -17,9 +17,36 @@ describe('PropertyManagement', () => {
         expect(
             screen.getByRole('heading', {
                 level: 1,
-                name: /professional property management in houston/i,
+                name: /let us manage it all for you/i,
             })
         ).toBeInTheDocument();
+    });
+
+    it('renders the full-service persona tagline', () => {
+        renderWithRouter(<PropertyManagement />);
+        expect(
+            screen.getByText(/for property owners who want a stress-free, hands-off experience/i)
+        ).toBeInTheDocument();
+    });
+
+    it('renders the Self-Managed vs Full-Service comparison table', () => {
+        renderWithRouter(<PropertyManagement />);
+        expect(
+            screen.getByRole('heading', { level: 2, name: /self-managed vs\. full-service/i })
+        ).toBeInTheDocument();
+        const columnHeaders = screen.getAllByRole('columnheader');
+        const headerText = columnHeaders.map((c) => c.textContent);
+        expect(headerText.some((t) => /self-managed/i.test(t))).toBe(true);
+        expect(headerText.some((t) => /full-service/i.test(t))).toBe(true);
+        const cells = screen.getAllByRole('cell');
+        expect(cells.some((c) => /tenant screening/i.test(c.textContent))).toBe(true);
+        expect(cells.some((c) => /marketing & listing/i.test(c.textContent))).toBe(true);
+    });
+
+    it('links the Self-Managed column header to /self-managed-landlords', () => {
+        renderWithRouter(<PropertyManagement />);
+        const selfLink = screen.getByRole('link', { name: /see self-managed tools/i });
+        expect(selfLink).toHaveAttribute('href', '/self-managed-landlords');
     });
 
     it('renders the hero subtitle describing services', () => {

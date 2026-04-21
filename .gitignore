@@ -9,6 +9,8 @@
 /coverage
 /playwright-report
 /test-results
+/e2e/visual/visual-gallery.html
+/e2e/visual/.gallery-runtime
 
 # production
 /build

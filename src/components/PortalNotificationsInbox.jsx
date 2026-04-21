@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Box,
   Button,
+  Checkbox,
   CircularProgress,
   Divider,
   IconButton,
@@ -25,10 +26,12 @@ import ContactMail from '@mui/icons-material/ContactMail';
 import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
 import DoneAll from '@mui/icons-material/DoneAll';
 import Close from '@mui/icons-material/Close';
+import DeleteForever from '@mui/icons-material/DeleteForever';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { usePortalAuth } from '../PortalAuthContext';
 import { withDarkPath } from '../routePaths';
 import {
+  deletePortalNotifications,
   dismissPortalNotificationFromTray,
   fetchNotifications,
   markAllNotificationsRead,
@@ -41,6 +44,7 @@ import {
 } from '../lib/notificationUtils';
 import { usePortalRequestDetailModal } from './PortalRequestDetailModalContext';
 import PortalRefreshButton from './PortalRefreshButton';
+import PortalConfirmDialog from './PortalConfirmDialog';
 
 function eventIcon(eventTypeCode) {
   const code = String(eventTypeCode ?? '').toUpperCase();
@@ -76,6 +80,9 @@ const PortalNotificationsInbox = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [markingAll, setMarkingAll] = useState(false);
   const [dismissing, setDismissing] = useState(new Set());
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deletingBulk, setDeletingBulk] = useState(false);
 
   const emailHint = account?.username || undefined;
 
@@ -125,6 +132,14 @@ const PortalNotificationsInbox = () => {
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
   }, [isAuthenticated, load]);
+
+  useEffect(() => {
+    const valid = new Set(notifications.map((n) => n.id));
+    setSelectedIds((prev) => {
+      const next = new Set([...prev].filter((id) => valid.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [notifications]);
 
   const handleDismiss = useCallback(async (notification, navigate_after = false) => {
     if (!baseUrl) return;
@@ -193,6 +208,60 @@ const PortalNotificationsInbox = () => {
     }
   }, [baseUrl, getAccessToken, emailHint, handleApiForbidden]);
 
+  const notificationIdsInView = notifications.map((n) => n.id);
+  const selectedCount = notificationIdsInView.filter((id) => selectedIds.has(id)).length;
+  const allSelected =
+    notificationIdsInView.length > 0 && selectedCount === notificationIdsInView.length;
+  const someSelected = selectedCount > 0 && !allSelected;
+
+  const handleToggleSelectAll = useCallback(() => {
+    if (notificationIdsInView.length === 0) return;
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(notificationIdsInView));
+    }
+  }, [allSelected, notificationIdsInView]);
+
+  const handleToggleOne = useCallback((id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const handleConfirmDeleteSelected = useCallback(async () => {
+    if (!baseUrl || selectedCount === 0) return;
+    const ids = notificationIdsInView.filter((id) => selectedIds.has(id));
+    if (ids.length === 0) {
+      setConfirmDeleteOpen(false);
+      return;
+    }
+    setDeletingBulk(true);
+    try {
+      const token = await getAccessToken();
+      await deletePortalNotifications(baseUrl, token, ids, { emailHint });
+      const idSet = new Set(ids);
+      setNotifications((items) => items.filter((item) => !idSet.has(item.id)));
+      setSelectedIds(new Set());
+      setConfirmDeleteOpen(false);
+    } catch (error) {
+      handleApiForbidden?.(error);
+    } finally {
+      setDeletingBulk(false);
+    }
+  }, [
+    baseUrl,
+    selectedCount,
+    notificationIdsInView,
+    selectedIds,
+    getAccessToken,
+    emailHint,
+    handleApiForbidden,
+  ]);
+
   const unreadCount = notifications.filter((n) => !n.read_at).length;
 
   return (
@@ -221,6 +290,22 @@ const PortalNotificationsInbox = () => {
             disabled={!isAuthenticated || !baseUrl}
             loading={refreshing}
           />
+          {!loading && notifications.length > 0 && (
+            <Tooltip title={allSelected ? t('portalNotificationsInbox.deselectAll') : t('portalNotificationsInbox.selectAll')} arrow>
+              <Checkbox
+                size="small"
+                checked={allSelected}
+                indeterminate={someSelected}
+                onChange={handleToggleSelectAll}
+                disabled={!isAuthenticated || !baseUrl}
+                inputProps={{
+                  'aria-label': allSelected
+                    ? t('portalNotificationsInbox.deselectAll')
+                    : t('portalNotificationsInbox.selectAll'),
+                }}
+              />
+            </Tooltip>
+          )}
           {unreadCount > 0 && (
             <Button
               size="small"
@@ -232,8 +317,32 @@ const PortalNotificationsInbox = () => {
               {t('portalNotificationsInbox.markAllRead')}
             </Button>
           )}
+          {!loading && notifications.length > 0 && (
+            <Button
+              size="small"
+              color="error"
+              variant="outlined"
+              startIcon={deletingBulk ? <CircularProgress size={14} color="inherit" /> : <DeleteForever fontSize="small" />}
+              onClick={() => { setConfirmDeleteOpen(true); }}
+              disabled={!isAuthenticated || !baseUrl || selectedCount === 0 || deletingBulk}
+            >
+              {t('portalNotificationsInbox.deleteSelected', { count: selectedCount })}
+            </Button>
+          )}
         </Stack>
       </Stack>
+
+      <PortalConfirmDialog
+        open={confirmDeleteOpen}
+        onClose={() => { if (!deletingBulk) setConfirmDeleteOpen(false); }}
+        onConfirm={() => { void handleConfirmDeleteSelected(); }}
+        title={t('portalNotificationsInbox.deleteConfirmTitle')}
+        body={t('portalNotificationsInbox.deleteConfirmBody', { count: selectedCount })}
+        confirmLabel={t('portalNotificationsInbox.deleteConfirmAction')}
+        cancelLabel={t('portalNotificationsInbox.deleteCancel')}
+        loading={deletingBulk}
+        confirmColor="error"
+      />
 
       {loading ? (
         <Box display="flex" justifyContent="center" py={6}>
@@ -280,6 +389,16 @@ const PortalNotificationsInbox = () => {
                     transition: 'background-color 0.2s',
                   }}
                 >
+                  <Checkbox
+                    size="small"
+                    checked={selectedIds.has(notification.id)}
+                    onChange={() => { handleToggleOne(notification.id); }}
+                    onClick={(e) => { e.stopPropagation(); }}
+                    sx={{ mt: -0.5, flexShrink: 0 }}
+                    inputProps={{
+                      'aria-label': t('portalNotificationsInbox.selectRowAria', { title: notification.title }),
+                    }}
+                  />
                   <Box
                     sx={{
                       mt: 0.25,

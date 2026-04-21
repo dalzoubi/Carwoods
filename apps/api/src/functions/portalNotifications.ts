@@ -9,10 +9,12 @@ import { jsonResponse, requirePortalUser } from '../lib/managementRequest.js';
 import { jsonResponseWithEtag } from '../lib/httpEtag.js';
 import {
   countUnreadPortalNotifications,
+  deletePortalNotificationsForUser,
   listPortalNotificationsForUser,
   markAllPortalNotificationsRead,
   patchPortalNotificationForUser,
 } from '../lib/notificationCenterRepo.js';
+import { logError } from '../lib/serverLogger.js';
 
 function asRecord(v: unknown): Record<string, unknown> {
   if (v && typeof v === 'object' && !Array.isArray(v)) return v as Record<string, unknown>;
@@ -26,6 +28,48 @@ async function portalNotificationsCollection(
   const gate = await requirePortalUser(request, context);
   if (!gate.ok) return gate.response;
   const { user, headers } = gate.ctx;
+
+  /** Bulk permanent delete — lives on the collection route (same URL as GET list) so the host always matches it; reserved `{id}` paths under `portal/notifications/{id}` have been unreliable for some deployments. */
+  if (request.method === 'PATCH') {
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return jsonResponse(400, headers, { error: 'invalid_json' });
+    }
+    const payload = asRecord(body);
+    const rawIds = payload.ids;
+    if (!Array.isArray(rawIds)) {
+      return jsonResponse(400, headers, { error: 'invalid_payload' });
+    }
+
+    let deleted = 0;
+    const client = await getPool().connect();
+    try {
+      await client.query('BEGIN');
+      deleted = await deletePortalNotificationsForUser(client, {
+        userId: user.id,
+        notificationIds: rawIds,
+      });
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+
+    try {
+      const unreadCount = await countUnreadPortalNotifications(getPool(), user.id);
+      return jsonResponse(200, headers, { ok: true, deleted, unread_count: unreadCount });
+    } catch (error) {
+      logError(context, 'portal.notifications.bulk_delete.unread_count.error', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      return jsonResponse(200, headers, { ok: true, deleted });
+    }
+  }
 
   if (request.method !== 'GET') {
     return jsonResponse(405, headers, { error: 'method_not_allowed' });
@@ -110,7 +154,7 @@ async function portalNotificationItem(
 }
 
 app.http('portalNotificationsCollection', {
-  methods: ['GET', 'OPTIONS'],
+  methods: ['GET', 'PATCH', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/notifications',
   handler: portalNotificationsCollection,

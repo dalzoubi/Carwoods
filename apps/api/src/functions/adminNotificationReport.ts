@@ -12,6 +12,76 @@ const ALLOWED_GROUP_BY = new Set(['day', 'hour', 'channel', 'event', 'role', 'st
 const ALLOWED_CHANNELS = new Set(['EMAIL', 'SMS', 'IN_APP']);
 const ALLOWED_STATUSES = new Set(['QUEUED', 'SENT', 'FAILED']);
 
+/** Deliveries joined to outbox so we can resolve event_type_code when denormalized d.event_type_code is NULL. */
+const DELIVERIES_FROM_WITH_OUTBOX = `notification_deliveries d
+         LEFT JOIN notification_outbox o ON o.id = d.outbox_id`;
+
+/** Effective notification flow code for reporting (denormalized column preferred, else parent outbox). */
+const EFFECTIVE_EVENT_TYPE_SQL = `COALESCE(d.event_type_code, o.event_type_code)`;
+
+/** Stored channel normalized — blank / whitespace treated as unknown (derived from template_id instead). */
+const NORMALIZED_STORED_CHANNEL_SQL = `NULLIF(LTRIM(RTRIM(UPPER(ISNULL(CAST(d.channel AS NVARCHAR(50)), N'')))), N'')`;
+
+/**
+ * Canonical channel for aggregates (notificationRepo deriveChannelFromTemplateId).
+ * In T-SQL LIKE, `_` matches one character unless escaped — use `IN[_]APP` for literal `IN_APP`.
+ */
+const EFFECTIVE_CHANNEL_SQL = `COALESCE(
+       ${NORMALIZED_STORED_CHANNEL_SQL},
+       CASE
+         WHEN UPPER(ISNULL(d.template_id, N'')) LIKE N'EMAIL:%' THEN N'EMAIL'
+         WHEN UPPER(ISNULL(d.template_id, N'')) LIKE N'SMS:%' THEN N'SMS'
+         WHEN UPPER(ISNULL(d.template_id, N'')) LIKE N'IN[_]APP:%'
+           OR UPPER(ISNULL(d.template_id, N'')) LIKE N'INAPP:%' THEN N'IN_APP'
+         ELSE NULL
+       END)`;
+
+/** Filter rows by canonical channel (`$idx` repeats the same bound parameter). */
+function channelFilterPredicate(paramIndex: number): string {
+  const s = NORMALIZED_STORED_CHANNEL_SQL;
+  const t = `UPPER(ISNULL(d.template_id, N''))`;
+  return `(
+      ${s} = $${paramIndex}
+      OR (
+        ${s} IS NULL
+        AND (
+          ($${paramIndex} = N'EMAIL' AND ${t} LIKE N'EMAIL:%')
+          OR ($${paramIndex} = N'SMS' AND ${t} LIKE N'SMS:%')
+          OR (
+            $${paramIndex} = N'IN_APP'
+            AND (${t} LIKE N'IN[_]APP:%' OR ${t} LIKE N'INAPP:%')
+          )
+        )
+      )
+    )`;
+}
+
+function queryStringParam(request: HttpRequest, key: string): string | null {
+  const raw = request.query?.get?.(key);
+  if (raw !== undefined && raw !== null && raw !== '') return raw;
+  try {
+    const u = new URL(request.url);
+    return u.searchParams.get(key);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Deliveries + outbox + portal user matched by email when recipient_user_id was never stored.
+ * `users.email` alignment is required for ue join (duplicate emails must not exist).
+ */
+const DELIVERIES_REPORT_FROM = `${DELIVERIES_FROM_WITH_OUTBOX}
+         LEFT JOIN users ue ON d.recipient_user_id IS NULL
+           AND LOWER(LTRIM(ISNULL(ue.email, N''))) = LOWER(LTRIM(ISNULL(d.recipient_email, N'')))`;
+
+/** Stable bucket per recipient for DISTINCT / GROUP BY (user id preferred, else normalized address). */
+const RECIPIENT_BUCKET_SQL = `CASE
+         WHEN COALESCE(d.recipient_user_id, ue.id) IS NOT NULL
+           THEN N'id:' + CAST(COALESCE(d.recipient_user_id, ue.id) AS NVARCHAR(36))
+         ELSE N'addr:' + LOWER(LTRIM(ISNULL(d.recipient_email, N'')))
+       END`;
+
 type SeriesRow = {
   bucket: string;
   total: number;
@@ -41,7 +111,7 @@ function buildFiltersClause(params: {
   const values: unknown[] = [params.from, params.to];
   if (params.channel) {
     values.push(params.channel);
-    clauses.push(`d.channel = $${values.length}`);
+    clauses.push(channelFilterPredicate(values.length));
   }
   if (params.status) {
     values.push(params.status);
@@ -49,11 +119,42 @@ function buildFiltersClause(params: {
   }
   if (params.eventCode) {
     values.push(params.eventCode);
-    clauses.push(`d.event_type_code = $${values.length}`);
+    clauses.push(`${EFFECTIVE_EVENT_TYPE_SQL} = $${values.length}`);
   }
   if (params.recipientUserId) {
     values.push(params.recipientUserId);
-    clauses.push(`d.recipient_user_id = $${values.length}`);
+    const r = values.length;
+    clauses.push(`(
+      d.recipient_user_id = $${r}
+      OR (
+        d.recipient_user_id IS NULL
+        AND EXISTS (
+          SELECT 1 FROM users uf
+          WHERE uf.id = $${r}
+            AND LOWER(LTRIM(ISNULL(uf.email, N''))) = LOWER(LTRIM(ISNULL(d.recipient_email, N'')))
+        )
+      )
+    )`);
+  }
+  return { sql: clauses.join(' AND '), values };
+}
+
+/** In-app issuance (immutable); not filtered by delivery channel except we hide when user asked for EMAIL/SMS only. */
+function buildPortalEventFiltersClause(params: {
+  from: Date;
+  to: Date;
+  eventCode: string | null;
+  recipientUserId: string | null;
+}): { sql: string; values: unknown[] } {
+  const clauses: string[] = ['e.occurred_at >= $1', 'e.occurred_at < $2'];
+  const values: unknown[] = [params.from, params.to];
+  if (params.eventCode) {
+    values.push(params.eventCode);
+    clauses.push(`e.event_type_code = $${values.length}`);
+  }
+  if (params.recipientUserId) {
+    values.push(params.recipientUserId);
+    clauses.push(`e.user_id = $${values.length}`);
   }
   return { sql: clauses.join(' AND '), values };
 }
@@ -70,21 +171,21 @@ async function adminReportSummaryHandler(
     return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
   }
 
-  const url = new URL(request.url);
   const now = new Date();
   const defaultFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const from = parseDate(url.searchParams.get('from'), defaultFrom);
-  const to = parseDate(url.searchParams.get('to'), now);
-  const channelRaw = String(url.searchParams.get('channel') ?? '').trim().toUpperCase();
+  const from = parseDate(queryStringParam(request, 'from'), defaultFrom);
+  const to = parseDate(queryStringParam(request, 'to'), now);
+  const channelRaw = String(queryStringParam(request, 'channel') ?? '').trim().toUpperCase();
   const channel = channelRaw && ALLOWED_CHANNELS.has(channelRaw) ? channelRaw : null;
-  const statusRaw = String(url.searchParams.get('status') ?? '').trim().toUpperCase();
+  const statusRaw = String(queryStringParam(request, 'status') ?? '').trim().toUpperCase();
   const status = statusRaw && ALLOWED_STATUSES.has(statusRaw) ? statusRaw : null;
-  const eventCode = String(url.searchParams.get('event_type_code') ?? '').trim().toUpperCase() || null;
-  const recipientUserId = String(url.searchParams.get('recipient_user_id') ?? '').trim() || null;
-  const groupByRaw = String(url.searchParams.get('group_by') ?? 'day').trim().toLowerCase();
+  const eventCode = String(queryStringParam(request, 'event_type_code') ?? '').trim().toUpperCase() || null;
+  const recipientUserId = String(queryStringParam(request, 'recipient_user_id') ?? '').trim() || null;
+  const groupByRaw = String(queryStringParam(request, 'group_by') ?? 'day').trim().toLowerCase();
   const groupBy = ALLOWED_GROUP_BY.has(groupByRaw) ? groupByRaw : 'day';
 
   const filters = buildFiltersClause({ from, to, channel, status, eventCode, recipientUserId });
+  const channelBlocksPortalEvents = Boolean(channel && channel !== 'IN_APP');
 
   try {
     const pool = getPool();
@@ -102,8 +203,8 @@ async function adminReportSummaryHandler(
          SUM(CASE WHEN d.status = 'SENT' THEN 1 ELSE 0 END) AS sent_count,
          SUM(CASE WHEN d.status = 'FAILED' THEN 1 ELSE 0 END) AS failed_count,
          SUM(CASE WHEN d.status = 'QUEUED' THEN 1 ELSE 0 END) AS queued_count,
-         COUNT(DISTINCT d.recipient_user_id) AS unique_recipients
-       FROM notification_deliveries d
+         COUNT(DISTINCT ${RECIPIENT_BUCKET_SQL}) AS unique_recipients
+       FROM ${DELIVERIES_REPORT_FROM}
        WHERE ${filters.sql}`,
       filters.values
     );
@@ -123,7 +224,7 @@ async function adminReportSummaryHandler(
                 SUM(CASE WHEN d.status = 'SENT' THEN 1 ELSE 0 END) AS sent,
                 SUM(CASE WHEN d.status = 'FAILED' THEN 1 ELSE 0 END) AS failed,
                 SUM(CASE WHEN d.status = 'QUEUED' THEN 1 ELSE 0 END) AS queued
-         FROM notification_deliveries d
+         FROM ${DELIVERIES_REPORT_FROM}
          WHERE ${filters.sql}
          GROUP BY ${truncSql}
          ORDER BY ${truncSql} ASC`,
@@ -136,20 +237,20 @@ async function adminReportSummaryHandler(
     let aggregates: AggregateRow[] = [];
     if (groupBy === 'channel') {
       const r = await pool.query<{ label: string | null; total: number }>(
-        `SELECT COALESCE(d.channel, 'UNKNOWN') AS label, COUNT(*) AS total
-         FROM notification_deliveries d
+        `SELECT COALESCE(${EFFECTIVE_CHANNEL_SQL}, 'UNKNOWN') AS label, COUNT(*) AS total
+         FROM ${DELIVERIES_REPORT_FROM}
          WHERE ${filters.sql}
-         GROUP BY COALESCE(d.channel, 'UNKNOWN')
+         GROUP BY COALESCE(${EFFECTIVE_CHANNEL_SQL}, 'UNKNOWN')
          ORDER BY total DESC`,
         filters.values
       );
       aggregates = r.rows.map((row) => ({ label: row.label ?? 'UNKNOWN', total: Number(row.total) }));
     } else if (groupBy === 'event') {
       const r = await pool.query<{ label: string | null; total: number }>(
-        `SELECT COALESCE(d.event_type_code, 'UNKNOWN') AS label, COUNT(*) AS total
-         FROM notification_deliveries d
+        `SELECT COALESCE(${EFFECTIVE_EVENT_TYPE_SQL}, 'UNKNOWN') AS label, COUNT(*) AS total
+         FROM ${DELIVERIES_REPORT_FROM}
          WHERE ${filters.sql}
-         GROUP BY COALESCE(d.event_type_code, 'UNKNOWN')
+         GROUP BY COALESCE(${EFFECTIVE_EVENT_TYPE_SQL}, 'UNKNOWN')
          ORDER BY total DESC`,
         filters.values
       );
@@ -157,8 +258,8 @@ async function adminReportSummaryHandler(
     } else if (groupBy === 'role') {
       const r = await pool.query<{ label: string | null; total: number }>(
         `SELECT COALESCE(u.role, 'UNKNOWN') AS label, COUNT(*) AS total
-         FROM notification_deliveries d
-         LEFT JOIN users u ON u.id = d.recipient_user_id
+         FROM ${DELIVERIES_REPORT_FROM}
+         LEFT JOIN users u ON u.id = COALESCE(d.recipient_user_id, ue.id)
          WHERE ${filters.sql}
          GROUP BY COALESCE(u.role, 'UNKNOWN')
          ORDER BY total DESC`,
@@ -168,7 +269,7 @@ async function adminReportSummaryHandler(
     } else if (groupBy === 'status') {
       const r = await pool.query<{ label: string; total: number }>(
         `SELECT d.status AS label, COUNT(*) AS total
-         FROM notification_deliveries d
+         FROM ${DELIVERIES_REPORT_FROM}
          WHERE ${filters.sql}
          GROUP BY d.status
          ORDER BY total DESC`,
@@ -186,16 +287,20 @@ async function adminReportSummaryHandler(
       total: number;
     }>(
       `SELECT TOP 10
-              d.recipient_user_id AS user_id,
-              u.email,
-              u.first_name,
-              u.last_name,
+              MAX(COALESCE(d.recipient_user_id, ue.id)) AS user_id,
+              MAX(COALESCE(u.email, ue.email, LTRIM(RTRIM(ISNULL(d.recipient_email, N''))))) AS email,
+              MAX(COALESCE(u.first_name, ue.first_name)) AS first_name,
+              MAX(COALESCE(u.last_name, ue.last_name)) AS last_name,
               COUNT(*) AS total
-         FROM notification_deliveries d
+         FROM ${DELIVERIES_REPORT_FROM}
          LEFT JOIN users u ON u.id = d.recipient_user_id
          WHERE ${filters.sql}
-           AND d.recipient_user_id IS NOT NULL
-         GROUP BY d.recipient_user_id, u.email, u.first_name, u.last_name
+           AND (
+             d.recipient_user_id IS NOT NULL
+             OR ue.id IS NOT NULL
+             OR NULLIF(LTRIM(RTRIM(ISNULL(d.recipient_email, N''))), N'') IS NOT NULL
+           )
+         GROUP BY ${RECIPIENT_BUCKET_SQL}
          ORDER BY total DESC`,
       filters.values
     );
@@ -205,10 +310,10 @@ async function adminReportSummaryHandler(
       from, to, channel, status: 'FAILED', eventCode, recipientUserId,
     });
     const topFailures = await pool.query<{ event_type_code: string | null; total: number }>(
-      `SELECT TOP 10 COALESCE(d.event_type_code, 'UNKNOWN') AS event_type_code, COUNT(*) AS total
-         FROM notification_deliveries d
+      `SELECT TOP 10 COALESCE(${EFFECTIVE_EVENT_TYPE_SQL}, 'UNKNOWN') AS event_type_code, COUNT(*) AS total
+         FROM ${DELIVERIES_REPORT_FROM}
          WHERE ${failureFilters.sql}
-         GROUP BY COALESCE(d.event_type_code, 'UNKNOWN')
+         GROUP BY COALESCE(${EFFECTIVE_EVENT_TYPE_SQL}, 'UNKNOWN')
          ORDER BY total DESC`,
       failureFilters.values
     );
@@ -219,7 +324,7 @@ async function adminReportSummaryHandler(
          AVG(CAST(DATEDIFF(SECOND, d.created_at, d.sent_at) AS BIGINT)) AS avg_seconds,
          MAX(CASE WHEN q.percentile = 0.50 THEN q.value END) AS p50_seconds,
          MAX(CASE WHEN q.percentile = 0.95 THEN q.value END) AS p95_seconds
-       FROM notification_deliveries d
+       FROM ${DELIVERIES_REPORT_FROM}
        OUTER APPLY (
          SELECT 0.50 AS percentile,
                 PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY DATEDIFF(SECOND, d.created_at, d.sent_at)) OVER () AS value
@@ -233,6 +338,46 @@ async function adminReportSummaryHandler(
       filters.values
     );
     const latency = latencyRes.rows[0] ?? { p50_seconds: null, p95_seconds: null, avg_seconds: null };
+
+    let portal_notification_events: {
+      total: number;
+      series: { bucket: string; total: number }[];
+    } = { total: 0, series: [] };
+
+    if (!channelBlocksPortalEvents) {
+      const ef = buildPortalEventFiltersClause({ from, to, eventCode, recipientUserId });
+      const evHead = await pool.query<{ c: number }>(
+        `SELECT COUNT(*) AS c FROM portal_notification_events e WHERE ${ef.sql}`,
+        ef.values
+      );
+      portal_notification_events = {
+        ...portal_notification_events,
+        total: Number(evHead.rows[0]?.c ?? 0),
+      };
+
+      if (groupBy === 'day' || groupBy === 'hour') {
+        const truncSql =
+          groupBy === 'hour'
+            ? `DATEADD(hour, DATEDIFF(hour, 0, e.occurred_at), 0)`
+            : `CAST(e.occurred_at AS DATE)`;
+        const evSeries = await pool.query<{ bucket: string; total: number }>(
+          `SELECT CAST(${truncSql} AS NVARCHAR(50)) AS bucket,
+                  COUNT(*) AS total
+           FROM portal_notification_events e
+           WHERE ${ef.sql}
+           GROUP BY ${truncSql}
+           ORDER BY ${truncSql} ASC`,
+          ef.values
+        );
+        portal_notification_events = {
+          total: portal_notification_events.total,
+          series: evSeries.rows.map((row) => ({
+            bucket: String(row.bucket ?? ''),
+            total: Number(row.total ?? 0),
+          })),
+        };
+      }
+    }
 
     return jsonResponse(200, ctx.headers, {
       window: { from: from.toISOString(), to: to.toISOString() },
@@ -264,6 +409,7 @@ async function adminReportSummaryHandler(
         event_type_code: row.event_type_code,
         total: Number(row.total),
       })),
+      portal_notification_events,
     });
   } catch (err) {
     logError(context, 'admin.notification_report.summary.error', {
