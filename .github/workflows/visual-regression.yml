@@ -27,6 +27,8 @@ jobs:
       # specs land on authenticated pages. See playwright.config.mjs:3-5,20-22.
       PORTAL_E2E: 'true'
       CI: 'true'
+      # Playwright parallel workers on CI (see playwright.config.mjs workers).
+      PW_CI_WORKERS: '4'
 
     steps:
       - name: Checkout
@@ -115,12 +117,37 @@ jobs:
         if: steps.visual.outcome == 'failure'
         run: |
           if [ "${{ steps.bootstrap.outputs.drift }}" = "true" ]; then
-            echo "::error::Visual drift detected. Review playwright-report artifact, then run 'npm run test:visual:update' locally and commit the updated baselines."
+            echo "::error::Visual drift detected. Review playwright-report artifact (gallery.html + Playwright HTML report), then run 'npm run test:visual:update' locally and commit the updated baselines."
             exit 1
           fi
           if [ "${{ steps.bootstrap.outputs.bootstrapped }}" = "true" ]; then
             echo "Bootstrapped missing baselines; pushed back to branch."
           fi
+
+      # Puts gallery.html + snapshot PNG folders next to Playwright's index.html so one artifact
+      # (and one gh-pages deploy) includes the grid view from scripts/generateVisualSnapshotGallery.mjs.
+      - name: Stage snapshot gallery into Playwright report
+        if: always()
+        run: |
+          set -euo pipefail
+          SRC="e2e/visual"
+          DEST="playwright-report"
+          if [ ! -f "${SRC}/visual-gallery.html" ]; then
+            echo "No ${SRC}/visual-gallery.html — skipping gallery bundle."
+            exit 0
+          fi
+          mkdir -p "${DEST}"
+          cp "${SRC}/visual-gallery.html" "${DEST}/gallery.html"
+          for d in "${SRC}"/*.mjs-snapshots; do
+            [ -d "$d" ] || continue
+            rm -rf "${DEST}/$(basename "$d")"
+            cp -r "$d" "${DEST}/"
+          done
+          if [ -d "${SRC}/.gallery-runtime" ]; then
+            rm -rf "${DEST}/.gallery-runtime"
+            cp -r "${SRC}/.gallery-runtime" "${DEST}/"
+          fi
+          echo "Bundled snapshot gallery as ${DEST}/gallery.html"
 
       - name: Upload Playwright report
         if: always()
@@ -237,13 +264,15 @@ jobs:
           PAGES_DEPLOY_OUTCOME: ${{ steps.gh_pages_deploy.outcome }}
         run: |
           PREVIEW_URL="https://${OWNER}.github.io/${REPO}/visual/pr/${PR_NUMBER}/index.html"
+          GALLERY_URL="https://${OWNER}.github.io/${REPO}/visual/pr/${PR_NUMBER}/gallery.html"
           {
             echo "## Visual regression (${JOB_STATUS})"
             echo ""
             echo "- **Workflow run:** [${{ github.run_id }}](${RUN_URL})"
             echo ""
             if [ "${HEAD_REPO}" = "${BASE_REPO}" ]; then
-              echo "- **Playwright HTML report (hosted):** [Open preview](${PREVIEW_URL})"
+              echo "- **Playwright HTML report (hosted):** [Open report](${PREVIEW_URL})"
+              echo "- **Snapshot gallery (all PNGs, hosted):** [Open gallery](${GALLERY_URL})"
               echo "  - Requires **Settings → Pages** publishing from the \`gh-pages\` branch (project URL is usually \`https://${OWNER}.github.io/${REPO}/\`)."
               if [ "${PAGES_DEPLOY_OUTCOME}" = "failure" ]; then
                 echo "  - **Deploy failed** — use **Artifacts → playwright-report** below or check the \`Deploy Playwright report to gh-pages\` step log."
@@ -254,8 +283,41 @@ jobs:
               echo "- **Hosted preview:** not published for fork PRs (Pages deploy only runs for branches on this repository)."
             fi
             echo ""
-            echo "- **Artifacts:** On the workflow run, open **Artifacts** → download **playwright-report** (zip) and open \`index.html\` locally."
+            echo "- **Artifacts:** **Artifacts** → **playwright-report** — unzip and open \`index.html\` (Playwright UI) or \`gallery.html\` (screenshot grid)."
           } > visual-regression-pr-comment.md
+
+      - name: Job summary (quick links)
+        if: always()
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          JOB_STATUS: ${{ job.status }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name || '' }}
+          BASE_REPO: ${{ github.repository }}
+          PAGES_DEPLOY_OUTCOME: ${{ steps.gh_pages_deploy.outcome }}
+        run: |
+          {
+            echo "## Visual regression (${JOB_STATUS})"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Workflow run | [Open](${RUN_URL}) |"
+            if [ "${EVENT_NAME}" = "pull_request" ] && [ -n "${PR_NUMBER}" ] && [ "${HEAD_REPO}" = "${BASE_REPO}" ]; then
+              PREVIEW_URL="https://${OWNER}.github.io/${REPO}/visual/pr/${PR_NUMBER}/index.html"
+              GALLERY_URL="https://${OWNER}.github.io/${REPO}/visual/pr/${PR_NUMBER}/gallery.html"
+              echo "| Hosted Playwright report | [index.html](${PREVIEW_URL}) |"
+              echo "| Hosted snapshot gallery | [gallery.html](${GALLERY_URL}) |"
+              if [ "${PAGES_DEPLOY_OUTCOME}" != "success" ]; then
+                echo "| Hosted previews | _Pages deploy was not successful — use the playwright-report artifact._ |"
+              fi
+            elif [ "${EVENT_NAME}" = "pull_request" ] && [ -n "${PR_NUMBER}" ]; then
+              echo "| Hosted previews | _Fork PR — use artifacts only._ |"
+            fi
+            echo "| Local (artifact) | Download **playwright-report**, open \`index.html\` or \`gallery.html\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Comment on PR with report links (sticky)
         if: always() && github.event_name == 'pull_request'

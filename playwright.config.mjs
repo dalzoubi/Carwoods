@@ -52,7 +52,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // Faster CI: default 2 workers (visual tests isolate browser contexts). Set PW_CI_WORKERS to override.
+  workers: process.env.CI
+    ? Number.parseInt(process.env.PW_CI_WORKERS ?? '', 10) || 2
+    : undefined,
   reporter: 'html',
   use: {
     baseURL: 'http://localhost:3000',
