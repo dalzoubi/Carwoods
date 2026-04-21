@@ -43,6 +43,12 @@ const PortalAuthContext = createContext(null);
 
 const PORTAL_DEV_AUTH = import.meta.env.VITE_PORTAL_DEV_AUTH === 'true';
 
+/** Same resolution as RealPortalAuthProvider — empty baseUrl breaks landlord modules (they gate on Boolean(baseUrl)). */
+const DEV_AUTH_API_BASE = VITE_API_BASE_URL_RESOLVED || '';
+const DEV_AUTH_ME_URL = DEV_AUTH_API_BASE
+  ? `${String(DEV_AUTH_API_BASE).replace(/\/$/, '')}/api/portal/me`
+  : '';
+
 const DEV_FREE_TIER_LIMITS = {
   max_properties: 1,
   max_tenants: 5,
@@ -69,8 +75,8 @@ export const ME_REFRESH_COALESCE_MS = 3000;
 
 const DEV_AUTH_VALUE = PORTAL_DEV_AUTH
   ? {
-      baseUrl: '',
-      meUrl: '',
+      baseUrl: DEV_AUTH_API_BASE,
+      meUrl: DEV_AUTH_ME_URL,
       authStatus: 'authenticated',
       authError: '',
       account: { uid: 'dev-user', name: 'Dev Landlord', username: 'dev@carwoods.com' },

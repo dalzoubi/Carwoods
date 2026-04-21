@@ -63,7 +63,6 @@ const PORTAL_PATHS = {
   tenants: '/portal/tenants',
   properties: '/portal/properties',
   notices: '/portal/notices',
-  'login-landing': '/portal (login landing — session cleared)',
 };
 
 function escapeHtml(s) {

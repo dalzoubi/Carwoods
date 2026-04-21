@@ -14,7 +14,8 @@ Carwoods is a static React 18 website (no backend/database) for property managem
 | Production build → `build/` | `npm run build` |
 | Unit tests (jsdom, no server) | `npx vitest run` |
 | Lint | `npx eslint src/` |
-| E2E tests (Playwright) | `npm run test:e2e` |
+| E2E tests (Playwright, marketing + non-visual) | `npm run test:e2e` (chromium only) |
+| Visual regression (Playwright) | `npm run test:visual` (sets `PORTAL_E2E`; full Playwright needs `PORTAL_E2E=true` if mixing projects) |
 | Install E2E browser | `npm run test:e2e:install` |
 
 ## Project structure

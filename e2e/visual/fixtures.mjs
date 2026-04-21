@@ -77,6 +77,51 @@ function mockApiResponse(url) {
 }
 
 /**
+ * Block outbound Firebase / analytics calls without breaking reCAPTCHA v3 or fonts.
+ * A broad `(gstatic|recaptcha)` pattern caused empty 204 responses for
+ * `www.gstatic.com/recaptcha/**` and `google.com/recaptcha/**`, so the app never
+ * hydrated past `GoogleReCaptchaProvider` and `snap()` timed out.
+ */
+function shouldBlockOutboundThirdParty(url) {
+  try {
+    const u = new URL(url);
+    const host = u.hostname;
+    const path = u.pathname;
+
+    if (host.endsWith('firebaseio.com')) return true;
+
+    if (/vitals\.vercel-insights\.com$/i.test(host)) return true;
+    if (host.includes('vercel-analytics')) return true;
+
+    // Firebase JS SDK bundles only — allow `www.gstatic.com/recaptcha/**`, fonts, etc.
+    if (host === 'www.gstatic.com' && path.includes('/firebasejs/')) return true;
+
+    const firebaseGoogleApisHosts = new Set([
+      'securetoken.googleapis.com',
+      'identitytoolkit.googleapis.com',
+      'firestore.googleapis.com',
+      'firebaseinstallations.googleapis.com',
+      'firebase.googleapis.com',
+      'firebasestorage.googleapis.com',
+    ]);
+    if (firebaseGoogleApisHosts.has(host)) return true;
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+function isLocalhostUrl(url) {
+  try {
+    const host = new URL(url).hostname;
+    return host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Extended Playwright test with visual-regression-friendly defaults installed
  * on every `page` automatically.
  */
@@ -103,21 +148,23 @@ export const test = base.extend({
       Date.parse = RealDate.parse;
     }, FROZEN_NOW_ISO);
 
-    // Mock every /api/** call with canned fixtures.
-    await page.route('**/api/**', async (route) => {
+    // Local API mocks + targeted third-party blocks (single handler so ordering is obvious).
+    await page.route('**/*', async (route) => {
       const url = route.request().url();
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(mockApiResponse(url)),
-      });
+      if (isLocalhostUrl(url) && url.includes('/api/')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(mockApiResponse(url)),
+        });
+        return;
+      }
+      if (!isLocalhostUrl(url) && shouldBlockOutboundThirdParty(url)) {
+        await route.fulfill({ status: 204, body: '' });
+        return;
+      }
+      await route.continue();
     });
-
-    // Block live Firebase / Google / Vercel analytics traffic so offline CI runs cleanly.
-    await page.route(
-      /(firebaseio\.com|googleapis\.com|gstatic\.com|vercel\-analytics|vitals\.vercel\-insights|recaptcha)/,
-      (route) => route.fulfill({ status: 204, body: '' }),
-    );
 
     // Kill animations and transitions across the whole app.
     await page.emulateMedia({ reducedMotion: 'reduce' });

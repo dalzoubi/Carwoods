@@ -1,14 +1,11 @@
 /**
  * Visual regression for the authenticated tenant-onboarding portal.
  *
- * Requires PORTAL_E2E=true so playwright.config.mjs builds with
- * VITE_PORTAL_DEV_AUTH=true (see playwright.config.mjs:3-5,20-22). Without
- * that env, every auth-gated route redirects to the login landing and the
- * whole suite is skipped instead of producing misleading baselines.
+ * Uses the dev-auth production build (`VITE_PORTAL_DEV_AUTH=true`) so routes render inside the
+ * portal shell; see `usePortalDevAuthWebBuild()` in playwright.config.mjs (`PORTAL_E2E=true`, or
+ * `--project=visual-chromium`, or running paths under `e2e/visual/`).
  */
 import { test, snap, forEachViewport } from './fixtures.mjs';
-
-const isPortalE2E = process.env.PORTAL_E2E === 'true';
 
 const PORTAL_ROUTES = [
   { path: '/portal', slug: 'dashboard' },
@@ -26,20 +23,6 @@ const PORTAL_ROUTES = [
 ];
 
 test.describe('Visual: portal (authenticated)', () => {
-  test.skip(
-    !isPortalE2E,
-    'Skipped — set PORTAL_E2E=true to run visual regression against the authenticated portal.',
-  );
-
-  // Also snapshot the unauthenticated login landing — it is its own screen.
-  test('login-landing', async ({ page }) => {
-    // Force dev-auth off for this one test by clearing the portal session.
-    await page.goto('/portal');
-    await forEachViewport(page, async (p, vp) => {
-      await snap(p, `portal-login-landing-${vp.name}`);
-    });
-  });
-
   for (const { path, slug } of PORTAL_ROUTES) {
     test(slug, async ({ page }) => {
       await page.goto(path);

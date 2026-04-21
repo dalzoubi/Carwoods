@@ -25,7 +25,9 @@ npm run test:visual:update
 npm run test:visual:ui
 ```
 
-All three scripts pass `PORTAL_E2E=true` automatically so the dev-auth build is used for portal + admin pages.
+All three scripts pass `PORTAL_E2E=true` automatically so the dev-auth build is used for portal + admin pages. That build also sets `VITE_API_BASE_URL=http://localhost:3000` so portal screens treat the API as reachable (Playwright continues to mock `/api/**`); otherwise landlord-only modules show “Set `VITE_API_BASE_URL`” / permission-style guards because dev-auth used an empty `baseUrl`.
+
+Running `playwright test --project=visual-chromium` directly (without `npm run test:visual`) still uses the dev-auth build — `playwright.config.mjs` detects the visual project or paths under `e2e/visual/`. Avoid `PW_REUSE_SERVER=1` unless the existing process was started from the **same** dev-auth build (otherwise snapshots show the sign-in landing).
 
 ## Updating baselines when you change UI
 
@@ -57,7 +59,7 @@ If the repository uses **GitHub Pages** from the `gh-pages` branch, the visual w
 
 - `Date.now()` frozen to `2026-01-15T12:00:00Z`.
 - All `/api/**` requests intercepted with canned JSON responses.
-- Firebase, Google, Vercel analytics, and reCAPTCHA requests return 204 (offline CI).
+- Third-party outbound calls to Firebase backends / Firebase JS SDK on gstatic / Vercel analytics are stubbed with 204; reCAPTCHA v3 scripts are allowed so `GoogleReCaptchaProvider` can hydrate (see `fixtures.mjs`).
 - Animations and transitions disabled via `prefers-reduced-motion`.
 - Timezone pinned to `America/Chicago`, locale pinned to `en-US`.
 
@@ -68,7 +70,7 @@ If your change includes a deliberately dynamic element (user avatar, live clock,
 Currently captured:
 
 - **Marketing** — all public routes from `src/App.jsx` MarketingRoutes, light + dark mode.
-- **Portal (LANDLORD)** — dashboard, profile, requests, payments, documents, status, inbox, tenants, properties, notices.
+- **Portal (LANDLORD)** — dashboard (`/portal`), profile, requests, payments, documents, status, inbox, tenants, properties, notices (no separate login snapshot — suite uses dev-auth).
 - **Admin** — `/portal/admin/config` (LANDLORD-accessible). Strict-ADMIN routes (`/portal/admin/landlords`, `/portal/admin/health/notification-test`) currently render the route-guard screen because `VITE_PORTAL_DEV_AUTH=true` injects a LANDLORD session (see `src/PortalAuthContext.jsx:70-112`).
 
 Each route is captured at three viewports: mobile (375×812), tablet (768×1024), desktop (1440×900).

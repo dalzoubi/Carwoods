@@ -49,7 +49,7 @@
     "prerender": "node scripts/prerender.mjs",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --project=chromium",
     "test:e2e:install": "playwright install chromium",
     "test:visual": "node scripts/runVisualWithGallery.mjs",
     "test:visual:update": "node scripts/runVisualWithGallery.mjs --update-snapshots",
