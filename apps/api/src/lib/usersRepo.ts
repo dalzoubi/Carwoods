@@ -310,6 +310,28 @@ export async function findUserById(
 }
 
 /**
+ * Digits-only comparison lookup used by the inbound SMS webhook so carrier
+ * keyword replies (STOP/HELP) resolve to a user even when stored formatting
+ * differs (+1, hyphens, spaces, etc.).
+ */
+export async function findUserByPhoneDigits(
+  client: Queryable,
+  digitsOnlyPhone: string
+): Promise<UserRow | null> {
+  const digits = String(digitsOnlyPhone ?? '').replace(/\D+/g, '');
+  if (!digits) return null;
+  const r = await client.query<UserRow>(
+    `SELECT id, external_auth_oid, email, first_name, last_name, phone, profile_photo_storage_path, role, status, ui_language, ui_color_scheme, portal_tour_completed, tier_id
+     FROM users
+     WHERE phone IS NOT NULL
+       AND LEN(phone) > 0
+       AND REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone, '+', ''), '-', ''), ' ', ''), '(', ''), ')', ''), '.', '') = $1`,
+    [digits]
+  );
+  return r.rows[0] ?? null;
+}
+
+/**
  * Links a token subject (oid or sub) to an existing user row so future
  * logins match instantly by subject instead of requiring the email claim.
  */

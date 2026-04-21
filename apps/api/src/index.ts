@@ -26,6 +26,7 @@ import './functions/adminPortalUsers.js';
 import './functions/adminNotificationTest.js';
 import './functions/landlordHarPreview.js';
 import './functions/inboundEmailReply.js';
+import './functions/inboundSmsWebhook.js';
 import './functions/publicContact.js';
 import './functions/adminContactRequests.js';
 import './functions/adminNotificationFlowDefaults.js';

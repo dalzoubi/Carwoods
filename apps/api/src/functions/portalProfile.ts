@@ -67,6 +67,29 @@ function parseFlowPreferences(raw: unknown): Array<{
   return out;
 }
 
+function parseSmsOptInConsent(raw: unknown): {
+  source?: string;
+  version?: string;
+  ip?: string | null;
+  userAgent?: string | null;
+} | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const record = raw as Record<string, unknown>;
+  const confirmed = record.confirmed === true;
+  if (!confirmed) return undefined;
+  return {
+    source: str(record.source),
+    version: str(record.version),
+  };
+}
+
+function firstClientIp(headerValue: string | null): string | null {
+  if (!headerValue) return null;
+  const first = headerValue.split(',')[0]?.trim();
+  if (!first) return null;
+  return first.slice(0, 64);
+}
+
 async function portalProfileHandler(
   request: HttpRequest,
   context: InvocationContext
@@ -134,6 +157,18 @@ async function portalProfileHandler(
     }
   }
 
+  const rawConsent = parseSmsOptInConsent(payload.sms_opt_in_consent);
+  const ip = firstClientIp(request.headers.get('x-forwarded-for'))
+    ?? firstClientIp(request.headers.get('x-real-ip'));
+  const userAgent = request.headers.get('user-agent')?.slice(0, 512) ?? null;
+  const smsOptInConsent = rawConsent
+    ? {
+        ...rawConsent,
+        ip,
+        userAgent,
+      }
+    : undefined;
+
   try {
     const result = await updateProfile(getPool(), {
       actorUserId: user.id,
@@ -145,6 +180,7 @@ async function portalProfileHandler(
       ...(hasUiLanguage ? { uiLanguage: str(payload.ui_language) ?? null } : {}),
       ...(hasUiColorScheme ? { uiColorScheme: str(payload.ui_color_scheme) ?? null } : {}),
       ...(hasPortalTourCompleted ? { portalTourCompleted: portalTourCompletedParsed } : {}),
+      ...(smsOptInConsent ? { smsOptInConsent } : {}),
       notificationPreferences: (() => {
         const raw = asRecord(payload.notification_preferences);
         const emailEnabled = bool(raw.email_enabled);
@@ -193,6 +229,9 @@ async function portalProfileHandler(
         in_app_enabled: p.in_app_enabled,
         sms_enabled: p.sms_enabled,
       })),
+      sms_consent: {
+        phone_change_reset: result.phoneChangeInvalidatedSmsConsent,
+      },
     });
   } catch (e) {
     const mapped = mapDomainError(e, headers);

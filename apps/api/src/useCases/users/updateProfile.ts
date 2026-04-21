@@ -4,6 +4,10 @@
  * Business rules:
  * - Email is required and must be valid.
  * - Optional fields: first_name, last_name, phone.
+ * - SMS opt-in requires an explicit, audited consent capture (see
+ *   `smsOptInConsent`). A phone change while previously opted-in invalidates
+ *   the prior consent and resets sms_opt_in / sms_enabled to false. Any
+ *   re-enable must come with a fresh consent capture from the portal.
  */
 
 import { findUserByEmail, updateUserProfile, updateUserUiPreferences, type UserRow } from '../../lib/usersRepo.js';
@@ -14,11 +18,14 @@ import {
   upsertUserNotificationFlowPreference,
   type UserNotificationPreferenceRow,
   type UserNotificationFlowPreferenceRow,
+  type SmsConsentCapture,
 } from '../../lib/notificationPolicyRepo.js';
 import { normalizeQuietHoursPreference } from '../../lib/notificationQuietHours.js';
 import { getFlowDefault } from '../../config/notificationFlowDefaults.js';
 import { validateProfileUpdate } from '../../domain/userValidation.js';
 import { conflictError, notFound, validationError } from '../../domain/errors.js';
+import { writeAudit } from '../../lib/auditRepo.js';
+import { SMS_OPT_IN_SOURCE_WEB_PORTAL, SMS_OPT_IN_VERSION } from '../../domain/smsConsent.js';
 import type { Queryable } from '../types.js';
 
 export type UpdateProfileInput = {
@@ -44,6 +51,20 @@ export type UpdateProfileInput = {
     };
   };
   /**
+   * Explicit SMS consent confirmation captured from the web portal. Required
+   * when transitioning sms_opt_in from false → true. Must be present exactly
+   * when the user confirmed the consent dialog and clicked save.
+   *
+   * `source` defaults to WEB_PORTAL_PROFILE when caller omits it.
+   * `version` defaults to the current SMS_OPT_IN_VERSION.
+   */
+  smsOptInConsent?: {
+    source?: string;
+    version?: string;
+    ip?: string | null;
+    userAgent?: string | null;
+  };
+  /**
    * Per-flow channel preferences. Each entry overrides the compile-time
    * default for one event type. `null` on a channel means "clear the
    * override back to the flow default".
@@ -60,16 +81,22 @@ export type UpdateProfileOutput = {
   user: UserRow;
   notificationPreferences: UserNotificationPreferenceRow;
   notificationFlowPreferences: UserNotificationFlowPreferenceRow[];
+  /** True when the phone number change invalidated a prior SMS opt-in. */
+  phoneChangeInvalidatedSmsConsent: boolean;
 };
+
+function normalizePhoneForCompare(raw: string | null | undefined): string {
+  return String(raw ?? '').replace(/[^\d+]/g, '').trim();
+}
 
 export async function updateProfile(
   db: Queryable,
   input: UpdateProfileInput
 ): Promise<UpdateProfileOutput> {
-  const smsEnabled = Boolean(input.notificationPreferences?.smsEnabled);
-  const smsOptIn = Boolean(input.notificationPreferences?.smsOptIn);
+  const requestedSmsEnabled = Boolean(input.notificationPreferences?.smsEnabled);
+  const requestedSmsOptIn = Boolean(input.notificationPreferences?.smsOptIn);
   const normalizedPhone = String(input.phone ?? '').trim();
-  if ((smsEnabled || smsOptIn) && !normalizedPhone) {
+  if ((requestedSmsEnabled || requestedSmsOptIn) && !normalizedPhone) {
     throw validationError('sms_phone_required');
   }
 
@@ -85,6 +112,16 @@ export async function updateProfile(
   if (existingByEmail && existingByEmail.id !== input.actorUserId) {
     throw conflictError('email_already_in_use');
   }
+
+  // Snapshot prior preferences so we can detect opt-in/out transitions and
+  // phone-change re-consent requirements. `ensureUserNotificationPreference`
+  // idempotently creates the row so a new user has a baseline.
+  const priorPrefs = await ensureUserNotificationPreference(db, input.actorUserId);
+  const priorPhone = existingByEmail?.phone ?? null;
+  const phoneChanged =
+    normalizePhoneForCompare(priorPhone) !== normalizePhoneForCompare(input.phone ?? null);
+  const phoneChangeInvalidatedSmsConsent =
+    phoneChanged && priorPrefs.sms_opt_in === true;
 
   let updated: UserRow | null;
   try {
@@ -116,19 +153,112 @@ export async function updateProfile(
     });
     if (withPrefs) updated = withPrefs;
   }
+
+  // Compute final notification-preferences update taking the phone-change
+  // re-consent rule into account. A new phone number invalidates the prior
+  // consent, so even if the client sent sms_opt_in = true we ignore it unless
+  // the client also supplied fresh `smsOptInConsent` capture from the
+  // consent dialog.
+  const hasFreshConsentCapture = Boolean(input.smsOptInConsent);
+  const hadPriorOptIn = priorPrefs.sms_opt_in === true;
+  const effectiveSmsOptIn =
+    requestedSmsOptIn
+    && (!phoneChanged || hasFreshConsentCapture);
+  const effectiveSmsEnabled = requestedSmsEnabled && effectiveSmsOptIn;
+
+  const capture: SmsConsentCapture | undefined =
+    (!hadPriorOptIn || phoneChangeInvalidatedSmsConsent)
+    && effectiveSmsOptIn
+    && hasFreshConsentCapture
+      ? {
+          source: input.smsOptInConsent?.source ?? SMS_OPT_IN_SOURCE_WEB_PORTAL,
+          version: input.smsOptInConsent?.version ?? SMS_OPT_IN_VERSION,
+          phone: normalizedPhone,
+          ip: input.smsOptInConsent?.ip ?? null,
+          userAgent: input.smsOptInConsent?.userAgent ?? null,
+        }
+      : undefined;
+
+  const optOutCapture =
+    hadPriorOptIn && !effectiveSmsOptIn
+      ? { source: SMS_OPT_IN_SOURCE_WEB_PORTAL }
+      : undefined;
+
   const notificationPreferences = input.notificationPreferences
     ? await updateUserNotificationPreference(db, {
         userId: input.actorUserId,
         emailEnabled: input.notificationPreferences.emailEnabled,
         inAppEnabled: input.notificationPreferences.inAppEnabled,
-        smsEnabled: input.notificationPreferences.smsEnabled,
-        smsOptIn: input.notificationPreferences.smsOptIn,
+        smsEnabled: effectiveSmsEnabled,
+        smsOptIn: effectiveSmsOptIn,
         quietHours:
           input.notificationPreferences.quietHours === undefined
             ? undefined
             : normalizeQuietHoursPreference(input.notificationPreferences.quietHours),
+        smsOptInCapture: capture,
+        smsOptOutCapture: optOutCapture,
       })
-    : await ensureUserNotificationPreference(db, input.actorUserId);
+    : priorPrefs;
+
+  // Audit log for consent state transitions (best-effort — any failure here
+  // must not roll back a successful profile update, so errors are caught and
+  // logged as audit_failed rows via the normal logger outside this function).
+  if (capture) {
+    await writeAudit(db, {
+      actorUserId: input.actorUserId,
+      entityType: 'USER_NOTIFICATION_PREFERENCE',
+      entityId: input.actorUserId,
+      action: 'SMS_OPT_IN_ENABLED',
+      before: {
+        sms_opt_in: priorPrefs.sms_opt_in,
+        sms_enabled: priorPrefs.sms_enabled,
+        phone: priorPhone,
+      },
+      after: {
+        sms_opt_in: true,
+        sms_enabled: effectiveSmsEnabled,
+        phone: normalizedPhone,
+        source: capture.source,
+        version: capture.version,
+        ip: capture.ip ?? null,
+        user_agent: capture.userAgent ?? null,
+      },
+    });
+  }
+  if (optOutCapture) {
+    await writeAudit(db, {
+      actorUserId: input.actorUserId,
+      entityType: 'USER_NOTIFICATION_PREFERENCE',
+      entityId: input.actorUserId,
+      action: 'SMS_OPT_IN_DISABLED',
+      before: {
+        sms_opt_in: priorPrefs.sms_opt_in,
+        sms_enabled: priorPrefs.sms_enabled,
+      },
+      after: {
+        sms_opt_in: false,
+        sms_enabled: false,
+        source: optOutCapture.source,
+      },
+    });
+  }
+  if (phoneChangeInvalidatedSmsConsent) {
+    await writeAudit(db, {
+      actorUserId: input.actorUserId,
+      entityType: 'USER_NOTIFICATION_PREFERENCE',
+      entityId: input.actorUserId,
+      action: 'SMS_OPT_IN_PHONE_CHANGE_RESET',
+      before: {
+        sms_opt_in: priorPrefs.sms_opt_in,
+        phone: priorPhone,
+      },
+      after: {
+        sms_opt_in: effectiveSmsOptIn,
+        phone: normalizedPhone,
+        re_consent_required: !effectiveSmsOptIn,
+      },
+    });
+  }
 
   if (Array.isArray(input.notificationFlowPreferences)) {
     for (const entry of input.notificationFlowPreferences) {
@@ -150,5 +280,10 @@ export async function updateProfile(
     input.actorUserId
   );
 
-  return { user: updated, notificationPreferences, notificationFlowPreferences };
+  return {
+    user: updated,
+    notificationPreferences,
+    notificationFlowPreferences,
+    phoneChangeInvalidatedSmsConsent,
+  };
 }

@@ -21,6 +21,7 @@ import {
   TextField,
   Tooltip,
   Typography,
+  Alert,
 } from '@mui/material';
 import { usePortalAuth } from '../PortalAuthContext';
 import { useLanguage } from '../LanguageContext';
@@ -44,6 +45,11 @@ import StatusAlertSlot from './StatusAlertSlot';
 import PortalProfileFlowMatrix from './PortalProfileFlowMatrix';
 import { PROFILE_PHOTO_OUTPUT_MAX_BYTES } from '../profilePhotoConstants.js';
 import { maxImageBytesFromMeData, maxImageMbForDisplay } from '../attachmentUploadLimits.js';
+import { SMS_OPT_IN_SOURCE_WEB_PORTAL, SMS_OPT_IN_VERSION } from '../smsConsentConstants.js';
+
+function normalizePhoneForCompare(raw) {
+  return String(raw ?? '').replace(/[^\d+]/g, '').trim();
+}
 
 function validateProfileForm(form, t) {
   return validatePersonBasics(form, t, {
@@ -132,6 +138,15 @@ const PortalProfile = () => {
   const [saveError, setSaveError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [smsOptInConfirmOpen, setSmsOptInConfirmOpen] = useState(false);
+  /**
+   * True after the user confirmed the compliance dialog in the current edit
+   * session. Cleared on successful save (the server has already recorded the
+   * consent audit row). Also cleared whenever the user disables the toggle
+   * or cancels the dialog. Forms the `sms_opt_in_consent` block sent to the
+   * backend on save.
+   */
+  const [smsConsentPending, setSmsConsentPending] = useState(false);
+  const [phoneChangeResetNotice, setPhoneChangeResetNotice] = useState(false);
   const smsNotificationsAllowed = meData?.user?.sms_notifications_allowed !== false;
   const [removePhotoConfirmOpen, setRemovePhotoConfirmOpen] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
@@ -270,7 +285,35 @@ const PortalProfile = () => {
   useEffect(() => {
     setForm(initialForm);
     setFieldErrors({});
+    setSmsConsentPending(false);
+    setPhoneChangeResetNotice(false);
   }, [initialForm]);
+
+  // If the user was already opted-in (per DB) and edits the phone field to a
+  // different number, invalidate the stored consent locally and require a
+  // fresh consent capture before re-enabling SMS. Safest-behavior per
+  // CTIA/Telnyx: consent is tied to a specific number.
+  const phoneChangedFromInitial =
+    normalizePhoneForCompare(form.phone) !== normalizePhoneForCompare(initialForm.phone);
+  useEffect(() => {
+    if (
+      phoneChangedFromInitial
+      && initialForm.notificationsSmsOptIn
+      && form.notificationsSmsEnabled
+    ) {
+      setForm((prev) => ({
+        ...prev,
+        notificationsSmsEnabled: false,
+        notificationsSmsOptIn: false,
+      }));
+      setSmsConsentPending(false);
+      setPhoneChangeResetNotice(true);
+    }
+  }, [
+    phoneChangedFromInitial,
+    initialForm.notificationsSmsOptIn,
+    form.notificationsSmsEnabled,
+  ]);
 
   useEffect(() => {
     setFlowOverrides(initialFlowOverrides);
@@ -345,6 +388,7 @@ const PortalProfile = () => {
           notificationsSmsEnabled: false,
           notificationsSmsOptIn: false,
         }));
+        setSmsConsentPending(false);
       }
       setSaveStatus('idle');
       setSaveError('');
@@ -360,11 +404,19 @@ const PortalProfile = () => {
       notificationsSmsEnabled: true,
       notificationsSmsOptIn: true,
     }));
+    setSmsConsentPending(true);
     setSaveStatus('idle');
     setSaveError('');
     setSmsOptInConfirmOpen(false);
   };
   const cancelSmsOptIn = () => {
+    // Revert toggle to off and drop any pending consent capture.
+    setForm((prev) => ({
+      ...prev,
+      notificationsSmsEnabled: false,
+      notificationsSmsOptIn: false,
+    }));
+    setSmsConsentPending(false);
     setSmsOptInConfirmOpen(false);
   };
 
@@ -450,6 +502,18 @@ const PortalProfile = () => {
           });
         }
       }
+      // Only send the explicit consent capture when the user has just
+      // confirmed the compliance dialog in this edit session. The backend
+      // enforces that opt-in is only newly recorded when this block is
+      // present alongside sms_opt_in=true.
+      const smsOptInConsent = smsConsentPending
+        ? {
+            confirmed: true,
+            source: SMS_OPT_IN_SOURCE_WEB_PORTAL,
+            version: SMS_OPT_IN_VERSION,
+          }
+        : undefined;
+
       const payload = await patchProfile(baseUrl, token, {
         emailHint,
         email: normalizedEmail,
@@ -463,6 +527,7 @@ const PortalProfile = () => {
           sms_opt_in: tierAllowsSms && form.notificationsSmsOptIn,
         },
         notification_flow_preferences: flowPayload,
+        ...(smsOptInConsent ? { sms_opt_in_consent: smsOptInConsent } : {}),
       });
       const savedUser = payload && typeof payload === 'object' ? payload.user : null;
       const savedPreferences = payload && typeof payload === 'object'
@@ -508,6 +573,8 @@ const PortalProfile = () => {
         });
       }
       setSaveStatus('success');
+      setSmsConsentPending(false);
+      setPhoneChangeResetNotice(Boolean(payload?.sms_consent?.phone_change_reset));
       refreshMe({ force: true });
 
       // Apply pending language/theme to context + localStorage now that Save succeeded.
@@ -856,6 +923,66 @@ const PortalProfile = () => {
                         />
                       </Box>
                     </Tooltip>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ pl: 6, mt: -0.5 }}
+                    >
+                      {t('portalProfile.fields.notificationsSmsDescription')}
+                    </Typography>
+                    {!smsNotificationsAllowed && (
+                      <Typography variant="caption" color="text.secondary" sx={{ pl: 6 }}>
+                        {t('portalProfile.sms.statusUnavailable')}
+                      </Typography>
+                    )}
+                    {smsNotificationsAllowed && (
+                      <Typography variant="caption" color="text.secondary" sx={{ pl: 6 }}>
+                        {form.notificationsSmsOptIn
+                          ? t('portalProfile.sms.statusOptedIn')
+                          : t('portalProfile.sms.statusOptedOut')}
+                      </Typography>
+                    )}
+                    {smsConsentPending && (
+                      <Typography variant="caption" color="warning.main" sx={{ pl: 6 }}>
+                        {t('portalProfile.sms.pendingConsent')}
+                      </Typography>
+                    )}
+                    {phoneChangeResetNotice && (
+                      <Alert severity="info" sx={{ mt: 1 }}>
+                        {t('portalProfile.sms.phoneChangeReset')}
+                      </Alert>
+                    )}
+                  </Box>
+                  <Box
+                    component="section"
+                    aria-label={t('portalProfile.sms.disclosureHeading')}
+                    sx={{
+                      mt: 1.5,
+                      p: 2,
+                      borderRadius: 1,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      bgcolor: 'background.default',
+                    }}
+                  >
+                    <Typography variant="subtitle2" color="text.primary" gutterBottom>
+                      {t('portalProfile.sms.disclosureHeading')}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" paragraph>
+                      {t('portalProfile.sms.disclosurePara1')}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" paragraph>
+                      {t('portalProfile.sms.disclosurePara2')}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" paragraph>
+                      {t('portalProfile.sms.disclosurePara3')}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" paragraph sx={{ mb: 1 }}>
+                      {t('portalProfile.sms.disclosurePara4')}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" component="p">
+                      {t('portalProfile.sms.helpText')}
+                    </Typography>
                   </Box>
                 </Stack>
 
@@ -951,6 +1078,8 @@ const PortalProfile = () => {
         open={smsOptInConfirmOpen}
         onClose={cancelSmsOptIn}
         aria-labelledby="portal-profile-sms-optin-title"
+        maxWidth="sm"
+        fullWidth
       >
         <DialogTitle id="portal-profile-sms-optin-title">
           {t('portalProfile.smsOptInConfirm.title')}
@@ -958,7 +1087,16 @@ const PortalProfile = () => {
         <DialogContent>
           <Stack spacing={1.5}>
             <Typography variant="body2">
-              {t('portalProfile.smsOptInConfirm.body')}
+              {t('portalProfile.smsOptInConfirm.disclosurePara1')}
+            </Typography>
+            <Typography variant="body2">
+              {t('portalProfile.smsOptInConfirm.disclosurePara2')}
+            </Typography>
+            <Typography variant="body2">
+              {t('portalProfile.smsOptInConfirm.disclosurePara3')}
+            </Typography>
+            <Typography variant="body2">
+              {t('portalProfile.smsOptInConfirm.disclosurePara4')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               {t('portalProfile.smsOptInConfirm.saveReminder')}

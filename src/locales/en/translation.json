@@ -1162,8 +1162,8 @@
       "send": "Send test email"
     },
     "sms": {
-      "heading": "Test SMS",
-      "hint": "Use E.164 format (leading + and country code). Queues an SMS delivery row for your messaging provider.",
+      "heading": "Test SMS (internal / admin-only)",
+      "hint": "Use E.164 format (leading + and country code). Queues an SMS delivery row for your messaging provider. Outgoing body is automatically branded with \"Carwoods:\" and is not a marketing message — only send to phone numbers that have explicitly opted in for testing.",
       "phoneLabel": "Phone number (E.164)",
       "send": "Send test SMS"
     },
@@ -1295,11 +1295,25 @@
       "notificationsHeading": "Notification preferences",
       "notificationsEmail": "Email notifications",
       "notificationsInApp": "In-app notifications",
-      "notificationsSms": "SMS notifications (I explicitly opt in to SMS notifications)",
+      "notificationsSms": "Enable SMS Notifications from Carwoods",
+      "notificationsSmsDescription": "Receive account-related alerts such as maintenance updates, lease notices, and account activity.",
       "notificationsSmsOptIn": "I explicitly opt in to SMS notifications",
       "appearanceHeading": "Appearance preferences",
       "language": "Language",
       "colorTheme": "Color theme"
+    },
+    "sms": {
+      "disclosureHeading": "SMS notification terms",
+      "disclosurePara1": "By enabling SMS notifications, you agree to receive transactional text messages from Carwoods related to your account, including maintenance updates, lease notices, and account alerts.",
+      "disclosurePara2": "Message frequency varies. Message and data rates may apply.",
+      "disclosurePara3": "Reply STOP to opt out at any time. Reply HELP for help.",
+      "disclosurePara4": "Consent is not a condition of purchase. Messages are only sent based on your activity and notification settings.",
+      "helpText": "Carwoods: For help, reply HELP or contact support@carwoods.com. Log in to your account to manage notification settings: https://carwoods.com/portal/profile. Message frequency varies. Message and data rates may apply.",
+      "statusOptedIn": "SMS notifications are on. Reply STOP at any time to opt out.",
+      "statusOptedOut": "SMS notifications are off.",
+      "statusUnavailable": "SMS notifications are not available on your current plan.",
+      "pendingConsent": "Consent will be saved when you click Save profile.",
+      "phoneChangeReset": "Your phone number changed, so your SMS opt-in was reset. Re-enable SMS notifications below to opt in again with your new number."
     },
     "languages": {
       "system": "Use device setting",
@@ -1314,11 +1328,14 @@
       "dark": "Dark"
     },
     "smsOptInConfirm": {
-      "title": "Confirm SMS notification opt-in",
-      "body": "Do you affirm that you explicitly opt in to SMS notifications for portal activity?",
+      "title": "Enable SMS Notifications from Carwoods",
+      "disclosurePara1": "By enabling SMS notifications, you agree to receive transactional text messages from Carwoods related to your account, including maintenance updates, lease notices, and account alerts.",
+      "disclosurePara2": "Message frequency varies. Message and data rates may apply.",
+      "disclosurePara3": "Reply STOP to opt out at any time. Reply HELP for help.",
+      "disclosurePara4": "Consent is not a condition of purchase. Messages are only sent based on your activity and notification settings.",
       "saveReminder": "This choice is not saved to your account until you click Save profile at the bottom of this page.",
       "cancel": "Cancel",
-      "confirm": "Yes, I opt in"
+      "confirm": "Enable & Save"
     },
     "unsavedChanges": {
       "title": "Leave profile without saving?",
