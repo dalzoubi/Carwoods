@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Visual regression gallery — Carwoods</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --text: #e7ecf3;
+      --muted: #9aa8bc;
+      --accent: #6cb4ee;
+      --border: #2d3a4d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .page-head {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: 1.25rem 1.5rem;
+      background: linear-gradient(180deg, var(--surface) 0%, rgba(26,35,50,0.97) 100%);
+      border-bottom: 1px solid var(--border);
+    }
+    .page-head h1 {
+      margin: 0 0 0.35rem;
+      font-size: 1.35rem;
+      font-weight: 650;
+    }
+    .page-head .meta {
+      margin: 0;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+    .page-head .meta-second {
+      margin-top: 0.5rem;
+      font-size: 0.8125rem;
+    }
+    main {
+      padding: 1rem 1.25rem 3rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    section.suite {
+      margin-bottom: 2.5rem;
+    }
+    section.suite > h2 {
+      margin: 0 0 0.25rem;
+      font-size: 1.15rem;
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.35rem;
+    }
+    .suite-meta {
+      margin: 0 0 1rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    article.shot {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 1.25rem;
+      overflow: hidden;
+    }
+    .shot-head {
+      padding: 1rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .shot-head h3 {
+      margin: 0 0 0.35rem;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .shot-head .sub {
+      margin: 0 0 0.5rem;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+    .shot-head .file {
+      margin: 0;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .shot-head code {
+      font-size: 0.75rem;
+      word-break: break-all;
+    }
+    .shot-img-wrap {
+      padding: 0.75rem;
+      background: #0b0f14;
+      overflow: auto;
+      text-align: center;
+    }
+    .shot-img-wrap img {
+      max-width: 100%;
+      height: auto;
+      vertical-align: middle;
+      border-radius: 6px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    }
+    article.shot-mismatch {
+      border-color: #8b7355;
+      box-shadow: 0 0 0 1px rgba(212, 165, 116, 0.25);
+    }
+    .compare-badge {
+      margin: 0.6rem 0 0;
+      font-size: 0.8rem;
+      color: #e8c49a;
+    }
+    .compare-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+      padding: 0.75rem;
+      background: #0b0f14;
+      align-items: start;
+    }
+    .compare-cell h4 {
+      margin: 0 0 0.5rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .compare-img {
+      overflow: auto;
+      text-align: center;
+      padding: 0.35rem;
+      background: rgba(0,0,0,0.25);
+      border-radius: 8px;
+    }
+    .compare-img img {
+      max-width: 100%;
+      height: auto;
+      vertical-align: middle;
+      border-radius: 6px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    }
+    .compare-diff .compare-img {
+      background: rgba(255, 80, 80, 0.06);
+    }
+  </style>
+</head>
+<body>
+  <header class="page-head">
+    <h1>Visual regression gallery</h1>
+    <p class="meta">118 baseline screenshots · Generated 2026-04-20T02:25:13.152Z · Save as <code>e2e/visual/visual-gallery.html</code> and open locally (paths stay under <code>e2e/visual/</code> so images load over <code>file://</code>).</p>
+    <p class="meta meta-second">45 baselines include a last-run capture from test-results/ (before · after · diff).</p>
+  </header>
+  <main>
+  <section class="suite">
+    <h2>Admin / guard screens</h2>
+    <p class="suite-meta">admin.visual.spec.mjs-snapshots</p>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Admin portal · Admin Config · desktop</h3>
+        <p class="sub">Landlord dev-auth · `/portal/admin/config` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>admin-admin-config-desktop-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./admin.visual.spec.mjs-snapshots/admin-admin-config-desktop-visual-chromium.png" alt="Baseline: Admin portal · Admin Config · desktop" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/admin-admin-config-desktop-actual.png" alt="Actual: Admin portal · Admin Config · desktop" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Admin portal · Admin Config · mobile</h3>
+        <p class="sub">Landlord dev-auth · `/portal/admin/config` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>admin-admin-config-mobile-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./admin.visual.spec.mjs-snapshots/admin-admin-config-mobile-visual-chromium.png" alt="Baseline: Admin portal · Admin Config · mobile" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/admin-admin-config-mobile-actual.png" alt="Actual: Admin portal · Admin Config · mobile" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Admin portal · Admin Config · tablet</h3>
+        <p class="sub">Landlord dev-auth · `/portal/admin/config` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>admin-admin-config-tablet-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./admin.visual.spec.mjs-snapshots/admin-admin-config-tablet-visual-chromium.png" alt="Baseline: Admin portal · Admin Config · tablet" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/admin-admin-config-tablet-actual.png" alt="Actual: Admin portal · Admin Config · tablet" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Admin portal · Admin Landlords Guard · desktop</h3>
+        <p class="sub">Landlord dev-auth · `/portal/admin/landlords` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>admin-admin-landlords-guard-desktop-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./admin.visual.spec.mjs-snapshots/admin-admin-landlords-guard-desktop-visual-chromium.png" alt="Baseline: Admin portal · Admin Landlords Guard · desktop" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/admin-admin-landlords-guard-desktop-actual.png" alt="Actual: Admin portal · Admin Landlords Guard · desktop" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Admin portal · Admin Landlords Guard · mobile</h3>
+        <p class="sub">Landlord dev-auth · `/portal/admin/landlords` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>admin-admin-landlords-guard-mobile-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./admin.visual.spec.mjs-snapshots/admin-admin-landlords-guard-mobile-visual-chromium.png" alt="Baseline: Admin portal · Admin Landlords Guard · mobile" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/admin-admin-landlords-guard-mobile-actual.png" alt="Actual: Admin portal · Admin Landlords Guard · mobile" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Admin portal · Admin Landlords Guard · tablet</h3>
+        <p class="sub">Landlord dev-auth · `/portal/admin/landlords` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>admin-admin-landlords-guard-tablet-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./admin.visual.spec.mjs-snapshots/admin-admin-landlords-guard-tablet-visual-chromium.png" alt="Baseline: Admin portal · Admin Landlords Guard · tablet" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/admin-admin-landlords-guard-tablet-actual.png" alt="Actual: Admin portal · Admin Landlords Guard · tablet" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Admin portal · Admin Notification Test Guard · desktop</h3>
+        <p class="sub">Landlord dev-auth · `/portal/admin/health/notification-test` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>admin-admin-notification-test-guard-desktop-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./admin.visual.spec.mjs-snapshots/admin-admin-notification-test-guard-desktop-visual-chromium.png" alt="Baseline: Admin portal · Admin Notification Test Guard · desktop" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/admin-admin-notification-test-guard-desktop-actual.png" alt="Actual: Admin portal · Admin Notification Test Guard · desktop" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Admin portal · Admin Notification Test Guard · mobile</h3>
+        <p class="sub">Landlord dev-auth · `/portal/admin/health/notification-test` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>admin-admin-notification-test-guard-mobile-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./admin.visual.spec.mjs-snapshots/admin-admin-notification-test-guard-mobile-visual-chromium.png" alt="Baseline: Admin portal · Admin Notification Test Guard · mobile" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/admin-admin-notification-test-guard-mobile-actual.png" alt="Actual: Admin portal · Admin Notification Test Guard · mobile" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Admin portal · Admin Notification Test Guard · tablet</h3>
+        <p class="sub">Landlord dev-auth · `/portal/admin/health/notification-test` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>admin-admin-notification-test-guard-tablet-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./admin.visual.spec.mjs-snapshots/admin-admin-notification-test-guard-tablet-visual-chromium.png" alt="Baseline: Admin portal · Admin Notification Test Guard · tablet" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/admin-admin-notification-test-guard-tablet-actual.png" alt="Actual: Admin portal · Admin Notification Test Guard · tablet" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+  <section class="suite">
+    <h2>Marketing site (public routes)</h2>
+    <p class="suite-meta">marketing.visual.spec.mjs-snapshots</p>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Accessibility · desktop</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/accessibility` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-accessibility-dark-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-accessibility-dark-desktop-visual-chromium.png" alt="Marketing · Accessibility · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Accessibility · mobile</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/accessibility` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-accessibility-dark-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-accessibility-dark-mobile-visual-chromium.png" alt="Marketing · Accessibility · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Accessibility · tablet</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/accessibility` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-accessibility-dark-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-accessibility-dark-tablet-visual-chromium.png" alt="Marketing · Accessibility · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Accessibility · desktop</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/accessibility` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-accessibility-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-accessibility-desktop-visual-chromium.png" alt="Marketing · Accessibility · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Accessibility · mobile</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/accessibility` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-accessibility-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-accessibility-mobile-visual-chromium.png" alt="Marketing · Accessibility · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Accessibility · tablet</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/accessibility` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-accessibility-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-accessibility-tablet-visual-chromium.png" alt="Marketing · Accessibility · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Application Required Documents · desktop</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/application-required-documents` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-application-required-documents-dark-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-application-required-documents-dark-desktop-visual-chromium.png" alt="Marketing · Application Required Documents · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Application Required Documents · mobile</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/application-required-documents` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-application-required-documents-dark-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-application-required-documents-dark-mobile-visual-chromium.png" alt="Marketing · Application Required Documents · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Application Required Documents · tablet</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/application-required-documents` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-application-required-documents-dark-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-application-required-documents-dark-tablet-visual-chromium.png" alt="Marketing · Application Required Documents · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Application Required Documents · desktop</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/application-required-documents` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-application-required-documents-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-application-required-documents-desktop-visual-chromium.png" alt="Marketing · Application Required Documents · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Application Required Documents · mobile</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/application-required-documents` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-application-required-documents-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-application-required-documents-mobile-visual-chromium.png" alt="Marketing · Application Required Documents · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Application Required Documents · tablet</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/application-required-documents` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-application-required-documents-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-application-required-documents-tablet-visual-chromium.png" alt="Marketing · Application Required Documents · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Apply · desktop</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/apply` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-apply-dark-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-apply-dark-desktop-visual-chromium.png" alt="Marketing · Apply · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Apply · mobile</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/apply` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-apply-dark-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-apply-dark-mobile-visual-chromium.png" alt="Marketing · Apply · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Apply · tablet</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/apply` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-apply-dark-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-apply-dark-tablet-visual-chromium.png" alt="Marketing · Apply · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Apply · desktop</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/apply` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-apply-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-apply-desktop-visual-chromium.png" alt="Marketing · Apply · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Apply · mobile</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/apply` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-apply-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-apply-mobile-visual-chromium.png" alt="Marketing · Apply · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Apply · tablet</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/apply` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-apply-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-apply-tablet-visual-chromium.png" alt="Marketing · Apply · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Contact Us · desktop</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/contact-us` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-contact-us-dark-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-contact-us-dark-desktop-visual-chromium.png" alt="Marketing · Contact Us · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Contact Us · mobile</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/contact-us` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-contact-us-dark-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-contact-us-dark-mobile-visual-chromium.png" alt="Marketing · Contact Us · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Contact Us · tablet</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/contact-us` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-contact-us-dark-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-contact-us-dark-tablet-visual-chromium.png" alt="Marketing · Contact Us · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Contact Us · desktop</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/contact-us` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-contact-us-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-contact-us-desktop-visual-chromium.png" alt="Marketing · Contact Us · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Contact Us · mobile</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/contact-us` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-contact-us-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-contact-us-mobile-visual-chromium.png" alt="Marketing · Contact Us · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Contact Us · tablet</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/contact-us` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-contact-us-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-contact-us-tablet-visual-chromium.png" alt="Marketing · Contact Us · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Features · desktop</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/features` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-features-dark-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-features-dark-desktop-visual-chromium.png" alt="Marketing · Features · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Features · mobile</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/features` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-features-dark-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-features-dark-mobile-visual-chromium.png" alt="Marketing · Features · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Features · tablet</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/features` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-features-dark-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-features-dark-tablet-visual-chromium.png" alt="Marketing · Features · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Features · desktop</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/features` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-features-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-features-desktop-visual-chromium.png" alt="Marketing · Features · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Features · mobile</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/features` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-features-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-features-mobile-visual-chromium.png" alt="Marketing · Features · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Features · tablet</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/features` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-features-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-features-tablet-visual-chromium.png" alt="Marketing · Features · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · For Property Managers · desktop</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/for-property-managers` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-for-property-managers-dark-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-for-property-managers-dark-desktop-visual-chromium.png" alt="Marketing · For Property Managers · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · For Property Managers · mobile</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/for-property-managers` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-for-property-managers-dark-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-for-property-managers-dark-mobile-visual-chromium.png" alt="Marketing · For Property Managers · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · For Property Managers · tablet</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/for-property-managers` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-for-property-managers-dark-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-for-property-managers-dark-tablet-visual-chromium.png" alt="Marketing · For Property Managers · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · For Property Managers · desktop</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/for-property-managers` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-for-property-managers-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-for-property-managers-desktop-visual-chromium.png" alt="Marketing · For Property Managers · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · For Property Managers · mobile</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/for-property-managers` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-for-property-managers-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-for-property-managers-mobile-visual-chromium.png" alt="Marketing · For Property Managers · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · For Property Managers · tablet</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/for-property-managers` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-for-property-managers-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-for-property-managers-tablet-visual-chromium.png" alt="Marketing · For Property Managers · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Home · desktop</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-home-dark-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-home-dark-desktop-visual-chromium.png" alt="Marketing · Home · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Home · mobile</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-home-dark-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-home-dark-mobile-visual-chromium.png" alt="Marketing · Home · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Home · tablet</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-home-dark-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-home-dark-tablet-visual-chromium.png" alt="Marketing · Home · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Home · desktop</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-home-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-home-desktop-visual-chromium.png" alt="Marketing · Home · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Home · mobile</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-home-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-home-mobile-visual-chromium.png" alt="Marketing · Home · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Home · tablet</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-home-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-home-tablet-visual-chromium.png" alt="Marketing · Home · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Pricing · desktop</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/pricing` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-pricing-dark-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-pricing-dark-desktop-visual-chromium.png" alt="Marketing · Pricing · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Pricing · mobile</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/pricing` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-pricing-dark-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-pricing-dark-mobile-visual-chromium.png" alt="Marketing · Pricing · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Pricing · tablet</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/pricing` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-pricing-dark-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-pricing-dark-tablet-visual-chromium.png" alt="Marketing · Pricing · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Pricing · desktop</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/pricing` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-pricing-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-pricing-desktop-visual-chromium.png" alt="Marketing · Pricing · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Pricing · mobile</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/pricing` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-pricing-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-pricing-mobile-visual-chromium.png" alt="Marketing · Pricing · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Pricing · tablet</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/pricing` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-pricing-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-pricing-tablet-visual-chromium.png" alt="Marketing · Pricing · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Privacy · desktop</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/privacy` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-privacy-dark-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-privacy-dark-desktop-visual-chromium.png" alt="Marketing · Privacy · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Privacy · mobile</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/privacy` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-privacy-dark-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-privacy-dark-mobile-visual-chromium.png" alt="Marketing · Privacy · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Privacy · tablet</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/privacy` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-privacy-dark-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-privacy-dark-tablet-visual-chromium.png" alt="Marketing · Privacy · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Privacy · desktop</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/privacy` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-privacy-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-privacy-desktop-visual-chromium.png" alt="Marketing · Privacy · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Privacy · mobile</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/privacy` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-privacy-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-privacy-mobile-visual-chromium.png" alt="Marketing · Privacy · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Privacy · tablet</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/privacy` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-privacy-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-privacy-tablet-visual-chromium.png" alt="Marketing · Privacy · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Property Management · desktop</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/property-management` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-property-management-dark-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-property-management-dark-desktop-visual-chromium.png" alt="Marketing · Property Management · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Property Management · mobile</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/property-management` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-property-management-dark-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-property-management-dark-mobile-visual-chromium.png" alt="Marketing · Property Management · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Property Management · tablet</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/property-management` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-property-management-dark-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-property-management-dark-tablet-visual-chromium.png" alt="Marketing · Property Management · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Property Management · desktop</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/property-management` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-property-management-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-property-management-desktop-visual-chromium.png" alt="Marketing · Property Management · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Property Management · mobile</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/property-management` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-property-management-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-property-management-mobile-visual-chromium.png" alt="Marketing · Property Management · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Property Management · tablet</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/property-management` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-property-management-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-property-management-tablet-visual-chromium.png" alt="Marketing · Property Management · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Tenant Selection Criteria · desktop</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/tenant-selection-criteria` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-tenant-selection-criteria-dark-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-tenant-selection-criteria-dark-desktop-visual-chromium.png" alt="Marketing · Tenant Selection Criteria · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Tenant Selection Criteria · mobile</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/tenant-selection-criteria` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-tenant-selection-criteria-dark-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-tenant-selection-criteria-dark-mobile-visual-chromium.png" alt="Marketing · Tenant Selection Criteria · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Tenant Selection Criteria · tablet</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/tenant-selection-criteria` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-tenant-selection-criteria-dark-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-tenant-selection-criteria-dark-tablet-visual-chromium.png" alt="Marketing · Tenant Selection Criteria · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Tenant Selection Criteria · desktop</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/tenant-selection-criteria` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-tenant-selection-criteria-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-tenant-selection-criteria-desktop-visual-chromium.png" alt="Marketing · Tenant Selection Criteria · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Tenant Selection Criteria · mobile</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/tenant-selection-criteria` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-tenant-selection-criteria-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-tenant-selection-criteria-mobile-visual-chromium.png" alt="Marketing · Tenant Selection Criteria · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Tenant Selection Criteria · tablet</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/tenant-selection-criteria` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-tenant-selection-criteria-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-tenant-selection-criteria-tablet-visual-chromium.png" alt="Marketing · Tenant Selection Criteria · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Terms Of Service · desktop</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/terms-of-service` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-terms-of-service-dark-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-terms-of-service-dark-desktop-visual-chromium.png" alt="Marketing · Terms Of Service · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Terms Of Service · mobile</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/terms-of-service` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-terms-of-service-dark-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-terms-of-service-dark-mobile-visual-chromium.png" alt="Marketing · Terms Of Service · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Terms Of Service · tablet</h3>
+        <p class="sub">Dark preview (`/dark/…`) · Full-page screenshot · Route `/terms-of-service` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-terms-of-service-dark-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-terms-of-service-dark-tablet-visual-chromium.png" alt="Marketing · Terms Of Service · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Terms Of Service · desktop</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/terms-of-service` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>marketing-terms-of-service-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-terms-of-service-desktop-visual-chromium.png" alt="Marketing · Terms Of Service · desktop" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Terms Of Service · mobile</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/terms-of-service` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>marketing-terms-of-service-mobile-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-terms-of-service-mobile-visual-chromium.png" alt="Marketing · Terms Of Service · mobile" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Marketing · Terms Of Service · tablet</h3>
+        <p class="sub">Light · Full-page screenshot · Route `/terms-of-service` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>marketing-terms-of-service-tablet-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/marketing-terms-of-service-tablet-visual-chromium.png" alt="Marketing · Terms Of Service · tablet" loading="lazy" />
+      </div>
+    </article>
+    <article class="shot">
+      <header class="shot-head">
+        <h3>Sanity — Home (desktop)</h3>
+        <p class="sub">Light mode · Full-page capture · Route `/` — ensures the marketing suite still produces at least one desktop baseline.</p>
+        <p class="file"><code>sanity-home-desktop-visual-chromium.png</code></p>
+      </header>
+      <div class="shot-img-wrap">
+        <img src="./marketing.visual.spec.mjs-snapshots/sanity-home-desktop-visual-chromium.png" alt="Sanity — Home (desktop)" loading="lazy" />
+      </div>
+    </article>
+  </section>
+  <section class="suite">
+    <h2>Tenant portal (authenticated)</h2>
+    <p class="suite-meta">portal.visual.spec.mjs-snapshots</p>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Dashboard · desktop</h3>
+        <p class="sub">PORTAL_E2E build · `/portal` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>portal-dashboard-desktop-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-dashboard-desktop-visual-chromium.png" alt="Baseline: Tenant portal · Dashboard · desktop" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-dashboard-desktop-actual.png" alt="Actual: Tenant portal · Dashboard · desktop" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Dashboard · mobile</h3>
+        <p class="sub">PORTAL_E2E build · `/portal` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>portal-dashboard-mobile-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-dashboard-mobile-visual-chromium.png" alt="Baseline: Tenant portal · Dashboard · mobile" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-dashboard-mobile-actual.png" alt="Actual: Tenant portal · Dashboard · mobile" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Dashboard · tablet</h3>
+        <p class="sub">PORTAL_E2E build · `/portal` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>portal-dashboard-tablet-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-dashboard-tablet-visual-chromium.png" alt="Baseline: Tenant portal · Dashboard · tablet" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-dashboard-tablet-actual.png" alt="Actual: Tenant portal · Dashboard · tablet" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Documents · desktop</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/documents` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>portal-documents-desktop-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-documents-desktop-visual-chromium.png" alt="Baseline: Tenant portal · Documents · desktop" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-documents-desktop-actual.png" alt="Actual: Tenant portal · Documents · desktop" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Documents · mobile</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/documents` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>portal-documents-mobile-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-documents-mobile-visual-chromium.png" alt="Baseline: Tenant portal · Documents · mobile" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-documents-mobile-actual.png" alt="Actual: Tenant portal · Documents · mobile" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Documents · tablet</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/documents` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>portal-documents-tablet-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-documents-tablet-visual-chromium.png" alt="Baseline: Tenant portal · Documents · tablet" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-documents-tablet-actual.png" alt="Actual: Tenant portal · Documents · tablet" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Inbox · desktop</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/inbox` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>portal-inbox-desktop-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-inbox-desktop-visual-chromium.png" alt="Baseline: Tenant portal · Inbox · desktop" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-inbox-desktop-actual.png" alt="Actual: Tenant portal · Inbox · desktop" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Inbox · mobile</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/inbox` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>portal-inbox-mobile-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-inbox-mobile-visual-chromium.png" alt="Baseline: Tenant portal · Inbox · mobile" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-inbox-mobile-actual.png" alt="Actual: Tenant portal · Inbox · mobile" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Inbox Notifications · desktop</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/inbox/notifications` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>portal-inbox-notifications-desktop-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-inbox-notifications-desktop-visual-chromium.png" alt="Baseline: Tenant portal · Inbox Notifications · desktop" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-inbox-notifications-desktop-actual.png" alt="Actual: Tenant portal · Inbox Notifications · desktop" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Inbox Notifications · mobile</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/inbox/notifications` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>portal-inbox-notifications-mobile-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-inbox-notifications-mobile-visual-chromium.png" alt="Baseline: Tenant portal · Inbox Notifications · mobile" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-inbox-notifications-mobile-actual.png" alt="Actual: Tenant portal · Inbox Notifications · mobile" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Inbox Notifications · tablet</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/inbox/notifications` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>portal-inbox-notifications-tablet-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-inbox-notifications-tablet-visual-chromium.png" alt="Baseline: Tenant portal · Inbox Notifications · tablet" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-inbox-notifications-tablet-actual.png" alt="Actual: Tenant portal · Inbox Notifications · tablet" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Inbox · tablet</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/inbox` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>portal-inbox-tablet-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-inbox-tablet-visual-chromium.png" alt="Baseline: Tenant portal · Inbox · tablet" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-inbox-tablet-actual.png" alt="Actual: Tenant portal · Inbox · tablet" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Login Landing · desktop</h3>
+        <p class="sub">PORTAL_E2E build · `/portal (login landing — session cleared)` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>portal-login-landing-desktop-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-login-landing-desktop-visual-chromium.png" alt="Baseline: Tenant portal · Login Landing · desktop" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-login-landing-desktop-actual.png" alt="Actual: Tenant portal · Login Landing · desktop" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Login Landing · mobile</h3>
+        <p class="sub">PORTAL_E2E build · `/portal (login landing — session cleared)` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>portal-login-landing-mobile-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-login-landing-mobile-visual-chromium.png" alt="Baseline: Tenant portal · Login Landing · mobile" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-login-landing-mobile-actual.png" alt="Actual: Tenant portal · Login Landing · mobile" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Login Landing · tablet</h3>
+        <p class="sub">PORTAL_E2E build · `/portal (login landing — session cleared)` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>portal-login-landing-tablet-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-login-landing-tablet-visual-chromium.png" alt="Baseline: Tenant portal · Login Landing · tablet" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-login-landing-tablet-actual.png" alt="Actual: Tenant portal · Login Landing · tablet" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Notices · desktop</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/notices` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>portal-notices-desktop-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-notices-desktop-visual-chromium.png" alt="Baseline: Tenant portal · Notices · desktop" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-notices-desktop-actual.png" alt="Actual: Tenant portal · Notices · desktop" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Notices · mobile</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/notices` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>portal-notices-mobile-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-notices-mobile-visual-chromium.png" alt="Baseline: Tenant portal · Notices · mobile" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-notices-mobile-actual.png" alt="Actual: Tenant portal · Notices · mobile" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Notices · tablet</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/notices` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>portal-notices-tablet-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-notices-tablet-visual-chromium.png" alt="Baseline: Tenant portal · Notices · tablet" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-notices-tablet-actual.png" alt="Actual: Tenant portal · Notices · tablet" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Payments · desktop</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/payments` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>portal-payments-desktop-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-payments-desktop-visual-chromium.png" alt="Baseline: Tenant portal · Payments · desktop" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-payments-desktop-actual.png" alt="Actual: Tenant portal · Payments · desktop" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Payments · mobile</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/payments` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>portal-payments-mobile-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-payments-mobile-visual-chromium.png" alt="Baseline: Tenant portal · Payments · mobile" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-payments-mobile-actual.png" alt="Actual: Tenant portal · Payments · mobile" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Payments · tablet</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/payments` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>portal-payments-tablet-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-payments-tablet-visual-chromium.png" alt="Baseline: Tenant portal · Payments · tablet" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-payments-tablet-actual.png" alt="Actual: Tenant portal · Payments · tablet" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Profile · desktop</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/profile` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>portal-profile-desktop-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-profile-desktop-visual-chromium.png" alt="Baseline: Tenant portal · Profile · desktop" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-profile-desktop-actual.png" alt="Actual: Tenant portal · Profile · desktop" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Profile · mobile</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/profile` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>portal-profile-mobile-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-profile-mobile-visual-chromium.png" alt="Baseline: Tenant portal · Profile · mobile" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-profile-mobile-actual.png" alt="Actual: Tenant portal · Profile · mobile" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Profile · tablet</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/profile` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>portal-profile-tablet-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-profile-tablet-visual-chromium.png" alt="Baseline: Tenant portal · Profile · tablet" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-profile-tablet-actual.png" alt="Actual: Tenant portal · Profile · tablet" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Properties · desktop</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/properties` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>portal-properties-desktop-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-properties-desktop-visual-chromium.png" alt="Baseline: Tenant portal · Properties · desktop" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-properties-desktop-actual.png" alt="Actual: Tenant portal · Properties · desktop" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Properties · mobile</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/properties` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>portal-properties-mobile-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-properties-mobile-visual-chromium.png" alt="Baseline: Tenant portal · Properties · mobile" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-properties-mobile-actual.png" alt="Actual: Tenant portal · Properties · mobile" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Properties · tablet</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/properties` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>portal-properties-tablet-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-properties-tablet-visual-chromium.png" alt="Baseline: Tenant portal · Properties · tablet" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-properties-tablet-actual.png" alt="Actual: Tenant portal · Properties · tablet" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Requests · desktop</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/requests` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>portal-requests-desktop-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-requests-desktop-visual-chromium.png" alt="Baseline: Tenant portal · Requests · desktop" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-requests-desktop-actual.png" alt="Actual: Tenant portal · Requests · desktop" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Requests · mobile</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/requests` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>portal-requests-mobile-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-requests-mobile-visual-chromium.png" alt="Baseline: Tenant portal · Requests · mobile" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-requests-mobile-actual.png" alt="Actual: Tenant portal · Requests · mobile" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Requests · tablet</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/requests` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>portal-requests-tablet-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-requests-tablet-visual-chromium.png" alt="Baseline: Tenant portal · Requests · tablet" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-requests-tablet-actual.png" alt="Actual: Tenant portal · Requests · tablet" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Status · desktop</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/status` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>portal-status-desktop-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-status-desktop-visual-chromium.png" alt="Baseline: Tenant portal · Status · desktop" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-status-desktop-actual.png" alt="Actual: Tenant portal · Status · desktop" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Status · mobile</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/status` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>portal-status-mobile-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-status-mobile-visual-chromium.png" alt="Baseline: Tenant portal · Status · mobile" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-status-mobile-actual.png" alt="Actual: Tenant portal · Status · mobile" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Status · tablet</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/status` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>portal-status-tablet-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-status-tablet-visual-chromium.png" alt="Baseline: Tenant portal · Status · tablet" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-status-tablet-actual.png" alt="Actual: Tenant portal · Status · tablet" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Tenants · desktop</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/tenants` · Viewport desktop (1440 × 900)</p>
+        <p class="file"><code>portal-tenants-desktop-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-tenants-desktop-visual-chromium.png" alt="Baseline: Tenant portal · Tenants · desktop" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-tenants-desktop-actual.png" alt="Actual: Tenant portal · Tenants · desktop" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Tenants · mobile</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/tenants` · Viewport mobile (375 × 812)</p>
+        <p class="file"><code>portal-tenants-mobile-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-tenants-mobile-visual-chromium.png" alt="Baseline: Tenant portal · Tenants · mobile" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-tenants-mobile-actual.png" alt="Actual: Tenant portal · Tenants · mobile" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+    <article class="shot shot-mismatch">
+      <header class="shot-head">
+        <h3>Tenant portal · Tenants · tablet</h3>
+        <p class="sub">PORTAL_E2E build · `/portal/tenants` · Viewport tablet (768 × 1024)</p>
+        <p class="file"><code>portal-tenants-tablet-visual-chromium.png</code></p>
+        <p class="compare-badge">Last run differed — baseline vs captured below (copied from <code>test-results/</code> into <code>.gallery-runtime/</code>).</p>
+      </header>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Baseline (expected)</h4>
+          <div class="compare-img">
+            <img src="./portal.visual.spec.mjs-snapshots/portal-tenants-tablet-visual-chromium.png" alt="Baseline: Tenant portal · Tenants · tablet" loading="lazy" />
+          </div>
+        </div>
+        <div class="compare-cell">
+          <h4>Last run (actual)</h4>
+          <div class="compare-img">
+            <img src="./.gallery-runtime/portal-tenants-tablet-actual.png" alt="Actual: Tenant portal · Tenants · tablet" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  </main>
+</body>
+</html>
