@@ -112,6 +112,7 @@ const Features = () => {
         t('features.managerGets4'),
         t('features.managerGets5'),
         t('features.managerGets6'),
+        t('features.managerGets6OnlineRent'),
         t('features.managerGets7'),
     ];
 

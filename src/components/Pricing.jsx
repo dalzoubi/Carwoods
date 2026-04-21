@@ -292,12 +292,29 @@ const Pricing = () => {
     const starterFeatures = sharedFeatures.map((f) => ({ label: f.label, included: inclusion.starter[f.key] }));
     const proFeatures = sharedFeatures.map((f) => ({ label: f.label, included: inclusion.pro[f.key] }));
 
-    const featureRows = sharedFeatures.map((f) => ({
+    const featureRowsBase = sharedFeatures.map((f) => ({
         label: f.label,
         free: inclusion.free[f.key],
         starter: inclusion.starter[f.key],
         pro: inclusion.pro[f.key],
     }));
+
+    const onlineRentCollectionRow = {
+        label: t('pricing.featureOnlineRentCollection'),
+        free: t('pricing.comingSoonBadge'),
+        starter: t('pricing.comingSoonBadge'),
+        pro: t('pricing.comingSoonBadge'),
+    };
+
+    const paymentsIdx = sharedFeatures.findIndex((f) => f.key === 'featurePayments');
+    const featureRows =
+        paymentsIdx >= 0
+            ? [
+                  ...featureRowsBase.slice(0, paymentsIdx + 1),
+                  onlineRentCollectionRow,
+                  ...featureRowsBase.slice(paymentsIdx + 1),
+              ]
+            : [...featureRowsBase, onlineRentCollectionRow];
 
     const faqs = [
         { q: t('pricing.faq1Question'), a: t('pricing.faq1Answer') },
@@ -309,6 +326,7 @@ const Pricing = () => {
         { q: t('pricing.faq7Question'), a: t('pricing.faq7Answer') },
         { q: t('pricing.faq8Question'), a: t('pricing.faq8Answer') },
         { q: t('pricing.faq9Question'), a: t('pricing.faq9Answer') },
+        { q: t('pricing.faq10Question'), a: t('pricing.faq10Answer') },
     ];
 
     const renderCell = (val) => {
