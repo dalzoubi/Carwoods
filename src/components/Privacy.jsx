@@ -48,6 +48,11 @@ const Privacy = () => {
                 {t('privacy.notificationsBody')}
             </Paragraph>
 
+            <SubHeading>{t('privacy.mobileInformationHeading')}</SubHeading>
+            <Paragraph>
+                {t('privacy.mobileInformationBody')}
+            </Paragraph>
+
             <SubHeading>{t('privacy.aiHeading')}</SubHeading>
             <Paragraph>
                 {t('privacy.aiBody')}
