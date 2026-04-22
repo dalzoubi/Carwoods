@@ -1804,6 +1804,7 @@
       "applyUrl": "URL de candidature locative",
       "detailLines": "Lignes de détails (une par ligne, ex. «3 chambres»)",
       "showOnApplyPage": "Visible sur la page Apply",
+      "showOnApplyPageLockedHint": "La visibilité sur la page Candidature n'est pas disponible avec le plan actuel de ce propriétaire — cette propriété sera enregistrée comme masquée.",
       "photo": "Photo de la propriété",
       "photoUpload": "Télécharger une photo",
       "photoUrlLabel": "Ou saisir l'URL de la photo",
@@ -2821,6 +2822,12 @@
       "body": "Vous avez des modifications non enregistrées. Si vous fermez maintenant, elles seront perdues.",
       "discard": "Ignorer les modifications",
       "keepEditing": "Continuer la modification"
+    },
+    "reassignLandlord": {
+      "title": "Réaffecter cette propriété ?",
+      "body": "Vous changez le propriétaire de cette propriété de «&nbsp;{{from}}&nbsp;» à «&nbsp;{{to}}&nbsp;». La propriété, les limites du plan et la visibilité sur la page Candidature suivront le nouveau propriétaire.",
+      "confirm": "Réaffecter la propriété",
+      "cancel": "Conserver le propriétaire actuel"
     }
   },
   "skipToMain": "Aller au contenu principal",

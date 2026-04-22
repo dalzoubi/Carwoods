@@ -527,6 +527,12 @@ describe('PortalAdminProperties', () => {
     fireEvent.click(screen.getByRole('option', { name: /ravi ray/i }));
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
 
+    // Admin landlord reassignment now requires an explicit confirmation.
+    const reassignDialog = await screen.findByRole('dialog', { name: /reassign this property/i });
+    expect(within(reassignDialog).getByText(/lana lord/i)).toBeInTheDocument();
+    expect(within(reassignDialog).getByText(/ravi ray/i)).toBeInTheDocument();
+    fireEvent.click(within(reassignDialog).getByRole('button', { name: /reassign property/i }));
+
     await waitFor(() => {
       expect(propertiesApiClient.updatePropertyApi).toHaveBeenCalledWith(
         'https://api.carwoods.com',
@@ -539,6 +545,114 @@ describe('PortalAdminProperties', () => {
         })
       );
     });
+  });
+
+  it('admin can cancel the reassign confirmation and keep the original landlord', async () => {
+    mockAuthState.meData = {
+      role: 'ADMIN',
+      user: { first_name: 'Portal', last_name: 'Admin', role: 'ADMIN', status: 'ACTIVE' },
+    };
+    portalApiClient.fetchLandlords.mockResolvedValue({
+      landlords: [
+        { id: 'landlord-1', first_name: 'Lana', last_name: 'Lord', email: 'lana@example.com' },
+        { id: 'landlord-2', first_name: 'Ravi', last_name: 'Ray', email: 'ravi@example.com' },
+      ],
+    });
+    propertiesApiClient.listPropertiesApi.mockResolvedValue([
+      makeApiRow({
+        id: 'db-reassign-cancel-1',
+        street: '15 Cancel Ln',
+        landlord_user_id: 'landlord-1',
+        landlord_name: 'Lana Lord',
+        metadata: {
+          apply: {
+            addressLine: '15 Cancel Ln',
+            cityStateZip: 'Houston, TX 77004',
+            monthlyRentLabel: '',
+            photoUrl: '',
+            harListingUrl: '',
+            applyUrl: '',
+            detailLines: [],
+          },
+        },
+      }),
+    ]);
+
+    render(<WithAppTheme><PortalAdminProperties /></WithAppTheme>);
+    await waitFor(() => expect(portalApiClient.fetchLandlords).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByText('15 Cancel Ln')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: /edit/i }));
+    const editDialog = await screen.findByRole('dialog');
+    fireEvent.mouseDown(within(editDialog).getByLabelText(/landlord/i));
+    fireEvent.click(screen.getByRole('option', { name: /ravi ray/i }));
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+    const reassignDialog = await screen.findByRole('dialog', { name: /reassign this property/i });
+    fireEvent.click(within(reassignDialog).getByRole('button', { name: /keep current landlord/i }));
+
+    // The reassign should NOT have gone through.
+    expect(propertiesApiClient.updatePropertyApi).not.toHaveBeenCalled();
+    // Dialog dismissed; edit form still open.
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: /reassign this property/i })).not.toBeInTheDocument();
+    });
+  });
+
+  it('shows the apply-visibility locked hint and blocks the card toggle for Free tier', async () => {
+    mockAuthState.meData = {
+      role: 'LANDLORD',
+      user: {
+        first_name: 'Test',
+        last_name: 'Landlord',
+        role: 'LANDLORD',
+        status: 'ACTIVE',
+        tier: {
+          id: 'tier-free',
+          name: 'FREE',
+          display_name: 'Free',
+          limits: {
+            max_properties: 5,
+            max_tenants: 5,
+            ai_routing_enabled: false,
+            csv_export_enabled: false,
+            custom_notifications_enabled: false,
+            notification_channels: ['in_app'],
+            maintenance_request_history_days: 90,
+            request_photo_video_attachments_enabled: false,
+            property_apply_visibility_editable: false,
+            property_elsa_auto_send_editable: false,
+          },
+        },
+      },
+    };
+    propertiesApiClient.listPropertiesApi.mockResolvedValue([
+      makeApiRow({
+        id: 'db-locked-1',
+        street: '22 Locked Ct',
+        apply_visible: true,
+        metadata: {
+          apply: {
+            addressLine: '22 Locked Ct',
+            cityStateZip: 'Houston, TX 77005',
+            monthlyRentLabel: '',
+            photoUrl: '',
+            harListingUrl: '',
+            applyUrl: '',
+            detailLines: [],
+          },
+        },
+      }),
+    ]);
+
+    render(<WithAppTheme><PortalAdminProperties /></WithAppTheme>);
+    await waitFor(() => expect(screen.getByText('22 Locked Ct')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: /edit/i }));
+    await waitFor(() => expect(screen.getByDisplayValue('22 Locked Ct')).toBeInTheDocument());
+    expect(
+      screen.getByText(/apply-page visibility is not available on this landlord's current plan/i)
+    ).toBeInTheDocument();
   });
 
   it('submit button is enabled for LANDLORD role', async () => {

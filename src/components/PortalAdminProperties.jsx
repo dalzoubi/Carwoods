@@ -14,6 +14,7 @@ import {
   DialogContentText,
   DialogTitle,
   FormControlLabel,
+  FormHelperText,
   Grid,
   IconButton,
   InputAdornment,
@@ -437,8 +438,13 @@ const PortalAdminProperties = () => {
   const [syncHarTargetId, setSyncHarTargetId] = useState('');
   const [elsaPropertyPolicyById, setElsaPropertyPolicyById] = useState({});
   const [elsaPolicyTargetId, setElsaPolicyTargetId] = useState('');
+  const [reassignConfirm, setReassignConfirm] = useState(null); // null | { fromName, toName }
   const fileInputRef = useRef(null);
   const formBaselineRef = useRef({ form: EMPTY_FORM, harSearchId: '' });
+  /** Landlord the property belonged to when the edit dialog opened, so we can detect admin reassignments. */
+  const originalLandlordUserIdRef = useRef('');
+  /** Controller for post-action refreshes so unmounts/successive writes don't race. */
+  const postActionRefreshControllerRef = useRef(null);
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
   const getAccessTokenRef = useRef(getAccessToken);
@@ -495,6 +501,21 @@ const PortalAdminProperties = () => {
     return () => controller.abort();
   }, [refresh]);
 
+  /**
+   * Kick off a refresh after a write (delete / restore / patch / save). Supersedes any in-flight
+   * post-action refresh so we don't set state from a stale response, and is aborted on unmount.
+   */
+  const kickPostActionRefresh = useCallback(() => {
+    postActionRefreshControllerRef.current?.abort();
+    const controller = new AbortController();
+    postActionRefreshControllerRef.current = controller;
+    void refresh(controller.signal);
+  }, [refresh]);
+
+  useEffect(() => () => {
+    postActionRefreshControllerRef.current?.abort();
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     if (!isAuthenticated || !baseUrl || !isAdmin) {
@@ -544,6 +565,8 @@ const PortalAdminProperties = () => {
     setSubmitStatus('idle');
     setSubmitError('');
     setDiscardDialogOpen(false);
+    setReassignConfirm(null);
+    originalLandlordUserIdRef.current = '';
   };
 
   const hasUnsavedChanges = formOpen && (
@@ -562,13 +585,13 @@ const PortalAdminProperties = () => {
 
   const handleEdit = (property) => {
     const nextForm = propertyToForm(property);
-    const limits = landlordTierLimits(meData);
-    if (!isFormApplyPageVisibilityEditable(isAdmin, nextForm.landlordUserId, landlords, limits)) {
+    if (!isFormApplyPageVisibilityEditable(isAdmin, nextForm.landlordUserId, landlords, landlordLimits)) {
       nextForm.showOnApplyPage = false;
     }
     setForm(nextForm);
     setEditingId(property.id);
     setFormOpen(true);
+    originalLandlordUserIdRef.current = String(property.landlordUserId ?? '');
     const nextHarSearchId = property.harId ?? '';
     setHarSearchId(nextHarSearchId);
     formBaselineRef.current = { form: nextForm, harSearchId: nextHarSearchId };
@@ -603,7 +626,7 @@ const PortalAdminProperties = () => {
       setDeleteTarget(null);
       setDeleteStatus('idle');
       showFeedback(t('portalAdminProperties.messages.deleted'), 'info');
-      void refresh();
+      kickPostActionRefresh();
     } catch {
       setDeleteStatus('error');
       showFeedback(t('portalAdminProperties.errors.deleteFailed', {
@@ -621,7 +644,7 @@ const PortalAdminProperties = () => {
       setRestoreTarget(null);
       setRestoreStatus('idle');
       showFeedback(t('portalAdminProperties.messages.restored'));
-      void refresh();
+      kickPostActionRefresh();
     } catch (err) {
       setRestoreStatus('error');
       const code = err && typeof err === 'object' ? err.code : '';
@@ -637,6 +660,15 @@ const PortalAdminProperties = () => {
 
   const handleVisibilityToggleConfirm = async () => {
     if (!visibleToggleTarget) return;
+    // Defense-in-depth: the grid switch is already disabled when the landlord's tier forbids
+    // editing Apply-page visibility, but any programmatic path (tests, future callers) must also
+    // be blocked before we hit the API so we don't surface a surprise 4xx.
+    if (!resolveAllowVisibleEdit(visibleToggleTarget)) {
+      setVisibleToggleTarget(null);
+      setVisibleToggleStatus('idle');
+      showFeedback(t('portalSubscription.freeTier.featureDisabled'), 'warning');
+      return;
+    }
     setVisibleToggleStatus('saving');
     try {
       const token = await getAccessToken();
@@ -646,7 +678,7 @@ const PortalAdminProperties = () => {
       setVisibleToggleTarget(null);
       setVisibleToggleStatus('idle');
       showFeedback(t('portalAdminProperties.messages.visibilityUpdated'));
-      void refresh();
+      kickPostActionRefresh();
     } catch {
       setVisibleToggleStatus('error');
       showFeedback(t('portalAdminProperties.errors.visibilityFailed', {
@@ -662,7 +694,7 @@ const PortalAdminProperties = () => {
       const token = await getAccessToken();
       await patchPropertyApi(baseUrl, token, property.id, { refresh_har: true });
       showFeedback(t('portalAdminProperties.messages.harSynced'));
-      void refresh();
+      kickPostActionRefresh();
     } catch {
       showFeedback(t('portalAdminProperties.errors.syncHarFailed', {
         error: t('portalSetup.errors.unknown'),
@@ -748,6 +780,40 @@ const PortalAdminProperties = () => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setForm((prev) => ({ ...prev, [field]: value }));
     setFieldErrors((prev) => ({ ...prev, [field]: '' }));
+    // Clear a previous submit error once the user starts fixing the form so the alert doesn't
+    // linger past the edit that addresses it.
+    setSubmitError('');
+    setSubmitStatus((prev) => (prev === 'error' ? 'idle' : prev));
+  };
+
+  const performSubmit = async () => {
+    setSubmitStatus('saving');
+    setSubmitError('');
+    const record = formToRecord(form, { isAdmin });
+    const visibilityEditable = isFormApplyPageVisibilityEditable(
+      isAdmin,
+      form.landlordUserId,
+      landlords,
+      landlordLimits
+    );
+    const recordForApi = visibilityEditable ? record : { ...record, showOnApplyPage: false };
+    try {
+      const token = await getAccessToken();
+      if (editingId) {
+        await updatePropertyApi(baseUrl, token, editingId, recordForApi);
+        showFeedback(t('portalAdminProperties.messages.updated'));
+      } else {
+        await createPropertyApi(baseUrl, token, recordForApi);
+        showFeedback(t('portalAdminProperties.messages.added'));
+      }
+      resetForm();
+      kickPostActionRefresh();
+    } catch {
+      setSubmitStatus('error');
+      setSubmitError(t('portalAdminProperties.errors.saveFailed', {
+        error: t('portalSetup.errors.unknown'),
+      }));
+    }
   };
 
   const onSubmit = async (e) => {
@@ -761,29 +827,25 @@ const PortalAdminProperties = () => {
       setSubmitError(t('portalAdminProperties.errors.noApiConfigured'));
       return;
     }
-    setSubmitStatus('saving');
-    setSubmitError('');
-    const record = formToRecord(form, { isAdmin });
-    const limits = landlordTierLimits(meData);
-    const visibilityEditable = isFormApplyPageVisibilityEditable(isAdmin, form.landlordUserId, landlords, limits);
-    const recordForApi = visibilityEditable ? record : { ...record, showOnApplyPage: false };
-    try {
-      const token = await getAccessToken();
-      if (editingId) {
-        await updatePropertyApi(baseUrl, token, editingId, recordForApi);
-        showFeedback(t('portalAdminProperties.messages.updated'));
-      } else {
-        await createPropertyApi(baseUrl, token, recordForApi);
-        showFeedback(t('portalAdminProperties.messages.added'));
-      }
-      resetForm();
-      void refresh();
-    } catch {
-      setSubmitStatus('error');
-      setSubmitError(t('portalAdminProperties.errors.saveFailed', {
-        error: t('portalSetup.errors.unknown'),
-      }));
+    // Admin editing an existing property and switching its landlord is a high-impact change
+    // (transfers ownership, tier cap, Apply-page visibility), so require an explicit confirm.
+    const originalLandlord = originalLandlordUserIdRef.current;
+    const nextLandlord = String(form.landlordUserId ?? '');
+    if (editingId && isAdmin && originalLandlord && nextLandlord && originalLandlord !== nextLandlord) {
+      const fromRow = landlords.find((l) => l.id === originalLandlord);
+      const toRow = landlords.find((l) => l.id === nextLandlord);
+      setReassignConfirm({
+        fromName: fromRow ? landlordRowLabel(fromRow) : originalLandlord,
+        toName: toRow ? landlordRowLabel(toRow) : nextLandlord,
+      });
+      return;
     }
+    await performSubmit();
+  };
+
+  const handleReassignConfirm = async () => {
+    setReassignConfirm(null);
+    await performSubmit();
   };
 
   const sortedLandlords = useMemo(
@@ -1018,6 +1080,7 @@ const PortalAdminProperties = () => {
                   setFieldErrors({});
                   setHarSearchId('');
                   formBaselineRef.current = { form: nextForm, harSearchId: '' };
+                  originalLandlordUserIdRef.current = '';
                   setHarStatus('idle');
                   setHarMessage('');
                   setSubmitStatus('idle');
@@ -1463,22 +1526,29 @@ const PortalAdminProperties = () => {
               )}
             </Box>
 
-            <Tooltip
-              title={!applyPageVisibilityEditable ? t('portalSubscription.freeTier.featureDisabled') : ''}
-            >
-              <span>
-                <FormControlLabel
-                  control={(
-                    <Switch
-                      checked={form.showOnApplyPage}
-                      onChange={onChange('showOnApplyPage')}
-                      disabled={!applyPageVisibilityEditable}
-                    />
-                  )}
-                  label={t('portalAdminProperties.form.showOnApplyPage')}
-                />
-              </span>
-            </Tooltip>
+            <Box>
+              <Tooltip
+                title={!applyPageVisibilityEditable ? t('portalSubscription.freeTier.featureDisabled') : ''}
+              >
+                <span>
+                  <FormControlLabel
+                    control={(
+                      <Switch
+                        checked={form.showOnApplyPage}
+                        onChange={onChange('showOnApplyPage')}
+                        disabled={!applyPageVisibilityEditable}
+                      />
+                    )}
+                    label={t('portalAdminProperties.form.showOnApplyPage')}
+                  />
+                </span>
+              </Tooltip>
+              {!applyPageVisibilityEditable && (
+                <FormHelperText sx={{ mt: 0.5 }}>
+                  {t('portalAdminProperties.form.showOnApplyPageLockedHint')}
+                </FormHelperText>
+              )}
+            </Box>
 
             <StatusAlertSlot message={submitError ? { severity: 'error', text: submitError } : null} />
 
@@ -1519,6 +1589,19 @@ const PortalAdminProperties = () => {
         body={t('portalDialogs.unsavedChanges.body')}
         confirmLabel={t('portalDialogs.unsavedChanges.discard')}
         cancelLabel={t('portalDialogs.unsavedChanges.keepEditing')}
+        confirmColor="warning"
+      />
+      <PortalConfirmDialog
+        open={Boolean(reassignConfirm)}
+        onClose={() => setReassignConfirm(null)}
+        onConfirm={handleReassignConfirm}
+        title={t('portalDialogs.reassignLandlord.title')}
+        body={t('portalDialogs.reassignLandlord.body', {
+          from: reassignConfirm?.fromName ?? '',
+          to: reassignConfirm?.toName ?? '',
+        })}
+        confirmLabel={t('portalDialogs.reassignLandlord.confirm')}
+        cancelLabel={t('portalDialogs.reassignLandlord.cancel')}
         confirmColor="warning"
       />
 

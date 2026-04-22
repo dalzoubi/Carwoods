@@ -1804,6 +1804,7 @@
       "applyUrl": "URL de solicitud de alquiler",
       "detailLines": "Líneas de detalle (una por línea, ej. \"3 Habitaciones\")",
       "showOnApplyPage": "Visible en la página de solicitudes",
+      "showOnApplyPageLockedHint": "La visibilidad en la página de Solicitud no está disponible en el plan actual de este propietario: la propiedad se guardará como oculta.",
       "photo": "Foto de la propiedad",
       "photoUpload": "Subir foto",
       "photoUrlLabel": "O ingresa URL de foto",
@@ -2821,6 +2822,12 @@
       "body": "Tienes cambios sin guardar. Si cierras ahora, se perderán.",
       "discard": "Descartar cambios",
       "keepEditing": "Seguir editando"
+    },
+    "reassignLandlord": {
+      "title": "¿Reasignar esta propiedad?",
+      "body": "Vas a cambiar el propietario de esta propiedad de «{{from}}» a «{{to}}». La titularidad, los límites del plan y la visibilidad en la página de Solicitud seguirán al nuevo propietario.",
+      "confirm": "Reasignar propiedad",
+      "cancel": "Mantener propietario actual"
     }
   },
   "skipToMain": "Saltar al contenido principal",
