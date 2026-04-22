@@ -1094,6 +1094,20 @@
       "phoneInvalid": "أدخل رقم هاتف صحيحًا.",
       "smsNotOnPlan": "إشعارات الرسائل النصية غير متاحة في خطتك الحالية. أوقف إشعارات الرسائل النصية ثم احفظ مرة أخرى.",
       "unknown": "تعذر تحديث الملف الشخصي."
+    },
+    "flows": {
+      "SUPPORT_TICKET_REPLY": {
+        "label": "رد فريق الدعم على تذكرتك",
+        "info": "يُرسل إلى صاحب التذكرة عندما ينشر فريق الدعم رداً."
+      },
+      "SUPPORT_TICKET_STATUS_CHANGED": {
+        "label": "تغيّرت حالة تذكرة الدعم",
+        "info": "يُرسل عندما تنتقل تذكرتك بين مفتوحة أو قيد المعالجة أو تم حلها أو مغلقة. أوقِفه للحصول على تحديثات أقل إزعاجاً."
+      },
+      "SUPPORT_TICKET_ADMIN_NEW": {
+        "label": "تذكرة دعم جديدة أو رد مستخدم (المشرفون)",
+        "info": "يُرسل إلى المشرفين عند تقديم تذكرة جديدة أو عند رد مستخدم على تذكرة قائمة."
+      }
     }
   },
   "portalNotificationPolicies": {
@@ -1979,6 +1993,8 @@
       "payments": "المدفوعات",
       "myLease": "عقد الإيجار الخاص بي",
       "notices": "الإشعارات",
+      "support": "الدعم",
+      "adminSupport": "بريد الدعم",
       "collapse": "طي الشريط الجانبي",
       "expand": "توسيع الشريط الجانبي",
       "signOut": "تسجيل الخروج",
@@ -1987,6 +2003,130 @@
     "topBar": {
       "openMenu": "فتح التنقل",
       "accountMenu": "قائمة الحساب"
+    }
+  },
+  "portalSupport": {
+    "pageTitle": "تذاكر الدعم",
+    "newTicket": "تذكرة جديدة",
+    "tabs": {
+      "myTickets": "تذاكري",
+      "submit": "إرسال جديدة"
+    },
+    "fields": {
+      "title": "العنوان",
+      "description": "صف مشكلتك أو اقتراحك",
+      "category": "الفئة",
+      "area": "المجال ذو الصلة (اختياري)",
+      "areaNone": "لا يوجد مجال محدد",
+      "attach": "إرفاق ملفات",
+      "removeAttachment": "إزالة المرفق",
+      "attachmentLimits": "حتى {{count}} ملفات، {{mb}} ميغابايت لكل منها. صور، PDF، سجلات."
+    },
+    "categories": {
+      "BUG": "بلاغ خطأ",
+      "FEATURE": "طلب ميزة",
+      "QUESTION": "سؤال / مساعدة",
+      "COMPLAINT": "شكوى / ملاحظات"
+    },
+    "statuses": {
+      "OPEN": "مفتوح",
+      "IN_PROGRESS": "قيد المعالجة",
+      "RESOLVED": "تم حله",
+      "CLOSED": "مغلق"
+    },
+    "priorities": {
+      "LOW": "منخفضة",
+      "MEDIUM": "متوسطة",
+      "HIGH": "عالية",
+      "URGENT": "عاجلة"
+    },
+    "areas": {
+      "LEASES": "عقود الإيجار",
+      "TENANTS": "المستأجرون",
+      "PAYMENTS": "المدفوعات",
+      "DOCUMENTS": "المستندات",
+      "REQUESTS": "طلبات الصيانة",
+      "PROPERTIES": "العقارات",
+      "NOTIFICATIONS": "الإشعارات",
+      "ACCOUNT": "الحساب / الملف الشخصي",
+      "OTHER": "أخرى"
+    },
+    "attachmentStatus": {
+      "pending": "جاهز للرفع",
+      "uploading": "جاري الرفع…",
+      "done": "تم الرفع",
+      "error": "فشل"
+    },
+    "submit": {
+      "dialogTitle": "إرسال تذكرة دعم",
+      "submit": "إرسال التذكرة",
+      "cancel": "إلغاء",
+      "close": "إغلاق",
+      "diagnosticsNotice": "نُرفق معلومات المتصفح ورابط الصفحة وإصدار التطبيق لمساعدتنا على تشخيص المشاكل بسرعة أكبر.",
+      "errors": {
+        "submit_failed": "تعذَّر إرسال تذكرتك. يرجى المحاولة مرة أخرى.",
+        "title_required": "يرجى إضافة عنوان قصير.",
+        "title_too_long": "العنوان طويل جداً.",
+        "description_required": "يرجى وصف مشكلتك.",
+        "description_too_long": "الوصف طويل جداً.",
+        "invalid_category": "اختر فئة.",
+        "invalid_area": "مجال غير معروف.",
+        "content_type_not_allowed": "نوع الملف هذا غير مدعوم.",
+        "invalid_file_size": "هذا الملف فارغ أو غير قابل للقراءة.",
+        "file_too_large": "حجم الملف يتجاوز الحد المسموح به لكل ملف.",
+        "upload_failed": "فشل رفع الملف.",
+        "filename_required": "اسم الملف مفقود.",
+        "filename_too_long": "اسم الملف طويل جداً."
+      }
+    },
+    "list": {
+      "empty": "لم ترسل أي تذاكر بعد.",
+      "updated": "آخر تحديث {{when}}"
+    },
+    "filters": {
+      "statusLabel": "الحالة:",
+      "all": "الكل"
+    },
+    "detail": {
+      "title": "التذكرة",
+      "close": "إغلاق",
+      "createdAt": "فُتحت في {{when}}",
+      "attachments": "المرفقات",
+      "messages": "المحادثة",
+      "noMessages": "لا توجد ردود بعد.",
+      "you": "أنت",
+      "supportTeam": "فريق الدعم",
+      "replyLabel": "إضافة رد",
+      "send": "إرسال الرد",
+      "reopen": "إعادة فتح التذكرة"
+    },
+    "fab": {
+      "tooltip": "إرسال تذكرة دعم",
+      "ariaLabel": "إرسال تذكرة دعم"
+    },
+    "admin": {
+      "pageTitle": "بريد الدعم",
+      "detailTitle": "تذكرة دعم",
+      "status": "الحالة",
+      "priority": "الأولوية",
+      "category": "الفئة",
+      "area": "المجال",
+      "none": "لا شيء",
+      "submittedBy": "أُرسلت بواسطة {{id}}",
+      "submitter": "المُرسِل",
+      "replyLabel": "الرد على المستخدم (أو إضافة ملاحظة داخلية)",
+      "postAsInternalNote": "ملاحظة داخلية (غير مرئية للمستخدم)",
+      "internalNote": "داخلية",
+      "totalCount": "{{count}} إجمالاً",
+      "noResults": "لا توجد تذاكر تطابق هذه المرشّحات."
+    },
+    "errors": {
+      "load_failed": "تعذَّر تحميل تذاكر الدعم.",
+      "generic": "حدث خطأ ما.",
+      "reply_failed": "فشل إرسال الرد.",
+      "reopen_failed": "تعذَّرت إعادة فتح التذكرة.",
+      "update_failed": "تعذَّر تحديث التذكرة.",
+      "download_failed": "تعذَّر فتح المرفق."
     }
   },
   "portalTour": {

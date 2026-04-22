@@ -1093,6 +1093,20 @@
       "phoneInvalid": "Ingresa un número de teléfono válido.",
       "smsNotOnPlan": "Las notificaciones por SMS no están disponibles en tu plan actual. Desactiva las notificaciones por SMS y vuelve a guardar.",
       "unknown": "No se pudo actualizar el perfil."
+    },
+    "flows": {
+      "SUPPORT_TICKET_REPLY": {
+        "label": "El equipo de soporte respondió a tu ticket",
+        "info": "Se envía al propietario del ticket cuando el personal de soporte publica una respuesta."
+      },
+      "SUPPORT_TICKET_STATUS_CHANGED": {
+        "label": "Cambió el estado del ticket de soporte",
+        "info": "Se envía cuando tu ticket pasa entre Abierto, En progreso, Resuelto o Cerrado. Desactívalo para recibir actualizaciones más silenciosas."
+      },
+      "SUPPORT_TICKET_ADMIN_NEW": {
+        "label": "Nuevo ticket o respuesta de usuario (administradores)",
+        "info": "Se envía a los administradores cuando se envía un nuevo ticket o un usuario responde en un ticket existente."
+      }
     }
   },
   "portalNotificationPolicies": {
@@ -1978,6 +1992,8 @@
       "payments": "Pagos",
       "myLease": "Mi contrato",
       "notices": "Avisos",
+      "support": "Soporte",
+      "adminSupport": "Bandeja de soporte",
       "collapse": "Contraer barra lateral",
       "expand": "Expandir barra lateral",
       "signOut": "Cerrar sesión",
@@ -1986,6 +2002,130 @@
     "topBar": {
       "openMenu": "Abrir navegación",
       "accountMenu": "Menú de cuenta"
+    }
+  },
+  "portalSupport": {
+    "pageTitle": "Tickets de soporte",
+    "newTicket": "Nuevo ticket",
+    "tabs": {
+      "myTickets": "Mis tickets",
+      "submit": "Enviar nuevo"
+    },
+    "fields": {
+      "title": "Título",
+      "description": "Describe tu problema o sugerencia",
+      "category": "Categoría",
+      "area": "Área relacionada (opcional)",
+      "areaNone": "Sin área específica",
+      "attach": "Adjuntar archivos",
+      "removeAttachment": "Quitar adjunto",
+      "attachmentLimits": "Hasta {{count}} archivos, {{mb}} MB cada uno. Imágenes, PDFs, registros."
+    },
+    "categories": {
+      "BUG": "Reporte de error",
+      "FEATURE": "Solicitud de función",
+      "QUESTION": "Pregunta / ayuda",
+      "COMPLAINT": "Queja / comentarios"
+    },
+    "statuses": {
+      "OPEN": "Abierto",
+      "IN_PROGRESS": "En progreso",
+      "RESOLVED": "Resuelto",
+      "CLOSED": "Cerrado"
+    },
+    "priorities": {
+      "LOW": "Baja",
+      "MEDIUM": "Media",
+      "HIGH": "Alta",
+      "URGENT": "Urgente"
+    },
+    "areas": {
+      "LEASES": "Contratos",
+      "TENANTS": "Inquilinos",
+      "PAYMENTS": "Pagos",
+      "DOCUMENTS": "Documentos",
+      "REQUESTS": "Solicitudes de mantenimiento",
+      "PROPERTIES": "Propiedades",
+      "NOTIFICATIONS": "Notificaciones",
+      "ACCOUNT": "Cuenta / perfil",
+      "OTHER": "Otro"
+    },
+    "attachmentStatus": {
+      "pending": "Listo para subir",
+      "uploading": "Subiendo…",
+      "done": "Subido",
+      "error": "Falló"
+    },
+    "submit": {
+      "dialogTitle": "Enviar un ticket de soporte",
+      "submit": "Enviar ticket",
+      "cancel": "Cancelar",
+      "close": "Cerrar",
+      "diagnosticsNotice": "Incluimos tu navegador, la URL de la página y la versión de la app para ayudarnos a diagnosticar problemas más rápido.",
+      "errors": {
+        "submit_failed": "No pudimos enviar tu ticket. Por favor, inténtalo de nuevo.",
+        "title_required": "Agrega un título breve.",
+        "title_too_long": "El título es demasiado largo.",
+        "description_required": "Describe tu problema.",
+        "description_too_long": "La descripción es demasiado larga.",
+        "invalid_category": "Elige una categoría.",
+        "invalid_area": "Área desconocida.",
+        "content_type_not_allowed": "Este tipo de archivo no es compatible.",
+        "invalid_file_size": "Ese archivo está vacío o no se puede leer.",
+        "file_too_large": "El archivo supera el límite por archivo.",
+        "upload_failed": "Falló la subida del archivo.",
+        "filename_required": "Falta el nombre del archivo.",
+        "filename_too_long": "El nombre del archivo es demasiado largo."
+      }
+    },
+    "list": {
+      "empty": "Aún no has enviado ningún ticket.",
+      "updated": "Actualizado {{when}}"
+    },
+    "filters": {
+      "statusLabel": "Estado:",
+      "all": "Todos"
+    },
+    "detail": {
+      "title": "Ticket",
+      "close": "Cerrar",
+      "createdAt": "Abierto {{when}}",
+      "attachments": "Adjuntos",
+      "messages": "Conversación",
+      "noMessages": "Aún no hay respuestas.",
+      "you": "Tú",
+      "supportTeam": "Equipo de soporte",
+      "replyLabel": "Añadir una respuesta",
+      "send": "Enviar respuesta",
+      "reopen": "Reabrir ticket"
+    },
+    "fab": {
+      "tooltip": "Enviar un ticket de soporte",
+      "ariaLabel": "Enviar un ticket de soporte"
+    },
+    "admin": {
+      "pageTitle": "Bandeja de soporte",
+      "detailTitle": "Ticket de soporte",
+      "status": "Estado",
+      "priority": "Prioridad",
+      "category": "Categoría",
+      "area": "Área",
+      "none": "Ninguno",
+      "submittedBy": "Enviado por {{id}}",
+      "submitter": "Remitente",
+      "replyLabel": "Responder al usuario (o añadir una nota interna)",
+      "postAsInternalNote": "Nota interna (no visible para el usuario)",
+      "internalNote": "Interna",
+      "totalCount": "{{count}} en total",
+      "noResults": "Ningún ticket coincide con estos filtros."
+    },
+    "errors": {
+      "load_failed": "No se pudieron cargar los tickets de soporte.",
+      "generic": "Algo salió mal.",
+      "reply_failed": "No se pudo enviar la respuesta.",
+      "reopen_failed": "No se pudo reabrir el ticket.",
+      "update_failed": "No se pudo actualizar el ticket.",
+      "download_failed": "No se pudo abrir el adjunto."
     }
   },
   "portalTour": {

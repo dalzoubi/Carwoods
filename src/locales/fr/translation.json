@@ -1093,6 +1093,20 @@
       "phoneInvalid": "Saisissez un numero de telephone valide.",
       "smsNotOnPlan": "Les notifications SMS ne sont pas disponibles avec votre offre actuelle. Desactivez les notifications SMS puis enregistrez a nouveau.",
       "unknown": "Impossible de mettre a jour le profil."
+    },
+    "flows": {
+      "SUPPORT_TICKET_REPLY": {
+        "label": "L'équipe d'assistance a répondu à votre ticket",
+        "info": "Envoyé au propriétaire du ticket lorsque le personnel d'assistance publie une réponse."
+      },
+      "SUPPORT_TICKET_STATUS_CHANGED": {
+        "label": "Statut du ticket d'assistance modifié",
+        "info": "Envoyé lorsque votre ticket passe entre Ouvert, En cours, Résolu ou Fermé. Désactivez-le pour des mises à jour plus discrètes."
+      },
+      "SUPPORT_TICKET_ADMIN_NEW": {
+        "label": "Nouveau ticket ou réponse d'utilisateur (administrateurs)",
+        "info": "Envoyé aux administrateurs lorsqu'un nouveau ticket est soumis ou qu'un utilisateur répond sur un ticket existant."
+      }
     }
   },
   "portalNotificationPolicies": {
@@ -1978,6 +1992,8 @@
       "payments": "Paiements",
       "myLease": "Mon bail",
       "notices": "Préavis",
+      "support": "Assistance",
+      "adminSupport": "Boîte d'assistance",
       "collapse": "Réduire la barre latérale",
       "expand": "Développer la barre latérale",
       "signOut": "Se déconnecter",
@@ -1986,6 +2002,130 @@
     "topBar": {
       "openMenu": "Ouvrir la navigation",
       "accountMenu": "Menu du compte"
+    }
+  },
+  "portalSupport": {
+    "pageTitle": "Tickets d'assistance",
+    "newTicket": "Nouveau ticket",
+    "tabs": {
+      "myTickets": "Mes tickets",
+      "submit": "Soumettre un nouveau"
+    },
+    "fields": {
+      "title": "Titre",
+      "description": "Décrivez votre problème ou suggestion",
+      "category": "Catégorie",
+      "area": "Domaine concerné (facultatif)",
+      "areaNone": "Aucun domaine spécifique",
+      "attach": "Joindre des fichiers",
+      "removeAttachment": "Retirer la pièce jointe",
+      "attachmentLimits": "Jusqu'à {{count}} fichiers, {{mb}} Mo chacun. Images, PDF, journaux."
+    },
+    "categories": {
+      "BUG": "Signalement de bug",
+      "FEATURE": "Demande de fonctionnalité",
+      "QUESTION": "Question / aide",
+      "COMPLAINT": "Réclamation / commentaires"
+    },
+    "statuses": {
+      "OPEN": "Ouvert",
+      "IN_PROGRESS": "En cours",
+      "RESOLVED": "Résolu",
+      "CLOSED": "Fermé"
+    },
+    "priorities": {
+      "LOW": "Basse",
+      "MEDIUM": "Moyenne",
+      "HIGH": "Haute",
+      "URGENT": "Urgente"
+    },
+    "areas": {
+      "LEASES": "Baux",
+      "TENANTS": "Locataires",
+      "PAYMENTS": "Paiements",
+      "DOCUMENTS": "Documents",
+      "REQUESTS": "Demandes de maintenance",
+      "PROPERTIES": "Biens",
+      "NOTIFICATIONS": "Notifications",
+      "ACCOUNT": "Compte / profil",
+      "OTHER": "Autre"
+    },
+    "attachmentStatus": {
+      "pending": "Prêt à téléverser",
+      "uploading": "Téléversement…",
+      "done": "Téléversé",
+      "error": "Échec"
+    },
+    "submit": {
+      "dialogTitle": "Soumettre un ticket d'assistance",
+      "submit": "Soumettre le ticket",
+      "cancel": "Annuler",
+      "close": "Fermer",
+      "diagnosticsNotice": "Nous incluons votre navigateur, l'URL de la page et la version de l'application pour nous aider à diagnostiquer les problèmes plus rapidement.",
+      "errors": {
+        "submit_failed": "Impossible de soumettre votre ticket. Veuillez réessayer.",
+        "title_required": "Veuillez ajouter un titre court.",
+        "title_too_long": "Le titre est trop long.",
+        "description_required": "Veuillez décrire votre problème.",
+        "description_too_long": "La description est trop longue.",
+        "invalid_category": "Choisissez une catégorie.",
+        "invalid_area": "Domaine inconnu.",
+        "content_type_not_allowed": "Ce type de fichier n'est pas pris en charge.",
+        "invalid_file_size": "Ce fichier est vide ou illisible.",
+        "file_too_large": "Le fichier dépasse la limite par fichier.",
+        "upload_failed": "Le téléversement du fichier a échoué.",
+        "filename_required": "Le nom du fichier est manquant.",
+        "filename_too_long": "Le nom du fichier est trop long."
+      }
+    },
+    "list": {
+      "empty": "Vous n'avez encore soumis aucun ticket.",
+      "updated": "Mis à jour le {{when}}"
+    },
+    "filters": {
+      "statusLabel": "Statut :",
+      "all": "Tous"
+    },
+    "detail": {
+      "title": "Ticket",
+      "close": "Fermer",
+      "createdAt": "Ouvert le {{when}}",
+      "attachments": "Pièces jointes",
+      "messages": "Conversation",
+      "noMessages": "Aucune réponse pour le moment.",
+      "you": "Vous",
+      "supportTeam": "Équipe d'assistance",
+      "replyLabel": "Ajouter une réponse",
+      "send": "Envoyer la réponse",
+      "reopen": "Rouvrir le ticket"
+    },
+    "fab": {
+      "tooltip": "Soumettre un ticket d'assistance",
+      "ariaLabel": "Soumettre un ticket d'assistance"
+    },
+    "admin": {
+      "pageTitle": "Boîte d'assistance",
+      "detailTitle": "Ticket d'assistance",
+      "status": "Statut",
+      "priority": "Priorité",
+      "category": "Catégorie",
+      "area": "Domaine",
+      "none": "Aucun",
+      "submittedBy": "Soumis par {{id}}",
+      "submitter": "Auteur",
+      "replyLabel": "Répondre à l'utilisateur (ou ajouter une note interne)",
+      "postAsInternalNote": "Note interne (non visible par l'utilisateur)",
+      "internalNote": "Interne",
+      "totalCount": "{{count}} au total",
+      "noResults": "Aucun ticket ne correspond à ces filtres."
+    },
+    "errors": {
+      "load_failed": "Impossible de charger les tickets d'assistance.",
+      "generic": "Une erreur s'est produite.",
+      "reply_failed": "Échec de l'envoi de la réponse.",
+      "reopen_failed": "Impossible de rouvrir le ticket.",
+      "update_failed": "Impossible de mettre à jour le ticket.",
+      "download_failed": "Impossible d'ouvrir la pièce jointe."
     }
   },
   "portalTour": {

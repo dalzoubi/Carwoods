@@ -39,6 +39,8 @@ import PortalPayments from './components/PortalPayments';
 import PortalMyLease from './components/PortalMyLease';
 import PortalLandlordNotices from './components/PortalLandlordNotices';
 import PortalTenants from './components/PortalTenants';
+import PortalSupportTickets from './components/PortalSupportTickets';
+import PortalAdminSupport from './components/PortalAdminSupport';
 import PortalAdminNotificationTest from './components/PortalAdminNotificationTest';
 import PortalLayout from './components/PortalLayout';
 import PortalAuthGate from './components/PortalAuthGate';
@@ -235,6 +237,22 @@ function PortalRoutes() {
                 element={
                     <PortalRouteGuard allowedRoles={[Role.LANDLORD, Role.ADMIN]}>
                         <PortalTenants />
+                    </PortalRouteGuard>
+                }
+            />
+            <Route
+                path="/portal/support"
+                element={
+                    <PortalRouteGuard allowedRoles={[Role.TENANT, Role.LANDLORD, Role.ADMIN]}>
+                        <PortalSupportTickets />
+                    </PortalRouteGuard>
+                }
+            />
+            <Route
+                path="/portal/admin/support"
+                element={
+                    <PortalRouteGuard allowedRoles={[Role.ADMIN]}>
+                        <PortalAdminSupport />
                     </PortalRouteGuard>
                 }
             />

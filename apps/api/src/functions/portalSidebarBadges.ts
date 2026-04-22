@@ -20,6 +20,10 @@ import { countUnreadPortalNotifications } from '../lib/notificationCenterRepo.js
 import { countActionableNoticesForActor } from '../lib/tenantLifecycleRepo.js';
 import { countOpenRequestsForActor } from '../lib/requestsRepo.js';
 import { countUnreadContactRequests } from '../lib/contactRequestsRepo.js';
+import {
+  countOpenTicketsForAdmin,
+  countTicketsWithUnreadAdminReplyForUser,
+} from '../lib/supportTicketsRepo.js';
 import { Role } from '../domain/constants.js';
 
 async function safe<T>(fn: () => Promise<T>, fallback: T, context: InvocationContext, label: string): Promise<T> {
@@ -41,12 +45,23 @@ async function handleGet(
   const role = String(user.role ?? '').trim().toUpperCase();
 
   const pool = getPool();
-  const [requests, notifications, notices, contact] = await Promise.all([
+  const [
+    requests,
+    notifications,
+    notices,
+    contact,
+    support_tickets,
+    support_tickets_admin,
+  ] = await Promise.all([
     safe(() => countOpenRequestsForActor(pool, role, user.id), 0, context, 'requests'),
     safe(() => countUnreadPortalNotifications(pool, user.id), 0, context, 'notifications'),
     safe(() => countActionableNoticesForActor(pool, role, user.id), 0, context, 'notices'),
     role === Role.ADMIN
       ? safe(() => countUnreadContactRequests(pool), 0, context, 'contact')
+      : Promise.resolve(0),
+    safe(() => countTicketsWithUnreadAdminReplyForUser(pool, user.id), 0, context, 'support_tickets'),
+    role === Role.ADMIN
+      ? safe(() => countOpenTicketsForAdmin(pool), 0, context, 'support_tickets_admin')
       : Promise.resolve(0),
   ]);
 
@@ -55,6 +70,8 @@ async function handleGet(
     notifications,
     notices,
     contact,
+    support_tickets,
+    support_tickets_admin,
   });
 }
 

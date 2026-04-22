@@ -33,3 +33,5 @@ import './functions/adminNotificationFlowDefaults.js';
 import './functions/adminNotificationOverrides.js';
 import './functions/adminNotificationReport.js';
 import './functions/adminSubscriptionTiers.js';
+import './functions/portalSupportTickets.js';
+import './functions/adminSupportTickets.js';

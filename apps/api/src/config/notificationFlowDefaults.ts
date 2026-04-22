@@ -211,6 +211,41 @@ export const NOTIFICATION_FLOW_DEFAULTS: Record<string, NotificationFlowDefault>
     infoKey: 'portalProfile.flows.CONTACT_REQUEST_CREATED.info',
   },
 
+  // ---- Support tickets ----
+  SUPPORT_TICKET_REPLY: {
+    inApp: true,
+    email: true,
+    sms: false,
+    userOverridable: true,
+    quietHoursBypass: false,
+    role: 'ANY',
+    category: 'ONBOARDING',
+    labelKey: 'portalProfile.flows.SUPPORT_TICKET_REPLY.label',
+    infoKey: 'portalProfile.flows.SUPPORT_TICKET_REPLY.info',
+  },
+  SUPPORT_TICKET_STATUS_CHANGED: {
+    inApp: true,
+    email: false,
+    sms: false,
+    userOverridable: true,
+    quietHoursBypass: false,
+    role: 'ANY',
+    category: 'ONBOARDING',
+    labelKey: 'portalProfile.flows.SUPPORT_TICKET_STATUS_CHANGED.label',
+    infoKey: 'portalProfile.flows.SUPPORT_TICKET_STATUS_CHANGED.info',
+  },
+  SUPPORT_TICKET_ADMIN_NEW: {
+    inApp: true,
+    email: true,
+    sms: false,
+    userOverridable: true,
+    quietHoursBypass: false,
+    role: 'ADMIN',
+    category: 'ONBOARDING',
+    labelKey: 'portalProfile.flows.SUPPORT_TICKET_ADMIN_NEW.label',
+    infoKey: 'portalProfile.flows.SUPPORT_TICKET_ADMIN_NEW.info',
+  },
+
   // ---- Security / compliance (mandatory) ----
   SECURITY_DELIVERY_FAILURE: {
     inApp: true,

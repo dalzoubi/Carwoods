@@ -3,7 +3,14 @@ import { usePortalAuth } from '../PortalAuthContext';
 import { fetchSidebarBadges } from '../lib/portalApiClient';
 import { PORTAL_SIDEBAR_BADGES_REFRESH_EVENT } from '../lib/portalSidebarBadgesBridge.js';
 
-const EMPTY = { requests: 0, notifications: 0, notices: 0, contact: 0 };
+const EMPTY = {
+  requests: 0,
+  notifications: 0,
+  notices: 0,
+  contact: 0,
+  supportTickets: 0,
+  supportTicketsAdmin: 0,
+};
 const POLL_MS = 60000;
 
 /**
@@ -27,6 +34,8 @@ export function useSidebarBadges() {
         notifications: Number(payload?.notifications ?? 0),
         notices: Number(payload?.notices ?? 0),
         contact: Number(payload?.contact ?? 0),
+        supportTickets: Number(payload?.support_tickets ?? 0),
+        supportTicketsAdmin: Number(payload?.support_tickets_admin ?? 0),
       });
     } catch {
       if (mountedRef.current) setBadges(EMPTY);
