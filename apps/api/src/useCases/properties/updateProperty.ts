@@ -15,6 +15,7 @@ import {
 import { harColumnsForPatch } from '../../lib/propertyHarSync.js';
 import { writeAudit } from '../../lib/auditRepo.js';
 import { findUserById } from '../../lib/usersRepo.js';
+import { validateUpdatePropertyAddress } from '../../domain/propertyValidation.js';
 import { forbidden, notFound, unprocessable, validationError } from '../../domain/errors.js';
 import { hasLandlordAccess, Role } from '../../domain/constants.js';
 import type { TransactionPool } from '../types.js';
@@ -53,6 +54,14 @@ export async function updateProperty(
 ): Promise<UpdatePropertyOutput> {
   if (!hasLandlordAccess(input.actorRole)) throw forbidden();
   if (!input.propertyId) throw validationError('missing_id');
+
+  const addressValidation = validateUpdatePropertyAddress({
+    street: input.street,
+    city: input.city,
+    state: input.state,
+    zip: input.zip,
+  });
+  if (!addressValidation.valid) throw validationError(addressValidation.message);
 
   const pool = db;
   const current = await getPropertyByIdForActor(

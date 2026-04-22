@@ -444,6 +444,48 @@ describe('PortalAdminProperties', () => {
     });
   });
 
+  it('omits landlordUserId from the update payload when a non-admin edits their own property', async () => {
+    // Backend rejects PATCH /landlord/properties/:id with `landlord_user_id`
+    // in the body for non-admin actors (see updateProperty.ts — throws
+    // forbidden when `landlord_user_id_present` and actor is not ADMIN).
+    // The portal must therefore strip the field for landlord-self edits.
+    propertiesApiClient.listPropertiesApi.mockResolvedValue([
+      makeApiRow({
+        id: 'db-self-edit-1',
+        street: '7 Self Edit Ln',
+        landlord_user_id: 'landlord-self',
+        landlord_name: 'Test Landlord',
+        metadata: {
+          apply: {
+            addressLine: '7 Self Edit Ln',
+            cityStateZip: 'Houston, TX 77004',
+            monthlyRentLabel: '$1,500/mo',
+            photoUrl: '',
+            harListingUrl: '',
+            applyUrl: '',
+            detailLines: [],
+          },
+        },
+      }),
+    ]);
+
+    render(<WithAppTheme><PortalAdminProperties /></WithAppTheme>);
+    await waitFor(() => expect(screen.getByText('7 Self Edit Ln')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: /edit/i }));
+    await waitFor(() => expect(screen.getByDisplayValue('7 Self Edit Ln')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+    await waitFor(() => {
+      expect(propertiesApiClient.updatePropertyApi).toHaveBeenCalledWith(
+        'https://api.carwoods.com',
+        'mock-token',
+        'db-self-edit-1',
+        expect.objectContaining({ addressLine: '7 Self Edit Ln', landlordUserId: '' })
+      );
+    });
+  });
+
   it('allows admin to change landlord on edit', async () => {
     mockAuthState.meData = {
       role: 'ADMIN',

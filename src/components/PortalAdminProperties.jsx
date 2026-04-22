@@ -169,7 +169,7 @@ function propertyToForm(p) {
   };
 }
 
-function formToRecord(form) {
+function formToRecord(form, { isAdmin = false } = {}) {
   return {
     harId: form.harId.trim(),
     addressLine: form.addressLine.trim(),
@@ -183,7 +183,10 @@ function formToRecord(form) {
       .map((s) => s.trim())
       .filter(Boolean),
     showOnApplyPage: form.showOnApplyPage,
-    landlordUserId: form.landlordUserId,
+    // Only admins can (re)assign a property's landlord. For landlord-self edits,
+    // omit the field so the backend's `landlord_user_id_present` guard doesn't
+    // fire and reject the request with `forbidden`.
+    landlordUserId: isAdmin ? form.landlordUserId : '',
   };
 }
 
@@ -760,7 +763,7 @@ const PortalAdminProperties = () => {
     }
     setSubmitStatus('saving');
     setSubmitError('');
-    const record = formToRecord(form);
+    const record = formToRecord(form, { isAdmin });
     const limits = landlordTierLimits(meData);
     const visibilityEditable = isFormApplyPageVisibilityEditable(isAdmin, form.landlordUserId, landlords, limits);
     const recordForApi = visibilityEditable ? record : { ...record, showOnApplyPage: false };
