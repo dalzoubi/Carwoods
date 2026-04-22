@@ -2315,6 +2315,7 @@
       "applyUrl": "Rental Application URL",
       "detailLines": "Detail lines (one per line, e.g. \"3 Bedroom(s)\")",
       "showOnApplyPage": "Visible on Apply page",
+      "showOnApplyPageLockedHint": "Apply-page visibility is not available on this landlord's current plan — this property will be saved as hidden.",
       "photo": "Property photo",
       "photoUpload": "Upload photo",
       "photoUrlLabel": "Or enter photo URL",
@@ -3359,6 +3360,12 @@
       "body": "You have unsaved changes. If you close now, your edits will be lost.",
       "discard": "Discard changes",
       "keepEditing": "Keep editing"
+    },
+    "reassignLandlord": {
+      "title": "Reassign this property?",
+      "body": "You're changing this property's landlord from \"{{from}}\" to \"{{to}}\". Ownership, tier limits and Apply-page visibility will follow the new landlord.",
+      "confirm": "Reassign property",
+      "cancel": "Keep current landlord"
     }
   },
   "skipToMain": "Skip to main content",
