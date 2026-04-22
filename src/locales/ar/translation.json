@@ -1533,9 +1533,13 @@
       "saveChanges": "حفظ التغييرات",
       "deactivate": "تعطيل",
       "reactivate": "إعادة التفعيل",
+      "delete": "إزالة المالك وعقاراته نهائياً",
       "cancel": "إلغاء",
       "changeTier": "تغيير خطة الاشتراك",
       "exportContactCard": "تنزيل بطاقة جهة اتصال (.vcf)"
+    },
+    "confirmDelete": {
+      "title": "إزالة {{name}} نهائياً؟"
     },
     "vCard": {
       "roleTitle": "بوابة مالك العقار"
@@ -1976,6 +1980,7 @@
       "documents": "مركز المستندات",
       "profile": "الملف الشخصي",
       "adminLandlords": "الملاك",
+      "adminUsers": "جميع المستخدمين",
       "adminContactUsMessages": "اتصل بنا",
       "adminConfigurations": "الإعدادات",
       "adminAiConfig": "إعدادات الذكاء الاصطناعي",

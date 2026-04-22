@@ -1,41 +1,28 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import {
-  Alert,
   Box,
-  Button,
   Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   FormControlLabel,
   IconButton,
   Stack,
   Switch,
-  TextField,
   Tooltip,
   Typography,
 } from '@mui/material';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { Role } from '../domain/constants.js';
 import { resolveRole, normalizeRole } from '../portalUtils';
-import {
-  fetchAdminPortalUsers,
-  deleteAdminUser,
-} from '../lib/portalApiClient';
+import { fetchAdminPortalUsers } from '../lib/portalApiClient';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 import PortalRefreshButton from './PortalRefreshButton';
+import PortalAdminUserDeleteDialog from './PortalAdminUserDeleteDialog';
 import StatusAlertSlot from './StatusAlertSlot';
 import EmptyState from './EmptyState';
-
-const MIN_REASON_LENGTH = 10;
-const MAX_REASON_LENGTH = 500;
 
 function displayName(u) {
   const first = String(u?.first_name ?? '').trim();
@@ -69,12 +56,7 @@ const PortalAdminUsers = () => {
 
   const [showInactive, setShowInactive] = useState(true);
   const [usersState, setUsersState] = useState({ status: 'idle', users: [] });
-  const [deleteDialog, setDeleteDialog] = useState({
-    open: false,
-    target: null,
-    reason: '',
-    submitting: false,
-  });
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
   const loadUsers = useCallback(async () => {
@@ -113,54 +95,6 @@ const PortalAdminUsers = () => {
     });
     return list;
   }, [usersState.users]);
-
-  const openDelete = (target) => {
-    setDeleteDialog({ open: true, target, reason: '', submitting: false });
-  };
-
-  const closeDelete = () => {
-    if (deleteDialog.submitting) return;
-    setDeleteDialog({ open: false, target: null, reason: '', submitting: false });
-  };
-
-  const onConfirmDelete = async () => {
-    const target = deleteDialog.target;
-    if (!target || !baseUrl) return;
-    const reason = deleteDialog.reason.trim();
-    if (reason.length < MIN_REASON_LENGTH) {
-      showFeedback(
-        t('portalAdminUsers.delete.reasonTooShort', { min: MIN_REASON_LENGTH }),
-        'error'
-      );
-      return;
-    }
-    setDeleteDialog((prev) => ({ ...prev, submitting: true }));
-    try {
-      const accessToken = await getAccessToken();
-      await deleteAdminUser(baseUrl, accessToken, target.id, { reason });
-      showFeedback(
-        t('portalAdminUsers.delete.success', { name: displayName(target) }),
-        'success'
-      );
-      setDeleteDialog({ open: false, target: null, reason: '', submitting: false });
-      void loadUsers();
-    } catch (error) {
-      handleApiForbidden(error);
-      const code = error && typeof error === 'object' && typeof error.code === 'string' ? error.code : '';
-      let message = t('portalAdminUsers.delete.generic');
-      if (code === 'cannot_delete_self') message = t('portalAdminUsers.delete.errors.self');
-      else if (code === 'cannot_delete_admin') message = t('portalAdminUsers.delete.errors.admin');
-      else if (code === 'deletion_blocked') message = t('portalAdminUsers.delete.errors.blocked');
-      else if (code === 'user_not_found') message = t('portalAdminUsers.delete.errors.notFound');
-      else if (code === 'reason_required') message = t('portalAdminUsers.delete.reasonTooShort', { min: MIN_REASON_LENGTH });
-      showFeedback(message, 'error');
-      setDeleteDialog((prev) => ({ ...prev, submitting: false }));
-    }
-  };
-
-  const reasonLength = deleteDialog.reason.trim().length;
-  const canSubmitDelete =
-    reasonLength >= MIN_REASON_LENGTH && reasonLength <= MAX_REASON_LENGTH && !deleteDialog.submitting;
 
   return (
     <Box sx={{ py: 4 }}>
@@ -275,7 +209,7 @@ const PortalAdminUsers = () => {
                         <IconButton
                           type="button"
                           color="error"
-                          onClick={() => openDelete(u)}
+                          onClick={() => setDeleteTarget(u)}
                           disabled={!canUseModule || isSelf || isProtectedAdmin}
                           aria-label={t('portalAdminUsers.delete.cta')}
                         >
@@ -291,72 +225,16 @@ const PortalAdminUsers = () => {
         </Box>
       </Stack>
 
-      <Dialog
-        open={deleteDialog.open}
-        onClose={closeDelete}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <WarningAmberIcon color="error" />
-            <span>
-              {t('portalAdminUsers.delete.dialogTitle', {
-                name: deleteDialog.target ? displayName(deleteDialog.target) : '',
-              })}
-            </span>
-          </Stack>
-        </DialogTitle>
-        <DialogContent dividers>
-          <Stack spacing={2}>
-            <Alert severity="warning">
-              <Typography variant="body2">
-                {t('portalAdminUsers.delete.warningPrimary')}
-              </Typography>
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                {t('portalAdminUsers.delete.warningSecondary')}
-              </Typography>
-            </Alert>
-            <TextField
-              label={t('portalAdminUsers.delete.reasonLabel')}
-              value={deleteDialog.reason}
-              onChange={(e) => setDeleteDialog((prev) => ({ ...prev, reason: e.target.value }))}
-              multiline
-              minRows={3}
-              required
-              fullWidth
-              disabled={deleteDialog.submitting}
-              helperText={t('portalAdminUsers.delete.reasonHelper', {
-                min: MIN_REASON_LENGTH,
-                max: MAX_REASON_LENGTH,
-                count: reasonLength,
-              })}
-              inputProps={{ maxLength: MAX_REASON_LENGTH }}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            type="button"
-            onClick={closeDelete}
-            disabled={deleteDialog.submitting}
-          >
-            {t('portalAdminUsers.delete.cancel')}
-          </Button>
-          <Button
-            type="button"
-            variant="contained"
-            color="error"
-            startIcon={<DeleteForeverIcon />}
-            onClick={() => void onConfirmDelete()}
-            disabled={!canSubmitDelete}
-          >
-            {deleteDialog.submitting
-              ? t('portalAdminUsers.delete.submitting')
-              : t('portalAdminUsers.delete.confirm')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <PortalAdminUserDeleteDialog
+        open={Boolean(deleteTarget)}
+        target={deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onDeleted={() => {
+          setDeleteTarget(null);
+          void loadUsers();
+        }}
+        onMessage={(message, severity) => showFeedback(message, severity)}
+      />
 
       <PortalFeedbackSnackbar feedback={feedback} onClose={closeFeedback} />
     </Box>
