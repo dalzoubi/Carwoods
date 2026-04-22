@@ -3005,7 +3005,15 @@
         "self": "You cannot delete your own admin account.",
         "admin": "Admin accounts cannot be removed from the portal UI.",
         "blocked": "This user has records the deletion could not clean up automatically. Remove them manually, then try again.",
-        "notFound": "That user no longer exists."
+        "notFound": "No matching user was found. Try refreshing the list, or the account may have been removed already.",
+        "reasonTooLong": "Reason is too long (maximum {{max}} characters).",
+        "reasonTooLongGeneric": "That reason is too long. Shorten it and try again.",
+        "forbidden": "You do not have permission to delete this user.",
+        "unauthorized": "You are not signed in, or your session has expired. Sign in and try again.",
+        "serviceUnavailable": "The server is temporarily unavailable. Please try again shortly.",
+        "clientOrNetwork": "A network or browser issue blocked this request. Check your connection and try again.",
+        "requestFailed": "The request could not be completed. Refresh the page and try again.",
+        "rateLimited": "Too many attempts. Wait a moment and try again."
       }
     }
   },

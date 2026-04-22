@@ -164,13 +164,87 @@ const PortalAdminUsers = () => {
       void loadUsers();
     } catch (error) {
       handleApiForbidden(error);
-      const code = error && typeof error === 'object' && typeof error.code === 'string' ? error.code : '';
+      const code =
+        error && typeof error === 'object' && typeof error.code === 'string' ? error.code : '';
+      const status = error && typeof error === 'object' && typeof error.status === 'number' ? error.status : 0;
+      const details =
+        error && typeof error === 'object' && error.details && typeof error.details === 'object'
+          ? error.details
+          : null;
+      const detailStr =
+        details && typeof details.detail === 'string' ? details.detail.trim() : '';
+      const maxLen =
+        details && typeof details.max_length === 'number' ? details.max_length : null;
+      const minFromApi =
+        details && typeof details.min_length === 'number' ? details.min_length : null;
+
+      // Full context for support / debugging; never shown in the snackbar.
+      // eslint-disable-next-line no-console
+      console.error('[PortalAdminUsers] admin delete user failed', {
+        targetUserId: target.id,
+        status,
+        code,
+        details,
+        detail: detailStr || undefined,
+        suspectedProxyOrRoute404:
+          status === 404 && code !== 'user_not_found' && code !== 'not_found',
+      });
+      if (status === 404 && code !== 'user_not_found' && code !== 'not_found') {
+        // eslint-disable-next-line no-console
+        console.error(
+          '[PortalAdminUsers] hint: 404 with unexpected error code usually means the DELETE never reached the admin handler (base URL, static hosting route, or method not allowed).'
+        );
+      }
+
       let message = t('portalAdminUsers.delete.generic');
-      if (code === 'cannot_delete_self') message = t('portalAdminUsers.delete.errors.self');
-      else if (code === 'cannot_delete_admin') message = t('portalAdminUsers.delete.errors.admin');
-      else if (code === 'deletion_blocked') message = t('portalAdminUsers.delete.errors.blocked');
-      else if (code === 'user_not_found') message = t('portalAdminUsers.delete.errors.notFound');
-      else if (code === 'reason_required') message = t('portalAdminUsers.delete.reasonTooShort', { min: MIN_REASON_LENGTH });
+      if (code === 'cannot_delete_self') {
+        message = t('portalAdminUsers.delete.errors.self');
+      } else if (code === 'cannot_delete_admin') {
+        message = t('portalAdminUsers.delete.errors.admin');
+      } else if (code === 'deletion_blocked' || code === 'conflict' || (code === '' && status === 409)) {
+        message = t('portalAdminUsers.delete.errors.blocked');
+      } else if (code === 'user_not_found' || code === 'not_found') {
+        // Only when the API JSON says so — a bare HTTP 404 is often wrong route/proxy, not a missing user row.
+        message = t('portalAdminUsers.delete.errors.notFound');
+      } else if (code === 'reason_required') {
+        message = t('portalAdminUsers.delete.reasonTooShort', {
+          min: minFromApi != null ? minFromApi : MIN_REASON_LENGTH,
+        });
+      } else if (code === 'reason_too_long') {
+        message =
+          maxLen != null
+            ? t('portalAdminUsers.delete.errors.reasonTooLong', { max: maxLen })
+            : t('portalAdminUsers.delete.errors.reasonTooLongGeneric');
+      } else if (code === 'forbidden' || status === 403) {
+        message = t('portalAdminUsers.delete.errors.forbidden');
+      } else if (code === 'unauthorized' || status === 401) {
+        message = t('portalAdminUsers.delete.errors.unauthorized');
+      } else if (code === 'service_unavailable' || status >= 500) {
+        message = t('portalAdminUsers.delete.errors.serviceUnavailable');
+      } else if (code === 'rate_limit_exceeded' || status === 429) {
+        message = t('portalAdminUsers.delete.errors.rateLimited');
+      } else if (
+        code === 'user_id_required'
+        || code === 'method_not_allowed'
+        || code === 'validation_failed'
+        || code === 'request_failed'
+        || code === 'invalid_request'
+        || code === 'payload_too_large'
+      ) {
+        message = t('portalAdminUsers.delete.errors.requestFailed');
+      } else if (
+        code === 'fetch_failed_cors_or_network'
+        || code === 'fetch_threw'
+        || (code === '' && status === 0)
+      ) {
+        message = t('portalAdminUsers.delete.errors.clientOrNetwork');
+      } else {
+        // eslint-disable-next-line no-console
+        console.error('[PortalAdminUsers] unmapped error code; using generic user message', {
+          code: code || '(empty)',
+          status,
+        });
+      }
       showFeedback(message, 'error');
       setDeleteDialog((prev) => ({ ...prev, submitting: false }));
     }

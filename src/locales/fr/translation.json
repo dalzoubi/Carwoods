@@ -2488,7 +2488,15 @@
         "self": "Vous ne pouvez pas supprimer votre propre compte administrateur.",
         "admin": "Les comptes administrateur ne peuvent pas être supprimés depuis l'interface du portail.",
         "blocked": "Cet utilisateur possède des enregistrements que la suppression n'a pas pu nettoyer automatiquement. Supprimez-les manuellement puis réessayez.",
-        "notFound": "Cet utilisateur n'existe plus."
+        "notFound": "Aucun utilisateur ne correspond. Actualisez la liste, ou le compte a peut-être déjà été supprimé.",
+        "reasonTooLong": "Le motif est trop long (maximum {{max}} caractères).",
+        "reasonTooLongGeneric": "Le motif est trop long. Raccourcissez-le et réessayez.",
+        "forbidden": "Vous n'avez pas l'autorisation de supprimer cet utilisateur.",
+        "unauthorized": "Vous n'êtes pas connecté, ou la session a expiré. Reconnectez-vous et réessayez.",
+        "serviceUnavailable": "Le serveur est temporairement indisponible. Réessayez dans un instant.",
+        "clientOrNetwork": "Un problème réseau ou navigateur a bloqué la requête. Vérifiez la connexion et réessayez.",
+        "requestFailed": "La requête n'a pas pu aboutir. Actualisez la page et réessayez.",
+        "rateLimited": "Trop de tentatives. Attendez un instant et réessayez."
       }
     }
   },

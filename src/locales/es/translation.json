@@ -2488,7 +2488,15 @@
         "self": "No puedes eliminar tu propia cuenta de administrador.",
         "admin": "Las cuentas de administrador no pueden eliminarse desde la interfaz del portal.",
         "blocked": "Este usuario tiene registros que la eliminación no pudo limpiar automáticamente. Elimínalos manualmente e inténtalo de nuevo.",
-        "notFound": "Ese usuario ya no existe."
+        "notFound": "No se encontró ningún usuario con ese criterio. Actualiza la lista o es posible que la cuenta ya se haya eliminado.",
+        "reasonTooLong": "El motivo es demasiado largo (máximo {{max}} caracteres).",
+        "reasonTooLongGeneric": "El motivo es demasiado largo. Acórtalo e inténtalo de nuevo.",
+        "forbidden": "No tienes permiso para eliminar a este usuario.",
+        "unauthorized": "No has iniciado sesión o la sesión expiró. Vuelve a iniciar sesión e inténtalo de nuevo.",
+        "serviceUnavailable": "El servidor no está disponible temporalmente. Inténtalo de nuevo en unos momentos.",
+        "clientOrNetwork": "Un problema de red o del navegador impidió la solicitud. Comprueba la conexión e inténtalo de nuevo.",
+        "requestFailed": "No se pudo completar la solicitud. Actualiza la página e inténtalo de nuevo.",
+        "rateLimited": "Demasiados intentos. Espera un momento e inténtalo de nuevo."
       }
     }
   },

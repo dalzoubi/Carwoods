@@ -5,10 +5,11 @@
  * accepts the API base URL and a pre-resolved Bearer access token directly,
  * so callers retain full control over token acquisition timing.
  *
- * On a non-2xx response every function throws a plain object:
- *   { status: number, code: string, message: string }
- * where `code` is the sanitized `error` field from the JSON body when present.
- * `message` intentionally excludes backend codes so it is safe for UI fallback text.
+ * On a non-2xx response most functions throw a plain object:
+ *   { status: number, code: string, message: string, details?: object }
+ * `code` is the sanitized `error` field from the JSON body. Optional `details` may
+ * include `detail`, `min_length`, and `max_length` when the API provides them
+ * (e.g. admin user delete and validation).
  */
 
 import {
@@ -31,16 +32,30 @@ function buildUrl(baseUrl, path) {
 }
 
 async function readErrorBody(res) {
+  const { code } = await readErrorBodyWithMetadata(res);
+  return code;
+}
+
+/**
+ * @returns {{ code: string, detail?: string, minLength?: number, maxLength?: number }}
+ */
+async function readErrorBodyWithMetadata(res) {
   let code = '';
+  let detail;
+  let minLength;
+  let maxLength;
   try {
     const payload = await res.json();
-    if (payload && typeof payload.error === 'string') {
-      code = payload.error;
+    if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+      if (typeof payload.error === 'string') code = payload.error;
+      if (typeof payload.detail === 'string') detail = payload.detail;
+      if (typeof payload.min_length === 'number') minLength = payload.min_length;
+      if (typeof payload.max_length === 'number') maxLength = payload.max_length;
     }
   } catch {
     // best-effort; keep empty code if body is not JSON
   }
-  return code;
+  return { code, detail, minLength, maxLength };
 }
 
 function apiError(status, code, details) {
@@ -1404,8 +1419,16 @@ export async function deleteAdminUser(baseUrl, accessToken, userId, params) {
     }
   );
   if (!res.ok) {
-    const code = await readErrorBody(res);
-    throw apiError(res.status, code);
+    const { code, detail, minLength, maxLength } = await readErrorBodyWithMetadata(res);
+    const meta = {};
+    if (detail !== undefined) meta.detail = detail;
+    if (minLength !== undefined) meta.min_length = minLength;
+    if (maxLength !== undefined) meta.max_length = maxLength;
+    throw apiError(
+      res.status,
+      code,
+      Object.keys(meta).length > 0 ? meta : undefined
+    );
   }
   return res.json();
 }

@@ -9,6 +9,10 @@ const SAFE_ERROR_METADATA = new Set([
   'max_bytes',
   'max_seconds',
   'passcode_required',
+  /** Admin user hard-delete: DB/FK message for operators (no PII in typical drivers) */
+  'detail',
+  'min_length',
+  'max_length',
 ]);
 
 const INTERNAL_ERROR_CODES = new Set([

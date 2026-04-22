@@ -4,6 +4,7 @@
 import './functions/healthCheck.js';
 import './functions/publicApplyProperties.js';
 import './functions/portalMe.js';
+import './functions/portalRegisterLandlord.js';
 import './functions/landlordProperties.js';
 import './functions/landlordLeases.js';
 import './functions/landlordLeaseTenants.js';
@@ -23,6 +24,7 @@ import './functions/landlordNotificationPolicies.js';
 import './functions/internalJobs.js';
 import './functions/adminLandlordInvites.js';
 import './functions/adminPortalUsers.js';
+import './functions/adminDeleteUser.js';
 import './functions/adminNotificationTest.js';
 import './functions/landlordHarPreview.js';
 import './functions/inboundEmailReply.js';
