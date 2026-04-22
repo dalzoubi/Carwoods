@@ -1121,6 +1121,206 @@ export async function deleteAdminContactRequest(baseUrl, accessToken, params) {
 }
 
 // ---------------------------------------------------------------------------
+// Contact request thread messages and AI suggestions
+// ---------------------------------------------------------------------------
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ requestId: string, emailHint?: string }} params
+ * @returns {Promise<{ contact_request: object, messages: object[] }>}
+ */
+export async function fetchAdminContactRequestThread(baseUrl, accessToken, params) {
+  const { requestId, emailHint } = params;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/admin/contact-requests/${encodeURIComponent(requestId)}/messages`),
+    {
+      method: 'GET',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{
+ *   requestId: string,
+ *   body: string,
+ *   isInternalNote?: boolean,
+ *   aiSuggested?: boolean,
+ *   aiModel?: string | null,
+ *   markHandled?: boolean,
+ *   emailHint?: string,
+ * }} params
+ */
+export async function postAdminContactRequestReply(baseUrl, accessToken, params) {
+  const { requestId, emailHint, body, isInternalNote, aiSuggested, aiModel, markHandled } = params;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/admin/contact-requests/${encodeURIComponent(requestId)}/messages`),
+    {
+      method: 'POST',
+      headers: jsonHeaders(accessToken, emailHint),
+      body: JSON.stringify({
+        body,
+        is_internal_note: Boolean(isInternalNote),
+        ai_suggested: Boolean(aiSuggested),
+        ai_model: aiModel ?? null,
+        mark_handled: markHandled !== false,
+      }),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  emitPortalSidebarBadgesRefresh();
+  return res.json();
+}
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{
+ *   requestId: string,
+ *   tone?: string,
+ *   length?: string,
+ *   extraContext?: string,
+ *   emailHint?: string,
+ * }} params
+ * @returns {Promise<{ suggestion: string, model: string, tone: string, length: string }>}
+ */
+export async function postAdminContactRequestSuggestReply(baseUrl, accessToken, params) {
+  const { requestId, emailHint, tone, length, extraContext } = params;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/admin/contact-requests/${encodeURIComponent(requestId)}/suggest-reply`),
+    {
+      method: 'POST',
+      headers: jsonHeaders(accessToken, emailHint),
+      body: JSON.stringify({
+        tone: tone ?? 'friendly',
+        length: length ?? 'medium',
+        extra_context: extraContext ?? null,
+      }),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ subjectScope?: string, emailHint?: string }} [params]
+ * @returns {Promise<{ templates: object[] }>}
+ */
+export async function fetchAdminContactReplyTemplates(baseUrl, accessToken, params) {
+  const emailHint = params?.emailHint;
+  const qs = params?.subjectScope
+    ? `?subject_scope=${encodeURIComponent(params.subjectScope)}`
+    : '';
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/admin/contact-reply-templates${qs}`),
+    {
+      method: 'GET',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ title: string, body: string, subjectScope?: string | null, emailHint?: string }} params
+ */
+export async function createAdminContactReplyTemplate(baseUrl, accessToken, params) {
+  const { emailHint, title, body, subjectScope } = params;
+  const res = await fetch(
+    buildUrl(baseUrl, '/api/portal/admin/contact-reply-templates'),
+    {
+      method: 'POST',
+      headers: jsonHeaders(accessToken, emailHint),
+      body: JSON.stringify({
+        title,
+        body,
+        subject_scope: subjectScope ?? null,
+      }),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ templateId: string, title: string, body: string, subjectScope?: string | null, emailHint?: string }} params
+ */
+export async function updateAdminContactReplyTemplate(baseUrl, accessToken, params) {
+  const { emailHint, templateId, title, body, subjectScope } = params;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/admin/contact-reply-templates/${encodeURIComponent(templateId)}`),
+    {
+      method: 'PUT',
+      headers: jsonHeaders(accessToken, emailHint),
+      body: JSON.stringify({
+        title,
+        body,
+        subject_scope: subjectScope ?? null,
+      }),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ templateId: string, emailHint?: string }} params
+ */
+export async function deleteAdminContactReplyTemplate(baseUrl, accessToken, params) {
+  const { emailHint, templateId } = params;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/admin/contact-reply-templates/${encodeURIComponent(templateId)}`),
+    {
+      method: 'DELETE',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // GET /api/portal/admin/users  (admin — portal users for tooling, e.g. notification test)
 // ---------------------------------------------------------------------------
 
