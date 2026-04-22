@@ -1093,6 +1093,20 @@
       "phoneInvalid": "Saisissez un numero de telephone valide.",
       "smsNotOnPlan": "Les notifications SMS ne sont pas disponibles avec votre offre actuelle. Desactivez les notifications SMS puis enregistrez a nouveau.",
       "unknown": "Impossible de mettre a jour le profil."
+    },
+    "flows": {
+      "SUPPORT_TICKET_REPLY": {
+        "label": "L'équipe d'assistance a répondu à votre ticket",
+        "info": "Envoyé au propriétaire du ticket lorsque le personnel d'assistance publie une réponse."
+      },
+      "SUPPORT_TICKET_STATUS_CHANGED": {
+        "label": "Statut du ticket d'assistance modifié",
+        "info": "Envoyé lorsque votre ticket passe entre Ouvert, En cours, Résolu ou Fermé. Désactivez-le pour des mises à jour plus discrètes."
+      },
+      "SUPPORT_TICKET_ADMIN_NEW": {
+        "label": "Nouveau ticket ou réponse d'utilisateur (administrateurs)",
+        "info": "Envoyé aux administrateurs lorsqu'un nouveau ticket est soumis ou qu'un utilisateur répond sur un ticket existant."
+      }
     }
   },
   "portalNotificationPolicies": {

@@ -1093,6 +1093,20 @@
       "phoneInvalid": "Ingresa un número de teléfono válido.",
       "smsNotOnPlan": "Las notificaciones por SMS no están disponibles en tu plan actual. Desactiva las notificaciones por SMS y vuelve a guardar.",
       "unknown": "No se pudo actualizar el perfil."
+    },
+    "flows": {
+      "SUPPORT_TICKET_REPLY": {
+        "label": "El equipo de soporte respondió a tu ticket",
+        "info": "Se envía al propietario del ticket cuando el personal de soporte publica una respuesta."
+      },
+      "SUPPORT_TICKET_STATUS_CHANGED": {
+        "label": "Cambió el estado del ticket de soporte",
+        "info": "Se envía cuando tu ticket pasa entre Abierto, En progreso, Resuelto o Cerrado. Desactívalo para recibir actualizaciones más silenciosas."
+      },
+      "SUPPORT_TICKET_ADMIN_NEW": {
+        "label": "Nuevo ticket o respuesta de usuario (administradores)",
+        "info": "Se envía a los administradores cuando se envía un nuevo ticket o un usuario responde en un ticket existente."
+      }
     }
   },
   "portalNotificationPolicies": {
