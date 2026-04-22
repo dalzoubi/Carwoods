@@ -1347,6 +1347,69 @@ export async function fetchAdminPortalUsers(baseUrl, accessToken, params) {
   return res.json();
 }
 
+// ---------------------------------------------------------------------------
+// POST /api/portal/register/landlord
+// Called from the role-selection gate after a first-time user picks the
+// "I'm a landlord" option. Profile details collected in the gate form are
+// optional; the server falls back to name claims from the ID token.
+// ---------------------------------------------------------------------------
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ emailHint?: string, first_name?: string|null, last_name?: string|null, phone?: string|null }} [payload]
+ * @returns {Promise<object>}
+ */
+export async function registerAsLandlord(baseUrl, accessToken, payload) {
+  const emailHint = payload?.emailHint;
+  const body = {
+    first_name: payload?.first_name ?? null,
+    last_name: payload?.last_name ?? null,
+    phone: payload?.phone ?? null,
+  };
+  const res = await fetch(buildUrl(baseUrl, '/api/portal/register/landlord'), {
+    method: 'POST',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
+// DELETE /api/portal/admin/users/:id
+// Admin-only permanent removal. Mandatory `reason` field is audited.
+// ---------------------------------------------------------------------------
+
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {string} userId
+ * @param {{ reason: string, emailHint?: string }} params
+ * @returns {Promise<object>}
+ */
+export async function deleteAdminUser(baseUrl, accessToken, userId, params) {
+  const emailHint = params?.emailHint;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/admin/users/${encodeURIComponent(userId)}`),
+    {
+      method: 'DELETE',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify({ reason: params?.reason ?? '' }),
+    }
+  );
+  if (!res.ok) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+  return res.json();
+}
+
 export async function fetchElsaSettings(baseUrl, accessToken, params) {
   const emailHint = params?.emailHint;
   const requestParam = params?.requestId ? `?request_id=${encodeURIComponent(params.requestId)}` : '';

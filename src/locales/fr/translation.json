@@ -2408,6 +2408,78 @@
       "absolute": "Votre session a expiré. Veuillez vous reconnecter pour continuer."
     }
   },
+  "portalRoleSelect": {
+    "title": "Bienvenue sur Carwoods - Choisissez votre type de compte",
+    "heading": "Une petite question",
+    "signedInAs": "Connecté en tant que {{email}}",
+    "prompt": "Nous n'avons pas trouvé de compte Carwoods existant pour cette adresse e-mail. Dites-nous comment vous comptez utiliser Carwoods afin que nous configurions votre compte correctement.",
+    "landlordCta": "Je suis propriétaire ou gestionnaire immobilier",
+    "landlordSubtext": "Je possède ou gère des biens locatifs et je souhaite les ajouter ici.",
+    "tenantCta": "Je suis locataire",
+    "tenantSubtext": "Je loue un logement géré via Carwoods.",
+    "back": "Retour",
+    "signOut": "Se déconnecter",
+    "landlordForm": {
+      "heading": "Créez votre compte propriétaire",
+      "subtitle": "Ces informations serviront aux communications avec les locataires. Vous pourrez les modifier plus tard dans votre profil.",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "phone": "Téléphone (facultatif)",
+      "phoneHelp": "Affiché aux locataires dans les notifications et les demandes de maintenance.",
+      "submit": "Créer le compte propriétaire",
+      "submitting": "Création du compte..."
+    },
+    "tenantDeadEnd": {
+      "heading": "Votre propriétaire doit vous inviter",
+      "body": "Les comptes locataires chez Carwoods sont créés par votre propriétaire ou gestionnaire immobilier. Contactez-le et demandez-lui de vous inviter au portail Carwoods avec cette adresse e-mail.",
+      "note": "Une fois l'invitation envoyée, reconnectez-vous et votre compte locataire sera prêt."
+    },
+    "errors": {
+      "apiUnavailable": "Le portail Carwoods est temporairement inaccessible. Veuillez réessayer dans un instant.",
+      "nameRequired": "Le prénom et le nom sont obligatoires.",
+      "alreadyRegistered": "Un compte existe déjà pour cette adresse e-mail. Déconnectez-vous et réessayez, ou contactez le support.",
+      "generic": "Nous n'avons pas pu créer votre compte. Veuillez réessayer ou contacter le support si le problème persiste."
+    }
+  },
+  "portalAdminUsers": {
+    "title": "Carwoods - Administration des utilisateurs",
+    "heading": "Administration des utilisateurs",
+    "intro": "Consultez tous les utilisateurs du portail et supprimez définitivement des comptes lorsque nécessaire. Les suppressions sont auditées et ne peuvent pas être annulées.",
+    "errors": {
+      "apiUnavailable": "L'API d'administration Carwoods est temporairement inaccessible.",
+      "adminOnly": "Seuls les administrateurs peuvent voir cette page.",
+      "loadFailed": "Impossible de charger les utilisateurs. Actualisez pour réessayer."
+    },
+    "list": {
+      "heading": "Utilisateurs du portail",
+      "showInactive": "Inclure les inactifs",
+      "refresh": "Actualiser la liste des utilisateurs",
+      "emptyTitle": "Aucun utilisateur à afficher",
+      "emptyDescription": "Les utilisateurs apparaîtront ici lorsqu'ils se connecteront ou seront invités."
+    },
+    "delete": {
+      "cta": "Supprimer définitivement l'utilisateur",
+      "disabledSelf": "Vous ne pouvez pas supprimer votre propre compte administrateur.",
+      "disabledAdmin": "Les comptes administrateur doivent être supprimés au niveau de la base de données.",
+      "dialogTitle": "Supprimer définitivement {{name}} ?",
+      "warningPrimary": "Cela supprime définitivement l'utilisateur ainsi que tous les biens, baux et demandes de maintenance qu'il a créés. Cette action est irréversible.",
+      "warningSecondary": "Une entrée d'audit contenant le motif ci-dessous sera enregistrée afin que cette action puisse être examinée ultérieurement.",
+      "reasonLabel": "Motif de la suppression",
+      "reasonHelper": "Minimum {{min}} caractères, maximum {{max}} ({{count}}/{{max}}).",
+      "reasonTooShort": "Veuillez indiquer un motif d'au moins {{min}} caractères.",
+      "confirm": "Supprimer définitivement",
+      "cancel": "Annuler",
+      "submitting": "Suppression...",
+      "success": "{{name}} a été supprimé définitivement.",
+      "generic": "Impossible de supprimer cet utilisateur. Veuillez réessayer.",
+      "errors": {
+        "self": "Vous ne pouvez pas supprimer votre propre compte administrateur.",
+        "admin": "Les comptes administrateur ne peuvent pas être supprimés depuis l'interface du portail.",
+        "blocked": "Cet utilisateur possède des enregistrements que la suppression n'a pas pu nettoyer automatiquement. Supprimez-les manuellement puis réessayez.",
+        "notFound": "Cet utilisateur n'existe plus."
+      }
+    }
+  },
   "session": {
     "expiring": {
       "title": "Toujours là ?",

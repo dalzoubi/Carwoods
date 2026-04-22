@@ -12,7 +12,7 @@ import {
   verifyAccessToken,
   authConfigured,
 } from '../lib/jwtVerify.js';
-import { findUserByClaims, autoAssignFreeTier, autoRegisterLandlordByClaims } from '../lib/usersRepo.js';
+import { findUserByClaims, autoAssignFreeTier } from '../lib/usersRepo.js';
 import { getGlobalAttachmentUploadConfigCached } from '../lib/attachmentUploadConfigRepo.js';
 import { getTierById, getTierByName } from '../lib/subscriptionTiersRepo.js';
 import { addProfilePhotoReadUrl } from '../lib/userProfilePhotoUrl.js';
@@ -21,7 +21,6 @@ import {
   listUserNotificationFlowPreferences,
 } from '../lib/notificationPolicyRepo.js';
 import { NOTIFICATION_FLOW_DEFAULTS } from '../config/notificationFlowDefaults.js';
-import { enqueueNotification } from '../lib/notificationRepo.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 import { withRateLimit } from '../lib/rateLimiter.js';
 import { safeErrorResponseBody } from '../lib/safeErrorResponse.js';
@@ -34,7 +33,6 @@ type PortalMeDeps = {
   verifyAccessToken: typeof verifyAccessToken;
   authConfigured: typeof authConfigured;
   findUserByClaims: typeof findUserByClaims;
-  autoRegisterLandlordByClaims: typeof autoRegisterLandlordByClaims;
   ensureUserNotificationPreference: typeof ensureUserNotificationPreference;
   listUserNotificationFlowPreferences: typeof listUserNotificationFlowPreferences;
   getGlobalAttachmentUploadConfigCached: typeof getGlobalAttachmentUploadConfigCached;
@@ -46,7 +44,6 @@ const DEFAULT_PORTAL_ME_DEPS: PortalMeDeps = {
   verifyAccessToken,
   authConfigured,
   findUserByClaims,
-  autoRegisterLandlordByClaims,
   ensureUserNotificationPreference,
   listUserNotificationFlowPreferences,
   getGlobalAttachmentUploadConfigCached,
@@ -129,57 +126,38 @@ export async function portalMeHandler(
     return jsonResponse(503, headers, { error: 'user_lookup_unavailable' });
   }
 
-  // No existing user — auto-register as a Free-tier landlord on first sign-in
-  if (!user && deps.hasDatabaseUrl()) {
-    try {
-      const pool = deps.getPool();
-      const newUser = await deps.autoRegisterLandlordByClaims(pool, claims, emailHint);
-      if (newUser) {
-        user = newUser;
-        notificationPreferences = await deps.ensureUserNotificationPreference(pool, user.id);
-        flowPreferences = await deps.listUserNotificationFlowPreferences(pool, user.id);
-        logInfo(context, 'portal.me.auto_registered', {
-          userId: user.id,
-          subject: claims.sub,
-          oid: claims.oid ?? null,
-        });
-        try {
-          const notifyClient = await pool.connect();
-          try {
-            await enqueueNotification(notifyClient, {
-              eventTypeCode: 'ACCOUNT_LANDLORD_CREATED',
-              payload: {
-                landlord_user_id: user.id,
-                landlord_email: user.email,
-                email: user.email,
-                first_name: user.first_name ?? null,
-                last_name: user.last_name ?? null,
-                source: 'SELF_REGISTRATION',
-              },
-              idempotencyKey: `account-landlord-created:${user.id}:self`,
-            });
-          } finally {
-            notifyClient.release();
-          }
-        } catch (notifyErr) {
-          logWarn(context, 'portal.me.landlord_notify_admins.failed', {
-            userId: user.id,
-            message: notifyErr instanceof Error ? notifyErr.message : String(notifyErr),
-          });
-        }
-      }
-    } catch (error) {
-      logError(context, 'portal.me.auto_register.error', {
-        message: error instanceof Error ? error.message : 'unknown',
-        subject: claims.sub,
-      });
-    }
-  }
-
+  // No existing user — ask the client to show the role-selection gate.
+  // We deliberately do NOT auto-create anything here: a tenant who mistakes
+  // the landlord portal for their tenant login used to become a landlord
+  // automatically, which is the bug this flow fixes. Landlord rows are now
+  // created only by the explicit POST /api/portal/register/landlord call.
   if (!user) {
-    // Auto-registration skipped (no email in token) or already handled above
+    const tokenEmail = primaryEmailFromClaims(claims) ?? emailHint ?? null;
+    if (tokenEmail) {
+      logInfo(context, 'portal.me.needs_role_selection', {
+        subject: claims.sub,
+        oid: claims.oid ?? null,
+      });
+      return {
+        status: 200,
+        headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
+        jsonBody: {
+          needs_role_selection: true,
+          email: tokenEmail,
+          suggested_first_name:
+            claims.given_name
+            ?? (claims.name ? claims.name.split(' ')[0] : null)
+            ?? null,
+          suggested_last_name:
+            claims.family_name
+            ?? (claims.name ? claims.name.split(' ').slice(1).join(' ') : null)
+            ?? null,
+        },
+      };
+    }
+    // No email claim at all — we can't even show a useful gate. Deny access.
     logWarn(context, 'portal.me.forbidden', {
-      reason: 'user_not_found',
+      reason: 'user_not_found_no_email',
       subject: claims.sub,
       oid: claims.oid ?? null,
     });
