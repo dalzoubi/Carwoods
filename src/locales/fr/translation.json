@@ -2285,6 +2285,51 @@
       "loadFailed": "Impossible de charger les messages de contact.",
       "saveFailed": "Impossible de mettre à jour le statut.",
       "deleteFailed": "Impossible de supprimer le message."
+    },
+    "reply": {
+      "threadHeading": "Réponses",
+      "composeHeading": "Répondre à l'expéditeur",
+      "refreshThread": "Actualiser les réponses",
+      "noRepliesYet": "Aucune réponse pour le moment.",
+      "placeholder": "Rédigez votre réponse…",
+      "sendReply": "Envoyer la réponse",
+      "saveInternalNote": "Enregistrer la note interne",
+      "internalNoteToggle": "Note interne (non envoyée par e-mail)",
+      "templateLabel": "Modèle",
+      "templateNone": "Aucun",
+      "toneLabel": "Ton",
+      "lengthLabel": "Longueur",
+      "suggestButton": "Suggérer une réponse",
+      "useSuggestion": "Utiliser",
+      "dismissSuggestion": "Ignorer",
+      "suggestionFrom": "Brouillon IA ({{model}})",
+      "tone": {
+        "friendly": "Amical",
+        "formal": "Formel",
+        "apologetic": "Excuses",
+        "concise": "Concis"
+      },
+      "length": {
+        "short": "Courte",
+        "medium": "Moyenne",
+        "detailed": "Détaillée"
+      },
+      "adminAuthorFallback": "Admin",
+      "internalTag": "Interne",
+      "aiAssistedTag": "Assistée par IA",
+      "emailedTag": "Envoyée par e-mail",
+      "emailFailedTag": "Échec de l'e-mail",
+      "emailErrorPrefix": "Erreur d'e-mail :",
+      "loadThreadError": "Impossible de charger les réponses.",
+      "emptyBodyError": "La réponse ne peut pas être vide.",
+      "bodyTooLongError": "La réponse est trop longue.",
+      "sendFailed": "Impossible d'envoyer la réponse.",
+      "suggestFailed": "Impossible de générer une suggestion.",
+      "suggestUnavailable": "L'IA est temporairement indisponible. Réessayez plus tard.",
+      "suggestNotConfigured": "Les suggestions IA ne sont pas configurées sur ce serveur.",
+      "feedbackReplySent": "Réponse envoyée par e-mail à l'expéditeur.",
+      "feedbackInternalSaved": "Note interne enregistrée.",
+      "feedbackReplySavedNoEmail": "Réponse enregistrée, mais l'e-mail n'a pas été envoyé ({{reason}})."
     }
   },
   "portalDashboard": {

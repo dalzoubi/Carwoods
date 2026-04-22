@@ -42,6 +42,7 @@ import {
 } from '../lib/portalApiClient';
 import MailtoEmailLink from './MailtoEmailLink';
 import EmptyState from './EmptyState';
+import PortalAdminContactReplyThread from './PortalAdminContactReplyThread';
 
 const UUID_HASH_RE = /^#[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -616,7 +617,7 @@ export default function PortalAdminContactRequests() {
       <Dialog
         open={Boolean(detailRow)}
         onClose={() => setDetailRow(null)}
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
       >
         {detailRow && (
@@ -680,6 +681,32 @@ export default function PortalAdminContactRequests() {
                     </Typography>
                   </Paper>
                 </Box>
+                <Divider sx={{ my: 1 }} />
+                <PortalAdminContactReplyThread
+                  baseUrl={baseUrl}
+                  accessToken={getAccessToken}
+                  emailHint={emailHint}
+                  contactRequest={detailRow}
+                  onReplySent={({ contactRequest, emailDelivered, emailError, isInternalNote }) => {
+                    if (contactRequest) {
+                      setDetailRow(contactRequest);
+                    }
+                    if (isInternalNote) {
+                      showFeedback(t('portalAdminContactRequests.reply.feedbackInternalSaved'));
+                    } else if (emailDelivered) {
+                      showFeedback(t('portalAdminContactRequests.reply.feedbackReplySent'));
+                    } else {
+                      showFeedback(
+                        t('portalAdminContactRequests.reply.feedbackReplySavedNoEmail', {
+                          reason: emailError || 'unknown',
+                        }),
+                        'warning'
+                      );
+                    }
+                    void load({ silent: true });
+                  }}
+                  onError={(err) => handleApiForbidden(err)}
+                />
               </Stack>
             </DialogContent>
             <DialogActions sx={{ px: 2, py: 1.5, gap: 1, flexWrap: 'wrap' }}>

@@ -29,6 +29,8 @@ import './functions/inboundEmailReply.js';
 import './functions/inboundSmsWebhook.js';
 import './functions/publicContact.js';
 import './functions/adminContactRequests.js';
+import './functions/adminContactRequestMessages.js';
+import './functions/adminContactReplyTemplates.js';
 import './functions/adminNotificationFlowDefaults.js';
 import './functions/adminNotificationOverrides.js';
 import './functions/adminNotificationReport.js';

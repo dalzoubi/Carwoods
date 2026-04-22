@@ -2286,6 +2286,51 @@
       "loadFailed": "تعذر تحميل رسائل الاتصال.",
       "saveFailed": "تعذر تحديث الحالة.",
       "deleteFailed": "تعذر حذف الرسالة."
+    },
+    "reply": {
+      "threadHeading": "الردود",
+      "composeHeading": "الرد على المرسل",
+      "refreshThread": "تحديث الردود",
+      "noRepliesYet": "لا توجد ردود بعد.",
+      "placeholder": "اكتب ردك…",
+      "sendReply": "إرسال الرد",
+      "saveInternalNote": "حفظ ملاحظة داخلية",
+      "internalNoteToggle": "ملاحظة داخلية (لا تُرسل بالبريد)",
+      "templateLabel": "قالب",
+      "templateNone": "بدون",
+      "toneLabel": "النبرة",
+      "lengthLabel": "الطول",
+      "suggestButton": "اقتراح رد",
+      "useSuggestion": "استخدام هذا",
+      "dismissSuggestion": "تجاهل",
+      "suggestionFrom": "مسودة بالذكاء الاصطناعي ({{model}})",
+      "tone": {
+        "friendly": "ودّي",
+        "formal": "رسمي",
+        "apologetic": "اعتذاري",
+        "concise": "مختصر"
+      },
+      "length": {
+        "short": "قصير",
+        "medium": "متوسط",
+        "detailed": "مفصّل"
+      },
+      "adminAuthorFallback": "مشرف",
+      "internalTag": "داخلية",
+      "aiAssistedTag": "بمساعدة الذكاء الاصطناعي",
+      "emailedTag": "أُرسل بالبريد",
+      "emailFailedTag": "فشل البريد",
+      "emailErrorPrefix": "خطأ البريد:",
+      "loadThreadError": "تعذر تحميل الردود.",
+      "emptyBodyError": "لا يمكن أن يكون الرد فارغًا.",
+      "bodyTooLongError": "الرد طويل جدًا.",
+      "sendFailed": "تعذر إرسال الرد.",
+      "suggestFailed": "تعذر توليد اقتراح.",
+      "suggestUnavailable": "الذكاء الاصطناعي غير متاح مؤقتًا. حاول لاحقًا.",
+      "suggestNotConfigured": "اقتراحات الذكاء الاصطناعي غير مُعدّة على هذا الخادم.",
+      "feedbackReplySent": "تم إرسال الرد بالبريد إلى المرسل.",
+      "feedbackInternalSaved": "تم حفظ الملاحظة الداخلية.",
+      "feedbackReplySavedNoEmail": "تم حفظ الرد ولم يُرسل البريد ({{reason}})."
     }
   },
   "portalDashboard": {

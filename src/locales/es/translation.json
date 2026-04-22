@@ -2285,6 +2285,51 @@
       "loadFailed": "No se pudieron cargar los mensajes de contacto.",
       "saveFailed": "No se pudo actualizar el estado.",
       "deleteFailed": "No se pudo eliminar el mensaje."
+    },
+    "reply": {
+      "threadHeading": "Respuestas",
+      "composeHeading": "Responder al remitente",
+      "refreshThread": "Actualizar respuestas",
+      "noRepliesYet": "Aún no hay respuestas.",
+      "placeholder": "Escribe tu respuesta…",
+      "sendReply": "Enviar respuesta",
+      "saveInternalNote": "Guardar nota interna",
+      "internalNoteToggle": "Nota interna (no se envía por correo)",
+      "templateLabel": "Plantilla",
+      "templateNone": "Ninguna",
+      "toneLabel": "Tono",
+      "lengthLabel": "Longitud",
+      "suggestButton": "Sugerir respuesta",
+      "useSuggestion": "Usar esta",
+      "dismissSuggestion": "Descartar",
+      "suggestionFrom": "Borrador de IA ({{model}})",
+      "tone": {
+        "friendly": "Amable",
+        "formal": "Formal",
+        "apologetic": "Disculpas",
+        "concise": "Conciso"
+      },
+      "length": {
+        "short": "Corta",
+        "medium": "Media",
+        "detailed": "Detallada"
+      },
+      "adminAuthorFallback": "Admin",
+      "internalTag": "Interna",
+      "aiAssistedTag": "Asistida por IA",
+      "emailedTag": "Enviada por correo",
+      "emailFailedTag": "Error de correo",
+      "emailErrorPrefix": "Error de correo:",
+      "loadThreadError": "No se pudieron cargar las respuestas.",
+      "emptyBodyError": "La respuesta no puede estar vacía.",
+      "bodyTooLongError": "La respuesta es demasiado larga.",
+      "sendFailed": "No se pudo enviar la respuesta.",
+      "suggestFailed": "No se pudo generar una sugerencia.",
+      "suggestUnavailable": "La IA no está disponible temporalmente. Inténtalo de nuevo.",
+      "suggestNotConfigured": "Las sugerencias de IA no están configuradas en este servidor.",
+      "feedbackReplySent": "Respuesta enviada por correo al remitente.",
+      "feedbackInternalSaved": "Nota interna guardada.",
+      "feedbackReplySavedNoEmail": "Respuesta guardada, pero no se envió el correo ({{reason}})."
     }
   },
   "portalDashboard": {

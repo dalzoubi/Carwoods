@@ -2802,6 +2802,51 @@
       "loadFailed": "Failed to load contact messages.",
       "saveFailed": "Failed to update status.",
       "deleteFailed": "Failed to delete the message."
+    },
+    "reply": {
+      "threadHeading": "Replies",
+      "composeHeading": "Reply to sender",
+      "refreshThread": "Refresh replies",
+      "noRepliesYet": "No replies yet.",
+      "placeholder": "Write your reply…",
+      "sendReply": "Send reply",
+      "saveInternalNote": "Save internal note",
+      "internalNoteToggle": "Internal note (not emailed)",
+      "templateLabel": "Template",
+      "templateNone": "None",
+      "toneLabel": "Tone",
+      "lengthLabel": "Length",
+      "suggestButton": "Suggest reply",
+      "useSuggestion": "Use this",
+      "dismissSuggestion": "Dismiss",
+      "suggestionFrom": "AI draft ({{model}})",
+      "tone": {
+        "friendly": "Friendly",
+        "formal": "Formal",
+        "apologetic": "Apologetic",
+        "concise": "Concise"
+      },
+      "length": {
+        "short": "Short",
+        "medium": "Medium",
+        "detailed": "Detailed"
+      },
+      "adminAuthorFallback": "Admin",
+      "internalTag": "Internal",
+      "aiAssistedTag": "AI-assisted",
+      "emailedTag": "Emailed",
+      "emailFailedTag": "Email failed",
+      "emailErrorPrefix": "Email error:",
+      "loadThreadError": "Could not load replies.",
+      "emptyBodyError": "Reply cannot be empty.",
+      "bodyTooLongError": "Reply is too long.",
+      "sendFailed": "Could not send the reply.",
+      "suggestFailed": "Could not generate a suggestion.",
+      "suggestUnavailable": "AI is temporarily unavailable. Try again shortly.",
+      "suggestNotConfigured": "AI suggestions are not configured on this server.",
+      "feedbackReplySent": "Reply emailed to sender.",
+      "feedbackInternalSaved": "Internal note saved.",
+      "feedbackReplySavedNoEmail": "Reply saved, but email was not sent ({{reason}})."
     }
   },
   "portalDashboard": {
