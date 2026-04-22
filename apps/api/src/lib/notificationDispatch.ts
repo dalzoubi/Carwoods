@@ -17,7 +17,7 @@ import {
 } from './requestsRepo.js';
 import { listLeaseNotificationRecipients } from './leasesRepo.js';
 import { resolveNotificationPolicy, getUserQuietHoursPreference } from './notificationPolicyRepo.js';
-import { listActiveAdminNotificationRecipients } from './usersRepo.js';
+import { listActiveAdminNotificationRecipients, findUserById } from './usersRepo.js';
 import { Role } from '../domain/constants.js';
 import {
   isChannelInCooldown,
@@ -563,6 +563,88 @@ export function buildNotificationContent(
     };
   }
 
+  if (normalizedEvent === 'SUPPORT_TICKET_REPLY') {
+    const ticketId = asString(payload.support_ticket_id) ?? null;
+    const title = asString(payload.title) ?? 'your support ticket';
+    const preview = (asString(payload.preview) ?? '').trim();
+    const body = [
+      `A member of our support team replied on "${title}":`,
+      '',
+      preview || '(No preview available.)',
+    ].join('\n');
+    return {
+      title: 'Support team replied to your ticket',
+      body,
+      deepLink: ticketId ? `/portal/support?id=${ticketId}` : '/portal/support',
+      requestId: null,
+      metadata: {
+        kind: 'support_ticket_reply',
+        support_ticket_id: ticketId,
+        message_id: asString(payload.message_id) ?? null,
+      },
+    };
+  }
+
+  if (normalizedEvent === 'SUPPORT_TICKET_STATUS_CHANGED') {
+    const ticketId = asString(payload.support_ticket_id) ?? null;
+    const title = asString(payload.title) ?? 'your support ticket';
+    const statusRaw = (asString(payload.status) ?? '').toUpperCase();
+    const statusLabels: Record<string, string> = {
+      OPEN: 'Open',
+      IN_PROGRESS: 'In progress',
+      RESOLVED: 'Resolved',
+      CLOSED: 'Closed',
+    };
+    const statusLabel = statusLabels[statusRaw] ?? statusRaw;
+    return {
+      title: `Support ticket ${statusLabel.toLowerCase()}: ${title}`,
+      body: `Your support ticket "${title}" is now ${statusLabel}.`,
+      deepLink: ticketId ? `/portal/support?id=${ticketId}` : '/portal/support',
+      requestId: null,
+      metadata: {
+        kind: 'support_ticket_status_changed',
+        support_ticket_id: ticketId,
+        status: statusRaw || null,
+      },
+    };
+  }
+
+  if (normalizedEvent === 'SUPPORT_TICKET_ADMIN_NEW') {
+    const ticketId = asString(payload.support_ticket_id) ?? null;
+    const title = asString(payload.title) ?? 'Support ticket';
+    const category = (asString(payload.category) ?? '').toUpperCase();
+    const area = asString(payload.area);
+    const event = (asString(payload.event) ?? '').toLowerCase();
+    const preview = (asString(payload.preview) ?? asString(payload.description) ?? '').trim();
+    const isUserReply = event === 'user_reply';
+
+    const bodyParts: string[] = [];
+    if (category) bodyParts.push(`Category: ${category}`);
+    if (area) bodyParts.push(`Area: ${area}`);
+    if (preview) {
+      bodyParts.push('');
+      bodyParts.push(preview);
+    }
+    const body = bodyParts.join('\n') || `A new support ticket was submitted: "${title}".`;
+
+    return {
+      title: isUserReply
+        ? `New user reply on support ticket: ${title}`
+        : `New support ticket${category ? ` [${category}]` : ''}: ${title}`,
+      body,
+      deepLink: ticketId
+        ? `/portal/admin/support?id=${ticketId}`
+        : '/portal/admin/support',
+      requestId: null,
+      metadata: {
+        kind: 'support_ticket_admin_new',
+        support_ticket_id: ticketId,
+        event: isUserReply ? 'user_reply' : 'new_ticket',
+        message_id: asString(payload.message_id) ?? null,
+      },
+    };
+  }
+
   return {
     title: 'Portal notification',
     body: maintenanceBodyFromAi(
@@ -604,7 +686,11 @@ async function resolveRecipientsForEvent(
     return [{ userId, email, phone, role }];
   }
 
-  if (normalizedEvent === 'ACCOUNT_LANDLORD_CREATED' || normalizedEvent === 'CONTACT_REQUEST_CREATED') {
+  if (
+    normalizedEvent === 'ACCOUNT_LANDLORD_CREATED'
+    || normalizedEvent === 'CONTACT_REQUEST_CREATED'
+    || normalizedEvent === 'SUPPORT_TICKET_ADMIN_NEW'
+  ) {
     const admins = await listActiveAdminNotificationRecipients(db);
     return admins.map((row) => ({
       userId: row.user_id,
@@ -612,6 +698,22 @@ async function resolveRecipientsForEvent(
       phone: row.phone,
       role: row.role,
     }));
+  }
+
+  if (
+    normalizedEvent === 'SUPPORT_TICKET_REPLY'
+    || normalizedEvent === 'SUPPORT_TICKET_STATUS_CHANGED'
+  ) {
+    const userId = asString(payload.recipient_user_id);
+    if (!userId) return [];
+    const user = await findUserById(db, userId);
+    if (!user) return [];
+    return [{
+      userId: user.id,
+      email: user.email ?? null,
+      phone: user.phone ?? null,
+      role: String(user.role ?? '').toUpperCase(),
+    }];
   }
 
   if (
