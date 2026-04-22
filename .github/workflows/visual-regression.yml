@@ -3,6 +3,9 @@ name: Visual Regression
 on:
   pull_request:
     branches: [main]
+    # `labeled` lets a reviewer add the `visual-drift-accepted` label to
+    # rerun CI and auto-commit the drifted baselines. See bootstrap step below.
+    types: [opened, synchronize, reopened, labeled]
   push:
     branches: [main]
   workflow_dispatch:
@@ -66,13 +69,20 @@ jobs:
         if: steps.visual.outcome == 'failure'
         run: npm run test:visual:update
 
-      # The decision step. Three possible states after `--update-snapshots`:
-      #   - new files only        → bootstrap, commit + push, job succeeds
-      #   - modified files only   → real visual drift, discard, job fails
-      #   - both                  → bootstrap the new ones, fail on the drift
+      # The decision step. Possible states after `--update-snapshots`:
+      #   - new files only                         → bootstrap, commit + push, job succeeds
+      #   - modified files + `visual-drift-accepted` label → commit drift + new, job succeeds
+      #   - modified files without the label        → revert drift, fail, inline preview below
+      #   - both (without label)                    → bootstrap new, revert drift, fail
+      #
+      # Regardless of the decision, we stash before/after PNGs of each drifted
+      # baseline into playwright-report/baselines/ so the gh-pages deploy can
+      # serve them and the PR sticky comment can render them inline.
       - name: Auto-commit new baselines
         if: steps.visual.outcome == 'failure'
         id: bootstrap
+        env:
+          PR_LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
         run: |
           set -euo pipefail
 
@@ -82,42 +92,78 @@ jobs:
           MODIFIED=$(git diff --name-only -- 'e2e/visual/' || true)
           UNTRACKED=$(git ls-files --others --exclude-standard -- 'e2e/visual/' || true)
 
-          echo "Modified baselines (treated as drift, will be reverted):"
+          echo "Modified baselines (drift):"
           echo "${MODIFIED:-<none>}"
           echo
-          echo "New baselines (will be auto-committed):"
+          echo "New baselines (bootstrap):"
           echo "${UNTRACKED:-<none>}"
 
-          # Drift = real visual change. Revert so the next CI run still fails
-          # against the original baselines and the developer can investigate.
+          # Stash before/after of each drifted baseline for the PR inline preview.
+          # Done before any revert so `current` = committed HEAD, `updated` = post-update.
+          mkdir -p playwright-report/baselines/current playwright-report/baselines/updated
           if [ -n "$MODIFIED" ]; then
+            while IFS= read -r f; do
+              [ -z "$f" ] && continue
+              rel="${f#e2e/visual/}"
+              mkdir -p "playwright-report/baselines/current/$(dirname "$rel")"
+              mkdir -p "playwright-report/baselines/updated/$(dirname "$rel")"
+              cp "$f" "playwright-report/baselines/updated/$rel"
+              git show "HEAD:$f" > "playwright-report/baselines/current/$rel" 2>/dev/null || true
+            done <<< "$MODIFIED"
+          fi
+
+          # `toJson(...*.name)` yields a JSON array string like ["label-a","label-b"].
+          ACCEPT_DRIFT="false"
+          if printf '%s' "${PR_LABELS:-[]}" | grep -qF '"visual-drift-accepted"'; then
+            ACCEPT_DRIFT="true"
+          fi
+          echo "visual-drift-accepted label present: $ACCEPT_DRIFT"
+
+          DRIFT_ACCEPTED="false"
+          if [ -n "$MODIFIED" ] && [ "$ACCEPT_DRIFT" = "true" ]; then
+            echo "Label present — keeping drifted baselines staged for commit."
+            DRIFT_ACCEPTED="true"
+          elif [ -n "$MODIFIED" ]; then
+            echo "No accept label — reverting drift so the next CI run fails against the original baselines."
             echo "$MODIFIED" | xargs git checkout --
           fi
 
-          if [ -n "$UNTRACKED" ]; then
-            echo "$UNTRACKED" | xargs git add
-            git commit -m "Bootstrap visual regression baselines [skip ci]"
+          # Commit whatever's left (bootstrapped new files, plus accepted drift if any).
+          BOOTSTRAPPED="false"
+          git add -A e2e/visual/ || true
+          if ! git diff --cached --quiet; then
+            if [ "$DRIFT_ACCEPTED" = "true" ]; then
+              git commit -m "Accept visual drift + bootstrap baselines [skip ci]"
+            else
+              git commit -m "Bootstrap visual regression baselines [skip ci]"
+            fi
             git push origin HEAD:${{ github.head_ref || github.ref_name }}
-            echo "bootstrapped=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "bootstrapped=false" >> "$GITHUB_OUTPUT"
+            BOOTSTRAPPED="true"
           fi
 
-          if [ -n "$MODIFIED" ]; then
-            echo "drift=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "drift=false" >> "$GITHUB_OUTPUT"
-          fi
+          {
+            echo "modified_files<<MODEOF"
+            echo "$MODIFIED"
+            echo "MODEOF"
+            echo "drift=$([ -n "$MODIFIED" ] && echo true || echo false)"
+            echo "drift_accepted=$DRIFT_ACCEPTED"
+            echo "bootstrapped=$BOOTSTRAPPED"
+          } >> "$GITHUB_OUTPUT"
 
       # Job outcome:
-      #   - First pass green                             → already passed, this step is a no-op
-      #   - First pass red, only missing baselines       → bootstrapped, exit success
-      #   - First pass red, drift present                → fail so reviewer investigates
+      #   - First pass green                                              → no-op
+      #   - First pass red, only missing baselines                        → bootstrapped, exit success
+      #   - First pass red, drift + `visual-drift-accepted` label         → committed, exit success
+      #   - First pass red, drift without the label                       → fail; reviewer inspects the inline preview
       - name: Report job outcome
         if: steps.visual.outcome == 'failure'
         run: |
+          if [ "${{ steps.bootstrap.outputs.drift_accepted }}" = "true" ]; then
+            echo "Drift accepted via 'visual-drift-accepted' label; updated baselines committed."
+            exit 0
+          fi
           if [ "${{ steps.bootstrap.outputs.drift }}" = "true" ]; then
-            echo "::error::Visual drift detected. Review playwright-report artifact (gallery.html + Playwright HTML report), then run 'npm run test:visual:update' locally and commit the updated baselines."
+            echo "::error::Visual drift detected. Review the before/after images in the PR sticky comment, then add the 'visual-drift-accepted' label to accept (or run 'npm run test:visual:update' locally)."
             exit 1
           fi
           if [ "${{ steps.bootstrap.outputs.bootstrapped }}" = "true" ]; then
@@ -262,15 +308,23 @@ jobs:
           HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
           BASE_REPO: ${{ github.repository }}
           PAGES_DEPLOY_OUTCOME: ${{ steps.gh_pages_deploy.outcome }}
+          DRIFT: ${{ steps.bootstrap.outputs.drift }}
+          DRIFT_ACCEPTED: ${{ steps.bootstrap.outputs.drift_accepted }}
+          MODIFIED_FILES: ${{ steps.bootstrap.outputs.modified_files }}
         run: |
+          set -euo pipefail
           PREVIEW_URL="https://${OWNER}.github.io/${REPO}/visual/pr/${PR_NUMBER}/index.html"
           GALLERY_URL="https://${OWNER}.github.io/${REPO}/visual/pr/${PR_NUMBER}/gallery.html"
+          BASE_URL="https://${OWNER}.github.io/${REPO}/visual/pr/${PR_NUMBER}"
+          SAME_REPO="false"
+          [ "${HEAD_REPO}" = "${BASE_REPO}" ] && SAME_REPO="true"
+
           {
             echo "## Visual regression (${JOB_STATUS})"
             echo ""
             echo "- **Workflow run:** [${{ github.run_id }}](${RUN_URL})"
             echo ""
-            if [ "${HEAD_REPO}" = "${BASE_REPO}" ]; then
+            if [ "${SAME_REPO}" = "true" ]; then
               echo "- **Playwright HTML report (hosted):** [Open report](${PREVIEW_URL})"
               echo "- **Snapshot gallery (all PNGs, hosted):** [Open gallery](${GALLERY_URL})"
               echo "  - Requires **Settings → Pages** publishing from the \`gh-pages\` branch (project URL is usually \`https://${OWNER}.github.io/${REPO}/\`)."
@@ -285,6 +339,50 @@ jobs:
             echo ""
             echo "- **Artifacts:** **Artifacts** → **playwright-report** — unzip and open \`index.html\` (Playwright UI) or \`gallery.html\` (screenshot grid)."
           } > visual-regression-pr-comment.md
+
+          # Inline before/after preview for drifted snapshots — only when drift exists
+          # AND we deployed to gh-pages (fork PRs can't host images the comment can load).
+          if [ "${DRIFT}" = "true" ] && [ "${SAME_REPO}" = "true" ] && [ "${PAGES_DEPLOY_OUTCOME}" = "success" ]; then
+            {
+              echo ""
+              if [ "${DRIFT_ACCEPTED}" = "true" ]; then
+                echo "### Changed snapshots (accepted — committed to the branch)"
+              else
+                echo "### Changed snapshots"
+                echo ""
+                echo "Review the before/after pairs below. If the new renders look correct, add the \`visual-drift-accepted\` label to this PR and the workflow will commit the updated baselines on the next run."
+              fi
+              echo ""
+              echo "_Snapshot paths are relative to \`e2e/visual/\`._"
+              echo ""
+            } >> visual-regression-pr-comment.md
+
+            # Emit one <details> block per drifted baseline, each with a 2-col table.
+            # The label under each image disambiguates which column you're looking at
+            # even when only one side renders.
+            while IFS= read -r f; do
+              [ -z "$f" ] && continue
+              rel="${f#e2e/visual/}"
+              {
+                echo "<details><summary><code>${rel}</code></summary>"
+                echo ""
+                echo "| Before (committed baseline) | After (this PR) |"
+                echo "| --- | --- |"
+                echo "| <img src=\"${BASE_URL}/baselines/current/${rel}\" alt=\"before\" width=\"480\"> | <img src=\"${BASE_URL}/baselines/updated/${rel}\" alt=\"after\" width=\"480\"> |"
+                echo ""
+                echo "</details>"
+                echo ""
+              } >> visual-regression-pr-comment.md
+            done <<< "${MODIFIED_FILES}"
+          elif [ "${DRIFT}" = "true" ]; then
+            {
+              echo ""
+              echo "### Changed snapshots"
+              echo ""
+              echo "Drift detected but inline preview is unavailable (fork PR or gh-pages deploy did not succeed). Download the **playwright-report** artifact to inspect."
+              echo ""
+            } >> visual-regression-pr-comment.md
+          fi
 
       - name: Job summary (quick links)
         if: always()

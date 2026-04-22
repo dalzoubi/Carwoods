@@ -2075,7 +2075,9 @@
         "file_too_large": "Le fichier dépasse la limite par fichier.",
         "upload_failed": "Le téléversement du fichier a échoué.",
         "filename_required": "Le nom du fichier est manquant.",
-        "filename_too_long": "Le nom du fichier est trop long."
+        "filename_too_long": "Le nom du fichier est trop long.",
+        "recaptcha_required": "La vérification de sécurité n’a pas abouti. Actualisez la page et réessayez.",
+        "recaptcha_failed": "Échec de la vérification de sécurité. Veuillez réessayer."
       }
     },
     "list": {

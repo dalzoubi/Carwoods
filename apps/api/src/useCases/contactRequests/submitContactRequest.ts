@@ -1,8 +1,13 @@
 import { insertContactRequest, type ContactRequestRow } from '../../lib/contactRequestsRepo.js';
 import { validationError } from '../../domain/errors.js';
-import { logError, logWarn } from '../../lib/serverLogger.js';
+import { logWarn } from '../../lib/serverLogger.js';
 import { sendResendEmail } from '../../lib/resendClient.js';
 import { listActiveAdminNotificationRecipients } from '../../lib/usersRepo.js';
+import {
+  RECAPTCHA_MIN_SCORE,
+  isRecaptchaSecretConfigured,
+  verifyRecaptcha,
+} from '../../lib/recaptcha.js';
 import type { InvocationContext } from '@azure/functions';
 
 const VALID_SUBJECTS = new Set([
@@ -12,41 +17,11 @@ const VALID_SUBJECTS = new Set([
   'PORTAL_SAAS',
   'PAID_SUBSCRIPTION',
 ]);
-const RECAPTCHA_MIN_SCORE = 0.3;
 
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<import('../../lib/db.js').QueryResult<T>> };
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-async function verifyRecaptcha(
-  token: string,
-  context?: InvocationContext
-): Promise<number | null> {
-  const secret = process.env.RECAPTCHA_SECRET_KEY;
-  if (!secret) {
-    logWarn(context, 'contact.recaptcha.skipped', { reason: 'no_secret_key' });
-    return null; // dev mode — skip
-  }
-  try {
-    const resp = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ secret, response: token }).toString(),
-    });
-    const data = (await resp.json()) as { success: boolean; score?: number };
-    if (!data.success) {
-      logWarn(context, 'contact.recaptcha.failed', { success: false });
-      return 0;
-    }
-    return data.score ?? 1;
-  } catch (err) {
-    logError(context, 'contact.recaptcha.error', {
-      message: err instanceof Error ? err.message : String(err),
-    });
-    return null; // network error — allow through rather than hard fail
-  }
 }
 
 async function sendAdminAlert(
@@ -128,19 +103,18 @@ export async function submitContactRequest(
   if (!message) throw validationError('message_required');
   if (!VALID_SUBJECTS.has(subject)) throw validationError('invalid_subject');
 
-  const recaptchaSecretConfigured = Boolean(process.env.RECAPTCHA_SECRET_KEY?.trim());
   let recaptchaScore: number | null = null;
 
-  if (recaptchaSecretConfigured) {
+  if (isRecaptchaSecretConfigured()) {
     if (!recaptchaToken) {
       throw validationError('recaptcha_required');
     }
-    recaptchaScore = await verifyRecaptcha(recaptchaToken, context);
+    recaptchaScore = await verifyRecaptcha(recaptchaToken, context, 'contact_form');
     if (recaptchaScore === null || recaptchaScore < RECAPTCHA_MIN_SCORE) {
       throw validationError('recaptcha_failed');
     }
   } else if (recaptchaToken) {
-    recaptchaScore = await verifyRecaptcha(recaptchaToken, context);
+    recaptchaScore = await verifyRecaptcha(recaptchaToken, context, 'contact_form');
     if (recaptchaScore !== null && recaptchaScore < RECAPTCHA_MIN_SCORE) {
       throw validationError('recaptcha_failed');
     }

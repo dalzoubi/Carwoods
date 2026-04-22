@@ -2607,7 +2607,8 @@ export async function fetchSupportTicketDetail(baseUrl, accessToken, ticketId, {
 }
 
 export async function submitSupportTicket(baseUrl, accessToken, payload) {
-  const { emailHint, ...body } = payload;
+  const { emailHint, recaptchaToken, ...rest } = payload;
+  const body = { ...rest, recaptcha_token: recaptchaToken ?? null };
   const res = await fetch(buildUrl(baseUrl, '/api/portal/support-tickets'), {
     method: 'POST',
     headers: jsonHeaders(accessToken, emailHint),

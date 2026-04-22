@@ -61,6 +61,15 @@ html {
   scroll-padding-top: calc(var(--sticky-nav-offset, 48px) + 12px);
 }
 
+/* Hide Google's floating reCAPTCHA badge — it overlaps the portal
+   FloatingHelpButton in the bottom-right corner. Compliance is preserved
+   by rendering the required branding inline on every form that calls
+   executeRecaptcha (see components/RecaptchaDisclaimer.jsx).
+   https://developers.google.com/recaptcha/docs/faq#id-like-to-hide-the-badge */
+.grecaptcha-badge {
+  visibility: hidden;
+}
+
 /* ── Respect prefers-reduced-motion globally ──
    Neutralises animations and transitions for users who opt out of motion
    at the OS level. Individual components that have already opted in to
