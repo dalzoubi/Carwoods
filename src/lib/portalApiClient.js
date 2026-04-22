@@ -2572,3 +2572,204 @@ export async function fetchAdminNotificationReport(baseUrl, accessToken, params 
   }
   return res.json();
 }
+
+// ---------------------------------------------------------------------------
+// Support Tickets (portal user)
+// ---------------------------------------------------------------------------
+
+export async function fetchSupportTickets(baseUrl, accessToken, { emailHint, status, limit, offset } = {}) {
+  const search = new URLSearchParams();
+  if (status) search.set('status', status);
+  if (limit != null) search.set('limit', String(limit));
+  if (offset != null) search.set('offset', String(offset));
+  const qs = search.toString();
+  const url = `/api/portal/support-tickets${qs ? `?${qs}` : ''}`;
+  const res = await fetch(buildUrl(baseUrl, url), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) throw apiError(res.status, await readErrorBody(res));
+  return res.json();
+}
+
+export async function fetchSupportTicketDetail(baseUrl, accessToken, ticketId, { emailHint } = {}) {
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/support-tickets/${encodeURIComponent(ticketId)}`),
+    {
+      method: 'GET',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) throw apiError(res.status, await readErrorBody(res));
+  return res.json();
+}
+
+export async function submitSupportTicket(baseUrl, accessToken, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(buildUrl(baseUrl, '/api/portal/support-tickets'), {
+    method: 'POST',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw apiError(res.status, await readErrorBody(res));
+  emitPortalSidebarBadgesRefresh();
+  return res.json();
+}
+
+export async function postSupportTicketMessage(baseUrl, accessToken, ticketId, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/support-tickets/${encodeURIComponent(ticketId)}/messages`),
+    {
+      method: 'POST',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) throw apiError(res.status, await readErrorBody(res));
+  emitPortalSidebarBadgesRefresh();
+  return res.json();
+}
+
+export async function reopenSupportTicket(baseUrl, accessToken, ticketId, { emailHint } = {}) {
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/support-tickets/${encodeURIComponent(ticketId)}/reopen`),
+    {
+      method: 'POST',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify({}),
+    }
+  );
+  if (!res.ok) throw apiError(res.status, await readErrorBody(res));
+  emitPortalSidebarBadgesRefresh();
+  return res.json();
+}
+
+export async function supportTicketAttachmentUploadIntent(baseUrl, accessToken, ticketId, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/support-tickets/${encodeURIComponent(ticketId)}/attachments/upload-intent`),
+    {
+      method: 'POST',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) throw apiError(res.status, await readErrorBody(res));
+  return res.json();
+}
+
+export async function finalizeSupportTicketAttachment(baseUrl, accessToken, ticketId, attachmentId, { emailHint } = {}) {
+  const res = await fetch(
+    buildUrl(
+      baseUrl,
+      `/api/portal/support-tickets/${encodeURIComponent(ticketId)}/attachments/${encodeURIComponent(attachmentId)}/finalize`
+    ),
+    {
+      method: 'POST',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify({}),
+    }
+  );
+  if (!res.ok) throw apiError(res.status, await readErrorBody(res));
+  return res.json();
+}
+
+export async function fetchSupportTicketAttachmentDownloadUrl(
+  baseUrl,
+  accessToken,
+  ticketId,
+  attachmentId,
+  { emailHint } = {}
+) {
+  const res = await fetch(
+    buildUrl(
+      baseUrl,
+      `/api/portal/support-tickets/${encodeURIComponent(ticketId)}/attachments/${encodeURIComponent(attachmentId)}/download-url`
+    ),
+    {
+      method: 'GET',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) throw apiError(res.status, await readErrorBody(res));
+  return res.json();
+}
+
+// ---------------------------------------------------------------------------
+// Support Tickets (admin)
+// ---------------------------------------------------------------------------
+
+export async function fetchAdminSupportTickets(baseUrl, accessToken, params = {}) {
+  const { emailHint, status, category, area, priority, assigneeUserId, limit, offset } = params;
+  const search = new URLSearchParams();
+  if (status) search.set('status', status);
+  if (category) search.set('category', category);
+  if (area) search.set('area', area);
+  if (priority) search.set('priority', priority);
+  if (assigneeUserId) search.set('assignee_user_id', assigneeUserId);
+  if (limit != null) search.set('limit', String(limit));
+  if (offset != null) search.set('offset', String(offset));
+  const qs = search.toString();
+  const url = `/api/portal/admin/support-tickets${qs ? `?${qs}` : ''}`;
+  const res = await fetch(buildUrl(baseUrl, url), {
+    method: 'GET',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) throw apiError(res.status, await readErrorBody(res));
+  return res.json();
+}
+
+export async function fetchAdminSupportTicketDetail(baseUrl, accessToken, ticketId, { emailHint } = {}) {
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/admin/support-tickets/${encodeURIComponent(ticketId)}`),
+    {
+      method: 'GET',
+      headers: getHeaders(accessToken, emailHint),
+      credentials: 'omit',
+    }
+  );
+  if (!res.ok) throw apiError(res.status, await readErrorBody(res));
+  return res.json();
+}
+
+export async function patchAdminSupportTicket(baseUrl, accessToken, ticketId, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/admin/support-tickets/${encodeURIComponent(ticketId)}`),
+    {
+      method: 'PATCH',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) throw apiError(res.status, await readErrorBody(res));
+  emitPortalSidebarBadgesRefresh();
+  return res.json();
+}
+
+export async function postAdminSupportTicketMessage(baseUrl, accessToken, ticketId, payload) {
+  const { emailHint, ...body } = payload;
+  const res = await fetch(
+    buildUrl(baseUrl, `/api/portal/admin/support-tickets/${encodeURIComponent(ticketId)}/messages`),
+    {
+      method: 'POST',
+      headers: jsonHeaders(accessToken, emailHint),
+      credentials: 'omit',
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) throw apiError(res.status, await readErrorBody(res));
+  emitPortalSidebarBadgesRefresh();
+  return res.json();
+}

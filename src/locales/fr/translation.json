@@ -1977,6 +1977,8 @@
       "payments": "Paiements",
       "myLease": "Mon bail",
       "notices": "Préavis",
+      "support": "Assistance",
+      "adminSupport": "Boîte d'assistance",
       "collapse": "Réduire la barre latérale",
       "expand": "Développer la barre latérale",
       "signOut": "Se déconnecter",

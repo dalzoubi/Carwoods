@@ -1438,6 +1438,18 @@
         "label": "New public contact-form inquiry",
         "info": "Sent to admins when someone submits the public contact form on the marketing site."
       },
+      "SUPPORT_TICKET_REPLY": {
+        "label": "Support team replied to your ticket",
+        "info": "Sent to the ticket owner when support staff post a reply."
+      },
+      "SUPPORT_TICKET_STATUS_CHANGED": {
+        "label": "Support ticket status changed",
+        "info": "Sent when your ticket moves between Open, In progress, Resolved, or Closed. Turn this off for quieter updates."
+      },
+      "SUPPORT_TICKET_ADMIN_NEW": {
+        "label": "New support ticket or user reply (admins)",
+        "info": "Sent to admins when a new ticket is submitted or a user replies on an existing ticket."
+      },
       "SECURITY_DELIVERY_FAILURE": {
         "label": "Notification delivery failure alert",
         "info": "Required — admins receive this when a notification cannot be delivered after multiple retries. Cannot be disabled because it helps detect outages."
@@ -2488,6 +2500,8 @@
       "payments": "Payments",
       "myLease": "My lease",
       "notices": "Notices",
+      "support": "Support",
+      "adminSupport": "Support Inbox",
       "collapse": "Collapse sidebar",
       "expand": "Expand sidebar",
       "signOut": "Sign out",
@@ -2496,6 +2510,130 @@
     "topBar": {
       "openMenu": "Open navigation",
       "accountMenu": "Account menu"
+    }
+  },
+  "portalSupport": {
+    "pageTitle": "Support tickets",
+    "newTicket": "New ticket",
+    "tabs": {
+      "myTickets": "My tickets",
+      "submit": "Submit new"
+    },
+    "fields": {
+      "title": "Title",
+      "description": "Describe your issue or suggestion",
+      "category": "Category",
+      "area": "Related area (optional)",
+      "areaNone": "No specific area",
+      "attach": "Attach files",
+      "removeAttachment": "Remove attachment",
+      "attachmentLimits": "Up to {{count}} files, {{mb}} MB each. Images, PDFs, logs."
+    },
+    "categories": {
+      "BUG": "Bug report",
+      "FEATURE": "Feature request",
+      "QUESTION": "Question / help",
+      "COMPLAINT": "Complaint / feedback"
+    },
+    "statuses": {
+      "OPEN": "Open",
+      "IN_PROGRESS": "In progress",
+      "RESOLVED": "Resolved",
+      "CLOSED": "Closed"
+    },
+    "priorities": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "URGENT": "Urgent"
+    },
+    "areas": {
+      "LEASES": "Leases",
+      "TENANTS": "Tenants",
+      "PAYMENTS": "Payments",
+      "DOCUMENTS": "Documents",
+      "REQUESTS": "Maintenance requests",
+      "PROPERTIES": "Properties",
+      "NOTIFICATIONS": "Notifications",
+      "ACCOUNT": "Account / profile",
+      "OTHER": "Other"
+    },
+    "attachmentStatus": {
+      "pending": "Ready to upload",
+      "uploading": "Uploading…",
+      "done": "Uploaded",
+      "error": "Failed"
+    },
+    "submit": {
+      "dialogTitle": "Submit a support ticket",
+      "submit": "Submit ticket",
+      "cancel": "Cancel",
+      "close": "Close",
+      "diagnosticsNotice": "We include your browser, page URL, and app version to help us diagnose issues faster.",
+      "errors": {
+        "submit_failed": "We couldn't submit your ticket. Please try again.",
+        "title_required": "Please add a short title.",
+        "title_too_long": "Title is too long.",
+        "description_required": "Please describe your issue.",
+        "description_too_long": "Description is too long.",
+        "invalid_category": "Pick a category.",
+        "invalid_area": "Unknown area.",
+        "content_type_not_allowed": "This file type is not supported.",
+        "invalid_file_size": "That file is empty or unreadable.",
+        "file_too_large": "File is larger than the per-file limit.",
+        "upload_failed": "File upload failed.",
+        "filename_required": "Filename is missing.",
+        "filename_too_long": "Filename is too long."
+      }
+    },
+    "list": {
+      "empty": "You haven't submitted any tickets yet.",
+      "updated": "Updated {{when}}"
+    },
+    "filters": {
+      "statusLabel": "Status:",
+      "all": "All"
+    },
+    "detail": {
+      "title": "Ticket",
+      "close": "Close",
+      "createdAt": "Opened {{when}}",
+      "attachments": "Attachments",
+      "messages": "Conversation",
+      "noMessages": "No replies yet.",
+      "you": "You",
+      "supportTeam": "Support team",
+      "replyLabel": "Add a reply",
+      "send": "Send reply",
+      "reopen": "Reopen ticket"
+    },
+    "fab": {
+      "tooltip": "Submit a support ticket",
+      "ariaLabel": "Submit a support ticket"
+    },
+    "admin": {
+      "pageTitle": "Support inbox",
+      "detailTitle": "Support ticket",
+      "status": "Status",
+      "priority": "Priority",
+      "category": "Category",
+      "area": "Area",
+      "none": "None",
+      "submittedBy": "Submitted by {{id}}",
+      "submitter": "Submitter",
+      "replyLabel": "Reply to the user (or add an internal note)",
+      "postAsInternalNote": "Internal note (not visible to user)",
+      "internalNote": "Internal",
+      "totalCount": "{{count}} total",
+      "noResults": "No tickets match these filters."
+    },
+    "errors": {
+      "load_failed": "Couldn't load support tickets.",
+      "generic": "Something went wrong.",
+      "reply_failed": "Reply failed to send.",
+      "reopen_failed": "Couldn't reopen the ticket.",
+      "update_failed": "Couldn't update the ticket.",
+      "download_failed": "Couldn't open attachment."
     }
   },
   "portalTour": {

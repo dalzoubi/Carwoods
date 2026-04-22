@@ -35,6 +35,8 @@ import VpnKey from '@mui/icons-material/VpnKey';
 import Gavel from '@mui/icons-material/Gavel';
 import HealthAndSafety from '@mui/icons-material/HealthAndSafety';
 import Send from '@mui/icons-material/Send';
+import HelpOutline from '@mui/icons-material/HelpOutline';
+import SupportAgent from '@mui/icons-material/SupportAgent';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
@@ -196,6 +198,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
     ? [
         { key: 'inbox', to: '/portal/inbox/requests', label: t('portalLayout.sidebar.requests'), icon: <Assignment />, badgeCount: badges.requests },
         { key: 'notifications', to: '/portal/inbox/notifications', label: t('portalLayout.sidebar.notifications'), icon: <Notifications />, badgeCount: badges.notifications },
+        { key: 'support', to: '/portal/support', label: t('portalLayout.sidebar.support'), icon: <HelpOutline />, badgeCount: badges.supportTickets },
         ...(normalized === Role.ADMIN
           ? [{ key: 'contact', to: '/portal/inbox/contact', label: t('portalLayout.sidebar.adminContactUsMessages'), icon: <ContactMail />, badgeCount: badges.contact }]
           : []),
@@ -205,6 +208,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
   const adminItems = roleResolved && normalized === Role.ADMIN
     ? [
         { key: 'admin', to: '/portal/admin/landlords', label: t('portalLayout.sidebar.adminLandlords'), icon: <SupervisorAccount /> },
+        { key: 'admin-support', to: '/portal/admin/support', label: t('portalLayout.sidebar.adminSupport'), icon: <SupportAgent />, badgeCount: badges.supportTicketsAdmin },
       ]
     : [];
 

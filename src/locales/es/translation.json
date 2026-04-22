@@ -1977,6 +1977,8 @@
       "payments": "Pagos",
       "myLease": "Mi contrato",
       "notices": "Avisos",
+      "support": "Soporte",
+      "adminSupport": "Bandeja de soporte",
       "collapse": "Contraer barra lateral",
       "expand": "Expandir barra lateral",
       "signOut": "Cerrar sesión",

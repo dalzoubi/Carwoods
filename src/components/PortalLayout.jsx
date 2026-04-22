@@ -6,6 +6,7 @@ import { PortalShellProvider } from '../PortalShellContext';
 import { PortalTourProvider } from '../PortalTourContext';
 import PortalSidebar from './PortalSidebar';
 import PortalTopBar from './PortalTopBar';
+import FloatingHelpButton from './portalSupport/FloatingHelpButton';
 
 const portalPageIn = keyframes({
   from: { opacity: 0, transform: 'translateY(8px)' },
@@ -71,6 +72,7 @@ const PortalLayout = ({ children }) => {
               {children}
             </Box>
           </Box>
+          <FloatingHelpButton />
         </Box>
       </PortalTourProvider>
     </PortalShellProvider>
