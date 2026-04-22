@@ -2363,6 +2363,78 @@
       "absolute": "Tu sesión ha expirado. Vuelve a iniciar sesión para continuar."
     }
   },
+  "portalRoleSelect": {
+    "title": "Bienvenido a Carwoods - Elige tu tipo de cuenta",
+    "heading": "Una pregunta rápida",
+    "signedInAs": "Sesión iniciada como {{email}}",
+    "prompt": "No encontramos una cuenta de Carwoods existente con este correo. Indícanos cómo usarás Carwoods para configurar tu cuenta correctamente.",
+    "landlordCta": "Soy propietario o administrador de propiedades",
+    "landlordSubtext": "Poseo o administro propiedades de alquiler y quiero agregarlas aquí.",
+    "tenantCta": "Soy inquilino",
+    "tenantSubtext": "Alquilo una vivienda administrada a través de Carwoods.",
+    "back": "Atrás",
+    "signOut": "Cerrar sesión",
+    "landlordForm": {
+      "heading": "Crea tu cuenta de propietario",
+      "subtitle": "Usaremos estos datos para las comunicaciones con los inquilinos. Puedes cambiarlos después en tu perfil.",
+      "firstName": "Nombre",
+      "lastName": "Apellidos",
+      "phone": "Teléfono (opcional)",
+      "phoneHelp": "Se muestra a los inquilinos en las notificaciones y solicitudes de mantenimiento.",
+      "submit": "Crear cuenta de propietario",
+      "submitting": "Creando cuenta..."
+    },
+    "tenantDeadEnd": {
+      "heading": "Tu propietario debe invitarte",
+      "body": "Las cuentas de inquilino en Carwoods las crea tu propietario o administrador de propiedades. Comunícate con él y pídele que te invite al portal de Carwoods usando este correo electrónico.",
+      "note": "Una vez que envíe la invitación, vuelve a iniciar sesión y tu cuenta de inquilino estará lista."
+    },
+    "errors": {
+      "apiUnavailable": "El portal de Carwoods no está disponible temporalmente. Inténtalo de nuevo en un momento.",
+      "nameRequired": "El nombre y los apellidos son obligatorios.",
+      "alreadyRegistered": "Ya existe una cuenta para este correo. Cierra sesión e inténtalo de nuevo, o comunícate con soporte.",
+      "generic": "No pudimos crear tu cuenta. Inténtalo de nuevo, o comunícate con soporte si el problema persiste."
+    }
+  },
+  "portalAdminUsers": {
+    "title": "Carwoods - Administración de usuarios",
+    "heading": "Administración de usuarios",
+    "intro": "Consulta todos los usuarios del portal y elimina cuentas permanentemente cuando sea necesario. Las eliminaciones se auditan y no se pueden deshacer.",
+    "errors": {
+      "apiUnavailable": "La API de administración de Carwoods no está disponible temporalmente.",
+      "adminOnly": "Solo los administradores pueden ver esta página.",
+      "loadFailed": "No se pudieron cargar los usuarios. Actualiza para intentarlo de nuevo."
+    },
+    "list": {
+      "heading": "Usuarios del portal",
+      "showInactive": "Incluir inactivos",
+      "refresh": "Actualizar lista de usuarios",
+      "emptyTitle": "No hay usuarios para mostrar",
+      "emptyDescription": "Los usuarios aparecerán aquí cuando inicien sesión o sean invitados."
+    },
+    "delete": {
+      "cta": "Eliminar usuario permanentemente",
+      "disabledSelf": "No puedes eliminar tu propia cuenta de administrador.",
+      "disabledAdmin": "Las cuentas de administrador deben eliminarse a nivel de base de datos.",
+      "dialogTitle": "¿Eliminar permanentemente a {{name}}?",
+      "warningPrimary": "Esto elimina permanentemente al usuario junto con todas las propiedades, contratos y solicitudes de mantenimiento que haya creado. Esta acción no se puede deshacer.",
+      "warningSecondary": "Se registrará una entrada de auditoría con el motivo indicado a continuación para que esta acción pueda revisarse más adelante.",
+      "reasonLabel": "Motivo de la eliminación",
+      "reasonHelper": "Mínimo {{min}} caracteres, máximo {{max}} ({{count}}/{{max}}).",
+      "reasonTooShort": "Indica un motivo de al menos {{min}} caracteres.",
+      "confirm": "Eliminar permanentemente",
+      "cancel": "Cancelar",
+      "submitting": "Eliminando...",
+      "success": "Se eliminó permanentemente a {{name}}.",
+      "generic": "No se pudo eliminar este usuario. Inténtalo de nuevo.",
+      "errors": {
+        "self": "No puedes eliminar tu propia cuenta de administrador.",
+        "admin": "Las cuentas de administrador no pueden eliminarse desde la interfaz del portal.",
+        "blocked": "Este usuario tiene registros que la eliminación no pudo limpiar automáticamente. Elimínalos manualmente e inténtalo de nuevo.",
+        "notFound": "Ese usuario ya no existe."
+      }
+    }
+  },
   "session": {
     "expiring": {
       "title": "¿Sigues ahí?",
