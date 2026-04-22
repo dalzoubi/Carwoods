@@ -162,45 +162,58 @@ export async function upsertLandlordUserByEmail(
 }
 
 /**
- * Auto-register a brand-new landlord on first sign-in.
+ * Register the current authenticated principal as a landlord.
  *
- * Only creates a record when no user with this email exists yet.
- * Returns null if the user already exists (ACTIVE, DISABLED, etc.) — the
- * caller should let the normal /me flow handle that case.
- * Returns null if no email can be extracted from the token claims.
+ * Called from the explicit role-selection gate after the user clicks
+ * "I'm a landlord". Returns null if the row cannot be created (missing
+ * email on token, or email already belongs to a non-landlord user — the
+ * caller surfaces the appropriate error).
+ *
+ * `overrides` lets the UI supply first/last name / phone collected in the
+ * gate form; otherwise we fall back to the names carried in the OAuth claims.
  */
-export async function autoRegisterLandlordByClaims(
+export async function registerLandlordByClaims(
   client: Queryable,
   claims: AccessTokenClaims,
-  emailHint?: string
+  emailHint?: string,
+  overrides?: {
+    firstName?: string | null;
+    lastName?: string | null;
+    phone?: string | null;
+  }
 ): Promise<UserRow | null> {
   const email = primaryEmailFromClaims(claims) ?? emailHint;
   if (!email?.trim()) return null;
 
   const normalizedEmail = normalizeEmail(email);
 
-  // Don't auto-create if a record already exists — preserve existing state
+  // If a row already exists for this email, surface it so the caller can
+  // distinguish "already registered" from "freshly created".
   const existing = await findUserByEmail(client, normalizedEmail);
   if (existing) return null;
 
   const externalAuthOid = claims.oid ?? claims.sub;
 
-  // Best-effort name extraction from token claims
-  const firstName = normalizeNamePart(
-    claims.given_name ?? (claims.name ? claims.name.split(' ')[0] : null)
-  );
-  const lastName = normalizeNamePart(
-    claims.family_name ?? (claims.name ? claims.name.split(' ').slice(1).join(' ') : null)
-  );
+  const firstName =
+    normalizeNamePart(overrides?.firstName)
+    ?? normalizeNamePart(
+      claims.given_name ?? (claims.name ? claims.name.split(' ')[0] : null)
+    );
+  const lastName =
+    normalizeNamePart(overrides?.lastName)
+    ?? normalizeNamePart(
+      claims.family_name ?? (claims.name ? claims.name.split(' ').slice(1).join(' ') : null)
+    );
+  const phone = normalizePhone(overrides?.phone);
 
   const result = await client.query<UserRow>(
-    `INSERT INTO users (id, external_auth_oid, email, first_name, last_name, role, status)
+    `INSERT INTO users (id, external_auth_oid, email, first_name, last_name, phone, role, status)
      OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
             INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
             INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.portal_tour_completed, INSERTED.tier_id
-     VALUES (NEWID(), $1, $2, $3, $4, '${Role.LANDLORD}', 'ACTIVE')`,
-    [externalAuthOid, normalizedEmail, firstName, lastName]
+     VALUES (NEWID(), $1, $2, $3, $4, $5, '${Role.LANDLORD}', 'ACTIVE')`,
+    [externalAuthOid, normalizedEmail, firstName, lastName, phone]
   );
 
   return result.rows[0] ?? null;

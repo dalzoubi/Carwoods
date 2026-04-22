@@ -2,9 +2,10 @@ import React from 'react';
 import { usePortalAuth } from '../PortalAuthContext';
 import PortalLoginLanding from './PortalLoginLanding';
 import PortalLoadingScreen from './PortalLoadingScreen';
+import PortalRoleSelectionGate from './PortalRoleSelectionGate';
 
 const PortalAuthGate = ({ children }) => {
-  const { authStatus, isAuthenticated, meStatus, meData } = usePortalAuth();
+  const { authStatus, isAuthenticated, meStatus, meData, needsRoleSelection } = usePortalAuth();
 
   // While Firebase Auth is initializing or sign-in is in progress,
   // show a neutral loading screen — NOT the login page.
@@ -20,6 +21,12 @@ const PortalAuthGate = ({ children }) => {
 
   if (!isAuthenticated) {
     return <PortalLoginLanding />;
+  }
+
+  // Authenticated but no backing user row: show the explicit chooser instead
+  // of silently creating a landlord profile (the prior bug).
+  if (needsRoleSelection) {
+    return <PortalRoleSelectionGate />;
   }
 
   return children;

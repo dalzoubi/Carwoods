@@ -2880,6 +2880,78 @@
       "absolute": "Your session has expired. Please sign in again to continue."
     }
   },
+  "portalRoleSelect": {
+    "title": "Welcome to Carwoods - Choose your account type",
+    "heading": "One quick question",
+    "signedInAs": "Signed in as {{email}}",
+    "prompt": "We couldn't find an existing Carwoods account for this email. Tell us how you'll use Carwoods so we can set things up correctly.",
+    "landlordCta": "I'm a landlord or property manager",
+    "landlordSubtext": "I own or manage rental properties and want to add them here.",
+    "tenantCta": "I'm a tenant",
+    "tenantSubtext": "I rent a home managed through Carwoods.",
+    "back": "Back",
+    "signOut": "Sign out",
+    "landlordForm": {
+      "heading": "Create your landlord account",
+      "subtitle": "We'll use these details for tenant-facing communications. You can change them later in your profile.",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phone": "Phone (optional)",
+      "phoneHelp": "Shown to tenants on notifications and maintenance requests.",
+      "submit": "Create landlord account",
+      "submitting": "Creating account..."
+    },
+    "tenantDeadEnd": {
+      "heading": "Your landlord needs to invite you",
+      "body": "Tenant accounts at Carwoods are created by your landlord or property manager. Please contact them and ask to be invited to the Carwoods portal using this email address.",
+      "note": "Once they send the invitation, sign in again and your tenant account will be ready."
+    },
+    "errors": {
+      "apiUnavailable": "The Carwoods portal is temporarily unreachable. Please try again in a moment.",
+      "nameRequired": "First and last name are required.",
+      "alreadyRegistered": "An account already exists for this email. Please sign out and try again, or contact support.",
+      "generic": "We couldn't create your account. Please try again, or contact support if the problem persists."
+    }
+  },
+  "portalAdminUsers": {
+    "title": "Carwoods - User Administration",
+    "heading": "User administration",
+    "intro": "View every portal user and permanently remove accounts when required. Deletions are audited and cannot be undone.",
+    "errors": {
+      "apiUnavailable": "The Carwoods admin API is temporarily unreachable.",
+      "adminOnly": "Only administrators can view this page.",
+      "loadFailed": "Could not load users. Refresh to try again."
+    },
+    "list": {
+      "heading": "Portal users",
+      "showInactive": "Include inactive",
+      "refresh": "Refresh user list",
+      "emptyTitle": "No users to show",
+      "emptyDescription": "Users will appear here once they sign in or are invited."
+    },
+    "delete": {
+      "cta": "Permanently remove user",
+      "disabledSelf": "You cannot remove your own admin account.",
+      "disabledAdmin": "Admin accounts must be removed at the database level.",
+      "dialogTitle": "Permanently remove {{name}}?",
+      "warningPrimary": "This permanently deletes the user along with every property, lease, and maintenance request they created. This cannot be undone.",
+      "warningSecondary": "An audit entry with the reason below will be written so this action can be reviewed later.",
+      "reasonLabel": "Reason for removal",
+      "reasonHelper": "Minimum {{min}} characters, maximum {{max}} ({{count}}/{{max}}).",
+      "reasonTooShort": "Please provide a reason of at least {{min}} characters.",
+      "confirm": "Permanently delete",
+      "cancel": "Cancel",
+      "submitting": "Deleting...",
+      "success": "Permanently removed {{name}}.",
+      "generic": "Could not delete this user. Please try again.",
+      "errors": {
+        "self": "You cannot delete your own admin account.",
+        "admin": "Admin accounts cannot be removed from the portal UI.",
+        "blocked": "This user has records the deletion could not clean up automatically. Remove them manually, then try again.",
+        "notFound": "That user no longer exists."
+      }
+    }
+  },
   "session": {
     "expiring": {
       "title": "Still there?",

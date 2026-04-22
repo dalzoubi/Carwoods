@@ -26,6 +26,7 @@ import PortalProfile from './components/PortalProfile';
 import PortalRequests from './components/PortalRequests';
 import PortalDocuments from './components/PortalDocuments';
 import PortalAdminLandlords from './components/PortalAdminLandlords';
+import PortalAdminUsers from './components/PortalAdminUsers';
 import PortalNotificationsInbox from './components/PortalNotificationsInbox';
 import PortalInbox, {
     PortalInboxContactGate,
@@ -189,6 +190,14 @@ function PortalRoutes() {
                 element={
                     <PortalRouteGuard allowedRoles={[Role.ADMIN]}>
                         <PortalAdminLandlords />
+                    </PortalRouteGuard>
+                }
+            />
+            <Route
+                path="/portal/admin/users"
+                element={
+                    <PortalRouteGuard allowedRoles={[Role.ADMIN]}>
+                        <PortalAdminUsers />
                     </PortalRouteGuard>
                 }
             />

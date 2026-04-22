@@ -108,6 +108,10 @@ const DEV_AUTH_VALUE = PORTAL_DEV_AUTH
       persistChoice: false,
       sessionWarningOpen: false,
       sessionWarningDeadlineAt: null,
+      needsRoleSelection: false,
+      pendingRegistrationEmail: '',
+      pendingRegistrationFirstName: '',
+      pendingRegistrationLastName: '',
       extendSession: () => {},
       signIn: () => Promise.resolve(true),
       signInWithProvider: () => Promise.resolve(true),
@@ -449,6 +453,23 @@ function RealPortalAuthProvider({ children }) {
     silentRefreshTick,
   });
 
+  // A first-time authenticated principal with no backing user row. The
+  // backend used to silently create a landlord record here; now it returns
+  // a flag so we can route them through an explicit role-selection gate.
+  const needsRoleSelection = Boolean(
+    meStatus === 'ok' && meData && meData.needs_role_selection === true
+  );
+  const pendingRegistrationEmail =
+    needsRoleSelection && typeof meData?.email === 'string' ? meData.email : '';
+  const pendingRegistrationFirstName =
+    needsRoleSelection && typeof meData?.suggested_first_name === 'string'
+      ? meData.suggested_first_name
+      : '';
+  const pendingRegistrationLastName =
+    needsRoleSelection && typeof meData?.suggested_last_name === 'string'
+      ? meData.suggested_last_name
+      : '';
+
   useEffect(() => {
     if (authStatus !== 'authenticated') {
       setSilentRefreshTick(0);
@@ -574,6 +595,10 @@ function RealPortalAuthProvider({ children }) {
       persistChoice,
       sessionWarningOpen,
       sessionWarningDeadlineAt,
+      needsRoleSelection,
+      pendingRegistrationEmail,
+      pendingRegistrationFirstName,
+      pendingRegistrationLastName,
       extendSession,
       setPersistChoice,
       signIn,
@@ -597,6 +622,10 @@ function RealPortalAuthProvider({ children }) {
       meErrorStatus,
       meStatus,
       meUrl,
+      needsRoleSelection,
+      pendingRegistrationEmail,
+      pendingRegistrationFirstName,
+      pendingRegistrationLastName,
       persistChoice,
       refreshMe,
       sessionWarningDeadlineAt,
