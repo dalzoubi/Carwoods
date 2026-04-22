@@ -20,7 +20,9 @@ import {
 import AttachFile from '@mui/icons-material/AttachFile';
 import Close from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { usePortalAuth } from '../../PortalAuthContext';
+import RecaptchaDisclaimer from '../RecaptchaDisclaimer';
 import {
   submitSupportTicket,
   supportTicketAttachmentUploadIntent,
@@ -56,6 +58,7 @@ function validateFile(file) {
 export default function SupportTicketSubmitForm({ onSubmitted, onCancel, initialValues }) {
   const { t } = useTranslation();
   const { baseUrl, getAccessToken, meData, account } = usePortalAuth();
+  const { executeRecaptcha } = useGoogleReCaptcha();
   const emailHint = meData?.user?.email ?? account?.username ?? '';
 
   const [title, setTitle] = useState(initialValues?.title ?? '');
@@ -158,6 +161,14 @@ export default function SupportTicketSubmitForm({ onSubmitted, onCancel, initial
     try {
       const accessToken = await getAccessToken();
       const diagnostics = collectClientDiagnostics();
+      let recaptchaToken = '';
+      if (executeRecaptcha) {
+        try {
+          recaptchaToken = await executeRecaptcha('support_ticket');
+        } catch {
+          // reCAPTCHA not configured in dev — proceed without token
+        }
+      }
       const resp = await submitSupportTicket(baseUrl, accessToken, {
         emailHint,
         title: title.trim(),
@@ -165,6 +176,7 @@ export default function SupportTicketSubmitForm({ onSubmitted, onCancel, initial
         category,
         area: area || null,
         diagnostics,
+        recaptchaToken: recaptchaToken || null,
       });
       const ticketId = resp.ticket?.id;
       if (ticketId && files.length > 0) {
@@ -313,6 +325,8 @@ export default function SupportTicketSubmitForm({ onSubmitted, onCancel, initial
       </Box>
 
       <FormHelperText>{t('portalSupport.submit.diagnosticsNotice')}</FormHelperText>
+
+      <RecaptchaDisclaimer sx={{ mt: 0 }} />
 
       {submitState === 'submitting' && <LinearProgress />}
 

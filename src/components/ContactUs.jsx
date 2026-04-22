@@ -16,6 +16,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import Link from '@mui/material/Link';
 import MailtoEmailLink from './MailtoEmailLink';
+import RecaptchaDisclaimer from './RecaptchaDisclaimer';
 import { useTranslation } from 'react-i18next';
 import { VITE_API_BASE_URL_RESOLVED } from '../featureFlags';
 
@@ -272,17 +273,7 @@ const ContactUs = ({ embedded = false, initialSubject: initialSubjectProp = 'GEN
                   ? t('contact.submitting', 'Sending\u2026')
                   : t('contact.submitButton', 'Send Message')}
               </Button>
-              <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 1.5 }}>
-                {t('contact.recaptchaDisclaimer', 'This form is protected by reCAPTCHA. Google\u2019s')}{' '}
-                <Link href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" sx={{ fontSize: 'inherit' }}>
-                  {t('contact.recaptchaPrivacy', 'Privacy Policy')}
-                </Link>{' '}
-                {t('contact.recaptchaAnd', 'and')}{' '}
-                <Link href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" sx={{ fontSize: 'inherit' }}>
-                  {t('contact.recaptchaTerms', 'Terms of Service')}
-                </Link>{' '}
-                {t('contact.recaptchaApply', 'apply.')}
-              </Typography>
+              <RecaptchaDisclaimer />
             </Box>
           </Stack>
         </Box>

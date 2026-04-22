@@ -2584,7 +2584,9 @@
         "file_too_large": "File is larger than the per-file limit.",
         "upload_failed": "File upload failed.",
         "filename_required": "Filename is missing.",
-        "filename_too_long": "Filename is too long."
+        "filename_too_long": "Filename is too long.",
+        "recaptcha_required": "Security verification did not complete. Please refresh the page and try again.",
+        "recaptcha_failed": "Security check failed. Please try again."
       }
     },
     "list": {

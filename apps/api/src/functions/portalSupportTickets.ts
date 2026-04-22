@@ -101,6 +101,7 @@ async function portalSupportTicketsCollectionHandler(
         diagnostics: (b.diagnostics && typeof b.diagnostics === 'object'
           ? (b.diagnostics as Record<string, unknown>)
           : null),
+        recaptchaToken: asString(b.recaptcha_token) ?? null,
       },
       context
     );

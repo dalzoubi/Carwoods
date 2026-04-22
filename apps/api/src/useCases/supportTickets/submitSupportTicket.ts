@@ -7,6 +7,12 @@ import {
 import { assertCreateTicketInput } from '../../domain/supportTicketValidation.js';
 import { enqueueNotification } from '../../lib/notificationRepo.js';
 import { logWarn } from '../../lib/serverLogger.js';
+import { validationError } from '../../domain/errors.js';
+import {
+  RECAPTCHA_MIN_SCORE,
+  isRecaptchaSecretConfigured,
+  verifyRecaptcha,
+} from '../../lib/recaptcha.js';
 
 type PoolLike = ReturnType<typeof getPool>;
 
@@ -17,6 +23,7 @@ export type SubmitSupportTicketInput = {
   category?: string;
   area?: string | null;
   diagnostics?: Record<string, unknown> | null;
+  recaptchaToken?: string | null;
 };
 
 export async function submitSupportTicket(
@@ -25,6 +32,21 @@ export async function submitSupportTicket(
   context?: InvocationContext
 ): Promise<SupportTicketRow> {
   const validated = assertCreateTicketInput(input);
+
+  if (isRecaptchaSecretConfigured()) {
+    if (!input.recaptchaToken) {
+      throw validationError('recaptcha_required');
+    }
+    const score = await verifyRecaptcha(input.recaptchaToken, context, 'support_ticket');
+    if (score === null || score < RECAPTCHA_MIN_SCORE) {
+      throw validationError('recaptcha_failed');
+    }
+  } else if (input.recaptchaToken) {
+    const score = await verifyRecaptcha(input.recaptchaToken, context, 'support_ticket');
+    if (score !== null && score < RECAPTCHA_MIN_SCORE) {
+      throw validationError('recaptcha_failed');
+    }
+  }
   const diagnosticsJson = input.diagnostics
     ? JSON.stringify(input.diagnostics).slice(0, 20000)
     : null;
