@@ -1995,6 +1995,7 @@
       "notices": "الإشعارات",
       "support": "الدعم",
       "adminSupport": "بريد الدعم",
+      "adminPortalUsers": "مستخدمو البوابة",
       "collapse": "طي الشريط الجانبي",
       "expand": "توسيع الشريط الجانبي",
       "signOut": "تسجيل الخروج",
@@ -2457,6 +2458,17 @@
       "refresh": "تحديث قائمة المستخدمين",
       "emptyTitle": "لا يوجد مستخدمون للعرض",
       "emptyDescription": "سيظهر المستخدمون هنا عندما يسجلون الدخول أو يتم دعوتهم."
+    },
+    "associations": {
+      "heading": "سجلات مرتبطة",
+      "noneInCategories": "لا يوجد في هذه الفئات",
+      "countProperties": "عقارات (منشأة): {{count}}",
+      "countLeases": "عقود إيجار (على تلك العقارات): {{count}}",
+      "countRequestsOnProperties": "طلبات صيانة (على تلك العقارات): {{count}}",
+      "countDocuments": "مركز المستندات (كمالك): {{count}}",
+      "countSupportTickets": "تذاكر دعم (كمقدّم طلب): {{count}}",
+      "countLeaseTenancies": "تسجيلات عقود (كمستأجر): {{count}}",
+      "countRequestsSubmitted": "طلبات صيانة (مقدَّمة): {{count}}"
     },
     "delete": {
       "cta": "إزالة المستخدم نهائياً",

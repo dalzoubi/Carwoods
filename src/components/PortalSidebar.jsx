@@ -208,6 +208,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
   const adminItems = roleResolved && normalized === Role.ADMIN
     ? [
         { key: 'admin', to: '/portal/admin/landlords', label: t('portalLayout.sidebar.adminLandlords'), icon: <SupervisorAccount /> },
+        { key: 'admin-users', to: '/portal/admin/users', label: t('portalLayout.sidebar.adminPortalUsers'), icon: <People /> },
         { key: 'admin-support', to: '/portal/admin/support', label: t('portalLayout.sidebar.adminSupport'), icon: <SupportAgent />, badgeCount: badges.supportTicketsAdmin },
       ]
     : [];

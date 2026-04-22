@@ -2503,6 +2503,7 @@
       "notices": "Notices",
       "support": "Support",
       "adminSupport": "Support Inbox",
+      "adminPortalUsers": "Portal users",
       "collapse": "Collapse sidebar",
       "expand": "Expand sidebar",
       "signOut": "Sign out",
@@ -2973,6 +2974,17 @@
       "refresh": "Refresh user list",
       "emptyTitle": "No users to show",
       "emptyDescription": "Users will appear here once they sign in or are invited."
+    },
+    "associations": {
+      "heading": "Linked records",
+      "noneInCategories": "None in these categories",
+      "countProperties": "Properties (created): {{count}}",
+      "countLeases": "Leases (on those properties): {{count}}",
+      "countRequestsOnProperties": "Maintenance requests (on those properties): {{count}}",
+      "countDocuments": "Document center (as landlord): {{count}}",
+      "countSupportTickets": "Support tickets (as requester): {{count}}",
+      "countLeaseTenancies": "Lease enrollments (as tenant): {{count}}",
+      "countRequestsSubmitted": "Maintenance requests (submitted): {{count}}"
     },
     "delete": {
       "cta": "Permanently remove user",

@@ -1994,6 +1994,7 @@
       "notices": "Préavis",
       "support": "Assistance",
       "adminSupport": "Boîte d'assistance",
+      "adminPortalUsers": "Utilisateurs du portail",
       "collapse": "Réduire la barre latérale",
       "expand": "Développer la barre latérale",
       "signOut": "Se déconnecter",
@@ -2456,6 +2457,17 @@
       "refresh": "Actualiser la liste des utilisateurs",
       "emptyTitle": "Aucun utilisateur à afficher",
       "emptyDescription": "Les utilisateurs apparaîtront ici lorsqu'ils se connecteront ou seront invités."
+    },
+    "associations": {
+      "heading": "Enregistrements liés",
+      "noneInCategories": "Aucun dans ces catégories",
+      "countProperties": "Biens (créés) : {{count}}",
+      "countLeases": "Baux (sur ces biens) : {{count}}",
+      "countRequestsOnProperties": "Demandes d'entretien (sur ces biens) : {{count}}",
+      "countDocuments": "Espace documentaire (en tant que propriétaire) : {{count}}",
+      "countSupportTickets": "Tickets de support (en tant que demandeur) : {{count}}",
+      "countLeaseTenancies": "Inscriptions aux baux (en tant que locataire) : {{count}}",
+      "countRequestsSubmitted": "Demandes d'entretien (soumises) : {{count}}"
     },
     "delete": {
       "cta": "Supprimer définitivement l'utilisateur",

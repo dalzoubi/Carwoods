@@ -1,15 +1,15 @@
 # Visual Regression Tests
 
-Every PR automatically captures screenshots of the marketing site, tenant/landlord portal, and admin panels at three viewports. If a PR changes how a page *looks*, CI attaches a pixel diff that a reviewer can download and eyeball — no need to pull the branch and run `npm run dev`.
+The visual suite captures screenshots of the marketing site, tenant/landlord portal, and admin panels at three viewports. In GitHub Actions, **Visual regression (Playwright, manual)** does not run on push by default: open **Actions**, select that workflow, and **Run workflow** with the **PR number** (the same `npm run test:visual` flow, reports, and optional `visual-drift-accepted` label behavior as before). If a PR changes how a page *looks*, the job attaches a pixel diff you can download and eyeball — or run `npm run dev` locally.
 
 ## How it works
 
 - Specs live in `e2e/visual/*.visual.spec.mjs`.
 - Baselines live in `e2e/visual/<spec>.visual.spec.mjs-snapshots/` and are committed to the repo.
-- On every PR, `.github/workflows/visual-regression.yml` runs `npm run test:visual`.
+- `.github/workflows/visual-regression.yml` (manual) runs `npm run test:visual` against the PR you choose.
   - If every page matches its baseline, the job is green.
   - If a baseline is **missing** (new test, never run before), the job auto-runs `--update-snapshots`, commits the new baseline back to the PR branch (as `Bootstrap visual regression baselines [skip ci]`), and exits green. You'll see a follow-up commit appear on the PR — just `git pull` next time you push.
-  - If a baseline **differs** from the live render, the job fails and uploads a `playwright-report` artifact with expected / actual / diff PNGs. The reviewer downloads it, decides whether the change is intentional, and (if it is) the developer regenerates baselines locally.
+  - If a baseline **differs** from the live render, the job fails and uploads a `playwright-report` artifact with expected / actual / diff PNGs. The reviewer downloads it, decides whether the change is intentional, and (if it is) the developer regenerates baselines locally or re-runs the workflow after adding the `visual-drift-accepted` label to accept committed drift.
 - Built on top of the existing Playwright setup (`playwright.config.mjs`). Functional critical-path tests still run under the `chromium` project; visual tests run under `visual-chromium`.
 
 ## Running locally

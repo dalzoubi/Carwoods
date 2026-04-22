@@ -27,7 +27,31 @@ export type DeleteUserSummary = {
   maintenanceRequestCount: number;
   documentCount: number;
   supportTicketCount: number;
+  /** lease_tenants rows where this user is the tenant */
+  leaseTenancyCount: number;
+  /** maintenance_requests where this user is the submitter (any property) */
+  maintenanceRequestSubmittedCount: number;
 };
+
+type SqlQueryable = {
+  query: <T = Record<string, unknown>>(
+    text: string,
+    params?: unknown[]
+  ) => Promise<{ rows: T[]; rowCount: number | null }>;
+};
+
+export function emptyUserAssociationSummary(userId: string): DeleteUserSummary {
+  return {
+    userId,
+    propertyCount: 0,
+    leaseCount: 0,
+    maintenanceRequestCount: 0,
+    documentCount: 0,
+    supportTicketCount: 0,
+    leaseTenancyCount: 0,
+    maintenanceRequestSubmittedCount: 0,
+  };
+}
 
 async function countOwnedResources(
   client: PoolClient,
@@ -39,6 +63,8 @@ async function countOwnedResources(
     request_count: number;
     document_count: number;
     ticket_count: number;
+    lease_tenancy_count: number;
+    request_submitted_count: number;
   }>(
     `SELECT
        (SELECT COUNT(*) FROM properties WHERE created_by = $1) AS property_count,
@@ -49,7 +75,9 @@ async function countOwnedResources(
          JOIN properties p ON p.id = mr.property_id
          WHERE p.created_by = $1) AS request_count,
        (SELECT COUNT(*) FROM documents d WHERE d.landlord_id = $1) AS document_count,
-       (SELECT COUNT(*) FROM support_tickets st WHERE st.user_id = $1) AS ticket_count`,
+       (SELECT COUNT(*) FROM support_tickets st WHERE st.user_id = $1) AS ticket_count,
+       (SELECT COUNT(*) FROM lease_tenants lt WHERE lt.user_id = $1) AS lease_tenancy_count,
+       (SELECT COUNT(*) FROM maintenance_requests mr2 WHERE mr2.submitted_by_user_id = $1) AS request_submitted_count`,
     [userId]
   );
   const row = rows.rows[0] ?? {
@@ -58,6 +86,8 @@ async function countOwnedResources(
     request_count: 0,
     document_count: 0,
     ticket_count: 0,
+    lease_tenancy_count: 0,
+    request_submitted_count: 0,
   };
   return {
     userId,
@@ -66,7 +96,116 @@ async function countOwnedResources(
     maintenanceRequestCount: Number(row.request_count ?? 0),
     documentCount: Number(row.document_count ?? 0),
     supportTicketCount: Number(row.ticket_count ?? 0),
+    leaseTenancyCount: Number(row.lease_tenancy_count ?? 0),
+    maintenanceRequestSubmittedCount: Number(row.request_submitted_count ?? 0),
   };
+}
+
+/**
+ * Batch version of countOwnedResources for the admin user list. One query per
+ * metric, each grouped by the relevant user id column, merged into 0 for ids
+ * with no rows.
+ */
+export async function batchCountUserAccountAssociations(
+  pool: SqlQueryable,
+  userIds: string[]
+): Promise<Map<string, DeleteUserSummary>> {
+  const byId = new Map<string, DeleteUserSummary>();
+  for (const id of userIds) {
+    byId.set(id, emptyUserAssociationSummary(id));
+  }
+  if (userIds.length === 0) return byId;
+
+  const ph = userIds.map((_, i) => `$${i + 1}`).join(',');
+  const p = userIds;
+
+  const apply = (rows: { user_id: unknown; c: unknown }[], field: keyof Omit<DeleteUserSummary, 'userId'>) => {
+    for (const r of rows) {
+      const id = String(r.user_id);
+      const entry = byId.get(id) ?? emptyUserAssociationSummary(id);
+      const n = Number(r.c ?? 0);
+      if (field === 'propertyCount') entry.propertyCount = n;
+      else if (field === 'leaseCount') entry.leaseCount = n;
+      else if (field === 'maintenanceRequestCount') entry.maintenanceRequestCount = n;
+      else if (field === 'documentCount') entry.documentCount = n;
+      else if (field === 'supportTicketCount') entry.supportTicketCount = n;
+      else if (field === 'leaseTenancyCount') entry.leaseTenancyCount = n;
+      else if (field === 'maintenanceRequestSubmittedCount') entry.maintenanceRequestSubmittedCount = n;
+      byId.set(id, entry);
+    }
+  };
+
+  const [
+    propsR,
+    leaseR,
+    reqR,
+    docR,
+    ticketR,
+    tenancyR,
+    submittedR,
+  ] = await Promise.all([
+    pool.query<{ user_id: string; c: number }>(
+      `SELECT created_by AS user_id, COUNT(*) AS c
+       FROM properties
+       WHERE created_by IN (${ph})
+       GROUP BY created_by`,
+      p
+    ),
+    pool.query<{ user_id: string; c: number }>(
+      `SELECT p.created_by AS user_id, COUNT(*) AS c
+       FROM leases l
+       INNER JOIN properties p ON p.id = l.property_id
+       WHERE p.created_by IN (${ph})
+       GROUP BY p.created_by`,
+      p
+    ),
+    pool.query<{ user_id: string; c: number }>(
+      `SELECT p.created_by AS user_id, COUNT(*) AS c
+       FROM maintenance_requests mr
+       INNER JOIN properties p ON p.id = mr.property_id
+       WHERE p.created_by IN (${ph})
+       GROUP BY p.created_by`,
+      p
+    ),
+    pool.query<{ user_id: string; c: number }>(
+      `SELECT landlord_id AS user_id, COUNT(*) AS c
+       FROM documents
+       WHERE landlord_id IN (${ph})
+       GROUP BY landlord_id`,
+      p
+    ),
+    pool.query<{ user_id: string; c: number }>(
+      `SELECT user_id, COUNT(*) AS c
+       FROM support_tickets
+       WHERE user_id IN (${ph})
+       GROUP BY user_id`,
+      p
+    ),
+    pool.query<{ user_id: string; c: number }>(
+      `SELECT user_id, COUNT(*) AS c
+       FROM lease_tenants
+       WHERE user_id IN (${ph})
+       GROUP BY user_id`,
+      p
+    ),
+    pool.query<{ user_id: string; c: number }>(
+      `SELECT submitted_by_user_id AS user_id, COUNT(*) AS c
+       FROM maintenance_requests
+       WHERE submitted_by_user_id IN (${ph})
+       GROUP BY submitted_by_user_id`,
+      p
+    ),
+  ]);
+
+  apply(propsR.rows as { user_id: unknown; c: unknown }[], 'propertyCount');
+  apply(leaseR.rows as { user_id: unknown; c: unknown }[], 'leaseCount');
+  apply(reqR.rows as { user_id: unknown; c: unknown }[], 'maintenanceRequestCount');
+  apply(docR.rows as { user_id: unknown; c: unknown }[], 'documentCount');
+  apply(ticketR.rows as { user_id: unknown; c: unknown }[], 'supportTicketCount');
+  apply(tenancyR.rows as { user_id: unknown; c: unknown }[], 'leaseTenancyCount');
+  apply(submittedR.rows as { user_id: unknown; c: unknown }[], 'maintenanceRequestSubmittedCount');
+
+  return byId;
 }
 
 /**

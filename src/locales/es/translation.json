@@ -1994,6 +1994,7 @@
       "notices": "Avisos",
       "support": "Soporte",
       "adminSupport": "Bandeja de soporte",
+      "adminPortalUsers": "Usuarios del portal",
       "collapse": "Contraer barra lateral",
       "expand": "Expandir barra lateral",
       "signOut": "Cerrar sesión",
@@ -2456,6 +2457,17 @@
       "refresh": "Actualizar lista de usuarios",
       "emptyTitle": "No hay usuarios para mostrar",
       "emptyDescription": "Los usuarios aparecerán aquí cuando inicien sesión o sean invitados."
+    },
+    "associations": {
+      "heading": "Registros vinculados",
+      "noneInCategories": "Ninguno en estas categorías",
+      "countProperties": "Propiedades (creadas): {{count}}",
+      "countLeases": "Contratos (en esas propiedades): {{count}}",
+      "countRequestsOnProperties": "Solicitudes de mantenimiento (en esas propiedades): {{count}}",
+      "countDocuments": "Centro de documentos (como arrendador): {{count}}",
+      "countSupportTickets": "Tickets de soporte (como solicitante): {{count}}",
+      "countLeaseTenancies": "Inscripciones de arrendamiento (como inquilino): {{count}}",
+      "countRequestsSubmitted": "Solicitudes de mantenimiento (enviadas): {{count}}"
     },
     "delete": {
       "cta": "Eliminar usuario permanentemente",

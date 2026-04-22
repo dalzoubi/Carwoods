@@ -51,6 +51,24 @@ function roleChipColor(role) {
   return 'default';
 }
 
+const ASSOCIATION_KEYS = [
+  { key: 'propertyCount', label: 'countProperties' },
+  { key: 'leaseCount', label: 'countLeases' },
+  { key: 'maintenanceRequestCount', label: 'countRequestsOnProperties' },
+  { key: 'documentCount', label: 'countDocuments' },
+  { key: 'supportTicketCount', label: 'countSupportTickets' },
+  { key: 'leaseTenancyCount', label: 'countLeaseTenancies' },
+  { key: 'maintenanceRequestSubmittedCount', label: 'countRequestsSubmitted' },
+];
+
+/**
+ * @param {Record<string, number> | null | undefined} ar
+ */
+function hasAssociationData(ar) {
+  if (!ar || typeof ar !== 'object') return false;
+  return ASSOCIATION_KEYS.some(({ key }) => Number(ar[key] ?? 0) > 0);
+}
+
 const PortalAdminUsers = () => {
   const { t } = useTranslation();
   const {
@@ -261,6 +279,39 @@ const PortalAdminUsers = () => {
                       <Typography variant="body2" color="text.secondary">
                         {u.email}
                       </Typography>
+                      <Typography
+                        component="div"
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ display: 'block', mt: 0.5, fontWeight: 600 }}
+                      >
+                        {t('portalAdminUsers.associations.heading')}
+                      </Typography>
+                      {hasAssociationData(u.associated_records) ? (
+                        <Stack
+                          direction="row"
+                          flexWrap="wrap"
+                          sx={{ mt: 0.5, gap: 0.5 }}
+                        >
+                          {ASSOCIATION_KEYS.map(({ key, label }) => {
+                            const n = Number(u.associated_records?.[key] ?? 0);
+                            if (n <= 0) return null;
+                            return (
+                              <Chip
+                                key={key}
+                                size="small"
+                                variant="outlined"
+                                color="default"
+                                label={t(`portalAdminUsers.associations.${label}`, { count: n })}
+                              />
+                            );
+                          })}
+                        </Stack>
+                      ) : (
+                        <Typography variant="body2" color="text.disabled" sx={{ mt: 0.25 }}>
+                          {t('portalAdminUsers.associations.noneInCategories')}
+                        </Typography>
+                      )}
                     </Box>
                     <Tooltip
                       title={

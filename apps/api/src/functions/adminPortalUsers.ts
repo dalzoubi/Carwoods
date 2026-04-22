@@ -8,6 +8,10 @@ import { getPool } from '../lib/db.js';
 import { requireAdmin, jsonResponse, mapDomainError } from '../lib/managementRequest.js';
 import { listUsersForAdminNotificationRecipients } from '../lib/usersRepo.js';
 import { addProfilePhotoReadUrl } from '../lib/userProfilePhotoUrl.js';
+import {
+  batchCountUserAccountAssociations,
+  emptyUserAssociationSummary,
+} from '../lib/deleteUserCascade.js';
 import { logInfo, logWarn } from '../lib/serverLogger.js';
 
 async function adminPortalUsersHandler(
@@ -29,7 +33,16 @@ async function adminPortalUsersHandler(
 
   try {
     const users = await listUsersForAdminNotificationRecipients(getPool(), { includeInactive });
-    const usersWithPhotoUrl = users.map((u) => addProfilePhotoReadUrl(u));
+    const assoc = await batchCountUserAccountAssociations(
+      getPool(),
+      users.map((u) => u.id)
+    );
+    const usersWithPhotoUrl = users.map((u) => {
+      const base = addProfilePhotoReadUrl(u);
+      const s = assoc.get(u.id) ?? emptyUserAssociationSummary(u.id);
+      const { userId: _omit, ...associated_records } = s;
+      return { ...base, associated_records };
+    });
     logInfo(context, 'admin.portal_users.list', {
       actorUserId: ctx.user.id,
       includeInactive,

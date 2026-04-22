@@ -1,14 +1,16 @@
-name: Visual Regression
+name: Visual regression (Playwright, manual)
 
+# Not tied to the default PR CI. Run this workflow when you want visual
+# diff + hosted report for a specific PR: Actions → this workflow → "Run
+# workflow" and enter the PR number. Rerun after adding the
+# `visual-drift-accepted` label to commit accepted drift (same as before).
 on:
-  pull_request:
-    branches: [main]
-    # `labeled` lets a reviewer add the `visual-drift-accepted` label to
-    # rerun CI and auto-commit the drifted baselines. See bootstrap step below.
-    types: [opened, synchronize, reopened, labeled]
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to test (branch head; same-repo only for gh-pages + baseline push)
+        required: true
+        type: number
 
 # Auto-commit step needs write access to push baselines back to the PR branch.
 # Pushes from GITHUB_TOKEN do NOT trigger further workflow runs (per GitHub
@@ -20,8 +22,46 @@ permissions:
   deployments: write
 
 jobs:
+  resolve:
+    name: Resolve PR
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.meta.outputs.pr_number }}
+      head_ref: ${{ steps.meta.outputs.head_ref }}
+      head_sha: ${{ steps.meta.outputs.head_sha }}
+      head_repo: ${{ steps.meta.outputs.head_repo }}
+      is_same_repo: ${{ steps.meta.outputs.is_same_repo }}
+      pr_labels_json: ${{ steps.meta.outputs.pr_labels_json }}
+    steps:
+      - name: Load PR head + labels
+        id: meta
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const n = parseInt(github.event.inputs.pr_number, 10);
+            if (Number.isNaN(n) || n < 1) {
+              core.setFailed('Invalid pr_number');
+              return;
+            }
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: n,
+            });
+            const headRepo = pr.head.repo.full_name;
+            const baseRepo = `${context.repo.owner}/${context.repo.repo}`;
+            const isSame = headRepo === baseRepo;
+            core.setOutput('pr_number', String(n));
+            core.setOutput('head_ref', pr.head.ref);
+            core.setOutput('head_sha', pr.head.sha);
+            core.setOutput('head_repo', headRepo);
+            core.setOutput('is_same_repo', isSame ? 'true' : 'false');
+            core.setOutput('pr_labels_json', JSON.stringify(pr.labels.map((l) => l.name)));
+            core.info(`PR #${n} head: ${headRepo}@${pr.head.ref} (same repo: ${isSame})`);
+
   visual:
     name: Playwright visual screenshots
+    needs: resolve
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -37,9 +77,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # Default checkout of a pull_request event is a detached merge ref;
-          # we need the PR's actual head branch so we can commit + push back.
-          ref: ${{ github.head_ref || github.ref }}
+          repository: ${{ needs.resolve.outputs.head_repo }}
+          # PR head branch (same as pull_request: head ref, not the merge ref).
+          ref: ${{ needs.resolve.outputs.head_ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -82,7 +122,7 @@ jobs:
         if: steps.visual.outcome == 'failure'
         id: bootstrap
         env:
-          PR_LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
+          PR_LABELS: ${{ needs.resolve.outputs.pr_labels_json }}
         run: |
           set -euo pipefail
 
@@ -137,7 +177,7 @@ jobs:
             else
               git commit -m "Bootstrap visual regression baselines [skip ci]"
             fi
-            git push origin HEAD:${{ github.head_ref || github.ref_name }}
+            git push origin "HEAD:refs/heads/${{ needs.resolve.outputs.head_ref }}"
             BOOTSTRAPPED="true"
           fi
 
@@ -218,38 +258,40 @@ jobs:
         id: gh_pages_deploy
         if: >
           always() &&
-          github.event_name == 'pull_request' &&
-          github.event.pull_request.head.repo.full_name == github.repository &&
+          needs.resolve.outputs.is_same_repo == 'true' &&
           hashFiles('playwright-report/index.html') != ''
         continue-on-error: true
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: playwright-report
-          destination_dir: visual/pr/${{ github.event.pull_request.number }}
+          destination_dir: visual/pr/${{ needs.resolve.outputs.pr_number }}
           keep_files: true
 
       # Surfaces the hosted Playwright report under repo → Environments → visual-regression (like a preview URL).
       - name: Register GitHub deployment (Environment UI)
-        if: >
-          always() &&
-          github.event_name == 'pull_request' &&
-          github.event.pull_request.head.repo.full_name == github.repository
+        if: always() && needs.resolve.outputs.is_same_repo == 'true'
         continue-on-error: true
         env:
           PAGES_DEPLOY_OUTCOME: ${{ steps.gh_pages_deploy.outcome }}
+          PR_NUMBER: ${{ needs.resolve.outputs.pr_number }}
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
             const path = require('path');
-            const pr = context.payload.pull_request;
-            if (!pr) {
-              core.info('No pull_request payload; skipping deployment registration.');
+            const prNumber = parseInt(process.env.PR_NUMBER || '', 10);
+            if (Number.isNaN(prNumber)) {
+              core.setFailed('PR_NUMBER missing for deployment registration.');
               return;
             }
 
             const { owner, repo } = context.repo;
+            const { data: pr } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: prNumber,
+            });
             const workspace = process.env.GITHUB_WORKSPACE || '.';
             const hasReport = fs.existsSync(path.join(workspace, 'playwright-report', 'index.html'));
             const pagesOutcome = process.env.PAGES_DEPLOY_OUTCOME || 'skipped';
@@ -298,14 +340,14 @@ jobs:
             core.info(`Registered deployment ${deploymentId} (${state}) for ${environment}`);
 
       - name: Write PR comment body (visual regression links)
-        if: always() && github.event_name == 'pull_request'
+        if: always()
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           JOB_STATUS: ${{ job.status }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NUMBER: ${{ needs.resolve.outputs.pr_number }}
           OWNER: ${{ github.repository_owner }}
           REPO: ${{ github.event.repository.name }}
-          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          HEAD_REPO: ${{ needs.resolve.outputs.head_repo }}
           BASE_REPO: ${{ github.repository }}
           PAGES_DEPLOY_OUTCOME: ${{ steps.gh_pages_deploy.outcome }}
           DRIFT: ${{ steps.bootstrap.outputs.drift }}
@@ -392,8 +434,8 @@ jobs:
           OWNER: ${{ github.repository_owner }}
           REPO: ${{ github.event.repository.name }}
           EVENT_NAME: ${{ github.event_name }}
-          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
-          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name || '' }}
+          PR_NUMBER: ${{ needs.resolve.outputs.pr_number || '' }}
+          HEAD_REPO: ${{ needs.resolve.outputs.head_repo || '' }}
           BASE_REPO: ${{ github.repository }}
           PAGES_DEPLOY_OUTCOME: ${{ steps.gh_pages_deploy.outcome }}
         run: |
@@ -403,7 +445,7 @@ jobs:
             echo "| | |"
             echo "|---|---|"
             echo "| Workflow run | [Open](${RUN_URL}) |"
-            if [ "${EVENT_NAME}" = "pull_request" ] && [ -n "${PR_NUMBER}" ] && [ "${HEAD_REPO}" = "${BASE_REPO}" ]; then
+            if [ "${EVENT_NAME}" = "workflow_dispatch" ] && [ -n "${PR_NUMBER}" ] && [ "${HEAD_REPO}" = "${BASE_REPO}" ]; then
               PREVIEW_URL="https://${OWNER}.github.io/${REPO}/visual/pr/${PR_NUMBER}/index.html"
               GALLERY_URL="https://${OWNER}.github.io/${REPO}/visual/pr/${PR_NUMBER}/gallery.html"
               echo "| Hosted Playwright report | [index.html](${PREVIEW_URL}) |"
@@ -411,16 +453,17 @@ jobs:
               if [ "${PAGES_DEPLOY_OUTCOME}" != "success" ]; then
                 echo "| Hosted previews | _Pages deploy was not successful — use the playwright-report artifact._ |"
               fi
-            elif [ "${EVENT_NAME}" = "pull_request" ] && [ -n "${PR_NUMBER}" ]; then
+            elif [ "${EVENT_NAME}" = "workflow_dispatch" ] && [ -n "${PR_NUMBER}" ]; then
               echo "| Hosted previews | _Fork PR — use artifacts only._ |"
             fi
             echo "| Local (artifact) | Download **playwright-report**, open \`index.html\` or \`gallery.html\` |"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Comment on PR with report links (sticky)
-        if: always() && github.event_name == 'pull_request'
+        if: always()
         uses: marocchino/sticky-pull-request-comment@v2
         with:
+          number: ${{ needs.resolve.outputs.pr_number }}
           header: visual-regression-report
           path: visual-regression-pr-comment.md
           skip_unchanged: false

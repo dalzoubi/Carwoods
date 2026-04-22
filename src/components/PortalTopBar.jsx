@@ -34,6 +34,7 @@ function usePageTitle(t) {
     '/portal/profile': t('portalLayout.sidebar.profile'),
     '/portal/admin': t('portalLayout.sidebar.adminLandlords'),
     '/portal/admin/landlords': t('portalLayout.sidebar.adminLandlords'),
+    '/portal/admin/users': t('portalLayout.sidebar.adminPortalUsers'),
     '/portal/admin/ai': t('portalLayout.sidebar.adminConfigurations'),
     '/portal/admin/config': t('portalLayout.sidebar.adminConfigurations'),
     '/portal/admin/reports/notifications': t('portalAdminNotificationReport.heading'),
