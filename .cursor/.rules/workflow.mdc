@@ -1,0 +1,27 @@
+---
+alwaysApply: true
+---
+
+# Spec-driven 4-phase workflow (routing)
+
+This repo uses a 4-phase workflow mirroring the Claude Code subagents in `.claude/agents/`. For the full instructions of each phase, invoke the matching manually-triggered rule — each one has tight posture, checkpoints, and scope conventions:
+
+- **`@phase-define`** — Planning & Analysis. Q&A one question at a time; produces a spec in `docs/specs/` or `docs/portal/specs/`.
+- **`@phase-implement`** — Implementation & Refactor. Plan + approval + small chunks + checkpoints. Only phase that edits production code.
+- **`@phase-test`** — Test & Quality. Test files only. Failing-test-first for bugs; does not fix production code.
+- **`@phase-validate`** — Review & Risk. Read-only audit vs `main` with severity-ranked report.
+
+## Routing rules (always on)
+
+- The user signals which phase to enter by invoking the matching `@phase-*` rule or by saying it in plain language ("define / spec this", "implement / build", "write tests / repro", "review / validate"). If the ask is ambiguous, ask which phase before acting.
+- **Do not auto-advance** between phases. When a phase is done, state the next suggested phase and wait for the user to invoke it.
+- Bug fixes skip `@phase-define`. If a fix changes shipped behavior, update the relevant spec's **Spec deltas** section during `@phase-implement`.
+
+## Guardrails across all phases
+
+- Never commit secrets, never force-push, never skip hooks (`--no-verify`).
+- Honor `CLAUDE.md` (repo root and nearest scoped), `AGENTS.md`, and the other rules in `.cursor/.rules/`.
+
+## Also available: Cursor Custom Modes
+
+For per-phase **tool enforcement** (read-only vs full edit, model per phase), see the setup guide at [`.cursor/CUSTOM_MODES.md`](../CUSTOM_MODES.md). Custom Modes are configured in Cursor's UI (Settings → Features → Custom Modes) and are user-scoped — they don't travel with the repo, so each contributor sets them up once locally.

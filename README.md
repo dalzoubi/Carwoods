@@ -80,6 +80,44 @@ The app is deployed to [carwoods.com](https://carwoods.com). Vite builds to the 
 
 This repo is configured for AI coding agents (Cursor, Copilot, Codex, etc.). Before starting a task, paste the relevant prompt below into your chat.
 
+### Claude Code: spec-driven 4-agent workflow
+
+For larger changes in Claude Code, use the four project-scoped subagents defined in [`.claude/agents/`](./.claude/agents) via their slash commands in [`.claude/commands/`](./.claude/commands). You are the router — agents do **not** auto-delegate to each other. Each agent has a narrower tool scope than the main session and built-in checkpoints.
+
+| Command | Agent | Model | Purpose |
+|---|---|---|---|
+| `/define <feature>` | **Define** (Planning & Analysis) | opus | Runs a Q&A **one question at a time** to scope the feature, then proposes architecture with tradeoffs. On approval, writes a spec to `docs/portal/specs/<slug>.md` (portal/`apps/api`/`packages/`/`infra/`) or `docs/specs/<slug>.md` (everything else). Read-only except for that spec. |
+| `/implement <spec-path-or-task>` | **Implement** (Implementation & Refactor) | inherit | Reads the spec, uses the `Plan` subagent to draft a plan, waits for approval, edits in small chunks, runs `npx vitest run` / `npm run build` / `npx eslint src/` after each chunk, and stops at checkpoints (after plan, after each chunk, before any "Ask first" or destructive action). Only agent that changes source files. |
+| `/test <target-or-bug>` | **Test & Quality** | sonnet | Writes unit / integration / e2e / visual tests per the spec's Test plan. For bugs, writes the **failing test first** then stops — does not fix production code. Edits test files only (`**/*.test.*`, `**/*.spec.*`, `e2e/**`, `tests/**`). |
+| `/validate` | **Validate** (Review & Risk) | inherit | Read-only audit of current branch vs `main`: static security review, STRIDE threat model, risky-diff patterns, carwoods-specific regressions (i18n/theme/RTL/providers/routes), WCAG 2.1 AA, performance, spec conformance, test-coverage gaps. Returns a severity-ranked markdown report with a SHIP / SHIP with fixes / DO NOT SHIP recommendation. |
+
+**Typical flow for a new feature:**
+
+1. `/define add-tenant-payment-history` → answer the Q&A, approve, spec lands in `docs/portal/specs/add-tenant-payment-history.md`.
+2. `/implement docs/portal/specs/add-tenant-payment-history.md` → approve the plan, review each chunk as it lands.
+3. `/test docs/portal/specs/add-tenant-payment-history.md` → fills any coverage gaps the implementation didn't write inline.
+4. `/validate` → fix any Blocker/High findings, loop back to `/implement` or `/test` as needed.
+5. Open PR.
+
+**Bug flow:** `/test "<bug description>"` to reproduce with a failing test → `/implement "fix <bug>"` to fix → `/validate` before PR. Bugs skip `/define`. If a fix changes behavior in a shipped spec, Implement will update that spec's **Spec deltas** section.
+
+**Guardrails (enforced by each agent):**
+
+- Define is read-only on source — it cannot edit code.
+- Implement honors the "Ask first" list in [CLAUDE.md](./CLAUDE.md) (new deps, route/path changes, payload changes, design tokens, analytics) and stops for approval.
+- Test never edits production code.
+- Validate never edits anything.
+- None of the agents skip hooks, force-push, or commit secrets.
+
+### Cursor: same workflow, two mechanisms
+
+Cursor has no direct equivalent to Claude Code subagents, so the 4 phases are provided two ways — pick one or use both:
+
+1. **Manually-invoked rules (committed to repo, zero setup)** — `@phase-define`, `@phase-implement`, `@phase-test`, `@phase-validate` in [`.cursor/.rules/`](./.cursor/.rules). An always-on router rule ([`workflow.mdc`](./.cursor/.rules/workflow.mdc)) handles routing language ("define this", "validate the branch", etc.) and reminds Cursor not to auto-advance between phases. Tool restrictions are advisory — the prompt tells Cursor to stay read-only, but nothing blocks it.
+2. **Custom Modes (real tool enforcement, one-time per-machine setup)** — see [`.cursor/CUSTOM_MODES.md`](./.cursor/CUSTOM_MODES.md) for step-by-step setup of four Cursor Custom Modes (`Define`, `Implement`, `Test`, `Validate`) with per-mode system prompts, models, and tool toggles. These are user-scoped in Cursor's Settings and not committed to the repo, so each collaborator runs the guide once locally. Recommended for at least **Define** and **Validate**, where enforced read-only really matters.
+
+Either way, the user routes between phases manually; Cursor does not auto-advance. Bug fixes skip Define.
+
 ### General prompt (use for most tasks)
 
 > Follow AGENTS.md and the project's Cursor rules. Read the relevant AGENTS.md section before making changes. Use `useTranslation()` for all user-visible strings — add keys to all four locale files (en, es, fr, ar). Use MUI theme or CSS variables for colors — no hardcoded hex. Use logical CSS properties for RTL. Run `npx vitest run` after logic changes and `npm run build` if touching Vite or env config.

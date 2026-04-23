@@ -55,3 +55,7 @@ Present options (conservative / recommended / faster-but-riskier) with benefits,
 - **Always safe**: fixing typos, adding tests, updating translations in all four locales
 - **Ask first**: new dependencies, route changes, form field/payload changes, design token changes, SEO metadata changes, analytics contract changes
 - **Never**: expose secrets in client code, force-push to main
+
+## Spec-driven 4-phase workflow
+
+For feature work, follow the 4-phase workflow defined in `.cursor/.rules/workflow.mdc`: **Define** (Q&A spec to `docs/specs/` or `docs/portal/specs/`) → **Implement** (plan + small chunks + checkpoints) → **Test** (test files only; failing-test-first for bugs) → **Validate** (read-only severity-ranked audit vs `main`). The user routes between phases manually — do not auto-advance. Bug fixes skip Define; update the relevant spec's "Spec deltas" section if behavior changes.
