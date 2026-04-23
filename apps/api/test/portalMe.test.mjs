@@ -47,7 +47,24 @@ test('portalMe returns 503 when user lookup throws', async () => {
   assert.equal(response.jsonBody?.error, 'service_unavailable');
 });
 
-test('portalMe returns 403 no_portal_access when user is not found', async () => {
+test('portalMe returns 200 needs_role_selection when user is not found but token has email', async () => {
+  const request = makeRequest();
+  const context = makeContext();
+
+  const response = await portalMeHandler(request, context, {
+    hasDatabaseUrl: () => true,
+    getPool: () => ({}),
+    verifyAccessToken: async () => ({ sub: 'sub-2', oid: 'oid-2', email: 'new.user@example.com' }),
+    authConfigured: () => true,
+    findUserByClaims: async () => null,
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.jsonBody?.needs_role_selection, true);
+  assert.equal(response.jsonBody?.email, 'new.user@example.com');
+});
+
+test('portalMe returns 403 no_portal_access when user is not found and token has no email for gate', async () => {
   const request = makeRequest();
   const context = makeContext();
 
@@ -56,7 +73,6 @@ test('portalMe returns 403 no_portal_access when user is not found', async () =>
     getPool: () => ({}),
     verifyAccessToken: async () => ({ sub: 'sub-2', oid: 'oid-2' }),
     authConfigured: () => true,
-    ensureUserNotificationPreference: async () => null,
     findUserByClaims: async () => null,
   });
 

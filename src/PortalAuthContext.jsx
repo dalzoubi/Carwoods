@@ -361,10 +361,11 @@ function RealPortalAuthProvider({ children }) {
   }, []);
 
   /**
-   * Call this whenever a portal API call throws a 403 error.  If the error
-   * status is 403 the user's account has been disabled (or access has been
-   * revoked) and we immediately sign them out and show the lockout screen,
-   * rather than leaving them in a broken state with unexplained error messages.
+   * Call this whenever a portal API call throws a 403. We sign the user out and
+   * set a lockout reason so the login page can show the right copy. Only the
+   * `account_disabled` error code uses the "disabled" message; all other 403s
+   * (e.g. `no_portal_access`, `forbidden`) use the generic no-access path — same
+   * rule as GET /api/portal/me.
    *
    * A non-403 error is silently ignored so callers can always call this
    * unconditionally in their catch blocks before re-throwing or setting local
@@ -373,7 +374,9 @@ function RealPortalAuthProvider({ children }) {
   const handleApiForbidden = useCallback(
     (error) => {
       if (error && typeof error === 'object' && error.status === 403) {
-        void signOutDueToDisabledAccount('account_disabled');
+        const code = typeof error.code === 'string' ? error.code : '';
+        const reason = code === 'account_disabled' ? 'account_disabled' : 'no_portal_access';
+        void signOutDueToDisabledAccount(reason);
       }
     },
     [signOutDueToDisabledAccount]

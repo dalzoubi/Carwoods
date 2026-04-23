@@ -2,8 +2,7 @@
  * Tests for the disabled-account immediate lockout feature.
  *
  * We mock Firebase Auth, useMeProfile, and supporting modules, then render a consumer
- * of PortalAuthContext to verify that a 403 from /me triggers auto-signout
- * with lockoutReason === 'account_disabled'.
+ * of PortalAuthContext to verify 403 lockout reasons (disabled vs no access).
  */
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -100,10 +99,23 @@ function ForbiddenTrigger() {
       <span data-testid="lockoutReason">{ctx.lockoutReason ?? 'none'}</span>
       <button
         type="button"
-        data-testid="trigger403"
+        data-testid="trigger403NoAccess"
         onClick={() => ctx.handleApiForbidden({ status: 403, code: 'forbidden', message: 'HTTP 403 (forbidden)' })}
       >
-        trigger 403
+        trigger 403 no access
+      </button>
+      <button
+        type="button"
+        data-testid="trigger403Disabled"
+        onClick={() =>
+          ctx.handleApiForbidden({
+            status: 403,
+            code: 'account_disabled',
+            message: 'HTTP 403 (account_disabled)',
+          })
+        }
+      >
+        trigger 403 disabled
       </button>
       <button
         type="button"
@@ -281,7 +293,7 @@ describe('PortalAuthContext — handleApiForbidden', () => {
     await waitFor(() => expect(typeof capturedHandle).toBe('function'));
   });
 
-  it('signs out with account_disabled lockout when called with a 403 error', async () => {
+  it('signs out with no_portal_access when a 403 has a non-disabled error code', async () => {
     mockFirebaseSignOut.mockImplementation(async () => {
       authState.currentUser = null;
       mockAuth.currentUser = null;
@@ -297,7 +309,34 @@ describe('PortalAuthContext — handleApiForbidden', () => {
       expect(getByTestId('authStatus').textContent).toBe('authenticated')
     );
 
-    getByTestId('trigger403').click();
+    getByTestId('trigger403NoAccess').click();
+
+    await waitFor(() =>
+      expect(getByTestId('lockoutReason').textContent).toBe('no_portal_access')
+    );
+    await waitFor(() =>
+      expect(getByTestId('authStatus').textContent).toBe('unauthenticated')
+    );
+    expect(mockFirebaseSignOut).toHaveBeenCalled();
+  });
+
+  it('signs out with account_disabled lockout when a 403 has code account_disabled', async () => {
+    mockFirebaseSignOut.mockImplementation(async () => {
+      authState.currentUser = null;
+      mockAuth.currentUser = null;
+    });
+
+    const { getByTestId } = render(
+      <PortalAuthProvider>
+        <ForbiddenTrigger />
+      </PortalAuthProvider>
+    );
+
+    await waitFor(() =>
+      expect(getByTestId('authStatus').textContent).toBe('authenticated')
+    );
+
+    getByTestId('trigger403Disabled').click();
 
     await waitFor(() =>
       expect(getByTestId('lockoutReason').textContent).toBe('account_disabled')

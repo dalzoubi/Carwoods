@@ -246,6 +246,22 @@ async function nullOutIfExists(
   );
 }
 
+/** Reassign a NOT NULL user ref so DELETE users is not blocked (NO ACTION edges). */
+async function reassignToActorIfExists(
+  client: PoolClient,
+  tableName: string,
+  setColumn: string,
+  whereColumn: string,
+  targetUserId: string,
+  actorUserId: string
+): Promise<void> {
+  if (!(await tableExists(client, tableName))) return;
+  await client.query(
+    `UPDATE ${tableName} SET ${setColumn} = $2 WHERE ${whereColumn} = $1`,
+    [targetUserId, actorUserId]
+  );
+}
+
 /**
  * Deletes the user and everything they own.
  *
@@ -288,7 +304,9 @@ export async function hardDeleteUserAndOwnedData(
       leaseIds = leaseRows.rows.map((r) => r.id);
     }
 
-    // 3. Collect maintenance request IDs under those properties.
+    // 3. Collect maintenance request IDs: requests on this landlord's properties, plus
+    //    any request the user submitted (e.g. tenant) so submitted_by_user_id (NO ACTION)
+    //    does not block DELETE users.
     let requestIds: string[] = [];
     if (propertyIds.length > 0) {
       const reqRows = await client.query<{ id: string }>(
@@ -297,9 +315,233 @@ export async function hardDeleteUserAndOwnedData(
       );
       requestIds = reqRows.rows.map((r) => r.id);
     }
+    const submittedReqRows = await client.query<{ id: string }>(
+      `SELECT id FROM maintenance_requests WHERE submitted_by_user_id = $1`,
+      [targetUser.id]
+    );
+    const requestIdSet = new Map<string, string>();
+    for (const id of requestIds) requestIdSet.set(id, id);
+    for (const r of submittedReqRows.rows) requestIdSet.set(r.id, r.id);
+    requestIds = Array.from(requestIdSet.values());
 
     const placeholders = (ids: string[]): string =>
       ids.map((_, i) => `$${i + 1}`).join(',');
+
+    // 3a. User references that are not limited to this user's owned properties/leases
+    //     (tenants, metrics, contact, policy overrides, document center, Elsa config, etc.).
+    await deleteIfExists(
+      client,
+      'portal_notification_events',
+      'user_id = $1',
+      [targetUser.id]
+    );
+    await deleteIfExists(
+      client,
+      'lease_notice_co_signs',
+      'tenant_user_id = $1',
+      [targetUser.id]
+    );
+    await deleteIfExists(
+      client,
+      'landlord_tenant_blocks',
+      'landlord_user_id = $1 OR tenant_user_id = $1',
+      [targetUser.id]
+    );
+    await deleteIfExists(
+      client,
+      'tenant_portal_access',
+      'landlord_user_id = $1 OR tenant_user_id = $1',
+      [targetUser.id]
+    );
+    await deleteIfExists(
+      client,
+      'contact_request_messages',
+      'author_user_id = $1',
+      [targetUser.id]
+    );
+    await deleteIfExists(
+      client,
+      'contact_reply_templates',
+      'created_by = $1',
+      [targetUser.id]
+    );
+    await reassignToActorIfExists(
+      client,
+      'notification_scope_overrides',
+      'overridden_by_user_id',
+      'overridden_by_user_id',
+      targetUser.id,
+      actorUserId
+    );
+    await nullOutIfExists(
+      client,
+      'users',
+      'document_center_suspended_by = NULL',
+      'document_center_suspended_by = $1',
+      [targetUser.id]
+    );
+    await reassignToActorIfExists(
+      client,
+      'lease_notices',
+      'given_by_user_id',
+      'given_by_user_id',
+      targetUser.id,
+      actorUserId
+    );
+    await nullOutIfExists(
+      client,
+      'lease_notices',
+      'counter_proposed_by = NULL, responded_by = NULL, withdrawn_by = NULL',
+      'counter_proposed_by = $1 OR responded_by = $1 OR withdrawn_by = $1',
+      [targetUser.id]
+    );
+    for (const t of [
+      'lease_move_outs',
+      'lease_evictions',
+      'lease_deposits',
+      'lease_deposit_dispositions',
+    ] as const) {
+      await nullOutIfExists(
+        client,
+        t,
+        'created_by = NULL, updated_by = NULL',
+        'created_by = $1 OR updated_by = $1',
+        [targetUser.id]
+      );
+    }
+    await nullOutIfExists(
+      client,
+      'leases',
+      'ended_by = NULL',
+      'ended_by = $1',
+      [targetUser.id]
+    );
+    for (const t of [
+      'elsa_settings',
+      'elsa_property_policies',
+      'elsa_category_policies',
+      'elsa_priority_policies',
+    ] as const) {
+      await nullOutIfExists(
+        client,
+        t,
+        'updated_by_user_id = NULL',
+        'updated_by_user_id = $1',
+        [targetUser.id]
+      );
+    }
+    await nullOutIfExists(
+      client,
+      'elsa_request_policies',
+      'updated_by_user_id = NULL',
+      'updated_by_user_id = $1',
+      [targetUser.id]
+    );
+    await nullOutIfExists(
+      client,
+      'elsa_decisions',
+      'reviewed_by_user_id = NULL, triggering_user_id = NULL',
+      'reviewed_by_user_id = $1 OR triggering_user_id = $1',
+      [targetUser.id]
+    );
+    await nullOutIfExists(
+      client,
+      'attachment_upload_config',
+      'updated_by_user_id = NULL',
+      'updated_by_user_id = $1',
+      [targetUser.id]
+    );
+    await nullOutIfExists(
+      client,
+      'lease_payment_entries',
+      'recorded_by = NULL',
+      'recorded_by = $1',
+      [targetUser.id]
+    );
+
+    // 3b. Document center: other landlords' documents may still reference the user as
+    //     uploader, visibility subject, or share revoker. Landlord-owned rows are removed in step 6.
+    await deleteIfExists(
+      client,
+      'document_visibility_grants',
+      'tenant_user_id = $1',
+      [targetUser.id]
+    );
+    await reassignToActorIfExists(
+      client,
+      'document_upload_intents',
+      'uploaded_by_user_id',
+      'uploaded_by_user_id',
+      targetUser.id,
+      actorUserId
+    );
+    await nullOutIfExists(
+      client,
+      'document_upload_intents',
+      'subject_tenant_user_id = NULL',
+      'subject_tenant_user_id = $1',
+      [targetUser.id]
+    );
+    await reassignToActorIfExists(
+      client,
+      'document_access_holds',
+      'created_by',
+      'created_by',
+      targetUser.id,
+      actorUserId
+    );
+    await nullOutIfExists(
+      client,
+      'document_access_holds',
+      'revoked_by = NULL',
+      'revoked_by = $1',
+      [targetUser.id]
+    );
+    await reassignToActorIfExists(
+      client,
+      'documents',
+      'uploaded_by_user_id',
+      'uploaded_by_user_id',
+      targetUser.id,
+      actorUserId
+    );
+    await nullOutIfExists(
+      client,
+      'documents',
+      'subject_tenant_user_id = NULL, deleted_by = NULL, restored_by = NULL, purged_by = NULL, legal_hold_by = NULL',
+      'subject_tenant_user_id = $1 OR deleted_by = $1 OR restored_by = $1 OR purged_by = $1 OR legal_hold_by = $1',
+      [targetUser.id]
+    );
+    await reassignToActorIfExists(
+      client,
+      'document_share_links',
+      'created_by_landlord_id',
+      'created_by_landlord_id',
+      targetUser.id,
+      actorUserId
+    );
+    await nullOutIfExists(
+      client,
+      'document_share_links',
+      'revoked_by = NULL',
+      'revoked_by = $1',
+      [targetUser.id]
+    );
+    await reassignToActorIfExists(
+      client,
+      'document_visibility_grants',
+      'created_by',
+      'created_by',
+      targetUser.id,
+      actorUserId
+    );
+    await nullOutIfExists(
+      client,
+      'document_visibility_grants',
+      'revoked_by = NULL',
+      'revoked_by = $1',
+      [targetUser.id]
+    );
 
     // 4. Delete tenant-lifecycle rows tied to the user's leases.
     if (leaseIds.length > 0) {
