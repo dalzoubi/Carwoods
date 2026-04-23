@@ -222,6 +222,12 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
           label: t('portalLayout.sidebar.notificationReport'),
           icon: <Assessment />,
         },
+        {
+          key: 'reports-costs',
+          to: '/portal/admin/reports/costs',
+          label: t('portalLayout.sidebar.costReport'),
+          icon: <Assessment />,
+        },
       ]
     : [];
 

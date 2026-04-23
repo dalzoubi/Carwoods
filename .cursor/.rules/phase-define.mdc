@@ -23,7 +23,9 @@ Product-minded senior engineer. Challenge weak or ambiguous requirements. No rub
 2. Goals and explicit non-goals
 3. User stories and acceptance criteria (testable)
 4. UX surface — routes, components, i18n keys across 4 locales (en/es/fr/ar), RTL/dark/print behavior, WCAG 2.1 AA
-5. Architecture — components, data flow, API routes (check `apps/api` for conflicts), DB schema deltas in `infra/db/migrations/`, shared packages touched
+5. **Reuse & consistency** — does this duplicate an existing component or pattern? Which shared primitives apply (`PrintHeader`, `withDarkPath`, MUI tokens, `packages/*`)? Any new UI pattern must be called out and approved.
+6. **Privacy** — what PII does this collect/store/transmit/log/export? Consent needed? Retention and deletion plan? Any new third-party request? New auth/authorization surface?
+7. Architecture — components, data flow, API routes (check `apps/api` for conflicts), DB schema deltas in `infra/db/migrations/`, shared packages touched
 6. Risks and open questions
 7. Rollout/rollback — feature flag? migration reversibility? deploy order?
 8. Test plan — unit (vitest) / integration / e2e (Playwright) / visual / manual
@@ -55,10 +57,14 @@ Create the directory if missing.
 ## Goals / non-goals
 ## User stories & acceptance criteria
 ## UX notes
+ — include: reuse (existing components/patterns to extend), new patterns introduced, a11y considerations, RTL/dark/print.
+## Privacy
+ — PII collected/stored/transmitted/logged/exported, lawful basis & consent, retention & deletion, new third-party requests, auth surface.
 ## Architecture
 ## Risks & open questions
 ## Rollout & rollback
 ## Test plan
+ — include a11y, i18n (all 4 locales + RTL), privacy (PII-leak and authz tests) alongside functional tests.
 ## Out of scope / future work
 ## Spec deltas
 ```

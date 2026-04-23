@@ -19,6 +19,13 @@ export type LlmRequest = {
   temperature?: number;
 };
 
+/** Raw result returned by a provider's complete() call. */
+export type LlmProviderResult = {
+  text: string;
+  /** Total tokens consumed (prompt + completion), if the provider reports it. */
+  tokensUsed?: number;
+};
+
 /** Successful structured response returned from a provider. */
 export type LlmResponse = {
   /** Raw text content from the model */
@@ -33,6 +40,8 @@ export type LlmResponse = {
   attempts: number;
   /** Latency of the successful call in milliseconds */
   latencyMs: number;
+  /** Total tokens consumed (prompt + completion), if reported by provider. */
+  tokensUsed?: number;
 };
 
 /**
@@ -76,5 +85,5 @@ export interface LlmProvider {
    * (LlmRateLimitError, LlmServerError, LlmClientError, LlmTimeoutError, LlmParseError).
    * Must NOT swallow errors or apply retry logic internally.
    */
-  complete(request: LlmRequest, model: string, signal: AbortSignal): Promise<string>;
+  complete(request: LlmRequest, model: string, signal: AbortSignal): Promise<LlmProviderResult>;
 }

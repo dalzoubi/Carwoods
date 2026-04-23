@@ -8,6 +8,7 @@ import {
 import { listContactRequestMessages } from '../../lib/contactRequestMessagesRepo.js';
 import { getLlmClient } from '../../lib/llmClientFactory.js';
 import type { QueryResult } from '../../lib/db.js';
+import { getPricingRates, logCostEvent } from '../../lib/costEventRepo.js';
 
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
 
@@ -171,6 +172,20 @@ export async function suggestContactReply(
     tone,
     length,
   });
+
+  if (response.tokensUsed !== undefined) {
+    const rates = await getPricingRates(db);
+    const rate = rates.get('GEMINI_AI') ?? 0;
+    await logCostEvent(db, {
+      service: 'GEMINI_AI',
+      landlordId: null,
+      propertyId: null,
+      units: response.tokensUsed,
+      unitType: 'TOKEN',
+      estimatedCostUsd: response.tokensUsed * rate,
+      metadata: { model: response.model, prompt_version: PROMPT_VERSION, source: 'contact_reply_suggest' },
+    });
+  }
 
   return {
     suggestion,

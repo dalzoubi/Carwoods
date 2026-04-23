@@ -46,6 +46,42 @@ After logic changes run `npx vitest run`. After Vite/env changes run `npm run bu
 
 New dependencies, route/path changes, form field or payload changes, SEO metadata or heading hierarchy changes, design token changes, analytics contract changes.
 
+## Quality bar (every phase)
+
+Every agent/phase must hold this line — Define questions against it, Implement builds to it, Test covers it, Validate audits for it.
+
+### Component reuse & UI/UX consistency
+- **Before creating a new component, search for an existing one.** Grep `src/components/` and `src/pages/` for similar patterns (cards, dialogs, wizards, form fields, empty/loading/error states). Extending or composing an existing component beats adding a near-duplicate.
+- **Match established patterns.** Buttons, spacing, typography scale, icons, form layout, empty/loading/error states, dialog chrome, and navigation should look and behave like the rest of the app. If the spec implies a new pattern, call it out and get approval before introducing it.
+- **Reuse shared primitives**: MUI components + theme tokens; `PrintHeader`; `withDarkPath`; `applyThemeCssVariables`; any `packages/*` helpers for portal work. Do not hand-roll equivalents.
+- **No stylistic drift.** Same border radius, shadow, motion curves, and focus rings as the rest of the surface you're editing.
+
+### Localization (i18n)
+- **All user-visible strings** (including `aria-label`s, placeholders, validation messages, empty-state copy, toast text, print-only labels, `<title>`, meta descriptions) go through `useTranslation()`.
+- **Add keys to all four locale files simultaneously**: `en`, `es`, `fr`, `ar`. A key present in only one locale is a bug.
+- **Proper nouns** (HAR.com, Section 8, etc.) are not translated.
+- **Split-link pattern** (`prefix` / `linkText` / `suffix`) for sentences with inline links — do not concatenate translated fragments.
+- **RTL**: logical CSS properties only (`margin-inline-start`, `padding-inline-end`, `inset-inline-start`). Test direction-dependent behavior in `ar`.
+- **No manually formatted dates, numbers, or currencies** — use locale-aware `Intl` APIs.
+
+### Accessibility (WCAG 2.1 AA)
+- **Semantic HTML first** — `button` not clickable `div`; real headings in order (no skipped levels); landmarks (`main`, `nav`, `aside`).
+- **Labels everywhere** — every input has an associated `label`; icon-only buttons have `aria-label`; images have meaningful `alt` (or `alt=""` if decorative).
+- **Keyboard reachability** — every interactive element focusable and operable by keyboard; visible focus ring; logical tab order; `Escape` closes dialogs.
+- **Contrast ~4.5:1** for normal text, 3:1 for large. Use `getContrastText` or dedicated tokens on colored bars. Verify in light **and** dark.
+- **Motion** — respect `prefers-reduced-motion`; no auto-playing long animations.
+- **Live regions** for async status messages.
+
+### Privacy
+- **Data minimization** — collect only what the feature needs. If the spec asks for more, challenge it.
+- **No PII in logs, error messages, analytics events, URLs, or client-side storage** (localStorage / sessionStorage / cookies) unless the spec explicitly authorizes it and it is necessary. Email, phone, full name, address, DOB, SSN, government IDs, tenant documents, lease terms → treat as PII.
+- **Consent** — any tracking, analytics, marketing pixels, session recording, or third-party embed needs a consent gate and a documented lawful basis. Record consent changes via existing document-consent patterns where applicable.
+- **Secrets in client code are a Blocker** — no API keys, connection strings, or tokens baked into the SPA bundle. Portal secrets live in Azure App Settings / GitHub secrets per `infra/azure/README.md`.
+- **Third-party requests** — every new external fetch (fonts, scripts, iframes, maps, analytics) is a potential data-leak surface. List them, justify them, prefer self-hosted or consent-gated alternatives.
+- **Auth & authorization** — every new `apps/api` route has an auth guard matching neighbors; ownership checks on every record-scoped query (no IDOR via direct `{id}` routes).
+- **Retention & deletion** — new user-linked data needs a documented delete path consistent with existing user-deletion flows (reassignments / nullifications / consent cleanup).
+- **Printed and exported artifacts** can leak PII too — audit print views and any CSV/PDF export for unnecessary fields.
+
 ## When multiple approaches exist
 
 Present conservative / recommended / faster-but-riskier options with benefits, risks, implementation cost, and effect on current behavior and rollback complexity. Then wait for the user to pick.

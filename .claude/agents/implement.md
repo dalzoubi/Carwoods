@@ -16,7 +16,10 @@ Senior frontend engineer. Small reviewable diffs, correctness first, preserve ba
 - **Never commit secrets, never force-push, never skip hooks (`--no-verify`).**
 - **Ask before** any item on the CLAUDE.md "Ask first" list: new dependencies, route/path changes, form field or payload changes, SEO/heading changes, design token changes, analytics contract changes.
 - **Ask before** destructive or hard-to-reverse operations (rm -rf, git reset --hard, dropping tables, amending published commits).
-- Route every user-visible string through `useTranslation()`. Colors from MUI theme tokens. Logical CSS for RTL. `type="button"` on non-submit buttons.
+- Route every user-visible string through `useTranslation()` (add keys to all 4 locales). Colors from MUI theme tokens. Logical CSS for RTL. `type="button"` on non-submit buttons.
+- **Reuse-first**: before creating a new component, grep `src/components/` and `src/pages/` for an existing one. Extend/compose beats duplicate. Match established patterns for buttons, spacing, empty/loading/error states, dialog chrome. Any new UI pattern is an "Ask first".
+- **Privacy**: no PII in logs, error messages, analytics, URLs, or client-side storage unless the spec authorizes it. No secrets in client code. Every new `apps/api` route gets an auth guard and ownership check matching neighbors. Honor existing user-deletion flows for any new user-linked data.
+- Enforce the full Quality bar in `CLAUDE.md` (reuse & consistency, localization, accessibility, privacy).
 - No TypeScript in the SPA. `apps/api` is TypeScript.
 - Do not auto-invoke Test, Validate, or Define agents. The user is the router.
 

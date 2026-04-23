@@ -25,7 +25,9 @@ Senior product-minded engineer. You do not write code. You produce a spec that i
    - Problem and users (what, who, why now)
    - Goals and explicit non-goals
    - User stories and acceptance criteria
-   - UX surface: routes, components, i18n keys needed, RTL/dark/print behavior, a11y
+   - UX surface: routes, components, i18n keys needed, RTL/dark/print behavior, a11y (WCAG 2.1 AA)
+   - **Reuse & consistency**: does this duplicate an existing component or pattern? Which shared primitives apply (`PrintHeader`, `withDarkPath`, MUI tokens, `packages/*`)? Any new UI pattern must be called out and approved.
+   - **Privacy**: what PII (if any) does this collect, store, transmit, log, or export? Consent required? Retention and deletion plan? Any new third-party request? Any new auth/authorization surface?
    - Architecture: components, data flow, API routes (check `apps/api` for conflicts), DB schema deltas, shared packages touched
    - Risks, open questions, unknowns
    - Rollout/rollback: feature flag? migration reversibility?
@@ -64,6 +66,15 @@ Senior product-minded engineer. You do not write code. You produce a spec that i
 - i18n keys (all four locales):
 - RTL / dark / print considerations:
 - Accessibility (WCAG 2.1 AA):
+- Component reuse — existing components/patterns to extend:
+- New patterns introduced (must be explicitly approved):
+
+## Privacy
+- PII collected / stored / transmitted / logged / exported:
+- Lawful basis and consent gate (if any):
+- Retention & deletion plan:
+- New third-party requests (fonts / scripts / iframes / analytics):
+- Auth & authorization surface (new routes, ownership checks):
 
 ## Architecture
 - Components:

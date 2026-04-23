@@ -41,7 +41,7 @@ Q&A rules:
 - No implementation suggestions mid-Q&A unless asked.
 - Ground questions by reading referenced files — do not produce a research report.
 
-Cover in order, only as far as ambiguity exists: problem & users → goals/non-goals → user stories & acceptance criteria → UX (routes, i18n keys across en/es/fr/ar, RTL/dark/print, WCAG 2.1 AA) → architecture (components, data flow, API routes with apps/api conflict check, DB schema in infra/db/migrations/, shared packages) → risks & open questions → rollout/rollback → test plan (unit/integration/e2e/visual/manual) → out of scope.
+Cover in order, only as far as ambiguity exists: problem & users → goals/non-goals → user stories & acceptance criteria → UX (routes, i18n keys across en/es/fr/ar, RTL/dark/print, WCAG 2.1 AA) → REUSE & CONSISTENCY (does this duplicate an existing component/pattern? which shared primitives apply — PrintHeader, withDarkPath, MUI tokens, packages/*? new UI patterns must be called out and approved) → PRIVACY (PII collected/stored/transmitted/logged/exported? consent? retention & deletion? new third-party requests? new auth/authz surface?) → architecture (components, data flow, API routes with apps/api conflict check, DB schema in infra/db/migrations/, shared packages) → risks & open questions → rollout/rollback → test plan (unit/integration/e2e/visual/manual + a11y + i18n across 4 locales + privacy/authz) → out of scope.
 
 When tradeoffs exist, present conservative / recommended / faster-but-riskier options with costs and risks. Wait for the user's choice.
 
@@ -79,8 +79,11 @@ Hard rules:
 - Never commit secrets, never force-push, never skip hooks (--no-verify).
 - Ask before any CLAUDE.md "Ask first" item: new dependencies, route/path changes, form field or payload changes, SEO/heading changes, design token changes, analytics contract changes.
 - Ask before destructive or hard-to-reverse operations.
-- All user-visible strings via useTranslation(). Colors from MUI theme tokens. Logical CSS for RTL. type="button" on non-submit buttons.
+- All user-visible strings via useTranslation() (add keys to all 4 locales). Colors from MUI theme tokens. Logical CSS for RTL. type="button" on non-submit buttons.
 - No TypeScript in SPA. apps/api is TypeScript.
+- REUSE-FIRST: grep src/components/ and src/pages/ before creating a new component. Extend/compose beats duplicate. Match established patterns for buttons, spacing, empty/loading/error states, dialog chrome, focus rings, motion. Any new UI pattern is "Ask first".
+- PRIVACY: no PII in logs, error messages, analytics events, URLs, or client-side storage unless the spec authorizes it. No secrets in client code. Every new apps/api route gets an auth guard and ownership check matching neighbors. New user-linked data needs a delete path consistent with existing user-deletion flows.
+- Enforce the full Quality bar in CLAUDE.md (reuse & consistency, localization, accessibility WCAG 2.1 AA, privacy).
 
 Workflow:
 - From a spec: read the spec. If missing or thin for a feature-sized change, stop and tell the user to switch to Define mode.
@@ -120,6 +123,12 @@ Modes:
 - Bug reproduction: write the smallest failing test that expresses the bug. Run it. Confirm it fails for the reported reason (not a setup error). STOP and say "Failing test at <path> reproduces the bug. Switch to Implement mode to fix." Do not attempt the fix.
 - Regression hardening: add a test that would have caught a shipped bug. Confirm it passes against current code.
 
+Quality-bar coverage: for meaningful UI/API changes, include tests for:
+- Localization — key presence in all 4 locales where feasible; RTL-sensitive components rendered with 'ar'; never snapshot translated text.
+- Accessibility — semantic role + accessible name for new interactive elements; keyboard reachability (focus + Enter/Space + Escape for dialogs); label associations. Use @testing-library/jest-dom matchers and Playwright accessibility checks.
+- Privacy — PII does not leak into URLs, logs, analytics events, thrown errors, or client-side storage; auth-protected API routes reject unauthenticated and cross-tenant requests; ownership checks on {id} routes reject other users' records.
+- Reuse — if the change refactors toward a shared component, add a regression test that previous call sites still render correctly.
+
 Style: Arrange/Act/Assert. One behavior per test. Observable behavior over implementation detail. No snapshot tests for volatile data. Reset i18n.changeLanguage('en') in beforeEach when asserting translated strings; switch to 'ar' for RTL behavior. E2E: semantic selectors (role, label) over CSS classes.
 
 Honor CLAUDE.md, e2e/CLAUDE.md, AGENTS.md. Never commit secrets (including fixtures with real tokens). Never skip hooks.
@@ -154,11 +163,14 @@ Full checklist — run every applicable category:
 1. Security (static): OWASP top 10 in diff; auth on every new apps/api route; secrets in code/env/tests/history; CORS/CSRF; dangerouslySetInnerHTML; open target="_blank" without rel="noopener"; dependency license/CVEs.
 2. Threat model (STRIDE) for new features: Spoofing · Tampering · Repudiation · Info disclosure · DoS · Elevation.
 3. Risky diff patterns: migrations in infra/db/migrations/ (reversibility, lock risk, data loss); auth changes; route changes; dep adds/upgrades; removed tests; broad refactors in shared code.
-4. Carwoods-specific regressions: hard-coded English in JSX; missing i18n keys in any of 4 locales; hard-coded hex; physical CSS directions (margin-left etc.); reversed provider order in index.jsx (must be LanguageProvider → ThemeModeProvider → app); isRTL passed as prop to ThemeModeProvider; apps/api route conflicts; missing type="button"; light-only inline styles in shared flows; missing /dark wiring or withDarkPath on new routes/links.
-5. Accessibility (WCAG 2.1 AA): ~4.5:1 contrast; keyboard reachability; semantic roles/labels/alt; heading hierarchy.
-6. Performance: N+1 in apps/api; missing memoization in hot paths; bundle impact; lazy loading.
-7. Spec conformance: every acceptance criterion satisfied; flag scope creep; if no spec for a feature-sized change, flag as High.
-8. Test coverage: spec Test plan vs what landed; list each uncovered criterion.
+4. Carwoods-specific regressions: hard-coded hex; physical CSS directions (margin-left etc.); reversed provider order in index.jsx (must be LanguageProvider → ThemeModeProvider → app); isRTL passed as prop to ThemeModeProvider; apps/api route conflicts; missing type="button"; light-only inline styles in shared flows; missing /dark wiring or withDarkPath on new routes/links.
+5. Component reuse & UI/UX consistency: near-duplicate of an existing component (flag High if a shared primitive was reinvented); stylistic drift (borders/shadows/spacing/typography/focus rings/motion); hand-rolled equivalents of PrintHeader / withDarkPath / applyThemeCssVariables / getContrastText / packages/* helpers; new UI patterns introduced without being called out in the spec.
+6. Localization (i18n): hard-coded English in JSX (incl. aria-labels, placeholders, validation, empty states, toasts, print labels, <title>, meta); missing keys in any of 4 locales (en/es/fr/ar); translated proper nouns (HAR.com, Section 8); concatenated translated fragments instead of prefix/linkText/suffix; manually formatted dates/numbers/currencies instead of Intl.
+7. Accessibility (WCAG 2.1 AA): clickable div/span instead of button; missing label/aria-label/alt; keyboard unreachable; missing focus ring; broken tab order; dialogs without focus trap or Escape close; ~4.5:1 contrast (verify in light AND dark); skipped heading levels; missing landmarks; auto-play motion without prefers-reduced-motion; async status without live regions.
+8. Privacy: PII leakage (email, phone, full name, address, DOB, SSN, government IDs, tenant docs, lease terms) in logs/errors/analytics/URLs/client-storage/exported artifacts (print/CSV/PDF) — Blocker or High; secrets in client code — Blocker; analytics/pixels/session-recording/third-party embeds without consent gate; new third-party fetches without justification; missing auth guard on new apps/api route — Blocker; IDOR / missing ownership check on {id} routes — Blocker; new user-linked data without a delete path; fields collected beyond spec.
+9. Performance: N+1 in apps/api; missing memoization in hot paths; bundle impact; lazy loading.
+10. Spec conformance: every acceptance criterion satisfied; flag scope creep; if no spec for a feature-sized change, flag as High.
+11. Test coverage: spec Test plan vs what landed; list each uncovered criterion (explicitly include a11y / i18n / privacy coverage gaps).
 
 Output: single markdown report IN CHAT (do not write a file). Format:
 

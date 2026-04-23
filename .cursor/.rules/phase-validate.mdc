@@ -38,11 +38,23 @@ DB schema migrations in `infra/db/migrations/` (reversibility, lock risk, data l
 
 ### Carwoods-specific regressions
 
-Hard-coded English in JSX; missing i18n keys in any of 4 locales; hard-coded hex; physical CSS directions (`margin-left`, `padding-right`, `left:`, `right:`); reversed provider order in `index.jsx` (must be `LanguageProvider` → `ThemeModeProvider` → app); `isRTL` passed as prop to `ThemeModeProvider`; `apps/api` route conflicts; missing `type="button"` on non-submit form buttons; light-only inline styles in shared flows; missing `/dark` wiring or `withDarkPath` on new routes/links.
+Hard-coded hex; physical CSS directions (`margin-left`, `padding-right`, `left:`, `right:`); reversed provider order in `index.jsx` (must be `LanguageProvider` → `ThemeModeProvider` → app); `isRTL` passed as prop to `ThemeModeProvider`; `apps/api` route conflicts; missing `type="button"` on non-submit form buttons; light-only inline styles in shared flows; missing `/dark` wiring or `withDarkPath` on new routes/links.
+
+### Component reuse & UI/UX consistency
+
+Near-duplicate of an existing component in `src/components/` or `src/pages/` (flag **High** if a shared primitive was reinvented); stylistic drift (borders, shadows, spacing, typography, focus rings, motion); hand-rolled equivalents of `PrintHeader`, `withDarkPath`, `applyThemeCssVariables`, `getContrastText`, or `packages/*` helpers; new UI patterns introduced without being called out in the spec (scope creep).
+
+### Localization (i18n)
+
+Hard-coded English in JSX (including `aria-label`s, placeholders, validation messages, empty-state copy, toast text, print-only labels, `<title>`, meta descriptions); missing i18n keys in any of the 4 locales (en, es, fr, ar); translated proper nouns (HAR.com, Section 8); concatenated translated fragments instead of `prefix`/`linkText`/`suffix`; manually formatted dates/numbers/currencies instead of `Intl`; RTL-breaking physical CSS.
 
 ### Accessibility (WCAG 2.1 AA) on new/changed UI
 
-~4.5:1 contrast; keyboard reachability and focus order; semantic roles, labels, alt text; heading hierarchy intact.
+Clickable `div`/`span` instead of `button`; missing `label` association, `aria-label` on icon-only buttons, or `alt`; keyboard unreachable; missing focus ring; broken tab order; dialogs without focus trap or `Escape` close; contrast below ~4.5:1 normal / 3:1 large (verify in light **and** dark); skipped heading levels; missing landmarks; auto-play motion without `prefers-reduced-motion`; async status without live regions.
+
+### Privacy
+
+PII leakage (email, phone, full name, address, DOB, SSN, government IDs, tenant documents, lease terms) in logs, error messages, analytics events, URL paths/query strings, client-side storage, or exported artifacts (print/CSV/PDF) — **Blocker or High**; secrets in client code (keys, connection strings, tokens in SPA bundle or committed env) — **Blocker**; analytics/pixels/session-recording/third-party embeds without a consent gate; new third-party fetch (fonts/scripts/iframes/maps/analytics) without justification; missing auth guard on new `apps/api` route — **Blocker**; IDOR / missing ownership check on `{id}` routes — **Blocker**; new user-linked data without a documented delete path; fields collected beyond what the spec requires.
 
 ### Performance
 

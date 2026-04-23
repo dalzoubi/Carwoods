@@ -29,6 +29,7 @@ import {
   getTierLimitsForPropertyId,
 } from '../../lib/subscriptionTierCapabilities.js';
 import { getTierByName } from '../../lib/subscriptionTiersRepo.js';
+import { getLandlordForProperty, getPricingRates, logCostEvent } from '../../lib/costEventRepo.js';
 
 export type ProcessElsaAutoResponseInput = {
   requestId: string | undefined;
@@ -190,6 +191,23 @@ export async function processElsaAutoResponse(
     deliveryDecision: suggestion.deliveryDecision,
     confidence: suggestion.confidence,
   });
+
+  if (aiResult.providerUsed === 'remote' && aiResult.tokensUsed !== undefined) {
+    const rates = await getPricingRates(db);
+    const rate = rates.get('GEMINI_AI') ?? 0;
+    const landlordId = request.property_id
+      ? await getLandlordForProperty(db, request.property_id)
+      : null;
+    await logCostEvent(db, {
+      service: 'GEMINI_AI',
+      landlordId,
+      propertyId: request.property_id ?? null,
+      units: aiResult.tokensUsed,
+      unitType: 'TOKEN',
+      estimatedCostUsd: aiResult.tokensUsed * rate,
+      metadata: { model: aiResult.modelName, prompt_version: aiResult.promptVersion, source: 'elsa_auto_response' },
+    });
+  }
 
   const categoryPolicy = categoryPolicies.find(
     (row) => String(row.category_code).toLowerCase() === String(request.category_code || '').toLowerCase()

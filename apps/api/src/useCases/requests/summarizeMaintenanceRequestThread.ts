@@ -11,6 +11,7 @@ import {
 import { resolveAiAgentModels } from '../../lib/elsaRepo.js';
 import { getLlmClient } from '../../lib/llmClientFactory.js';
 import { assertAiRoutingEnabledForRequest } from '../../lib/subscriptionTierCapabilities.js';
+import { getLandlordForProperty, getPricingRates, logCostEvent } from '../../lib/costEventRepo.js';
 
 const PROMPT_VERSION = 'elsa-request-summary-v1';
 const MAX_MESSAGE_CHARS = 14_000;
@@ -195,6 +196,24 @@ export async function summarizeMaintenanceRequestThread(
       model: response.model,
       latencyMs: response.latencyMs,
     });
+
+    if (response.tokensUsed !== undefined) {
+      const rates = await getPricingRates(db);
+      const rate = rates.get('GEMINI_AI') ?? 0;
+      const landlordId = request.property_id
+        ? await getLandlordForProperty(db, request.property_id)
+        : null;
+      await logCostEvent(db, {
+        service: 'GEMINI_AI',
+        landlordId,
+        propertyId: request.property_id ?? null,
+        units: response.tokensUsed,
+        unitType: 'TOKEN',
+        estimatedCostUsd: response.tokensUsed * rate,
+        metadata: { model: response.model, prompt_version: PROMPT_VERSION, source: 'maintenance_thread_summarize' },
+      });
+    }
+
     return {
       summary,
       model_name: response.model,

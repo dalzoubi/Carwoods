@@ -6,13 +6,15 @@ import {
   type Timer,
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
-import { jsonResponse, requireLandlordOrAdmin } from '../lib/managementRequest.js';
+import { jsonResponse, requireAdmin, requireLandlordOrAdmin } from '../lib/managementRequest.js';
 import { logInfo, logWarn } from '../lib/serverLogger.js';
 import { listAttachmentBlobPaths, deleteAttachmentBlobIfExists } from '../lib/requestAttachmentStorage.js';
 import { writeAudit } from '../lib/auditRepo.js';
 import { processNotificationOutboxBatch } from '../lib/processNotificationOutboxBatch.js';
 import { processNotificationDeliveryBatch } from '../lib/processNotificationDeliveryBatch.js';
 import { expireReadOnlyGraceWindows } from '../lib/tenantLifecycleRepo.js';
+import { aggregateDailyCosts, isValidDateString, yesterdayUtc } from '../lib/costRollupService.js';
+import { runVendorSync } from '../lib/vendorSyncService.js';
 
 const SYSTEM_TIMER_ACTOR_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -379,5 +381,142 @@ if (!portalAccessExpiryTimerDisabled()) {
   app.timer('portalAccessExpiryTimer', {
     schedule: portalAccessExpiryTimerSchedule(),
     handler: portalAccessExpiryOnTimer,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Daily cost rollup — aggregates cost_events → cost_daily_rollup
+// Runs once nightly (default 02:00 UTC). HTTP endpoint allows manual backfill.
+// ---------------------------------------------------------------------------
+
+function costRollupTimerDisabled(): boolean {
+  return String(process.env.COST_ROLLUP_TIMER_DISABLED ?? '').trim().toLowerCase() === 'true';
+}
+
+function costRollupTimerSchedule(): string {
+  const raw = process.env.COST_ROLLUP_TIMER_CRON?.trim();
+  return raw && raw.length > 0 ? raw : '0 0 2 * * *';
+}
+
+async function runCostRollup(context: InvocationContext, targetDate: string): Promise<RollupResult> {
+  const pool = getPool();
+  const result = await aggregateDailyCosts(pool, targetDate);
+  logInfo(context, 'cost.rollup.complete', result);
+  return result;
+}
+
+type RollupResult = { date: string; rowsDeleted: number; rowsInserted: number };
+
+async function costRollupOnTimer(_timer: Timer, context: InvocationContext): Promise<void> {
+  if (costRollupTimerDisabled()) return;
+  try {
+    await runCostRollup(context, yesterdayUtc());
+  } catch (error) {
+    logWarn(context, 'cost.rollup.failed', {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+async function costRollupHttp(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  // Global rollup affects all tenants — only ADMIN may trigger over HTTP (timers run without this gate).
+  const gate = await requireAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  if (request.method !== 'POST') {
+    return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+  }
+
+  const dateParam = request.query.get('date')?.trim() ?? yesterdayUtc();
+  if (!isValidDateString(dateParam)) {
+    return jsonResponse(400, ctx.headers, { error: 'invalid_date', hint: 'Use YYYY-MM-DD' });
+  }
+
+  const result = await runCostRollup(context, dateParam);
+  return jsonResponse(200, ctx.headers, result);
+}
+
+app.http('internalCostRollup', {
+  methods: ['POST', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'internal/jobs/aggregate-daily-costs',
+  handler: costRollupHttp,
+});
+
+if (!costRollupTimerDisabled()) {
+  app.timer('costRollupTimer', {
+    schedule: costRollupTimerSchedule(),
+    handler: costRollupOnTimer,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Vendor cost sync — fetches actual invoiced costs from Azure, Telnyx, and
+// Google Cloud billing APIs and stores them in vendor_sync_log.
+// Runs once nightly at 03:00 UTC (one hour after the Phase 2 rollup).
+// HTTP endpoint allows admin manual retrigger with an optional ?date= parameter.
+// ---------------------------------------------------------------------------
+
+function vendorSyncTimerDisabled(): boolean {
+  return String(process.env.VENDOR_SYNC_TIMER_DISABLED ?? '').trim().toLowerCase() === 'true';
+}
+
+function vendorSyncTimerSchedule(): string {
+  const raw = process.env.VENDOR_SYNC_TIMER_CRON?.trim();
+  return raw && raw.length > 0 ? raw : '0 0 3 * * *';
+}
+
+async function vendorSyncOnTimer(_timer: Timer, context: InvocationContext): Promise<void> {
+  if (vendorSyncTimerDisabled()) return;
+  try {
+    const result = await runVendorSync(getPool(), yesterdayUtc(), context);
+    logInfo(context, 'vendorSync.timer.complete', {
+      date: result.date,
+      azure_status: result.azure.status,
+      telnyx_status: result.telnyx.status,
+      google_status: result.googleCloud.status,
+    });
+  } catch (error) {
+    logWarn(context, 'vendorSync.timer.failed', {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+async function vendorSyncHttp(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  // Vendor sync calls external billing APIs and writes global rows — only ADMIN over HTTP.
+  const gate = await requireAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  if (request.method !== 'POST') {
+    return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+  }
+
+  const dateParam = request.query.get('date')?.trim() ?? yesterdayUtc();
+  if (!isValidDateString(dateParam)) {
+    return jsonResponse(400, ctx.headers, { error: 'invalid_date', hint: 'Use YYYY-MM-DD' });
+  }
+
+  const result = await runVendorSync(getPool(), dateParam, context);
+  return jsonResponse(200, ctx.headers, result);
+}
+
+app.http('internalVendorSync', {
+  methods: ['POST', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'internal/jobs/sync-vendor-costs',
+  handler: vendorSyncHttp,
+});
+
+if (!vendorSyncTimerDisabled()) {
+  app.timer('vendorSyncTimer', {
+    schedule: vendorSyncTimerSchedule(),
+    handler: vendorSyncOnTimer,
   });
 }

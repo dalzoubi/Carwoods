@@ -44,6 +44,8 @@ export function useMeProfile({
 
   const accountKey = useMemo(
     () => accountStableKey(account),
+    // identity fields only — full `account` object can be a new ref each render from the auth SDK
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keep in sync with accountStableKey inputs
     [account?.uid, account?.username, account?.name, account?.photoURL]
   );
 
