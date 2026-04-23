@@ -6,7 +6,7 @@ import {
   type Timer,
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
-import { jsonResponse, requireLandlordOrAdmin } from '../lib/managementRequest.js';
+import { jsonResponse, requireAdmin, requireLandlordOrAdmin } from '../lib/managementRequest.js';
 import { logInfo, logWarn } from '../lib/serverLogger.js';
 import { listAttachmentBlobPaths, deleteAttachmentBlobIfExists } from '../lib/requestAttachmentStorage.js';
 import { writeAudit } from '../lib/auditRepo.js';
@@ -422,7 +422,8 @@ async function costRollupHttp(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  const gate = await requireLandlordOrAdmin(request, context);
+  // Global rollup affects all tenants — only ADMIN may trigger over HTTP (timers run without this gate).
+  const gate = await requireAdmin(request, context);
   if (!gate.ok) return gate.response;
   const { ctx } = gate;
   if (request.method !== 'POST') {
@@ -456,7 +457,7 @@ if (!costRollupTimerDisabled()) {
 // Vendor cost sync — fetches actual invoiced costs from Azure, Telnyx, and
 // Google Cloud billing APIs and stores them in vendor_sync_log.
 // Runs once nightly at 03:00 UTC (one hour after the Phase 2 rollup).
-// HTTP endpoint allows manual retrigger with an optional ?date= parameter.
+// HTTP endpoint allows admin manual retrigger with an optional ?date= parameter.
 // ---------------------------------------------------------------------------
 
 function vendorSyncTimerDisabled(): boolean {
@@ -489,7 +490,8 @@ async function vendorSyncHttp(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  const gate = await requireLandlordOrAdmin(request, context);
+  // Vendor sync calls external billing APIs and writes global rows — only ADMIN over HTTP.
+  const gate = await requireAdmin(request, context);
   if (!gate.ok) return gate.response;
   const { ctx } = gate;
   if (request.method !== 'POST') {

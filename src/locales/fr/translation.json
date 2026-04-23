@@ -1981,6 +1981,7 @@
     "atRisk": "à risque (coût > revenus)",
     "noRate": "Aucun tarif défini",
     "payg": "Paiement à l'usage",
+    "tierPro": "Pro",
     "byService": "Par service",
     "byProperty": "Par propriété",
     "unattributed": "Non attribué",

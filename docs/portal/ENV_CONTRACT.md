@@ -53,11 +53,11 @@ Manual Azure setup checklist: `docs/portal/AZURE_MANUAL_SETUP_CHECKLIST.md`.
 | `NOTIFICATION_DELIVERY_TIMER_DISABLED`          | No          | Same pattern as outbox timer. |
 | `NOTIFICATION_DELIVERY_TIMER_CRON`              | No          | NCRONTAB schedule for delivery timer. Default `0 */1 * * * *`. |
 | `NOTIFICATION_DELIVERY_TIMER_BATCH_LIMIT`       | No          | Max delivery rows processed per timer tick. Default `50`. |
-| `COST_ROLLUP_TIMER_DISABLED`                    | No          | When `true`, nightly cost rollup timer is not registered. Use HTTP `POST /api/internal/jobs/aggregate-daily-costs` to trigger manually. |
+| `COST_ROLLUP_TIMER_DISABLED`                    | No          | When `true`, nightly cost rollup timer is not registered. Use HTTP `POST /api/internal/jobs/aggregate-daily-costs` to trigger manually (requires valid management JWT + **ADMIN** role; not callable by landlord JWTs). |
 | `COST_ROLLUP_TIMER_CRON`                        | No          | NCRONTAB schedule for cost rollup. Default `0 0 2 * * *` (02:00 UTC). |
 | `PORTAL_ACCESS_EXPIRY_TIMER_DISABLED`           | No          | When `true`, portal access expiry timer is not registered. |
 | `PORTAL_ACCESS_EXPIRY_TIMER_CRON`               | No          | NCRONTAB schedule for portal access expiry. Default `0 0 * * * *` (hourly). |
-| `VENDOR_SYNC_TIMER_DISABLED`                    | No          | When `true`, nightly vendor cost sync timer is not registered. Set `true` locally. Use HTTP `POST /api/internal/jobs/sync-vendor-costs` to trigger manually. |
+| `VENDOR_SYNC_TIMER_DISABLED`                    | No          | When `true`, nightly vendor cost sync timer is not registered. Set `true` locally. Use HTTP `POST /api/internal/jobs/sync-vendor-costs` to trigger manually (requires valid management JWT + **ADMIN** role; not callable by landlord JWTs). |
 | `VENDOR_SYNC_TIMER_CRON`                        | No          | NCRONTAB schedule for vendor cost sync. Default `0 0 3 * * *` (03:00 UTC, one hour after cost rollup). |
 | `AZURE_SUBSCRIPTION_ID`                         | Optional (vendor sync) | Azure subscription ID for the Cost Management API query. If absent, Azure sync returns `NO_CREDENTIALS`. |
 | `AZURE_TENANT_ID`                               | Optional (SP fallback) | Entra tenant ID for service principal auth. Used only if managed identity is unavailable. |

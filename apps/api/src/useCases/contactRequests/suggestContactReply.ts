@@ -183,7 +183,7 @@ export async function suggestContactReply(
       units: response.tokensUsed,
       unitType: 'TOKEN',
       estimatedCostUsd: response.tokensUsed * rate,
-      metadata: { model: response.model, prompt_version: PROMPT_VERSION, contact_request_id: input.contactRequestId },
+      metadata: { model: response.model, prompt_version: PROMPT_VERSION, source: 'contact_reply_suggest' },
     });
   }
 

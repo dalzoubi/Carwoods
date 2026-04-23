@@ -160,7 +160,7 @@ export async function runMaintenanceNotificationAiPhase(
       units: ai.tokensUsed,
       unitType: 'TOKEN',
       estimatedCostUsd: ai.tokensUsed * rate,
-      metadata: { model: ai.modelName, prompt_version: ai.promptVersion, request_id: ctx.requestId },
+      metadata: { model: ai.modelName, prompt_version: ai.promptVersion, source: 'notification_ai_enrichment' },
     });
   }
 

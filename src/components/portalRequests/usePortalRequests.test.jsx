@@ -550,7 +550,7 @@ describe('usePortalRequests', () => {
     const { result } = renderHook(() => usePortalRequests(params));
 
     await waitFor(() => expect(result.current.selectedRequestId).toBe('req-msg2'));
-    expect(result.current.detailStatus).toBe('ok');
+    await waitFor(() => expect(result.current.detailStatus).toBe('ok'));
 
     await act(async () => {
       result.current.setMessageForm({ body: 'Please update me', is_internal: false });

@@ -2490,6 +2490,7 @@
     "atRisk": "at risk (cost > revenue)",
     "noRate": "No rate set",
     "payg": "Pay as you grow",
+    "tierPro": "Pro",
     "byService": "By service",
     "byProperty": "By property",
     "unattributed": "Unattributed",

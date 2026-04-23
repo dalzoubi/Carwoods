@@ -205,7 +205,7 @@ export async function processElsaAutoResponse(
       units: aiResult.tokensUsed,
       unitType: 'TOKEN',
       estimatedCostUsd: aiResult.tokensUsed * rate,
-      metadata: { model: aiResult.modelName, prompt_version: aiResult.promptVersion, request_id: input.requestId },
+      metadata: { model: aiResult.modelName, prompt_version: aiResult.promptVersion, source: 'elsa_auto_response' },
     });
   }
 

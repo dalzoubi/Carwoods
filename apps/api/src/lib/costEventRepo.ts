@@ -1,4 +1,5 @@
 import type { QueryResult } from './db.js';
+import { logWarn } from './serverLogger.js';
 
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
 
@@ -13,8 +14,25 @@ export type CostEventInput = {
   unitType: CostUnitType;
   estimatedCostUsd: number;
   providerMessageId?: string | null;
+  /** Optional product dimensions only (model, prompt_version, source, channel). Do not pass request/user IDs. */
   metadata?: Record<string, unknown>;
 };
+
+const METADATA_WHITELIST = new Set(['model', 'prompt_version', 'source', 'channel']);
+
+export function sanitizeCostEventMetadata(meta: Record<string, unknown> | undefined): string | null {
+  if (!meta || typeof meta !== 'object' || Array.isArray(meta)) return null;
+  const out: Record<string, string> = {};
+  for (const k of Object.keys(meta)) {
+    if (!METADATA_WHITELIST.has(k)) continue;
+    const v = meta[k];
+    if (v === null || v === undefined) continue;
+    const s = typeof v === 'string' || typeof v === 'number' ? String(v).trim() : '';
+    if (!s || s.length > 200) continue;
+    out[k] = s;
+  }
+  return Object.keys(out).length > 0 ? JSON.stringify(out) : null;
+}
 
 export type PricingRates = Map<CostService, number>;
 
@@ -27,8 +45,10 @@ export async function getPricingRates(db: Queryable): Promise<PricingRates> {
     for (const row of r.rows) {
       rates.set(row.service as CostService, Number(row.rate_usd));
     }
-  } catch {
-    // return empty map — caller falls back to 0
+  } catch (err) {
+    logWarn(undefined, 'pricing_config.load_failed', {
+      message: err instanceof Error ? err.message : String(err),
+    });
   }
   return rates;
 }
@@ -62,10 +82,14 @@ export async function logCostEvent(db: Queryable, event: CostEventInput): Promis
         event.unitType,
         event.estimatedCostUsd,
         event.providerMessageId ?? null,
-        event.metadata ? JSON.stringify(event.metadata) : null,
+        sanitizeCostEventMetadata(event.metadata),
       ]
     );
-  } catch {
-    // never let cost logging break the main flow
+  } catch (err) {
+    // never let cost logging break the main flow, but do not hide failures in observability
+    logWarn(undefined, 'cost_event.insert_failed', {
+      service: event.service,
+      message: err instanceof Error ? err.message : String(err),
+    });
   }
 }

@@ -254,6 +254,7 @@ function PricingConfigPanel({ baseUrl, accessToken, emailHint, t, showFeedback }
                   {isEditing(row.id) ? (
                     <Stack direction="row" spacing={0.5}>
                       <Button
+                        type="button"
                         size="small"
                         variant="contained"
                         disabled={isSaving}
@@ -261,12 +262,12 @@ function PricingConfigPanel({ baseUrl, accessToken, emailHint, t, showFeedback }
                       >
                         {isSaving ? <CircularProgress size={14} /> : t('portalAdminCostReport.pricing.save')}
                       </Button>
-                      <Button size="small" onClick={() => handleCancel(row.id)} disabled={isSaving}>
+                      <Button type="button" size="small" onClick={() => handleCancel(row.id)} disabled={isSaving}>
                         {t('portalAdminCostReport.pricing.cancel')}
                       </Button>
                     </Stack>
                   ) : (
-                    <Button size="small" onClick={() => handleEdit(row.id, row.rate_usd)}>
+                    <Button type="button" size="small" onClick={() => handleEdit(row.id, row.rate_usd)}>
                       {t('portalAdminCostReport.pricing.edit')}
                     </Button>
                   )}
@@ -286,7 +287,7 @@ function PricingConfigPanel({ baseUrl, accessToken, emailHint, t, showFeedback }
 
 export default function PortalAdminCostReport() {
   const { t } = useTranslation();
-  const { baseUrl, isAuthenticated, account, meData, getAccessToken, handleApiForbidden } = usePortalAuth();
+  const { baseUrl, isAuthenticated, account, getAccessToken, handleApiForbidden } = usePortalAuth();
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
   const [preset, setPreset] = useState('30d');
@@ -469,7 +470,7 @@ export default function PortalAdminCostReport() {
                           {row.tier_name ? (
                             <Chip
                               size="small"
-                              label={row.tier_name === 'PRO' ? 'PRO' : t('portalAdminCostReport.payg')}
+                              label={row.tier_name === 'PRO' ? t('portalAdminCostReport.tierPro') : t('portalAdminCostReport.payg')}
                               color={row.tier_name === 'PRO' ? 'primary' : 'default'}
                             />
                           ) : (

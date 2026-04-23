@@ -210,7 +210,7 @@ export async function summarizeMaintenanceRequestThread(
         units: response.tokensUsed,
         unitType: 'TOKEN',
         estimatedCostUsd: response.tokensUsed * rate,
-        metadata: { model: response.model, prompt_version: PROMPT_VERSION, request_id: input.requestId },
+        metadata: { model: response.model, prompt_version: PROMPT_VERSION, source: 'maintenance_thread_summarize' },
       });
     }
 

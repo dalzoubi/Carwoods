@@ -198,7 +198,7 @@ export async function processNotificationDeliveryBatch(
         unitType: isEmail ? 'EMAIL' : 'SMS',
         estimatedCostUsd: pricingRates.get(isEmail ? 'RESEND_EMAIL' : 'TELNYX_SMS') ?? 0,
         providerMessageId,
-        metadata: { delivery_id: row.id, template_id: row.template_id },
+        metadata: { source: 'notification_delivery', channel: isEmail ? 'email' : 'sms' },
       });
     } catch (error) {
       try {
