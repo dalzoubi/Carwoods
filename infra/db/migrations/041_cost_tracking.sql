@@ -21,7 +21,7 @@ BEGIN
     ('RESEND_EMAIL',          'EMAIL', 0.00100000, 'Resend: $1.00 per 1,000 emails'),
     ('TELNYX_SMS',            'SMS',   0.00400000, 'Telnyx: $0.004 per SMS segment'),
     ('GEMINI_AI',             'TOKEN', 0.00000025, 'Gemini 2.5 Flash: blended ~$0.25 per 1M tokens'),
-    ('AZURE_INFRASTRUCTURE',  'DAY',   0.00000000, 'Azure shared infra — set in admin after reviewing monthly bill');
+    ('AZURE_INFRASTRUCTURE',  'DAY',   0.00000000, 'Actual costs fetched nightly from Azure Cost Management API (stored in vendor_sync_log). This rate is not used for event logging — it serves as a reference only.');
 END;
 
 -- ---------------------------------------------------------------------------
