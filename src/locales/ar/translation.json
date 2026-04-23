@@ -1968,6 +1968,58 @@
     "deleteConfirmAction": "حذف نهائي",
     "deleteCancel": "إلغاء"
   },
+  "portalAdminCostReport": {
+    "heading": "تقرير التكاليف",
+    "refresh": "تحديث",
+    "from": "من",
+    "to": "إلى",
+    "apply": "تطبيق",
+    "loadError": "فشل تحميل تقرير التكاليف",
+    "noData": "لا توجد بيانات لهذه الفترة",
+    "totalCost": "إجمالي التكلفة",
+    "landlords": "ملاك",
+    "days": "أيام",
+    "atRisk": "في خطر (التكلفة > الإيرادات)",
+    "noRate": "لم يُحدَّد أي سعر",
+    "payg": "الدفع حسب الاستخدام",
+    "byService": "حسب الخدمة",
+    "byProperty": "حسب العقار",
+    "unattributed": "غير منسوب",
+    "presets": {
+      "last7d": "٧ أيام",
+      "last30d": "٣٠ يوماً",
+      "last90d": "٩٠ يوماً",
+      "custom": "مخصص"
+    },
+    "cols": {
+      "landlord": "المالك",
+      "tier": "الخطة",
+      "properties": "العقارات",
+      "totalCost": "إجمالي التكلفة",
+      "email": "البريد الإلكتروني",
+      "sms": "SMS",
+      "ai": "الذكاء الاصطناعي",
+      "revenue": "الإيرادات المتوقعة",
+      "margin": "الهامش",
+      "service": "الخدمة",
+      "cost": "التكلفة",
+      "events": "الأحداث",
+      "property": "العقار"
+    },
+    "pricing": {
+      "heading": "إعداد التسعير",
+      "service": "الخدمة",
+      "unitType": "الوحدة",
+      "rateUsd": "السعر (USD)",
+      "description": "الوصف",
+      "edit": "تعديل",
+      "save": "حفظ",
+      "cancel": "إلغاء",
+      "saved": "تم حفظ السعر",
+      "saveFailed": "فشل حفظ السعر",
+      "invalidRate": "يجب أن يكون السعر رقماً غير سالب"
+    }
+  },
   "portalInbox": {
     "tabsLabel": "أقسام البريد الوارد"
   },
@@ -1993,6 +2045,7 @@
       "adminGroup": "المشرفون",
       "reportsGroup": "التقارير",
       "notificationReport": "تقرير الإشعارات",
+      "costReport": "تقرير التكاليف",
       "healthGroup": "الصحة",
       "notificationTest": "اختبار الإشعارات",
       "payments": "المدفوعات",

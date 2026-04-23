@@ -1967,6 +1967,58 @@
     "deleteConfirmAction": "Eliminar de forma permanente",
     "deleteCancel": "Cancelar"
   },
+  "portalAdminCostReport": {
+    "heading": "Informe de costos",
+    "refresh": "Actualizar",
+    "from": "Desde",
+    "to": "Hasta",
+    "apply": "Aplicar",
+    "loadError": "Error al cargar el informe de costos",
+    "noData": "Sin datos para este período",
+    "totalCost": "Costo total",
+    "landlords": "propietarios",
+    "days": "días",
+    "atRisk": "en riesgo (costo > ingresos)",
+    "noRate": "Sin tarifa configurada",
+    "payg": "Pago por uso",
+    "byService": "Por servicio",
+    "byProperty": "Por propiedad",
+    "unattributed": "Sin atribuir",
+    "presets": {
+      "last7d": "7 días",
+      "last30d": "30 días",
+      "last90d": "90 días",
+      "custom": "Personalizado"
+    },
+    "cols": {
+      "landlord": "Propietario",
+      "tier": "Plan",
+      "properties": "Propiedades",
+      "totalCost": "Costo total",
+      "email": "Correo electrónico",
+      "sms": "SMS",
+      "ai": "IA",
+      "revenue": "Ingresos est.",
+      "margin": "Margen",
+      "service": "Servicio",
+      "cost": "Costo",
+      "events": "Eventos",
+      "property": "Propiedad"
+    },
+    "pricing": {
+      "heading": "Configuración de precios",
+      "service": "Servicio",
+      "unitType": "Unidad",
+      "rateUsd": "Tarifa (USD)",
+      "description": "Descripción",
+      "edit": "Editar",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "saved": "Tarifa guardada",
+      "saveFailed": "Error al guardar la tarifa",
+      "invalidRate": "La tarifa debe ser un número no negativo"
+    }
+  },
   "portalInbox": {
     "tabsLabel": "Secciones de la bandeja"
   },
@@ -1992,6 +2044,7 @@
       "adminGroup": "Administración",
       "reportsGroup": "Informes",
       "notificationReport": "Informe de notificaciones",
+      "costReport": "Informe de costos",
       "healthGroup": "Salud",
       "notificationTest": "Prueba de notificaciones",
       "payments": "Pagos",

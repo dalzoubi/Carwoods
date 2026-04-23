@@ -35,6 +35,7 @@ import PortalInbox, {
 } from './components/PortalInbox';
 import PortalAdminAiSettings from './components/PortalAdminAiSettings';
 import PortalAdminNotificationReport from './components/PortalAdminNotificationReport';
+import PortalAdminCostReport from './components/PortalAdminCostReport';
 import PortalAdminProperties from './components/PortalAdminProperties';
 import PortalPayments from './components/PortalPayments';
 import PortalMyLease from './components/PortalMyLease';
@@ -222,6 +223,14 @@ function PortalRoutes() {
                 element={
                     <PortalRouteGuard allowedRoles={[Role.ADMIN]}>
                         <PortalAdminNotificationReport />
+                    </PortalRouteGuard>
+                }
+            />
+            <Route
+                path="/portal/admin/reports/costs"
+                element={
+                    <PortalRouteGuard allowedRoles={[Role.ADMIN]}>
+                        <PortalAdminCostReport />
                     </PortalRouteGuard>
                 }
             />

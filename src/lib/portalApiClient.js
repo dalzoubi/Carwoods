@@ -3060,3 +3060,51 @@ export async function postAdminSupportTicketMessage(baseUrl, accessToken, ticket
   emitPortalSidebarBadgesRefresh();
   return res.json();
 }
+
+// ---------------------------------------------------------------------------
+// Admin — Cost Reports (Phase 4)
+// ---------------------------------------------------------------------------
+
+export async function fetchAdminCostRollup(baseUrl, accessToken, { emailHint, from, to } = {}) {
+  const url = new URL(buildUrl(baseUrl, '/api/portal/admin/costs/rollup'));
+  if (from) url.searchParams.set('from', from);
+  if (to) url.searchParams.set('to', to);
+  const res = await fetch(url.toString(), {
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) throw apiError(res.status, await readErrorBody(res));
+  return res.json();
+}
+
+export async function fetchAdminCostLandlord(baseUrl, accessToken, landlordId, { emailHint, from, to } = {}) {
+  const url = new URL(buildUrl(baseUrl, `/api/portal/admin/costs/landlord/${encodeURIComponent(landlordId)}`));
+  if (from) url.searchParams.set('from', from);
+  if (to) url.searchParams.set('to', to);
+  const res = await fetch(url.toString(), {
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) throw apiError(res.status, await readErrorBody(res));
+  return res.json();
+}
+
+export async function fetchAdminCostsPricing(baseUrl, accessToken, { emailHint } = {}) {
+  const res = await fetch(buildUrl(baseUrl, '/api/portal/admin/costs/pricing'), {
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok) throw apiError(res.status, await readErrorBody(res));
+  return res.json();
+}
+
+export async function patchAdminCostsPricing(baseUrl, accessToken, id, { emailHint, rate_usd }) {
+  const res = await fetch(buildUrl(baseUrl, `/api/portal/admin/costs/pricing/${encodeURIComponent(id)}`), {
+    method: 'PATCH',
+    headers: jsonHeaders(accessToken, emailHint),
+    credentials: 'omit',
+    body: JSON.stringify({ rate_usd }),
+  });
+  if (!res.ok) throw apiError(res.status, await readErrorBody(res));
+  return res.json();
+}

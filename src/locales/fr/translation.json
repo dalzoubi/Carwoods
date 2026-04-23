@@ -1967,6 +1967,58 @@
     "deleteConfirmAction": "Supprimer définitivement",
     "deleteCancel": "Annuler"
   },
+  "portalAdminCostReport": {
+    "heading": "Rapport des coûts",
+    "refresh": "Actualiser",
+    "from": "Du",
+    "to": "Au",
+    "apply": "Appliquer",
+    "loadError": "Échec du chargement du rapport des coûts",
+    "noData": "Aucune donnée pour cette période",
+    "totalCost": "Coût total",
+    "landlords": "propriétaires",
+    "days": "jours",
+    "atRisk": "à risque (coût > revenus)",
+    "noRate": "Aucun tarif défini",
+    "payg": "Paiement à l'usage",
+    "byService": "Par service",
+    "byProperty": "Par propriété",
+    "unattributed": "Non attribué",
+    "presets": {
+      "last7d": "7 jours",
+      "last30d": "30 jours",
+      "last90d": "90 jours",
+      "custom": "Personnalisé"
+    },
+    "cols": {
+      "landlord": "Propriétaire",
+      "tier": "Forfait",
+      "properties": "Propriétés",
+      "totalCost": "Coût total",
+      "email": "E-mail",
+      "sms": "SMS",
+      "ai": "IA",
+      "revenue": "Rev. estimé",
+      "margin": "Marge",
+      "service": "Service",
+      "cost": "Coût",
+      "events": "Événements",
+      "property": "Propriété"
+    },
+    "pricing": {
+      "heading": "Configuration des tarifs",
+      "service": "Service",
+      "unitType": "Unité",
+      "rateUsd": "Tarif (USD)",
+      "description": "Description",
+      "edit": "Modifier",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "saved": "Tarif enregistré",
+      "saveFailed": "Échec de l'enregistrement du tarif",
+      "invalidRate": "Le tarif doit être un nombre positif ou nul"
+    }
+  },
   "portalInbox": {
     "tabsLabel": "Sections de la boîte de réception"
   },
@@ -1992,6 +2044,7 @@
       "adminGroup": "Administration",
       "reportsGroup": "Rapports",
       "notificationReport": "Rapport des notifications",
+      "costReport": "Rapport des coûts",
       "healthGroup": "Santé",
       "notificationTest": "Test des notifications",
       "payments": "Paiements",
