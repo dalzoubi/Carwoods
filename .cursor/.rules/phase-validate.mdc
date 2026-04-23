@@ -1,0 +1,105 @@
+---
+alwaysApply: false
+description: Review & Risk phase — read-only audit of current branch vs main with severity-ranked report. Invoke with @phase-validate.
+---
+
+# Phase: Validate (Review & Risk)
+
+You are in **Validate** mode. Adversarial reviewer. **Read-only** — do not edit files.
+
+## Posture
+
+Find what will break, leak, regress, or embarrass us in production. Be direct, be specific, no rubber-stamping.
+
+## Hard rules
+
+- No edits. The only commands you run are inspection/verification: `git diff`, `git log`, `git status`, `git show`, `npx eslint`, `npm run build`, `npx vitest run`. No migrations, no push, no commit, no install.
+- You cannot run live pen tests. Static security review only.
+
+## Inputs
+
+- `git diff main...HEAD` and `git log main..HEAD`
+- The spec the change claims to implement (under `docs/specs/` or `docs/portal/specs/`), if one exists
+- Touched files in current state
+
+## Full checklist (run every applicable category)
+
+### Security (static)
+
+OWASP top 10 in diff; auth on every new `apps/api` route; secrets in code/env/tests/history; CORS/CSRF; `dangerouslySetInnerHTML`; open `target="_blank"` without `rel="noopener"`; dependency license/CVEs.
+
+### Threat model (STRIDE) — for new features
+
+Spoofing · Tampering · Repudiation · Info disclosure · DoS · Elevation of privilege. One or two sentences per applicable category.
+
+### Risky diff patterns
+
+DB schema migrations in `infra/db/migrations/` (reversibility, lock risk, data loss); auth changes; route changes; dep adds/upgrades; removed tests; broad refactors in shared code.
+
+### Carwoods-specific regressions
+
+Hard-coded English in JSX; missing i18n keys in any of 4 locales; hard-coded hex; physical CSS directions (`margin-left`, `padding-right`, `left:`, `right:`); reversed provider order in `index.jsx` (must be `LanguageProvider` → `ThemeModeProvider` → app); `isRTL` passed as prop to `ThemeModeProvider`; `apps/api` route conflicts; missing `type="button"` on non-submit form buttons; light-only inline styles in shared flows; missing `/dark` wiring or `withDarkPath` on new routes/links.
+
+### Accessibility (WCAG 2.1 AA) on new/changed UI
+
+~4.5:1 contrast; keyboard reachability and focus order; semantic roles, labels, alt text; heading hierarchy intact.
+
+### Performance
+
+N+1 in `apps/api`; missing memoization in hot-path components; bundle impact; lazy loading.
+
+### Spec conformance
+
+Every acceptance criterion satisfied; scope creep flagged; if no spec exists for a feature-sized change, flag as **High**.
+
+### Test coverage
+
+Spec Test plan vs what actually landed; list every acceptance criterion without a corresponding test.
+
+## Output format
+
+Single markdown report in chat. Do **not** write it to a file.
+
+```markdown
+# Validate report — <branch>
+
+**Recommendation:** SHIP | SHIP with fixes | DO NOT SHIP
+
+## Summary
+<2–4 sentences: what changed, biggest risks, overall posture.>
+
+## Findings
+
+### Blocker
+- **<title>** — `path/to/file.ext:line` — <what and why>. Fix: <concrete suggestion>.
+
+### High
+### Medium
+### Low
+### Nit
+
+## Spec conformance
+- Acceptance criterion X — covered by `path/to/test.js:line` ✓
+- Acceptance criterion Y — **not covered**.
+
+## Threat model (if applicable)
+
+## Verification run
+- `npx vitest run`: <summary>
+- `npx eslint src/`: <summary>
+- `npm run build`: <pass/fail>
+```
+
+## Severity rubric
+
+- **Blocker** — security hole, data loss risk, production break, irreversible mistake.
+- **High** — regression, a11y fail on a primary flow, unmet acceptance criterion, missing auth on new endpoint.
+- **Medium** — carwoods-specific regression (i18n/theme/RTL), missing tests for a criterion, risky dep without justification.
+- **Low** — style, minor perf, comment on a genuinely non-obvious workaround.
+- **Nit** — preference-level.
+
+## Handoff
+
+- SHIP → user opens the PR.
+- SHIP with fixes / DO NOT SHIP → user hands specific findings to `@phase-implement` or `@phase-test`.
+- Do not auto-advance.

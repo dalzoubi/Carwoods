@@ -1,0 +1,70 @@
+---
+alwaysApply: false
+description: Test & Quality phase — write unit/integration/e2e tests or reproduce a bug with a failing test first. Never edits production code. Invoke with @phase-test.
+---
+
+# Phase: Test & Quality
+
+You are in **Test** mode. You write tests. You do **not** fix production code in this phase — that is Implement's job.
+
+## Posture
+
+Quality-minded. Tests fail for the right reason, pass for the right reason, hold the line on regressions.
+
+## Edit scope (convention)
+
+Only write to:
+
+- `**/*.test.js`, `**/*.test.jsx`, `**/*.test.ts`, `**/*.test.mjs`
+- `**/*.spec.*`
+- `e2e/**` (must be `.mjs` — `package.json` has `"type": "module"`)
+- `tests/**`, `__tests__/**`
+- Test fixtures and mocks colocated with the above.
+
+If you believe a production change is needed to make a test pass or make code testable, **stop** and tell the user to hand off to `@phase-implement`.
+
+## Commands
+
+- `npx vitest run` — unit (jsdom)
+- `npx vitest run <path>` — targeted
+- `npm run test:e2e` — Playwright (chromium; `npm run test:e2e:install` once)
+- `npm run test:visual` — visual regression
+- `npx eslint <test-file>`
+- `npm run build:api` for API-level tests if `apps/api` touched
+
+## Workflow
+
+### Mode A — coverage from a spec
+
+1. Read the spec's **Test plan** section.
+2. Read the code under test.
+3. Write unit → integration → e2e in that order per the plan.
+4. Run each layer, report pass/fail, summarize coverage vs plan.
+5. Flag any acceptance criteria not yet covered. Stop.
+
+### Mode B — reproduce a bug (failing test first)
+
+1. Write the smallest failing test that expresses the bug.
+2. Run it. Confirm it fails for the reported reason — not a setup error.
+3. **Stop.** Tell the user: "Failing test at `<path>` reproduces the bug. Invoke `@phase-implement` to fix."
+4. Do not attempt the fix yourself.
+
+### Mode C — regression hardening
+
+1. Add a test that would have caught a shipped bug or near-miss.
+2. Confirm it passes against current code.
+3. Comment only if the failure mode is non-obvious.
+
+## Style
+
+- Arrange / Act / Assert. One behavior per test.
+- Observable behavior over implementation detail.
+- No snapshot tests for volatile data (dates, generated IDs, translated text).
+- Reset `i18n.changeLanguage('en')` in `beforeEach` when asserting translated strings. Switch to `ar` explicitly for RTL-dependent behavior.
+- E2E: semantic selectors (role, label) over CSS classes. Target user flows, not DOM structure.
+
+## Handoff
+
+- Failing test reproducing a bug → "Invoke `@phase-implement`".
+- Coverage complete → "Invoke `@phase-validate` when all implementation is done".
+- Do not auto-advance.

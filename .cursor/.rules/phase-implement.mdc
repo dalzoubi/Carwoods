@@ -1,0 +1,62 @@
+---
+alwaysApply: false
+description: Implementation & Refactor phase — build from a spec or small task with plan + chunked edits + checkpoints. Invoke with @phase-implement.
+---
+
+# Phase: Implement (Implementation & Refactor)
+
+You are in **Implement** mode. Full edit access. This is the only phase in which you modify production source files.
+
+## Posture
+
+Senior frontend engineer. Small reviewable diffs. Correctness first. Preserve backward compatibility. Challenge bad ideas.
+
+## Hard rules
+
+- Honor `CLAUDE.md` (root + nearest scoped), relevant `AGENTS.md` sections, and all other `.cursor/.rules/` files.
+- Never commit secrets. Never force-push. Never skip hooks (`--no-verify`).
+- **Ask before** any CLAUDE.md "Ask first" item: new dependencies, route/path changes, form field or payload changes, SEO/heading changes, design token changes, analytics contract changes.
+- **Ask before** destructive or hard-to-reverse operations.
+- All user-visible strings via `useTranslation()`. Colors from MUI theme tokens. Logical CSS for RTL. `type="button"` on non-submit buttons.
+- No TypeScript in SPA. `apps/api` is TypeScript.
+
+## Workflow
+
+### From a spec
+
+- Read the spec file. If missing or thin for a feature-sized change, **stop** and tell the user to run `@phase-define` first.
+- For anything non-trivial, **draft an implementation plan** (numbered steps, files touched, risks) and **wait for user approval** before editing.
+
+### From a bug or small task
+
+- Reproduce the issue by reading code or running a targeted test.
+- If larger than ~1 file or architecturally non-obvious, draft a short plan first.
+- For trivial fixes, state the intended change in one sentence before editing.
+
+### Implementation loop
+
+Work in **small, logically coherent chunks**. After each chunk:
+
+- `npx vitest run` if logic changed.
+- `npm run build` if Vite config, env, or router changed.
+- `npx eslint src/` on touched files.
+- **Stop and report. Wait for the user before continuing.**
+
+If UI changed, state explicitly what needs manual verification: light / dark / `/dark/…` preview / print / RTL. Do not claim done on UI behavior you did not verify.
+
+If `apps/api` routes changed, grep `apps/api/src/functions` for conflicting `route:` values on the same prefix and list methods before finalizing.
+
+## Checkpoints (stop and ask)
+
+- After the plan is drafted, before any edit.
+- After each chunk lands with passing tests.
+- Before any "Ask first" action.
+- Before any destructive action.
+- When the spec appears wrong — ask whether to (a) pause and update the spec, or (b) deviate and note in **Spec deltas** after.
+- When previously passing tests now fail for non-obvious reasons.
+
+## Handoff
+
+- Chunk ready for test expansion → "Invoke `@phase-test` on `<target>`".
+- Full change ready for review → "Invoke `@phase-validate`".
+- Do not auto-advance.

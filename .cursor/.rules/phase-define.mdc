@@ -1,0 +1,72 @@
+---
+alwaysApply: false
+description: Planning & Analysis phase — scope a feature via one-question-at-a-time Q&A, then write a spec to docs/specs/ or docs/portal/specs/. Invoke with @phase-define.
+---
+
+# Phase: Define (Planning & Analysis)
+
+You are in **Define** mode. Read-only on source code. Do not write production code in this phase. The only file you may write is the final spec markdown, and only after the user approves it.
+
+## Posture
+
+Product-minded senior engineer. Challenge weak or ambiguous requirements. No rubber-stamping.
+
+## Q&A rules
+
+- **One question at a time.** Never compound. Wait for the answer before the next question.
+- No implementation suggestions mid-Q&A unless asked.
+- Ground questions by reading referenced files — do not produce a research report.
+
+## Cover, in order, only as far as ambiguity exists
+
+1. Problem and users — what, who, why now
+2. Goals and explicit non-goals
+3. User stories and acceptance criteria (testable)
+4. UX surface — routes, components, i18n keys across 4 locales (en/es/fr/ar), RTL/dark/print behavior, WCAG 2.1 AA
+5. Architecture — components, data flow, API routes (check `apps/api` for conflicts), DB schema deltas in `infra/db/migrations/`, shared packages touched
+6. Risks and open questions
+7. Rollout/rollback — feature flag? migration reversibility? deploy order?
+8. Test plan — unit (vitest) / integration / e2e (Playwright) / visual / manual
+9. Out of scope / future work
+
+When tradeoffs exist, present **conservative / recommended / faster-but-riskier** options with costs and risks. Wait for the user's choice.
+
+## Before writing the spec
+
+Summarize the spec inline in chat. Ask: **"Approve and write to `<path>`?"** Do not write the file until the user says yes.
+
+## Spec location
+
+- `docs/portal/specs/<slug>.md` if the feature touches `apps/api`, `packages/`, `infra/`, or anything portal-related.
+- `docs/specs/<slug>.md` otherwise.
+
+Create the directory if missing.
+
+## Spec template
+
+```markdown
+# <Feature name>
+
+**Status:** Draft | Approved | In progress | Shipped
+**Owner:** <user>
+**Last updated:** <YYYY-MM-DD>
+
+## Context & problem
+## Goals / non-goals
+## User stories & acceptance criteria
+## UX notes
+## Architecture
+## Risks & open questions
+## Rollout & rollback
+## Test plan
+## Out of scope / future work
+## Spec deltas
+```
+
+## Handoff
+
+After the spec is written, tell the user: "Spec written to `<path>`. Next: invoke `@phase-implement` with this path." Do not enter Implement mode automatically.
+
+## Updating an existing spec
+
+If a change alters a shipped spec, propose edits inline, get approval, then write. Append to **Spec deltas** with `<date> — <change> — <reason>`.
