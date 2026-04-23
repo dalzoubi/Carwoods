@@ -69,15 +69,12 @@ function buildNeedsRoleSelectionResponse(
   headers: Record<string, string>,
   context: InvocationContext,
   logReason: 'no_user' | 'disabled'
-): HttpResponseInit | null {
+): HttpResponseInit {
   const tokenEmail = primaryEmailFromClaims(claims) ?? emailHint ?? null;
-  if (!tokenEmail) {
-    return null;
-  }
   logInfo(
     context,
     logReason === 'disabled' ? 'portal.me.needs_role_selection_reactivation' : 'portal.me.needs_role_selection',
-    { subject: claims.sub, oid: claims.oid ?? null, reason: logReason }
+    { subject: claims.sub, oid: claims.oid ?? null, reason: logReason, hasEmail: Boolean(tokenEmail) }
   );
   return {
     status: 200,
@@ -171,34 +168,14 @@ export async function portalMeHandler(
   // automatically, which is the bug this flow fixes. Landlord rows are now
   // created only by the explicit POST /api/portal/register/landlord call.
   if (!user) {
-    const res = buildNeedsRoleSelectionResponse(claims, emailHint, headers, context, 'no_user');
-    if (res) {
-      return res;
-    }
-    // No email claim at all — we can't even show a useful gate. Deny access.
-    logWarn(context, 'portal.me.forbidden', {
-      reason: 'user_not_found_no_email',
-      subject: claims.sub,
-      oid: claims.oid ?? null,
-    });
-    return jsonResponse(403, headers, { error: 'no_portal_access' });
+    return buildNeedsRoleSelectionResponse(claims, emailHint, headers, context, 'no_user');
   }
 
   const status = String(user.status ?? '').trim().toUpperCase();
   // Soft-deleted or removed tenants keep a DISABLED row; send them back through the
   // same landlord/tenant gate as a first-time user instead of account_disabled 403.
   if (status === 'DISABLED') {
-    const res = buildNeedsRoleSelectionResponse(claims, emailHint, headers, context, 'disabled');
-    if (res) {
-      return res;
-    }
-    logWarn(context, 'portal.me.forbidden', {
-      reason: 'disabled_user_no_email',
-      userId: user.id,
-      subject: claims.sub,
-      oid: claims.oid ?? null,
-    });
-    return jsonResponse(403, headers, { error: 'no_portal_access' });
+    return buildNeedsRoleSelectionResponse(claims, emailHint, headers, context, 'disabled');
   }
 
   const role = String(user.role ?? '').trim().toUpperCase();

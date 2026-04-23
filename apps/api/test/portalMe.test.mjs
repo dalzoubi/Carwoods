@@ -64,7 +64,7 @@ test('portalMe returns 200 needs_role_selection when user is not found but token
   assert.equal(response.jsonBody?.email, 'new.user@example.com');
 });
 
-test('portalMe returns 403 no_portal_access when user is not found and token has no email for gate', async () => {
+test('portalMe returns needs_role_selection (email=null) when user is not found and token has no email', async () => {
   const request = makeRequest();
   const context = makeContext();
 
@@ -76,8 +76,9 @@ test('portalMe returns 403 no_portal_access when user is not found and token has
     findUserByClaims: async () => null,
   });
 
-  assert.equal(response.status, 403);
-  assert.equal(response.jsonBody?.error, 'no_portal_access');
+  assert.equal(response.status, 200);
+  assert.equal(response.jsonBody?.needs_role_selection, true);
+  assert.equal(response.jsonBody?.email, null);
 });
 
 test('portalMe returns needs_role_selection when user row is DISABLED', async () => {

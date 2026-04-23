@@ -201,6 +201,7 @@ function RealPortalAuthProvider({ children }) {
   const [sessionWarningDeadlineAt, setSessionWarningDeadlineAt] = useState(null);
   const lastSoftMeRefreshAtRef = useRef(0);
   const broadcastRef = useRef(null);
+  const needsRoleSelectionRef = useRef(false);
 
   const baseUrl = VITE_API_BASE_URL_RESOLVED || '';
   const meUrl = baseUrl
@@ -375,6 +376,11 @@ function RealPortalAuthProvider({ children }) {
     (error) => {
       if (error && typeof error === 'object' && error.status === 403) {
         const code = typeof error.code === 'string' ? error.code : '';
+        // During role selection (authenticated principal without a user row),
+        // other portal endpoints will 403 because requirePortalUser has no
+        // user to find. Those are expected — swallow them instead of locking
+        // the user out and blocking them from completing registration.
+        if (code !== 'account_disabled' && needsRoleSelectionRef.current) return;
         const reason = code === 'account_disabled' ? 'account_disabled' : 'no_portal_access';
         void signOutDueToDisabledAccount(reason);
       }
@@ -462,6 +468,7 @@ function RealPortalAuthProvider({ children }) {
   const needsRoleSelection = Boolean(
     meStatus === 'ok' && meData && meData.needs_role_selection === true
   );
+  needsRoleSelectionRef.current = needsRoleSelection;
   const pendingRegistrationEmail =
     needsRoleSelection && typeof meData?.email === 'string' ? meData.email : '';
   const pendingRegistrationFirstName =
