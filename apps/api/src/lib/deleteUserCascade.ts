@@ -546,12 +546,28 @@ export async function hardDeleteUserAndOwnedData(
     // 4. Delete tenant-lifecycle rows tied to the user's leases.
     if (leaseIds.length > 0) {
       const ph = placeholders(leaseIds);
+      // document_consent_records.* → documents / share links / upload intents (NO ACTION) prevent CASCADE.
+      {
+        const n = leaseIds.length;
+        const ph1 = ph;
+        const ph2 = leaseIds.map((_, i) => `$${i + 1 + n}`).join(',');
+        const ph3 = leaseIds.map((_, i) => `$${i + 1 + 2 * n}`).join(',');
+        const consentParams = [...leaseIds, ...leaseIds, ...leaseIds];
+        await deleteIfExists(
+          client,
+          'document_consent_records',
+          `document_id IN (SELECT id FROM documents WHERE lease_id IN (${ph1}))
+           OR share_link_id IN (SELECT id FROM document_share_links WHERE document_id IN (SELECT id FROM documents WHERE lease_id IN (${ph2})))
+           OR upload_intent_id IN (SELECT id FROM document_upload_intents WHERE lease_id IN (${ph3}))`,
+          consentParams
+        );
+      }
       await deleteIfExists(client, 'lease_renewal_offers', `lease_id IN (${ph})`, leaseIds);
       await deleteIfExists(client, 'lease_move_outs', `lease_id IN (${ph})`, leaseIds);
       await deleteIfExists(client, 'lease_evictions', `lease_id IN (${ph})`, leaseIds);
       await deleteIfExists(client, 'lease_notices', `lease_id IN (${ph})`, leaseIds);
       await deleteIfExists(client, 'lease_payment_entries', `lease_id IN (${ph})`, leaseIds);
-      await deleteIfExists(client, 'document_share_links', `lease_id IN (${ph})`, leaseIds);
+      // document_share_links has no lease_id; rows drop via documents.document_id ON DELETE CASCADE.
       await deleteIfExists(client, 'documents', `lease_id IN (${ph})`, leaseIds);
     }
 
@@ -570,6 +586,14 @@ export async function hardDeleteUserAndOwnedData(
     );
 
     // 6. Documents owned by this landlord (not already covered via lease_id).
+    await deleteIfExists(
+      client,
+      'document_consent_records',
+      `document_id IN (SELECT id FROM documents WHERE landlord_id = $1)
+       OR share_link_id IN (SELECT id FROM document_share_links WHERE document_id IN (SELECT id FROM documents WHERE landlord_id = $1))
+       OR upload_intent_id IN (SELECT id FROM document_upload_intents WHERE landlord_id = $1)`,
+      [targetUser.id]
+    );
     await deleteIfExists(client, 'documents', `landlord_id = $1`, [targetUser.id]);
 
     // 7. Maintenance-request children. request_status_history / attachments /
