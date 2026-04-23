@@ -61,6 +61,42 @@ function jsonResponse(
   };
 }
 
+type ClaimsForMe = Awaited<ReturnType<typeof verifyAccessToken>>;
+
+function buildNeedsRoleSelectionResponse(
+  claims: ClaimsForMe,
+  emailHint: string | undefined,
+  headers: Record<string, string>,
+  context: InvocationContext,
+  logReason: 'no_user' | 'disabled'
+): HttpResponseInit | null {
+  const tokenEmail = primaryEmailFromClaims(claims) ?? emailHint ?? null;
+  if (!tokenEmail) {
+    return null;
+  }
+  logInfo(
+    context,
+    logReason === 'disabled' ? 'portal.me.needs_role_selection_reactivation' : 'portal.me.needs_role_selection',
+    { subject: claims.sub, oid: claims.oid ?? null, reason: logReason }
+  );
+  return {
+    status: 200,
+    headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
+    jsonBody: {
+      needs_role_selection: true,
+      email: tokenEmail,
+      suggested_first_name:
+        claims.given_name
+        ?? (claims.name ? claims.name.split(' ')[0] : null)
+        ?? null,
+      suggested_last_name:
+        claims.family_name
+        ?? (claims.name ? claims.name.split(' ').slice(1).join(' ') : null)
+        ?? null,
+    },
+  };
+}
+
 export async function portalMeHandler(
   request: HttpRequest,
   context: InvocationContext,
@@ -107,8 +143,11 @@ export async function portalMeHandler(
       const pool = deps.getPool();
       user = await deps.findUserByClaims(pool, claims, { emailHint, logger: context });
       if (user) {
-        notificationPreferences = await deps.ensureUserNotificationPreference(pool, user.id);
-        flowPreferences = await deps.listUserNotificationFlowPreferences(pool, user.id);
+        const st = String(user.status ?? '').trim().toUpperCase();
+        if (st !== 'DISABLED') {
+          notificationPreferences = await deps.ensureUserNotificationPreference(pool, user.id);
+          flowPreferences = await deps.listUserNotificationFlowPreferences(pool, user.id);
+        }
       }
     } catch (error) {
       userLookupFailed = true;
@@ -132,28 +171,9 @@ export async function portalMeHandler(
   // automatically, which is the bug this flow fixes. Landlord rows are now
   // created only by the explicit POST /api/portal/register/landlord call.
   if (!user) {
-    const tokenEmail = primaryEmailFromClaims(claims) ?? emailHint ?? null;
-    if (tokenEmail) {
-      logInfo(context, 'portal.me.needs_role_selection', {
-        subject: claims.sub,
-        oid: claims.oid ?? null,
-      });
-      return {
-        status: 200,
-        headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' },
-        jsonBody: {
-          needs_role_selection: true,
-          email: tokenEmail,
-          suggested_first_name:
-            claims.given_name
-            ?? (claims.name ? claims.name.split(' ')[0] : null)
-            ?? null,
-          suggested_last_name:
-            claims.family_name
-            ?? (claims.name ? claims.name.split(' ').slice(1).join(' ') : null)
-            ?? null,
-        },
-      };
+    const res = buildNeedsRoleSelectionResponse(claims, emailHint, headers, context, 'no_user');
+    if (res) {
+      return res;
     }
     // No email claim at all — we can't even show a useful gate. Deny access.
     logWarn(context, 'portal.me.forbidden', {
@@ -164,8 +184,24 @@ export async function portalMeHandler(
     return jsonResponse(403, headers, { error: 'no_portal_access' });
   }
 
-  const role = String(user.role ?? '').trim().toUpperCase();
   const status = String(user.status ?? '').trim().toUpperCase();
+  // Soft-deleted or removed tenants keep a DISABLED row; send them back through the
+  // same landlord/tenant gate as a first-time user instead of account_disabled 403.
+  if (status === 'DISABLED') {
+    const res = buildNeedsRoleSelectionResponse(claims, emailHint, headers, context, 'disabled');
+    if (res) {
+      return res;
+    }
+    logWarn(context, 'portal.me.forbidden', {
+      reason: 'disabled_user_no_email',
+      userId: user.id,
+      subject: claims.sub,
+      oid: claims.oid ?? null,
+    });
+    return jsonResponse(403, headers, { error: 'no_portal_access' });
+  }
+
+  const role = String(user.role ?? '').trim().toUpperCase();
   const isAllowedRole =
     role === Role.TENANT
     || role === Role.LANDLORD
@@ -173,16 +209,15 @@ export async function portalMeHandler(
     || role === Role.AI_AGENT;
   const isActive = status === 'ACTIVE' || status === 'INVITED';
   if (!isAllowedRole || !isActive) {
-    const isDisabled = status === 'DISABLED';
     logWarn(context, 'portal.me.forbidden', {
-      reason: isDisabled ? 'account_disabled' : 'forbidden_role_or_status',
+      reason: 'forbidden_role_or_status',
       role,
       status,
       userId: user.id,
       subject: claims.sub,
       oid: claims.oid ?? null,
     });
-    return jsonResponse(403, headers, { error: isDisabled ? 'account_disabled' : 'no_portal_access' });
+    return jsonResponse(403, headers, { error: 'no_portal_access' });
   }
 
   logInfo(context, 'portal.me.success', {

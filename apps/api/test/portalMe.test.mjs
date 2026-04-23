@@ -64,6 +64,39 @@ test('portalMe returns 403 no_portal_access when user is not found', async () =>
   assert.equal(response.jsonBody?.error, 'no_portal_access');
 });
 
+test('portalMe returns needs_role_selection when user row is DISABLED', async () => {
+  const request = makeRequest();
+  const context = makeContext();
+
+  const response = await portalMeHandler(request, context, {
+    hasDatabaseUrl: () => true,
+    getPool: () => ({}),
+    verifyAccessToken: async () => ({
+      sub: 'sub-disabled',
+      oid: 'oid-disabled',
+      email: 'former.tenant@example.com',
+      name: 'Former Tenant',
+    }),
+    authConfigured: () => true,
+    ensureUserNotificationPreference: async () => null,
+    findUserByClaims: async () => ({
+      id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+      external_auth_oid: 'oid-disabled',
+      email: 'former.tenant@example.com',
+      first_name: 'Former',
+      last_name: 'Tenant',
+      phone: null,
+      profile_photo_storage_path: null,
+      role: 'TENANT',
+      status: 'DISABLED',
+    }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.jsonBody?.needs_role_selection, true);
+  assert.equal(response.jsonBody?.email, 'former.tenant@example.com');
+});
+
 test('portalMe allows AI_AGENT role', async () => {
   const request = makeRequest();
   const context = makeContext();

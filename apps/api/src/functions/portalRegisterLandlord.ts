@@ -15,10 +15,12 @@ import {
 import {
   findUserByClaims,
   findUserByEmail,
+  reactivateDisabledUserAsLandlord,
   registerLandlordByClaims,
 } from '../lib/usersRepo.js';
 import { enqueueNotification } from '../lib/notificationRepo.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
+import { Role } from '../domain/constants.js';
 import { safeErrorResponseBody } from '../lib/safeErrorResponse.js';
 import { withRateLimit } from '../lib/rateLimiter.js';
 
@@ -92,32 +94,80 @@ export async function portalRegisterLandlordHandler(
 
   const pool = getPool();
 
-  // Block registration if a user already exists for this Firebase subject OR email.
-  const existing = await findUserByClaims(pool, claims, { emailHint, logger: context });
-  if (existing) {
-    logWarn(context, 'portal.register_landlord.already_exists', {
-      userId: existing.id,
-      role: existing.role,
-      status: existing.status,
-    });
-    return jsonResponse(409, headers, { error: 'account_already_exists' });
-  }
-
   const tokenEmail = primaryEmailFromClaims(claims) ?? emailHint;
   if (!tokenEmail) {
     return jsonResponse(400, headers, { error: 'email_required' });
   }
 
-  // Email-collision guard: if a tenant or admin row already occupies this
-  // email, refuse to convert it to a landlord here. The admin management flow
-  // handles role changes deliberately; self-service registration must not.
-  const byEmail = await findUserByEmail(pool, tokenEmail);
-  if (byEmail) {
-    logWarn(context, 'portal.register_landlord.email_taken', {
-      existingRole: byEmail.role,
-      existingStatus: byEmail.status,
+  const fromClaims = await findUserByClaims(pool, claims, { emailHint, logger: context });
+  const fromEmail = await findUserByEmail(pool, tokenEmail);
+  const row = fromClaims ?? fromEmail;
+
+  if (row) {
+    const st = String(row.status ?? '').toUpperCase();
+    if (st === 'DISABLED') {
+      const r = String(row.role ?? '').toUpperCase();
+      if (r !== Role.LANDLORD && r !== Role.TENANT) {
+        logWarn(context, 'portal.register_landlord.reactivate.role_blocked', {
+          userId: row.id,
+          role: row.role,
+        });
+        return jsonResponse(409, headers, { error: 'email_already_registered' });
+      }
+      let reactivated;
+      try {
+        reactivated = await reactivateDisabledUserAsLandlord(pool, row.id, claims, emailHint, {
+          firstName: payload.first_name ?? null,
+          lastName: payload.last_name ?? null,
+          phone: payload.phone ?? null,
+        });
+      } catch (error) {
+        logError(context, 'portal.register_landlord.reactivate.error', {
+          message: error instanceof Error ? error.message : 'unknown',
+        });
+        return jsonResponse(500, headers, { error: 'registration_failed' });
+      }
+      if (!reactivated) {
+        return jsonResponse(500, headers, { error: 'registration_failed' });
+      }
+      logInfo(context, 'portal.register_landlord.reactivated', {
+        userId: reactivated.id,
+        subject: claims.sub,
+        oid: claims.oid ?? null,
+      });
+      try {
+        const notifyClient = await pool.connect();
+        try {
+          await enqueueNotification(notifyClient, {
+            eventTypeCode: 'ACCOUNT_LANDLORD_CREATED',
+            payload: {
+              landlord_user_id: reactivated.id,
+              landlord_email: reactivated.email,
+              email: reactivated.email,
+              first_name: reactivated.first_name ?? null,
+              last_name: reactivated.last_name ?? null,
+              source: 'SELF_REGISTRATION',
+            },
+            idempotencyKey: `account-landlord-created:${reactivated.id}:self`,
+          });
+        } finally {
+          notifyClient.release();
+        }
+      } catch (notifyErr) {
+        logWarn(context, 'portal.register_landlord.notify_admins.failed', {
+          userId: reactivated.id,
+          message: notifyErr instanceof Error ? notifyErr.message : String(notifyErr),
+        });
+      }
+      return jsonResponse(201, headers, { ok: true });
+    }
+
+    logWarn(context, 'portal.register_landlord.already_exists', {
+      userId: row.id,
+      role: row.role,
+      status: row.status,
     });
-    return jsonResponse(409, headers, { error: 'email_already_registered' });
+    return jsonResponse(409, headers, { error: 'account_already_exists' });
   }
 
   let user;

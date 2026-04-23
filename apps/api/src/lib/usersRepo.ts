@@ -219,6 +219,59 @@ export async function registerLandlordByClaims(
   return result.rows[0] ?? null;
 }
 
+/**
+ * Self-service landlord registration for a user row that was soft-disabled (e.g. removed
+ * from all leases) or a former tenant who chooses the landlord path on the role gate.
+ * Reactivates the row: LANDLORD + ACTIVE, links `external_auth_oid` to the current token.
+ */
+export async function reactivateDisabledUserAsLandlord(
+  client: Queryable,
+  userId: string,
+  claims: AccessTokenClaims,
+  emailHint: string | undefined,
+  overrides?: {
+    firstName?: string | null;
+    lastName?: string | null;
+    phone?: string | null;
+  }
+): Promise<UserRow | null> {
+  const email = primaryEmailFromClaims(claims) ?? emailHint;
+  if (!email?.trim()) return null;
+
+  const externalAuthOid = claims.oid ?? claims.sub;
+  const firstName =
+    normalizeNamePart(overrides?.firstName)
+    ?? normalizeNamePart(
+      claims.given_name ?? (claims.name ? claims.name.split(' ')[0] : null)
+    );
+  const lastName =
+    normalizeNamePart(overrides?.lastName)
+    ?? normalizeNamePart(
+      claims.family_name ?? (claims.name ? claims.name.split(' ').slice(1).join(' ') : null)
+    );
+  const phone = normalizePhone(overrides?.phone);
+
+  const r = await client.query<UserRow>(
+    `UPDATE users
+        SET role = '${Role.LANDLORD}',
+            status = 'ACTIVE',
+            external_auth_oid = $1,
+            first_name = $2,
+            last_name = $3,
+            phone = $4,
+            updated_at = GETUTCDATE()
+      OUTPUT INSERTED.id, INSERTED.external_auth_oid, INSERTED.email,
+             INSERTED.first_name, INSERTED.last_name, INSERTED.phone,
+             INSERTED.profile_photo_storage_path, INSERTED.role, INSERTED.status,
+             INSERTED.ui_language, INSERTED.ui_color_scheme, INSERTED.portal_tour_completed, INSERTED.tier_id
+        WHERE id = $5
+          AND UPPER(status) = 'DISABLED'
+          AND UPPER(role) IN ('${Role.LANDLORD}', '${Role.TENANT}')`,
+    [externalAuthOid, firstName, lastName, phone, userId]
+  );
+  return r.rows[0] ?? null;
+}
+
 const LANDLORD_LIST_SELECT = `
   u.id,
   u.external_auth_oid,
