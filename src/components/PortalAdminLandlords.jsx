@@ -24,6 +24,7 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import BlockIcon from '@mui/icons-material/Block';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import EditIcon from '@mui/icons-material/Edit';
 import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined';
 import ReplayIcon from '@mui/icons-material/Replay';
@@ -37,6 +38,7 @@ import { validatePersonBasics, validatePersonField } from '../portalPersonValida
 import { resolveRole, normalizeRole } from '../portalUtils';
 import { fetchLandlords, fetchAdminSubscriptionTiers, createLandlord, patchResource } from '../lib/portalApiClient';
 import { buildVCard3, downloadVCard, slugifyVCardFilenameBase, VCARD_ORG_NAME } from '../lib/exportContactCard';
+import PortalAdminUserDeleteDialog from './PortalAdminUserDeleteDialog';
 import PortalConfirmDialog from './PortalConfirmDialog';
 import StatusAlertSlot from './StatusAlertSlot';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
@@ -163,6 +165,9 @@ const PortalAdminLandlords = () => {
 
   // Confirmation dialog for toggle active/inactive
   const [confirmDialog, setConfirmDialog] = useState({ open: false, landlordId: null, activate: false, name: '' });
+
+  // Permanent-delete dialog for removing a landlord plus all their properties.
+  const [deleteDialogTarget, setDeleteDialogTarget] = useState(null);
 
   const loadLandlords = useCallback(async () => {
     if (!canUseModule || !baseUrl) {
@@ -816,6 +821,20 @@ const PortalAdminLandlords = () => {
                         </span>
                       </Tooltip>
                     )}
+                    <Tooltip title={t('portalAdminLandlords.actions.delete')}>
+                      <span>
+                        <IconButton
+                          type="button"
+                          size="small"
+                          color="error"
+                          onClick={() => setDeleteDialogTarget(landlord)}
+                          aria-label={t('portalAdminLandlords.actions.delete')}
+                          disabled={!canUseModule || submitState.status === 'saving'}
+                        >
+                          <DeleteForeverIcon fontSize="small" />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
                   </Stack>
                 </Stack>
               </Box>
@@ -886,6 +905,18 @@ const PortalAdminLandlords = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <PortalAdminUserDeleteDialog
+        open={Boolean(deleteDialogTarget)}
+        target={deleteDialogTarget}
+        titleFormatter={(name) => t('portalAdminLandlords.confirmDelete.title', { name })}
+        onClose={() => setDeleteDialogTarget(null)}
+        onDeleted={() => {
+          setDeleteDialogTarget(null);
+          void loadLandlords();
+        }}
+        onMessage={(message, severity) => showFeedback(message, severity)}
+      />
 
       <PortalConfirmDialog
         open={confirmDialog.open}

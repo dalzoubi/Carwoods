@@ -1532,9 +1532,13 @@
       "saveChanges": "Enregistrer les modifications",
       "deactivate": "Désactiver",
       "reactivate": "Réactiver",
+      "delete": "Supprimer définitivement le propriétaire et ses biens",
       "cancel": "Annuler",
       "changeTier": "Modifier la formule d'abonnement",
       "exportContactCard": "Télécharger la fiche contact (.vcf)"
+    },
+    "confirmDelete": {
+      "title": "Supprimer définitivement {{name}} ?"
     },
     "vCard": {
       "roleTitle": "Portail propriétaire"
@@ -1975,6 +1979,7 @@
       "documents": "Centre de documents",
       "profile": "Profil",
       "adminLandlords": "Propriétaires",
+      "adminUsers": "Tous les utilisateurs",
       "adminContactUsMessages": "Contactez-nous",
       "adminConfigurations": "Configurations",
       "adminAiConfig": "Configuration IA",

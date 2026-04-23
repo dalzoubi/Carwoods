@@ -19,6 +19,7 @@ import {
 import Dashboard from '@mui/icons-material/Dashboard';
 import Person from '@mui/icons-material/Person';
 import SupervisorAccount from '@mui/icons-material/SupervisorAccount';
+import ManageAccounts from '@mui/icons-material/ManageAccounts';
 import HomeWork from '@mui/icons-material/HomeWork';
 import People from '@mui/icons-material/People';
 import Logout from '@mui/icons-material/Logout';
@@ -208,7 +209,7 @@ const PortalSidebar = ({ open, onClose, isMobile, collapsed = false, onSidebarTo
   const adminItems = roleResolved && normalized === Role.ADMIN
     ? [
         { key: 'admin', to: '/portal/admin/landlords', label: t('portalLayout.sidebar.adminLandlords'), icon: <SupervisorAccount /> },
-        { key: 'admin-users', to: '/portal/admin/users', label: t('portalLayout.sidebar.adminPortalUsers'), icon: <People /> },
+        { key: 'admin-users', to: '/portal/admin/users', label: t('portalLayout.sidebar.adminUsers'), icon: <ManageAccounts /> },
         { key: 'admin-support', to: '/portal/admin/support', label: t('portalLayout.sidebar.adminSupport'), icon: <SupportAgent />, badgeCount: badges.supportTicketsAdmin },
       ]
     : [];

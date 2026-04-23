@@ -1879,9 +1879,13 @@
       "saveChanges": "Save changes",
       "deactivate": "Deactivate",
       "reactivate": "Reactivate",
+      "delete": "Permanently remove landlord and their properties",
       "cancel": "Cancel",
       "changeTier": "Change subscription plan",
       "exportContactCard": "Download contact card (.vcf)"
+    },
+    "confirmDelete": {
+      "title": "Permanently remove {{name}}?"
     },
     "vCard": {
       "roleTitle": "Landlord portal"
@@ -2484,6 +2488,7 @@
       "documents": "Document Center",
       "profile": "Profile",
       "adminLandlords": "Landlords",
+      "adminUsers": "All users",
       "adminContactUsMessages": "Contact Us",
       "adminConfigurations": "Configurations",
       "adminAiConfig": "AI Configuration",
