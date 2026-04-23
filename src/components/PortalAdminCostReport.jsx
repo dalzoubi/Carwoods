@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -18,11 +18,9 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
-import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
-import RefreshOutlined from '@mui/icons-material/RefreshOutlined';
 import WarningAmberOutlined from '@mui/icons-material/WarningAmberOutlined';
 import { usePortalAuth } from '../PortalAuthContext';
 import {
@@ -33,14 +31,35 @@ import {
 } from '../lib/portalApiClient';
 import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
+import PortalRefreshButton from './PortalRefreshButton';
 
 // ---------------------------------------------------------------------------
 // Utilities
 // ---------------------------------------------------------------------------
 
-function fmtUsd(value) {
-  if (value == null) return '—';
-  return `$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
+function createPortalCostFormatters(i18n) {
+  const locale = i18n.resolvedLanguage || 'en';
+  const currency = new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4,
+  });
+  const count = new Intl.NumberFormat(locale, { maximumFractionDigits: 0, useGrouping: true });
+  return {
+    formatUsd: (value) => {
+      if (value == null) return '—';
+      const n = Number(value);
+      if (Number.isNaN(n)) return '—';
+      return currency.format(n);
+    },
+    formatCount: (value) => {
+      if (value == null) return '—';
+      const n = Number(value);
+      if (!Number.isFinite(n)) return '—';
+      return count.format(n);
+    },
+  };
 }
 
 function todayUtc() {
@@ -68,7 +87,7 @@ function emailFromAccount(account) {
 // Sub-components
 // ---------------------------------------------------------------------------
 
-function MarginChip({ marginUsd, atRisk, t }) {
+function MarginChip({ marginUsd, atRisk, t, formatUsd }) {
   if (marginUsd == null) return <Typography variant="caption" color="text.secondary">{t('portalAdminCostReport.noRate')}</Typography>;
   if (atRisk) {
     return (
@@ -76,7 +95,7 @@ function MarginChip({ marginUsd, atRisk, t }) {
         size="small"
         color="error"
         icon={<WarningAmberOutlined />}
-        label={`${fmtUsd(marginUsd)}`}
+        label={formatUsd(marginUsd)}
         sx={{ fontWeight: 600 }}
       />
     );
@@ -85,27 +104,57 @@ function MarginChip({ marginUsd, atRisk, t }) {
     <Chip
       size="small"
       color="success"
-      label={fmtUsd(marginUsd)}
+      label={formatUsd(marginUsd)}
     />
   );
 }
 
-function DrilldownPanel({ landlordId, from, to, baseUrl, accessToken, emailHint, t }) {
+function DrilldownPanel({
+  landlordId,
+  from,
+  to,
+  baseUrl,
+  accessToken,
+  emailHint,
+  t,
+  formatUsd,
+  formatCount,
+  handleApiForbidden,
+}) {
   const [data, setData] = useState(null);
+  const [loadError, setLoadError] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setData(null);
+    setLoadError(false);
     fetchAdminCostLandlord(baseUrl, accessToken, landlordId, { emailHint, from, to })
-      .then((d) => { if (!cancelled) setData(d); })
-      .catch(() => {})
-      .finally(() => { if (!cancelled) setLoading(false); });
+      .then((d) => {
+        if (!cancelled) setData(d);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        handleApiForbidden(err);
+        setLoadError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     return () => { cancelled = true; };
-  }, [landlordId, from, to, baseUrl, accessToken, emailHint]);
+  }, [landlordId, from, to, baseUrl, accessToken, emailHint, handleApiForbidden]);
 
   if (loading) return <Box sx={{ px: 2, py: 1 }}><CircularProgress size={18} /></Box>;
+  if (loadError) {
+    return (
+      <Box sx={{ px: 2, py: 1.5 }}>
+        <Typography color="error" variant="body2" role="alert">
+          {t('portalAdminCostReport.drilldownError')}
+        </Typography>
+      </Box>
+    );
+  }
   if (!data) return null;
 
   return (
@@ -126,8 +175,8 @@ function DrilldownPanel({ landlordId, from, to, baseUrl, accessToken, emailHint,
               {data.by_service.map((row) => (
                 <TableRow key={row.service} hover>
                   <TableCell><code>{row.service}</code></TableCell>
-                  <TableCell align="right">{fmtUsd(row.total_cost_usd)}</TableCell>
-                  <TableCell align="right">{Number(row.event_count).toLocaleString()}</TableCell>
+                  <TableCell align="right">{formatUsd(row.total_cost_usd)}</TableCell>
+                  <TableCell align="right">{formatCount(row.event_count)}</TableCell>
                 </TableRow>
               ))}
               {data.by_service.length === 0 && (
@@ -154,7 +203,7 @@ function DrilldownPanel({ landlordId, from, to, baseUrl, accessToken, emailHint,
                 {data.by_property.map((row) => (
                   <TableRow key={row.property_id} hover>
                     <TableCell>{row.property_label ?? t('portalAdminCostReport.unattributed')}</TableCell>
-                    <TableCell align="right">{fmtUsd(row.total_cost_usd)}</TableCell>
+                    <TableCell align="right">{formatUsd(row.total_cost_usd)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -166,20 +215,26 @@ function DrilldownPanel({ landlordId, from, to, baseUrl, accessToken, emailHint,
   );
 }
 
-function PricingConfigPanel({ baseUrl, accessToken, emailHint, t, showFeedback }) {
+function PricingConfigPanel({ baseUrl, accessToken, emailHint, t, showFeedback, formatUsd, handleApiForbidden }) {
   const [rows, setRows] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [editing, setEditing] = useState({});
   const [saving, setSaving] = useState({});
 
   useEffect(() => {
     let cancelled = false;
+    setLoadError(false);
     fetchAdminCostsPricing(baseUrl, accessToken, { emailHint })
       .then((d) => { if (!cancelled) setRows(d.pricing); })
-      .catch(() => {})
+      .catch((err) => {
+        if (cancelled) return;
+        handleApiForbidden(err);
+        setLoadError(true);
+      })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [baseUrl, accessToken, emailHint]);
+  }, [baseUrl, accessToken, emailHint, handleApiForbidden]);
 
   const handleEdit = (id, currentRate) => {
     setEditing((prev) => ({ ...prev, [id]: String(currentRate) }));
@@ -210,6 +265,13 @@ function PricingConfigPanel({ baseUrl, accessToken, emailHint, t, showFeedback }
   };
 
   if (loading) return <LinearProgress />;
+  if (loadError) {
+    return (
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Typography color="error" variant="body2" role="alert">{t('portalAdminCostReport.pricingLoadError')}</Typography>
+      </Paper>
+    );
+  }
   if (!rows) return null;
 
   return (
@@ -246,7 +308,7 @@ function PricingConfigPanel({ baseUrl, accessToken, emailHint, t, showFeedback }
                       sx={{ width: 130 }}
                     />
                   ) : (
-                    <Typography variant="body2">{fmtUsd(row.rate_usd)}</Typography>
+                    <Typography variant="body2">{formatUsd(row.rate_usd)}</Typography>
                   )}
                 </TableCell>
                 <TableCell sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>{row.description}</TableCell>
@@ -286,8 +348,12 @@ function PricingConfigPanel({ baseUrl, accessToken, emailHint, t, showFeedback }
 // ---------------------------------------------------------------------------
 
 export default function PortalAdminCostReport() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { baseUrl, isAuthenticated, account, getAccessToken, handleApiForbidden } = usePortalAuth();
+  const { formatUsd, formatCount } = useMemo(
+    () => createPortalCostFormatters(i18n),
+    [i18n, i18n.resolvedLanguage]
+  );
   const { feedback, showFeedback, closeFeedback } = usePortalFeedback();
 
   const [preset, setPreset] = useState('30d');
@@ -331,17 +397,16 @@ export default function PortalAdminCostReport() {
     <Paper variant="outlined" sx={{ p: 2.5 }}>
       <Stack spacing={2.5}>
         {/* Header */}
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography variant="h2" sx={{ fontSize: '1.25rem', flex: 1 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ gap: 1 }}>
+          <Typography variant="h2" sx={{ fontSize: '1.25rem' }}>
             {t('portalAdminCostReport.heading')}
           </Typography>
-          <Tooltip title={t('portalAdminCostReport.refresh')}>
-            <span>
-              <IconButton onClick={load} disabled={status === 'loading'} size="small" type="button">
-                <RefreshOutlined fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
+          <PortalRefreshButton
+            label={t('portalAdminCostReport.refresh')}
+            onClick={() => void load()}
+            disabled={!canUse}
+            loading={status === 'loading'}
+          />
         </Stack>
 
         {/* Time window picker */}
@@ -387,8 +452,6 @@ export default function PortalAdminCostReport() {
           </Stack>
         </Paper>
 
-        {status === 'loading' && <LinearProgress />}
-
         {status === 'error' && (
           <Typography color="error" variant="body2">{t('portalAdminCostReport.loadError')}</Typography>
         )}
@@ -397,7 +460,7 @@ export default function PortalAdminCostReport() {
         {report && status === 'ok' && (
           <Stack direction="row" spacing={1.5} flexWrap="wrap">
             <Chip
-              label={`${t('portalAdminCostReport.totalCost')}: ${fmtUsd(totalCost)}`}
+              label={`${t('portalAdminCostReport.totalCost')}: ${formatUsd(totalCost)}`}
               color="default"
               size="small"
             />
@@ -448,15 +511,25 @@ export default function PortalAdminCostReport() {
                 )}
                 {report.landlords.map((row) => {
                   const expanded = expandedId === row.landlord_id;
+                  const labelName = row.landlord_name || row.landlord_email || row.landlord_id;
                   return (
                     <React.Fragment key={row.landlord_id}>
                       <TableRow
                         hover
-                        sx={{ cursor: 'pointer', '& td': { borderBottom: expanded ? 0 : undefined } }}
-                        onClick={() => setExpandedId(expanded ? null : row.landlord_id)}
+                        sx={{ '& td': { borderBottom: expanded ? 0 : undefined } }}
                       >
                         <TableCell padding="checkbox">
-                          <IconButton size="small" type="button">
+                          <IconButton
+                            size="small"
+                            type="button"
+                            aria-expanded={expanded}
+                            aria-label={
+                              expanded
+                                ? t('portalAdminCostReport.collapseRow', { name: labelName })
+                                : t('portalAdminCostReport.expandRow', { name: labelName })
+                            }
+                            onClick={() => setExpandedId(expanded ? null : row.landlord_id)}
+                          >
                             {expanded ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
                           </IconButton>
                         </TableCell>
@@ -477,14 +550,14 @@ export default function PortalAdminCostReport() {
                             <Typography variant="caption" color="text.secondary">—</Typography>
                           )}
                         </TableCell>
-                        <TableCell align="right">{row.property_count}</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 600 }}>{fmtUsd(row.total_cost_usd)}</TableCell>
-                        <TableCell align="right">{fmtUsd(row.email_cost_usd)}</TableCell>
-                        <TableCell align="right">{fmtUsd(row.sms_cost_usd)}</TableCell>
-                        <TableCell align="right">{fmtUsd(row.ai_cost_usd)}</TableCell>
-                        <TableCell align="right">{fmtUsd(row.estimated_revenue_usd)}</TableCell>
+                        <TableCell align="right">{formatCount(row.property_count)}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600 }}>{formatUsd(row.total_cost_usd)}</TableCell>
+                        <TableCell align="right">{formatUsd(row.email_cost_usd)}</TableCell>
+                        <TableCell align="right">{formatUsd(row.sms_cost_usd)}</TableCell>
+                        <TableCell align="right">{formatUsd(row.ai_cost_usd)}</TableCell>
+                        <TableCell align="right">{formatUsd(row.estimated_revenue_usd)}</TableCell>
                         <TableCell align="right">
-                          <MarginChip marginUsd={row.margin_usd} atRisk={row.at_risk} t={t} />
+                          <MarginChip marginUsd={row.margin_usd} atRisk={row.at_risk} t={t} formatUsd={formatUsd} />
                         </TableCell>
                       </TableRow>
                       {expanded && (
@@ -499,6 +572,9 @@ export default function PortalAdminCostReport() {
                                 accessToken={token}
                                 emailHint={emailHint}
                                 t={t}
+                                formatUsd={formatUsd}
+                                formatCount={formatCount}
+                                handleApiForbidden={handleApiForbidden}
                               />
                             </Collapse>
                           </TableCell>
@@ -522,6 +598,8 @@ export default function PortalAdminCostReport() {
             emailHint={emailHint}
             t={t}
             showFeedback={showFeedback}
+            formatUsd={formatUsd}
+            handleApiForbidden={handleApiForbidden}
           />
         )}
       </Stack>

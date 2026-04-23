@@ -2479,6 +2479,10 @@
   "portalAdminCostReport": {
     "heading": "Cost report",
     "refresh": "Refresh",
+    "drilldownError": "Failed to load landlord cost details for this range.",
+    "expandRow": "Expand cost details for {{name}}",
+    "collapseRow": "Collapse cost details for {{name}}",
+    "pricingLoadError": "Failed to load pricing configuration. Refresh the page to try again.",
     "from": "From",
     "to": "To",
     "apply": "Apply",

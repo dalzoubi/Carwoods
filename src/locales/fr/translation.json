@@ -1970,6 +1970,10 @@
   "portalAdminCostReport": {
     "heading": "Rapport des coûts",
     "refresh": "Actualiser",
+    "drilldownError": "Impossible de charger le détail des coûts pour ce propriétaire sur cette période.",
+    "expandRow": "Afficher le détail des coûts pour {{name}}",
+    "collapseRow": "Masquer le détail des coûts pour {{name}}",
+    "pricingLoadError": "Impossible de charger la configuration des tarifs. Actualisez la page pour réessayer.",
     "from": "Du",
     "to": "Au",
     "apply": "Appliquer",
