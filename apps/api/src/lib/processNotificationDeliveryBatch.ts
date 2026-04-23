@@ -11,6 +11,7 @@ import { writeAudit } from './auditRepo.js';
 import { logInfo, logWarn } from './serverLogger.js';
 import { sendResendEmail } from './resendClient.js';
 import { sendTelnyxSms, TelnyxNotConfiguredError } from './telnyxClient.js';
+import { getPricingRates, logCostEvent, type PricingRates } from './costEventRepo.js';
 
 export type ProcessNotificationDeliveryBatchResult = {
   attempted: number;
@@ -133,6 +134,7 @@ export async function processNotificationDeliveryBatch(
   const safeLimit = Number.isFinite(options.limit) ? Math.max(1, Math.min(200, options.limit)) : 50;
   const queued = await listQueuedDeliveries(pool, safeLimit);
   const channels = notificationChannelsEnabled();
+  const pricingRates: PricingRates = queued.length > 0 ? await getPricingRates(pool) : new Map();
 
   let sent = 0;
   let failed = 0;
@@ -189,6 +191,15 @@ export async function processNotificationDeliveryBatch(
       });
       await client.query('COMMIT');
       sent += 1;
+
+      await logCostEvent(pool, {
+        service: isEmail ? 'RESEND_EMAIL' : 'TELNYX_SMS',
+        units: 1,
+        unitType: isEmail ? 'EMAIL' : 'SMS',
+        estimatedCostUsd: pricingRates.get(isEmail ? 'RESEND_EMAIL' : 'TELNYX_SMS') ?? 0,
+        providerMessageId,
+        metadata: { delivery_id: row.id, template_id: row.template_id },
+      });
     } catch (error) {
       try {
         await client.query('BEGIN');

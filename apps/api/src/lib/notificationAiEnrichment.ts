@@ -17,6 +17,7 @@ import { summarizeForNotification } from '../useCases/requests/notificationSumma
 import { writeAudit } from './auditRepo.js';
 import { insertNotificationAiSignal } from './notificationAiSignalsRepo.js';
 import type { NotificationOutboxRow } from './notificationRepo.js';
+import { getLandlordForProperty, getPricingRates, logCostEvent } from './costEventRepo.js';
 
 type Queryable = { query<T>(sql: string, values?: unknown[]): Promise<QueryResult<T>> };
 
@@ -24,6 +25,7 @@ const SYSTEM_AUDIT_ACTOR = '00000000-0000-0000-0000-000000000000';
 
 export type MaintenanceNotificationAiContext = {
   requestId: string;
+  propertyId: string | null;
   messageSnippet: string;
   requestTitle: string;
   requestDescription: string;
@@ -93,6 +95,7 @@ export async function loadMaintenanceAiContext(
   if (!request) return null;
   return {
     requestId,
+    propertyId: request.property_id ?? null,
     messageSnippet: messageSnippet || request.description || request.title || '',
     requestTitle: request.title ?? '',
     requestDescription: request.description ?? '',
@@ -143,6 +146,23 @@ export async function runMaintenanceNotificationAiPhase(
     },
     { llmClient }
   );
+
+  if (ai.providerUsed === 'remote' && ai.tokensUsed !== undefined) {
+    const rates = await getPricingRates(pool);
+    const rate = rates.get('GEMINI_AI') ?? 0;
+    const landlordId = ctx.propertyId
+      ? await getLandlordForProperty(pool, ctx.propertyId)
+      : null;
+    await logCostEvent(pool, {
+      service: 'GEMINI_AI',
+      landlordId,
+      propertyId: ctx.propertyId,
+      units: ai.tokensUsed,
+      unitType: 'TOKEN',
+      estimatedCostUsd: ai.tokensUsed * rate,
+      metadata: { model: ai.modelName, prompt_version: ai.promptVersion, request_id: ctx.requestId },
+    });
+  }
 
   const manualEmergency = priorityRank(ctx.currentPriorityCode) >= 3;
   const manualUrgent = priorityRank(ctx.currentPriorityCode) >= 2;

@@ -16,6 +16,7 @@ export type NotificationSummarizationResult = {
   providerUsed: 'remote' | 'unavailable';
   promptVersion: string;
   errorDetail: string | null;
+  tokensUsed?: number;
 };
 
 function extractJsonFromText(text: string): unknown {
@@ -150,6 +151,7 @@ export async function summarizeForNotification(
       providerUsed: 'remote',
       promptVersion: PROMPT_VERSION,
       errorDetail: null,
+      tokensUsed: response.tokensUsed,
     };
   } catch (e) {
     return {

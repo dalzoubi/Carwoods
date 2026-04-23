@@ -150,7 +150,7 @@ export class LlmClient {
         const timer = setTimeout(() => controller.abort(), timeoutMs);
 
         try {
-          const text = await provider.complete(request, model, controller.signal);
+          const { text, tokensUsed } = await provider.complete(request, model, controller.signal);
           const latencyMs = Date.now() - overallStart;
           metrics.onSuccess?.({
             provider: provider.name,
@@ -166,6 +166,7 @@ export class LlmClient {
             usedFallback,
             attempts: attempt,
             latencyMs,
+            tokensUsed,
           } satisfies LlmResponse;
         } finally {
           clearTimeout(timer);

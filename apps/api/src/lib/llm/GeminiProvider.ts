@@ -11,7 +11,7 @@
  * should import Gemini-specific types or URL patterns.
  */
 
-import type { LlmProvider, LlmRequest } from './llmTypes.js';
+import type { LlmProvider, LlmProviderResult, LlmRequest } from './llmTypes.js';
 import {
   LlmClientError,
   LlmParseError,
@@ -30,8 +30,15 @@ type GeminiCandidate = {
   content?: GeminiCandidateContent;
 };
 
+type GeminiUsageMetadata = {
+  promptTokenCount?: number;
+  candidatesTokenCount?: number;
+  totalTokenCount?: number;
+};
+
 type GeminiGenerateContentResponse = {
   candidates?: GeminiCandidate[];
+  usageMetadata?: GeminiUsageMetadata;
 };
 
 export class GeminiProvider implements LlmProvider {
@@ -43,7 +50,7 @@ export class GeminiProvider implements LlmProvider {
     }
   }
 
-  async complete(request: LlmRequest, model: string, signal: AbortSignal): Promise<string> {
+  async complete(request: LlmRequest, model: string, signal: AbortSignal): Promise<LlmProviderResult> {
     const url = `${GEMINI_BASE_URL}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(this.apiKey)}`;
 
     const body = JSON.stringify({
@@ -99,7 +106,8 @@ export class GeminiProvider implements LlmProvider {
       throw new LlmParseError('Gemini returned empty candidate text');
     }
 
-    return text;
+    const tokensUsed = payload.usageMetadata?.totalTokenCount;
+    return { text, tokensUsed };
   }
 
   private async throwForStatus(res: Response, model: string): Promise<never> {

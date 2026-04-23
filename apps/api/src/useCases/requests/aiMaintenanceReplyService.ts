@@ -35,6 +35,7 @@ export type AiMaintenanceReplyResult = {
   modelName: string;
   providerUsed: 'remote' | 'unavailable';
   promptVersion: string;
+  tokensUsed?: number;
 };
 
 const PROMPT_VERSION = 'elsa-guardrails-v5-pure-ai';
@@ -259,5 +260,6 @@ export async function suggestReply(
     modelName: response.model,
     providerUsed: 'remote',
     promptVersion: PROMPT_VERSION,
+    tokensUsed: response.tokensUsed,
   };
 }
