@@ -1,0 +1,43 @@
+---
+alwaysApply: true
+---
+
+# Quality bar (every phase)
+
+Every phase must hold this line — Define questions against it, Implement builds to it, Test covers it, Validate audits for it. This rule is always on and complements the phase-specific rules (`workflow.mdc`, `phase-*.mdc`).
+
+## Component reuse & UI/UX consistency
+
+- **Before creating a new component, search for an existing one.** Grep `src/components/` and `src/pages/` for similar patterns (cards, dialogs, wizards, form fields, empty/loading/error states). Extending or composing an existing component beats adding a near-duplicate.
+- **Match established patterns.** Buttons, spacing, typography scale, icons, form layout, empty/loading/error states, dialog chrome, navigation, focus rings, motion — all should look and behave like the rest of the app.
+- **Reuse shared primitives**: MUI components + theme tokens; `PrintHeader`; `withDarkPath`; `applyThemeCssVariables`; `getContrastText`; any `packages/*` helpers for portal work. Do not hand-roll equivalents.
+- **Any new UI pattern must be explicitly called out and approved** (it is an "Ask first" item). Don't introduce visual drift silently.
+
+## Localization (i18n)
+
+- **All user-visible strings** through `useTranslation()`, including `aria-label`s, placeholders, validation messages, empty-state copy, toast text, print-only labels, `<title>`, meta descriptions.
+- **Add keys to all four locale files simultaneously**: `en`, `es`, `fr`, `ar`. A key in only one locale is a bug.
+- **Proper nouns** (HAR.com, Section 8, etc.) are not translated.
+- **Split-link pattern** (`prefix` / `linkText` / `suffix`) for sentences with inline links — never concatenate translated fragments.
+- **RTL**: logical CSS (`margin-inline-start`, `padding-inline-end`, `inset-inline-start`) — never `margin-left`, `padding-right`, `left`, `right`. Verify direction-dependent behavior in `ar`.
+- **No manually formatted dates, numbers, currencies** — use `Intl` APIs.
+
+## Accessibility (WCAG 2.1 AA)
+
+- **Semantic HTML first** — `button` not clickable `div`; headings in order; landmarks (`main`, `nav`, `aside`).
+- **Labels everywhere** — input/label pairs, `aria-label` on icon-only buttons, meaningful `alt` (or `alt=""` for decorative).
+- **Keyboard reachability** — every interactive element focusable and operable; visible focus ring; logical tab order; `Escape` closes dialogs; focus trap inside modals.
+- **Contrast ~4.5:1** normal / 3:1 large; use `getContrastText` or dedicated tokens on colored bars; verify in light **and** dark.
+- **Motion** — respect `prefers-reduced-motion`.
+- **Live regions** for async status.
+
+## Privacy
+
+- **Data minimization** — collect only what the feature needs. If the spec asks for more, challenge it.
+- **No PII** (email, phone, full name, address, DOB, SSN, government IDs, tenant documents, lease terms) in logs, error messages, analytics events, URLs, or client-side storage (localStorage / sessionStorage / cookies) unless the spec explicitly authorizes it and it is necessary.
+- **Consent** — any tracking, analytics, marketing pixels, session recording, or third-party embed needs a consent gate and documented lawful basis. Use existing document-consent patterns where applicable.
+- **Secrets in client code are a Blocker** — no API keys, connection strings, or tokens in the SPA bundle. Portal secrets live in Azure App Settings / GitHub secrets per `infra/azure/README.md`.
+- **Third-party requests** — every new external fetch (fonts, scripts, iframes, maps, analytics) is a data-leak surface. Justify or prefer self-hosted/consent-gated alternatives.
+- **Auth & authorization** — every new `apps/api` route has an auth guard matching neighbors; ownership checks on every record-scoped query (no IDOR via `{id}` routes).
+- **Retention & deletion** — new user-linked data needs a documented delete path consistent with existing user-deletion flows (reassignments / nullifications / consent cleanup).
+- **Printed and exported artifacts** (print views, CSV/PDF exports) can leak PII too — audit them for unnecessary fields.

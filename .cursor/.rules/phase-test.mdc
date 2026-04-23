@@ -55,6 +55,15 @@ If you believe a production change is needed to make a test pass or make code te
 2. Confirm it passes against current code.
 3. Comment only if the failure mode is non-obvious.
 
+## Quality-bar coverage (add when applicable)
+
+For any meaningful UI or API change, include tests covering the `quality-bar.mdc` concerns — not just the happy path:
+
+- **Localization** — assert key presence in all 4 locales where feasible; render RTL-sensitive components with `ar` and assert direction-dependent behavior; never snapshot translated text.
+- **Accessibility** — assert semantic role and accessible name for new interactive elements; keyboard reachability (focus + Enter/Space + Escape); label associations. Use `@testing-library/jest-dom` matchers and Playwright accessibility checks where available.
+- **Privacy** — assert PII does not leak into URLs, logs, analytics events, thrown error messages, or client-side storage; assert auth-protected API routes reject unauthenticated and cross-tenant requests; assert ownership checks on `{id}` routes reject other users' records.
+- **Reuse** — if the change refactors toward a shared component, add a regression test that previous call sites still render correctly.
+
 ## Style
 
 - Arrange / Act / Assert. One behavior per test.

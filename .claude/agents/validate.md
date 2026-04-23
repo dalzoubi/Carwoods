@@ -46,8 +46,6 @@ Short pass: Spoofing, Tampering, Repudiation, Info disclosure, DoS, Elevation of
 - Broad refactors in shared code (`src/components`, `packages/`, `apps/api/src/shared`).
 
 ### Carwoods-specific regressions
-- Hard-coded English in JSX (should be `useTranslation()` keys).
-- Missing i18n keys in any of the 4 locales (en, es, fr, ar).
 - Hard-coded hex colors in components (should be MUI theme tokens / CSS vars).
 - Physical CSS directions (`margin-left`, `padding-right`, `left:`, `right:`) — should be logical (`margin-inline-start`, etc.).
 - Reversed provider order in `index.jsx` (must be `LanguageProvider` → `ThemeModeProvider` → app).
@@ -57,11 +55,38 @@ Short pass: Spoofing, Tampering, Repudiation, Info disclosure, DoS, Elevation of
 - Light-only inline styles in shared flows (wizards, dialogs).
 - Missing `/dark` preview wiring for new routes; missing `withDarkPath` on new internal links.
 
+### Component reuse & UI/UX consistency
+- **Duplicate components** — any near-duplicate of an existing component in `src/components/` or `src/pages/`? Should it extend/compose instead? Flag as High if a shared primitive was reinvented.
+- **Pattern consistency** — buttons, spacing, typography scale, empty/loading/error states, dialog chrome, focus rings, motion — match the surrounding surface? Flag visual drift.
+- **Shared primitives bypassed** — `PrintHeader`, `withDarkPath`, `applyThemeCssVariables`, `getContrastText`, `packages/*` helpers. If a hand-rolled equivalent appears, flag it.
+- **New UI patterns** — introduced without being called out in the spec? Flag as scope creep.
+
+### Localization (i18n)
+- Hard-coded English in JSX (including `aria-label`s, placeholders, validation messages, empty-state copy, toast text, print-only labels, `<title>`, meta descriptions).
+- Missing i18n keys in any of the 4 locales (en, es, fr, ar); keys present in only one locale.
+- Translated proper nouns (HAR.com, Section 8) — should not be translated.
+- Concatenated translated fragments instead of `prefix`/`linkText`/`suffix` split-link pattern.
+- Manually formatted dates/numbers/currencies instead of `Intl` APIs.
+- RTL-breaking physical CSS (already flagged above).
+
 ### Accessibility (WCAG 2.1 AA) on new/changed UI
-- Contrast (~4.5:1 normal text; check `getContrastText` / dedicated tokens on colored bars).
-- Keyboard reachability and focus order.
-- Semantic roles, labels, alt text.
-- Heading hierarchy not broken.
+- Clickable `div`s / `span`s instead of `button`.
+- Missing `label` association on inputs; missing `aria-label` on icon-only buttons; missing or misleading `alt`.
+- Keyboard unreachable elements; missing visible focus ring; broken tab order; dialogs that don't trap focus or close on `Escape`.
+- Contrast below ~4.5:1 normal / 3:1 large; verify in light **and** dark.
+- Skipped heading levels; missing landmarks.
+- Auto-playing motion without `prefers-reduced-motion` respect.
+- Async status updates without a live region.
+
+### Privacy
+- **PII leakage** — email, phone, full name, address, DOB, SSN, government IDs, tenant documents, or lease terms appearing in: logs, error messages, analytics events, URL paths/query strings, client-side storage (localStorage/sessionStorage/cookies), or exported artifacts (print views, CSV/PDF exports). Any hit → **Blocker or High** depending on sensitivity.
+- **Secrets in client code** — API keys, connection strings, tokens in the SPA bundle or committed env files → **Blocker**.
+- **Consent gaps** — new analytics, marketing pixels, session recording, or third-party embeds without a consent gate and documented lawful basis.
+- **New third-party requests** — fonts, scripts, iframes, maps, analytics. Each is a data-leak surface; justify or flag.
+- **Auth on new `apps/api` routes** — missing guard matching neighbors → **Blocker**.
+- **IDOR / authorization gaps** — `{id}` routes without ownership checks; cross-tenant data access possible → **Blocker**.
+- **Retention & deletion** — new user-linked data without a documented delete path consistent with existing user-deletion flows (reassignments / nullifications / consent cleanup).
+- **Data minimization** — fields collected or stored beyond what the spec requires.
 
 ### Performance
 - Obvious N+1 in `apps/api`.

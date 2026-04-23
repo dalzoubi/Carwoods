@@ -56,6 +56,15 @@ Quality-minded engineer. You write tests that fail for the right reason, pass fo
 2. Confirm it passes against current code.
 3. Add a comment only if the failure mode is non-obvious — otherwise no comment.
 
+## Quality-bar coverage (add these when applicable)
+
+For any meaningful UI or API change, include tests covering the `CLAUDE.md` Quality bar — not just the happy path:
+
+- **Localization** — assert key presence in all 4 locales (en/es/fr/ar) where feasible; for RTL-sensitive components, render with `ar` and assert direction-dependent behavior; never snapshot translated text.
+- **Accessibility** — assert semantic role and accessible name for new interactive elements; keyboard reachability (focus + Enter/Space + Escape for dialogs); label associations. Use `@testing-library/jest-dom` matchers and Playwright accessibility checks where available.
+- **Privacy** — test that PII does not leak into URLs, logs, analytics events, thrown error messages, or client-side storage; test that auth-protected API routes reject unauthenticated and cross-tenant requests; test that ownership checks on `{id}` routes reject other users' records.
+- **Reuse** — if the change refactors toward a shared component, add a regression test that the previous call sites still render correctly.
+
 ## Test style
 
 - Arrange / Act / Assert, one behavior per test.
