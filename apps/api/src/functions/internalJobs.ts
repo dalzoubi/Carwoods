@@ -13,6 +13,7 @@ import { writeAudit } from '../lib/auditRepo.js';
 import { processNotificationOutboxBatch } from '../lib/processNotificationOutboxBatch.js';
 import { processNotificationDeliveryBatch } from '../lib/processNotificationDeliveryBatch.js';
 import { expireReadOnlyGraceWindows } from '../lib/tenantLifecycleRepo.js';
+import { aggregateDailyCosts, isValidDateString, yesterdayUtc } from '../lib/costRollupService.js';
 
 const SYSTEM_TIMER_ACTOR_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -379,5 +380,73 @@ if (!portalAccessExpiryTimerDisabled()) {
   app.timer('portalAccessExpiryTimer', {
     schedule: portalAccessExpiryTimerSchedule(),
     handler: portalAccessExpiryOnTimer,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Daily cost rollup — aggregates cost_events → cost_daily_rollup
+// Runs once nightly (default 02:00 UTC). HTTP endpoint allows manual backfill.
+// ---------------------------------------------------------------------------
+
+function costRollupTimerDisabled(): boolean {
+  return String(process.env.COST_ROLLUP_TIMER_DISABLED ?? '').trim().toLowerCase() === 'true';
+}
+
+function costRollupTimerSchedule(): string {
+  const raw = process.env.COST_ROLLUP_TIMER_CRON?.trim();
+  return raw && raw.length > 0 ? raw : '0 0 2 * * *';
+}
+
+async function runCostRollup(context: InvocationContext, targetDate: string): Promise<RollupResult> {
+  const pool = getPool();
+  const result = await aggregateDailyCosts(pool, targetDate);
+  logInfo(context, 'cost.rollup.complete', result);
+  return result;
+}
+
+type RollupResult = { date: string; rowsDeleted: number; rowsInserted: number };
+
+async function costRollupOnTimer(_timer: Timer, context: InvocationContext): Promise<void> {
+  if (costRollupTimerDisabled()) return;
+  try {
+    await runCostRollup(context, yesterdayUtc());
+  } catch (error) {
+    logWarn(context, 'cost.rollup.failed', {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+async function costRollupHttp(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  const gate = await requireLandlordOrAdmin(request, context);
+  if (!gate.ok) return gate.response;
+  const { ctx } = gate;
+  if (request.method !== 'POST') {
+    return jsonResponse(405, ctx.headers, { error: 'method_not_allowed' });
+  }
+
+  const dateParam = request.query.get('date')?.trim() ?? yesterdayUtc();
+  if (!isValidDateString(dateParam)) {
+    return jsonResponse(400, ctx.headers, { error: 'invalid_date', hint: 'Use YYYY-MM-DD' });
+  }
+
+  const result = await runCostRollup(context, dateParam);
+  return jsonResponse(200, ctx.headers, result);
+}
+
+app.http('internalCostRollup', {
+  methods: ['POST', 'OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'internal/jobs/aggregate-daily-costs',
+  handler: costRollupHttp,
+});
+
+if (!costRollupTimerDisabled()) {
+  app.timer('costRollupTimer', {
+    schedule: costRollupTimerSchedule(),
+    handler: costRollupOnTimer,
   });
 }
