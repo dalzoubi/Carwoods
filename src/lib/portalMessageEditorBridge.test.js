@@ -51,4 +51,39 @@ describe('portalMessageEditorBridge', () => {
     expect(view).toContain('noopener');
     expect(view).toContain('_blank');
   });
+
+  describe('renderPortalMessageMarkdownToHtml — XSS sanitization pins', () => {
+    it('escapes raw <script> tags in source markdown', () => {
+      // eslint-disable-next-line no-script-url -- intentional negative test
+      const view = renderPortalMessageMarkdownToHtml('<script>alert(1)</script>');
+      expect(view).not.toMatch(/<script\b/i);
+      expect(view).toContain('&lt;script&gt;');
+    });
+
+    it('escapes raw <img onerror> tags in source markdown', () => {
+      const view = renderPortalMessageMarkdownToHtml('<img src=x onerror=alert(1)>');
+      expect(view).not.toMatch(/<img\b/i);
+      expect(view).toContain('&lt;img');
+    });
+
+    it('neutralizes javascript: links (no anchor rendered)', () => {
+      // eslint-disable-next-line no-script-url -- intentional negative test
+      const view = renderPortalMessageMarkdownToHtml('[evil](javascript:alert(1))');
+      expect(view).not.toMatch(/<a\b/i);
+      expect(view).not.toMatch(/href\s*=\s*"?javascript:/i);
+    });
+
+    it('renders safe external https links with rel="noopener noreferrer" and target="_blank"', () => {
+      const view = renderPortalMessageMarkdownToHtml('[ok](https://example.com)');
+      expect(view).toMatch(/<a\b/i);
+      expect(view).toContain('href="https://example.com"');
+      expect(view).toContain('rel="noopener noreferrer"');
+      expect(view).toContain('target="_blank"');
+    });
+
+    it('still renders standard inline formatting (sanity)', () => {
+      const view = renderPortalMessageMarkdownToHtml('**bold**');
+      expect(view).toContain('<strong>bold</strong>');
+    });
+  });
 });
