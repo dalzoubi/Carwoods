@@ -76,6 +76,6 @@ Invoke when applicable: `add-translation` (i18n key across 4 locales), `theme-au
 ## Tooling preferences
 
 - `Read`/`Edit`/`Write` over `cat`/`sed`/`echo`.
-- `Explore` agent for broad codebase searches (>3 queries).
+- `Plan` subagent before large multi-file changes — draft a step-by-step plan, present it, and wait for user approval before editing.
+- `Explore` subagent for broad codebase searches (>3 queries) or when you need to map an unfamiliar area before touching it.
 - `TodoWrite` for any task with 3+ distinct steps.
-- `Plan` agent before large multi-file changes.
