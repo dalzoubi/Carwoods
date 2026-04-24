@@ -178,7 +178,12 @@
     "contactBody": "للأسئلة المتعلقة بالخصوصية أو لطلب الوصول إلى معلوماتك، تواصل معنا عبر صفحة",
     "contactLink": "اتصل بنا",
     "contactBodySuffix": "",
-    "lastUpdated": "آخر تحديث: أبريل 2026"
+    "lastUpdated": "آخر تحديث: أبريل 2026",
+    "analytics": {
+      "toggleLabel": "Share usage analytics",
+      "helperText": "Anonymous usage analytics help us improve the site.",
+      "dntLocked": "Disabled by your browser's Do Not Track setting."
+    }
   },
   "terms": {
     "title": "كارووودز - شروط الخدمة",

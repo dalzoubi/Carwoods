@@ -178,7 +178,12 @@
     "contactBody": "Pour les questions liées à la confidentialité ou pour demander l'accès à vos informations, contactez-nous via notre page",
     "contactLink": "Contactez-nous",
     "contactBodySuffix": "",
-    "lastUpdated": "Dernière mise à jour : avril 2026"
+    "lastUpdated": "Dernière mise à jour : avril 2026",
+    "analytics": {
+      "toggleLabel": "Share usage analytics",
+      "helperText": "Anonymous usage analytics help us improve the site.",
+      "dntLocked": "Disabled by your browser's Do Not Track setting."
+    }
   },
   "terms": {
     "title": "Carwoods - Conditions d'utilisation",

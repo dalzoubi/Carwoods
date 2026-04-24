@@ -12,6 +12,7 @@ import {
   Menu,
   MenuItem,
   Stack,
+  Switch,
   Tooltip,
   Typography,
 } from '@mui/material';
@@ -29,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { usePortalAuth } from '../PortalAuthContext';
 import { stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
 import { useThemeMode } from '../ThemeModeContext';
+import { useAnalyticsEnabled } from '../hooks/useAnalyticsEnabled';
 import { FEATURE_DARK_THEME } from '../featureFlags';
 import { isGuestRole, normalizeRole, resolveDisplayName, resolveRole } from '../portalUtils';
 import { Role } from '../domain/constants.js';
@@ -133,6 +135,11 @@ export function PortalAccountMenu({ anchorEl, open, onClose, menuProps }) {
     setOverrideDark,
     resetOverride,
   } = useThemeMode();
+  const {
+    optOut: analyticsOptOut,
+    setOptOut: setAnalyticsOptOut,
+    dntActive: analyticsDntActive,
+  } = useAnalyticsEnabled();
   const [signOutOpen, setSignOutOpen] = useState(false);
   const [appearanceExpanded, setAppearanceExpanded] = useState(false);
 
@@ -305,6 +312,43 @@ export function PortalAccountMenu({ anchorEl, open, onClose, menuProps }) {
                 </MenuItem>
               </>
             )}
+            <Divider sx={{ my: 0.5 }} />
+            <MenuItem
+              dense
+              disabled={analyticsDntActive}
+              aria-disabled={analyticsDntActive}
+              onClick={() => {
+                if (analyticsDntActive) return;
+                setAnalyticsOptOut(!analyticsOptOut);
+              }}
+              sx={{ alignItems: 'center', gap: 1 }}
+            >
+              <ListItemText
+                primary={t('privacy.analytics.toggleLabel')}
+                primaryTypographyProps={{ fontSize: '0.875rem' }}
+                sx={{ flex: '1 1 auto', my: 0 }}
+              />
+              <Switch
+                edge={false}
+                size="small"
+                checked={!analyticsOptOut && !analyticsDntActive}
+                disabled={analyticsDntActive}
+                inputProps={{ 'aria-label': t('privacy.analytics.toggleLabel') }}
+                onClick={(event) => event.stopPropagation()}
+                onChange={(event) => {
+                  if (analyticsDntActive) return;
+                  setAnalyticsOptOut(!event.target.checked);
+                }}
+              />
+            </MenuItem>
+            <Typography
+              variant="caption"
+              sx={{ px: 2, pb: 0.5, display: 'block', color: 'text.secondary', maxWidth: 260 }}
+            >
+              {analyticsDntActive
+                ? t('privacy.analytics.dntLocked')
+                : t('privacy.analytics.helperText')}
+            </Typography>
           </Box>
         </Collapse>
         <Divider />

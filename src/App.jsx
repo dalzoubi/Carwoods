@@ -29,6 +29,23 @@ import PortalRouteGuard from './components/PortalRouteGuard';
 import { isDarkPreviewRoute, isPortalRoute } from './routePaths';
 import { Role } from './domain/constants';
 import { useProfilePreferenceSync } from './hooks/useProfilePreferenceSync';
+import { useAnalyticsEnabled } from './hooks/useAnalyticsEnabled';
+
+/**
+ * Renders Vercel's analytics + speed-insights probes only when the user is
+ * effectively opted in. The hook combines the persisted opt-out preference
+ * with the browser's Do Not Track signal — see `useAnalyticsEnabled`.
+ */
+function ConditionalTelemetry() {
+    const { enabled } = useAnalyticsEnabled();
+    if (!enabled) return null;
+    return (
+        <>
+            <Analytics />
+            <SpeedInsights />
+        </>
+    );
+}
 
 const PortalDashboard = lazy(() => import('./components/PortalDashboard'));
 const PortalStatus = lazy(() => import('./components/PortalStatus'));
@@ -305,8 +322,7 @@ function MarketingApp() {
                 </Content>
             </Container>
             <Footer />
-            <Analytics />
-            <SpeedInsights />
+            <ConditionalTelemetry />
         </AppShell>
     );
 }
@@ -333,8 +349,7 @@ function PortalApp() {
                     </PortalLayout>
                 </PortalRequestDetailModalProvider>
             </PortalAuthGate>
-            <Analytics />
-            <SpeedInsights />
+            <ConditionalTelemetry />
         </>
     );
 }

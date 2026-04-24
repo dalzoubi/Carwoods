@@ -178,7 +178,12 @@
     "contactBody": "Para preguntas relacionadas con la privacidad o para solicitar acceso a su información, contáctenos a través de nuestra página de",
     "contactLink": "Contáctenos",
     "contactBodySuffix": "",
-    "lastUpdated": "Última actualización: abril de 2026"
+    "lastUpdated": "Última actualización: abril de 2026",
+    "analytics": {
+      "toggleLabel": "Share usage analytics",
+      "helperText": "Anonymous usage analytics help us improve the site.",
+      "dntLocked": "Disabled by your browser's Do Not Track setting."
+    }
   },
   "terms": {
     "title": "Carwoods - Términos del Servicio",

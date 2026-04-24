@@ -19,6 +19,7 @@ import {
     Box,
     Tooltip,
     Collapse,
+    Switch,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown';
@@ -36,6 +37,7 @@ import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useThemeMode } from '../ThemeModeContext';
 import { useLanguage } from '../LanguageContext';
 import { usePortalAuth } from '../PortalAuthContext';
+import { useAnalyticsEnabled } from '../hooks/useAnalyticsEnabled';
 import { FEATURE_DARK_THEME } from '../featureFlags';
 import { isPrintablePageRoute, stripDarkPreviewPrefix, withDarkPath } from '../routePaths';
 import { useTranslation } from 'react-i18next';
@@ -150,6 +152,11 @@ const ResponsiveNavbar = () => {
     } = useLanguage();
     const { isAuthenticated } = usePortalAuth();
     const { t, i18n } = useTranslation();
+    const {
+        optOut: analyticsOptOut,
+        setOptOut: setAnalyticsOptOut,
+        dntActive: analyticsDntActive,
+    } = useAnalyticsEnabled();
 
     const [legalExpanded, setLegalExpanded] = useState(false);
 
@@ -1110,7 +1117,7 @@ const ResponsiveNavbar = () => {
                                     handleAppearanceClose();
                                 }}
                             >
-                                <LightMode fontSize="small" sx={{ mr: 1 }} />
+                                <LightMode fontSize="small" sx={{ marginInlineEnd: 1 }} />
                                 {t('appearance.exitPreview')}
                             </MenuItem>
                         </>
@@ -1126,7 +1133,7 @@ const ResponsiveNavbar = () => {
                                 }}
                                 selected={storedOverride === 'light'}
                             >
-                                <LightMode fontSize="small" sx={{ mr: 1 }} />
+                                <LightMode fontSize="small" sx={{ marginInlineEnd: 1 }} />
                                 {t('appearance.light')}
                             </MenuItem>
                             <MenuItem
@@ -1136,7 +1143,7 @@ const ResponsiveNavbar = () => {
                                 }}
                                 selected={storedOverride === 'dark'}
                             >
-                                <DarkMode fontSize="small" sx={{ mr: 1 }} />
+                                <DarkMode fontSize="small" sx={{ marginInlineEnd: 1 }} />
                                 {t('appearance.dark')}
                             </MenuItem>
                             <Divider />
@@ -1147,7 +1154,7 @@ const ResponsiveNavbar = () => {
                                 }}
                                 disabled={storedOverride === null}
                             >
-                                <RestartAlt fontSize="small" sx={{ mr: 1 }} />
+                                <RestartAlt fontSize="small" sx={{ marginInlineEnd: 1 }} />
                                 {t('appearance.useDeviceSetting')}
                             </MenuItem>
                             <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', color: 'text.secondary', maxWidth: 260 }}>
@@ -1155,6 +1162,39 @@ const ResponsiveNavbar = () => {
                             </Typography>
                         </>
                     )}
+                    <Divider />
+                    <MenuItem
+                        onClick={() => {
+                            if (analyticsDntActive) return;
+                            setAnalyticsOptOut(!analyticsOptOut);
+                        }}
+                        disabled={analyticsDntActive}
+                        aria-disabled={analyticsDntActive}
+                        sx={{ alignItems: 'center', gap: 1 }}
+                    >
+                        <ListItemText
+                            primary={t('privacy.analytics.toggleLabel')}
+                            primaryTypographyProps={{ fontSize: '0.9rem' }}
+                            sx={{ flex: '1 1 auto', my: 0 }}
+                        />
+                        <Switch
+                            edge={false}
+                            size="small"
+                            checked={!analyticsOptOut && !analyticsDntActive}
+                            disabled={analyticsDntActive}
+                            inputProps={{ 'aria-label': t('privacy.analytics.toggleLabel') }}
+                            onClick={(event) => event.stopPropagation()}
+                            onChange={(event) => {
+                                if (analyticsDntActive) return;
+                                setAnalyticsOptOut(!event.target.checked);
+                            }}
+                        />
+                    </MenuItem>
+                    <Typography variant="caption" sx={{ px: 2, pb: 1, display: 'block', color: 'text.secondary', maxWidth: 260 }}>
+                        {analyticsDntActive
+                            ? t('privacy.analytics.dntLocked')
+                            : t('privacy.analytics.helperText')}
+                    </Typography>
                 </Menu>
             ) : null}
             <Menu
