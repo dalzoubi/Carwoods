@@ -234,6 +234,21 @@ export function buildTheme(mode, isRTL = false) {
                       text: '#ffffff',
                       hover: '#63a4ff',
                   },
+            requestStatus: isDark
+                ? {
+                      notStarted: { bg: 'rgba(255, 255, 255, 0.16)', fg: '#F3F4F6', border: 'rgba(255, 255, 255, 0.34)' },
+                      acknowledged: { bg: '#8A6A12', fg: '#FFF4CC', border: '#D9A635' },
+                      waiting: { bg: '#8C3F35', fg: '#FFD9D4', border: '#D78578' },
+                      complete: { bg: '#2F6F45', fg: '#D8F6DE', border: '#74C78D' },
+                      cancelled: { bg: '#4A5160', fg: '#E5E7EB', border: '#8A92A3' },
+                  }
+                : {
+                      notStarted: { bg: '#FFFFFF', fg: '#111827', border: '#D1D5DB' },
+                      acknowledged: { bg: '#FFE8A3', fg: '#5B3D00', border: '#E2B93B' },
+                      waiting: { bg: '#F7B0A8', fg: '#5C1E16', border: '#D77E73' },
+                      complete: { bg: '#B9E7C3', fg: '#133B1F', border: '#7BC68A' },
+                      cancelled: { bg: '#D7D9DE', fg: '#2E3440', border: '#B4BAC5' },
+                  },
         },
         typography,
         shape,
