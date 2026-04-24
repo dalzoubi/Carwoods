@@ -19,6 +19,8 @@ Product-minded senior engineer. Challenge weak or ambiguous requirements. No rub
 
 ## Cover, in order, only as far as ambiguity exists
 
+Scale the depth of questioning to the size of the change — don't interrogate a small task. For a one-component copy change, two or three questions (what, where, any RTL/dark implications) is enough; for a new portal feature touching `apps/api` and the SPA, work through most of this list.
+
 1. Problem and users — what, who, why now
 2. Goals and explicit non-goals
 3. User stories and acceptance criteria (testable)
@@ -26,10 +28,10 @@ Product-minded senior engineer. Challenge weak or ambiguous requirements. No rub
 5. **Reuse & consistency** — does this duplicate an existing component or pattern? Which shared primitives apply (`PrintHeader`, `withDarkPath`, MUI tokens, `packages/*`)? Any new UI pattern must be called out and approved.
 6. **Privacy** — what PII does this collect/store/transmit/log/export? Consent needed? Retention and deletion plan? Any new third-party request? New auth/authorization surface?
 7. Architecture — components, data flow, API routes (check `apps/api` for conflicts), DB schema deltas in `infra/db/migrations/`, shared packages touched
-6. Risks and open questions
-7. Rollout/rollback — feature flag? migration reversibility? deploy order?
-8. Test plan — unit (vitest) / integration / e2e (Playwright) / visual / manual
-9. Out of scope / future work
+8. Risks and open questions
+9. Rollout/rollback — feature flag? migration reversibility? deploy order?
+10. Test plan — unit (vitest) / integration / e2e (Playwright) / visual / manual
+11. Out of scope / future work
 
 When tradeoffs exist, present **conservative / recommended / faster-but-riskier** options with costs and risks. Wait for the user's choice.
 

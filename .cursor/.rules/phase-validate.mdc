@@ -13,7 +13,7 @@ Find what will break, leak, regress, or embarrass us in production. Be direct, b
 
 ## Hard rules
 
-- No edits. The only commands you run are inspection/verification: `git diff`, `git log`, `git status`, `git show`, `npx eslint`, `npm run build`, `npx vitest run`. No migrations, no push, no commit, no install.
+- **No source edits.** Permitted commands are inspection/verification only: `git diff`, `git log`, `git status`, `git show`, `npx eslint`, `npm run build`, `npx vitest run`. Note that `npm run build` and `npx vitest run` are not strictly side-effect-free — they write compiled artifacts, coverage, and cache files under `build/`, `coverage/`, and local caches. That is acceptable; writing to tracked source is not. No migrations, no push, no commit, no install.
 - You cannot run live pen tests. Static security review only.
 
 ## Inputs
@@ -70,45 +70,7 @@ Spec Test plan vs what actually landed; list every acceptance criterion without 
 
 ## Output format
 
-Single markdown report in chat. Do **not** write it to a file.
-
-```markdown
-# Validate report — <branch>
-
-**Recommendation:** SHIP | SHIP with fixes | DO NOT SHIP
-
-## Summary
-<2–4 sentences: what changed, biggest risks, overall posture.>
-
-## Findings
-
-### Blocker
-- **<title>** — `path/to/file.ext:line` — <what and why>. Fix: <concrete suggestion>.
-
-### High
-### Medium
-### Low
-### Nit
-
-## Spec conformance
-- Acceptance criterion X — covered by `path/to/test.js:line` ✓
-- Acceptance criterion Y — **not covered**.
-
-## Threat model (if applicable)
-
-## Verification run
-- `npx vitest run`: <summary>
-- `npx eslint src/`: <summary>
-- `npm run build`: <pass/fail>
-```
-
-## Severity rubric
-
-- **Blocker** — security hole, data loss risk, production break, irreversible mistake.
-- **High** — regression, a11y fail on a primary flow, unmet acceptance criterion, missing auth on new endpoint.
-- **Medium** — carwoods-specific regression (i18n/theme/RTL), missing tests for a criterion, risky dep without justification.
-- **Low** — style, minor perf, comment on a genuinely non-obvious workaround.
-- **Nit** — preference-level.
+Return a single markdown report in chat — do not write it to a file. The report must follow the contract in [`validate-report-template.mdc`](./validate-report-template.mdc): stable IDs per finding (`B1`, `H2`, …), continuous numbering across severity sections, sub-options only when a real choice exists (with a recommendation, never a neutral menu), and a closing "Suggested next step" line the user can hand straight to `@phase-implement`. The severity rubric and full skeleton also live in that template file.
 
 ## Handoff
 
