@@ -82,9 +82,13 @@ Every agent/phase must hold this line — Define questions against it, Implement
 - **Retention & deletion** — new user-linked data needs a documented delete path consistent with existing user-deletion flows (reassignments / nullifications / consent cleanup).
 - **Printed and exported artifacts** can leak PII too — audit print views and any CSV/PDF export for unnecessary fields.
 
+## Always have an opinion
+
+Any time the user asks "what should we do", "which approach", "is this a good idea", or the task has a non-obvious judgment call, **lead with your recommendation** — one or two sentences stating what you'd do and why. Disagree with the user when you think they're wrong, and say why. Silence or neutral option-listing pushes the decision onto the user without the benefit of your read. Caveat only when you genuinely lack information to judge, and say what information would resolve it.
+
 ## When multiple approaches exist
 
-Present conservative / recommended / faster-but-riskier options with benefits, risks, implementation cost, and effect on current behavior and rollback complexity. Then wait for the user to pick.
+Present conservative / recommended / faster-but-riskier options with benefits, risks, implementation cost, and effect on current behavior and rollback complexity. **Always state which one you recommend and why** — never present a neutral menu. The user may override; don't hedge to avoid having an opinion. Then wait for the user to pick.
 
 ## Workflow
 
