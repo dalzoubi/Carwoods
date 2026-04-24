@@ -309,14 +309,17 @@ export function formDataToApiBody(data) {
 
 /**
  * Parse "City, State Zip" or "City, ST 12345" into structured parts.
- * Falls back gracefully — the backend validates required fields.
+ * Falls back gracefully — when the input cannot be parsed, `state` and `zip`
+ * are returned as `undefined` so that `JSON.stringify` omits them from the
+ * API body. The server treats missing fields as "no change" but rejects
+ * present-but-empty strings, so omission is the correct wire behavior here.
  *
  * @param {string} raw
- * @returns {{ city: string, state: string, zip: string }}
+ * @returns {{ city: string | undefined, state: string | undefined, zip: string | undefined }}
  */
 function parseCityStateZip(raw) {
   const s = raw.trim();
-  if (!s) return { city: '', state: '', zip: '' };
+  if (!s) return { city: undefined, state: undefined, zip: undefined };
 
   // Match "City, ST 12345-6789" or "City, State 12345"
   const match = s.match(/^(.+?),\s*([A-Za-z ]+?)\s+(\d{5}(?:-\d{4})?)$/);
@@ -331,11 +334,12 @@ function parseCityStateZip(raw) {
   // Match "City, ST" (no zip)
   const noZip = s.match(/^(.+?),\s*([A-Za-z ]+)$/);
   if (noZip) {
-    return { city: noZip[1].trim(), state: noZip[2].trim(), zip: '' };
+    return { city: noZip[1].trim(), state: noZip[2].trim(), zip: undefined };
   }
 
-  // Last resort: put everything in city
-  return { city: s, state: '', zip: '' };
+  // Last resort: put everything in city, omit state/zip so the API doesn't
+  // reject them as empty strings.
+  return { city: s, state: undefined, zip: undefined };
 }
 
 // ---------------------------------------------------------------------------
