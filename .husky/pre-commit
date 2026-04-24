@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+
+leaked=$(git diff --cached --diff-filter=AM | grep -nE '^\+.*AIza[0-9A-Za-z_-]{30,}' || true)
+
+if [ -n "$leaked" ]; then
+    echo ""
+    echo "Pre-commit blocked: potential Google / Firebase API key in staged diff."
+    echo "  Pattern matched:"
+    echo "$leaked" | head -5
+    echo ""
+    echo "  If this is a placeholder in *.example or *.sample, rename to avoid the AIza prefix."
+    echo "  Bypass intentionally only with '--no-verify' (not recommended)."
+    exit 1
+fi
+
+exit 0

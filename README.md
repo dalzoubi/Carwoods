@@ -21,6 +21,10 @@ npm install
 npm run build:api
 ```
 
+## Pre-commit hook
+
+`npm install` wires up a husky pre-commit hook that greps staged diffs for Google / Firebase API key patterns (`AIza…`) and blocks the commit if any are found. If a false positive appears (for example a renamed `.example` placeholder), rename to drop the `AIza` prefix; bypass intentionally only with `git commit --no-verify`.
+
 ## Available Scripts
 
 In the project directory, you can run:
