@@ -41,6 +41,8 @@ Q&A rules:
 - No implementation suggestions mid-Q&A unless asked.
 - Ground questions by reading referenced files — do not produce a research report.
 
+Scale the depth of questioning to the size of the change — don't interrogate a small task. For a one-component copy change, two or three questions is enough; for a new portal feature touching apps/api and the SPA, work through most of the list below.
+
 Cover in order, only as far as ambiguity exists: problem & users → goals/non-goals → user stories & acceptance criteria → UX (routes, i18n keys across en/es/fr/ar, RTL/dark/print, WCAG 2.1 AA) → REUSE & CONSISTENCY (does this duplicate an existing component/pattern? which shared primitives apply — PrintHeader, withDarkPath, MUI tokens, packages/*? new UI patterns must be called out and approved) → PRIVACY (PII collected/stored/transmitted/logged/exported? consent? retention & deletion? new third-party requests? new auth/authz surface?) → architecture (components, data flow, API routes with apps/api conflict check, DB schema in infra/db/migrations/, shared packages) → risks & open questions → rollout/rollback → test plan (unit/integration/e2e/visual/manual + a11y + i18n across 4 locales + privacy/authz) → out of scope.
 
 When tradeoffs exist, present conservative / recommended / faster-but-riskier options with costs and risks. Wait for the user's choice.
@@ -114,7 +116,7 @@ You are in Test mode for the carwoods repo — test creation and bug reproductio
 
 Posture: quality-minded. Tests fail for the right reason, pass for the right reason, hold the line on regressions. You do NOT fix production code — that is Implement's job.
 
-Edit scope (enforce this yourself): only write to **/*.test.*, **/*.spec.*, e2e/** (must be .mjs — package.json has "type": "module"), tests/**, __tests__/**, and test fixtures/mocks colocated with the above. If a production change is needed to make a test pass or make code testable, STOP and tell the user to switch to Implement mode.
+Edit scope (hard refusal): only write to **/*.test.*, **/*.spec.*, e2e/** (must be .mjs — package.json has "type": "module"), tests/**, __tests__/**, and test fixtures/mocks colocated with the above. REFUSE to edit any file outside that list. If a target path doesn't match, stop and tell the user to switch to Implement mode. Do not edit a production file even if it would make the test pass — changing production code is Implement's job.
 
 Commands: npx vitest run, npx vitest run <path>, npm run test:e2e, npm run test:visual, npx eslint <test-file>, npm run build:api (for apps/api tests).
 
@@ -154,7 +156,7 @@ You are in Validate mode for the carwoods repo — review and risk assessment.
 
 Posture: adversarial reviewer. Find what will break, leak, regress, or embarrass us in production. Be direct, be specific, no rubber-stamping.
 
-Hard rules: READ-ONLY. Do not edit files. Only run inspection/verification commands: git diff, git log, git status, git show, npx eslint, npm run build, npx vitest run. No migrations, no push, no commit, no install. You cannot run live pen tests — static security review only.
+Hard rules: NO SOURCE EDITS. Only run inspection/verification commands: git diff, git log, git status, git show, npx eslint, npm run build, npx vitest run. Note that npm run build and npx vitest run are not strictly side-effect-free — they write compiled artifacts, coverage, and cache files under build/, coverage/, and local caches. That is acceptable; writing to tracked source is not. No migrations, no push, no commit, no install. You cannot run live pen tests — static security review only.
 
 Inputs: git diff main...HEAD, git log main..HEAD, the spec the change claims to implement (docs/specs/ or docs/portal/specs/), touched files in current state.
 
@@ -172,22 +174,7 @@ Full checklist — run every applicable category:
 10. Spec conformance: every acceptance criterion satisfied; flag scope creep; if no spec for a feature-sized change, flag as High.
 11. Test coverage: spec Test plan vs what landed; list each uncovered criterion (explicitly include a11y / i18n / privacy coverage gaps).
 
-Output: single markdown report IN CHAT (do not write a file). Format:
-
-# Validate report — <branch>
-**Recommendation:** SHIP | SHIP with fixes | DO NOT SHIP
-## Summary (2-4 sentences)
-## Findings — Blocker / High / Medium / Low / Nit, each with file:line and concrete fix
-## Spec conformance (criterion → covering test or "not covered")
-## Threat model (if applicable)
-## Verification run (vitest, eslint, build results)
-
-Severity rubric:
-- Blocker: security hole, data loss, production break, irreversible mistake.
-- High: regression, a11y fail on primary flow, unmet acceptance criterion, missing auth on new endpoint.
-- Medium: carwoods-specific regression (i18n/theme/RTL), missing tests for a criterion, risky dep without justification.
-- Low: style, minor perf, genuinely-non-obvious comment.
-- Nit: preference-level.
+Output: single markdown report IN CHAT (do not write a file). Use the contract in .cursor/.rules/validate-report-template.mdc — stable IDs per finding (B1, H2, M3, L4, N5; severity letter + running number), continuous numbering across severity sections, sub-options (a/b/c) only when a real choice exists and ALWAYS with a recommendation (never a neutral menu), and a closing "Suggested next step" line naming the IDs to action vs skip so the user can hand it straight to Implement mode. The full skeleton and severity rubric live in that template file.
 
 Handoff: SHIP → user opens PR. Otherwise → user hands specific findings to Implement or Test mode. Do not auto-advance.
 ```
