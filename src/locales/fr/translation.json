@@ -2940,7 +2940,8 @@
     "empty": "Aucun paiement enregistré.",
     "hints": {
       "landlordListScope": "Le locataire et le bail (facultatifs) définissent les valeurs par défaut pour de nouvelles lignes. Le tableau liste toutes les lignes de paiement pour la propriété sélectionnée.",
-      "leaseSelectTenantFirst": "Sélectionnez d'abord un locataire"
+      "leaseSelectTenantFirst": "Sélectionnez d'abord un locataire",
+      "tenantsDirectorySupplementFailed": "Impossible de charger l’annuaire complet des locataires. Le filtre n’utilise que les données des baux. Rechargez la page pour réessayer, ou continuez si la liste vous semble correcte."
     },
     "tableAriaLabel": "Paiements",
     "columns": {

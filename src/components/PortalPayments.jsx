@@ -325,6 +325,8 @@ const PortalPayments = () => {
   const [refreshing, setRefreshing] = useState(false);
   /** GET /landlord/tenants — supplements tenant user ids when lease list omits `tenant_user_ids`. */
   const [allTenants, setAllTenants] = useState([]);
+  /** True when optional fetchTenants failed; lease rows may still carry ids. User can dismiss the hint. */
+  const [tenantsDirectorySupplementFailed, setTenantsDirectorySupplementFailed] = useState(false);
 
   const portalBtnSx = { textTransform: 'none' };
 
@@ -443,11 +445,12 @@ const PortalPayments = () => {
           fetchLandlordProperties(baseUrl, token, { emailHint }),
         ]);
         let tenantRows = [];
+        setTenantsDirectorySupplementFailed(false);
         try {
           const tp = await fetchTenants(baseUrl, token, { emailHint });
           tenantRows = Array.isArray(tp?.tenants) ? tp.tenants : [];
         } catch {
-          /* optional: tenant rows supplement lease.tenant_user_ids for the same property */
+          setTenantsDirectorySupplementFailed(true);
         }
         if (cancelled) return;
         const rows = Array.isArray(leasesPayload?.leases) ? leasesPayload.leases : [];
@@ -471,6 +474,7 @@ const PortalPayments = () => {
         setLeaseRows([]);
         setProperties([]);
         setAllTenants([]);
+        setTenantsDirectorySupplementFailed(false);
         setSelectedPropertyId('');
         setSelectedLeaseId('');
       }
@@ -701,6 +705,16 @@ const PortalPayments = () => {
                   <Typography variant="body2" color="text.secondary" component="p" sx={{ m: 0 }}>
                     {t('portalPayments.hints.landlordListScope')}
                   </Typography>
+                ) : null}
+                {leasesStatus === 'ok' && tenantsDirectorySupplementFailed && propertyOptions.length > 0 ? (
+                  <Alert
+                    severity="info"
+                    variant="outlined"
+                    onClose={() => { setTenantsDirectorySupplementFailed(false); }}
+                    sx={{ py: 0.5, alignItems: 'center' }}
+                  >
+                    {t('portalPayments.hints.tenantsDirectorySupplementFailed')}
+                  </Alert>
                 ) : null}
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'flex-start' }}>
                 {leasesStatus === 'loading' ? (

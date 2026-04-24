@@ -3457,7 +3457,8 @@
     "empty": "No payments yet.",
     "hints": {
       "landlordListScope": "Optional tenant and lease set defaults for new payment rows. The table lists every payment line for the selected property.",
-      "leaseSelectTenantFirst": "Select a tenant first"
+      "leaseSelectTenantFirst": "Select a tenant first",
+      "tenantsDirectorySupplementFailed": "Could not load the full tenant directory. The tenant filter uses lease data only. Reload the page to try again, or continue if the list looks correct."
     },
     "tableAriaLabel": "Payments",
     "columns": {

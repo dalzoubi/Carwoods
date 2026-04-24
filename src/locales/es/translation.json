@@ -2940,7 +2940,8 @@
     "empty": "No hay pagos registrados.",
     "hints": {
       "landlordListScope": "El inquilino y el contrato (opcionales) fijan valores predeterminados para nuevas filas de pago. La tabla muestra todas las líneas de pago de la propiedad seleccionada.",
-      "leaseSelectTenantFirst": "Selecciona primero un inquilino"
+      "leaseSelectTenantFirst": "Selecciona primero un inquilino",
+      "tenantsDirectorySupplementFailed": "No se pudo cargar el listado completo de inquilinos. El filtro usará solo los datos de los contratos. Vuelve a cargar la página para reintentar o continúa si la lista parece correcta."
     },
     "tableAriaLabel": "Pagos",
     "columns": {

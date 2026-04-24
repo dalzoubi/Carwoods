@@ -53,7 +53,7 @@ export async function deletePayment(
     }
     await writeAudit(client, {
       actorUserId: input.actorUserId,
-      entityType: 'LEASE_PAYMENT_ENTRY',
+      entityType: 'PAYMENT_ENTRY',
       entityId: input.entryId,
       action: 'DELETE',
       before: current,

@@ -153,7 +153,7 @@ export async function recordPayment(
     });
     await writeAudit(client, {
       actorUserId: input.actorUserId,
-      entityType: 'LEASE_PAYMENT_ENTRY',
+      entityType: 'PAYMENT_ENTRY',
       entityId: row.id,
       action: 'CREATE',
       before: null,
@@ -235,7 +235,7 @@ export async function updatePayment(
     if (!updated) throw notFound();
     await writeAudit(client, {
       actorUserId: input.actorUserId,
-      entityType: 'LEASE_PAYMENT_ENTRY',
+      entityType: 'PAYMENT_ENTRY',
       entityId: input.entryId,
       action: 'UPDATE',
       before: current,
