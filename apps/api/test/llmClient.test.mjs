@@ -36,7 +36,8 @@ function baseConfig(overrides = {}) {
 /**
  * Builds a fake provider that executes responses in sequence.
  * Each element is either:
- *   - A string: resolved with that text
+ *   - A string: resolved as { text, tokensUsed: 0 } (matches LlmProvider contract)
+ *   - An object: resolved as-is (use to set custom tokensUsed)
  *   - An Error instance: thrown
  */
 function makeProvider(responses, name = 'fake') {
@@ -46,6 +47,7 @@ function makeProvider(responses, name = 'fake') {
     complete: async () => {
       const r = responses[idx++];
       if (r instanceof Error) throw r;
+      if (typeof r === 'string') return { text: r, tokensUsed: 0 };
       return r;
     },
   };

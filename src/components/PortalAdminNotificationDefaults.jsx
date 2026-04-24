@@ -109,6 +109,7 @@ export default function PortalAdminNotificationDefaults() {
         await load();
       } catch (saveError) {
         handleApiForbidden(saveError);
+        setStatus('error');
         setError(t('portalAdminNotificationDefaults.errors.saveFailed'));
       } finally {
         setPendingCode('');

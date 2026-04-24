@@ -12,23 +12,10 @@
  *      → Missing reply token in To: → ok: false, reason: missing_reply_token
  *      → Invalid / expired token → ok: false, reason: invalid_or_expired_token
  *
- *   NOTE on email address case-sensitivity:
- *   `extractTokenFromRecipientAddress` lowercases the entire email address
- *   before extracting the token, which corrupts base64url tokens containing
- *   uppercase letters. This means a real HMAC-signed token embedded in an
- *   email address will always fail verification after extraction. The
- *   sender_mismatch and not_request_member paths are therefore only reachable
- *   in production when the signing secret is configured to produce all-lowercase
- *   base64url tokens (which is non-deterministic). These paths are tested at
- *   the secureSignedToken unit level (sign/verify round-trip) and at the
- *   `extractTokenFromRecipientAddress` level below.
- *
- *   Recommendation for the Implement agent: consider making
- *   `extractTokenFromRecipientAddress` preserve case (or sign tokens
- *   case-insensitively) so email reply tokens survive address normalization.
- *
  * We also test `extractTokenFromRecipientAddress` and `signEmailReplyToken` /
- * `verifyEmailReplyToken` from secureSignedToken.ts.
+ * `verifyEmailReplyToken` from secureSignedToken.ts, including the
+ * round-trip from a recipient address through to verification — the token
+ * portion of the local-part is case-preserved so base64url payloads survive.
  */
 
 import test from 'node:test';
@@ -78,14 +65,26 @@ test('extractTokenFromRecipientAddress returns null for malformed address', () =
   assert.equal(extractTokenFromRecipientAddress('notanemail', 'cwreply'), null);
 });
 
-test('extractTokenFromRecipientAddress lowercases the extracted token (case-sensitivity caveat)', () => {
-  // This test documents the behavior: uppercase token values are lowercased,
-  // which means a signed token placed in a To: address will always fail HMAC
-  // verification after extraction (see module comment above).
-  const mixedCaseToken = 'AbCd1234';
+test('extractTokenFromRecipientAddress preserves the case of the token portion', () => {
+  const mixedCaseToken = 'AbCd1234_-';
   const extracted = extractTokenFromRecipientAddress(`cwreply+${mixedCaseToken}@reply.example.com`, 'cwreply');
-  assert.equal(extracted, 'abcd1234');
-  assert.notEqual(extracted, mixedCaseToken);
+  assert.equal(extracted, mixedCaseToken);
+});
+
+test('extractTokenFromRecipientAddress matches prefix case-insensitively', () => {
+  const extracted = extractTokenFromRecipientAddress('CwReply+ABC@reply.example.com', 'cwreply');
+  assert.equal(extracted, 'ABC');
+});
+
+test('extractTokenFromRecipientAddress + verifyEmailReplyToken round-trip through a recipient address', () => {
+  // A real signed token placed inside a To: address must survive extraction.
+  const signed = futureToken('req-rt', 'user-rt');
+  const extracted = extractTokenFromRecipientAddress(`cwreply+${signed}@reply.carwoods.com`, 'cwreply');
+  assert.equal(extracted, signed);
+  const verified = verifyEmailReplyToken(extracted);
+  assert.ok(verified);
+  assert.equal(verified.requestId, 'req-rt');
+  assert.equal(verified.userId, 'user-rt');
 });
 
 // ---------------------------------------------------------------------------
@@ -135,11 +134,9 @@ test('processInboundEmailReply: no matching token in To: addresses → ok: false
 
 // ---------------------------------------------------------------------------
 // processInboundEmailReply — invalid / expired token
-// (expired token in address: after lowercasing the token is invalid anyway,
-//  but an expired and lowercased token also fails for the correct reason)
 // ---------------------------------------------------------------------------
 
-test('processInboundEmailReply: all-lowercase token that fails HMAC verification → ok: false, reason: invalid_or_expired_token', async () => {
+test('processInboundEmailReply: token that fails HMAC verification → ok: false, reason: invalid_or_expired_token', async () => {
   // Put a plausible-looking but invalid token in the address
   const fakeToken = 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899.aabbccdd';
   const toAddress = `cwreply+${fakeToken}@reply.carwoods.com`;

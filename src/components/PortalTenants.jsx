@@ -2398,6 +2398,10 @@ const PortalTenants = () => {
   // Past tenants tab
   const [activeTab, setActiveTab] = useState(0);
   const [pastTenantsState, setPastTenantsState] = useState({ status: 'idle', past_tenants: [] });
+  // Guards setState in long-running fetches against unmount (test teardown
+  // surfaced as ReferenceError: window is not defined in dispatchSetState).
+  const mountedRef = useRef(true);
+  useEffect(() => () => { mountedRef.current = false; }, []);
 
   // Dialogs
   const [onboardOpen, setOnboardOpen] = useState(false);
@@ -2472,11 +2476,13 @@ const PortalTenants = () => {
       const accessToken = await getAccessToken();
       const landlordId = isAdmin && selectedLandlordId ? selectedLandlordId : undefined;
       const payload = await fetchPastTenants(baseUrl, accessToken, { emailHint, landlordId });
+      if (!mountedRef.current) return;
       setPastTenantsState({
         status: 'ok',
         past_tenants: Array.isArray(payload?.past_tenants) ? payload.past_tenants : [],
       });
     } catch (e) {
+      if (!mountedRef.current) return;
       handleApiForbidden(e);
       setPastTenantsState({
         status: 'error',

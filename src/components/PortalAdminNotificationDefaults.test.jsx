@@ -183,10 +183,7 @@ describe('PortalAdminNotificationDefaults', () => {
     expect(errorText).toBeInTheDocument();
   });
 
-  it('calls handleApiForbidden and clears the pending state when patchAdminNotificationFlowDefault fails', async () => {
-    // NOTE: When a save fails, the component sets `error` state but `status` stays 'ok',
-    // so the StatusAlertSlot does not display the error text. The save failure is handled
-    // silently (handleApiForbidden is called for auth errors). This is the current behavior.
+  it('surfaces a save error, calls handleApiForbidden, and re-enables the switch', async () => {
     portalApiClient.fetchAdminNotificationFlowDefaults
       .mockResolvedValueOnce(defaultFlowsPayload);
     portalApiClient.patchAdminNotificationFlowDefault.mockRejectedValue(
@@ -212,7 +209,10 @@ describe('PortalAdminNotificationDefaults', () => {
     await waitFor(() => {
       expect(mockAuthState.handleApiForbidden).toHaveBeenCalled();
     });
-    // Pending spinner cleared - the switch is re-enabled after failure
+
+    const errorText = await screen.findByText(/unable to save notification default/i, {}, { timeout: 3000 });
+    expect(errorText).toBeInTheDocument();
+
     await waitFor(() => {
       const switches = screen.getAllByRole('checkbox', { name: /in-app/i });
       expect(switches[0]).not.toBeDisabled();
