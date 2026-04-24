@@ -36,9 +36,7 @@
     "product": "Produit",
     "productMenu": "Menu produit",
     "resources": "Ressources",
-    "resourcesMenu": "Menu ressources",
-    "closeMenu": "Fermer le menu",
-    "myAccount": "Mon compte"
+    "resourcesMenu": "Menu ressources"
   },
   "tenantLinks": {
     "apply": "Postuler",
@@ -63,17 +61,8 @@
   "home": {
     "title": "Carwoods — Locations à Houston, bien gérées",
     "metaDescription": "Locations et gestion immobilière à Houston : candidatures claires, communication cohérente, collecte de loyer à temps, entretien proactif et gestion disciplinée des actifs.",
-    "heroHeading": "Locations à Houston, Bien Gérées",
-    "heroSubtitle": "Candidatures claires. Communication cohérente. Collecte de loyer à temps, entretien proactif et gestion disciplinée des actifs.",
     "heroImageAlt": "Clés d'une nouvelle maison reposant sur un paillasson de bienvenue",
     "midHeroAlt": "Extérieur de maison moderne avec une lumière chaude en soirée",
-    "highlightsLabel": "Points forts de l'entreprise",
-    "highlight1Label": "Concentration sur le marché de Houston",
-    "highlight1Detail": "Rythmes de location locaux, pas des playbooks génériques",
-    "highlight2Label": "Des opérations que vous ressentez",
-    "highlight2Detail": "Candidatures, loyer et entretien en un seul flux",
-    "highlight3Label": "Une communication qui tient",
-    "highlight3Detail": "Moins d'écarts, des prochaines étapes plus claires",
     "audienceLabel": "Qui êtes-vous ?",
     "rentersTitle": "Locataires",
     "rentersBody": "Vous cherchez un logement à Houston ? Parcourez les biens disponibles, consultez les critères de sélection et postulez en ligne.",
@@ -3133,7 +3122,10 @@
     "purgeConfirm": "Supprimer définitivement",
     "purgePhraseHint": "Tapez delete en minuscules pour confirmer.",
     "purgePermanent": "Supprimer définitivement",
-    "scopes": { "LEASE": "Bail", "PROPERTY": "Propriété" },
+    "scopes": {
+      "LEASE": "Bail",
+      "PROPERTY": "Propriété"
+    },
     "types": {
       "LEASE": "Bail",
       "RENTERS_INSURANCE": "Assurance locataire",
@@ -3144,8 +3136,24 @@
       "TENANT_SUPPORTING_DOCUMENT": "Document justificatif du locataire",
       "OTHER": "Autre"
     },
-    "scan": { "PENDING": "Analyse", "CLEAN": "Analyse réussie", "BLOCKED": "Bloqué", "FAILED": "Échec de l'analyse" },
-    "messages": { "uploaded": "Document téléversé.", "deleted": "Document supprimé.", "restored": "Document restauré.", "purged": "Document supprimé définitivement.", "shareCreated": "Lien de partage créé.", "shareRevoked": "Lien de partage révoqué.", "sharingUpdated": "Visibilité pour les locataires mise à jour.", "shareUrlCopied": "Lien copié dans le presse-papiers.", "sharePasscodeCopied": "Code copié dans le presse-papiers.", "clipboardFallback": "Utilisez Ctrl+C pour copier depuis la boîte de dialogue." },
+    "scan": {
+      "PENDING": "Analyse",
+      "CLEAN": "Analyse réussie",
+      "BLOCKED": "Bloqué",
+      "FAILED": "Échec de l'analyse"
+    },
+    "messages": {
+      "uploaded": "Document téléversé.",
+      "deleted": "Document supprimé.",
+      "restored": "Document restauré.",
+      "purged": "Document supprimé définitivement.",
+      "shareCreated": "Lien de partage créé.",
+      "shareRevoked": "Lien de partage révoqué.",
+      "sharingUpdated": "Visibilité pour les locataires mise à jour.",
+      "shareUrlCopied": "Lien copié dans le presse-papiers.",
+      "sharePasscodeCopied": "Code copié dans le presse-papiers.",
+      "clipboardFallback": "Utilisez Ctrl+C pour copier depuis la boîte de dialogue."
+    },
     "errors": {
       "loadFailed": "Impossible de charger les documents.",
       "fileRequired": "Choisissez un fichier avant de téléverser.",
