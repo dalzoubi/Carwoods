@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
 import { requireAdmin, jsonResponse } from '../lib/managementRequest.js';
+import { withRateLimit } from '../lib/rateLimiter.js';
 import { logError, logInfo } from '../lib/serverLogger.js';
 import {
   listContactReplyTemplates,
@@ -184,12 +185,12 @@ app.http('adminContactReplyTemplatesCollection', {
   methods: ['GET', 'POST', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/contact-reply-templates',
-  handler: collectionHandler,
+  handler: withRateLimit(collectionHandler),
 });
 
 app.http('adminContactReplyTemplatesItem', {
   methods: ['PUT', 'DELETE', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/contact-reply-templates/{id}',
-  handler: itemHandler,
+  handler: withRateLimit(itemHandler),
 });

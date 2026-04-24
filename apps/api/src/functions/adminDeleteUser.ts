@@ -8,6 +8,7 @@ import { getPool } from '../lib/db.js';
 import { requireAdmin, jsonResponse, mapDomainError } from '../lib/managementRequest.js';
 import { findUserById } from '../lib/usersRepo.js';
 import { hardDeleteUserAndOwnedData } from '../lib/deleteUserCascade.js';
+import { withRateLimit } from '../lib/rateLimiter.js';
 import { logInfo, logWarn } from '../lib/serverLogger.js';
 
 const MIN_REASON_LENGTH = 10;
@@ -113,5 +114,5 @@ app.http('adminDeleteUser', {
   methods: ['DELETE', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/users/{id}',
-  handler: adminDeleteUserHandler,
+  handler: withRateLimit(adminDeleteUserHandler),
 });

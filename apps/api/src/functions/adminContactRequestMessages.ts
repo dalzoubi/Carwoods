@@ -10,6 +10,7 @@ import {
   jsonResponse,
   mapDomainError,
 } from '../lib/managementRequest.js';
+import { withRateLimit } from '../lib/rateLimiter.js';
 import { logError, logInfo } from '../lib/serverLogger.js';
 import { getContactRequestById } from '../lib/contactRequestsRepo.js';
 import { listContactRequestMessages } from '../lib/contactRequestMessagesRepo.js';
@@ -163,12 +164,12 @@ app.http('adminContactRequestMessages', {
   methods: ['GET', 'POST', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/contact-requests/{id}/messages',
-  handler: adminContactRequestMessagesHandler,
+  handler: withRateLimit(adminContactRequestMessagesHandler),
 });
 
 app.http('adminContactRequestSuggestReply', {
   methods: ['POST', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/contact-requests/{id}/suggest-reply',
-  handler: adminContactRequestSuggestReplyHandler,
+  handler: withRateLimit(adminContactRequestSuggestReplyHandler),
 });

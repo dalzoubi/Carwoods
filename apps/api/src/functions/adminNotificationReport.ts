@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
 import { jsonResponse, requireAdmin } from '../lib/managementRequest.js';
+import { withRateLimit } from '../lib/rateLimiter.js';
 import { logError } from '../lib/serverLogger.js';
 
 const ALLOWED_GROUP_BY = new Set(['day', 'hour', 'channel', 'event', 'role', 'status']);
@@ -423,5 +424,5 @@ app.http('adminNotificationReportSummary', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/notifications/report',
-  handler: adminReportSummaryHandler,
+  handler: withRateLimit(adminReportSummaryHandler),
 });

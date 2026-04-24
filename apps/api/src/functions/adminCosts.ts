@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
 import { jsonResponse, requireAdmin } from '../lib/managementRequest.js';
+import { withRateLimit } from '../lib/rateLimiter.js';
 import { logInfo, logWarn } from '../lib/serverLogger.js';
 import { isValidDateString, yesterdayUtc } from '../lib/costRollupService.js';
 
@@ -354,26 +355,26 @@ app.http('adminCostRollup', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/costs/rollup',
-  handler: adminCostRollupHandler,
+  handler: withRateLimit(adminCostRollupHandler),
 });
 
 app.http('adminCostLandlord', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/costs/landlord/{landlordId}',
-  handler: adminCostLandlordHandler,
+  handler: withRateLimit(adminCostLandlordHandler),
 });
 
 app.http('adminCostsPricingList', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/costs/pricing',
-  handler: adminCostsPricingListHandler,
+  handler: withRateLimit(adminCostsPricingListHandler),
 });
 
 app.http('adminCostsPricingPatch', {
   methods: ['PATCH', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/costs/pricing/{id}',
-  handler: adminCostsPricingPatchHandler,
+  handler: withRateLimit(adminCostsPricingPatchHandler),
 });
