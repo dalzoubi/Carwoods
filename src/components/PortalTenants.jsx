@@ -39,6 +39,7 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ContactPage from '@mui/icons-material/ContactPage';
 import PersonAdd from '@mui/icons-material/PersonAdd';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../LanguageContext';
 import { usePortalAuth } from '../PortalAuthContext';
 import { Role } from '../domain/constants.js';
 import { resolveRole, normalizeRole } from '../portalUtils';
@@ -300,11 +301,11 @@ function findPeerCoTenantIdsAtProperty(tenantLeases, tenantId, propertyId) {
 }
 
 /** @param {number|string|null|undefined} amount */
-function formatLeaseRentUsd(amount) {
+function formatLeaseRentUsd(amount, locale) {
   if (amount == null || amount === '') return null;
   const n = typeof amount === 'number' ? amount : Number(amount);
   if (!Number.isFinite(n)) return null;
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n);
+  return new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD' }).format(n);
 }
 
 function parseOptionalMonthlyRentInput(raw) {
@@ -315,12 +316,12 @@ function parseOptionalMonthlyRentInput(raw) {
   return { ok: true, value: Math.round(n * 100) / 100 };
 }
 
-function formatDate(dateStr) {
+function formatDate(dateStr, locale) {
   if (!dateStr) return null;
   try {
     // Append local midnight so the displayed day matches the stored date regardless
     // of the user's UTC offset (avoids off-by-one when the stored time is midnight UTC).
-    return new Date(toDatePart(dateStr) + 'T00:00:00').toLocaleDateString(undefined, {
+    return new Date(toDatePart(dateStr) + 'T00:00:00').toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -684,6 +685,7 @@ function LinkCoTenantDialog({
 // ---------------------------------------------------------------------------
 
 function LeaseRow({ lease, properties, directoryTenants, onLeaseUpdated, t }) {
+  const { currentLanguage } = useLanguage();
   const phase = getLeaseDisplayPhase(lease);
   const isCalendarActive = phase === 'active';
   const leaseChip =
@@ -693,10 +695,10 @@ function LeaseRow({ lease, properties, directoryTenants, onLeaseUpdated, t }) {
         ? { label: t('portalTenants.lease.expired'), color: 'default', variant: 'outlined' }
         : { label: t('portalTenants.lease.active'), color: 'success', variant: 'filled' };
   const dateRange = lease.month_to_month
-    ? `${formatDate(lease.start_date)} — Month-to-month`
+    ? `${formatDate(lease.start_date, currentLanguage)} — Month-to-month`
     : lease.end_date
-      ? `${formatDate(lease.start_date)} – ${formatDate(lease.end_date)}`
-      : `${formatDate(lease.start_date)} — no end date`;
+      ? `${formatDate(lease.start_date, currentLanguage)} – ${formatDate(lease.end_date, currentLanguage)}`
+      : `${formatDate(lease.start_date, currentLanguage)} — no end date`;
 
   const [editOpen, setEditOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
@@ -779,9 +781,9 @@ function LeaseRow({ lease, properties, directoryTenants, onLeaseUpdated, t }) {
           <Typography variant="body2" color="text.secondary">
             {dateRange}
           </Typography>
-          {formatLeaseRentUsd(lease.rent_amount) != null && (
+          {formatLeaseRentUsd(lease.rent_amount, currentLanguage) != null && (
             <Typography variant="body2" color="text.secondary">
-              {t('portalTenants.lease.monthlyRentLabel', { amount: formatLeaseRentUsd(lease.rent_amount) })}
+              {t('portalTenants.lease.monthlyRentLabel', { amount: formatLeaseRentUsd(lease.rent_amount, currentLanguage) })}
             </Typography>
           )}
           {lease.notes && (
@@ -1942,6 +1944,7 @@ function OnboardTenantDialog({
   onLandlordChange,
   t,
 }) {
+  const { currentLanguage } = useLanguage();
   const [form, setForm] = useState(EMPTY_ONBOARD_FORM);
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitState, setSubmitState] = useState({ status: 'idle', detail: '' });
@@ -2245,10 +2248,10 @@ function OnboardTenantDialog({
                 <Alert severity="info">{t('portalTenants.onboardDialog.existingLeaseBanner')}</Alert>
                 <Typography variant="body2" color="text.secondary">
                   {occupancyLease.month_to_month
-                    ? `${formatDate(occupancyLease.start_date)} — ${t('portalTenants.form.monthToMonth')}`
+                    ? `${formatDate(occupancyLease.start_date, currentLanguage)} — ${t('portalTenants.form.monthToMonth')}`
                     : occupancyLease.end_date
-                      ? `${formatDate(occupancyLease.start_date)} – ${formatDate(occupancyLease.end_date)}`
-                      : `${formatDate(occupancyLease.start_date)} —`}
+                      ? `${formatDate(occupancyLease.start_date, currentLanguage)} – ${formatDate(occupancyLease.end_date, currentLanguage)}`
+                      : `${formatDate(occupancyLease.start_date, currentLanguage)} —`}
                 </Typography>
               </>
             )}
@@ -2780,6 +2783,11 @@ function formatAddressLine(row) {
 }
 
 function PastTenantsPanel({ state, onRefresh, canUseModule, t }) {
+  const { currentLanguage } = useLanguage();
+  const currencyFormatter = useMemo(
+    () => new Intl.NumberFormat(currentLanguage, { style: 'currency', currency: 'USD' }),
+    [currentLanguage]
+  );
   const rows = Array.isArray(state?.past_tenants) ? state.past_tenants : [];
   return (
     <Box
@@ -2865,7 +2873,7 @@ function PastTenantsPanel({ state, onRefresh, canUseModule, t }) {
                       size="small"
                       color={balanceColor}
                       label={t('portalTenants.pastTenants.finalBalanceLabel', {
-                        amount: balanceNum.toFixed(2),
+                        amount: currencyFormatter.format(balanceNum),
                       })}
                     />
                   )}
