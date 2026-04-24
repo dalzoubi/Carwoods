@@ -36,9 +36,7 @@
     "product": "المنتج",
     "productMenu": "قائمة المنتج",
     "resources": "الموارد",
-    "resourcesMenu": "قائمة الموارد",
-    "closeMenu": "إغلاق القائمة",
-    "myAccount": "حسابي"
+    "resourcesMenu": "قائمة الموارد"
   },
   "tenantLinks": {
     "apply": "تقديم الطلب",
@@ -63,17 +61,8 @@
   "home": {
     "title": "كارووودز — تأجير في هيوستن، مُدار بشكل صحيح",
     "metaDescription": "تأجير وإدارة عقارات في هيوستن: طلبات واضحة، تواصل منتظم، تحصيل إيجار في الوقت المحدد، صيانة استباقية، ورعاية منضبطة للأصول.",
-    "heroHeading": "تأجير في هيوستن، مُدار بشكل صحيح",
-    "heroSubtitle": "طلبات واضحة. تواصل منتظم. تحصيل إيجار في الوقت المحدد، صيانة استباقية، ورعاية منضبطة للأصول.",
     "heroImageAlt": "مفاتيح منزل جديد على سجادة الترحيب",
     "midHeroAlt": "واجهة منزل عصري بإضاءة دافئة مسائية",
-    "highlightsLabel": "أبرز ما تقدمه الشركة",
-    "highlight1Label": "التركيز على سوق هيوستن",
-    "highlight1Detail": "إيقاعات الإيجار المحلية، وليس الأدلة العامة",
-    "highlight2Label": "عمليات يمكنك الإحساس بها",
-    "highlight2Detail": "الطلبات والإيجار والصيانة في تدفق واحد",
-    "highlight3Label": "تواصل متواصل",
-    "highlight3Detail": "ثغرات أقل، وخطوات تالية أوضح",
     "audienceLabel": "من أنت؟",
     "rentersTitle": "المستأجرون",
     "rentersBody": "تبحث عن إيجار في هيوستن؟ تصفح العقارات المتاحة، راجع شروط الأهلية، وقدّم طلبك إلكترونياً.",
@@ -189,7 +178,12 @@
     "contactBody": "للأسئلة المتعلقة بالخصوصية أو لطلب الوصول إلى معلوماتك، تواصل معنا عبر صفحة",
     "contactLink": "اتصل بنا",
     "contactBodySuffix": "",
-    "lastUpdated": "آخر تحديث: أبريل 2026"
+    "lastUpdated": "آخر تحديث: أبريل 2026",
+    "analytics": {
+      "toggleLabel": "Share usage analytics",
+      "helperText": "Anonymous usage analytics help us improve the site.",
+      "dntLocked": "Disabled by your browser's Do Not Track setting."
+    }
   },
   "terms": {
     "title": "كارووودز - شروط الخدمة",
@@ -667,6 +661,10 @@
       "body": "سيؤدي هذا إلى مسح الفلاتر المحفوظة وعرض جميع أقسام المستندات.",
       "cancel": "إلغاء",
       "reset": "إعادة الضبط"
+    },
+    "privacyNotice": {
+      "helperText": "Your answers are saved on this device so you can come back later.",
+      "clearButton": "Clear saved answers"
     },
     "chipLabel": {
       "employed": "موظف",
@@ -3134,7 +3132,10 @@
     "purgeConfirm": "حذف نهائي",
     "purgePhraseHint": "اكتب delete بأحرف صغيرة للتأكيد.",
     "purgePermanent": "حذف نهائي",
-    "scopes": { "LEASE": "العقد", "PROPERTY": "العقار" },
+    "scopes": {
+      "LEASE": "العقد",
+      "PROPERTY": "العقار"
+    },
     "types": {
       "LEASE": "العقد",
       "RENTERS_INSURANCE": "تأمين المستأجر",
@@ -3145,8 +3146,24 @@
       "TENANT_SUPPORTING_DOCUMENT": "مستند داعم للمستأجر",
       "OTHER": "أخرى"
     },
-    "scan": { "PENDING": "جارٍ الفحص", "CLEAN": "نجح الفحص", "BLOCKED": "محظور", "FAILED": "فشل الفحص" },
-    "messages": { "uploaded": "تم رفع المستند.", "deleted": "تم حذف المستند.", "restored": "تمت استعادة المستند.", "purged": "تم حذف المستند نهائيًا.", "shareCreated": "تم إنشاء رابط المشاركة.", "shareRevoked": "تم إلغاء رابط المشاركة.", "sharingUpdated": "تم تحديث ظهور المستند للمستأجرين.", "shareUrlCopied": "تم نسخ الرابط إلى الحافظة.", "sharePasscodeCopied": "تم نسخ رمز المرور إلى الحافظة.", "clipboardFallback": "اضغط Ctrl+C للنسخ من مربع الحوار." },
+    "scan": {
+      "PENDING": "جارٍ الفحص",
+      "CLEAN": "نجح الفحص",
+      "BLOCKED": "محظور",
+      "FAILED": "فشل الفحص"
+    },
+    "messages": {
+      "uploaded": "تم رفع المستند.",
+      "deleted": "تم حذف المستند.",
+      "restored": "تمت استعادة المستند.",
+      "purged": "تم حذف المستند نهائيًا.",
+      "shareCreated": "تم إنشاء رابط المشاركة.",
+      "shareRevoked": "تم إلغاء رابط المشاركة.",
+      "sharingUpdated": "تم تحديث ظهور المستند للمستأجرين.",
+      "shareUrlCopied": "تم نسخ الرابط إلى الحافظة.",
+      "sharePasscodeCopied": "تم نسخ رمز المرور إلى الحافظة.",
+      "clipboardFallback": "اضغط Ctrl+C للنسخ من مربع الحوار."
+    },
     "errors": {
       "loadFailed": "تعذر تحميل المستندات.",
       "fileRequired": "اختر ملفًا قبل الرفع.",

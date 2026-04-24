@@ -25,6 +25,7 @@ import {
 import Close from '@mui/icons-material/Close';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../LanguageContext';
 import { usePortalAuth } from '../PortalAuthContext';
 import { fetchAdminSupportTickets } from '../lib/portalApiClient';
 import SupportTicketAdminDetail from './portalSupport/SupportTicketAdminDetail';
@@ -35,11 +36,6 @@ import {
   SUPPORT_TICKET_PRIORITIES,
 } from '../supportTicketConstants';
 
-function formatDateTime(s) {
-  if (!s) return '';
-  try { return new Date(s).toLocaleString(); } catch { return String(s); }
-}
-
 function statusColor(status) {
   if (status === 'OPEN') return 'info';
   if (status === 'IN_PROGRESS') return 'warning';
@@ -49,6 +45,7 @@ function statusColor(status) {
 
 export default function PortalAdminSupport() {
   const { t } = useTranslation();
+  const { currentLanguage } = useLanguage();
   const { baseUrl, getAccessToken, meData, account } = usePortalAuth();
   const emailHint = meData?.user?.email ?? account?.username ?? '';
   const theme = useTheme();
@@ -102,6 +99,18 @@ export default function PortalAdminSupport() {
   };
 
   const statusOptions = useMemo(() => ['', ...SUPPORT_TICKET_STATUSES], []);
+
+  const dateTimeFormatter = useMemo(
+    () => new Intl.DateTimeFormat(currentLanguage, { dateStyle: 'medium', timeStyle: 'short' }),
+    [currentLanguage]
+  );
+  const formatDateTime = useCallback(
+    (s) => {
+      if (!s) return '';
+      try { return dateTimeFormatter.format(new Date(s)); } catch { return String(s); }
+    },
+    [dateTimeFormatter]
+  );
 
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>

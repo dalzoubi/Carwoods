@@ -17,6 +17,7 @@ import PortalRefreshButton from './PortalRefreshButton';
 import PortalPersonWithAvatar from './PortalPersonWithAvatar';
 import { allowsSmsChannel, landlordTierLimits } from '../portalTierUtils';
 import { ConfigFieldWithHelp } from './PortalConfigOptionHelp';
+import { sanitizeError } from '../lib/sanitizeError';
 
 const CHANNEL_OPTIONS = ['inherit', 'enabled', 'disabled'];
 
@@ -295,7 +296,7 @@ const PortalNotificationPolicies = () => {
       setSelectedRequestId((prev) => prev || requestRows[0]?.id || '');
       setStatus('ok');
     } catch (loadError) {
-      console.error('[PortalNotificationPolicies] failed to load scope data', loadError);
+      console.error('[PortalNotificationPolicies] failed to load scope data', sanitizeError(loadError));
       handleApiForbidden(loadError);
       setError(t('portalNotificationPolicies.errors.loadFailed'));
       setStatus('error');
@@ -328,7 +329,7 @@ const PortalNotificationPolicies = () => {
       console.error('[PortalNotificationPolicies] failed to load policies/users', {
         scopeType,
         scopeId,
-        loadError,
+        loadError: sanitizeError(loadError),
       });
       handleApiForbidden(loadError);
       setError(t('portalNotificationPolicies.errors.loadPoliciesFailed'));

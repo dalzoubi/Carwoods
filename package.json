@@ -56,7 +56,9 @@
     "test:visual:gallery": "node scripts/generateVisualSnapshotGallery.mjs",
     "test:visual:ui": "cross-env PORTAL_E2E=true playwright test --project=visual-chromium --ui",
     "build:api": "npm run build --prefix apps/api",
-    "build:packages": "npm run build --prefix packages/domain && npm run build --prefix packages/config"
+    "build:packages": "npm run build --prefix packages/domain && npm run build --prefix packages/config",
+    "check:locales": "node scripts/checkLocaleKeys.mjs",
+    "prepare": "husky"
   },
   "eslintConfig": {
     "extends": [
@@ -100,6 +102,7 @@
     "cross-env": "^7.0.3",
     "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-jsx-a11y": "^6.10.2",
+    "husky": "^9.1.7",
     "jest-axe": "^9.0.0",
     "jsdom": "^28.1.0",
     "png-to-ico": "^3.0.1",

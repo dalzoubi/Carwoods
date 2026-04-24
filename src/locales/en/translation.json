@@ -189,7 +189,12 @@
     "contactBody": "For privacy-related questions or to request access to your information, contact us through our",
     "contactLink": "Contact Us",
     "contactBodySuffix": "page.",
-    "lastUpdated": "Last updated: April 2026"
+    "lastUpdated": "Last updated: April 2026",
+    "analytics": {
+      "toggleLabel": "Share usage analytics",
+      "helperText": "Anonymous usage analytics help us improve the site.",
+      "dntLocked": "Disabled by your browser's Do Not Track setting."
+    }
   },
   "terms": {
     "title": "Carwoods - Terms of Service",
@@ -932,6 +937,10 @@
       "body": "This will clear your saved filters and show all document sections.",
       "cancel": "Cancel",
       "reset": "Reset"
+    },
+    "privacyNotice": {
+      "helperText": "Your answers are saved on this device so you can come back later.",
+      "clearButton": "Clear saved answers"
     },
     "chipLabel": {
       "employed": "Employed",

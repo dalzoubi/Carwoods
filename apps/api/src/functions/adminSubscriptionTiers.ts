@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
 import { requireAdmin, jsonResponse } from '../lib/managementRequest.js';
+import { withRateLimit } from '../lib/rateLimiter.js';
 import { logError, logInfo } from '../lib/serverLogger.js';
 import { listTiers, getTierById, updateTier, type TierLimits } from '../lib/subscriptionTiersRepo.js';
 
@@ -92,12 +93,12 @@ app.http('adminTiersCollection', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/tiers',
-  handler: adminTiersCollectionHandler,
+  handler: withRateLimit(adminTiersCollectionHandler),
 });
 
 app.http('adminTiersItem', {
   methods: ['PATCH', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/tiers/{id}',
-  handler: adminTiersItemHandler,
+  handler: withRateLimit(adminTiersItemHandler),
 });

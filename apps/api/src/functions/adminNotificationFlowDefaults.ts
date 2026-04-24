@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
 import { jsonResponse, requireAdmin } from '../lib/managementRequest.js';
+import { withRateLimit } from '../lib/rateLimiter.js';
 import { logError, logInfo } from '../lib/serverLogger.js';
 import {
   deleteNotificationFlowDefaultOverride,
@@ -144,12 +145,12 @@ app.http('adminNotificationFlowDefaultsCollection', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/notifications/flow-defaults',
-  handler: adminFlowDefaultsCollectionHandler,
+  handler: withRateLimit(adminFlowDefaultsCollectionHandler),
 });
 
 app.http('adminNotificationFlowDefaultsItem', {
   methods: ['PATCH', 'DELETE', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/notifications/flow-defaults/{code}',
-  handler: adminFlowDefaultsItemHandler,
+  handler: withRateLimit(adminFlowDefaultsItemHandler),
 });

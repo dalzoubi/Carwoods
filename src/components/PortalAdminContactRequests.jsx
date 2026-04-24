@@ -2,6 +2,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useMemo,
   useRef,
 } from 'react';
 import { Helmet } from 'react-helmet-async';
@@ -27,6 +28,7 @@ import DialogActions from '@mui/material/DialogActions';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../LanguageContext';
 import { usePortalAuth } from '../PortalAuthContext';
 import { relativeTime } from '../lib/notificationUtils';
 import useHighlightRow from '../lib/useHighlightRow';
@@ -85,6 +87,7 @@ function subjectTranslationKey(subject) {
 
 export default function PortalAdminContactRequests() {
   const { t, i18n } = useTranslation();
+  const { currentLanguage } = useLanguage();
   const { hash } = useLocation();
   const { baseUrl, account, getAccessToken, handleApiForbidden } = usePortalAuth();
   const emailHint = account?.username || undefined;
@@ -326,10 +329,14 @@ export default function PortalAdminContactRequests() {
     }
   };
 
+  const dateTimeFormatter = useMemo(
+    () => new Intl.DateTimeFormat(currentLanguage, { dateStyle: 'medium', timeStyle: 'short' }),
+    [currentLanguage]
+  );
   const formatDate = (iso) => {
     if (!iso) return '';
     try {
-      return new Date(iso).toLocaleString();
+      return dateTimeFormatter.format(new Date(iso));
     } catch {
       return iso;
     }

@@ -12,6 +12,7 @@ import {
   batchCountUserAccountAssociations,
   emptyUserAssociationSummary,
 } from '../lib/deleteUserCascade.js';
+import { withRateLimit } from '../lib/rateLimiter.js';
 import { logInfo, logWarn } from '../lib/serverLogger.js';
 
 async function adminPortalUsersHandler(
@@ -64,5 +65,5 @@ app.http('adminPortalUsers', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/users',
-  handler: adminPortalUsersHandler,
+  handler: withRateLimit(adminPortalUsersHandler),
 });

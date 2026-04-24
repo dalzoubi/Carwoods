@@ -1,8 +1,10 @@
-import React, { useEffect, useLayoutEffect, useMemo } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, Suspense, lazy } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Navigate, Routes, Route, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
 import { AppShell, Container, Content, scrollToHashAnchor } from './styles';
 import Home from './components/Home';
 import Apply from './components/Apply';
@@ -20,30 +22,6 @@ import TermsOfService from './components/TermsOfService';
 import PublicDocumentShare from './components/PublicDocumentShare';
 import Footer from './components/Footer';
 import ResponsiveNavbar from './components/ResponsiveNavbar';
-import PortalDashboard from './components/PortalDashboard';
-import PortalStatus from './components/PortalStatus';
-import PortalProfile from './components/PortalProfile';
-import PortalRequests from './components/PortalRequests';
-import PortalDocuments from './components/PortalDocuments';
-import PortalAdminLandlords from './components/PortalAdminLandlords';
-import PortalAdminUsers from './components/PortalAdminUsers';
-import PortalNotificationsInbox from './components/PortalNotificationsInbox';
-import PortalInbox, {
-    PortalInboxContactGate,
-    RedirectLegacyContactRequestsToInbox,
-    RedirectPortalNotificationsToInbox,
-} from './components/PortalInbox';
-import PortalAdminAiSettings from './components/PortalAdminAiSettings';
-import PortalAdminNotificationReport from './components/PortalAdminNotificationReport';
-import PortalAdminCostReport from './components/PortalAdminCostReport';
-import PortalAdminProperties from './components/PortalAdminProperties';
-import PortalPayments from './components/PortalPayments';
-import PortalMyLease from './components/PortalMyLease';
-import PortalLandlordNotices from './components/PortalLandlordNotices';
-import PortalTenants from './components/PortalTenants';
-import PortalSupportTickets from './components/PortalSupportTickets';
-import PortalAdminSupport from './components/PortalAdminSupport';
-import PortalAdminNotificationTest from './components/PortalAdminNotificationTest';
 import PortalLayout from './components/PortalLayout';
 import PortalAuthGate from './components/PortalAuthGate';
 import { PortalRequestDetailModalProvider } from './components/PortalRequestDetailModalContext';
@@ -51,6 +29,53 @@ import PortalRouteGuard from './components/PortalRouteGuard';
 import { isDarkPreviewRoute, isPortalRoute } from './routePaths';
 import { Role } from './domain/constants';
 import { useProfilePreferenceSync } from './hooks/useProfilePreferenceSync';
+import { useAnalyticsEnabled } from './hooks/useAnalyticsEnabled';
+
+/**
+ * Renders Vercel's analytics + speed-insights probes only when the user is
+ * effectively opted in. The hook combines the persisted opt-out preference
+ * with the browser's Do Not Track signal — see `useAnalyticsEnabled`.
+ */
+function ConditionalTelemetry() {
+    const { enabled } = useAnalyticsEnabled();
+    if (!enabled) return null;
+    return (
+        <>
+            <Analytics />
+            <SpeedInsights />
+        </>
+    );
+}
+
+const PortalDashboard = lazy(() => import('./components/PortalDashboard'));
+const PortalStatus = lazy(() => import('./components/PortalStatus'));
+const PortalProfile = lazy(() => import('./components/PortalProfile'));
+const PortalRequests = lazy(() => import('./components/PortalRequests'));
+const PortalDocuments = lazy(() => import('./components/PortalDocuments'));
+const PortalAdminLandlords = lazy(() => import('./components/PortalAdminLandlords'));
+const PortalAdminUsers = lazy(() => import('./components/PortalAdminUsers'));
+const PortalNotificationsInbox = lazy(() => import('./components/PortalNotificationsInbox'));
+const PortalInbox = lazy(() => import('./components/PortalInbox'));
+const PortalInboxContactGate = lazy(() =>
+    import('./components/PortalInbox').then((m) => ({ default: m.PortalInboxContactGate }))
+);
+const RedirectLegacyContactRequestsToInbox = lazy(() =>
+    import('./components/PortalInbox').then((m) => ({ default: m.RedirectLegacyContactRequestsToInbox }))
+);
+const RedirectPortalNotificationsToInbox = lazy(() =>
+    import('./components/PortalInbox').then((m) => ({ default: m.RedirectPortalNotificationsToInbox }))
+);
+const PortalAdminAiSettings = lazy(() => import('./components/PortalAdminAiSettings'));
+const PortalAdminNotificationReport = lazy(() => import('./components/PortalAdminNotificationReport'));
+const PortalAdminCostReport = lazy(() => import('./components/PortalAdminCostReport'));
+const PortalAdminProperties = lazy(() => import('./components/PortalAdminProperties'));
+const PortalPayments = lazy(() => import('./components/PortalPayments'));
+const PortalMyLease = lazy(() => import('./components/PortalMyLease'));
+const PortalLandlordNotices = lazy(() => import('./components/PortalLandlordNotices'));
+const PortalTenants = lazy(() => import('./components/PortalTenants'));
+const PortalSupportTickets = lazy(() => import('./components/PortalSupportTickets'));
+const PortalAdminSupport = lazy(() => import('./components/PortalAdminSupport'));
+const PortalAdminNotificationTest = lazy(() => import('./components/PortalAdminNotificationTest'));
 
 function ScrollToTopOnRouteChange() {
     const { pathname, hash } = useLocation();
@@ -297,9 +322,17 @@ function MarketingApp() {
                 </Content>
             </Container>
             <Footer />
-            <Analytics />
-            <SpeedInsights />
+            <ConditionalTelemetry />
         </AppShell>
+    );
+}
+
+function PortalRouteFallback() {
+    const { t } = useTranslation();
+    return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress aria-label={t('portalLoading.ariaLabel')} />
+        </Box>
     );
 }
 
@@ -310,12 +343,13 @@ function PortalApp() {
             <PortalAuthGate>
                 <PortalRequestDetailModalProvider>
                     <PortalLayout>
-                        <PortalRoutes />
+                        <Suspense fallback={<PortalRouteFallback />}>
+                            <PortalRoutes />
+                        </Suspense>
                     </PortalLayout>
                 </PortalRequestDetailModalProvider>
             </PortalAuthGate>
-            <Analytics />
-            <SpeedInsights />
+            <ConditionalTelemetry />
         </>
     );
 }

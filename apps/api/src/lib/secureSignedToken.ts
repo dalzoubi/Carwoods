@@ -112,12 +112,13 @@ export function verifyEmailReplyToken(token: string): { requestId: string; userI
 
 /** Local-part suffix after prefix (e.g. cwreply+TOKEN → TOKEN). */
 export function extractTokenFromRecipientAddress(toAddress: string, localPrefix: string): string | null {
-  const trimmed = toAddress.trim().toLowerCase();
+  const trimmed = toAddress.trim();
   const at = trimmed.indexOf('@');
   if (at <= 0) return null;
   const local = trimmed.slice(0, at);
-  const prefix = `${localPrefix.toLowerCase()}+`;
-  if (!local.startsWith(prefix)) return null;
-  const token = local.slice(prefix.length).trim();
+  const prefixLower = `${localPrefix.toLowerCase()}+`;
+  if (local.toLowerCase().slice(0, prefixLower.length) !== prefixLower) return null;
+  // Token portion preserves original case — base64url payload is case-sensitive.
+  const token = local.slice(prefixLower.length).trim();
   return token || null;
 }

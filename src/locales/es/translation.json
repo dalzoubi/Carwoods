@@ -36,9 +36,7 @@
     "product": "Producto",
     "productMenu": "Menú de producto",
     "resources": "Recursos",
-    "resourcesMenu": "Menú de recursos",
-    "closeMenu": "Cerrar menú",
-    "myAccount": "Mi cuenta"
+    "resourcesMenu": "Menú de recursos"
   },
   "tenantLinks": {
     "apply": "Solicitar",
@@ -63,17 +61,8 @@
   "home": {
     "title": "Carwoods — Alquileres en Houston, bien gestionados",
     "metaDescription": "Alquileres y gestión de propiedades en Houston: solicitudes claras, comunicación constante, cobro de renta a tiempo, mantenimiento proactivo y cuidado disciplinado de activos.",
-    "heroHeading": "Alquileres en Houston, Bien Gestionados",
-    "heroSubtitle": "Solicitudes claras. Comunicación constante. Cobro de renta a tiempo, mantenimiento proactivo y cuidado disciplinado de activos.",
     "heroImageAlt": "Llaves de un nuevo hogar sobre un tapete de bienvenida",
     "midHeroAlt": "Exterior de casa moderna con luz cálida de tarde",
-    "highlightsLabel": "Destacados de la empresa",
-    "highlight1Label": "Enfoque en el mercado de Houston",
-    "highlight1Detail": "Ritmos de arrendamiento local, no guías genéricas",
-    "highlight2Label": "Operaciones que se sienten",
-    "highlight2Detail": "Solicitudes, renta y mantenimiento en un solo flujo",
-    "highlight3Label": "Comunicación que se mantiene",
-    "highlight3Detail": "Menos vacíos, pasos siguientes más claros",
     "audienceLabel": "¿Quién es usted?",
     "rentersTitle": "Inquilinos",
     "rentersBody": "¿Busca alquiler en Houston? Explore propiedades disponibles, revise los criterios de selección y solicite en línea.",
@@ -189,7 +178,12 @@
     "contactBody": "Para preguntas relacionadas con la privacidad o para solicitar acceso a su información, contáctenos a través de nuestra página de",
     "contactLink": "Contáctenos",
     "contactBodySuffix": "",
-    "lastUpdated": "Última actualización: abril de 2026"
+    "lastUpdated": "Última actualización: abril de 2026",
+    "analytics": {
+      "toggleLabel": "Share usage analytics",
+      "helperText": "Anonymous usage analytics help us improve the site.",
+      "dntLocked": "Disabled by your browser's Do Not Track setting."
+    }
   },
   "terms": {
     "title": "Carwoods - Términos del Servicio",
@@ -666,6 +660,10 @@
       "body": "Se borrarán los filtros guardados y se mostrarán todas las secciones.",
       "cancel": "Cancelar",
       "reset": "Restablecer"
+    },
+    "privacyNotice": {
+      "helperText": "Your answers are saved on this device so you can come back later.",
+      "clearButton": "Clear saved answers"
     },
     "chipLabel": {
       "employed": "Empleado",
@@ -3133,7 +3131,10 @@
     "purgeConfirm": "Eliminar permanentemente",
     "purgePhraseHint": "Escribe delete en minúsculas para confirmar.",
     "purgePermanent": "Eliminar permanentemente",
-    "scopes": { "LEASE": "Contrato", "PROPERTY": "Propiedad" },
+    "scopes": {
+      "LEASE": "Contrato",
+      "PROPERTY": "Propiedad"
+    },
     "types": {
       "LEASE": "Contrato",
       "RENTERS_INSURANCE": "Seguro de inquilino",
@@ -3144,8 +3145,24 @@
       "TENANT_SUPPORTING_DOCUMENT": "Documento de respaldo del inquilino",
       "OTHER": "Otro"
     },
-    "scan": { "PENDING": "Escaneando", "CLEAN": "Escaneo correcto", "BLOCKED": "Bloqueado", "FAILED": "Escaneo fallido" },
-    "messages": { "uploaded": "Documento subido.", "deleted": "Documento eliminado.", "restored": "Documento restaurado.", "purged": "Documento eliminado permanentemente.", "shareCreated": "Enlace compartido creado.", "shareRevoked": "Enlace compartido revocado.", "sharingUpdated": "Visibilidad para inquilinos actualizada.", "shareUrlCopied": "Enlace copiado al portapapeles.", "sharePasscodeCopied": "Código copiado al portapapeles.", "clipboardFallback": "Usa Ctrl+C para copiar desde el cuadro de diálogo." },
+    "scan": {
+      "PENDING": "Escaneando",
+      "CLEAN": "Escaneo correcto",
+      "BLOCKED": "Bloqueado",
+      "FAILED": "Escaneo fallido"
+    },
+    "messages": {
+      "uploaded": "Documento subido.",
+      "deleted": "Documento eliminado.",
+      "restored": "Documento restaurado.",
+      "purged": "Documento eliminado permanentemente.",
+      "shareCreated": "Enlace compartido creado.",
+      "shareRevoked": "Enlace compartido revocado.",
+      "sharingUpdated": "Visibilidad para inquilinos actualizada.",
+      "shareUrlCopied": "Enlace copiado al portapapeles.",
+      "sharePasscodeCopied": "Código copiado al portapapeles.",
+      "clipboardFallback": "Usa Ctrl+C para copiar desde el cuadro de diálogo."
+    },
     "errors": {
       "loadFailed": "No se pudieron cargar los documentos.",
       "fileRequired": "Elige un archivo antes de subir.",

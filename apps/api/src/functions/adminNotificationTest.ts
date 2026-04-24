@@ -11,10 +11,12 @@ import { isDomainError } from '../domain/errors.js';
 import { insertNotificationDelivery } from '../lib/notificationRepo.js';
 import { createPortalNotification } from '../lib/notificationCenterRepo.js';
 import { writeAudit } from '../lib/auditRepo.js';
+import { withRateLimit } from '../lib/rateLimiter.js';
 import { logInfo } from '../lib/serverLogger.js';
 import { findUserById } from '../lib/usersRepo.js';
 import { sendResendEmail, ResendNotConfiguredError } from '../lib/resendClient.js';
 import { sendTelnyxSms, TelnyxNotConfiguredError } from '../lib/telnyxClient.js';
+import { sha256Base64Url } from '../lib/documentCenterRepo.js';
 
 const EVENT_ADMIN_TEST = 'ADMIN_NOTIFICATION_TEST';
 const TEMPLATE_EMAIL = 'EMAIL:ADMIN_TEST';
@@ -198,7 +200,7 @@ async function adminNotificationTestHandler(
         action: sendError ? 'ADMIN_TEST_EMAIL_FAILED' : 'ADMIN_TEST_EMAIL_SENT',
         before: null,
         after: {
-          recipient: targetEmail,
+          recipient_hash: sha256Base64Url(targetEmail),
           template_id: TEMPLATE_EMAIL,
           provider_message_id: providerMessageId,
           error: sendError,
@@ -274,7 +276,7 @@ async function adminNotificationTestHandler(
       action: sendError ? 'ADMIN_TEST_SMS_FAILED' : 'ADMIN_TEST_SMS_SENT',
       before: null,
       after: {
-        recipient: targetPhone,
+        recipient_hash: sha256Base64Url(targetPhone!),
         template_id: TEMPLATE_SMS,
         provider_message_id: providerMessageId,
         error: sendError,
@@ -323,5 +325,5 @@ app.http('adminNotificationTest', {
   methods: ['POST', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/notifications/test',
-  handler: adminNotificationTestHandler,
+  handler: withRateLimit(adminNotificationTestHandler),
 });

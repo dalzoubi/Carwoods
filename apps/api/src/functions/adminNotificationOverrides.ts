@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
 import { jsonResponse, requireAdmin } from '../lib/managementRequest.js';
+import { withRateLimit } from '../lib/rateLimiter.js';
 import { logError, logInfo } from '../lib/serverLogger.js';
 
 type FlowOverrideRow = {
@@ -169,12 +170,12 @@ app.http('adminNotificationOverridesCollection', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/notifications/user-overrides',
-  handler: adminOverridesCollectionHandler,
+  handler: withRateLimit(adminOverridesCollectionHandler),
 });
 
 app.http('adminNotificationOverridesUser', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/notifications/user-overrides/{userId}',
-  handler: adminOverridesUserHandler,
+  handler: withRateLimit(adminOverridesUserHandler),
 });

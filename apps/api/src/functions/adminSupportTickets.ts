@@ -10,6 +10,7 @@ import {
   mapDomainError,
   requireAdmin,
 } from '../lib/managementRequest.js';
+import { withRateLimit } from '../lib/rateLimiter.js';
 import { logError, logInfo } from '../lib/serverLogger.js';
 import {
   countOpenTicketsForAdmin,
@@ -254,26 +255,26 @@ app.http('adminSupportTicketsCollection', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/support-tickets',
-  handler: adminSupportTicketsCollectionHandler,
+  handler: withRateLimit(adminSupportTicketsCollectionHandler),
 });
 
 app.http('adminSupportTicketsOpenCount', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/support-tickets/open-count',
-  handler: adminSupportTicketsOpenCountHandler,
+  handler: withRateLimit(adminSupportTicketsOpenCountHandler),
 });
 
 app.http('adminSupportTicketItem', {
   methods: ['GET', 'PATCH', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/support-tickets/{id}',
-  handler: adminSupportTicketItemHandler,
+  handler: withRateLimit(adminSupportTicketItemHandler),
 });
 
 app.http('adminSupportTicketMessages', {
   methods: ['POST', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/support-tickets/{id}/messages',
-  handler: adminSupportTicketMessagesHandler,
+  handler: withRateLimit(adminSupportTicketMessagesHandler),
 });

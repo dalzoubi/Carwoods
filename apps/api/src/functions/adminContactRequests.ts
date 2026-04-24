@@ -6,6 +6,7 @@ import {
 } from '@azure/functions';
 import { getPool } from '../lib/db.js';
 import { requireAdmin, jsonResponse } from '../lib/managementRequest.js';
+import { withRateLimit } from '../lib/rateLimiter.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 import {
   listContactRequests,
@@ -178,19 +179,19 @@ app.http('adminContactRequestsCollection', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/contact-requests',
-  handler: adminContactRequestsCollectionHandler,
+  handler: withRateLimit(adminContactRequestsCollectionHandler),
 });
 
 app.http('adminContactRequestsUnreadCount', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/contact-requests/unread-count',
-  handler: adminContactRequestsUnreadCountHandler,
+  handler: withRateLimit(adminContactRequestsUnreadCountHandler),
 });
 
 app.http('adminContactRequestsItem', {
   methods: ['PATCH', 'DELETE', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/contact-requests/{id}',
-  handler: adminContactRequestsItemHandler,
+  handler: withRateLimit(adminContactRequestsItemHandler),
 });

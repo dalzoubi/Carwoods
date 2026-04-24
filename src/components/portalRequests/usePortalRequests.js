@@ -34,6 +34,7 @@ import { RequestStatus } from '../../domain/constants.js';
 import { FALLBACK_MAX_IMAGE_BYTES } from '../../attachmentUploadLimits.js';
 import { MESSAGES_POLL_INTERVAL_MS } from '../../featureFlags';
 import { emitPortalRequestsListRefresh } from '../../lib/portalRequestsListBridge.js';
+import { sanitizeError } from '../../lib/sanitizeError';
 const MESSAGE_SUCCESS_AUTO_DISMISS_MS = 5000;
 const ELSA_DECISION_ACTION_SUCCESS_AUTO_DISMISS_MS = 5000;
 const IS_DEV = import.meta.env.DEV;
@@ -96,9 +97,6 @@ function extractErrorMessage(error, t, fallbackKey) {
 
 function logAttachmentUploadFailure(error, context) {
   const errorDetails = error && typeof error === 'object' ? error.details : undefined;
-  const rawError = error instanceof Error
-    ? { name: error.name, message: error.message, stack: error.stack }
-    : error;
   // Keep logs structured and sanitized to diagnose blob/CORS/SAS issues.
   console.error('portal.requests.attachments.upload.failed', {
     ...context,
@@ -106,7 +104,7 @@ function logAttachmentUploadFailure(error, context) {
     code: error && typeof error === 'object' ? error.code : undefined,
     message: error && typeof error === 'object' ? error.message : undefined,
     details: errorDetails,
-    rawError,
+    rawError: sanitizeError(error),
   });
 }
 

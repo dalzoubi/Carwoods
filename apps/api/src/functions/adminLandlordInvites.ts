@@ -7,6 +7,7 @@ import {
 import { getPool } from '../lib/db.js';
 import { requireAdmin, jsonResponse, mapDomainError } from '../lib/managementRequest.js';
 import { jsonResponseWithEtag } from '../lib/httpEtag.js';
+import { withRateLimit } from '../lib/rateLimiter.js';
 import { logError, logInfo, logWarn } from '../lib/serverLogger.js';
 
 import { listLandlords } from '../useCases/users/listLandlords.js';
@@ -228,14 +229,14 @@ app.http('adminLandlordsCollection', {
   methods: ['GET', 'POST', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/landlords',
-  handler: adminLandlordsCollectionHandler,
+  handler: withRateLimit(adminLandlordsCollectionHandler),
 });
 
 app.http('adminLandlordsItem', {
   methods: ['PATCH', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/landlords/{id}',
-  handler: adminLandlordsItemHandler,
+  handler: withRateLimit(adminLandlordsItemHandler),
 });
 
 async function adminLandlordsItemTierHandler(
@@ -286,5 +287,5 @@ app.http('adminLandlordsItemTier', {
   methods: ['PATCH', 'OPTIONS'],
   authLevel: 'anonymous',
   route: 'portal/admin/landlords/{id}/tier',
-  handler: adminLandlordsItemTierHandler,
+  handler: withRateLimit(adminLandlordsItemTierHandler),
 });
