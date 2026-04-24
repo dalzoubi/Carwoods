@@ -360,6 +360,16 @@ const ApplicantWizard = ({ onProfileChange }) => {
     const requestReset = useCallback(() => setConfirmResetOpen(true), []);
     const cancelReset = useCallback(() => setConfirmResetOpen(false), []);
 
+    const handleClearSavedAnswers = useCallback(() => {
+        clearProfile();
+        setProfile(null);
+        const cleared = getInitialAnswers(null);
+        latestAnswersRef.current = cleared;
+        setAnswers(cleared);
+        setStep(0);
+        if (onProfileChange) onProfileChange(null);
+    }, [onProfileChange]);
+
     const finishWizard = useCallback((answersSnapshot) => {
         const newProfile = {};
         QUESTIONS.forEach(q => {
@@ -595,6 +605,40 @@ const ApplicantWizard = ({ onProfileChange }) => {
                     </h2>
                     {currentQ.hint && (
                         <p style={{ fontSize: '0.875rem', color: theme.palette.text.secondary, margin: '0 0 1rem' }}>{currentQ.hint}</p>
+                    )}
+                    {step === 0 && (
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                marginBottom: '0.75rem',
+                            }}
+                        >
+                            <p
+                                style={{
+                                    fontSize: '0.8rem',
+                                    color: theme.palette.text.secondary,
+                                    margin: 0,
+                                    flex: '1 1 16rem',
+                                    minWidth: 0,
+                                }}
+                            >
+                                {t('wizard.privacyNotice.helperText')}
+                            </p>
+                            {hasFilters && (
+                                <Button
+                                    type="button"
+                                    variant="text"
+                                    size="small"
+                                    onClick={handleClearSavedAnswers}
+                                    sx={{ fontSize: '0.8rem', fontWeight: 600, flexShrink: 0 }}
+                                >
+                                    {t('wizard.privacyNotice.clearButton')}
+                                </Button>
+                            )}
+                        </div>
                     )}
                 </div>
 

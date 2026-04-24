@@ -656,6 +656,10 @@
       "cancel": "Cancelar",
       "reset": "Restablecer"
     },
+    "privacyNotice": {
+      "helperText": "Your answers are saved on this device so you can come back later.",
+      "clearButton": "Clear saved answers"
+    },
     "chipLabel": {
       "employed": "Empleado",
       "selfEmployed": "Trabajador Independiente",

@@ -933,6 +933,10 @@
       "cancel": "Cancel",
       "reset": "Reset"
     },
+    "privacyNotice": {
+      "helperText": "Your answers are saved on this device so you can come back later.",
+      "clearButton": "Clear saved answers"
+    },
     "chipLabel": {
       "employed": "Employed",
       "selfEmployed": "Self-Employed",
