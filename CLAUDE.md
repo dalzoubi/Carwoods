@@ -145,6 +145,21 @@ Claude auto-loads the nearest `CLAUDE.md` above the file being edited. Scoped ru
 - `src/CLAUDE.md` — theming, dark mode, print
 - `apps/api/CLAUDE.md` — Azure Functions routing, auth, DB patterns
 
+## Agent workflow
+
+Four repo-scoped subagents cover the spec-driven development loop. Each has a matching slash command. The user routes between them — agents do not auto-invoke each other.
+
+| Agent | Slash command | Role | Can write |
+|---|---|---|---|
+| `define` | `/define <feature>` | Q&A to produce a spec under `docs/specs/` or `docs/portal/specs/` | Spec file only, after approval |
+| `implement` | `/implement <spec-or-task>` | Build from an approved spec, refactor, debug; small chunks with checkpoints | Source code |
+| `test` | `/test <target-or-bug>` | Write unit / integration / e2e tests, or reproduce a bug with a failing test first | Test files only |
+| `validate` | `/validate` | Read-only pre-PR audit; returns a severity-ranked report with stable IDs | Nothing (no source edits) |
+
+Typical flow for a feature: `/define` → (user approves spec) → `/implement` → `/test` → `/validate` → fix flagged findings via `/implement` → `/preflight` → open PR. For a bug: `/test` (failing repro) → `/implement` (fix) → `/validate`. For a small change with no spec: `/implement` directly, then `/test` and `/validate`.
+
+Agent definitions live in `.claude/agents/`; the Validate report contract lives in `.claude/agents/validate-report-template.md`.
+
 ## Skills and commands
 
 Skills in `.claude/skills/` cover recurring multi-step flows:
