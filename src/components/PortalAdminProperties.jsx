@@ -202,6 +202,35 @@ function validate(form, t, opts = {}) {
   return errors;
 }
 
+// Map an error thrown by createPropertyApi / updatePropertyApi (shape:
+// { status, code, message }) to a translated, user-safe message. `code` is
+// the `error` string from the API JSON body (see managementRequest.mapDomainError
+// and the property use cases in apps/api/src/useCases/properties). Unknown
+// codes fall through to the existing generic copy. Never surfaces the raw
+// message or HTTP status to the user.
+function mapSaveErrorMessage(error, t) {
+  const code = error && typeof error === 'object' && typeof error.code === 'string'
+    ? error.code
+    : '';
+  switch (code) {
+    case 'missing_required_fields':
+    case 'missing_id':
+      return t('portalAdminProperties.errors.saveFailedValidation');
+    case 'forbidden':
+      return t('portalAdminProperties.errors.saveFailedForbidden');
+    case 'not_found':
+      return t('portalAdminProperties.errors.saveFailedNotFound');
+    case 'property_limit_reached':
+      return t('portalAdminProperties.errors.saveFailedLimitReached');
+    case 'har_sync_failed':
+      return t('portalAdminProperties.errors.saveFailedHarSync');
+    default:
+      return t('portalAdminProperties.errors.saveFailed', {
+        error: t('portalSetup.errors.unknown'),
+      });
+  }
+}
+
 const PropertyCard = ({
   property,
   isAdmin,
@@ -808,11 +837,9 @@ const PortalAdminProperties = () => {
       }
       resetForm();
       kickPostActionRefresh();
-    } catch {
+    } catch (error) {
       setSubmitStatus('error');
-      setSubmitError(t('portalAdminProperties.errors.saveFailed', {
-        error: t('portalSetup.errors.unknown'),
-      }));
+      setSubmitError(mapSaveErrorMessage(error, t));
     }
   };
 
