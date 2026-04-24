@@ -2748,6 +2748,25 @@ export async function updateLeasePaymentEntry(baseUrl, accessToken, entryId, pay
   return res.json();
 }
 
+/**
+ * @param {string} baseUrl
+ * @param {string} accessToken
+ * @param {{ emailHint?: string }} [payload]
+ * @returns {Promise<void>}
+ */
+export async function deleteLandlordPaymentEntry(baseUrl, accessToken, entryId, payload) {
+  const { emailHint } = payload ?? {};
+  const res = await fetch(buildUrl(baseUrl, `/api/landlord/payments/${encodeURIComponent(entryId)}`), {
+    method: 'DELETE',
+    headers: getHeaders(accessToken, emailHint),
+    credentials: 'omit',
+  });
+  if (!res.ok && res.status !== 204) {
+    const code = await readErrorBody(res);
+    throw apiError(res.status, code);
+  }
+}
+
 export async function fetchAdminNotificationFlowDefaults(baseUrl, accessToken, { emailHint } = {}) {
   const res = await fetch(buildUrl(baseUrl, '/api/portal/admin/notifications/flow-defaults'), {
     method: 'GET',

@@ -90,6 +90,28 @@ Any time the user asks "what should we do", "which approach", "is this a good id
 
 Present conservative / recommended / faster-but-riskier options with benefits, risks, implementation cost, and effect on current behavior and rollback complexity. **Always state which one you recommend and why** — never present a neutral menu. The user may override; don't hedge to avoid having an opinion. Then wait for the user to pick.
 
+## Error handling & logging
+
+Applies to every feature, every layer. Failures are a UX surface — treat them like one.
+
+### User-facing errors (UI)
+- **Never show raw errors to users.** No stack traces, no `error.message` passthrough, no HTTP status codes, no SQL/Azure error strings, no internal identifiers. These leak implementation details and often PII.
+- **Show a generic, translated, actionable message.** Pattern: *what failed in plain language* + *what the user can do next* (retry, refresh, contact support). Route through `useTranslation()` with keys in all four locales — a generic error message is still a user-visible string.
+- **Match existing error UX.** Reuse the app's toast / inline error / empty-state patterns; don't invent a new error surface. Destructive-action failures should leave the user's input intact so they can retry.
+- **Correlate, don't expose.** If the backend returns a correlation/request ID, display a short opaque reference ("Reference: ab12cd") the user can quote to support — never the raw error body.
+- **Accessibility**: error messages go in a live region (`role="alert"` / `aria-live="assertive"` for blocking errors, `polite` for non-blocking). Associate field-level errors with their input via `aria-describedby`.
+- **Don't swallow errors silently.** If the UI can't recover, tell the user something went wrong — a spinner that never resolves is worse than a generic error.
+
+### Server-side logging (`apps/api`)
+- **Log the real error server-side** with enough context to debug: request ID, route, user ID (if authenticated), operation, and the underlying error (message + stack). Use the existing logger — don't `console.log` ad hoc.
+- **Never log PII or secrets.** Email, phone, full name, address, DOB, SSN, government IDs, tenant documents, lease terms, auth tokens, connection strings, API keys — all excluded. If a field is needed for debugging, log a hash or a stable non-identifying reference instead.
+- **Log at the right level**: `error` for unexpected failures, `warn` for recovered/degraded paths, `info` for auth/authorization decisions and state changes, `debug` for verbose tracing. Don't log at `error` for expected validation failures.
+- **Return a safe payload.** API error responses contain a stable `code`, a generic `message`, and optionally a `correlationId` — never the raw exception, never stack traces, never DB column names.
+
+### Client-side logging (SPA)
+- Avoid client-side error logging by default. If a telemetry surface is introduced, it needs a consent gate and must strip PII before send — see the Privacy section.
+- `console.error` for genuinely unexpected client states is fine during development; production bundles should not rely on it for observability.
+
 ## Workflow
 
 1. Read relevant AGENTS.md section for the area you're touching

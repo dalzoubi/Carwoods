@@ -2933,11 +2933,15 @@
   "portalPayments": {
     "title": "Pagos",
     "heading": "Pagos",
-    "metaDescription": "Consulta y gestiona el historial de pagos de renta de tu contrato.",
-    "introManagement": "Registra y controla los pagos de renta de cada contrato.",
-    "introTenant": "Consulta tu historial de pagos de renta a continuación.",
+    "metaDescription": "Consulta y gestiona tu historial de pagos en el portal de Carwoods.",
+    "introManagement": "Registra y controla líneas de pago por propiedad (renta, tasas, depósitos y más).",
+    "introTenant": "Consulta tu historial de pagos a continuación.",
     "loading": "Cargando pagos…",
     "empty": "No hay pagos registrados.",
+    "hints": {
+      "landlordListScope": "El inquilino y el contrato (opcionales) fijan valores predeterminados para nuevas filas de pago. La tabla muestra todas las líneas de pago de la propiedad seleccionada.",
+      "leaseSelectTenantFirst": "Selecciona primero un inquilino"
+    },
     "tableAriaLabel": "Pagos",
     "columns": {
       "period": "Período",
@@ -2952,16 +2956,22 @@
     "labels": {
       "selectProperty": "Propiedad",
       "selectPropertyPlaceholder": "Seleccionar una propiedad",
-      "selectLeaseForProperty": "Inquilino / contrato",
+      "selectTenantUser": "Inquilino (nueva entrada)",
+      "selectTenantUserNone": "— Ninguno —",
+      "selectLeaseForProperty": "Contrato (nueva entrada)",
       "selectLeaseForPropertyPlaceholder": "Seleccionar inquilino y fechas del contrato",
+      "selectLeaseOptionalPlaceholder": "— Sin un contrato concreto —",
+      "allProperties": "Todas las propiedades",
       "noTenantsOnLease": "Sin inquilinos vinculados"
     },
     "actions": {
       "addEntry": "Registrar pago",
       "editEntry": "Editar entrada",
+      "deleteEntry": "Eliminar pago",
       "save": "Guardar",
       "saving": "Guardando…",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "refresh": "Actualizar"
     },
     "fields": {
       "periodStart": "Inicio del período",
@@ -2975,7 +2985,9 @@
       "paymentMethodNone": "— Ninguno —",
       "paymentType": "Tipo de pago",
       "paymentTypeLocked": "El tipo no se puede cambiar después de crear el registro.",
-      "notes": "Notas"
+      "notes": "Notas",
+      "showInTenantPortal": "Mostrar a los inquilinos",
+      "showInTenantPortalHelper": "Si se activa, los residentes en la propiedad o el contrato correspondiente verán esta línea en su portal."
     },
     "paymentTypes": {
       "RENT": "Renta",
@@ -3008,15 +3020,23 @@
       "createTitle": "Registrar pago",
       "editTitle": "Editar entrada de pago"
     },
+    "deleteDialog": {
+      "title": "¿Eliminar este pago?",
+      "body": "Esto quita la línea de tu lista y del portal del inquilino. No puedes restaurarla desde el portal.",
+      "confirm": "Eliminar"
+    },
     "feedback": {
       "saved": "Pago registrado.",
-      "updated": "Entrada actualizada."
+      "updated": "Entrada actualizada.",
+      "deleted": "Pago eliminado."
     },
     "errors": {
       "apiUnavailable": "La API no está configurada.",
       "loadFailed": "No se pudieron cargar los pagos.",
       "saveFailed": "No se pudo guardar la entrada. Inténtalo de nuevo.",
-      "noLeases": "No se encontraron contratos."
+      "noLeases": "No se encontraron contratos.",
+      "noProperties": "No se encontraron propiedades.",
+      "deleteFailed": "No se pudo eliminar la entrada."
     },
     "lockedTitle": "Los pagos están disponibles en planes pagos",
     "lockedBody": "Registra pagos de renta y brinda a los inquilinos un historial completo. Esta función está disponible para suscriptores pagos.",

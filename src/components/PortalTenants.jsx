@@ -71,6 +71,7 @@ import { usePortalFeedback } from '../hooks/usePortalFeedback';
 import PortalFeedbackSnackbar from './PortalFeedbackSnackbar';
 import PortalRefreshButton from './PortalRefreshButton';
 import { buildVCard3, downloadVCard, slugifyVCardFilenameBase, VCARD_ORG_NAME } from '../lib/exportContactCard';
+import { toDatePart, getLeaseDisplayPhase } from '../lib/leaseDisplayPhase.js';
 import EmptyState from './EmptyState';
 import PeopleOutline from '@mui/icons-material/PeopleOutline';
 
@@ -208,27 +209,6 @@ function DialogTitleWithClose({ title, onClose, closeLabel, disabled = false }) 
       </IconButton>
     </DialogTitle>
   );
-}
-
-function toDatePart(dateStr) {
-  if (!dateStr) return '';
-  // The mssql driver returns DATE columns as JS Date objects, which JSON-serialize
-  // to full ISO strings ("2024-01-15T00:00:00.000Z"). Slice to YYYY-MM-DD so
-  // comparisons, <input type="date"> values, and display formatting all work.
-  return String(dateStr).slice(0, 10);
-}
-
-/** Calendar occupancy phase for lease row UI (start/end vs today), independent of API `is_active`. */
-function getLeaseDisplayPhase(lease) {
-  const today = new Date().toISOString().slice(0, 10);
-  const start = lease?.start_date ? toDatePart(lease.start_date) : '';
-  if (!start) return 'active';
-  if (start > today) return 'future';
-  const m2m = Boolean(lease.month_to_month);
-  const endRaw = lease.end_date != null ? toDatePart(lease.end_date) : '';
-  if (m2m || !endRaw) return 'active';
-  if (endRaw < today) return 'expired';
-  return 'active';
 }
 
 function tenantApiErrorMessage(error, t) {

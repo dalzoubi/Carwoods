@@ -1,4 +1,4 @@
-import type { LeasePaymentEntryRow } from './paymentEntriesRepo.js';
+import type { PaymentEntryRow } from './paymentEntriesRepo.js';
 
 /**
  * MSSQL/Tedious sometimes returns DECIMAL and DATE values in shapes that confuse
@@ -39,12 +39,19 @@ function toIsoDateTime(value: unknown): string | null {
   return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
 
-export function paymentEntryToApiJson(row: LeasePaymentEntryRow): Record<string, unknown> {
+function toBool(v: unknown): boolean {
+  return v === true || v === 1 || v === '1';
+}
+
+export function paymentEntryToApiJson(row: PaymentEntryRow): Record<string, unknown> {
   const paidRaw = row.paid_date;
   const paidStr = paidRaw != null && paidRaw !== '' ? toDateOnlyString(paidRaw) : '';
   return {
     id: String(row.id),
-    lease_id: String(row.lease_id),
+    lease_id: row.lease_id != null ? String(row.lease_id) : null,
+    property_id: row.property_id != null ? String(row.property_id) : null,
+    tenant_user_id: row.tenant_user_id != null ? String(row.tenant_user_id) : null,
+    show_in_tenant_portal: toBool(row.show_in_tenant_portal),
     period_start: toDateOnlyString(row.period_start),
     amount_due: toFiniteNumber(row.amount_due),
     amount_paid: toFiniteNumber(row.amount_paid),
@@ -60,6 +67,6 @@ export function paymentEntryToApiJson(row: LeasePaymentEntryRow): Record<string,
   };
 }
 
-export function paymentEntriesToApiJson(entries: LeasePaymentEntryRow[]): Record<string, unknown>[] {
+export function paymentEntriesToApiJson(entries: PaymentEntryRow[]): Record<string, unknown>[] {
   return entries.map(paymentEntryToApiJson);
 }

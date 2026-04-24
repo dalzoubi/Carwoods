@@ -453,7 +453,7 @@ export async function hardDeleteUserAndOwnedData(
     );
     await nullOutIfExists(
       client,
-      'lease_payment_entries',
+      'payment_entries',
       'recorded_by = NULL',
       'recorded_by = $1',
       [targetUser.id]
@@ -566,7 +566,7 @@ export async function hardDeleteUserAndOwnedData(
       await deleteIfExists(client, 'lease_move_outs', `lease_id IN (${ph})`, leaseIds);
       await deleteIfExists(client, 'lease_evictions', `lease_id IN (${ph})`, leaseIds);
       await deleteIfExists(client, 'lease_notices', `lease_id IN (${ph})`, leaseIds);
-      await deleteIfExists(client, 'lease_payment_entries', `lease_id IN (${ph})`, leaseIds);
+      await deleteIfExists(client, 'payment_entries', `lease_id IN (${ph})`, leaseIds);
       // document_share_links has no lease_id; rows drop via documents.document_id ON DELETE CASCADE.
       await deleteIfExists(client, 'documents', `lease_id IN (${ph})`, leaseIds);
     }

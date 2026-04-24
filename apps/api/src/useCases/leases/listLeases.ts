@@ -5,7 +5,7 @@
 
 import {
   listLeasesForActor,
-  listTenantNamesByLeaseIds,
+  listTenantAggregatesByLeaseIds,
   normalizeLeaseUuidKey,
   type LeaseRowFull,
 } from '../../lib/leasesRepo.js';
@@ -36,15 +36,26 @@ export async function listLeases(
     input.propertyId
   );
 
-  const namesByLeaseId = await listTenantNamesByLeaseIds(
-    db,
-    leases.map((l) => l.id).filter(Boolean)
-  );
+  const leaseIdKeys = leases.map((l) => l.id).filter(Boolean);
+  const aggByLease = await listTenantAggregatesByLeaseIds(db, leaseIdKeys);
   for (const lease of leases) {
-    const tn = namesByLeaseId.get(normalizeLeaseUuidKey(lease.id));
-    if (tn) {
-      lease.tenant_names = tn;
+    const key = normalizeLeaseUuidKey(lease.id);
+    const agg = aggByLease.get(key);
+    if (agg) {
+      if (agg.tenant_names) {
+        lease.tenant_names = agg.tenant_names;
+      }
+      if (agg.tenant_user_ids) {
+        lease.tenant_user_ids = agg.tenant_user_ids;
+      }
     }
+  }
+
+  // JSON must carry string UUIDs: mssql can return uniqueidentifier as Buffer, which breaks
+  // client property/lease matching and tenant_user_ids join with selected property.
+  for (const lease of leases) {
+    lease.id = normalizeLeaseUuidKey(lease.id);
+    lease.property_id = normalizeLeaseUuidKey(lease.property_id);
   }
 
   return { leases };

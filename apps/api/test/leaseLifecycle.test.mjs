@@ -238,7 +238,7 @@ test('deleteLeaseAsMistake: rejects lease with payments', async () => {
   const db = makeDb([
     [/FROM leases WHERE id = \$1/, [leaseRow()]],
     [/FROM properties/, [propRow()]],
-    [/FROM lease_payment_entries/, [{ n: 3 }]],
+    [/FROM payment_entries/, [{ n: 3 }]],
   ]);
   await assert.rejects(
     deleteLeaseAsMistake(db, {
@@ -270,7 +270,7 @@ test('deleteLeaseAsMistake: landlord cannot force', async () => {
   const db = makeDb([
     [/FROM leases WHERE id = \$1/, [leaseRow()]],
     [/FROM properties/, [propRow()]],
-    [/FROM lease_payment_entries/, [{ n: 1 }]],
+    [/FROM payment_entries/, [{ n: 1 }]],
   ]);
   await assert.rejects(
     deleteLeaseAsMistake(db, {

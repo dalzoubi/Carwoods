@@ -29,7 +29,7 @@ export type DeleteLeaseAsMistakeInput = {
 
 async function leaseHasPayments(db: Queryable, leaseId: string): Promise<boolean> {
   const r = await db.query<{ n: number }>(
-    `SELECT COUNT(*) AS n FROM lease_payment_entries
+    `SELECT COUNT(*) AS n FROM payment_entries
      WHERE lease_id = $1 AND deleted_at IS NULL`,
     [leaseId]
   );

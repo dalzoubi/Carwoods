@@ -88,6 +88,17 @@ Short pass: Spoofing, Tampering, Repudiation, Info disclosure, DoS, Elevation of
 - **Retention & deletion** — new user-linked data without a documented delete path consistent with existing user-deletion flows (reassignments / nullifications / consent cleanup).
 - **Data minimization** — fields collected or stored beyond what the spec requires.
 
+### Error handling & logging
+- **Raw errors leaked to UI** — stack traces, `error.message` passthrough, HTTP status codes, SQL/Azure error strings, or internal identifiers rendered in toasts/dialogs/inline errors. Any hit → **High** (or **Blocker** if the error carries PII or secrets).
+- **Hard-coded English error messages** — every user-facing error string must go through `useTranslation()` with keys in all four locales. Missing keys → **Medium**.
+- **Error UX consistency** — new error surfaces that bypass the app's existing toast / inline error / empty-state patterns. Flag visual/behavioral drift.
+- **Silent failures** — promises without `.catch`, `try` blocks that swallow errors without logging or surfacing, spinners that never resolve on failure. Flag as **High**.
+- **a11y on error messages** — blocking errors without `role="alert"` / `aria-live`; field errors not associated via `aria-describedby`.
+- **Server-side logging gaps** — new `apps/api` error paths that don't log via the existing logger, or log without context (request ID, route, operation). Flag as **Medium**.
+- **PII or secrets in logs** — any `console.log` / logger call that includes email, phone, full name, address, DOB, SSN, tokens, connection strings, or raw request bodies. **Blocker**.
+- **API error payloads leaking internals** — responses returning raw exception messages, stack traces, DB column names, or ORM error strings instead of a stable `code` + generic `message`. Flag as **High**.
+- **Wrong log levels** — `error`-level logs for expected validation failures (noise); missing `error`-level for genuine unexpected failures.
+
 ### Performance
 - Obvious N+1 in `apps/api`.
 - Missing memoization in hot-path components.
@@ -118,6 +129,10 @@ npm run build
 
 Produce a single markdown report at the end. Do not write it to a file — return it in chat.
 
+**The goal is a pick-list the user can act on in one reply.** Every finding is a numbered item with a stable ID (`B1`, `H2`, `M3`, `L4`, `N5` — severity letter + running number). The user should be able to say "do B1, B2, H3, skip M1" and hand that straight to `/implement`.
+
+When a finding has more than one reasonable fix, list the fixes as lettered sub-options (`a`, `b`, `c`) and **state which you recommend and why** — never a neutral menu. Single-option findings don't need sub-letters.
+
 ```markdown
 # Validate report — <branch>
 
@@ -126,26 +141,38 @@ Produce a single markdown report at the end. Do not write it to a file — retur
 ## Summary
 <2–4 sentences: what changed, biggest risks, overall posture.>
 
-## Findings
+## Action list
+
+Numbered, grouped by severity. IDs are stable — reply with the IDs you want implemented (e.g. "do B1, B2a, H3b, skip M1").
 
 ### Blocker
-- **<title>** — `path/to/file.ext:line` — <what and why>. Fix: <concrete suggestion>.
+1. **[B1] <title>** — `path/to/file.ext:line`
+   - **Problem:** <what and why, 1–2 sentences>
+   - **Options:**
+     - **a) <recommended fix>** ← recommend. <one-line reason>
+     - b) <alternative fix>. <tradeoff>
+     - c) Accept risk / won't fix. <what that costs>
+2. **[B2] <title>** — `path/to/file.ext:line`
+   - **Problem:** …
+   - **Fix:** <single concrete change — no sub-options needed>
 
 ### High
-- …
+3. **[H1] <title>** — `path/to/file.ext:line`
+   - …
 
 ### Medium
-- …
+4. **[M1] <title>** — `path/to/file.ext:line`
+   - …
 
 ### Low
-- …
+5. **[L1] <title>** — `path/to/file.ext:line` — <one-line description and fix>
 
 ### Nit
-- …
+6. **[N1] <title>** — `path/to/file.ext:line` — <one-line>
 
 ## Spec conformance
-- Acceptance criterion X — covered by `path/to/test.js:line` ✓
-- Acceptance criterion Y — **not covered**.
+- [S1] Acceptance criterion X — covered by `path/to/test.js:line` ✓
+- [S2] Acceptance criterion Y — **not covered**. Suggested test: `path/to/new.test.js`.
 
 ## Threat model (if applicable)
 - Spoofing: …
@@ -156,7 +183,19 @@ Produce a single markdown report at the end. Do not write it to a file — retur
 - `npx vitest run`: <pass/fail summary>
 - `npx eslint src/`: <summary>
 - `npm run build`: <pass/fail>
+
+## Suggested next step
+One-line handoff, e.g. *"Run `/implement` with: B1a, B2, H1b, H3, S2. Skip M1, L1, N1."* — your recommended pick list, which the user can edit before handing off.
 ```
+
+### Rules for the action list
+
+- **Every finding gets an ID.** IDs are stable within the report so the user can reference them.
+- **Numbering is continuous** across severity sections (1, 2, 3, …) so the user can scan a single list. The `[B1]`/`[H1]` prefix carries the severity.
+- **One finding = one item.** Don't bundle unrelated issues under a single number; the user needs to be able to accept/reject independently.
+- **Sub-options only when there's a real choice.** Trivial fixes (rename, add missing key, fix typo) don't need a/b/c — just state the fix.
+- **Always recommend.** When sub-options exist, mark one with ← recommend and give a one-line reason. No neutral menus.
+- **End with a "Suggested next step" line** that names the IDs you'd action and the ones you'd skip, so the user can copy, tweak, and send to `/implement`.
 
 Severity rubric:
 - **Blocker** — security hole, data loss risk, break of production for real users, irreversible mistake.

@@ -32,6 +32,11 @@ export type LeaseRowFull = {
    * Populated by `listLeases` use case: comma-separated tenant display names on this lease.
    */
   tenant_names?: string | null;
+  /**
+   * Populated by `listLeases` use case: comma-separated `users.id` values (lease_tenants).
+   * Used by portal (e.g. payments) to key tenant user filters.
+   */
+  tenant_user_ids?: string | null;
 };
 
 const LEASE_COLS_UNALIASED = `id, property_id,
@@ -119,6 +124,35 @@ function tenantDisplaySqlFragment(alias = 'u'): string {
   )`;
 }
 
+export type TenantAggregatesByLease = {
+  tenant_names: string;
+  tenant_user_ids: string;
+};
+
+/**
+ * Merges the two per-lease queries (names join users; ids from lease_tenants). Some SQL Server
+ * builds reject a single statement with two STRING_AGG(... WITHIN GROUP ...) in one batch.
+ */
+export async function listTenantAggregatesByLeaseIds(
+  client: Queryable,
+  leaseIds: unknown[]
+): Promise<Map<string, TenantAggregatesByLease>> {
+  const [namesMap, userIdsMap] = await Promise.all([
+    listTenantNamesByLeaseIds(client, leaseIds),
+    listTenantUserIdsByLeaseIds(client, leaseIds),
+  ]);
+  const map = new Map<string, TenantAggregatesByLease>();
+  const allKeys = new Set<string>([...namesMap.keys(), ...userIdsMap.keys()]);
+  for (const k of allKeys) {
+    const tenant_names = namesMap.get(k) ?? '';
+    const tenant_user_ids = userIdsMap.get(k) ?? '';
+    if (tenant_names || tenant_user_ids) {
+      map.set(k, { tenant_names, tenant_user_ids });
+    }
+  }
+  return map;
+}
+
 /**
  * Aggregated tenant labels per lease (for landlord lease lists). Empty map if none or no ids.
  */
@@ -147,6 +181,36 @@ export async function listTenantNamesByLeaseIds(
     const id = normalizeLeaseUuidKey(row.lease_id);
     const tn = row.tenant_names != null ? String(row.tenant_names).trim() : '';
     if (id && tn) map.set(id, tn);
+  }
+  return map;
+}
+
+/**
+ * Comma-separated `users.id` values per lease (lease_tenants), stable order. Empty map if none.
+ */
+export async function listTenantUserIdsByLeaseIds(
+  client: Queryable,
+  leaseIds: unknown[]
+): Promise<Map<string, string>> {
+  const ids = leaseIds.map((id) => normalizeLeaseUuidKey(id)).filter(Boolean);
+  if (ids.length === 0) return new Map();
+
+  const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+  const r = await client.query<{ lease_id: string; tenant_user_ids: string | null }>(
+    `SELECT CAST(lease_id AS NVARCHAR(36)) AS lease_id,
+            STRING_AGG(CAST(user_id AS NVARCHAR(36)), N',')
+              WITHIN GROUP (ORDER BY user_id) AS tenant_user_ids
+     FROM lease_tenants
+     WHERE lease_id IN (${placeholders})
+     GROUP BY lease_id`,
+    ids
+  );
+
+  const map = new Map<string, string>();
+  for (const row of r.rows) {
+    const id = normalizeLeaseUuidKey(row.lease_id);
+    const raw = row.tenant_user_ids != null ? String(row.tenant_user_ids).trim() : '';
+    if (id && raw) map.set(id, raw);
   }
   return map;
 }

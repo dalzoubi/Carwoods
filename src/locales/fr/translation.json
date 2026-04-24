@@ -2933,11 +2933,15 @@
   "portalPayments": {
     "title": "Paiements",
     "heading": "Paiements",
-    "metaDescription": "Consultez et gérez l'historique des paiements de loyer de votre bail.",
-    "introManagement": "Enregistrez et suivez les paiements de loyer pour chaque bail.",
-    "introTenant": "Consultez votre historique de paiements de loyer ci-dessous.",
+    "metaDescription": "Consultez et gérez l'historique de vos paiements dans le portail Carwoods.",
+    "introManagement": "Enregistrez et suivez les lignes de paiement par propriété (loyer, frais, dépôts, etc.).",
+    "introTenant": "Consultez votre historique de paiements ci-dessous.",
     "loading": "Chargement des paiements…",
     "empty": "Aucun paiement enregistré.",
+    "hints": {
+      "landlordListScope": "Le locataire et le bail (facultatifs) définissent les valeurs par défaut pour de nouvelles lignes. Le tableau liste toutes les lignes de paiement pour la propriété sélectionnée.",
+      "leaseSelectTenantFirst": "Sélectionnez d'abord un locataire"
+    },
     "tableAriaLabel": "Paiements",
     "columns": {
       "period": "Période",
@@ -2952,16 +2956,22 @@
     "labels": {
       "selectProperty": "Propriété",
       "selectPropertyPlaceholder": "Sélectionner une propriété",
-      "selectLeaseForProperty": "Locataire / bail",
+      "selectTenantUser": "Locataire (nouvelle saisie)",
+      "selectTenantUserNone": "— Aucun —",
+      "selectLeaseForProperty": "Bail (nouvelle saisie)",
       "selectLeaseForPropertyPlaceholder": "Sélectionner le locataire et les dates du bail",
+      "selectLeaseOptionalPlaceholder": "— Aucun bail précis —",
+      "allProperties": "Toutes les propriétés",
       "noTenantsOnLease": "Aucun locataire lié"
     },
     "actions": {
       "addEntry": "Enregistrer un paiement",
       "editEntry": "Modifier l'entrée",
+      "deleteEntry": "Supprimer le paiement",
       "save": "Enregistrer",
       "saving": "Enregistrement…",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "refresh": "Actualiser"
     },
     "fields": {
       "periodStart": "Début de période",
@@ -2975,7 +2985,9 @@
       "paymentMethodNone": "— Aucun —",
       "paymentType": "Type de paiement",
       "paymentTypeLocked": "Le type ne peut pas être modifié après la création de l'entrée.",
-      "notes": "Notes"
+      "notes": "Notes",
+      "showInTenantPortal": "Afficher aux locataires",
+      "showInTenantPortalHelper": "Si cette option est activée, les résidents concernés par la propriété ou le bail peuvent voir cette ligne dans leur portail."
     },
     "paymentTypes": {
       "RENT": "Loyer",
@@ -3008,15 +3020,23 @@
       "createTitle": "Enregistrer un paiement",
       "editTitle": "Modifier l'entrée de paiement"
     },
+    "deleteDialog": {
+      "title": "Supprimer ce paiement ?",
+      "body": "Cela retire la ligne de votre liste et du portail locataire. Vous ne pouvez pas la restaurer depuis le portail.",
+      "confirm": "Supprimer"
+    },
     "feedback": {
       "saved": "Paiement enregistré.",
-      "updated": "Entrée mise à jour."
+      "updated": "Entrée mise à jour.",
+      "deleted": "Paiement supprimé."
     },
     "errors": {
       "apiUnavailable": "L'API n'est pas configurée.",
       "loadFailed": "Impossible de charger les paiements.",
       "saveFailed": "Impossible d'enregistrer l'entrée. Veuillez réessayer.",
-      "noLeases": "Aucun bail trouvé."
+      "noLeases": "Aucun bail trouvé.",
+      "noProperties": "Aucune propriété trouvée.",
+      "deleteFailed": "Impossible de supprimer l'entrée."
     },
     "lockedTitle": "Les paiements sont disponibles avec les forfaits payants",
     "lockedBody": "Enregistrez les paiements de loyer et offrez aux locataires un historique complet. Cette fonction est disponible pour les abonnés payants.",

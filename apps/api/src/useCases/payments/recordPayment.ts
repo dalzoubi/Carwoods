@@ -6,7 +6,10 @@ import {
   updateEntry,
   getEntryById,
   leaseAccessibleByLandlord,
-  type LeasePaymentEntryRow,
+  propertyAccessibleByLandlord,
+  tenantUserOnProperty,
+  paymentEntryAccessibleByLandlord,
+  type PaymentEntryRow,
 } from '../../lib/paymentEntriesRepo.js';
 import type { TransactionPool } from '../types.js';
 
@@ -26,14 +29,12 @@ const VALID_PAYMENT_TYPES = new Set([
   'OTHER',
 ]);
 
-function validateFields(params: {
-  lease_id?: string;
+function validateAmounts(params: {
   period_start?: string;
   amount_due?: number;
   amount_paid?: number;
   due_date?: string;
 }): string | null {
-  if (!params.lease_id?.trim()) return 'lease_id_required';
   if (!params.period_start?.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(params.period_start))
     return 'period_start_invalid';
   if (!params.due_date?.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(params.due_date))
@@ -56,19 +57,21 @@ function validateFields(params: {
 export type RecordPaymentInput = {
   actorUserId: string;
   actorRole: string;
-  lease_id?: string;
+  lease_id?: string | null;
+  property_id?: string | null;
+  tenant_user_id?: string | null;
+  show_in_tenant_portal?: boolean | null;
   period_start?: string;
   amount_due?: number;
   amount_paid?: number;
   due_date?: string;
   paid_date?: string | null;
   payment_method?: string | null;
-  /** Defaults to RENT when omitted (legacy API clients). */
   payment_type?: string | null;
   notes?: string | null;
 };
 
-export type RecordPaymentOutput = { entry: LeasePaymentEntryRow };
+export type RecordPaymentOutput = { entry: PaymentEntryRow };
 
 export async function recordPayment(
   db: TransactionPool,
@@ -77,8 +80,7 @@ export async function recordPayment(
   const actorRole = String(input.actorRole ?? '').trim().toUpperCase();
   if (!hasLandlordAccess(actorRole)) throw forbidden();
 
-  const err = validateFields({
-    lease_id: input.lease_id,
+  const err = validateAmounts({
     period_start: input.period_start,
     amount_due: input.amount_due,
     amount_paid: input.amount_paid,
@@ -92,19 +94,53 @@ export async function recordPayment(
   const paymentType = (input.payment_type?.trim().toUpperCase() || 'RENT');
   if (!VALID_PAYMENT_TYPES.has(paymentType)) throw validationError('payment_type_invalid');
 
-  const accessible = await leaseAccessibleByLandlord(
-    db,
-    input.lease_id!,
-    input.actorUserId,
-    actorRole
-  );
-  if (!accessible) throw forbidden();
+  const leaseId = input.lease_id?.trim() || null;
+  const propertyId = input.property_id?.trim() || null;
+  const tenantUserId = input.tenant_user_id?.trim() || null;
+
+  let showPortal = false;
+  if (leaseId) {
+    if (propertyId || tenantUserId) throw validationError('lease_scope_mixed');
+    const accessible = await leaseAccessibleByLandlord(
+      db,
+      leaseId,
+      input.actorUserId,
+      actorRole
+    );
+    if (!accessible) throw forbidden();
+    showPortal = input.show_in_tenant_portal !== false;
+  } else if (propertyId && tenantUserId) {
+    const acc = await propertyAccessibleByLandlord(
+      db,
+      propertyId,
+      input.actorUserId,
+      actorRole
+    );
+    if (!acc) throw forbidden();
+    const onProp = await tenantUserOnProperty(db, propertyId, tenantUserId);
+    if (!onProp) throw validationError('tenant_not_on_property');
+    showPortal = input.show_in_tenant_portal === true;
+  } else if (propertyId) {
+    const acc = await propertyAccessibleByLandlord(
+      db,
+      propertyId,
+      input.actorUserId,
+      actorRole
+    );
+    if (!acc) throw forbidden();
+    showPortal = input.show_in_tenant_portal === true;
+  } else {
+    throw validationError('payment_scope_required');
+  }
 
   const client = await db.connect();
   try {
     await client.query('BEGIN');
     const row = await insertEntry(client, {
-      lease_id: input.lease_id!,
+      lease_id: leaseId,
+      property_id: leaseId ? null : propertyId,
+      tenant_user_id: leaseId || !propertyId ? null : tenantUserId,
+      show_in_tenant_portal: showPortal,
       period_start: input.period_start!,
       amount_due: input.amount_due!,
       amount_paid: input.amount_paid ?? 0,
@@ -143,9 +179,10 @@ export type UpdatePaymentInput = {
   paid_date?: string | null;
   payment_method?: string | null;
   notes?: string | null;
+  show_in_tenant_portal?: boolean | null;
 };
 
-export type UpdatePaymentOutput = { entry: LeasePaymentEntryRow };
+export type UpdatePaymentOutput = { entry: PaymentEntryRow };
 
 export async function updatePayment(
   db: TransactionPool,
@@ -157,13 +194,13 @@ export async function updatePayment(
   const current = await getEntryById(db, input.entryId);
   if (!current) throw notFound();
 
-  const accessible = await leaseAccessibleByLandlord(
+  const allowed = await paymentEntryAccessibleByLandlord(
     db,
-    current.lease_id,
+    current,
     input.actorUserId,
     input.actorRole.trim().toUpperCase()
   );
-  if (!accessible) throw forbidden();
+  if (!allowed) throw forbidden();
 
   const amount_due = input.amount_due ?? current.amount_due;
   const amount_paid = input.amount_paid ?? current.amount_paid;
@@ -182,6 +219,9 @@ export async function updatePayment(
   const client = await db.connect();
   try {
     await client.query('BEGIN');
+    let showFlag: boolean | undefined;
+    if (input.show_in_tenant_portal === true) showFlag = true;
+    else if (input.show_in_tenant_portal === false) showFlag = false;
     const updated = await updateEntry(client, input.entryId, {
       amount_due,
       amount_paid,
@@ -189,6 +229,7 @@ export async function updatePayment(
       paid_date,
       payment_method: method,
       notes: input.notes !== undefined ? (input.notes?.trim() || null) : current.notes,
+      show_in_tenant_portal: showFlag,
       recorded_by: input.actorUserId,
     });
     if (!updated) throw notFound();

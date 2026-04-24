@@ -2934,11 +2934,15 @@
   "portalPayments": {
     "title": "المدفوعات",
     "heading": "المدفوعات",
-    "metaDescription": "عرض وإدارة سجل مدفوعات الإيجار لعقدك.",
-    "introManagement": "سجّل ومتابعة مدفوعات الإيجار لكل عقد.",
-    "introTenant": "راجع سجل مدفوعات الإيجار أدناه.",
+    "metaDescription": "اعرض تاريخ المدفوعات الخاصة بك وأدِرْه في بوابة كارووودز.",
+    "introManagement": "سجّل وتتبع بنود المدفوعات لكل عقار (إيجار ورسوم وتأمينات وغيرها).",
+    "introTenant": "راجع تاريخ المدفوعات أدناه.",
     "loading": "جارٍ تحميل المدفوعات…",
     "empty": "لا توجد مدفوعات مسجّلة بعد.",
+    "hints": {
+      "landlordListScope": "يمكن اختيار المستأجر والعقد لتعيين قيم افتراضية لصفوف دفع جديدة. الجدول يعرض كل بنود المدفوعات للعقار المحدد.",
+      "leaseSelectTenantFirst": "اختر مستأجراً أولاً"
+    },
     "tableAriaLabel": "المدفوعات",
     "columns": {
       "period": "الفترة",
@@ -2953,16 +2957,22 @@
     "labels": {
       "selectProperty": "العقار",
       "selectPropertyPlaceholder": "اختر عقاراً",
-      "selectLeaseForProperty": "المستأجر / العقد",
+      "selectTenantUser": "مستأجر (لإدخال جديد)",
+      "selectTenantUserNone": "— بلا —",
+      "selectLeaseForProperty": "عقد (لإدخال جديد)",
       "selectLeaseForPropertyPlaceholder": "اختر المستأجر وفترة العقد",
+      "selectLeaseOptionalPlaceholder": "— بلا عقد محدد —",
+      "allProperties": "كل العقارات",
       "noTenantsOnLease": "لا مستأجرين مرتبطين"
     },
     "actions": {
       "addEntry": "تسجيل دفعة",
       "editEntry": "تعديل الإدخال",
+      "deleteEntry": "حذف الدفعة",
       "save": "حفظ",
       "saving": "جارٍ الحفظ…",
-      "cancel": "إلغاء"
+      "cancel": "إلغاء",
+      "refresh": "تحديث"
     },
     "fields": {
       "periodStart": "بداية الفترة",
@@ -2976,7 +2986,9 @@
       "paymentMethodNone": "— لا شيء —",
       "paymentType": "نوع الدفعة",
       "paymentTypeLocked": "لا يمكن تغيير النوع بعد إنشاء الإدخال.",
-      "notes": "ملاحظات"
+      "notes": "ملاحظات",
+      "showInTenantPortal": "إظهار للمستأجرين",
+      "showInTenantPortalHelper": "عند التفعيل، يمكن للمقيمين المرتبطين بهذا العقار أو العقد رؤية هذا السطر في بوابتهم."
     },
     "paymentTypes": {
       "RENT": "إيجار",
@@ -3009,15 +3021,23 @@
       "createTitle": "تسجيل دفعة",
       "editTitle": "تعديل إدخال الدفعة"
     },
+    "deleteDialog": {
+      "title": "حذف هذه الدفعة؟",
+      "body": "يُزال السطر من قائمتك ومن بوابة المستأجر. لا يمكن استعادته من البوابة.",
+      "confirm": "حذف"
+    },
     "feedback": {
       "saved": "تم تسجيل الدفعة.",
-      "updated": "تم تحديث الإدخال."
+      "updated": "تم تحديث الإدخال.",
+      "deleted": "تمت إزالة الدفعة."
     },
     "errors": {
       "apiUnavailable": "واجهة برمجة التطبيقات غير مهيأة.",
       "loadFailed": "تعذّر تحميل المدفوعات.",
       "saveFailed": "تعذّر حفظ الإدخال. يرجى المحاولة مرة أخرى.",
-      "noLeases": "لم يتم العثور على عقود."
+      "noLeases": "لم يتم العثور على عقود.",
+      "noProperties": "لم يتم العثور على عقارات.",
+      "deleteFailed": "تعذّر حذف الإدخال."
     },
     "lockedTitle": "المدفوعات متاحة في الخطط المدفوعة",
     "lockedBody": "سجّل مدفوعات الإيجار ووفّر للمستأجرين سجلاً كاملاً. هذه الميزة متاحة للمشتركين المدفوعين.",

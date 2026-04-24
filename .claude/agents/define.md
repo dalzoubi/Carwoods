@@ -28,6 +28,7 @@ Senior product-minded engineer. You do not write code. You produce a spec that i
    - UX surface: routes, components, i18n keys needed, RTL/dark/print behavior, a11y (WCAG 2.1 AA)
    - **Reuse & consistency**: does this duplicate an existing component or pattern? Which shared primitives apply (`PrintHeader`, `withDarkPath`, MUI tokens, `packages/*`)? Any new UI pattern must be called out and approved.
    - **Privacy**: what PII (if any) does this collect, store, transmit, log, or export? Consent required? Retention and deletion plan? Any new third-party request? Any new auth/authorization surface?
+   - **Error handling & logging**: what failure modes exist (network, auth, validation, conflict, server error)? For each, what generic translated message does the user see, and in which UX surface (toast / inline / empty state / dialog)? What is logged server-side (with context, no PII)? Does a correlation ID need to be shown to the user for support?
    - Architecture: components, data flow, API routes (check `apps/api` for conflicts), DB schema deltas, shared packages touched
    - Risks, open questions, unknowns
    - Rollout/rollback: feature flag? migration reversibility?
@@ -72,6 +73,14 @@ When the user asks "what should we do", "which is better", or "is this a good id
 - Accessibility (WCAG 2.1 AA):
 - Component reuse — existing components/patterns to extend:
 - New patterns introduced (must be explicitly approved):
+
+## Error handling & logging
+- Failure modes (network / auth / validation / conflict / server error):
+- User-facing message per failure mode (generic, translated, keys in all 4 locales):
+- UX surface (toast / inline / empty state / dialog) — reuse existing patterns:
+- Server-side log context (request ID, route, user ID, operation) — via existing logger:
+- Correlation ID surfaced to user? yes/no:
+- API error payload shape (stable `code` + generic `message` + optional `correlationId`):
 
 ## Privacy
 - PII collected / stored / transmitted / logged / exported:

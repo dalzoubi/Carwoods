@@ -3450,11 +3450,15 @@
   "portalPayments": {
     "title": "Payments",
     "heading": "Payments",
-    "metaDescription": "View and manage rent payment history for your lease.",
-    "introManagement": "Record and track rent payments for each lease.",
-    "introTenant": "Review your rent payment history below.",
+    "metaDescription": "View and manage your payment history in the Carwoods portal.",
+    "introManagement": "Record and track payment lines for each property (rent, fees, deposits, and more).",
+    "introTenant": "Review your payment history below.",
     "loading": "Loading payments…",
     "empty": "No payments yet.",
+    "hints": {
+      "landlordListScope": "Optional tenant and lease set defaults for new payment rows. The table lists every payment line for the selected property.",
+      "leaseSelectTenantFirst": "Select a tenant first"
+    },
     "tableAriaLabel": "Payments",
     "columns": {
       "period": "Period",
@@ -3469,16 +3473,22 @@
     "labels": {
       "selectProperty": "Property",
       "selectPropertyPlaceholder": "Select a property",
-      "selectLeaseForProperty": "Tenant / lease",
+      "selectTenantUser": "Tenant (for new entry)",
+      "selectTenantUserNone": "— None —",
+      "selectLeaseForProperty": "Lease (for new entry)",
       "selectLeaseForPropertyPlaceholder": "Select tenant & lease",
+      "selectLeaseOptionalPlaceholder": "— No specific lease —",
+      "allProperties": "All properties",
       "noTenantsOnLease": "No tenants linked"
     },
     "actions": {
       "addEntry": "Record payment",
       "editEntry": "Edit entry",
+      "deleteEntry": "Delete payment",
       "save": "Save",
       "saving": "Saving…",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "refresh": "Refresh"
     },
     "fields": {
       "periodStart": "Period start",
@@ -3492,7 +3502,9 @@
       "paymentMethodNone": "— None —",
       "paymentType": "Payment type",
       "paymentTypeLocked": "Type cannot be changed after the entry is created.",
-      "notes": "Notes"
+      "notes": "Notes",
+      "showInTenantPortal": "Show to tenants",
+      "showInTenantPortalHelper": "When enabled, residents on the relevant property or lease can see this line in their portal."
     },
     "paymentTypes": {
       "RENT": "Rent",
@@ -3525,9 +3537,15 @@
       "createTitle": "Record payment",
       "editTitle": "Edit payment entry"
     },
+    "deleteDialog": {
+      "title": "Delete this payment?",
+      "body": "This removes the line from your list and from the tenant portal. You cannot restore it from the portal.",
+      "confirm": "Delete"
+    },
     "feedback": {
       "saved": "Payment recorded.",
-      "updated": "Entry updated."
+      "updated": "Entry updated.",
+      "deleted": "Payment removed."
     },
     "lockedTitle": "Payments are available on paid plans",
     "lockedBody": "Track rent payments and give tenants a full payment history. This feature is available to paid subscribers.",
@@ -3536,7 +3554,9 @@
       "apiUnavailable": "API is not configured.",
       "loadFailed": "Could not load payments.",
       "saveFailed": "Could not save entry. Please try again.",
-      "noLeases": "No leases found."
+      "noLeases": "No leases found.",
+      "noProperties": "No properties found.",
+      "deleteFailed": "Could not delete the entry."
     }
   },
   "portalDocuments": {
