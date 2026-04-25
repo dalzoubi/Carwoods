@@ -31,7 +31,8 @@ Scale the depth of questioning to the size of the change — don't interrogate a
 8. Risks and open questions
 9. Rollout/rollback — feature flag? migration reversibility? deploy order?
 10. Test plan — unit (vitest) / integration / e2e (Playwright) / visual / manual
-11. Out of scope / future work
+11. **Implementation slices** — how this breaks into 1–6 sequential slices for `@phase-supervise`. Each slice needs a `name`, `scope` (files/areas), `success criteria`, `dependencies on prior slices`, and a `cycle budget` only if non-default (3). Required if the spec is meant to be driven via `@phase-supervise`. Get explicit user approval on the slice list before drafting the spec.
+12. Out of scope / future work
 
 When tradeoffs exist, present **conservative / recommended / faster-but-riskier** options with costs and risks. Wait for the user's choice.
 
@@ -67,6 +68,14 @@ Create the directory if missing.
 ## Rollout & rollback
 ## Test plan
  — include a11y, i18n (all 4 locales + RTL), privacy (PII-leak and authz tests) alongside functional tests.
+## Implementation slices
+<!-- Required for @phase-supervise. 1–6 sequential slices. Approved by user during Q&A. -->
+
+1. **<slice-name>**
+   - **Scope:** <files/areas touched>
+   - **Success criteria:** <observable outcome>
+   - **Dependencies:** <prior slice name(s) or "none">
+   - **Cycle budget:** <default 3 — omit unless unusual>
 ## Out of scope / future work
 ## Spec deltas
 ```

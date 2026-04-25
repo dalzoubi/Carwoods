@@ -84,9 +84,9 @@ The app is deployed to [carwoods.com](https://carwoods.com). Vite builds to the 
 
 This repo is configured for AI coding agents (Cursor, Copilot, Codex, etc.). Before starting a task, paste the relevant prompt below into your chat.
 
-### Claude Code: spec-driven 4-agent workflow
+### Claude Code: spec-driven 5-agent workflow
 
-For larger changes in Claude Code, use the four project-scoped subagents defined in [`.claude/agents/`](./.claude/agents) via their slash commands in [`.claude/commands/`](./.claude/commands). You are the router — agents do **not** auto-delegate to each other. Each agent has a narrower tool scope than the main session and built-in checkpoints.
+For larger changes in Claude Code, use the project-scoped subagents defined in [`.claude/agents/`](./.claude/agents) via their slash commands in [`.claude/commands/`](./.claude/commands). You are the router — agents do **not** auto-delegate to each other. Each agent has a narrower tool scope than the main session and built-in checkpoints.
 
 | Command | Agent | Model | Purpose |
 |---|---|---|---|
@@ -94,6 +94,7 @@ For larger changes in Claude Code, use the four project-scoped subagents defined
 | `/implement <spec-path-or-task>` | **Implement** (Implementation & Refactor) | inherit | Reads the spec, uses the `Plan` subagent to draft a plan, waits for approval, edits in small chunks, runs `npx vitest run` / `npm run build` / `npx eslint src/` after each chunk, and stops at checkpoints (after plan, after each chunk, before any "Ask first" or destructive action). Only agent that changes source files. |
 | `/test <target-or-bug>` | **Test & Quality** | sonnet | Writes unit / integration / e2e / visual tests per the spec's Test plan. For bugs, writes the **failing test first** then stops — does not fix production code. Edits test files only (`**/*.test.*`, `**/*.spec.*`, `e2e/**`, `tests/**`). |
 | `/validate` | **Validate** (Review & Risk) | inherit | Read-only audit of current branch vs `main`: static security review, STRIDE threat model, risky-diff patterns, carwoods-specific regressions (i18n/theme/RTL/providers/routes), WCAG 2.1 AA, performance, spec conformance, test-coverage gaps. Returns a severity-ranked markdown report with a SHIP / SHIP with fixes / DO NOT SHIP recommendation. |
+| `/supervise <spec-path>` | **Supervise** (Autonomous TDD orchestrator) | inherit | Drives the test → implement → validate loop per slice from an approved spec with an **Implementation slices** section. 3-cycle budget per slice, recurrence detector, per-slice status card, blocking preflight at end. Use for medium features instead of manually routing the cycle. |
 
 **Typical flow for a new feature:**
 
@@ -102,6 +103,8 @@ For larger changes in Claude Code, use the four project-scoped subagents defined
 3. `/test docs/portal/specs/add-tenant-payment-history.md` → fills any coverage gaps the implementation didn't write inline.
 4. `/validate` → fix any Blocker/High findings, loop back to `/implement` or `/test` as needed.
 5. Open PR.
+
+**Autonomous variant (specs with an Implementation slices section):** replace steps 2–4 with `/supervise <spec-path>` (e.g. `/supervise docs/portal/specs/<your-spec>.md`) and the supervisor will drive the test → implement → validate loop per slice with budget and recurrence guards, pausing for guidance when needed.
 
 **Bug flow:** `/test "<bug description>"` to reproduce with a failing test → `/implement "fix <bug>"` to fix → `/validate` before PR. Bugs skip `/define`. If a fix changes behavior in a shipped spec, Implement will update that spec's **Spec deltas** section.
 
@@ -115,10 +118,10 @@ For larger changes in Claude Code, use the four project-scoped subagents defined
 
 ### Cursor: same workflow, two mechanisms
 
-Cursor has no direct equivalent to Claude Code subagents, so the 4 phases are provided two ways — pick one or use both:
+Cursor has no direct equivalent to Claude Code subagents, so the 5 phases are provided two ways — pick one or use both:
 
-1. **Manually-invoked rules (committed to repo, zero setup)** — `@phase-define`, `@phase-implement`, `@phase-test`, `@phase-validate` in [`.cursor/.rules/`](./.cursor/.rules). An always-on router rule ([`workflow.mdc`](./.cursor/.rules/workflow.mdc)) handles routing language ("define this", "validate the branch", etc.) and reminds Cursor not to auto-advance between phases. Tool restrictions are advisory — the prompt tells Cursor to stay read-only, but nothing blocks it.
-2. **Custom Modes (real tool enforcement, one-time per-machine setup)** — see [`.cursor/CUSTOM_MODES.md`](./.cursor/CUSTOM_MODES.md) for step-by-step setup of four Cursor Custom Modes (`Define`, `Implement`, `Test`, `Validate`) with per-mode system prompts, models, and tool toggles. These are user-scoped in Cursor's Settings and not committed to the repo, so each collaborator runs the guide once locally. Recommended for at least **Define** and **Validate**, where enforced read-only really matters.
+1. **Manually-invoked rules (committed to repo, zero setup)** — `@phase-define`, `@phase-implement`, `@phase-test`, `@phase-validate`, `@phase-supervise` in [`.cursor/.rules/`](./.cursor/.rules). An always-on router rule ([`workflow.mdc`](./.cursor/.rules/workflow.mdc)) handles routing language ("define this", "validate the branch", "supervise this spec", etc.) and reminds Cursor not to auto-advance between phases. Tool restrictions are advisory — the prompt tells Cursor to stay read-only, but nothing blocks it.
+2. **Custom Modes (real tool enforcement, one-time per-machine setup)** — see [`.cursor/CUSTOM_MODES.md`](./.cursor/CUSTOM_MODES.md) for step-by-step setup of five Cursor Custom Modes (`Define`, `Implement`, `Test`, `Validate`, `Supervise`) with per-mode system prompts, models, and tool toggles. These are user-scoped in Cursor's Settings and not committed to the repo, so each collaborator runs the guide once locally. Recommended for at least **Define** and **Validate**, where enforced read-only really matters; **Supervise** is worth setting up mainly for per-mode model selection (strong reasoning).
 
 Either way, the user routes between phases manually; Cursor does not auto-advance. Bug fixes skip Define.
 

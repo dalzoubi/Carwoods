@@ -2,19 +2,21 @@
 alwaysApply: true
 ---
 
-# Spec-driven 4-phase workflow (routing)
+# Spec-driven 5-phase workflow (routing)
 
-This repo uses a 4-phase workflow mirroring the Claude Code subagents in `.claude/agents/`. For the full instructions of each phase, invoke the matching manually-triggered rule — each one has tight posture, checkpoints, and scope conventions:
+This repo uses a 5-phase workflow mirroring the Claude Code subagents in `.claude/agents/`. For the full instructions of each phase, invoke the matching manually-triggered rule — each one has tight posture, checkpoints, and scope conventions:
 
 - **`@phase-define`** — Planning & Analysis. Q&A one question at a time; produces a spec in `docs/specs/` or `docs/portal/specs/`.
 - **`@phase-implement`** — Implementation & Refactor. Plan + approval + small chunks + checkpoints. Only phase that edits production code.
 - **`@phase-test`** — Test & Quality. Test files only. Failing-test-first for bugs; does not fix production code.
 - **`@phase-validate`** — Review & Risk. Read-only audit vs `main` with severity-ranked report.
+- **`@phase-supervise`** — Autonomous TDD orchestrator. Drives test → implement → validate per slice from an approved spec.
 
 ## Routing rules (always on)
 
-- The user signals which phase to enter by invoking the matching `@phase-*` rule or by saying it in plain language ("define / spec this", "implement / build", "write tests / repro", "review / validate"). If the ask is ambiguous, ask which phase before acting.
+- The user signals which phase to enter by invoking the matching `@phase-*` rule or by saying it in plain language ("define / spec this", "implement / build", "write tests / repro", "review / validate", "supervise / drive the spec"). If the ask is ambiguous, ask which phase before acting.
 - **Do not auto-advance** between phases. When a phase is done, state the next suggested phase and wait for the user to invoke it.
+- For approved specs with an **Implementation slices** section, `@phase-supervise` drives the test → implement → validate loop autonomously across slices, with per-slice budgets and a blocking preflight at the end.
 - Bug fixes skip `@phase-define`. If a fix changes shipped behavior, update the relevant spec's **Spec deltas** section during `@phase-implement`.
 
 ## Guardrails across all phases

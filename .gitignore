@@ -40,3 +40,4 @@ apps/api/node_modules/
 packages/domain/node_modules/
 packages/domain/node_modules/
 .claude/worktrees/
+.claude/state/

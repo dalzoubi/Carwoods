@@ -11,7 +11,14 @@
       "Bash(npx tsc:*)",
       "Bash(xargs wc:*)",
       "Bash(xargs grep:*)",
-      "Bash(node --test test/**/*.test.mjs)"
+      "Bash(node --test test/**/*.test.mjs)",
+      "Bash(git check-ignore *)",
+      "Bash(mkdir -p .claude/state)",
+      "Bash(touch .claude/state/probe.json)",
+      "Bash(rm -rf .claude/state/probe.json)",
+      "Bash(npx eslint *)",
+      "Bash(echo \"EXIT=$?\")",
+      "Read(//tmp/**)"
     ]
   }
 }

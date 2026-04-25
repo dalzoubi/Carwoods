@@ -1,0 +1,236 @@
+---
+alwaysApply: false
+description: Autonomous TDD orchestrator — drives the test → implement → validate loop across the Implementation slices of an approved spec, with per-slice budgets, recurrence detection, and a Quality Bar contract injected into every child phase. Invoke with @phase-supervise.
+---
+
+# Phase: Supervise (Autonomous TDD orchestrator)
+
+You are in **Supervise** mode. You drive the existing `@phase-test` → `@phase-implement` → `@phase-validate` cycle across the **Implementation slices** of an approved spec, one slice at a time, with strict per-slice budgets, recurrence detection, and a Quality Bar contract injected into every child phase.
+
+**Cursor note:** Cursor agents do not invoke other agents the way Claude Code subagents do. Drive the loop yourself by sequentially loading the relevant `@phase-*` rule's posture and rules into your active context for each step (test, then implement, then validate), one slice at a time. Do **not** ask the user to manually re-route between phases mid-loop — the whole point of Supervise is to remove that overhead.
+
+## One-level agent graph
+
+```
+user
+ └─ @phase-supervise (you)
+     ├─ apply @phase-test posture     (per slice; failing test first)
+     ├─ apply @phase-implement posture (per slice; per cycle)
+     └─ apply @phase-validate posture  (per slice; per cycle, read-only)
+```
+
+Child phases never invoke other child phases. You are the only orchestrator.
+
+## Invocation
+
+```
+@phase-supervise <spec-path> [--verbose]
+```
+
+- `<spec-path>` — required. Must resolve to a file under `docs/specs/` or `docs/portal/specs/`.
+- `--verbose` — streams child-phase narration inline. Default mode prints only status cards and single-line progress markers.
+
+### Refusal and recovery
+
+| Condition | Behavior |
+|---|---|
+| No `<spec-path>` argument | Refuse with: `Usage: @phase-supervise <spec-path> [--verbose]`. |
+| Path does not resolve | Refuse with the missing path; no guesswork. |
+| Spec lacks an **Implementation slices** section | Offer: *"This spec has no Implementation slices section. Switch to `@phase-define` in-place to add one?"* On yes, route through Define and resume. On no, exit. |
+| Spec status is `Shipped` | Refuse; ask the user to confirm intent and bump status. |
+| Working tree dirty at start | Run `git status`; ask to proceed / stash / abort. |
+
+## Preconditions
+
+1. Confirm `.claude/state/` is in `.gitignore` (the scratch JSON path lives there to share state with Claude Code's `/supervise`). Refuse if missing.
+2. Read the spec at `<spec-path>`.
+3. If `Status:` is `Shipped`, refuse per the table.
+4. Run `git status`. If dirty, ask the user how to proceed.
+
+## Parsing the spec
+
+1. Locate `## Implementation slices`.
+2. Parse each numbered slice into: `name`, `scope`, `success criteria`, `dependencies`, optional `cycle budget` (default 3).
+3. If the section is empty, follow the refusal-table flow.
+4. If more than 6 slices, warn (context-window risk) and ask whether to proceed or split the spec.
+
+## State management
+
+### TodoWrite-equivalent tracking
+
+Cursor doesn't have TodoWrite, but the bookkeeping is the same: maintain a visible per-slice checklist in chat — one entry per slice in spec order, exactly **one** entry "in progress" at a time, marked complete only when the slice converges and the scoped eslint tripwire passes.
+
+### Scratch JSON (durable, gitignored)
+
+Path: `.claude/state/supervise-<slug>.json` where `<slug>` is the spec filename without extension.
+
+This is the same path Claude Code's `/supervise` writes to, so a run started in either tool can be resumed in the other. The full schema lives in [`.claude/commands/supervise.md`](../../.claude/commands/supervise.md) — **do not duplicate it here**. Read it before writing the file the first time.
+
+### In-context findings ledger
+
+Maintain resolved/deferred findings in chat, but **trim after each slice converges** — keep IDs and one-line summaries only; durable details live in the JSON. This protects context across long features.
+
+## Quality Bar contract (load-bearing — paste verbatim)
+
+You **prepend this exact block** to every child-phase context (test, implement, validate), immediately followed by the slice scope and any cycle-specific instructions. Each child phase must begin by stating which items below apply to the current slice and how it will honor them. If an applicable item cannot be met, the child phase must challenge the slice scope rather than proceed silently.
+
+```
+## Quality Bar (non-negotiable)
+
+Before starting, state which items below apply to this slice and how you will honor them. Challenge the slice scope if any item cannot be met.
+
+COMPONENT REUSE & UI CONSISTENCY
+- Search src/components and src/pages for an existing component before creating one.
+- Reuse MUI primitives + theme tokens, PrintHeader, withDarkPath, applyThemeCssVariables, packages/*.
+- Match established patterns (spacing, radius, focus rings, empty/loading/error states). New patterns need explicit approval in the spec.
+
+LOCALIZATION
+- Every user-visible string (aria-labels, placeholders, validation, toasts, print labels, <title>, meta) goes through useTranslation().
+- Add keys to all four locales simultaneously: en, es, fr, ar. A key in only one locale is a bug.
+- Proper nouns (HAR.com, Section 8) are not translated.
+- Use the split-link pattern (prefix / linkText / suffix) for sentences with inline links.
+- RTL: logical CSS only (margin-inline-start, padding-inline-end, inset-inline-start).
+- No manually formatted dates/numbers/currencies — use Intl.
+
+ACCESSIBILITY (WCAG 2.1 AA)
+- Semantic HTML first; headings in order; landmarks present.
+- Every input labeled; icon-only buttons have aria-label; meaningful alt or alt="".
+- Keyboard reachable; visible focus ring; Escape closes dialogs.
+- Contrast ~4.5:1 normal / 3:1 large, verified in light and dark.
+- Respect prefers-reduced-motion. Live regions for async status.
+
+PRIVACY
+- Data minimization. No PII in logs, error messages, analytics, URLs, or client-side storage unless spec authorizes it.
+- Consent required for new tracking/analytics/third-party embeds.
+- No secrets in client code. Portal secrets via Azure App Settings.
+- Every new apps/api route has an auth guard and ownership check on record-scoped queries.
+- Document retention/deletion for new user-linked data. Audit print/CSV/PDF exports for PII.
+
+ERROR HANDLING & LOGGING
+- Never surface raw errors to users. Generic, translated, actionable message via useTranslation(), keys in all four locales.
+- Reuse existing toast/inline/empty-state error surfaces. Preserve user input on destructive-action failure.
+- Correlation IDs only; never raw error bodies. role="alert" for blocking, polite live region otherwise. aria-describedby for field errors.
+- Server-side: log real error with context (request ID, route, user ID, operation) via existing logger, never PII/secrets. Right log level. API responses return stable {code, message, correlationId?} — never stack traces or DB strings.
+- Don't swallow errors silently.
+```
+
+## Loop semantics
+
+### Per-slice budget
+
+- Max **3** implement→validate cycles per slice. One cycle = one implement pass + one validate pass.
+- The initial test pass (failing test) sits **outside** cycle 1 and does not consume budget.
+- Only **Blocker** and **Major** validate findings trigger a retry.
+- **Minor** and **Nit** findings go to the slice's `findingsDeferred` list and surface on the closing card. They do not retry.
+
+### Recurrence detector
+
+- After each validate pass, compare new Blocker/Major IDs to the previous cycle's findings **in the same slice**.
+- If any ID repeats two cycles in a row, **pause the slice immediately** — do not burn cycle 3. Print the pause card naming the recurring ID(s) and ask the user for guidance.
+- On resume, the recurrence counter resets and the cycle 3 budget is intact.
+
+### Soft cap
+
+- **2 consecutive paused slices** → halt and ask the user to re-scope. Print a re-scope card with all open findings and suggest `@phase-define` to amend the spec.
+
+### End-of-slice tripwire
+
+- After a slice converges, run `npx eslint <touched-files>` scoped to the slice's files. Non-zero exit = remediation sub-cycle within the same slice (counts against the 3-cycle budget).
+- Do **not** run a full `npm run build` or `npx vitest run` mid-feature — too expensive per slice.
+
+### End-of-feature preflight (blocking)
+
+- After all slices converge, run the preflight steps inline: `npx eslint src/` + `npx vitest run` + `npm run build`. **Blocking.** (Cursor has no `/preflight` command; the underlying steps are the contract.)
+- **Maintainer note:** source of truth is `.claude/commands/preflight.md` — if its checks change, mirror them here.
+- Failure spawns a synthetic remediation slice with a fresh 3-cycle budget. If that also fails to converge, pause with a re-scope ask.
+
+## Status card templates
+
+### Opening card (printed once, before slice 1)
+
+```markdown
+### @phase-supervise — opening
+
+- Spec: `<spec-path>`
+- Slices parsed: <n>
+    1. `<slice-name>` — <one-line scope>
+    2. ...
+- Total budget: <n> slices × 3 cycles
+- State file: `.claude/state/supervise-<slug>.json`
+- Mode: <default | verbose>
+```
+
+### Per-slice card (printed when a slice converges)
+
+```markdown
+### Slice: <slice-name>  ·  <status>
+
+- Cycles used: <n> / 3
+- Findings resolved: <count> (<Blocker/Major breakdown>)
+- Findings deferred (Minor/Nit): <count>
+    - `<finding-id>` — <one-line summary>
+- Files touched:
+    - <repo-relative path>
+- Loop-budget accounting: <cycles-used> consumed, <cycles-remaining> remaining
+- Next: <next-slice-name> | (all slices complete, running preflight)
+```
+
+### Pause card
+
+```markdown
+### Slice paused: <slice-name>  ·  reason: <recurrence | budget-exhausted>
+
+- Cycle: <n> / 3
+- Recurring / unresolved findings:
+    - `<finding-id>` (<severity>) — <verbatim summary>
+- State written: `.claude/state/supervise-<slug>.json`
+
+**Amend the slice, provide guidance, or abort?**
+```
+
+### Closing card (after preflight)
+
+```markdown
+### @phase-supervise — closing
+
+- Total cycles across all slices: <n>
+- Findings resolved by severity:
+    - Blocker: <n>
+    - Major: <n>
+- Findings deferred (Minor/Nit) — listed verbatim:
+    - `<finding-id>` (<severity>, slice `<slice-name>`) — <summary>
+- All files touched:
+    - <path>
+- Preflight: <green | failed → remediation slice spawned>
+- <next-step sentence, e.g. "Preflight green. Ready for PR.">
+```
+
+## Abort and resume
+
+- **Pause between slices**: user types `pause` / `stop` / `abort` in chat. Acknowledge, write latest state to scratch JSON, do not start the next slice.
+- **Pause mid-slice (user interrupt)**: on resume, read scratch JSON, run `git status`, ask: *"You have in-progress changes from slice `<name>` (cycle `<n>`). Discard and retry the slice, or keep for manual review and skip to the next?"* No silent continuation.
+- **Resume**: re-running `@phase-supervise <same-spec-path>` detects the scratch JSON and offers: *"Previous run paused at slice `<name>` (cycle `<n>`). Resume, restart, or abandon?"*
+- **Abandon**: delete the scratch JSON; user drives manually from there.
+- **Hard failure**: treated as a paused slice; ask the user to intervene.
+
+## Verbose vs default mode
+
+- **Default**: opening card, single-line progress markers (`→ entering implement (cycle 2)`), per-slice cards on convergence, pause cards, closing card. Child-phase narration suppressed.
+- **Verbose**: stream child-phase narration inline alongside cards/markers.
+
+## TDD edge case: non-code slices
+
+A slice composed purely of non-testable changes (e.g. a few i18n keys with no logic) may have no meaningful failing test. In that case, explicitly state *"no meaningful test possible for this slice"* in the test step and proceed to implement. Validate then enforces the Quality Bar (locale-key parity, etc.) instead. Do **not** synthesize trivial tests just to satisfy TDD.
+
+## What Supervise never does
+
+- **Never auto-edit the spec.** If amending mid-run, route through `@phase-define` and get user approval. Supervise itself only writes the scratch JSON.
+- **Never run `npm run build` mid-feature.** Build runs only once, in the end-of-feature preflight.
+- **Never auto-open a PR.** Stop at *"ready for PR"*; the user opens it.
+- **No parallel slices.** Strictly sequential.
+- **No cross-session persistence.** Scratch JSON is session-scoped. On a stale file, prompt resume / restart / abandon.
+- **No new phase rules.** Reuse `@phase-test`, `@phase-implement`, `@phase-validate` as-is.
+
+## Handoff
+
+After the closing card, tell the user the next step (typically *"Preflight green. Ready for PR."* or *"Preflight failed — remediation slice paused; review and decide."*). Do not auto-advance and do not open the PR.
