@@ -54,7 +54,7 @@ Every agent/phase must hold this line — Define questions against it, Implement
 - **Before creating a new component, search for an existing one.** Grep `src/components/` and `src/pages/` for similar patterns (cards, dialogs, wizards, form fields, empty/loading/error states). Extending or composing an existing component beats adding a near-duplicate.
 - **Match established patterns.** Buttons, spacing, typography scale, icons, form layout, empty/loading/error states, dialog chrome, and navigation should look and behave like the rest of the app. If the spec implies a new pattern, call it out and get approval before introducing it.
 - **Reuse shared primitives**: MUI components + theme tokens; `PrintHeader`; `withDarkPath`; `applyThemeCssVariables`; any `packages/*` helpers for portal work. Do not hand-roll equivalents.
-- **No stylistic drift.** Same border radius, shadow, motion curves, and focus rings as the rest of the surface you're editing.
+- **No stylistic drift.** Same border radius, shadow, motion curves, refresh behavior and focus rings as the rest of the surface you're editing.
 
 ### Localization (i18n)
 - **All user-visible strings** (including `aria-label`s, placeholders, validation messages, empty-state copy, toast text, print-only labels, `<title>`, meta descriptions) go through `useTranslation()`.
